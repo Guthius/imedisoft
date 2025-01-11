@@ -30,9 +30,6 @@ namespace OpenDentBusiness {
 			loadData.TablePatients=Appointments.GetPatTable(appointment.PatNum.ToString(),appointment);
 			loadData.ListClaimProcs=ClaimProcs.RefreshForProcs(loadData.ListProceduresForAppointment.Select(x => x.ProcNum).ToList());
 			loadData.ListAdjustments=Adjustments.GetForProcs(loadData.ListProceduresForAppointment.Select(x => x.ProcNum).ToList());
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-				loadData.ListReqStudents=ReqStudents.GetForAppt(appointment.AptNum);
-			}
 			return loadData;
 		}
 
@@ -109,7 +106,6 @@ namespace OpenDentBusiness {
 			public List<LabCase> ListLabCases;
 			[XmlIgnore]
 			public DataTable TablePatients;
-			public List<ReqStudent> ListReqStudents;
 			public List<ClaimProc> ListClaimProcs;
 			public List<Adjustment> ListAdjustments;
 

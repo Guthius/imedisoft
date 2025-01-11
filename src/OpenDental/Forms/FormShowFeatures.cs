@@ -30,7 +30,7 @@ namespace OpenDental{
 			checkCapitation.Checked=!PrefC.GetBool(PrefName.EasyHideCapitation);
 			checkMedicaid.Checked=!PrefC.GetBool(PrefName.EasyHideMedicaid);
 			checkPublicHealth.Checked=!PrefC.GetBool(PrefName.EasyHidePublicHealth);
-			checkDentalSchools.Checked=!PrefC.GetBool(PrefName.EasyHideDentalSchools);
+			checkDentalSchools.Checked=!true;
 			checkHospitals.Checked=!PrefC.GetBool(PrefName.EasyHideHospitals);
 			checkInsurance.Checked=!PrefC.GetBool(PrefName.EasyHideInsurance);
 			checkClinical.Checked=!PrefC.GetBool(PrefName.EasyHideClinical);

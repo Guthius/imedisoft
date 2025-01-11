@@ -64,8 +64,6 @@
 			this.label9 = new System.Windows.Forms.Label();
 			this.butColorClear = new OpenDental.UI.Button();
 			this.butColor = new System.Windows.Forms.Button();
-			this.textRequirement = new System.Windows.Forms.TextBox();
-			this.butRequirement = new OpenDental.UI.Button();
 			this.butInsPlan2 = new OpenDental.UI.Button();
 			this.butInsPlan1 = new OpenDental.UI.Button();
 			this.textInsPlan2 = new System.Windows.Forms.TextBox();
@@ -350,8 +348,6 @@
 			this.panel1.Controls.Add(this.label9);
 			this.panel1.Controls.Add(this.butColorClear);
 			this.panel1.Controls.Add(this.butColor);
-			this.panel1.Controls.Add(this.textRequirement);
-			this.panel1.Controls.Add(this.butRequirement);
 			this.panel1.Controls.Add(this.butInsPlan2);
 			this.panel1.Controls.Add(this.butInsPlan1);
 			this.panel1.Controls.Add(this.textInsPlan2);
@@ -474,25 +470,6 @@
 			this.butColor.Size = new System.Drawing.Size(21, 19);
 			this.butColor.TabIndex = 177;
 			this.butColor.Click += new System.EventHandler(this.butColor_Click);
-			// 
-			// textRequirement
-			// 
-			this.textRequirement.Location = new System.Drawing.Point(54, 432);
-			this.textRequirement.Multiline = true;
-			this.textRequirement.Name = "textRequirement";
-			this.textRequirement.ReadOnly = true;
-			this.textRequirement.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.textRequirement.Size = new System.Drawing.Size(177, 53);
-			this.textRequirement.TabIndex = 164;
-			// 
-			// butRequirement
-			// 
-			this.butRequirement.Location = new System.Drawing.Point(6, 432);
-			this.butRequirement.Name = "butRequirement";
-			this.butRequirement.Size = new System.Drawing.Size(46, 20);
-			this.butRequirement.TabIndex = 163;
-			this.butRequirement.Text = "Req";
-			this.butRequirement.Click += new System.EventHandler(this.butRequirement_Click);
 			// 
 			// butInsPlan2
 			// 
@@ -968,8 +945,6 @@
 		private OpenDental.UI.Button butPDF;
 		private OpenDental.UI.ListBox listQuickAdd;
 		private System.Windows.Forms.Panel panel1;
-		private System.Windows.Forms.TextBox textRequirement;
-		private UI.Button butRequirement;
 		private UI.Button butInsPlan2;
 		private UI.Button butInsPlan1;
 		private System.Windows.Forms.TextBox textInsPlan2;

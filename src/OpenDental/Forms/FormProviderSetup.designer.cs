@@ -26,19 +26,6 @@ namespace OpenDental {
 			this.butDown = new OpenDental.UI.Button();
 			this.butUp = new OpenDental.UI.Button();
 			this.butAdd = new OpenDental.UI.Button();
-			this.groupDentalSchools = new OpenDental.UI.GroupBox();
-			this.label8 = new System.Windows.Forms.Label();
-			this.label7 = new System.Windows.Forms.Label();
-			this.textProvNum = new System.Windows.Forms.TextBox();
-			this.label6 = new System.Windows.Forms.Label();
-			this.textFirstName = new System.Windows.Forms.TextBox();
-			this.label4 = new System.Windows.Forms.Label();
-			this.textLastName = new System.Windows.Forms.TextBox();
-			this.radioInstructors = new System.Windows.Forms.RadioButton();
-			this.radioStudents = new System.Windows.Forms.RadioButton();
-			this.radioAll = new System.Windows.Forms.RadioButton();
-			this.comboClass = new OpenDental.UI.ComboBox();
-			this.label1 = new System.Windows.Forms.Label();
 			this.butCreateUsers = new OpenDental.UI.Button();
 			this.groupCreateUsers = new OpenDental.UI.GroupBox();
 			this.comboUserGroup = new OpenDental.UI.ComboBox();
@@ -52,7 +39,6 @@ namespace OpenDental {
 			this.label2 = new System.Windows.Forms.Label();
 			this.butMovePri = new OpenDental.UI.Button();
 			this.gridMain = new OpenDental.UI.GridOD();
-			this.butStudBulkEdit = new OpenDental.UI.Button();
 			this.checkShowDeleted = new OpenDental.UI.CheckBox();
 			this.groupBox1 = new OpenDental.UI.GroupBox();
 			this.butAlphabetize = new OpenDental.UI.Button();
@@ -60,7 +46,6 @@ namespace OpenDental {
 			this.checkShowPatientCount = new OpenDental.UI.CheckBox();
 			this.labelSearch = new System.Windows.Forms.Label();
 			this.textSearch = new System.Windows.Forms.TextBox();
-			this.groupDentalSchools.SuspendLayout();
 			this.groupCreateUsers.SuspendLayout();
 			this.groupMovePats.SuspendLayout();
 			this.groupBox1.SuspendLayout();
@@ -102,144 +87,6 @@ namespace OpenDental {
 			this.butAdd.TabIndex = 6;
 			this.butAdd.Text = "&Add";
 			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
-			// 
-			// groupDentalSchools
-			// 
-			this.groupDentalSchools.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.groupDentalSchools.Controls.Add(this.label8);
-			this.groupDentalSchools.Controls.Add(this.label7);
-			this.groupDentalSchools.Controls.Add(this.textProvNum);
-			this.groupDentalSchools.Controls.Add(this.label6);
-			this.groupDentalSchools.Controls.Add(this.textFirstName);
-			this.groupDentalSchools.Controls.Add(this.label4);
-			this.groupDentalSchools.Controls.Add(this.textLastName);
-			this.groupDentalSchools.Controls.Add(this.radioInstructors);
-			this.groupDentalSchools.Controls.Add(this.radioStudents);
-			this.groupDentalSchools.Controls.Add(this.radioAll);
-			this.groupDentalSchools.Controls.Add(this.comboClass);
-			this.groupDentalSchools.Controls.Add(this.label1);
-			this.groupDentalSchools.Location = new System.Drawing.Point(703, 12);
-			this.groupDentalSchools.Name = "groupDentalSchools";
-			this.groupDentalSchools.Size = new System.Drawing.Size(273, 174);
-			this.groupDentalSchools.TabIndex = 1;
-			this.groupDentalSchools.Text = "Dental Schools Search by:";
-			// 
-			// label8
-			// 
-			this.label8.Location = new System.Drawing.Point(116, 48);
-			this.label8.Name = "label8";
-			this.label8.Size = new System.Drawing.Size(148, 50);
-			this.label8.TabIndex = 26;
-			this.label8.Text = "These selections will also affect the functionality of the Add button.";
-			// 
-			// label7
-			// 
-			this.label7.Location = new System.Drawing.Point(8, 146);
-			this.label7.Name = "label7";
-			this.label7.Size = new System.Drawing.Size(90, 18);
-			this.label7.TabIndex = 25;
-			this.label7.Text = "ProvNum";
-			this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// textProvNum
-			// 
-			this.textProvNum.Location = new System.Drawing.Point(98, 145);
-			this.textProvNum.MaxLength = 15;
-			this.textProvNum.Name = "textProvNum";
-			this.textProvNum.Size = new System.Drawing.Size(166, 20);
-			this.textProvNum.TabIndex = 6;
-			this.textProvNum.TextChanged += new System.EventHandler(this.textProvNum_TextChanged);
-			// 
-			// label6
-			// 
-			this.label6.Location = new System.Drawing.Point(8, 124);
-			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(90, 18);
-			this.label6.TabIndex = 23;
-			this.label6.Text = "First Name";
-			this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// textFirstName
-			// 
-			this.textFirstName.Location = new System.Drawing.Point(98, 123);
-			this.textFirstName.MaxLength = 15;
-			this.textFirstName.Name = "textFirstName";
-			this.textFirstName.Size = new System.Drawing.Size(166, 20);
-			this.textFirstName.TabIndex = 5;
-			this.textFirstName.TextChanged += new System.EventHandler(this.textFirstName_TextChanged);
-			// 
-			// label4
-			// 
-			this.label4.Location = new System.Drawing.Point(8, 102);
-			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(90, 18);
-			this.label4.TabIndex = 21;
-			this.label4.Text = "Last Name";
-			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// textLastName
-			// 
-			this.textLastName.Location = new System.Drawing.Point(98, 101);
-			this.textLastName.MaxLength = 15;
-			this.textLastName.Name = "textLastName";
-			this.textLastName.Size = new System.Drawing.Size(166, 20);
-			this.textLastName.TabIndex = 4;
-			this.textLastName.TextChanged += new System.EventHandler(this.textLastName_TextChanged);
-			// 
-			// radioInstructors
-			// 
-			this.radioInstructors.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.radioInstructors.Location = new System.Drawing.Point(6, 80);
-			this.radioInstructors.Name = "radioInstructors";
-			this.radioInstructors.Size = new System.Drawing.Size(104, 18);
-			this.radioInstructors.TabIndex = 3;
-			this.radioInstructors.Text = "Instructors";
-			this.radioInstructors.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.radioInstructors.UseVisualStyleBackColor = true;
-			this.radioInstructors.Click += new System.EventHandler(this.radioInstructors_Click);
-			// 
-			// radioStudents
-			// 
-			this.radioStudents.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.radioStudents.Location = new System.Drawing.Point(6, 63);
-			this.radioStudents.Name = "radioStudents";
-			this.radioStudents.Size = new System.Drawing.Size(104, 18);
-			this.radioStudents.TabIndex = 2;
-			this.radioStudents.Text = "Students";
-			this.radioStudents.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.radioStudents.UseVisualStyleBackColor = true;
-			this.radioStudents.Click += new System.EventHandler(this.radioStudents_Click);
-			// 
-			// radioAll
-			// 
-			this.radioAll.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.radioAll.Checked = true;
-			this.radioAll.Location = new System.Drawing.Point(6, 46);
-			this.radioAll.Name = "radioAll";
-			this.radioAll.Size = new System.Drawing.Size(104, 18);
-			this.radioAll.TabIndex = 1;
-			this.radioAll.TabStop = true;
-			this.radioAll.Text = "All";
-			this.radioAll.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.radioAll.UseVisualStyleBackColor = true;
-			this.radioAll.Click += new System.EventHandler(this.radioAll_Click);
-			// 
-			// comboClass
-			// 
-			this.comboClass.Location = new System.Drawing.Point(98, 19);
-			this.comboClass.Name = "comboClass";
-			this.comboClass.Size = new System.Drawing.Size(166, 21);
-			this.comboClass.TabIndex = 0;
-			this.comboClass.SelectionChangeCommitted += new System.EventHandler(this.comboClass_SelectionChangeCommitted);
-			// 
-			// label1
-			// 
-			this.label1.Location = new System.Drawing.Point(7, 20);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(90, 18);
-			this.label1.TabIndex = 16;
-			this.label1.Text = "Classes";
-			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// butCreateUsers
 			// 
@@ -381,17 +228,6 @@ namespace OpenDental {
 			this.gridMain.TranslationName = "TableProviderSetup";
 			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
 			// 
-			// butStudBulkEdit
-			// 
-			this.butStudBulkEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butStudBulkEdit.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butStudBulkEdit.Location = new System.Drawing.Point(865, 554);
-			this.butStudBulkEdit.Name = "butStudBulkEdit";
-			this.butStudBulkEdit.Size = new System.Drawing.Size(102, 24);
-			this.butStudBulkEdit.TabIndex = 7;
-			this.butStudBulkEdit.Text = "Student Bulk Edit";
-			this.butStudBulkEdit.Click += new System.EventHandler(this.butStudBulkEdit_Click);
-			// 
 			// checkShowDeleted
 			// 
 			this.checkShowDeleted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -475,11 +311,9 @@ namespace OpenDental {
 			this.Controls.Add(this.checkShowHidden);
 			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.checkShowDeleted);
-			this.Controls.Add(this.butStudBulkEdit);
 			this.Controls.Add(this.groupMovePats);
 			this.Controls.Add(this.groupCreateUsers);
 			this.Controls.Add(this.butAdd);
-			this.Controls.Add(this.groupDentalSchools);
 			this.Controls.Add(this.gridMain);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
@@ -490,8 +324,6 @@ namespace OpenDental {
 			this.Closing += new System.ComponentModel.CancelEventHandler(this.FormProviderSelect_Closing);
 			this.Load += new System.EventHandler(this.FormProviderSetup_Load);
 			this.Shown += new System.EventHandler(this.FormProviderSetup_Shown);
-			this.groupDentalSchools.ResumeLayout(false);
-			this.groupDentalSchools.PerformLayout();
 			this.groupCreateUsers.ResumeLayout(false);
 			this.groupMovePats.ResumeLayout(false);
 			this.groupMovePats.PerformLayout();
@@ -505,9 +337,6 @@ namespace OpenDental {
 		private OpenDental.UI.Button butUp;
 		private OpenDental.UI.Button butAdd;
 		private OpenDental.UI.GridOD gridMain;
-		private OpenDental.UI.GroupBox groupDentalSchools;
-		private OpenDental.UI.ComboBox comboClass;
-		private Label label1;
 		private OpenDental.UI.Button butCreateUsers;
 		private OpenDental.UI.GroupBox groupCreateUsers;
 		private Label label3;
@@ -516,19 +345,8 @@ namespace OpenDental {
 		private UI.Button butMovePri;
 		private UI.Button butReassign;
 		private Label labelReassign;
-		private RadioButton radioInstructors;
-		private RadioButton radioStudents;
-		private RadioButton radioAll;
-		private Label label4;
-		private TextBox textLastName;
 		private UI.Button butProvPick;
 		private TextBox textMoveTo;
-		private Label label7;
-		private TextBox textProvNum;
-		private Label label6;
-		private TextBox textFirstName;
-		private UI.Button butStudBulkEdit;
-		private Label label8;
 		private UI.Button butMoveSec;
 		private OpenDental.UI.CheckBox checkShowDeleted;
 		private OpenDental.UI.GroupBox groupBox1;

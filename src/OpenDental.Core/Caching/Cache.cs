@@ -141,14 +141,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Defs);
             ds.Tables.Add(Defs.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.DentalSchools) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.DentalSchools);
-            ds.Tables.Add(SchoolClasses.GetTableFromCache(doRefreshServerCache));
-            ds.Tables.Add(SchoolCourses.GetTableFromCache(doRefreshServerCache));
-        }
-
+        
         if (listITypes.Contains(InvalidType.DictCustoms) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.DictCustoms);
@@ -667,14 +660,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Defs);
             Defs.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.DentalSchools) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.DentalSchools);
-            SchoolClasses.ClearCache();
-            SchoolCourses.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.DictCustoms) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.DictCustoms);

@@ -1341,14 +1341,6 @@ namespace OpenDental{
 				}
 				//See other solution @3401 for past commented out code.
 				moduleBar.RefreshButtons();
-				if(PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-					_menuItemDentalSchoolClass.Available=false;
-					_menuItemDentalSchoolCourses.Available=false;
-					_menuItemDentalSchools.Available=false;
-					_menuItemRequirementsNeeded.Available=false;
-					_menuItemStudentRequirements.Available=false;
-					_menuItemEvaluations.Available=false;
-				}
 				if(PrefC.GetBool(PrefName.EasyHideRepeatCharges)) {
 					_menuItemRepeatingCharges.Available=false;
 				}
@@ -4436,16 +4428,6 @@ namespace OpenDental{
 			SecurityLogs.MakeLogEntry(EnumPermType.DefEdit,0,"Definitions");
 		}
 
-		private void menuItemDentalSchools_Click(object sender,EventArgs e) {
-			if(!Security.IsAuthorized(EnumPermType.Setup)) {
-				return;
-			}
-			using FormDentalSchoolSetup formDentalSchoolSetup=new FormDentalSchoolSetup();
-			formDentalSchoolSetup.ShowDialog();
-			RefreshCurrentModule();
-			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Dental Schools");
-		}
-
 		private void menuItemDisplayFields_Click(object sender,EventArgs e) {
 			if(!Security.IsAuthorized(EnumPermType.Setup)) {
 				return;
@@ -4824,15 +4806,6 @@ namespace OpenDental{
 			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Required Fields");
 		}
 
-		private void menuItemRequirementsNeeded_Click(object sender,EventArgs e) {
-			if(!Security.IsAuthorized(EnumPermType.Setup)) {
-				return;
-			}
-			using FormReqNeededs formReqNeededs=new FormReqNeededs();
-			formReqNeededs.ShowDialog();
-			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Requirements Needed");
-		}
-
 		private void menuItemSched_Click(object sender,EventArgs e) {
 			//anyone should be able to view. Security must be inside schedule window.
 			//if(!Security.IsAuthorized(Permissions.Schedules)) {
@@ -5053,24 +5026,6 @@ namespace OpenDental{
 			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Counties");
 		}
 
-		private void menuItemSchoolClass_Click(object sender, System.EventArgs e) {
-			if(!Security.IsAuthorized(EnumPermType.Setup)){
-				return;
-			}
-			using FormSchoolClasses formSchoolClasses=new FormSchoolClasses();
-			formSchoolClasses.ShowDialog();
-			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Dental School Classes");
-		}
-
-		private void menuItemSchoolCourses_Click(object sender, System.EventArgs e) {
-			if(!Security.IsAuthorized(EnumPermType.Setup)){
-				return;
-			}
-			using FormSchoolCourses formSchoolCourses=new FormSchoolCourses();
-			formSchoolCourses.ShowDialog();
-			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Dental School Courses");
-		}
-
 		private void menuItemEmployees_Click(object sender, System.EventArgs e) {
 			if(!Security.IsAuthorized(EnumPermType.Setup)){
 				return;
@@ -5134,7 +5089,7 @@ namespace OpenDental{
 				&&!Security.IsAuthorized(EnumPermType.ProviderEdit,suppressMessage:true)
 				&&!Security.IsAuthorized(EnumPermType.ProviderAlphabetize,suppressMessage:true)) {
 				//If none of the provider related permissions are true and Dental Schools is turned on, check Dental School related permissions.
-				if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
+				if(!true) {
 					if(!Security.IsAuthorized(EnumPermType.AdminDentalInstructors,suppressMessage:true)
 						&&!Security.IsAuthorized(EnumPermType.AdminDentalStudents,suppressMessage:true)) {
 						//If none of the provider related permissions are true and Dental Schools is turned on, display a single message.
@@ -5708,27 +5663,6 @@ namespace OpenDental{
 			}
 		}
 
-		private void menuItemDispensary_Click(object sender,System.EventArgs e) {
-			using FormDispensary formDispensary=new FormDispensary();
-			formDispensary.ShowDialog();
-		}
-
-		private void menuItemEvaluations_Click(object sender,EventArgs e) {
-			bool isAllowed;
-			if(Security.CurUser.ProvNum==0) {
-				isAllowed=Security.IsAuthorized(EnumPermType.AdminDentalEvaluations,true);
-			}
-			else {
-				isAllowed=Providers.GetProv(Security.CurUser.ProvNum).IsInstructor || Security.IsAuthorized(EnumPermType.AdminDentalEvaluations,true);
-			}
-			if(!isAllowed){
-				MsgBox.Show(this,$"Only users with the {EnumPermType.AdminDentalEvaluations.GetDescription()} permission or Instructors may view or edit evaluations.");
-				return;
-			}
-			using FormEvaluations formEvaluations=new FormEvaluations();
-			formEvaluations.ShowDialog();
-		}
-
 		private void menuItemTerminal_Click(object sender,EventArgs e) {
 			if(PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)==0) {
 				MsgBox.Show(this,"Cannot open terminal unless process signal interval is set. To set it, go to Setup > Miscellaneous.");
@@ -5792,25 +5726,6 @@ namespace OpenDental{
 		private void menuItemScreening_Click(object sender,System.EventArgs e) {
 			using FormScreenGroups formScreenGroups=new FormScreenGroups();
 			formScreenGroups.ShowDialog();
-		}
-
-		private void menuItemReqStudents_Click(object sender,EventArgs e) {
-			Provider provider=Providers.GetProv(Security.CurUser.ProvNum);
-			if(provider==null) {
-				MsgBox.Show(this,"The current user is not attached to a provider. Attach the user to a provider to gain access to this feature.");
-				return;
-			}
-			if(!provider.IsInstructor){//if a student is logged in
-				//the student always has permission to view their own requirements
-				using FormReqStudentOne formReqStudentOne=new FormReqStudentOne();
-				formReqStudentOne.ProvNum=provider.ProvNum;
-				formReqStudentOne.ShowDialog();
-				return;
-			}
-			if(provider.IsInstructor) {
-				using FormReqStudentsMany formReqStudentsMany=new FormReqStudentsMany();
-				formReqStudentsMany.ShowDialog();
-			}
 		}
 
 		private void menuItemWebForms_Click(object sender,EventArgs e) {

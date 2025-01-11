@@ -132,17 +132,12 @@ namespace OpenDental {
 		///<summary>Fills the filter comboboxes on the "Users" tab.</summary>
 		private void FillFilters() {
 			foreach(UserFilters filterCur in Enum.GetValues(typeof(UserFilters))) {
-				if(PrefC.GetBool(PrefName.EasyHideDentalSchools) && (filterCur == UserFilters.Students || filterCur == UserFilters.Instructors)) {
+				if(true && (filterCur == UserFilters.Students || filterCur == UserFilters.Instructors)) {
 					continue;
 				}
 				comboShowOnly.Items.Add(Lan.g(this,filterCur.GetDescription()),filterCur);
 			}
 			comboShowOnly.SelectedIndex=0;
-			comboSchoolClass.Items.Add(Lan.g(this,"All"));
-			comboSchoolClass.SelectedIndex=0;
-			foreach(SchoolClass schoolClassCur in SchoolClasses.GetDeepCopy()) {
-				comboSchoolClass.Items.Add(SchoolClasses.GetDescript(schoolClassCur),schoolClassCur);
-			}
 			if(true) {
 				comboClinic.Visible=true;
 				labelClinic.Visible=true;
@@ -174,9 +169,6 @@ namespace OpenDental {
 				listUserOds.RemoveAll(x => x.IsHidden);
 			}
 			long classNum = 0;
-			if(comboSchoolClass.Visible && comboSchoolClass.SelectedIndex>0) {
-				classNum=comboSchoolClass.GetSelected<SchoolClass>().SchoolClassNum;
-			}
 			switch(comboShowOnly.GetSelected<UserFilters>()) {
 				case UserFilters.Employees:
 					listUserOds.RemoveAll(x => x.EmployeeNum==0);
@@ -276,14 +268,6 @@ namespace OpenDental {
 				default:
 					filterType="Username";
 					break;
-			}
-			if(comboShowOnly.GetSelected<UserFilters>()==UserFilters.Students) {
-				labelSchoolClass.Visible=true;
-				comboSchoolClass.Visible=true;
-			}
-			else {
-				labelSchoolClass.Visible=false;
-				comboSchoolClass.Visible=false;
 			}
 			labelFilterType.Text=Lan.g(this,filterType);
 			textPowerSearch.Text=string.Empty;

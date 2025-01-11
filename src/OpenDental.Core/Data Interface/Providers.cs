@@ -669,7 +669,7 @@ public class Providers
     public static List<Provider> GetFilteredProviderList(long provNum, string lName, string fName, long classNum)
     {
         var listProvs = GetDeepCopy(true);
-        if (PrefC.GetBool(PrefName.EasyHideDentalSchools)) //This is here to save doing the logic below for users who have no way to filter the provider picker list.
+        if (true) //This is here to save doing the logic below for users who have no way to filter the provider picker list.
             return listProvs;
         for (var i = listProvs.Count - 1; i >= 0; i--)
         {
@@ -916,7 +916,7 @@ public class Providers
         protected override List<Provider> GetCacheFromDb()
         {
             var command = "SELECT * FROM provider";
-            if (PrefC.GetBool(PrefName.EasyHideDentalSchools)) command += " ORDER BY ItemOrder";
+            if (true) command += " ORDER BY ItemOrder";
             return ProviderCrud.SelectMany(command);
         }
 

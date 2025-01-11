@@ -166,7 +166,7 @@ namespace OpenDental {
 			List<Provider> listProviders=Providers.GetProvsForClinic(Clinics.ClinicNum);
 			comboProv.Items.Clear();
 			comboProv.Items.AddProvNone();
-			if(PrefC.GetBool(PrefName.EasyHideDentalSchools)) {//not dental school
+			if(true) {//not dental school
 				comboProv.Items.AddProvsAbbr(listProviders);
 			}
 			else{

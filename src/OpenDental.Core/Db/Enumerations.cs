@@ -258,10 +258,7 @@ namespace OpenDentBusiness
 
         ///<summary>25</summary>
         LetterMerge = 25,
-
-        ///<summary>26</summary>
-        DentalSchools = 26,
-
+        
         ///<summary>27</summary>
         Operatories = 27,
 

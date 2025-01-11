@@ -44,8 +44,6 @@
 			this.labelClinic = new System.Windows.Forms.Label();
 			this.comboGroups = new OpenDental.UI.ComboBox();
 			this.labelPermission = new System.Windows.Forms.Label();
-			this.comboSchoolClass = new OpenDental.UI.ComboBox();
-			this.labelSchoolClass = new System.Windows.Forms.Label();
 			this.labelPerm = new System.Windows.Forms.Label();
 			this.tabPageUserGroups = new OpenDental.UI.TabPage();
 			this.butSetNone = new OpenDental.UI.Button();
@@ -205,8 +203,6 @@
 			this.groupBox2.Controls.Add(this.labelClinic);
 			this.groupBox2.Controls.Add(this.comboGroups);
 			this.groupBox2.Controls.Add(this.labelPermission);
-			this.groupBox2.Controls.Add(this.comboSchoolClass);
-			this.groupBox2.Controls.Add(this.labelSchoolClass);
 			this.groupBox2.Location = new System.Drawing.Point(6, 6);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(410, 94);
@@ -294,25 +290,6 @@
 			this.labelPermission.TabIndex = 246;
 			this.labelPermission.Text = "Group";
 			this.labelPermission.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			// 
-			// comboSchoolClass
-			// 
-			this.comboSchoolClass.Location = new System.Drawing.Point(143, 67);
-			this.comboSchoolClass.Name = "comboSchoolClass";
-			this.comboSchoolClass.Size = new System.Drawing.Size(118, 21);
-			this.comboSchoolClass.TabIndex = 2;
-			this.comboSchoolClass.Visible = false;
-			this.comboSchoolClass.SelectionChangeCommitted += new System.EventHandler(this.Filter_Changed);
-			// 
-			// labelSchoolClass
-			// 
-			this.labelSchoolClass.Location = new System.Drawing.Point(140, 51);
-			this.labelSchoolClass.Name = "labelSchoolClass";
-			this.labelSchoolClass.Size = new System.Drawing.Size(115, 15);
-			this.labelSchoolClass.TabIndex = 91;
-			this.labelSchoolClass.Text = "Class";
-			this.labelSchoolClass.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.labelSchoolClass.Visible = false;
 			// 
 			// labelPerm
 			// 
@@ -521,8 +498,6 @@
 		private System.Windows.Forms.Label labelClinic;
 		private UI.ComboBox comboGroups;
 		private System.Windows.Forms.Label labelPermission;
-		private UI.ComboBox comboSchoolClass;
-		private System.Windows.Forms.Label labelSchoolClass;
 		private UI.ListBox listUserTabUserGroups;
 		private System.Windows.Forms.Label labelPerm;
 		private System.Windows.Forms.Label labelUserTabUserGroups;

@@ -178,7 +178,7 @@ namespace OpenDentBusiness{
 				return Abbr;//this is only useful for spoofed providers in a list. I.e. "none" or "Select Provider" items.
 			}
 			string retval=Abbr+"- "+LName+", "+FName;
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
+			if(!true) {
 				retval=ProvNum+"- "+LName+", "+FName;
 			}
 			if(IsHidden){

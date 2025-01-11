@@ -1600,24 +1600,6 @@
     <Compile Include="Forms\FormReportsMore.designer.cs">
       <DependentUpon>FormReportsMore.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\FormReqAppt.designer.cs">
-      <DependentUpon>FormReqAppt.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormReqNeededEdit.designer.cs">
-      <DependentUpon>FormReqNeededEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormReqNeededs.designer.cs">
-      <DependentUpon>FormReqNeededs.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormReqStudentEdit.designer.cs">
-      <DependentUpon>FormReqStudentEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormReqStudentOne.designer.cs">
-      <DependentUpon>FormReqStudentOne.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormReqStudentsMany.designer.cs">
-      <DependentUpon>FormReqStudentsMany.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\FormRxDefEdit.designer.cs">
       <DependentUpon>FormRxDefEdit.cs</DependentUpon>
     </Compile>
@@ -1641,18 +1623,6 @@
     </Compile>
     <Compile Include="Forms\FormScheduleEdit.designer.cs">
       <DependentUpon>FormScheduleEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSchoolClassEdit.designer.cs">
-      <DependentUpon>FormSchoolClassEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSchoolClasses.designer.cs">
-      <DependentUpon>FormSchoolClasses.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSchoolCourseEdit.designer.cs">
-      <DependentUpon>FormSchoolCourseEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSchoolCourses.designer.cs">
-      <DependentUpon>FormSchoolCourses.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormScreenEdit.designer.cs">
       <DependentUpon>FormScreenEdit.cs</DependentUpon>
@@ -3540,83 +3510,11 @@
     <Compile Include="Forms\FormEtrans835PickEob.designer.cs">
       <DependentUpon>FormEtrans835PickEob.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\FormEvaluationReport.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationReport.designer.cs">
-      <DependentUpon>FormEvaluationReport.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormDispensary.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormDispensary.designer.cs">
-      <DependentUpon>FormDispensary.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationEdit.designer.cs">
-      <DependentUpon>FormEvaluationEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormEvaluations.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEvaluations.designer.cs">
-      <DependentUpon>FormEvaluations.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationCriterionDefEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationCriterionDefEdit.designer.cs">
-      <DependentUpon>FormEvaluationCriterionDefEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormGradingScaleEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormGradingScaleEdit.designer.cs">
-      <DependentUpon>FormGradingScaleEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormGradingScales.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormGradingScales.designer.cs">
-      <DependentUpon>FormGradingScales.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationDefEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationDefEdit.designer.cs">
-      <DependentUpon>FormEvaluationDefEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationDefs.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEvaluationDefs.designer.cs">
-      <DependentUpon>FormEvaluationDefs.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormProvStudentEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormProvStudentEdit.designer.cs">
-      <DependentUpon>FormProvStudentEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormProvStudentBulkEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormProvStudentBulkEdit.designer.cs">
-      <DependentUpon>FormProvStudentBulkEdit.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\FormTreatPlanDiscount.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FormTreatPlanDiscount.designer.cs">
       <DependentUpon>FormTreatPlanDiscount.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormDentalSchoolSetup.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormDentalSchoolSetup.designer.cs">
-      <DependentUpon>FormDentalSchoolSetup.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormEhrProviderKeyEdit.cs">
       <SubType>Form</SubType>
@@ -5188,9 +5086,6 @@
     <Compile Include="Forms\FormTrojanCollect.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\FormReqAppt.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Forms\FormEtransEdit.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -5215,22 +5110,7 @@
     <Compile Include="Forms\FormClaimCreate.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\FormReqStudentEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormReqStudentOne.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormReqStudentsMany.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Forms\FormReportsMore.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormReqNeededEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormReqNeededs.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FormRegistrationKey.cs">
@@ -5675,18 +5555,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FormScheduleBlockEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSchoolClassEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSchoolClasses.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSchoolCourseEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSchoolCourses.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FormScreenEdit.cs">
@@ -7388,44 +7256,8 @@
     <EmbeddedResource Include="Forms\FormEtrans835PickEob.resx">
       <DependentUpon>FormEtrans835PickEob.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEvaluationReport.resx">
-      <DependentUpon>FormEvaluationReport.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormDispensary.resx">
-      <DependentUpon>FormDispensary.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEvaluationEdit.resx">
-      <DependentUpon>FormEvaluationEdit.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEvaluations.resx">
-      <DependentUpon>FormEvaluations.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEvaluationCriterionDefEdit.resx">
-      <DependentUpon>FormEvaluationCriterionDefEdit.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormGradingScaleEdit.resx">
-      <DependentUpon>FormGradingScaleEdit.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormGradingScales.resx">
-      <DependentUpon>FormGradingScales.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEvaluationDefEdit.resx">
-      <DependentUpon>FormEvaluationDefEdit.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEvaluationDefs.resx">
-      <DependentUpon>FormEvaluationDefs.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormProvStudentEdit.resx">
-      <DependentUpon>FormProvStudentEdit.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormProvStudentBulkEdit.resx">
-      <DependentUpon>FormProvStudentBulkEdit.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormTreatPlanDiscount.resx">
       <DependentUpon>FormTreatPlanDiscount.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormDentalSchoolSetup.resx">
-      <DependentUpon>FormDentalSchoolSetup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormEhrProviderKeyEdit.resx">
       <DependentUpon>FormEhrProviderKeyEdit.cs</DependentUpon>
@@ -8234,10 +8066,6 @@
       <DependentUpon>FormTrojanCollect.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormReqAppt.resx">
-      <DependentUpon>FormReqAppt.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormEtransEdit.resx">
       <DependentUpon>FormEtransEdit.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -8262,28 +8090,8 @@
       <DependentUpon>FormClaimCreate.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormReqStudentEdit.resx">
-      <DependentUpon>FormReqStudentEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormReqStudentOne.resx">
-      <DependentUpon>FormReqStudentOne.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormReqStudentsMany.resx">
-      <DependentUpon>FormReqStudentsMany.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormReportsMore.resx">
       <DependentUpon>FormReportsMore.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormReqNeededEdit.resx">
-      <DependentUpon>FormReqNeededEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormReqNeededs.resx">
-      <DependentUpon>FormReqNeededs.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormRegistrationKey.resx">
@@ -8876,22 +8684,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormScheduleBlockEdit.resx">
       <DependentUpon>FormScheduleBlockEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSchoolClassEdit.resx">
-      <DependentUpon>FormSchoolClassEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSchoolClasses.resx">
-      <DependentUpon>FormSchoolClasses.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSchoolCourseEdit.resx">
-      <DependentUpon>FormSchoolCourseEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSchoolCourses.resx">
-      <DependentUpon>FormSchoolCourses.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormScreenEdit.resx">

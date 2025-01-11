@@ -222,10 +222,6 @@ namespace OpenDental{
 			_listAdjustments=_loadData.ListAdjustments;
 			_listClaimProcs=_loadData.ListClaimProcs;
 			_listLabCases=_loadData.ListLabCases;
-			if(PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-				butRequirement.Visible=false;
-				textRequirement.Visible=false;
-			}
 			if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
 				butSyndromicObservations.Visible=true;
 				labelSyndromicObservations.Visible=true;
@@ -358,18 +354,6 @@ namespace OpenDental{
 				_appointment.InsPlan2=insSub2.PlanNum;
 				textInsPlan1.Text=InsPlans.GetCarrierName(_appointment.InsPlan1,_listInsPlans);
 				textInsPlan2.Text=InsPlans.GetCarrierName(_appointment.InsPlan2,_listInsPlans);
-			}
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-				List<ReqStudent> listReqStudents=_loadData.ListReqStudents;
-				string requirements="";
-				for(int i = 0;i<listReqStudents.Count;i++) {
-					if(i > 0) {
-						requirements+="\r\n";
-					}
-					Provider providerStudent=Providers.GetDeepCopy().First(x => x.ProvNum==listReqStudents[i].ProvNum);
-					requirements+=providerStudent.LName+", "+providerStudent.FName+": "+listReqStudents[i].Descript;
-				}
-				textRequirement.Text=requirements;
 			}
 			//IsNewPatient is set well before opening this form.
 			checkIsNewPatient.Checked=_appointment.IsNewPatient;
@@ -732,23 +716,6 @@ namespace OpenDental{
 			}
 			_appointment.InsPlan2=formInsPlanSelect.InsPlanSelected.PlanNum;
 			textInsPlan2.Text=InsPlans.GetCarrierName(_appointment.InsPlan2,_listInsPlans);
-		}
-
-		private void butRequirement_Click(object sender,EventArgs e) {
-			if(_isInsertRequired && !UpdateListAndDB(isClosing: false)) {
-				return;
-			}
-			using FormReqAppt formReqAppt=new FormReqAppt();
-			formReqAppt.AptNum=_appointment.AptNum;
-			formReqAppt.PatNum=_appointment.PatNum;
-			formReqAppt.ShowDialog();
-			if(formReqAppt.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			List<ReqStudent> listReqStudents=ReqStudents.GetForAppt(_appointment.AptNum);
-			textRequirement.Text=string.Join("\r\n",listReqStudents
-				.Select(x => new { Student = Providers.GetDeepCopy().First(y => y.ProvNum==x.ProvNum),Descript = x.Descript })
-				.Select(x => x.Student.LName+", "+x.Student.FName+": "+x.Descript).ToList());
 		}
 
 		private void butSyndromicObservations_Click(object sender,EventArgs e) {

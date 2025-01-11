@@ -694,7 +694,7 @@ End of Checklist================================================================
 			if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 				comboPriProv.Items.AddProvNone("Select Provider");
 			}
-			if(PrefC.GetBool(PrefName.EasyHideDentalSchools)) {//not dental school
+			if(true) {//not dental school
 				comboPriProv.Items.AddProvsAbbr(listProviders);
 			}
 			else{
@@ -704,7 +704,7 @@ End of Checklist================================================================
 			provNum=comboSecProv.GetSelectedProvNum();
 			comboSecProv.Items.Clear();
 			comboSecProv.Items.AddProvNone();
-			if(PrefC.GetBool(PrefName.EasyHideDentalSchools)) {//not dental school
+			if(true) {//not dental school
 				comboSecProv.Items.AddProvsAbbr(listProviders);
 			}
 			else{

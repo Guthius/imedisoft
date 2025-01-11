@@ -21,13 +21,9 @@ namespace OpenDental{
 		///<summary>Not available if in Unix.</summary>
 		private MenuItemOD _menuItemCreateAtoZ;
 		private MenuItemOD _menuItemCustManagement;
-		private MenuItemOD _menuItemDentalSchoolClass;
-		private MenuItemOD _menuItemDentalSchoolCourses;
-		private MenuItemOD _menuItemDentalSchools;
 		private MenuItemOD _menuItemEForms;
 		///<summary> Only available in OD HQ when Introspection.IsTestingMode is true. </summary>
 		private MenuItemOD _menuItemEditTestModeOverrides;
-		private MenuItemOD _menuItemEvaluations;
 		private MenuItemOD _menuItemFeeSchedGroups;
 		///<summary>Only available if Billing/Finance Charges are enabled on the Show Features window.</summary>
 		private MenuItemOD _menuItemFinanceCharges;
@@ -54,11 +50,9 @@ namespace OpenDental{
 		private MenuItemOD _menuItemReactivation;
 		private MenuItemOD _menuItemRemoteSupport;
 		private MenuItemOD _menuItemRepeatingCharges;
-		private MenuItemOD _menuItemRequirementsNeeded;
 		private MenuItemOD _menuItemSites;
 		private MenuItemOD _menuItemStandard;
 		private MenuItemOD _menuItemStandardFiltered;
-		private MenuItemOD _menuItemStudentRequirements;
 		private MenuItemOD _menuItemActivityLog;
 		///<summary>Not available if isWeb.</summary>
 		private MenuItemOD _menuItemPrinter;
@@ -177,8 +171,6 @@ namespace OpenDental{
 			menuItemSetup.Add("Code Groups",menuItemCodeGroups_Click);
 			menuItemSetup.Add("Data Paths",menuItemDataPath_Click);
 			menuItemSetup.Add("Definitions",menuItemDefinitions_Click);
-			_menuItemDentalSchools=new MenuItemOD("Dental Schools",menuItemDentalSchools_Click);
-			menuItemSetup.Add(_menuItemDentalSchools);
 			menuItemSetup.Add("Display Fields",menuItemDisplayFields_Click);
 			_menuItemEForms=new MenuItemOD("eForms",menuItemEForms_Click);	
 			menuItemSetup.Add(_menuItemEForms);
@@ -191,8 +183,6 @@ namespace OpenDental{
 			menuItemSetup.Add("Quick Paste Notes",menuItemQuickPasteNotes_Click);
 			menuItemSetup.Add("Reports",menuItemReports_Click);
 			menuItemSetup.Add("Required Fields",menuItemRequiredFields_Click);
-			_menuItemRequirementsNeeded=new MenuItemOD("Requirements Needed",menuItemRequirementsNeeded_Click);
-			menuItemSetup.Add(_menuItemRequirementsNeeded);
 			menuItemSetup.Add("Schedules",menuItemSched_Click);
 			menuItemSetup.Add("Security",menuItemSecurity_Click);
 			menuItemSetup.Add("Security Add User",menuItemSecurityAddUser_Click);
@@ -297,10 +287,6 @@ namespace OpenDental{
 			menuItemLists.Add(menuItemContacts);
 			_menuItemCounties=new MenuItemOD("Counties",menuItemCounties_Click);
 			menuItemLists.Add(_menuItemCounties);
-			_menuItemDentalSchoolClass=new MenuItemOD("Dental School Classes",menuItemSchoolClass_Click);
-			menuItemLists.Add(_menuItemDentalSchoolClass);
-			_menuItemDentalSchoolCourses=new MenuItemOD("Dental School Courses",menuItemSchoolCourses_Click);
-			menuItemLists.Add(_menuItemDentalSchoolCourses);
 			menuItemLists.Add("Discount Plans",menuItemDiscountPlans_Click);
 			menuItemLists.Add("&Employees",menuItemEmployees_Click);
 			menuItemLists.Add("Employers",menuItemEmployers_Click);
@@ -366,8 +352,6 @@ namespace OpenDental{
 			_menuItemCustManagement=new MenuItemOD("Customer Management",menuItemCustomerManage_Click);
 			menuItemTools.Add(_menuItemCustManagement);
 			//menuItemTools.Add("Dispensary",menuItemDispensary_Click);//FormDispensary is not fully functional and should not be an available option at this time
-			_menuItemEvaluations=new MenuItemOD("Evaluations",menuItemEvaluations_Click);
-			menuItemTools.Add(_menuItemEvaluations);
 			menuItemTools.Add("Kiosk",menuItemTerminal_Click);
 			menuItemTools.Add("Kiosk Manager",menuItemTerminalManager_Click);
 			_menuItemTranslation=new MenuItemOD("Language Translation",menuItemTranslation_Click);
@@ -390,8 +374,6 @@ namespace OpenDental{
 			_menuItemRepeatingCharges=new MenuItemOD("Repeating Charges",menuItemRepeatingCharges_Click);
 			menuItemTools.Add(_menuItemRepeatingCharges);
 			menuItemTools.Add("Setup Wizard",menuItemSetupWizard_Click);
-			_menuItemStudentRequirements=new MenuItemOD("Student Requirements",menuItemReqStudents_Click);
-			menuItemTools.Add(_menuItemStudentRequirements);
 			menuItemTools.Add("Web Forms",menuItemWebForms_Click);
 			MenuItemOD menuItemWiki=new MenuItemOD("Wiki",menuItemWiki_Click);
 			if(!/* ODEnvironment.IsCloudInstance */ false){

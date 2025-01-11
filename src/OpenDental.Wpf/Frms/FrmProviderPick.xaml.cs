@@ -20,8 +20,6 @@ namespace OpenDental {
 		//private DataTable table;
 		///<summary>This can be set ahead of time to preselect a provider.  After closing with OK, this will have the selected provider number.</summary>
 		public long ProvNumSelected;
-		private List<SchoolClass> _listSchoolClasses;
-		public bool IsStudentPicker=false;
 		///<summary>Setting to true will show a none button and will allow 0 to be returned in the SelectedProvNum variable.  It will be -1 if the user cancels out of the window.</summary>
 		public bool IsNoneAvailable=false;
 		///<summary>Will be set to a specific list of providers passed in.  Will be null if no defined list of providers is desired.</summary>
@@ -35,10 +33,6 @@ namespace OpenDental {
 			InitializeComponent();
 			_listProviders=listProviders;
 			_filterControlsAndAction=new FilterControlsAndAction();
-			_filterControlsAndAction.AddControl(textFName);
-			_filterControlsAndAction.AddControl(textLName);
-			_filterControlsAndAction.AddControl(textProvNum);
-			_filterControlsAndAction.AddControl(comboClass);
 			_filterControlsAndAction.AddControl(textFilter);
 			_filterControlsAndAction.FuncDb=RefreshDBForGrid;
 			_filterControlsAndAction.ActionComplete=FillGrid;
@@ -50,24 +44,6 @@ namespace OpenDental {
 		private void FrmProviderSelect_Load(object sender, System.EventArgs e) {
 			Lang.F(this);
 			checkShowAll.Visible=IsShowAllAvailable;
-			if(PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-				groupDentalSchools.Visible=false;
-			}
-			else if(IsStudentPicker) {
-				this.Text="Student Picker";
-				gridMain.Title="Students";
-				_listSchoolClasses=SchoolClasses.GetDeepCopy();
-				for(int i=0;i<_listSchoolClasses.Count;i++) {
-					comboClass.Items.Add(_listSchoolClasses[i].GradYear+" "+_listSchoolClasses[i].Descript);
-				}
-				if(comboClass.Items.Count>0) {
-					comboClass.SelectedIndex=0;
-				}
-			}
-			else {
-				comboClass.Visible=false;
-				labelClass.Visible=false;
-			}
 			List<Provider> listProviders=RefreshDBForGrid();
 			FillGrid(listProviders);
 			if(_listProviders!=null) {
@@ -90,18 +66,7 @@ namespace OpenDental {
 		}
 
 		private List<Provider> RefreshDBForGrid(){
-			long provNum;
-			string txtProvNum="";
-			Dispatcher.Invoke(()=>txtProvNum=textProvNum.Text);
-			if(!long.TryParse(txtProvNum,out provNum)) {
-				provNum=0;
-			}
-			long classNum=0;
 			ComboBox comboBoxClass=null;
-			Dispatcher.Invoke(()=>comboBoxClass=comboClass);
-			if(IsStudentPicker) {
-				classNum=_listSchoolClasses[comboBoxClass.SelectedIndex].SchoolClassNum;
-			}
 			List<Provider> listProviders;
 			CheckBox checkBoxShowAll=null;
 			Dispatcher.Invoke(()=>checkBoxShowAll=checkShowAll);
@@ -109,11 +74,7 @@ namespace OpenDental {
 				listProviders=GetFilteredProviderList(_listProviders);
 			}
 			else {
-				string txtLName="";
-				Dispatcher.Invoke(()=>txtLName=textLName.Text);
-				string txtFName="";
-				Dispatcher.Invoke(()=>txtFName=textFName.Text);
-				listProviders=Providers.GetFilteredProviderList(provNum,txtLName,txtFName,classNum);
+				listProviders=Providers.GetDeepCopy(true);
 				listProviders=GetFilteredProviderList(listProviders);//Filters the list of all providers. 
 			}
 			return listProviders;
@@ -124,10 +85,6 @@ namespace OpenDental {
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
 			GridColumn col;
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-				col=new GridColumn(Lang.g("TableProviders","ProvNum"),60);
-				gridMain.Columns.Add(col);
-			}
 			col=new GridColumn(Lang.g("TableProviders","Abbrev"),80);
 			gridMain.Columns.Add(col);
 			col=new GridColumn(Lang.g("TableProviders","LName"),100);
@@ -137,13 +94,7 @@ namespace OpenDental {
 			gridMain.ListGridRows.Clear();
 			GridRow row;
 			for(int i=0;i<listProviders.Count;i++) {
-				if(IsStudentPicker && listProviders[i].SchoolClassNum==0) {
-					continue;
-				}
 				row=new GridRow();
-				if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-					row.Cells.Add(listProviders[i].ProvNum.ToString());
-				}
 				row.Cells.Add(listProviders[i].Abbr);
 				row.Cells.Add(listProviders[i].LName);
 				row.Cells.Add(listProviders[i].FName);

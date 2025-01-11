@@ -21,7 +21,6 @@ namespace OpenDental{
 	public partial class FormProvEdit : FormODBase {
 		///<summary>Provider Identifiers showing in the list for this provider.</summary>
 		private ProviderIdent[] ProviderIdentArray;
-		private List<SchoolClass> _listSchoolClasses;
 		private Userod _userodExisting;
 		public Provider ProviderCur;
 		private List<ProviderClinic> _listProviderClinicsOld;
@@ -71,37 +70,7 @@ namespace OpenDental{
 				comboEhrMu.Visible=false;
 				labelEhrMU.Visible=false;
 			}
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools) //Dental Schools is turned on
-				&& (ProviderCur.SchoolClassNum!=0 || ProviderCur.IsInstructor))//Adding/Editing Students or Instructors
-			{
-				if(!ProviderCur.IsNew) {
-					labelPassDescription.Visible=true;
-					textProvNum.Text=ProviderCur.ProvNum.ToString();
-					List<Userod> listUserods=Providers.GetAttachedUsers(ProviderCur.ProvNum);
-					if(listUserods.Count>0) {
-						textUserName.Text=listUserods[0].UserName;//Should always happen if they are a student.
-						_userodExisting=listUserods[0];
-					}
-				}
-				else {
-					textUserName.Text=Providers.GetNextAvailableProvNum().ToString();//User-names are suggested to be the ProvNum of the provider.  This can be changed at will.
-				}
-				_listSchoolClasses=SchoolClasses.GetDeepCopy();
-				for(int i=0;i<_listSchoolClasses.Count;i++) {
-					comboSchoolClass.Items.Add(SchoolClasses.GetDescript(_listSchoolClasses[i]));
-					comboSchoolClass.SelectedIndex=0;
-					if(_listSchoolClasses[i].SchoolClassNum==ProviderCur.SchoolClassNum) {
-						comboSchoolClass.SelectedIndex=i;
-					}
-				}
-				if(ProviderCur.SchoolClassNum!=0) {
-					labelSchoolClass.Visible=true;
-					comboSchoolClass.Visible=true;
-				}
-			}
-			else {
-				tabControlProvider.TabPages.Remove(tabDentalSchools);
-			}
+			tabControlProvider.TabPages.Remove(tabDentalSchools);
 			if(Programs.IsEnabled(ProgramName.eClinicalWorks)) {
 				textEcwID.Text=ProviderCur.EcwID;
 			}
@@ -469,7 +438,7 @@ namespace OpenDental{
 					#endregion
 				}
 			}
-			if(Providers.GetExists(x => x.ProvNum!=ProviderCur.ProvNum && x.Abbr==textAbbr.Text && PrefC.GetBool(PrefName.EasyHideDentalSchools))) {
+			if(Providers.GetExists(x => x.ProvNum!=ProviderCur.ProvNum && x.Abbr==textAbbr.Text && true)) {
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"This abbreviation is already in use by another provider.  Continue anyway?")) {
 					return;
 				}
@@ -498,7 +467,7 @@ namespace OpenDental{
 				}
 				Providers.RemoveProvFromFutureSchedule(ProviderCur.ProvNum);
 			}
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools) && (ProviderCur.IsInstructor || ProviderCur.SchoolClassNum!=0)) {//Is an Instructor or a Student
+			if(!true && (ProviderCur.IsInstructor || ProviderCur.SchoolClassNum!=0)) {//Is an Instructor or a Student
 				if(textUserName.Text=="") {
 					MsgBox.Show(this,"User Name is not allowed to be blank.");
 					return;
@@ -580,11 +549,6 @@ namespace OpenDental{
 			ProviderCur.WebSchedDescript=textWebSchedDescript.Text;
 			ProviderCur.HourlyProdGoalAmt=PIn.Double(textProdGoalHr.Text);
 			ProviderCur.DateTerm=dateTerm.GetDateTime();
-			if(!PrefC.GetBool(PrefName.EasyHideDentalSchools)) {
-				if(ProviderCur.SchoolClassNum!=0) {
-					ProviderCur.SchoolClassNum=_listSchoolClasses[comboSchoolClass.SelectedIndex].SchoolClassNum;
-				}
-			}
 			if(listFeeSched.SelectedIndex!=-1) {
 				ProviderCur.FeeSched=listFeeSched.GetSelected<FeeSched>().FeeSchedNum;
 			}
