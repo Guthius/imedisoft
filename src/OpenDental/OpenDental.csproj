@@ -2234,19 +2234,27 @@
     <Compile Include="Forms\FormTsiHistory.designer.cs">
       <DependentUpon>FormTsiHistory.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Base\BaseGraphOptionsCtrl.cs" />
+    <Compile Include="Graph\Base\BaseGraphOptionsCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Base\BaseGraphOptionsCtrl.Designer.cs">
       <DependentUpon>BaseGraphOptionsCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Base\GraphQuantityOverTime.cs" />
+    <Compile Include="Graph\Base\GraphQuantityOverTime.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Base\GraphQuantityOverTime.Designer.cs">
       <DependentUpon>GraphQuantityOverTime.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Base\GroupingOptionsCtrl.cs" />
+    <Compile Include="Graph\Base\GroupingOptionsCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Base\GroupingOptionsCtrl.Designer.cs">
       <DependentUpon>GroupingOptionsCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Base\Legend.cs" />
+    <Compile Include="Graph\Base\Legend.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Base\Legend.designer.cs">
       <DependentUpon>Legend.cs</DependentUpon>
     </Compile>
@@ -2265,56 +2273,82 @@
     <Compile Include="Graph\Cache\DashboardCachePaySplit.cs" />
     <Compile Include="Graph\Cache\DashboardCacheProvider.cs" />
     <Compile Include="Graph\Cache\DashboardCacheWriteoff.cs" />
-    <Compile Include="Graph\Concrete\BrokenApptGraphOptionsCtrl.cs" />
+    <Compile Include="Graph\Concrete\BrokenApptGraphOptionsCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Concrete\BrokenApptGraphOptionsCtrl.Designer.cs">
       <DependentUpon>BrokenApptGraphOptionsCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Concrete\GraphQuantityOverTimeFilter.cs" />
+    <Compile Include="Graph\Concrete\GraphQuantityOverTimeFilter.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Concrete\GraphQuantityOverTimeFilter.Designer.cs">
       <DependentUpon>GraphQuantityOverTimeFilter.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Concrete\HqMessagesRealTimeOptionsCtrl.cs" />
+    <Compile Include="Graph\Concrete\HqMessagesRealTimeOptionsCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Concrete\HqMessagesRealTimeOptionsCtrl.Designer.cs">
       <DependentUpon>HqMessagesRealTimeOptionsCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Concrete\IncomeGraphOptionsCtrl.cs" />
+    <Compile Include="Graph\Concrete\IncomeGraphOptionsCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Concrete\IncomeGraphOptionsCtrl.Designer.cs">
       <DependentUpon>IncomeGraphOptionsCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Concrete\ProductionGraphOptionsCtrl.cs" />
+    <Compile Include="Graph\Concrete\ProductionGraphOptionsCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Concrete\ProductionGraphOptionsCtrl.Designer.cs">
       <DependentUpon>ProductionGraphOptionsCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\DashboardCellCtrl.cs" />
+    <Compile Include="Graph\Dashboard\DashboardCellCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\DashboardCellCtrl.Designer.cs">
       <DependentUpon>DashboardCellCtrl.cs</DependentUpon>
     </Compile>
     <Compile Include="Graph\Dashboard\DashboardDockContainer.cs" />
-    <Compile Include="Graph\Dashboard\DashboardPanelCtrl.cs" />
+    <Compile Include="Graph\Dashboard\DashboardPanelCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\DashboardPanelCtrl.Designer.cs">
       <DependentUpon>DashboardPanelCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\DashboardTabCtrl.cs" />
+    <Compile Include="Graph\Dashboard\DashboardTabCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\DashboardTabCtrl.Designer.cs">
       <DependentUpon>DashboardTabCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\FormDashboardEditCell.cs" />
+    <Compile Include="Graph\Dashboard\FormDashboardEditCell.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\FormDashboardEditCell.Designer.cs">
       <DependentUpon>FormDashboardEditCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\FormDashboardEditTab.cs" />
+    <Compile Include="Graph\Dashboard\FormDashboardEditTab.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\FormDashboardEditTab.Designer.cs">
       <DependentUpon>FormDashboardEditTab.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\FormDashboardNamePrompt.cs" />
+    <Compile Include="Graph\Dashboard\FormDashboardNamePrompt.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\FormDashboardNamePrompt.Designer.cs">
       <DependentUpon>FormDashboardNamePrompt.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\FormPrintImage.cs" />
+    <Compile Include="Graph\Dashboard\FormPrintImage.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\FormPrintImage.Designer.cs">
       <DependentUpon>FormPrintImage.cs</DependentUpon>
     </Compile>
-    <Compile Include="Graph\Dashboard\FormPrintSettings.cs" />
+    <Compile Include="Graph\Dashboard\FormPrintSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Graph\Dashboard\FormPrintSettings.Designer.cs">
       <DependentUpon>FormPrintSettings.cs</DependentUpon>
     </Compile>
@@ -2714,12 +2748,6 @@
     </Compile>
     <Compile Include="Forms Reports\FormRpProdGoal.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormChooseDatabase.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormChooseDatabase.Designer.cs">
-      <DependentUpon>FormChooseDatabase.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormLoginFailed.cs">
       <SubType>Form</SubType>
@@ -6828,9 +6856,6 @@
     <EmbeddedResource Include="Forms\FormPaySimple.resx">
       <DependentUpon>FormPaySimple.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormChooseDatabase.resx">
-      <DependentUpon>FormChooseDatabase.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormLoginFailed.resx">
       <DependentUpon>FormLoginFailed.cs</DependentUpon>
     </EmbeddedResource>
@@ -9857,9 +9882,7 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Graph\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

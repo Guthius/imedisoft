@@ -1192,7 +1192,6 @@
     </Compile>
     <Compile Include="Data Interface\EhrTriggers.cs" />
     <Compile Include="Data Interface\Cdcrecs.cs" />
-    <Compile Include="Data Interface\CentralConnections.cs" />
     <Compile Include="Data Interface\ChartViews.cs" />
     <Compile Include="Data Interface\CodeSystems.cs" />
     <Compile Include="Data Interface\Cpts.cs" />
@@ -1641,7 +1640,6 @@
     <Compile Include="TableTypes\ChartView.cs" />
     <Compile Include="TableTypes\AllergyDef.cs" />
     <Compile Include="TableTypes\Allergy.cs" />
-    <Compile Include="TableTypes\CentralConnection.cs" />
     <Compile Include="TableTypes\CodeSystem.cs" />
     <Compile Include="TableTypes\Cdcrec.cs" />
     <Compile Include="TableTypes\Cpt.cs" />
@@ -1989,28 +1987,42 @@
     </Compile>
     <Compile Include="X12\X12object.cs" />
     <Compile Include="xCodeBase\Controls\MessageBox.cs" />
-    <Compile Include="xCodeBase\Controls\ODWebView2.cs" />
+    <Compile Include="xCodeBase\Controls\ODWebView2.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="xCodeBase\Controls\ODWebView2.Designer.cs">
       <DependentUpon>ODWebView2.cs</DependentUpon>
     </Compile>
-    <Compile Include="xCodeBase\Controls\OpenGLWinFormsControl.cs" />
-    <Compile Include="xCodeBase\Controls\PrintPanel.cs" />
+    <Compile Include="xCodeBase\Controls\OpenGLWinFormsControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="xCodeBase\Controls\PrintPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="xCodeBase\Controls\PrintPanel.Designer.cs">
       <DependentUpon>PrintPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="xCodeBase\Progress\FormProgressBase.cs" />
-    <Compile Include="xCodeBase\Progress\FormProgressExtended.cs" />
+    <Compile Include="xCodeBase\Progress\FormProgressBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="xCodeBase\Progress\FormProgressExtended.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="xCodeBase\Progress\FormProgressExtended.designer.cs">
       <DependentUpon>FormProgressExtended.cs</DependentUpon>
     </Compile>
-    <Compile Include="xCodeBase\Progress\FormProgressStatus.cs" />
+    <Compile Include="xCodeBase\Progress\FormProgressStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="xCodeBase\Progress\FormProgressStatus.designer.cs">
       <DependentUpon>FormProgressStatus.cs</DependentUpon>
     </Compile>
     <Compile Include="xCodeBase\Progress\IODProgress.cs" />
     <Compile Include="xCodeBase\Progress\IODProgressExtended.cs" />
     <Compile Include="xCodeBase\Progress\ODProgress.cs" />
-    <Compile Include="xCodeBase\Progress\ODProgressBar.cs" />
+    <Compile Include="xCodeBase\Progress\ODProgressBar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="xCodeBase\Progress\ODProgressBar.designer.cs">
       <DependentUpon>ODProgressBar.cs</DependentUpon>
     </Compile>
@@ -2024,7 +2036,9 @@
     <Compile Include="xCodeBase\Utilities\Logger.cs" />
     <Compile Include="xCodeBase\Utilities\LoggerOld.cs" />
     <Compile Include="xCodeBase\Utilities\MiscUtils.cs" />
-    <Compile Include="xCodeBase\Utilities\MsgBoxCopyPaste.cs" />
+    <Compile Include="xCodeBase\Utilities\MsgBoxCopyPaste.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="xCodeBase\Utilities\ODClipboard.cs" />
     <Compile Include="xCodeBase\Utilities\ODEnvironment.cs" />
     <Compile Include="xCodeBase\Utilities\ODEvent.cs" />
@@ -2044,7 +2058,6 @@
     <Compile Include="xCodeBase\Utilities\ServicesHelper.cs" />
     <Compile Include="xCodeBase\Utilities\SoundHelper.cs" />
     <Compile Include="xCodeBase\Utilities\WindowsApiWrapper.cs" />
-    <Compile Include="xDataConnectionBase\CentralConnectionBase.cs" />
     <Compile Include="xDataConnectionBase\DataConnection.cs" />
     <Compile Include="xDataConnectionBase\DataConnectionEvent.cs" />
     <Compile Include="xDataConnectionBase\DbQueryObj.cs" />
@@ -2765,10 +2778,7 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="OpenDentalCloud\" />
-    <Folder Include="xCodeBase\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2420.47" />

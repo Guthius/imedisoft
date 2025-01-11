@@ -92,12 +92,6 @@
     <Compile Include="EcwOld.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="FormDebug.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FormDebug.Designer.cs">
-      <DependentUpon>FormDebug.cs</DependentUpon>
-    </Compile>
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -115,12 +109,6 @@
       <Project>{3d0fc76e-803c-4de2-bdb1-47d63a4e2357}</Project>
       <Name>OpenDental.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="FormDebug.resx">
-      <DependentUpon>FormDebug.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
