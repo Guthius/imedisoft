@@ -100,10 +100,6 @@ namespace OpenDental {
 
 		private void linkLabel1_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
 			string url="https://opendental.com/resources/redirects/redirectopenedge.html";
-			if(false) {
-				ODCloudClient.LaunchFileWithODCloudClient(url);
-				return;
-			}
 			Process.Start(url);
 		}
 

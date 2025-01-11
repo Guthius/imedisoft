@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;

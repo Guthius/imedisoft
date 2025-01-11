@@ -67,7 +67,7 @@ public class DiseaseDefCrud
         table.Columns.Add("SnomedCode");
         table.Columns.Add("Icd10Code");
         foreach (var diseaseDef in listDiseaseDefs)
-            table.Rows.Add(SOut.Long(diseaseDef.DiseaseDefNum), diseaseDef.DiseaseName, SOut.Int(diseaseDef.ItemOrder), SOut.Bool(diseaseDef.IsHidden), SOut.DateT(diseaseDef.DateTStamp, false), diseaseDef.ICD9Code, diseaseDef.SnomedCode, diseaseDef.Icd10Code);
+            table.Rows.Add(SOut.Long(diseaseDef.DiseaseDefNum), diseaseDef.DiseaseName, SOut.Int(diseaseDef.ItemOrder), SOut.Bool(diseaseDef.IsHidden), SOut.DateTime(diseaseDef.DateTStamp, false), diseaseDef.ICD9Code, diseaseDef.SnomedCode, diseaseDef.Icd10Code);
         return table;
     }
 

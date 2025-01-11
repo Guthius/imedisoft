@@ -67,7 +67,7 @@ public class DepositCrud
         table.Columns.Add("DepositAccountNum");
         table.Columns.Add("IsSentToQuickBooksOnline");
         foreach (var deposit in listDeposits)
-            table.Rows.Add(SOut.Long(deposit.DepositNum), SOut.DateT(deposit.DateDeposit, false), deposit.BankAccountInfo, SOut.Double(deposit.Amount), deposit.Memo, deposit.Batch, SOut.Long(deposit.DepositAccountNum), SOut.Bool(deposit.IsSentToQuickBooksOnline));
+            table.Rows.Add(SOut.Long(deposit.DepositNum), SOut.DateTime(deposit.DateDeposit, false), deposit.BankAccountInfo, SOut.Double(deposit.Amount), deposit.Memo, deposit.Batch, SOut.Long(deposit.DepositAccountNum), SOut.Bool(deposit.IsSentToQuickBooksOnline));
         return table;
     }
 

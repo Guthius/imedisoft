@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 	/// <summary>
@@ -26,7 +27,7 @@ namespace OpenDental{
 		}
 
 		private void FormTaskListEdit_Load(object sender, System.EventArgs e) {
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				labelTaskListNum.Visible=true;
 				textTaskListNum.Visible=true;
 				textTaskListNum.Text=_taskList.TaskListNum.ToString();

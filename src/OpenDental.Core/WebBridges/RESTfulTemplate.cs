@@ -17,7 +17,7 @@ namespace OpenDentBusiness {
 			string authEndpointURL="https://accounts.google.com/o/oauth2/v2/auth";
 			//If you need to use Introspection for sandbox environments uncomment the line below and update the Introspection class.
 			//string authEndpointURL=Introspection.GetOverride(Introspection.IntrospectionEntity.GoogleUrl,"https://accounts.google.com/o/oauth2/v2/auth");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				authEndpointURL="https://accounts.google.com/o/oauth2/v2/auth";
 			}
 			switch(endpoint) {
@@ -56,7 +56,7 @@ namespace OpenDentBusiness {
 					else {
 						throw new Exception("Unsupported HttpMethod type: "+method.Method);
 					}
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						if((typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 							return (T)Convert.ChangeType(res,typeof(T));
 						}

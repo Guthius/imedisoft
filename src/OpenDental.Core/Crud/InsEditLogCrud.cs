@@ -72,7 +72,7 @@ public class InsEditLogCrud
         table.Columns.Add("ParentKey");
         table.Columns.Add("Description");
         foreach (var insEditLog in listInsEditLogs)
-            table.Rows.Add(SOut.Long(insEditLog.InsEditLogNum), SOut.Long(insEditLog.FKey), SOut.Int((int) insEditLog.LogType), insEditLog.FieldName, insEditLog.OldValue, insEditLog.NewValue, SOut.Long(insEditLog.UserNum), SOut.DateT(insEditLog.DateTStamp, false), SOut.Long(insEditLog.ParentKey), insEditLog.Description);
+            table.Rows.Add(SOut.Long(insEditLog.InsEditLogNum), SOut.Long(insEditLog.FKey), SOut.Int((int) insEditLog.LogType), insEditLog.FieldName, insEditLog.OldValue, insEditLog.NewValue, SOut.Long(insEditLog.UserNum), SOut.DateTime(insEditLog.DateTStamp, false), SOut.Long(insEditLog.ParentKey), insEditLog.Description);
         return table;
     }
 

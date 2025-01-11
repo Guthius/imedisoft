@@ -17,6 +17,7 @@ using OpenDentBusiness;
 using OpenDental.Thinfinity;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 	public partial class FormQuery : FormODBase {
@@ -164,7 +165,7 @@ namespace OpenDental{
 				fileName="queryexport.txt";
 			}
 			string filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Thinfinity: file download dialog will come up later, after file is created. AppStream: File will be created in client's Downloads folder.
 			}
 			else {
@@ -245,15 +246,8 @@ namespace OpenDental{
         MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
-			if(false) {
-				ThinfinityUtils.ExportForDownload(filePath);
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePath);
-			}
-			else {
-				MessageBox.Show(Lan.g(this,"File created successfully"));
-			}
+
+			MessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		private void butFavorites_Click(object sender, System.EventArgs e) {
@@ -279,7 +273,7 @@ namespace OpenDental{
 		private void butPaste_Click(object sender, System.EventArgs e){
 			IDataObject iData;
 			try {
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					textQuery.Text=ODClipboard.GetText();
 					return;
 				}

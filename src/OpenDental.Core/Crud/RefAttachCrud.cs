@@ -77,7 +77,7 @@ public class RefAttachCrud
         table.Columns.Add("ProvNum");
         table.Columns.Add("DateTStamp");
         foreach (var refAttach in listRefAttachs)
-            table.Rows.Add(SOut.Long(refAttach.RefAttachNum), SOut.Long(refAttach.ReferralNum), SOut.Long(refAttach.PatNum), SOut.Int(refAttach.ItemOrder), SOut.DateT(refAttach.RefDate, false), SOut.Int((int) refAttach.RefType), SOut.Int((int) refAttach.RefToStatus), refAttach.Note, SOut.Bool(refAttach.IsTransitionOfCare), SOut.Long(refAttach.ProcNum), SOut.DateT(refAttach.DateProcComplete, false), SOut.Long(refAttach.ProvNum), SOut.DateT(refAttach.DateTStamp, false));
+            table.Rows.Add(SOut.Long(refAttach.RefAttachNum), SOut.Long(refAttach.ReferralNum), SOut.Long(refAttach.PatNum), SOut.Int(refAttach.ItemOrder), SOut.DateTime(refAttach.RefDate, false), SOut.Int((int) refAttach.RefType), SOut.Int((int) refAttach.RefToStatus), refAttach.Note, SOut.Bool(refAttach.IsTransitionOfCare), SOut.Long(refAttach.ProcNum), SOut.DateTime(refAttach.DateProcComplete, false), SOut.Long(refAttach.ProvNum), SOut.DateTime(refAttach.DateTStamp, false));
         return table;
     }
 

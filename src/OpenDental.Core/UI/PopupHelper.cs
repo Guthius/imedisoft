@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -173,10 +174,7 @@ namespace OpenDentBusiness.UI {
 				if(!url.ToLower().StartsWith("http")) {
 					url=@"http://"+url;
 				}
-				if(!false && false) {
-					ODCloudClient.LaunchFileWithODCloudClient(url);
-					return;
-				}
+
 				Process.Start(url);
 			}
 			catch {

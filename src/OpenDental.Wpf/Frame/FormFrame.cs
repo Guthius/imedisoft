@@ -1509,38 +1509,8 @@ namespace OpenDental
                 bool isKeyValid = Help.IsEncryptedKeyValid(); //always true in debug
                 string manualPageURL = Help.GetManualPage(formName, isKeyValid);
                 //GetManualPage is also where form name gets sent to clipboard.
-                if (ODBuild.IsDebug() && Environment.MachineName.ToLower() == "jordanhome")
-                {
-                    //manualPageURL="https://www.opendental.com/help/test1.html";
-                }
 
-                if (false)
-                {
-                    Process.Start(manualPageURL);
-                }
-                else if (false)
-                {
-                    try
-                    {
-                        ODCloudClient.LaunchFileWithODCloudClient(manualPageURL);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                        return;
-                    }
-                }
-                else if (ODBuild.IsDebug() && Environment.MachineName.ToLower() == "jordanhome")
-                {
-                    //simulate the HQ behavior
-                    FrmHelpBrowser frmHelpBrowser = new FrmHelpBrowser();
-                    frmHelpBrowser.GoToPage(manualPageURL);
-                    frmHelpBrowser.Show();
-                }
-                else
-                {
-                    Process.Start(manualPageURL);
-                }
+                Process.Start(manualPageURL);
 
                 if (!isKeyValid)
                 {

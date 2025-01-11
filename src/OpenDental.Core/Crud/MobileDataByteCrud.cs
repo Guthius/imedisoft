@@ -67,7 +67,7 @@ public class MobileDataByteCrud
         table.Columns.Add("DateTimeEntry");
         table.Columns.Add("DateTimeExpires");
         foreach (var mobileDataByte in listMobileDataBytes)
-            table.Rows.Add(SOut.Long(mobileDataByte.MobileDataByteNum), mobileDataByte.RawBase64Data, mobileDataByte.RawBase64Code, mobileDataByte.RawBase64Tag, SOut.Long(mobileDataByte.PatNum), SOut.Int((int) mobileDataByte.ActionType), SOut.DateT(mobileDataByte.DateTimeEntry, false), SOut.DateT(mobileDataByte.DateTimeExpires, false));
+            table.Rows.Add(SOut.Long(mobileDataByte.MobileDataByteNum), mobileDataByte.RawBase64Data, mobileDataByte.RawBase64Code, mobileDataByte.RawBase64Tag, SOut.Long(mobileDataByte.PatNum), SOut.Int((int) mobileDataByte.ActionType), SOut.DateTime(mobileDataByte.DateTimeEntry, false), SOut.DateTime(mobileDataByte.DateTimeExpires, false));
         return table;
     }
 
@@ -89,7 +89,7 @@ public class MobileDataByteCrud
                                + SOut.Long(mobileDataByte.PatNum) + ","
                                + SOut.Int((int) mobileDataByte.ActionType) + ","
                                + DbHelper.Now() + ","
-                               + SOut.DateT(mobileDataByte.DateTimeExpires) + ")";
+                               + SOut.DateTime(mobileDataByte.DateTimeExpires) + ")";
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
         var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
         if (mobileDataByte.RawBase64Code == null) mobileDataByte.RawBase64Code = "";
@@ -121,7 +121,7 @@ public class MobileDataByteCrud
                                + SOut.Long(mobileDataByte.PatNum) + ","
                                + SOut.Int((int) mobileDataByte.ActionType) + ","
                                + DbHelper.Now() + ","
-                               + SOut.DateT(mobileDataByte.DateTimeExpires) + ")";
+                               + SOut.DateTime(mobileDataByte.DateTimeExpires) + ")";
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
         var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
         if (mobileDataByte.RawBase64Code == null) mobileDataByte.RawBase64Code = "";
@@ -144,7 +144,7 @@ public class MobileDataByteCrud
                       + "PatNum           =  " + SOut.Long(mobileDataByte.PatNum) + ", "
                       + "ActionType       =  " + SOut.Int((int) mobileDataByte.ActionType) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeExpires  =  " + SOut.DateT(mobileDataByte.DateTimeExpires) + " "
+                      + "DateTimeExpires  =  " + SOut.DateTime(mobileDataByte.DateTimeExpires) + " "
                       + "WHERE MobileDataByteNum = " + SOut.Long(mobileDataByte.MobileDataByteNum);
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
         var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
@@ -192,7 +192,7 @@ public class MobileDataByteCrud
         if (mobileDataByte.DateTimeExpires != oldMobileDataByte.DateTimeExpires)
         {
             if (command != "") command += ",";
-            command += "DateTimeExpires = " + SOut.DateT(mobileDataByte.DateTimeExpires) + "";
+            command += "DateTimeExpires = " + SOut.DateTime(mobileDataByte.DateTimeExpires) + "";
         }
 
         if (command == "") return false;

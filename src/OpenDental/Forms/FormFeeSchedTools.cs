@@ -12,6 +12,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.Thinfinity;
@@ -576,7 +577,7 @@ namespace OpenDental {
 			}
 			string fileName="Fees"+feeSchedDesc+".txt";
 			string filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Thinfinity: file download dialog will come up later, after file is created. AppStream: File will be created in client's Downloads folder.
 			}
 			else {
@@ -605,16 +606,8 @@ namespace OpenDental {
 			if(progressOD.IsCancelled){
 				return;
 			}
-			if(false) {
-				ThinfinityUtils.ExportForDownload(filePath);
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePath);
-			}
-			else {
-				Cursor=Cursors.Default;
-				MsgBox.Show(this,"Fee schedule exported.");
-			}
+			Cursor=Cursors.Default;
+			MsgBox.Show(this,"Fee schedule exported.");
 		}
 
 		private void butImport_Click(object sender,EventArgs e) {
@@ -623,29 +616,21 @@ namespace OpenDental {
 				return;
 			}
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			if(Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
+				openFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				if(Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
-					openFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				}
-				else if(Directory.Exists("C:\\")) {
-					openFileDialog.InitialDirectory="C:\\";
-				}
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				if(!File.Exists(openFileDialog.FileName)){
-					MsgBox.Show(this,"File not found");
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
+			else if(Directory.Exists("C:\\")) {
+				openFileDialog.InitialDirectory="C:\\";
 			}
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
+			}
+			if(!File.Exists(openFileDialog.FileName)){
+				MsgBox.Show(this,"File not found");
+				return;
+			}
+			importFilePath=openFileDialog.FileName;
 			//Import deletes fee if it exists and inserts new fees based on fee settings.
 			long clinicNum=0;
 			if(!comboClinic.IsUnassignedSelected) {

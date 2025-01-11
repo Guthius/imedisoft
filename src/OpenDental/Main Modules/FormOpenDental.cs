@@ -53,6 +53,7 @@ using System.Linq;
 using OpenDental.Bridges;
 using OpenDentBusiness.WebServiceMainHQ;
 using System.DirectoryServices;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentalImaging;
@@ -461,7 +462,7 @@ namespace OpenDental{
 				if(chooseDatabaseInfo.NoShow==YN.Yes) {
 					try {
 						Logger.LogToPath("CentralConnections.TryToConnect",LogPath.Startup,LogPhase.Start);
-						CentralConnections.TryToConnect(chooseDatabaseInfo.CentralConnectionCur,chooseDatabaseInfo.DatabaseType,
+						CentralConnections.TryToConnect(chooseDatabaseInfo.CentralConnectionCur,
 							chooseDatabaseInfo.ConnectionString,noShowOnStartup: (chooseDatabaseInfo.NoShow==YN.Yes),chooseDatabaseInfo.ListAdminCompNames,
 							isCommandLineArgs: (CommandLineArgs_.ArrayCommandLineArgs.Length!=0),useDynamicMode: chooseDatabaseInfo.UseDynamicMode);
 						Logger.LogToPath("CentralConnections.TryToConnect",LogPath.Startup,LogPhase.End);
@@ -525,7 +526,6 @@ namespace OpenDental{
 			//When the event is triggered a "connection lost" window will display allowing the user to attempt reconnecting to the database
 			//and then resume what they were doing.  The purpose of this is to prevent UE's from happening with poor connections or temporary outages.
 			ODEvent.Fired+=DataConnection_CredentialsFailedAfterLogin;
-			ODEvent.IsCredentialsFailedAfterLogin_EventSubscribed=true;
 			Logger.LogToPath("RefreshLocalData Prefs",LogPath.Startup,LogPhase.Unspecified);
 			RefreshLocalData(InvalidType.Prefs);//should only refresh preferences so that SignalLastClearedDate preference can be used in ClearOldSignals()
 			Signalods.ClearOldSignals();
@@ -666,7 +666,7 @@ namespace OpenDental{
 			//Users can have strange values in their preference table which can cause unhandled exceptions when the parsed date is manipulated.
 			//Manipulate DateTime.Today instead since it should always yield a reasonable DateTime for manipulation.
 			bool isBackupReminderNeeded=PrefC.GetDate(PrefName.BackupReminderLastDateRun) < DateTime.Today.AddMonths(-1);//Remind users every month.
-			if(!ODBuild.IsTrial() && isBackupReminderNeeded) {
+			if(!/* ODBuild.IsTrial() */ false && isBackupReminderNeeded) {
 				FrmBackupReminder frmBackupReminder=new FrmBackupReminder();
 				frmBackupReminder.ShowDialog();
 				if(frmBackupReminder.IsDialogOK) {
@@ -767,50 +767,10 @@ namespace OpenDental{
 			Signalods.DateTRegularPrioritySignalLastRefreshed=MiscData.GetNowDateTime();
 			Signalods.DateTApptSignalLastRefreshed=Signalods.DateTRegularPrioritySignalLastRefreshed;
 			SetTimersAndThreads(true);//Safe to start timers since this method call is on the main thread.
-			if(false) {
-				ODCloudClient.FileWatcherDirectory=PrefC.GetString(PrefName.CloudFileWatcherDirectory);
-				try {
-					if(!Directory.Exists(ODCloudClient.FileWatcherDirectory)) {
-						Directory.CreateDirectory(ODCloudClient.FileWatcherDirectory);
-					}
-					ODCloudClient.FileWatcherDirectoryAPI=PrefC.GetString(PrefName.CloudFileWatcherDirectoryAPI);
-					if(!Directory.Exists(ODCloudClient.FileWatcherDirectoryAPI)) {
-						Directory.CreateDirectory(ODCloudClient.FileWatcherDirectoryAPI);
-					}
-				}
-				catch(Exception e) {
-					ODCloudClient.DidLocateFileWatcherDirectory=false;
-					FriendlyException.Show(Lans.g(this,"Unable to communicate with the Cloud Client. Any features that use the Cloud Client will be unavailable."),e);
-				}
-			}
-			if(false || !false) {
+			if(!false) {
 				_menuItemCloudUsers.Available=false;
 			}
-			if(ODEnvironment.IsCloudServer) {
-				_menuItemCreateAtoZ.Available=false;
-				_menuItemHL7.Available=false;
-				_menuItemEHR.Available=false;
-				if(false) {
-					_menuItemPrinter.Available=false;
-				}
-				//If the office needs to reset their office passowrd, we will prompt them until they change it.
-				if(false && PrefC.GetEnum<YN>(PrefName.CloudPasswordNeedsReset)!=YN.No) {
-					string message="You must reset the office password. ";
-					if(Security.IsAuthorized(EnumPermType.SecurityAdmin)) {
-						if(MsgBox.Show(this,MsgBoxButtons.YesNo,message+"Do you want to open the Change Office Password window?")) {
-							using FormChangeCloudPassword formChangeCloudPassword=new FormChangeCloudPassword();
-							formChangeCloudPassword.ShowDialog();
-						}
-					}
-					else {
-						MsgBox.Show(this,message+"This must be done by a SecurityAdmin user.");
-					}
-				}
-				if(Programs.IsEnabled(ProgramName.FHIR)) {
-					ODCloudClient.IsApiEnabled=true;
-					ODCloudClient.LaunchIfNotRunning();
-				}
-			}
+
 			Logger.LogToPath("MainBorderColors",LogPath.Startup,LogPhase.Unspecified);
 			List<Def> listDefsMisColors=Defs.GetDefsForCategory(DefCat.MiscColors);
 			SetBorderColor(DefCatMiscColors.MainBorder,listDefsMisColors[(int)DefCatMiscColors.MainBorder].ItemColor);
@@ -834,7 +794,7 @@ namespace OpenDental{
 				}
 			}
 			_httpListenerApi=new HttpListener();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				_httpListenerApi.Prefixes.Add("http://127.0.0.1:30555/");//30555 was chosen arbitrarily for local API debugging.
 			}
 			else {
@@ -1691,7 +1651,7 @@ namespace OpenDental{
 				ToolBarMain.Buttons.Add(toolBarButton);
 			}
 			ToolBarMain.Buttons.Add(new ODToolBarButton(Lan.g(this,"Popups"),-1,Lan.g(this,"Edit popups for this patient"),"Popups"));
-			//if(false || ODBuild.IsDebug()) {
+			//if(false || /* ODBuild.IsDebug() */ false) {
 			//	ODToolBarButton odToolbarButton=new ODToolBarButton(Lan.g(this,"MouseWatcher"),-1,Lan.g(this,"Only used temporarily at HQ. Toggle MouseWatcher on/off. You can completely ignore this button unless you are trying to test the mouse watcher."),"MouseWatcher");
 			//	if(MouseWatcher.IsRunning) {
 			//		odToolbarButton.IsRed=true;
@@ -3132,7 +3092,7 @@ namespace OpenDental{
 					//1. there is a mismatch between the current software version and the program version stored in the db (ProgramVersion pref)
 					//2. the UpdateInProgressOnComputerName pref is set (regardless of whether or not the computer name matches this machine name)
 					//3. the CorruptedDatabase flag is set
-					if(!ODBuild.IsDebug() && !IsDbConnectionSafe(out errorMsg)) {//Running version verses ProgramVersion preference can be different in debug.
+					if(!/* ODBuild.IsDebug() */ false && !IsDbConnectionSafe(out errorMsg)) {//Running version verses ProgramVersion preference can be different in debug.
 						timerSignals.Stop();
 						MessageBox.Show(this,errorMsg);
 						ProcessKillCommand();
@@ -5774,7 +5734,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Cannot open terminal unless process signal interval is set. To set it, go to Setup > Miscellaneous.");
 				return;
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Thinfinity messes up window ordering so sometimes FormOpenDental is visible in Kiosk mode.
 				for(int i=0;i<Application.OpenForms.Count;i++) {
 					Application.OpenForms[i].Visible=false;
@@ -6386,10 +6346,6 @@ namespace OpenDental{
 				site="https://support.benco.com/";
 			}
 			try {
-				if(false) {
-					ODCloudClient.LaunchFileWithODCloudClient(site);
-					return;
-				}
 				Process.Start(site);
 			}
 			catch(Exception) {
@@ -6421,10 +6377,6 @@ namespace OpenDental{
 		private void menuItemHelpContents_Click(object sender, System.EventArgs e) {
 			string site="https://www.opendental.com/manual/manual.html";
 			try {
-				if(false) {
-					ODCloudClient.LaunchFileWithODCloudClient(site);
-					return;
-				}
 				Process.Start(site);
 			}
 			catch{
@@ -6435,10 +6387,6 @@ namespace OpenDental{
 		private void menuItemHelpIndex_Click(object sender, System.EventArgs e) {
 			string site="https://www.opendental.com/site/searchsite.html";
 			try {
-				if(false) {
-					ODCloudClient.LaunchFileWithODCloudClient(site);
-					return;
-				}
 				Process.Start(site);
 			}
 			catch{
@@ -6449,10 +6397,6 @@ namespace OpenDental{
 		private void menuItemWebinar_Click(object sender,EventArgs e) {
 			string site="https://opendental.com/webinars/webinars.html";
 			try {
-				if(false) {
-					ODCloudClient.LaunchFileWithODCloudClient(site);
-					return;
-				}
 				Process.Start(site);
 			}
 			catch{
@@ -6742,7 +6686,7 @@ namespace OpenDental{
 		///<summary>Opens the License Agreements for the user to sign. This prompting will only display when the user is a SecurityAdmin with a valid regkey. Closes Open Dental if they refuse to sign. </summary>
 		private void PromptForLicenseSignature() {
 			if(Security.IsAuthorized(EnumPermType.SecurityAdmin,true) && !PrefC.GetString(PrefName.RegistrationKey).IsNullOrEmpty()
-				&& !ODBuild.IsTrial() && !ODBuild.IsDebug()) 
+				&& !/* ODBuild.IsTrial() */ false && !/* ODBuild.IsDebug() */ false) 
 				{
 				using FormRegistrationKey formRegistrationKey=new FormRegistrationKey();
 				formRegistrationKey.NeedsSignature=true;

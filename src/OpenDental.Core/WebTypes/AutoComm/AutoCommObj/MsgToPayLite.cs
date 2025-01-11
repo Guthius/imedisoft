@@ -54,13 +54,6 @@ public class MsgToPayLite : AutoCommObj
     public long StatementNum;
     public long ApptNum;
 
-    [XmlIgnore]
-    public DateTime DateTimeSendFailed;
-
-    public MsgToPayLite()
-    {
-    }
-
     public MsgToPayLite(Patient patient)
     {
         NameF = patient.FName;
@@ -68,56 +61,5 @@ public class MsgToPayLite : AutoCommObj
         ProvNum = patient.PriProv;
         PatNum = patient.PatNum;
         ClinicNum = patient.ClinicNum;
-    }
-
-    public MsgToPayLite(MsgToPaySent sent)
-    {
-        MsgToPaySentNum = sent.MsgToPaySentNum;
-        PrimaryKey = sent.MsgToPaySentNum;
-        Contact = sent.Contact;
-        Source = sent.Source;
-        TemplateMessage = sent.TemplateMessage;
-        Subject = sent.Subject;
-        Message = sent.Message;
-        DateTimeEntry = sent.DateTimeEntry;
-        DateTimeSent = sent.DateTimeSent;
-        ResponseDescript = sent.ResponseDescript;
-        ApptReminderRuleNum = sent.ApptReminderRuleNum;
-        ShortGUID = sent.ShortGUID;
-        GuidMessageToMobile = sent.GuidMessageToMobile;
-        DateTimeSendFailed = sent.DateTimeSendFailed;
-        PatNum = sent.PatNum;
-        ClinicNum = sent.ClinicNum;
-        MessageFk = sent.MessageFk;
-        EmailType = sent.EmailType;
-        StatementNum = sent.StatementNum;
-        ApptNum = sent.ApptNum;
-    }
-
-    public MsgToPaySent ToMsgToPaySent()
-    {
-        MsgToPaySent msgToPaySent = new MsgToPaySent
-        {
-            MsgToPaySentNum = PrimaryKey,
-            Contact = Contact,
-            Source = Source,
-            TemplateMessage = TemplateMessage,
-            Subject = Subject,
-            Message = Message,
-            DateTimeEntry = DateTimeEntry,
-            DateTimeSent = DateTimeSent,
-            ResponseDescript = ResponseDescript,
-            ApptReminderRuleNum = ApptReminderRuleNum,
-            ShortGUID = ShortGUID,
-            GuidMessageToMobile = GuidMessageToMobile,
-            DateTimeSendFailed = DateTimeSendFailed,
-            PatNum = PatNum,
-            ClinicNum = ClinicNum,
-            MessageFk = MessageFk,
-            EmailType = EmailType,
-            StatementNum = StatementNum,
-            ApptNum = ApptNum,
-        };
-        return msgToPaySent;
     }
 }

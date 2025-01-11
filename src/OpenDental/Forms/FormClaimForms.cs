@@ -14,6 +14,7 @@ using CodeBase;
 using System.Resources;
 using System.Globalization;
 using System.Text;
+using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 
 namespace OpenDental{
@@ -182,21 +183,6 @@ namespace OpenDental{
 			}
 			ClaimForm claimForm=(ClaimForm)gridCustom.ListGridRows[gridCustom.GetSelectedIndex()].Tag;
 			string fileName = "ClaimForm"+claimForm.Description+".xml";
-			if(ODEnvironment.IsCloudServer) {
-				StringBuilder stringBuilder=new StringBuilder();
-				XmlWriter xmlWriter=XmlWriter.Create(stringBuilder);
-				XmlSerializer xmlSerializerWeb=new XmlSerializer(typeof(ClaimForm));
-				xmlSerializerWeb.Serialize(xmlWriter,claimForm);
-				xmlWriter.Close();
-				if(false) {
-					ThinfinityUtils.ExportForDownload(fileName,stringBuilder.ToString());
-				}
-				else if(false) {
-					File.WriteAllText(fileName,stringBuilder.ToString());
-					CloudClientL.ExportForCloud(fileName,doPromptForName:false);
-				}
-				return;
-			}
 			using SaveFileDialog saveFileDialog=new SaveFileDialog();
 			try {
 				saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
@@ -218,20 +204,12 @@ namespace OpenDental{
 		///<summary>Import an XML file into the custom claim forms list.</summary>
 		private void butImport_Click(object sender, System.EventArgs e) {
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
+			if(openFileDialog.ShowDialog()!=DialogResult.OK){
+				return;
 			}
-			else {
-				OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				if(openFileDialog.ShowDialog()!=DialogResult.OK){
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
-			}
+			importFilePath=openFileDialog.FileName;
 			ClaimForm claimForm;
 			try{
 				claimForm=ClaimForms.DeserializeClaimForm(importFilePath,"");

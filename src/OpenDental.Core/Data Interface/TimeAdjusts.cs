@@ -124,7 +124,7 @@ public class TimeAdjusts
     ///<summary>Attempts to get one TimeAdjust based on a time.  Returns null if not found. </summary>
     public static TimeAdjust GetPayPeriodNote(long employeeNum, DateTime dateStart)
     {
-        var command = "SELECT * FROM timeadjust WHERE EmployeeNum=" + SOut.Long(employeeNum) + " AND TimeEntry=" + SOut.DateT(dateStart) + " AND IsAuto=0 ";
+        var command = "SELECT * FROM timeadjust WHERE EmployeeNum=" + SOut.Long(employeeNum) + " AND TimeEntry=" + SOut.DateTime(dateStart) + " AND IsAuto=0 ";
         command += "AND RegHours='00:00:00' AND OTimeHours='00:00:00' AND PtoHours='00:00:00' ";
         return TimeAdjustCrud.SelectOne(command);
     }
@@ -135,7 +135,7 @@ public class TimeAdjusts
     /// </summary>
     public static List<TimeAdjust> GetNotesForPayPeriod(DateTime dateStart)
     {
-        var command = "SELECT * FROM timeadjust WHERE TimeEntry=" + SOut.DateT(dateStart) + " AND isAuto=0 ";
+        var command = "SELECT * FROM timeadjust WHERE TimeEntry=" + SOut.DateTime(dateStart) + " AND isAuto=0 ";
         command += "AND RegHours='00:00:00' AND OTimeHours='00:00:00' AND PtoHours='00:00:00' ";
         return TimeAdjustCrud.SelectMany(command);
     }

@@ -6,6 +6,7 @@ using System.Web;
 using System.Windows.Forms;
 using System.Linq;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness
 {
@@ -457,7 +458,7 @@ namespace OpenDentBusiness
             //Update CurUser with the user from the cache synchronizing any fields that could have been updated.  E.g. TaskListInBox
             CurUser = Userods.GetFirstOrDefault(x => x.UserNum == CurUser.UserNum);
             //The user could have been deleted and/or data loss could have occurred and the CurUser is no longer in the db.
-            if (CurUser == null && !ODBuild.IsUnitTest)
+            if (CurUser == null)
             {
                 throw new ODException("The current user has been removed from the cache.");
             }

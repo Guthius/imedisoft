@@ -10,7 +10,7 @@ namespace OpenDental.Bridges {
 		///<param name="pat">The current patient.</param>
 		public static void SendData(Program prog,Patient pat) {
 			string url="https://";
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				url+="prelive.dentalxchange.com";
 			}
 			else {

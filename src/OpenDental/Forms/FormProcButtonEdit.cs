@@ -72,19 +72,11 @@ namespace OpenDental{
 
 		private void butImport_Click(object sender,EventArgs e) {
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			if(openFileDialog.ShowDialog()!=DialogResult.OK){
+				return;
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				if(openFileDialog.ShowDialog()!=DialogResult.OK){
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
-			}
+			importFilePath=openFileDialog.FileName;
 			Image imageImported;
 			try{
 				imageImported=Image.FromFile(importFilePath);

@@ -59,7 +59,7 @@ public class PayPeriodCrud
         table.Columns.Add("DateStop");
         table.Columns.Add("DatePaycheck");
         foreach (var payPeriod in listPayPeriods)
-            table.Rows.Add(SOut.Long(payPeriod.PayPeriodNum), SOut.DateT(payPeriod.DateStart, false), SOut.DateT(payPeriod.DateStop, false), SOut.DateT(payPeriod.DatePaycheck, false));
+            table.Rows.Add(SOut.Long(payPeriod.PayPeriodNum), SOut.DateTime(payPeriod.DateStart, false), SOut.DateTime(payPeriod.DateStop, false), SOut.DateTime(payPeriod.DatePaycheck, false));
         return table;
     }
 

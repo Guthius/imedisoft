@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 	/// <summary>

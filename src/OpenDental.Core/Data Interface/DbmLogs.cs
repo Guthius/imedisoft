@@ -9,7 +9,7 @@ public class DbmLogs
 {
     public static List<DbmLog> GetByMethodName(string methodName, DateTime date)
     {
-        var command = "SELECT * FROM dbmlog WHERE dbmlog.MethodName='" + SOut.String(methodName) + "' AND dbmlog.DateTimeEntry>=" + SOut.DateT(date.Date);
+        var command = "SELECT * FROM dbmlog WHERE dbmlog.MethodName='" + SOut.String(methodName) + "' AND dbmlog.DateTimeEntry>=" + SOut.DateTime(date.Date);
         return DbmLogCrud.SelectMany(command);
     }
 

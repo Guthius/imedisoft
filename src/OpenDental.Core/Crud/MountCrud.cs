@@ -80,7 +80,7 @@ public class MountCrud
         table.Columns.Add("FlipOnAcquire");
         table.Columns.Add("AdjModeAfterSeries");
         foreach (var mount in listMounts)
-            table.Rows.Add(SOut.Long(mount.MountNum), SOut.Long(mount.PatNum), SOut.Long(mount.DocCategory), SOut.DateT(mount.DateCreated, false), mount.Description, mount.Note, SOut.Int(mount.Width), SOut.Int(mount.Height), SOut.Int(mount.ColorBack.ToArgb()), SOut.Long(mount.ProvNum), SOut.Int(mount.ColorFore.ToArgb()), SOut.Int(mount.ColorTextBack.ToArgb()), SOut.Bool(mount.FlipOnAcquire), SOut.Bool(mount.AdjModeAfterSeries));
+            table.Rows.Add(SOut.Long(mount.MountNum), SOut.Long(mount.PatNum), SOut.Long(mount.DocCategory), SOut.DateTime(mount.DateCreated, false), mount.Description, mount.Note, SOut.Int(mount.Width), SOut.Int(mount.Height), SOut.Int(mount.ColorBack.ToArgb()), SOut.Long(mount.ProvNum), SOut.Int(mount.ColorFore.ToArgb()), SOut.Int(mount.ColorTextBack.ToArgb()), SOut.Bool(mount.FlipOnAcquire), SOut.Bool(mount.AdjModeAfterSeries));
         return table;
     }
 
@@ -98,7 +98,7 @@ public class MountCrud
         command +=
             SOut.Long(mount.PatNum) + ","
                                     + SOut.Long(mount.DocCategory) + ","
-                                    + SOut.DateT(mount.DateCreated) + ","
+                                    + SOut.DateTime(mount.DateCreated) + ","
                                     + "'" + SOut.String(mount.Description) + "',"
                                     + DbHelper.ParamChar + "paramNote,"
                                     + SOut.Int(mount.Width) + ","
@@ -132,7 +132,7 @@ public class MountCrud
         command +=
             SOut.Long(mount.PatNum) + ","
                                     + SOut.Long(mount.DocCategory) + ","
-                                    + SOut.DateT(mount.DateCreated) + ","
+                                    + SOut.DateTime(mount.DateCreated) + ","
                                     + "'" + SOut.String(mount.Description) + "',"
                                     + DbHelper.ParamChar + "paramNote,"
                                     + SOut.Int(mount.Width) + ","
@@ -157,7 +157,7 @@ public class MountCrud
         var command = "UPDATE mount SET "
                       + "PatNum            =  " + SOut.Long(mount.PatNum) + ", "
                       + "DocCategory       =  " + SOut.Long(mount.DocCategory) + ", "
-                      + "DateCreated       =  " + SOut.DateT(mount.DateCreated) + ", "
+                      + "DateCreated       =  " + SOut.DateTime(mount.DateCreated) + ", "
                       + "Description       = '" + SOut.String(mount.Description) + "', "
                       + "Note              =  " + DbHelper.ParamChar + "paramNote, "
                       + "Width             =  " + SOut.Int(mount.Width) + ", "
@@ -192,7 +192,7 @@ public class MountCrud
         if (mount.DateCreated != oldMount.DateCreated)
         {
             if (command != "") command += ",";
-            command += "DateCreated = " + SOut.DateT(mount.DateCreated) + "";
+            command += "DateCreated = " + SOut.DateTime(mount.DateCreated) + "";
         }
 
         if (mount.Description != oldMount.Description)

@@ -75,7 +75,7 @@ public class PharmacyCrud
         table.Columns.Add("Note");
         table.Columns.Add("DateTStamp");
         foreach (var pharmacy in listPharmacys)
-            table.Rows.Add(SOut.Long(pharmacy.PharmacyNum), pharmacy.PharmID, pharmacy.StoreName, pharmacy.Phone, pharmacy.Fax, pharmacy.Address, pharmacy.Address2, pharmacy.City, pharmacy.State, pharmacy.Zip, pharmacy.Note, SOut.DateT(pharmacy.DateTStamp, false));
+            table.Rows.Add(SOut.Long(pharmacy.PharmacyNum), pharmacy.PharmID, pharmacy.StoreName, pharmacy.Phone, pharmacy.Fax, pharmacy.Address, pharmacy.Address2, pharmacy.City, pharmacy.State, pharmacy.Zip, pharmacy.Note, SOut.DateTime(pharmacy.DateTStamp, false));
         return table;
     }
 

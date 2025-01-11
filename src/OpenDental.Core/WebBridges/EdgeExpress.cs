@@ -146,15 +146,10 @@ namespace OpenDentBusiness {
 			public static bool IsRCMRunning {
 				get {
 					bool isRCMRunning=false;
-					if(ODEnvironment.IsCloudServer) {
-						isRCMRunning=ODCloudClient.IsProcessRunning("rcm");
+					try {
+						isRCMRunning=Process.GetProcesses().Any(x => x.ProcessName.ToLower().Contains("rcm"));
 					}
-					else {
-						try {
-							isRCMRunning=Process.GetProcesses().Any(x => x.ProcessName.ToLower().Contains("rcm"));
-						}
-						catch(Exception ex) {
-						}
+					catch(Exception ex) {
 					}
 					return isRCMRunning;
 				}
@@ -171,14 +166,8 @@ namespace OpenDentBusiness {
 					cashBackAmt,expDate);
 				string url=$"{_edgeExpressRCMURL}?xl2Parameters={strBldXml}";
 				string response;
-				if(false) {
-					//Timeout is 120 seconds because that's how long we set the timeout for PayConnect terminal.
-					response=ODCloudClient.DownloadString(url,timeoutSecs: 120,doShowProgressBar: false);
-				}
-				else {
-					using WebClient client=new WebClient();
-					response=client.DownloadString(url);
-				}
+				using WebClient client=new WebClient();
+				response=client.DownloadString(url);
 				//Response will look like: 
 				//{"Description":"OK","IsSuccessful":true,"RcmResponse":"{\"RESPONSE\":{\"RESPONSE\":\"3\",\"RESULTMSG\":\"Transaction Cancelled\"}}","XmlRcmResponse":null}
 				var jsonResponse=new {
@@ -280,7 +269,7 @@ namespace OpenDentBusiness {
 			private static string _edgeExpressHostPayUrl {
 				get {
 					string edgeExpressHostPayUrl="https://ee.paygateway.com/HostPayService/v1/hostpay/transactions/";
-					if(ODBuild.IsDebug() || XWebs.UseXWebTestGateway) {
+					if(/* ODBuild.IsDebug() */ false || XWebs.UseXWebTestGateway) {
 						edgeExpressHostPayUrl="https://ee.test.paygateway.com/HostPayService/v1/hostpay/transactions";
 					}
 					return Introspection.GetOverride(Introspection.IntrospectionEntity.EdgeExpressHostPay,edgeExpressHostPayUrl);
@@ -291,7 +280,7 @@ namespace OpenDentBusiness {
 			private static string _edgeExpressDirectPayUrl {
 				get {
 					string edgeExpressDirectPayUrl="https://ee.paygateway.com/HostPayService/v1/directpay/express";
-					if(ODBuild.IsDebug() || XWebs.UseXWebTestGateway) {
+					if(/* ODBuild.IsDebug() */ false || XWebs.UseXWebTestGateway) {
 						edgeExpressDirectPayUrl="https://ee.test.paygateway.com/HostPayService/v1/directpay/express";
 					}
 					return Introspection.GetOverride(Introspection.IntrospectionEntity.EdgeExpressDirectPay,edgeExpressDirectPayUrl);
@@ -424,7 +413,7 @@ namespace OpenDentBusiness {
 				xmlWriter.WriteElementString("TYPE","KEYED");
 				xmlWriter.WriteEndElement();//POSDEVICE
 				xmlWriter.WriteStartElement("RETURNOPTION");
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					xmlWriter.WriteElementString("RETURNURL",returnUrl); //use this line for debugging easier
 				}
 				else {

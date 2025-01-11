@@ -79,7 +79,7 @@ public class RecurringChargeCrud
         table.Columns.Add("CreditCardNum");
         table.Columns.Add("ErrorMsg");
         foreach (var recurringCharge in listRecurringCharges)
-            table.Rows.Add(SOut.Long(recurringCharge.RecurringChargeNum), SOut.Long(recurringCharge.PatNum), SOut.Long(recurringCharge.ClinicNum), SOut.DateT(recurringCharge.DateTimeCharge, false), SOut.Int((int) recurringCharge.ChargeStatus), SOut.Double(recurringCharge.FamBal), SOut.Double(recurringCharge.PayPlanDue), SOut.Double(recurringCharge.TotalDue), SOut.Double(recurringCharge.RepeatAmt), SOut.Double(recurringCharge.ChargeAmt), SOut.Long(recurringCharge.UserNum), SOut.Long(recurringCharge.PayNum), SOut.Long(recurringCharge.CreditCardNum), recurringCharge.ErrorMsg);
+            table.Rows.Add(SOut.Long(recurringCharge.RecurringChargeNum), SOut.Long(recurringCharge.PatNum), SOut.Long(recurringCharge.ClinicNum), SOut.DateTime(recurringCharge.DateTimeCharge, false), SOut.Int((int) recurringCharge.ChargeStatus), SOut.Double(recurringCharge.FamBal), SOut.Double(recurringCharge.PayPlanDue), SOut.Double(recurringCharge.TotalDue), SOut.Double(recurringCharge.RepeatAmt), SOut.Double(recurringCharge.ChargeAmt), SOut.Long(recurringCharge.UserNum), SOut.Long(recurringCharge.PayNum), SOut.Long(recurringCharge.CreditCardNum), recurringCharge.ErrorMsg);
         return table;
     }
 
@@ -97,7 +97,7 @@ public class RecurringChargeCrud
         command +=
             SOut.Long(recurringCharge.PatNum) + ","
                                               + SOut.Long(recurringCharge.ClinicNum) + ","
-                                              + SOut.DateT(recurringCharge.DateTimeCharge) + ","
+                                              + SOut.DateTime(recurringCharge.DateTimeCharge) + ","
                                               + SOut.Int((int) recurringCharge.ChargeStatus) + ","
                                               + SOut.Double(recurringCharge.FamBal) + ","
                                               + SOut.Double(recurringCharge.PayPlanDue) + ","
@@ -131,7 +131,7 @@ public class RecurringChargeCrud
         command +=
             SOut.Long(recurringCharge.PatNum) + ","
                                               + SOut.Long(recurringCharge.ClinicNum) + ","
-                                              + SOut.DateT(recurringCharge.DateTimeCharge) + ","
+                                              + SOut.DateTime(recurringCharge.DateTimeCharge) + ","
                                               + SOut.Int((int) recurringCharge.ChargeStatus) + ","
                                               + SOut.Double(recurringCharge.FamBal) + ","
                                               + SOut.Double(recurringCharge.PayPlanDue) + ","
@@ -156,7 +156,7 @@ public class RecurringChargeCrud
         var command = "UPDATE recurringcharge SET "
                       + "PatNum            =  " + SOut.Long(recurringCharge.PatNum) + ", "
                       + "ClinicNum         =  " + SOut.Long(recurringCharge.ClinicNum) + ", "
-                      + "DateTimeCharge    =  " + SOut.DateT(recurringCharge.DateTimeCharge) + ", "
+                      + "DateTimeCharge    =  " + SOut.DateTime(recurringCharge.DateTimeCharge) + ", "
                       + "ChargeStatus      =  " + SOut.Int((int) recurringCharge.ChargeStatus) + ", "
                       + "FamBal            =  " + SOut.Double(recurringCharge.FamBal) + ", "
                       + "PayPlanDue        =  " + SOut.Double(recurringCharge.PayPlanDue) + ", "
@@ -191,7 +191,7 @@ public class RecurringChargeCrud
         if (recurringCharge.DateTimeCharge != oldRecurringCharge.DateTimeCharge)
         {
             if (command != "") command += ",";
-            command += "DateTimeCharge = " + SOut.DateT(recurringCharge.DateTimeCharge) + "";
+            command += "DateTimeCharge = " + SOut.DateTime(recurringCharge.DateTimeCharge) + "";
         }
 
         if (recurringCharge.ChargeStatus != oldRecurringCharge.ChargeStatus)

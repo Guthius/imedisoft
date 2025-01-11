@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness;
 
@@ -118,12 +119,6 @@ public class Clinics
 
     public static void LogOff()
     {
-        if (!true)
-        {
-            _clinicNum = 0;
-            return;
-        }
-
         if (PrefC.GetString(PrefName.ClinicTrackLast) == "Workstation")
         {
             //Other two options are "None" and "User"
@@ -137,22 +132,25 @@ public class Clinics
         var listUserOdPrefs = UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum, UserOdFkeyType.ClinicLast); //should only be one or none.
         if (listUserOdPrefs.Count == 0)
         {
-            var userOdPref = new UserOdPref();
-            userOdPref.UserNum = Security.CurUser.UserNum;
-            userOdPref.FkeyType = UserOdFkeyType.ClinicLast;
-            userOdPref.Fkey = ClinicNum;
-            UserOdPrefs.Insert(userOdPref);
+            UserOdPrefs.Insert(new UserOdPref
+            {
+                UserNum = Security.CurUser.UserNum,
+                FkeyType = UserOdFkeyType.ClinicLast,
+                Fkey = ClinicNum
+            });
         }
 
         var isSetInvalidNeeded = false;
-        for (var i = 0; i < listUserOdPrefs.Count; i++)
+        foreach (var t in listUserOdPrefs)
         {
-            var userOdPrefOld = listUserOdPrefs[i].Clone();
-            listUserOdPrefs[i].Fkey = ClinicNum;
-            if (UserOdPrefs.Update(listUserOdPrefs[i], userOdPrefOld)) isSetInvalidNeeded = true;
+            var userOdPrefOld = t.Clone();
+            t.Fkey = ClinicNum;
+            if (UserOdPrefs.Update(t, userOdPrefOld))
+            {
+                isSetInvalidNeeded = true;
+            }
         }
 
-        ;
         if (!isSetInvalidNeeded)
         {
             _clinicNum = 0;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -217,19 +218,9 @@ namespace OpenDental {
 				StringSplitOptions.None
 			);
 			for(int i=0;i<stringArrayLines.Length;i++){
-				ODException.SwallowAnyException(() => { 
-					if(!false && false) {
-						try {
-							ODCloudClient.LaunchFileWithODCloudClient(stringArrayLines[i]);
-						}
-						catch(Exception ex) {
-							MessageBox.Show(ex.Message);
-							return;
-						}
-					}
-					else {
-						System.Diagnostics.Process.Start(stringArrayLines[i]);
-					}
+				ODException.SwallowAnyException(() =>
+				{
+					System.Diagnostics.Process.Start(stringArrayLines[i]);
 				});
 			}
 		}

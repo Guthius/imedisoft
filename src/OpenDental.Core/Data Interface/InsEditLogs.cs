@@ -83,7 +83,7 @@ public class InsEditLogs
         var command = "SELECT * FROM inseditlog "
                       + "WHERE FKey = " + SOut.Long(FKey) + " "
                       + "AND LogType = " + SOut.Int((int) insEditLogType) + " "
-                      + "AND DateTStamp < " + SOut.DateT(insEditLog.DateTStamp) + " "
+                      + "AND DateTStamp < " + SOut.DateTime(insEditLog.DateTStamp) + " "
                       + "AND InsEditLogNum NOT IN( " + string.Join(",", listInsEditLogs.Select(x => SOut.Long(x.InsEditLogNum)).ToList()) + ")";
         var listInsEditLogsLinked = InsEditLogCrud.SelectMany(command);
         GetChangedLogs(listInsEditLogsLinked);

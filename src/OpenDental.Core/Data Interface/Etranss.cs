@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -532,8 +533,8 @@ public class Etranss
                               + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
                               + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
                               + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
-                              + " AND DateTimeTrans > " + SOut.DateT(dateTimeTrans.AddDays(-14))
-                              + " AND DateTimeTrans < " + SOut.DateT(dateTimeTrans.AddDays(1))
+                              + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
+                              + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                               + " AND AckEtransNum=0";
                     Db.NonQ(command);
                 }
@@ -553,8 +554,8 @@ public class Etranss
                                       + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
                                       + " AND TransSetNum=" + SOut.Long(transNums[i])
                                       + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
-                                      + " AND DateTimeTrans > " + SOut.DateT(dateTimeTrans.AddDays(-14))
-                                      + " AND DateTimeTrans < " + SOut.DateT(dateTimeTrans.AddDays(1))
+                                      + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
+                                      + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                                       + " AND AckEtransNum=0";
                             Db.NonQ(command);
                         }
@@ -576,8 +577,8 @@ public class Etranss
                               + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
                               + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
                               + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
-                              + " AND DateTimeTrans > " + SOut.DateT(dateTimeTrans.AddDays(-14))
-                              + " AND DateTimeTrans < " + SOut.DateT(dateTimeTrans.AddDays(1))
+                              + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
+                              + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                               + " AND AckEtransNum=0";
                     Db.NonQ(command);
                 }
@@ -596,8 +597,8 @@ public class Etranss
                                   + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
                                   + " AND TransSetNum=" + SOut.Long(transNums[i])
                                   + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
-                                  + " AND DateTimeTrans > " + SOut.DateT(dateTimeTrans.AddDays(-14))
-                                  + " AND DateTimeTrans < " + SOut.DateT(dateTimeTrans.AddDays(1))
+                                  + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
+                                  + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                                   + " AND AckEtransNum=0";
                         Db.NonQ(command);
                     }
@@ -642,8 +643,8 @@ public class Etranss
                               + " WHERE EType IN (" + SOut.Int((int) EtransType.ClaimSent) + "," + SOut.Int((int) EtransType.Claim_Ren) + ") "
                               + " AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ")"
                               + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
-                              + " AND DateTimeTrans > " + SOut.DateT(dateTimeTrans.AddDays(-14))
-                              + " AND DateTimeTrans < " + SOut.DateT(dateTimeTrans.AddDays(1));
+                              + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
+                              + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1));
                     Db.NonQ(command);
                     //none of the other fields make sense, because this ack could refer to many claims.
                 }
@@ -694,8 +695,8 @@ public class Etranss
                               + " WHERE EType IN (0,3) " //ClaimSent and Claim_Ren
                               + " AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ")"
                               + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
-                              + " AND DateTimeTrans > " + SOut.DateT(dateTimeTrans.AddDays(-14))
-                              + " AND DateTimeTrans < " + SOut.DateT(dateTimeTrans.AddDays(1));
+                              + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
+                              + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1));
                     Db.NonQ(command);
                     //none of the other fields make sense, because this ack could refer to many claims.
                 }

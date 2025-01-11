@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -40,17 +41,11 @@ namespace OpenDental {
 			if(string.IsNullOrWhiteSpace(secureEmailUrl)) {
 				webBrowser.Visible=false;
 			}
-			else if(!false && false) {
-				try {
-					ODCloudClient.LaunchFileWithODCloudClient(secureEmailUrl);
-				}
-				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
-				}
-			}
-			else {
+			else
+			{
 				webBrowser.Navigate(secureEmailUrl);
 			}
+
 			InitDefaultClinic();
 			RefreshView();
 		}

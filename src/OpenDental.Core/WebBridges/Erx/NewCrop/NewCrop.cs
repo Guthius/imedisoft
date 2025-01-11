@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 
@@ -34,7 +35,7 @@ namespace OpenDentBusiness {
 				if(newCropName!="") { //Distributors use this field to send different credentials. Thus, if blank, then send OD credentials.
 					return newCropName;//Distributor
 				}
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					return CodeBase.MiscUtils.Decrypt("Xv40GArhEXYjEZxAE3Fw9g==");//Assigned by NewCrop. Used globally for all customers.
 				}
 				else {
@@ -55,7 +56,7 @@ namespace OpenDentBusiness {
 				if(newCropName!="") { //Distributors use this field to send different credentials. Thus, if blank, then send OD credentials.
 					return PrefC.GetString(PrefName.NewCropPassword);//Distributor
 				}
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					return CodeBase.MiscUtils.Decrypt("Xv40GArhEXYjEZxAE3Fw9g==");//Assigned by NewCrop. Used globally for all customers.
 				}
 				else {
@@ -122,7 +123,7 @@ namespace OpenDentBusiness {
 			NewCropWebService.PatientInformationRequester patientInfoRequester=new NewCropWebService.PatientInformationRequester();
 			NewCropWebService.Result response=new NewCropWebService.Result();
 			string newCropURL=Introspection.GetOverride(Introspection.IntrospectionEntity.NewCropUpdate1URL,"https://secure.newcropaccounts.com/v7/WebServices/Update1.asmx");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				newCropURL="https://preproduction.newcropaccounts.com/v7/WebServices/Update1.asmx";
 			}
 			wsNewCrop.Url=newCropURL;
@@ -181,7 +182,7 @@ namespace OpenDentBusiness {
 				//We need to continue to the bottom of this function even when there are no active medications,
 				//so that we can discontinue any medications in the database which were active that are now discontinued in eRx.
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				//For capturing the xmlReponse with the newlines properly showing.
 				string tempFile=PrefC.GetRandomTempFile(".txt");
 				File.WriteAllText(tempFile,xmlResponse);

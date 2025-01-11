@@ -7,8 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Caching;
 
 public class PrefC
 {

@@ -62,7 +62,7 @@ namespace OpenDental {
 					.OrderBy(x => x)
 					.ToList();
 				comboPatient.Visible=true;
-				if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="danh=eng"){
+				if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="danh=eng"){
 					butListPatients.Visible=true;
 				}
 				else{

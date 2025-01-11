@@ -86,7 +86,7 @@ public class ScheduledProcessCrud
         table.Columns.Add("FrequencyToRun");
         table.Columns.Add("LastRanDateTime");
         foreach (var scheduledProcess in listScheduledProcesss)
-            table.Rows.Add(SOut.Long(scheduledProcess.ScheduledProcessNum), SOut.Int((int) scheduledProcess.ScheduledAction), SOut.DateT(scheduledProcess.TimeToRun, false), SOut.Int((int) scheduledProcess.FrequencyToRun), SOut.DateT(scheduledProcess.LastRanDateTime, false));
+            table.Rows.Add(SOut.Long(scheduledProcess.ScheduledProcessNum), SOut.Int((int) scheduledProcess.ScheduledAction), SOut.DateTime(scheduledProcess.TimeToRun, false), SOut.Int((int) scheduledProcess.FrequencyToRun), SOut.DateTime(scheduledProcess.LastRanDateTime, false));
         return table;
     }
 
@@ -103,9 +103,9 @@ public class ScheduledProcessCrud
 
         command +=
             "'" + SOut.String(scheduledProcess.ScheduledAction.ToString()) + "',"
-            + SOut.DateT(scheduledProcess.TimeToRun) + ","
+            + SOut.DateTime(scheduledProcess.TimeToRun) + ","
             + "'" + SOut.String(scheduledProcess.FrequencyToRun.ToString()) + "',"
-            + SOut.DateT(scheduledProcess.LastRanDateTime) + ")";
+            + SOut.DateTime(scheduledProcess.LastRanDateTime) + ")";
 
         scheduledProcess.ScheduledProcessNum = Db.NonQ(command, true, "ScheduledProcessNum", "scheduledProcess");
         return scheduledProcess.ScheduledProcessNum;
@@ -125,9 +125,9 @@ public class ScheduledProcessCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(scheduledProcess.ScheduledProcessNum) + ",";
         command +=
             "'" + SOut.String(scheduledProcess.ScheduledAction.ToString()) + "',"
-            + SOut.DateT(scheduledProcess.TimeToRun) + ","
+            + SOut.DateTime(scheduledProcess.TimeToRun) + ","
             + "'" + SOut.String(scheduledProcess.FrequencyToRun.ToString()) + "',"
-            + SOut.DateT(scheduledProcess.LastRanDateTime) + ")";
+            + SOut.DateTime(scheduledProcess.LastRanDateTime) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else
@@ -139,9 +139,9 @@ public class ScheduledProcessCrud
     {
         var command = "UPDATE scheduledprocess SET "
                       + "ScheduledAction    = '" + SOut.String(scheduledProcess.ScheduledAction.ToString()) + "', "
-                      + "TimeToRun          =  " + SOut.DateT(scheduledProcess.TimeToRun) + ", "
+                      + "TimeToRun          =  " + SOut.DateTime(scheduledProcess.TimeToRun) + ", "
                       + "FrequencyToRun     = '" + SOut.String(scheduledProcess.FrequencyToRun.ToString()) + "', "
-                      + "LastRanDateTime    =  " + SOut.DateT(scheduledProcess.LastRanDateTime) + " "
+                      + "LastRanDateTime    =  " + SOut.DateTime(scheduledProcess.LastRanDateTime) + " "
                       + "WHERE ScheduledProcessNum = " + SOut.Long(scheduledProcess.ScheduledProcessNum);
         Db.NonQ(command);
     }
@@ -158,7 +158,7 @@ public class ScheduledProcessCrud
         if (scheduledProcess.TimeToRun != oldScheduledProcess.TimeToRun)
         {
             if (command != "") command += ",";
-            command += "TimeToRun = " + SOut.DateT(scheduledProcess.TimeToRun) + "";
+            command += "TimeToRun = " + SOut.DateTime(scheduledProcess.TimeToRun) + "";
         }
 
         if (scheduledProcess.FrequencyToRun != oldScheduledProcess.FrequencyToRun)
@@ -170,7 +170,7 @@ public class ScheduledProcessCrud
         if (scheduledProcess.LastRanDateTime != oldScheduledProcess.LastRanDateTime)
         {
             if (command != "") command += ",";
-            command += "LastRanDateTime = " + SOut.DateT(scheduledProcess.LastRanDateTime) + "";
+            command += "LastRanDateTime = " + SOut.DateTime(scheduledProcess.LastRanDateTime) + "";
         }
 
         if (command == "") return false;

@@ -104,21 +104,13 @@ namespace OpenDental{
 
 		private void butImport_Click(object sender,EventArgs e) {
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return;
-				}
+			using OpenFileDialog openFileDialog1=new OpenFileDialog();
+			openFileDialog1.FileName="";
+			openFileDialog1.DefaultExt="wav";
+			if(openFileDialog1.ShowDialog() !=DialogResult.OK){
+				return;
 			}
-			else {
-				using OpenFileDialog openFileDialog1=new OpenFileDialog();
-				openFileDialog1.FileName="";
-				openFileDialog1.DefaultExt="wav";
-				if(openFileDialog1.ShowDialog() !=DialogResult.OK){
-					return;
-				}
-				importFilePath=openFileDialog1.FileName;
-			}
+			importFilePath=openFileDialog1.FileName;
 			try{
 				SigElementDefCur.Sound=POut.Sound(importFilePath);
 			}
@@ -131,24 +123,7 @@ namespace OpenDental{
 
 		private void butExport_Click(object sender,EventArgs e) {
 			#region Web Build
-			if(ODEnvironment.IsCloudServer) {
-				string fileName=SigElementDefCur.SigText+".wav";
-				string tempPath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-				try {
-					PIn.Sound(SigElementDefCur.Sound,tempPath);
-				}
-				catch(ApplicationException ex) {
-					MessageBox.Show(ex.Message);
-					return;
-				}
-				if(false) {
-					ThinfinityUtils.ExportForDownload(tempPath);
-				}
-				else {//Is AppStream
-					CloudClientL.ExportForCloud(tempPath);
-				}
-				return;
-			}
+
 			#endregion Web Build
 			using SaveFileDialog saveFileDialog1=new SaveFileDialog();
 			saveFileDialog1.FileName="";

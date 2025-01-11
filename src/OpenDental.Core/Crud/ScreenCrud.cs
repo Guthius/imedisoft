@@ -87,7 +87,7 @@ public class ScreenCrud
         table.Columns.Add("ScreenPatNum");
         table.Columns.Add("SheetNum");
         foreach (var screen in listScreens)
-            table.Rows.Add(SOut.Long(screen.ScreenNum), SOut.Int((int) screen.Gender), SOut.Int((int) screen.RaceOld), SOut.Int((int) screen.GradeLevel), SOut.Byte(screen.Age), SOut.Int((int) screen.Urgency), SOut.Int((int) screen.HasCaries), SOut.Int((int) screen.NeedsSealants), SOut.Int((int) screen.CariesExperience), SOut.Int((int) screen.EarlyChildCaries), SOut.Int((int) screen.ExistingSealants), SOut.Int((int) screen.MissingAllTeeth), SOut.DateT(screen.Birthdate, false), SOut.Long(screen.ScreenGroupNum), SOut.Int(screen.ScreenGroupOrder), screen.Comments, SOut.Long(screen.ScreenPatNum), SOut.Long(screen.SheetNum));
+            table.Rows.Add(SOut.Long(screen.ScreenNum), SOut.Int((int) screen.Gender), SOut.Int((int) screen.RaceOld), SOut.Int((int) screen.GradeLevel), SOut.Byte(screen.Age), SOut.Int((int) screen.Urgency), SOut.Int((int) screen.HasCaries), SOut.Int((int) screen.NeedsSealants), SOut.Int((int) screen.CariesExperience), SOut.Int((int) screen.EarlyChildCaries), SOut.Int((int) screen.ExistingSealants), SOut.Int((int) screen.MissingAllTeeth), SOut.DateTime(screen.Birthdate, false), SOut.Long(screen.ScreenGroupNum), SOut.Int(screen.ScreenGroupOrder), screen.Comments, SOut.Long(screen.ScreenPatNum), SOut.Long(screen.SheetNum));
         return table;
     }
 

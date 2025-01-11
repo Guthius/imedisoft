@@ -54,16 +54,16 @@ public class ConfirmationRequestCrud
         command += "DateTimeConfirmExpire,ConfirmCode,DateTimeConfirmTransmit,DateTimeRSVP,RSVPStatus,GuidMessageFromMobile,DoNotResend,ShortGUID,ApptNum,ApptDateTime,TSPrior,PatNum,ClinicNum,SendStatus,MessageType,MessageFk,DateTimeEntry,DateTimeSent,ResponseDescript,ApptReminderRuleNum) VALUES(";
 
         command +=
-            SOut.DateT(confirmationRequest.DateTimeConfirmExpire) + ","
+            SOut.DateTime(confirmationRequest.DateTimeConfirmExpire) + ","
                                                                   + "'" + SOut.String(confirmationRequest.ConfirmCode) + "',"
-                                                                  + SOut.DateT(confirmationRequest.DateTimeConfirmTransmit) + ","
-                                                                  + SOut.DateT(confirmationRequest.DateTimeRSVP) + ","
+                                                                  + SOut.DateTime(confirmationRequest.DateTimeConfirmTransmit) + ","
+                                                                  + SOut.DateTime(confirmationRequest.DateTimeRSVP) + ","
                                                                   + SOut.Int((int) confirmationRequest.RSVPStatus) + ","
                                                                   + DbHelper.ParamChar + "paramGuidMessageFromMobile,"
                                                                   + SOut.Bool(confirmationRequest.DoNotResend) + ","
                                                                   + "'" + SOut.String(confirmationRequest.ShortGUID) + "',"
                                                                   + SOut.Long(confirmationRequest.ApptNum) + ","
-                                                                  + SOut.DateT(confirmationRequest.ApptDateTime) + ","
+                                                                  + SOut.DateTime(confirmationRequest.ApptDateTime) + ","
                                                                   + "'" + SOut.Long(confirmationRequest.TSPrior.Ticks) + "',"
                                                                   + SOut.Long(confirmationRequest.PatNum) + ","
                                                                   + SOut.Long(confirmationRequest.ClinicNum) + ","
@@ -71,7 +71,7 @@ public class ConfirmationRequestCrud
                                                                   + SOut.Int((int) confirmationRequest.MessageType) + ","
                                                                   + SOut.Long(confirmationRequest.MessageFk) + ","
                                                                   + DbHelper.Now() + ","
-                                                                  + SOut.DateT(confirmationRequest.DateTimeSent) + ","
+                                                                  + SOut.DateTime(confirmationRequest.DateTimeSent) + ","
                                                                   + DbHelper.ParamChar + "paramResponseDescript,"
                                                                   + SOut.Long(confirmationRequest.ApptReminderRuleNum) + ")";
         if (confirmationRequest.GuidMessageFromMobile == null) confirmationRequest.GuidMessageFromMobile = "";
@@ -87,16 +87,16 @@ public class ConfirmationRequestCrud
     public static void Update(ConfirmationRequest confirmationRequest)
     {
         var command = "UPDATE confirmationrequest SET "
-                      + "DateTimeConfirmExpire  =  " + SOut.DateT(confirmationRequest.DateTimeConfirmExpire) + ", "
+                      + "DateTimeConfirmExpire  =  " + SOut.DateTime(confirmationRequest.DateTimeConfirmExpire) + ", "
                       + "ConfirmCode            = '" + SOut.String(confirmationRequest.ConfirmCode) + "', "
-                      + "DateTimeConfirmTransmit=  " + SOut.DateT(confirmationRequest.DateTimeConfirmTransmit) + ", "
-                      + "DateTimeRSVP           =  " + SOut.DateT(confirmationRequest.DateTimeRSVP) + ", "
+                      + "DateTimeConfirmTransmit=  " + SOut.DateTime(confirmationRequest.DateTimeConfirmTransmit) + ", "
+                      + "DateTimeRSVP           =  " + SOut.DateTime(confirmationRequest.DateTimeRSVP) + ", "
                       + "RSVPStatus             =  " + SOut.Int((int) confirmationRequest.RSVPStatus) + ", "
                       + "GuidMessageFromMobile  =  " + DbHelper.ParamChar + "paramGuidMessageFromMobile, "
                       + "DoNotResend            =  " + SOut.Bool(confirmationRequest.DoNotResend) + ", "
                       + "ShortGUID              = '" + SOut.String(confirmationRequest.ShortGUID) + "', "
                       + "ApptNum                =  " + SOut.Long(confirmationRequest.ApptNum) + ", "
-                      + "ApptDateTime           =  " + SOut.DateT(confirmationRequest.ApptDateTime) + ", "
+                      + "ApptDateTime           =  " + SOut.DateTime(confirmationRequest.ApptDateTime) + ", "
                       + "TSPrior                =  " + SOut.Long(confirmationRequest.TSPrior.Ticks) + ", "
                       + "PatNum                 =  " + SOut.Long(confirmationRequest.PatNum) + ", "
                       + "ClinicNum              =  " + SOut.Long(confirmationRequest.ClinicNum) + ", "
@@ -104,7 +104,7 @@ public class ConfirmationRequestCrud
                       + "MessageType            =  " + SOut.Int((int) confirmationRequest.MessageType) + ", "
                       + "MessageFk              =  " + SOut.Long(confirmationRequest.MessageFk) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeSent           =  " + SOut.DateT(confirmationRequest.DateTimeSent) + ", "
+                      + "DateTimeSent           =  " + SOut.DateTime(confirmationRequest.DateTimeSent) + ", "
                       + "ResponseDescript       =  " + DbHelper.ParamChar + "paramResponseDescript, "
                       + "ApptReminderRuleNum    =  " + SOut.Long(confirmationRequest.ApptReminderRuleNum) + " "
                       + "WHERE ConfirmationRequestNum = " + SOut.Long(confirmationRequest.ConfirmationRequestNum);

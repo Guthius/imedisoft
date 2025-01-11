@@ -22,7 +22,7 @@ public class XChargeTransactions
         var command = "SELECT * FROM xchargetransaction WHERE BatchNum = '" + SOut.String(batchNum) + "' AND ItemNum = '" + SOut.String(itemNum) + "' "
                       + "AND PatNum=" + SOut.Long(patNum) + " AND TransType='" + SOut.String(transType) + "' "
                       //We include transactions that are the same minute because we used to not store the seconds portion.
-                      + "AND TransactionDateTime BETWEEN " + SOut.DateT(DateTools.ToBeginningOfMinute(dateTTransaction)) + " AND " + SOut.DateT(DateTools.ToEndOfMinute(dateTTransaction));
+                      + "AND TransactionDateTime BETWEEN " + SOut.DateTime(DateTools.ToBeginningOfMinute(dateTTransaction)) + " AND " + SOut.DateTime(DateTools.ToEndOfMinute(dateTTransaction));
         return XChargeTransactionCrud.SelectOne(command);
     }
 

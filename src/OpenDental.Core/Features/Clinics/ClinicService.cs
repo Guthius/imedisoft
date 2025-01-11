@@ -34,8 +34,8 @@ public static class ClinicService
 
         response.EnsureSuccessStatusCode();
 
-        var data = JsonConvert.DeserializeObject<GetAllClinicsResponse>(response.Content.ReadAsStringAsync().Result);
+        var clinicDtos = JsonConvert.DeserializeObject<List<ClinicDto>>(response.Content.ReadAsStringAsync().Result);
 
-        return data.Clinics;
+        return clinicDtos;
     }
 }

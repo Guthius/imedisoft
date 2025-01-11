@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;

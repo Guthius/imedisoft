@@ -183,18 +183,12 @@ Examples:
 				}
 				//Send image to Pearl
 				string requestId=null;
-				if(ODBuild.IsDebug()&&!ODBuild.IsUnitTest) {
-					oDThread.Wait(2000);//simulated wait for getting URL and uploading image
-					requestId=SimulateSendOneImageToPearl(Document_.DocNum,Bitmap_,oDThread);
+				//Get AWS presigned URL, upload image to it, then send to Pearl
+				try {
+					requestId=PearlApiClient.Inst.SendOneImageToPearl(Document_.DocNum,Bitmap_,Patient_);
 				}
-				else {
-					//Get AWS presigned URL, upload image to it, then send to Pearl
-					try {
-						requestId=PearlApiClient.Inst.SendOneImageToPearl(Document_.DocNum,Bitmap_,Patient_);
-					}
-					catch(Exception ex) {
-						throw new Exception("There was an error uploading an image:\r\n"+ex.Message);
-					}
+				catch(Exception ex) {
+					throw new Exception("There was an error uploading an image:\r\n"+ex.Message);
 				}
 				if(string.IsNullOrWhiteSpace(requestId)) {
 					throw new Exception("An image failed to upload.");
@@ -353,18 +347,12 @@ Examples:
 			if(PearlRequests.IsRequestHandled(_pearlRequest)) {
 				return true;
 			}
-			if(ODBuild.IsDebug()&&!ODBuild.IsUnitTest) {
-				result=SimulateGetResultsForOneImage(_pearlRequest.RequestId,Bitmap_);
-				Thread.Sleep(200);//simulated wait for getting API response
+			try {
+				result=PearlApiClient.Inst.GetOneImageFromPearl(_pearlRequest.RequestId);
 			}
-			else {
-				try {
-					result=PearlApiClient.Inst.GetOneImageFromPearl(_pearlRequest.RequestId);
-				}
-				catch (Exception ex) {
-					//API error, we didn't get a result so we will try again on next polling loop.
-					throw new Exception("There was an error retrieving AI results for an image:\r\n"+ex.Message);
-				}
+			catch (Exception ex) {
+				//API error, we didn't get a result so we will try again on next polling loop.
+				throw new Exception("There was an error retrieving AI results for an image:\r\n"+ex.Message);
 			}
 			//Order matters for the checks below. We will weed out the negative results first and be left with complete (synonymous with success in Pearl's vocab).
 			if(result==null) { 

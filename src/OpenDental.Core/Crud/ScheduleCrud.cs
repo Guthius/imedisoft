@@ -76,7 +76,7 @@ public class ScheduleCrud
         table.Columns.Add("DateTStamp");
         table.Columns.Add("ClinicNum");
         foreach (var schedule in listSchedules)
-            table.Rows.Add(SOut.Long(schedule.ScheduleNum), SOut.DateT(schedule.SchedDate, false), SOut.Time(schedule.StartTime, false), SOut.Time(schedule.StopTime, false), SOut.Int((int) schedule.SchedType), SOut.Long(schedule.ProvNum), SOut.Long(schedule.BlockoutType), schedule.Note, SOut.Int((int) schedule.Status), SOut.Long(schedule.EmployeeNum), SOut.DateT(schedule.DateTStamp, false), SOut.Long(schedule.ClinicNum));
+            table.Rows.Add(SOut.Long(schedule.ScheduleNum), SOut.DateTime(schedule.SchedDate, false), SOut.Time(schedule.StartTime, false), SOut.Time(schedule.StopTime, false), SOut.Int((int) schedule.SchedType), SOut.Long(schedule.ProvNum), SOut.Long(schedule.BlockoutType), schedule.Note, SOut.Int((int) schedule.Status), SOut.Long(schedule.EmployeeNum), SOut.DateTime(schedule.DateTStamp, false), SOut.Long(schedule.ClinicNum));
         return table;
     }
 

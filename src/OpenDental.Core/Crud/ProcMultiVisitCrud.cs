@@ -67,7 +67,7 @@ public class ProcMultiVisitCrud
         table.Columns.Add("SecDateTEdit");
         table.Columns.Add("PatNum");
         foreach (var procMultiVisit in listProcMultiVisits)
-            table.Rows.Add(SOut.Long(procMultiVisit.ProcMultiVisitNum), SOut.Long(procMultiVisit.GroupProcMultiVisitNum), SOut.Long(procMultiVisit.ProcNum), SOut.Int((int) procMultiVisit.ProcStatus), SOut.Bool(procMultiVisit.IsInProcess), SOut.DateT(procMultiVisit.SecDateTEntry, false), SOut.DateT(procMultiVisit.SecDateTEdit, false), SOut.Long(procMultiVisit.PatNum));
+            table.Rows.Add(SOut.Long(procMultiVisit.ProcMultiVisitNum), SOut.Long(procMultiVisit.GroupProcMultiVisitNum), SOut.Long(procMultiVisit.ProcNum), SOut.Int((int) procMultiVisit.ProcStatus), SOut.Bool(procMultiVisit.IsInProcess), SOut.DateTime(procMultiVisit.SecDateTEntry, false), SOut.DateTime(procMultiVisit.SecDateTEdit, false), SOut.Long(procMultiVisit.PatNum));
         return table;
     }
 

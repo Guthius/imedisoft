@@ -11,6 +11,7 @@ using System.Windows;
 using System.Xml;
 using System.Xml.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.FileIO;
 
 namespace OpenDentBusiness {

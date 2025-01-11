@@ -80,7 +80,7 @@ public class DocumentMiscs
         {
             //Shouldn't fail, unless the xml doc got corrupted in transit or the resource was modified.
             var xmlNodeRoot = xmlDocument.ChildNodes[0];
-            var listXmlNodes = xmlNodeRoot.ChildNodes.AsEnumerable<XmlNode>().ToList();
+            var listXmlNodes = xmlNodeRoot.ChildNodes.Cast<XmlNode>().ToList();
             var xmlNodeVersion = listXmlNodes.Find(x => x.Name.ToLower() == "version");
             if (xmlNodeVersion != null) shareScreenVersion = xmlNodeVersion.InnerText;
         }

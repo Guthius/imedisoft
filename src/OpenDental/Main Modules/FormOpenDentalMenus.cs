@@ -394,7 +394,7 @@ namespace OpenDental{
 			menuItemTools.Add(_menuItemStudentRequirements);
 			menuItemTools.Add("Web Forms",menuItemWebForms_Click);
 			MenuItemOD menuItemWiki=new MenuItemOD("Wiki",menuItemWiki_Click);
-			if(!ODEnvironment.IsCloudInstance){
+			if(!/* ODEnvironment.IsCloudInstance */ false){
 				menuItemWiki.ShortcutKeys=Keys.Control|Keys.Shift|Keys.W;
 			}
 			menuItemTools.Add(menuItemWiki);

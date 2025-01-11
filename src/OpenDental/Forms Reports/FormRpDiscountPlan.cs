@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using System.Data;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormRpDiscountPlan:FormODBase {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -156,13 +157,13 @@ public class Prefs
         var curValue = PrefC.GetDateT(prefName);
         if (curValue == newValue) return false; //no change needed
         var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.DateT(newValue, false) + "' "
+                      + "ValueString = '" + SOut.DateTime(newValue, false) + "' "
                       + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
         var retVal = true;
         Db.NonQ(command);
         var pref = new Pref();
         pref.PrefName = prefName.ToString();
-        pref.ValueString = SOut.DateT(newValue, false);
+        pref.ValueString = SOut.DateTime(newValue, false);
         UpdateValueForKey(pref);
         return retVal;
     }

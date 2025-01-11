@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
@@ -2501,21 +2502,6 @@ namespace OpenDental{
 		}
 
 		private void butExportHelper() {
-			if(ODEnvironment.IsCloudServer) {
-				for(int i=0;i<_claim.Attachments.Count;i++) {
-					string fileName=_patient.FName+_patient.LName+_patient.PatNum+"_"+i+Path.GetExtension(_claim.Attachments[i].ActualFileName);
-					string tempPath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-					string currentPath=FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),_claim.Attachments[i].ActualFileName);
-					FileAtoZ.Copy(currentPath,tempPath);
-					if(false) {
-						ThinfinityUtils.ExportForDownload(tempPath);
-					}
-					else if(false) {
-						CloudClientL.ExportForCloud(tempPath,doPromptForName:false);
-					}
-				}
-				return;
-			}
 			string claimAttachExportPath=PrefC.GetString(PrefName.ClaimAttachExportPath);
 			if(!Directory.Exists(claimAttachExportPath)){
 				if(MessageBox.Show(Lan.g(this,"The claim export path no longer exists at:")+" "+claimAttachExportPath+"\r\n"
@@ -2890,7 +2876,7 @@ namespace OpenDental{
 			}
 			Clearinghouse clearinghouseHq=ClearinghouseL.GetClearinghouseHq(claimSendQueueItemsArrayCA[0].ClearinghouseNum);
 			Clearinghouse clearinghouseClin=Clearinghouses.OverrideFields(clearinghouseHq,clinicNum);
-			if(ODEnvironment.IsCloudServer && Clearinghouses.IsDisabledForWeb(clearinghouseClin)) {
+			if(/* ODEnvironment.IsCloudServer */ false && Clearinghouses.IsDisabledForWeb(clearinghouseClin)) {
 				MessageBox.Show(Lans.g("Eclaims","This clearinghouse is not available while using Open Dental Cloud."));
 				return;
 			}

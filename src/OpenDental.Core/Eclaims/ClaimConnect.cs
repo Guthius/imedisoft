@@ -20,6 +20,7 @@ using System.ComponentModel;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 using System.Net.Http;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -60,7 +61,7 @@ namespace OpenDentBusiness.Eclaims {
 				string alertmsg="";
 				string curParam="";
 				string serverName;
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					//For testing
 					serverName="https://prelive.dentalxchange.com/dci/upload.svl";
 				}
@@ -271,7 +272,7 @@ namespace OpenDentBusiness.Eclaims {
 			request.outputFormat=outputFormat;
 			request.Content=HttpUtility.HtmlEncode(x12message);//get rid of ampersands, etc.
 			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				//service.Url="https://prelive2.dentalxchange.com/dws/DwsService"; // testing
 				service.Url="https://webservices.dentalxchange.com/dws/DwsService"; // production
 			}
@@ -377,7 +378,7 @@ namespace OpenDentBusiness.Eclaims {
 			List<ClaimSendQueueItem> listQueueItems=Claims.GetQueueList(claim.ClaimNum,claim.ClinicNum,0).ToList();
 			textRequest.Content=x837Controller.GenerateBatch(clearingHouse,listQueueItems,batchNum,claim.MedType);
 			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				service.Url="https://prelive2.dentalxchange.com/dws/DwsService";
 			}
 			if(PrefC.GetBool(PrefName.SaveDXCSOAPAsXML)) {
@@ -431,7 +432,7 @@ namespace OpenDentBusiness.Eclaims {
 		public static string CreateAttachment(List<ImageAttachment> listImages,string narrative,Claim claim) {
 			DentalxchangePartnerService.DeaPartnerService service=new DentalxchangePartnerService.DeaPartnerService();
 			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				service.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
 			//Convert listImages to AttachmentImage[]
@@ -483,7 +484,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
 			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
 			DentalxchangePartnerService.Attachment attachment=BuildAttachmentRequest(claim,narrative);
@@ -510,7 +511,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
 			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
 			DentalxchangePartnerService.AttachmentReference attachmentReference=new DentalxchangePartnerService.AttachmentReference();
@@ -532,7 +533,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
 			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
 			DentalxchangePartnerService.AttachmentReference attachmentRef=new DentalxchangePartnerService.AttachmentReference();
@@ -559,7 +560,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
 			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
 			DentalxchangePartnerService.AttachmentReference attachmentReference=new DentalxchangePartnerService.AttachmentReference();
@@ -579,7 +580,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
 			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
 			for(int i=0;i<listClaimAttaches.Count;i++) {
@@ -730,7 +731,7 @@ namespace OpenDentBusiness.Eclaims {
 			payerListInfoRequest.outputFormatSpecified=true;
 			payerListInfoRequest.outputFormat=Dentalxchange2016.Format.XML;
 			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				service.Url="https://prelive2.dentalxchange.com/dws/DwsService"; //testing
 			}
 			else {
@@ -800,7 +801,7 @@ namespace OpenDentBusiness.Eclaims {
 			Dentalxchange2016.unProcessedEraRequest request=new Dentalxchange2016.unProcessedEraRequest();
 			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
 			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				service.Url="https://prelive2.dentalxchange.com/dws/DwsService";
 			}
 			List<string> listEraStrings=new List<string>();
@@ -1218,7 +1219,7 @@ namespace OpenDentBusiness.Eclaims {
 
 		////<summary>Throws exceptions. Generic API call to XConnect. Give a payload object structured the same as the JSON definition of the API call. Returns an object of the type specified, which must also be structured the same as the JSON definition of the response for the API call. The endpointURL given must be a relative URL. The endpointURL is automatically modified to point to the sandbox in Debug mode.</summary>
 		private static T CallAPI<T>(Clearinghouse clearinghouseClinic,string endpointURL,object payload,HttpMethod httpMethod,List<string> queryParameters=null) {
-			//if(ODBuild.IsDebug()) {//Testing
+			//if(/* ODBuild.IsDebug() */ false) {//Testing
 			//	endpointURL="/sandbox"+endpointURL;
 			//}
 			_httpClient.DefaultRequestHeaders.Clear();

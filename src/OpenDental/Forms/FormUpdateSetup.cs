@@ -10,6 +10,7 @@ using CodeBase;
 using Ionic.Zip;
 using System.Xml;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 	/// <summary></summary>

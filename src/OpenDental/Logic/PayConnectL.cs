@@ -87,7 +87,7 @@ namespace OpenDental {
 			MigraDoc.Rendering.DocumentRenderer documentRenderer=new MigraDoc.Rendering.DocumentRenderer(doc);
 			documentRenderer.PrepareDocument();
 			migraDocPrintDocument.Renderer=documentRenderer;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				using FormRpPrintPreview formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
 				formRpPrintPreview.ShowDialog();
 			}

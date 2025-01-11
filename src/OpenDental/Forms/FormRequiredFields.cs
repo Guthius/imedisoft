@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -428,23 +429,15 @@ namespace OpenDental{
 				return;
 			}
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.InitialDirectory=Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.InitialDirectory=Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
-				if(!File.Exists(importFilePath)) {
-					MsgBox.Show(this,"File does not exist or cannot be read.");
-					return;
-				}
+			importFilePath=openFileDialog.FileName;
+			if(!File.Exists(importFilePath)) {
+				MsgBox.Show(this,"File does not exist or cannot be read.");
+				return;
 			}
 			TransactionInvoice transactionInvoice=new TransactionInvoice();
 			if(PrefC.GetBool(PrefName.AccountingInvoiceAttachmentsSaveInDatabase)) {
@@ -483,11 +476,6 @@ namespace OpenDental{
 				string prefix=transactionInvoice.FileName.Substring(0,transactionInvoice.FileName.Length-fileExt.Length);
 				string filePath=ODFileUtils.CreateRandomFile(PrefC.GetTempFolderPath(),fileExt,prefix);
 				byte[] byteArray=Convert.FromBase64String(transactionInvoice.InvoiceData);
-				if(!false && false) {
-					//Use FileName instead of filePath here to preserve original file name.
-					CloudClientL.ExportForCloud(transactionInvoice.FileName,doPromptForName:false,byteArray);
-					return;
-				}
 				try {
 					ODFileUtils.WriteAllBytesThenStart(filePath,byteArray,null);
 				}
@@ -497,10 +485,7 @@ namespace OpenDental{
 				}
 				return;
 			}
-			if(!false && false) {
-				CloudClientL.ExportForCloud(transactionInvoice.FilePath,doPromptForName:false);
-				return;
-			}
+
 			try {
 				ODFileUtils.ProcessStart(transactionInvoice.FilePath);
 			}

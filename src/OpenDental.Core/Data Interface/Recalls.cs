@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
 using OpenDentBusiness.Crud;
@@ -148,7 +149,7 @@ public class Recalls
                       "WHERE PatNum IN (" + string.Join(",", listPatNums) + ") " +
                       "AND DateDue<" + SOut.Date(DateTime.Today) + " " +
                       "AND DateDue>" + SOut.Date(dateMin) + " " +
-                      $"AND (DateScheduled>{SOut.DateT(dateStart)} OR DateScheduled<{SOut.Date(dateMin)})";
+                      $"AND (DateScheduled>{SOut.DateTime(dateStart)} OR DateScheduled<{SOut.Date(dateMin)})";
         return RecallCrud.SelectMany(command);
     }
 
@@ -249,7 +250,7 @@ public class Recalls
 
     public static List<Recall> GetChangedSince(DateTime changedSince)
     {
-        var command = "SELECT * FROM recall WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT * FROM recall WHERE DateTStamp > " + SOut.DateTime(changedSince);
         return RecallCrud.SelectMany(command);
     }
 
@@ -270,7 +271,7 @@ public class Recalls
         var sw = new Stopwatch();
         var swTotal = new Stopwatch();
         swTotal.Restart();
-        var info = $"Start: {DateTime.Now.ToString(Logger.DATETIME_FORMAT)}\r\n  groupByFamilies={groupByFamilies}\r\n  provNum={provNum}" +
+        var info = $"Start: {DateTime.Now.ToString(Logger.DatetimeFormat)}\r\n  groupByFamilies={groupByFamilies}\r\n  provNum={provNum}" +
                    $"\r\n  provName={Providers.GetAbbr(provNum)}\r\n  clinicNum={clinicNum}\r\n  clinicName={Clinics.GetAbbr(clinicNum)}" +
                    $"\r\n  siteNum={siteNum}\r\n  sortBy={sortBy}\r\n  showReminders={showReminders}\r\n  isAsap={isAsap}" +
                    $"\r\n  fromDate={fromDate.ToString("MM/dd/yy")}\r\n  toDate={toDate.ToString("MM/dd/yy")}";
@@ -622,7 +623,7 @@ public class Recalls
         rows.ForEach(x => table.Rows.Add(x));
         logOther($"addRows {table.Rows.Count} rows");
         swTotal.Stop();
-        if (ODBuild.IsDebug())
+        if (/* ODBuild.IsDebug() */ false)
         {
             Logger.WriteLine($"\r\n----------SUMMARY TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n", "FillRecallTableInfo");
             Logger.WriteLine($"\r\n----------INFO TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n----------\r\n{verbose}\r\n\r\n", "FillRecallTableVerbose");
@@ -796,7 +797,7 @@ public class Recalls
         if (_odThreadQueueData != null) return false;
         var s = new Stopwatch();
         var threadWaitCount = 0;
-        if (ODBuild.IsDebug()) s.Start();
+        if (/* ODBuild.IsDebug() */ false) s.Start();
         _odThreadQueueData = new ODThread(QueueDataBatches);
         _odThreadQueueData.AddExceptionHandler(ex => { _isQueueBatchThreadDone = true; });
         _odThreadQueueData.Name = "RecallSyncQueueDataThread";
@@ -874,7 +875,7 @@ public class Recalls
                 //queueBatchThread must not be finished gathering batches but the queue is empty, give the batch thread time to catch up
                 if (_queueBatchData.Count == 0)
                 {
-                    if (ODBuild.IsDebug())
+                    if (/* ODBuild.IsDebug() */ false)
                         if (patProcessedCount > 0)
                             threadWaitCount++;
 
@@ -1075,7 +1076,7 @@ public class Recalls
 
         #endregion Process Batches of Data
 
-        if (ODBuild.IsDebug())
+        if (/* ODBuild.IsDebug() */ false)
         {
             s.Stop();
             Console.WriteLine("Runtime: " + s.Elapsed.Minutes + " min " + (s.Elapsed.TotalSeconds - s.Elapsed.Minutes * 60) + " sec, Main Thread wait count: " + threadWaitCount);
@@ -1659,7 +1660,7 @@ public class Recalls
         var rawTable = GetAddrTableRaw(recallNums);
         var hashRecallNumsUnsent = WebSchedRecalls.GetAllUnsent(listCommTypes).Select(x => x.RecallNum).Distinct().ToHashSet();
         //Only return rows where there isn't already a pending WebSchedRecall.
-        var rawRows = rawTable.Rows.AsEnumerable<DataRow>().Where(x => !hashRecallNumsUnsent.Contains(SIn.Long(x["RecallNum"].ToString()))).ToList();
+        var rawRows = rawTable.Rows.Cast<DataRow>().Where(x => !hashRecallNumsUnsent.Contains(SIn.Long(x["RecallNum"].ToString()))).ToList();
         var comparer = new RecallComparer();
         comparer.GroupByFamilies = groupByFamily;
         comparer.SortBy = sortBy;
@@ -1779,7 +1780,7 @@ public class Recalls
     ///<summary>Return RecallNums that have changed since a paticular time. </summary>
     public static List<long> GetChangedSinceRecallNums(DateTime changedSince)
     {
-        var command = "SELECT RecallNum FROM recall WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT RecallNum FROM recall WHERE DateTStamp > " + SOut.DateTime(changedSince);
         var dt = DataCore.GetTable(command);
         var recallnums = new List<long>(dt.Rows.Count);
         for (var i = 0; i < dt.Rows.Count; i++) recallnums.Add(SIn.Long(dt.Rows[i]["RecallNum"].ToString()));

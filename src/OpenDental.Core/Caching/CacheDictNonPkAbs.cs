@@ -4,8 +4,9 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using CodeBase;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Caching;
 
 public abstract class CacheDictNonPkAbs<TItem, TKey, TValue> : CacheDictAbs<TItem, TKey, TValue> where TItem : TableBase
 {

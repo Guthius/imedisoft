@@ -50,7 +50,7 @@ public class ApiSubscriptionCrud
         table.Columns.Add("DateTimeStop");
         table.Columns.Add("Note");
         foreach (var apiSubscription in listApiSubscriptions)
-            table.Rows.Add(SOut.Long(apiSubscription.ApiSubscriptionNum), apiSubscription.EndPointUrl, apiSubscription.Workstation, apiSubscription.CustomerKey, apiSubscription.WatchTable, SOut.Int(apiSubscription.PollingSeconds), apiSubscription.UiEventType, SOut.DateT(apiSubscription.DateTimeStart, false), SOut.DateT(apiSubscription.DateTimeStop, false), apiSubscription.Note);
+            table.Rows.Add(SOut.Long(apiSubscription.ApiSubscriptionNum), apiSubscription.EndPointUrl, apiSubscription.Workstation, apiSubscription.CustomerKey, apiSubscription.WatchTable, SOut.Int(apiSubscription.PollingSeconds), apiSubscription.UiEventType, SOut.DateTime(apiSubscription.DateTimeStart, false), SOut.DateTime(apiSubscription.DateTimeStop, false), apiSubscription.Note);
         return table;
     }
 
@@ -67,8 +67,8 @@ public class ApiSubscriptionCrud
             + "'" + SOut.String(apiSubscription.WatchTable) + "',"
             + SOut.Int(apiSubscription.PollingSeconds) + ","
             + "'" + SOut.String(apiSubscription.UiEventType) + "',"
-            + SOut.DateT(apiSubscription.DateTimeStart) + ","
-            + SOut.DateT(apiSubscription.DateTimeStop) + ","
+            + SOut.DateTime(apiSubscription.DateTimeStart) + ","
+            + SOut.DateTime(apiSubscription.DateTimeStop) + ","
             + "'" + SOut.String(apiSubscription.Note) + "')";
         {
             apiSubscription.ApiSubscriptionNum = Db.NonQ(command, true, "ApiSubscriptionNum", "apiSubscription");

@@ -71,7 +71,7 @@ public class ERoutingActionCrud
         table.Columns.Add("ForeignKeyType");
         table.Columns.Add("LabelOverride");
         foreach (var eRoutingAction in listERoutingActions)
-            table.Rows.Add(SOut.Long(eRoutingAction.ERoutingActionNum), SOut.Long(eRoutingAction.ERoutingNum), SOut.Int(eRoutingAction.ItemOrder), SOut.Int((int) eRoutingAction.ERoutingActionType), SOut.Long(eRoutingAction.UserNum), SOut.Bool(eRoutingAction.IsComplete), SOut.DateT(eRoutingAction.DateTimeComplete, false), SOut.Long(eRoutingAction.ForeignKey), SOut.Int((int) eRoutingAction.ForeignKeyType), eRoutingAction.LabelOverride);
+            table.Rows.Add(SOut.Long(eRoutingAction.ERoutingActionNum), SOut.Long(eRoutingAction.ERoutingNum), SOut.Int(eRoutingAction.ItemOrder), SOut.Int((int) eRoutingAction.ERoutingActionType), SOut.Long(eRoutingAction.UserNum), SOut.Bool(eRoutingAction.IsComplete), SOut.DateTime(eRoutingAction.DateTimeComplete, false), SOut.Long(eRoutingAction.ForeignKey), SOut.Int((int) eRoutingAction.ForeignKeyType), eRoutingAction.LabelOverride);
         return table;
     }
 
@@ -92,7 +92,7 @@ public class ERoutingActionCrud
                                                   + SOut.Int((int) eRoutingAction.ERoutingActionType) + ","
                                                   + SOut.Long(eRoutingAction.UserNum) + ","
                                                   + SOut.Bool(eRoutingAction.IsComplete) + ","
-                                                  + SOut.DateT(eRoutingAction.DateTimeComplete) + ","
+                                                  + SOut.DateTime(eRoutingAction.DateTimeComplete) + ","
                                                   + SOut.Long(eRoutingAction.ForeignKey) + ","
                                                   + SOut.Int((int) eRoutingAction.ForeignKeyType) + ","
                                                   + "'" + SOut.String(eRoutingAction.LabelOverride) + "')";
@@ -120,7 +120,7 @@ public class ERoutingActionCrud
                                                   + SOut.Int((int) eRoutingAction.ERoutingActionType) + ","
                                                   + SOut.Long(eRoutingAction.UserNum) + ","
                                                   + SOut.Bool(eRoutingAction.IsComplete) + ","
-                                                  + SOut.DateT(eRoutingAction.DateTimeComplete) + ","
+                                                  + SOut.DateTime(eRoutingAction.DateTimeComplete) + ","
                                                   + SOut.Long(eRoutingAction.ForeignKey) + ","
                                                   + SOut.Int((int) eRoutingAction.ForeignKeyType) + ","
                                                   + "'" + SOut.String(eRoutingAction.LabelOverride) + "')";
@@ -139,7 +139,7 @@ public class ERoutingActionCrud
                       + "ERoutingActionType=  " + SOut.Int((int) eRoutingAction.ERoutingActionType) + ", "
                       + "UserNum           =  " + SOut.Long(eRoutingAction.UserNum) + ", "
                       + "IsComplete        =  " + SOut.Bool(eRoutingAction.IsComplete) + ", "
-                      + "DateTimeComplete  =  " + SOut.DateT(eRoutingAction.DateTimeComplete) + ", "
+                      + "DateTimeComplete  =  " + SOut.DateTime(eRoutingAction.DateTimeComplete) + ", "
                       + "ForeignKey        =  " + SOut.Long(eRoutingAction.ForeignKey) + ", "
                       + "ForeignKeyType    =  " + SOut.Int((int) eRoutingAction.ForeignKeyType) + ", "
                       + "LabelOverride     = '" + SOut.String(eRoutingAction.LabelOverride) + "' "
@@ -183,7 +183,7 @@ public class ERoutingActionCrud
         if (eRoutingAction.DateTimeComplete != oldERoutingAction.DateTimeComplete)
         {
             if (command != "") command += ",";
-            command += "DateTimeComplete = " + SOut.DateT(eRoutingAction.DateTimeComplete) + "";
+            command += "DateTimeComplete = " + SOut.DateTime(eRoutingAction.DateTimeComplete) + "";
         }
 
         if (eRoutingAction.ForeignKey != oldERoutingAction.ForeignKey)

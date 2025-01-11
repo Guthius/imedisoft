@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -50,7 +51,7 @@ public class ApptFieldDefs
             {
                 if (i > 5) break;
                 aptDateTime = SIn.DateTime(table.Rows[i]["AptDateTime"].ToString());
-                s += table.Rows[i]["LName"] + ", " + table.Rows[i]["FName"] + SOut.DateT(aptDateTime, false) + "\r\n";
+                s += table.Rows[i]["LName"] + ", " + table.Rows[i]["FName"] + SOut.DateTime(aptDateTime, false) + "\r\n";
             }
 
             throw new ApplicationException(s);

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -145,7 +146,7 @@ public class ClockEvents
         if (PrefC.GetBool(PrefName.LocalTimeOverridesServerTime))
         {
             //Cannot call update since we manually have to update the TimeEntered1 because it is a DateEntry column
-            var command = "UPDATE clockevent SET TimeEntered1=" + SOut.DateT(DateTime.Now) + ", TimeDisplayed1=" + SOut.DateT(DateTime.Now) + " WHERE clockEventNum=" + SOut.Long(clockEventNum);
+            var command = "UPDATE clockevent SET TimeEntered1=" + SOut.DateTime(DateTime.Now) + ", TimeDisplayed1=" + SOut.DateTime(DateTime.Now) + " WHERE clockEventNum=" + SOut.Long(clockEventNum);
             Db.NonQ(command);
         }
 

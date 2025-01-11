@@ -1,18 +1,16 @@
-﻿using System;
-using System.Globalization;
+﻿using DataConnectionBase;
 
-namespace OpenDentBusiness {
-	public class Currency {
-		
-		///<summary>Gets StringFormat for currency. "F2" for customers, "F4" for HQ.</summary>
-		public static string GetCurrencyFormat() {
-			return "F2";
-		}
+namespace OpenDentBusiness;
 
-		/// <summary> Rounds amt to 2 places for customers, and 4 places for hq. </summary>
-		public static double Round(double amt) {
-			return PIn.Double(amt.ToString(GetCurrencyFormat()));
-		}
+public class Currency
+{
+    public static string GetCurrencyFormat()
+    {
+        return "F2";
+    }
 
-	}
+    public static double Round(double amt)
+    {
+        return SIn.Double(amt.ToString(GetCurrencyFormat()));
+    }
 }

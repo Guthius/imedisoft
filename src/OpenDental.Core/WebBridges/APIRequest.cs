@@ -82,7 +82,7 @@ namespace OpenDentBusiness {
 					res=sr.ReadToEnd();
 				}
 				response.EnsureSuccessStatusCode();//Throws exception if not successful.
-				if(ODBuild.IsDebug() && (typeof(T)==typeof(string))) {//If user wants the entire json response as a string
+				if(/* ODBuild.IsDebug() */ false && (typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 					return (T)Convert.ChangeType(res,typeof(T));
 				}
 				return JsonConvert.DeserializeObject<T>(res,deserializeSettings);

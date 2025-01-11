@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{

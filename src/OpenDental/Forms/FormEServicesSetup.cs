@@ -24,7 +24,7 @@ namespace OpenDental {
 		}
 
 		private void FormEServicesSetup_Load(object sender,EventArgs e) {
-			//if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
+			//if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="jordanhome"){
 			//	_signupOut=new WebServiceMainHQProxy.EServiceSetup.SignupOut();
 			//	return;
 			//}
@@ -72,7 +72,7 @@ namespace OpenDental {
 		///<summary>Makes a web call to WebServiceMainHQ to get the corresponding EServiceSetupFull information and then attempts to fill each tab.
 		///If anything goes wrong within this method a message box will show to the user and then the window will auto close via Abort.</summary>
 		public static WebServiceMainHQProxy.EServiceSetup.SignupOut GetSignupOut(WebServiceMainHQProxy.EServiceSetup.SignupOut signupOut=null) {
-			if(!ODEnvironment.IsCloudServer && MiscUtils.TryUpdateIeEmulation()) {
+			if(!/* ODEnvironment.IsCloudServer */ false && MiscUtils.TryUpdateIeEmulation()) {
 				throw new Exception("Browser emulation version updated.\r\nYou must restart this application before accessing the Signup Portal.");
 			}
 			//Send light version of clinics to HQ to be used by signup portal below. Get back all args needed from HQ in order to perform the operations of this window.
@@ -129,15 +129,6 @@ namespace OpenDental {
 			//Permissions check presumably. Discuss with Sam.
 			if(!ClinicPrefs.IsODTouchAllowed(Clinics.ClinicNum)) {
 				string site="https://www.opendental.com/site/odtouch.html";
-				if(!false && false) {
-					try {
-						ODCloudClient.LaunchFileWithODCloudClient(site);
-					}
-					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
-					}
-					return;
-				}
 				try{
 					Process.Start(site);
 				}

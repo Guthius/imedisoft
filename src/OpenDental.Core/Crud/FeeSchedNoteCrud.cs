@@ -67,7 +67,7 @@ public class FeeSchedNoteCrud
         table.Columns.Add("SecDateEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var feeSchedNote in listFeeSchedNotes)
-            table.Rows.Add(SOut.Long(feeSchedNote.FeeSchedNoteNum), SOut.Long(feeSchedNote.FeeSchedNum), feeSchedNote.ClinicNums, feeSchedNote.Note, SOut.DateT(feeSchedNote.DateEntry, false), SOut.Long(feeSchedNote.SecUserNumEntry), SOut.DateT(feeSchedNote.SecDateEntry, false), SOut.DateT(feeSchedNote.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(feeSchedNote.FeeSchedNoteNum), SOut.Long(feeSchedNote.FeeSchedNum), feeSchedNote.ClinicNums, feeSchedNote.Note, SOut.DateTime(feeSchedNote.DateEntry, false), SOut.Long(feeSchedNote.SecUserNumEntry), SOut.DateTime(feeSchedNote.SecDateEntry, false), SOut.DateTime(feeSchedNote.SecDateTEdit, false));
         return table;
     }
 

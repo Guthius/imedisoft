@@ -64,7 +64,7 @@ public class EntryLogCrud
         table.Columns.Add("LogSource");
         table.Columns.Add("EntryDateTime");
         foreach (var entryLog in listEntryLogs)
-            table.Rows.Add(SOut.Long(entryLog.EntryLogNum), SOut.Long(entryLog.UserNum), SOut.Int((int) entryLog.FKeyType), SOut.Long(entryLog.FKey), SOut.Int((int) entryLog.LogSource), SOut.DateT(entryLog.EntryDateTime, false));
+            table.Rows.Add(SOut.Long(entryLog.EntryLogNum), SOut.Long(entryLog.UserNum), SOut.Int((int) entryLog.FKeyType), SOut.Long(entryLog.FKey), SOut.Int((int) entryLog.LogSource), SOut.DateTime(entryLog.EntryDateTime, false));
         return table;
     }
 

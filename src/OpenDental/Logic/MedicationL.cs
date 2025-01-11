@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.Thinfinity;
 using Newtonsoft.Json;
@@ -157,20 +158,7 @@ namespace OpenDental
             }
 
             string json = JsonConvert.SerializeObject(listMedicationExports, Formatting.Indented);
-            if (false)
-            {
-                ThinfinityUtils.ExportForDownload(filename, json);
-            }
-            else if (false)
-            {
-                byte[] byteArray = Encoding.UTF8.GetBytes(json);
-                string combinedPath = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), Path.GetFileName(filename));
-                CloudClientL.ExportForCloud(combinedPath, false, byteArray);
-            }
-            else
-            {
-                File.WriteAllText(filename, json); //Allow Exception to trickle up.
-            }
+            File.WriteAllText(filename, json); //Allow Exception to trickle up.
 
             SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0,
                 Lans.g("Medications", "Exported") + " " + POut.Int(listMedications.Count) + " " + Lans.g("Medications", "medications to:") + " " + filename

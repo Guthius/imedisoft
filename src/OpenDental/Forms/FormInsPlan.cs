@@ -18,6 +18,7 @@ using OpenDentBusiness;
 using CodeBase;
 using OpenDentBusiness.Crud;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Eclaims;
 
@@ -1359,7 +1360,7 @@ namespace OpenDental {
 		}
 
 		private void butImportTrojan_Click(object sender,System.EventArgs e) {
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				MsgBox.Show(this,"Bridge is not available while using Open Dental Cloud.");
 				return;//bridge is not yet available for web users.
 			}
@@ -1378,7 +1379,7 @@ namespace OpenDental {
 				return;
 			}
 			string file="";
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				file=@"C:\Trojan\ETW\Planout.txt";
 			}
 			else {
@@ -1447,7 +1448,7 @@ namespace OpenDental {
 				trojanObject.BenefitList[i].PlanNum=_insPlan.PlanNum;
 				_listBenefits.Add(trojanObject.BenefitList[i].Copy());
 			}
-			if(!ODBuild.IsDebug()) {
+			if(!/* ODBuild.IsDebug() */ false) {
 				try {
 					File.Delete(file);
 				}
@@ -1491,7 +1492,7 @@ namespace OpenDental {
 		}
 
 		private void butIapFind_Click(object sender,System.EventArgs e) {
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				MsgBox.Show(this,"Bridge is not available while using Open Dental Cloud.");
 				return;
 			}

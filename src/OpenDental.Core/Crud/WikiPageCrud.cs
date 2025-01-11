@@ -71,7 +71,7 @@ public class WikiPageCrud
         table.Columns.Add("IsLocked");
         table.Columns.Add("PageContentPlainText");
         foreach (var wikiPage in listWikiPages)
-            table.Rows.Add(SOut.Long(wikiPage.WikiPageNum), SOut.Long(wikiPage.UserNum), wikiPage.PageTitle, wikiPage.KeyWords, wikiPage.PageContent, SOut.DateT(wikiPage.DateTimeSaved, false), SOut.Bool(wikiPage.IsDeleted), SOut.Bool(wikiPage.IsDraft), SOut.Bool(wikiPage.IsLocked), wikiPage.PageContentPlainText);
+            table.Rows.Add(SOut.Long(wikiPage.WikiPageNum), SOut.Long(wikiPage.UserNum), wikiPage.PageTitle, wikiPage.KeyWords, wikiPage.PageContent, SOut.DateTime(wikiPage.DateTimeSaved, false), SOut.Bool(wikiPage.IsDeleted), SOut.Bool(wikiPage.IsDraft), SOut.Bool(wikiPage.IsLocked), wikiPage.PageContentPlainText);
         return table;
     }
 
@@ -146,7 +146,7 @@ public class WikiPageCrud
                       + "PageTitle           = '" + SOut.String(wikiPage.PageTitle) + "', "
                       + "KeyWords            = '" + SOut.String(wikiPage.KeyWords) + "', "
                       + "PageContent         =  " + DbHelper.ParamChar + "paramPageContent, "
-                      + "DateTimeSaved       =  " + SOut.DateT(wikiPage.DateTimeSaved) + ", "
+                      + "DateTimeSaved       =  " + SOut.DateTime(wikiPage.DateTimeSaved) + ", "
                       + "IsDeleted           =  " + SOut.Bool(wikiPage.IsDeleted) + ", "
                       + "IsDraft             =  " + SOut.Bool(wikiPage.IsDraft) + ", "
                       + "IsLocked            =  " + SOut.Bool(wikiPage.IsLocked) + ", "
@@ -189,7 +189,7 @@ public class WikiPageCrud
         if (wikiPage.DateTimeSaved != oldWikiPage.DateTimeSaved)
         {
             if (command != "") command += ",";
-            command += "DateTimeSaved = " + SOut.DateT(wikiPage.DateTimeSaved) + "";
+            command += "DateTimeSaved = " + SOut.DateTime(wikiPage.DateTimeSaved) + "";
         }
 
         if (wikiPage.IsDeleted != oldWikiPage.IsDeleted)

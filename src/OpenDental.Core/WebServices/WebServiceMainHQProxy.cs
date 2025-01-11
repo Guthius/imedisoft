@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Remoting;
@@ -31,14 +32,14 @@ namespace OpenDentBusiness
 
             //Right click OpenDentBusiness project, Properties, Settings, OpenDentBusiness_WebServiceMainHq_Mock = True.
             //Set this application setting to False if you want to debug using a locally hosted WebServiceMainHQ.
-            if (ODBuild.IsDebug() && Properties.Settings.Default.OpenDentBusiness_WebServiceMainHq_Mock)
+            if (/* ODBuild.IsDebug() */ false && Properties.Settings.Default.OpenDentBusiness_WebServiceMainHq_Mock)
             {
                 service = new WebServiceMainHQMockDemo();
             }
             else
             {
                 service = new WebServiceMainHQReal();
-                if (ODBuild.IsDebug())
+                if (/* ODBuild.IsDebug() */ false)
                 {
                     ((WebServiceMainHQReal) service).Timeout = (int) TimeSpan.FromMinutes(60).TotalMilliseconds;
                 }
@@ -56,7 +57,7 @@ namespace OpenDentBusiness
                 service.Url = webServiceHqUrl;
             }
 
-            if (webServiceHqUrl.IsNullOrEmpty() && ODBuild.IsDebug())
+            if (webServiceHqUrl.IsNullOrEmpty() && /* ODBuild.IsDebug() */ false)
             {
                 //Change arguments for debug only.
                 if (!false)
@@ -69,11 +70,6 @@ namespace OpenDentBusiness
                 {
                     service.Url = "https://patientviewer.com:49997/OpenDentalWebServiceHQ/WebServiceMainHQ.asmx";
                 }
-            }
-
-            if (ODBuild.IsUnitTest && service.Url.Contains("patientviewer.com"))
-            {
-                throw new Exception("Unit test is not allowed to access live WSHQ! Maybe your unit test file is not inheriting TestBase. Ask me how I know...");
             }
 
             return service;

@@ -83,7 +83,7 @@ public class RegistrationKeyCrud
         table.Columns.Add("DateTBackupScheduled");
         table.Columns.Add("BackupPassCode");
         foreach (var registrationKey in listRegistrationKeys)
-            table.Rows.Add(SOut.Long(registrationKey.RegistrationKeyNum), SOut.Long(registrationKey.PatNum), registrationKey.RegKey, registrationKey.Note, SOut.DateT(registrationKey.DateStarted, false), SOut.DateT(registrationKey.DateDisabled, false), SOut.DateT(registrationKey.DateEnded, false), SOut.Bool(registrationKey.IsForeign), SOut.Bool(registrationKey.UsesServerVersion), SOut.Bool(registrationKey.IsFreeVersion), SOut.Bool(registrationKey.IsOnlyForTesting), SOut.Int(registrationKey.VotesAllotted), SOut.Bool(registrationKey.IsResellerCustomer), SOut.Bool(registrationKey.HasEarlyAccess), SOut.DateT(registrationKey.DateTBackupScheduled, false), registrationKey.BackupPassCode);
+            table.Rows.Add(SOut.Long(registrationKey.RegistrationKeyNum), SOut.Long(registrationKey.PatNum), registrationKey.RegKey, registrationKey.Note, SOut.DateTime(registrationKey.DateStarted, false), SOut.DateTime(registrationKey.DateDisabled, false), SOut.DateTime(registrationKey.DateEnded, false), SOut.Bool(registrationKey.IsForeign), SOut.Bool(registrationKey.UsesServerVersion), SOut.Bool(registrationKey.IsFreeVersion), SOut.Bool(registrationKey.IsOnlyForTesting), SOut.Int(registrationKey.VotesAllotted), SOut.Bool(registrationKey.IsResellerCustomer), SOut.Bool(registrationKey.HasEarlyAccess), SOut.DateTime(registrationKey.DateTBackupScheduled, false), registrationKey.BackupPassCode);
         return table;
     }
 
@@ -112,7 +112,7 @@ public class RegistrationKeyCrud
                                               + SOut.Int(registrationKey.VotesAllotted) + ","
                                               + SOut.Bool(registrationKey.IsResellerCustomer) + ","
                                               + SOut.Bool(registrationKey.HasEarlyAccess) + ","
-                                              + SOut.DateT(registrationKey.DateTBackupScheduled) + ","
+                                              + SOut.DateTime(registrationKey.DateTBackupScheduled) + ","
                                               + "'" + SOut.String(registrationKey.BackupPassCode) + "')";
         {
             registrationKey.RegistrationKeyNum = Db.NonQ(command, true, "RegistrationKeyNum", "registrationKey");
@@ -146,7 +146,7 @@ public class RegistrationKeyCrud
                                               + SOut.Int(registrationKey.VotesAllotted) + ","
                                               + SOut.Bool(registrationKey.IsResellerCustomer) + ","
                                               + SOut.Bool(registrationKey.HasEarlyAccess) + ","
-                                              + SOut.DateT(registrationKey.DateTBackupScheduled) + ","
+                                              + SOut.DateTime(registrationKey.DateTBackupScheduled) + ","
                                               + "'" + SOut.String(registrationKey.BackupPassCode) + "')";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
@@ -171,7 +171,7 @@ public class RegistrationKeyCrud
                       + "VotesAllotted       =  " + SOut.Int(registrationKey.VotesAllotted) + ", "
                       + "IsResellerCustomer  =  " + SOut.Bool(registrationKey.IsResellerCustomer) + ", "
                       + "HasEarlyAccess      =  " + SOut.Bool(registrationKey.HasEarlyAccess) + ", "
-                      + "DateTBackupScheduled=  " + SOut.DateT(registrationKey.DateTBackupScheduled) + ", "
+                      + "DateTBackupScheduled=  " + SOut.DateTime(registrationKey.DateTBackupScheduled) + ", "
                       + "BackupPassCode      = '" + SOut.String(registrationKey.BackupPassCode) + "' "
                       + "WHERE RegistrationKeyNum = " + SOut.Long(registrationKey.RegistrationKeyNum);
         Db.NonQ(command);
@@ -261,7 +261,7 @@ public class RegistrationKeyCrud
         if (registrationKey.DateTBackupScheduled != oldRegistrationKey.DateTBackupScheduled)
         {
             if (command != "") command += ",";
-            command += "DateTBackupScheduled = " + SOut.DateT(registrationKey.DateTBackupScheduled) + "";
+            command += "DateTBackupScheduled = " + SOut.DateTime(registrationKey.DateTBackupScheduled) + "";
         }
 
         if (registrationKey.BackupPassCode != oldRegistrationKey.BackupPassCode)

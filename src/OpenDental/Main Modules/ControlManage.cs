@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Cloud.Storage;
 using OpenDental.UI;
@@ -268,13 +269,9 @@ namespace OpenDental{
 			}
 			if(!Programs.IsEnabled(ProgramName.Transworld)) {
 				string url="https://opendental.com/resources/redirects/redirecttransworldsystems.html";
-				try {
-					if(!false && false) {
-						ODCloudClient.LaunchFileWithODCloudClient(url);
-					}
-					else {
-						Process.Start(url);
-					}
+				try
+				{
+					Process.Start(url);
 				}
 				catch(Exception ex) {
 					MsgBox.Show(this,"Failed to open web browser.  Please make sure you have a default browser set and are connected to the internet and then try again.");

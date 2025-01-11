@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Printing;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{

@@ -20,7 +20,7 @@ namespace OpenDentBusiness {
 			listEFormDefs.Add(GetEFormDef(EnumEFormInternalType.HIPPA));
 			//Only show the internal Demo EForm in Debug mode.
 			//I think maybe this is no longer useful.
-			//if(ODBuild.IsDebug()) {
+			//if(/* ODBuild.IsDebug() */ false) {
 			//	listEFormDefs.Add(GetEFormDef(EnumEFormInternalType.Demo));
 			//}
 			return listEFormDefs;

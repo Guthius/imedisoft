@@ -10,6 +10,7 @@ using System.Data;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public class PrintRemoteRequestL {

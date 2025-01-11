@@ -143,7 +143,7 @@ public class DbHelper
                     endDate = endDate.Date.AddDays(1).AddSeconds(-1);
                 }
 
-                return columnName + " BETWEEN " + SOut.DateT(dateTime.Date) + " AND " + SOut.DateT(endDate);
+                return columnName + " BETWEEN " + SOut.DateTime(dateTime.Date) + " AND " + SOut.DateTime(endDate);
             
             case ConditionOperator.NotEquals:
                 if (dateTime != DateTime.MaxValue)
@@ -151,7 +151,7 @@ public class DbHelper
                     endDate = endDate.Date.AddDays(1).AddSeconds(-1);
                 }
 
-                return columnName + " NOT BETWEEN " + SOut.DateT(dateTime.Date) + " AND " + SOut.DateT(endDate);
+                return columnName + " NOT BETWEEN " + SOut.DateTime(dateTime.Date) + " AND " + SOut.DateTime(endDate);
             
             case ConditionOperator.GreaterThan:
                 if (dateTime != DateTime.MaxValue)
@@ -159,13 +159,13 @@ public class DbHelper
                     endDate = endDate.Date.AddDays(1);
                 }
 
-                return columnName + ">=" + SOut.DateT(endDate);
+                return columnName + ">=" + SOut.DateTime(endDate);
             
             case ConditionOperator.LessThan:
-                return columnName + " < " + SOut.DateT(dateTime.Date);
+                return columnName + " < " + SOut.DateTime(dateTime.Date);
             
             case ConditionOperator.GreaterThanOrEqual:
-                return columnName + ">=" + SOut.DateT(dateTime.Date);
+                return columnName + ">=" + SOut.DateTime(dateTime.Date);
             
             case ConditionOperator.LessThanOrEqual:
                 if (dateTime != DateTime.MaxValue)
@@ -173,7 +173,7 @@ public class DbHelper
                     endDate = endDate.Date.AddDays(1).AddSeconds(-1);
                 }
 
-                return columnName + "<=" + SOut.DateT(endDate);
+                return columnName + "<=" + SOut.DateTime(endDate);
             
             default:
                 throw new NotImplementedException(comparison + " not implemented yet.");

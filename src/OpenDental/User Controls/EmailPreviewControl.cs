@@ -12,6 +12,7 @@ using System.Linq;
 using OpenDental.UI;
 using Health.Direct.Common.Mime;
 using System.Text;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -726,10 +727,7 @@ namespace OpenDental {
 			if(url.StartsWith("about")) {
 				url=url.Replace("about:","http://");
 			}
-			if(false) {
-				ODCloudClient.LaunchFileWithODCloudClient(url);
-				return;
-			}
+
 			Process.Start(url);//Instead launch the URL into a new default browser window.
 		}
 

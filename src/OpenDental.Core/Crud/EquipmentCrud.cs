@@ -81,7 +81,7 @@ public class EquipmentCrud
         table.Columns.Add("DispenseNote");
         table.Columns.Add("Status");
         foreach (var equipment in listEquipments)
-            table.Rows.Add(SOut.Long(equipment.EquipmentNum), equipment.Description, equipment.SerialNumber, equipment.ModelYear, SOut.DateT(equipment.DatePurchased, false), SOut.DateT(equipment.DateSold, false), SOut.Double(equipment.PurchaseCost), SOut.Double(equipment.MarketValue), equipment.Location, SOut.DateT(equipment.DateEntry, false), SOut.Long(equipment.ProvNumCheckedOut), SOut.DateT(equipment.DateCheckedOut, false), SOut.DateT(equipment.DateExpectedBack, false), equipment.DispenseNote, equipment.Status);
+            table.Rows.Add(SOut.Long(equipment.EquipmentNum), equipment.Description, equipment.SerialNumber, equipment.ModelYear, SOut.DateTime(equipment.DatePurchased, false), SOut.DateTime(equipment.DateSold, false), SOut.Double(equipment.PurchaseCost), SOut.Double(equipment.MarketValue), equipment.Location, SOut.DateTime(equipment.DateEntry, false), SOut.Long(equipment.ProvNumCheckedOut), SOut.DateTime(equipment.DateCheckedOut, false), SOut.DateTime(equipment.DateExpectedBack, false), equipment.DispenseNote, equipment.Status);
         return table;
     }
 

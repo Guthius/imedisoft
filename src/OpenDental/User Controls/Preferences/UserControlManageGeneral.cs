@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -73,7 +74,7 @@ namespace OpenDental {
 		///<summary>Fills ComboEraAutomation with EraAutomationMode enum values. Excludes EraAutomationMode.UseGlobal because that value only applies to Carrier.EraAutomationOverride.</summary>
 		private void FillComboEraAutomation() {
 			List<EraAutomationMode> listEraAutomationModes=typeof(EraAutomationMode).GetEnumValues()
-				.AsEnumerable<EraAutomationMode>()
+				.Cast<EraAutomationMode>()
 				.Where(x => x!=EraAutomationMode.UseGlobal)
 				.ToList();
 			comboEraAutomation.Items.AddListEnum(listEraAutomationModes);
@@ -81,7 +82,7 @@ namespace OpenDental {
 
 		private void FillComboEraWriteOff () {
 			List<EnumEraAutoPostWriteOff> listEraAutoPostWriteOffModes=typeof(EnumEraAutoPostWriteOff).GetEnumValues()
-				.AsEnumerable<EnumEraAutoPostWriteOff>()
+				.Cast<EnumEraAutoPostWriteOff>()
 				.ToList();
 			comboEraWriteoff.Items.AddListEnum(listEraAutoPostWriteOffModes);
 		}

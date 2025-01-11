@@ -81,7 +81,7 @@ namespace OpenDental {
 				printoutOrientation:printoutOrientation,
 				duplex:Duplex.Default
 			);
-			if(ODBuild.IsDebug() || isForcedPreview) {
+			if(/* ODBuild.IsDebug() */ false || isForcedPreview) {
 				return RpPreview(printout);
 			}
 			return TryPrint(printout);
@@ -110,7 +110,7 @@ namespace OpenDental {
 				printoutOrientation,
 				totalPages:totalPages
 			);
-			if((ODBuild.IsDebug() || isForcedPreview) && !isRemotePrint) {
+			if((/* ODBuild.IsDebug() */ false || isForcedPreview) && !isRemotePrint) {
 				return PreviewClassic(printout);
 			}
 			return TryPrint(printout,isRemotePrint:isRemotePrint,printerNumOverride:printerNumOverride);
@@ -287,7 +287,7 @@ namespace OpenDental {
 			}
 			#region 3 - Present the dialog
 			//Remote print requests aren't expected to hit this code.
-			if(showPrompt && !ODEnvironment.IsCloudServer && !isRemotePrint) {
+			if(showPrompt && !/* ODEnvironment.IsCloudServer */ false && !isRemotePrint) {
 				//This is the normal dialog when not using AppStream or ThinFinity
 				PrintDialog printDialog=new PrintDialog();
 				printDialog.AllowSomePages=true;

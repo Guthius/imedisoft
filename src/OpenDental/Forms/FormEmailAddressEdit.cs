@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using OpenDental.UI;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -249,9 +250,6 @@ namespace OpenDental{
 		///<summary>Requests authorization for Open Dental to send emails and access the inbox for a gmail address.
 		///Google sends us access and refresh tokens that we store in the database.</summary>
 		private void butAuthGoogle_Click(object sender,EventArgs e) {
-			if(ODEnvironment.IsCloudServer && !CloudClientL.IsCloudClientRunning()) {
-				return;
-			}
 			Google.AuthorizationRequest authorizationRequest=new Google.AuthorizationRequest();
 			GoogleToken googleToken=null;
 			string emailAddress=textUsername.Text;

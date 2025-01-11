@@ -29,7 +29,6 @@ namespace OpenDental {
 			Lang.F(this);
 			textDesc.Text=_alertCategory.Description;
 			_listAlertTypesShown=Enum.GetValues(typeof(AlertType)).OfType<AlertType>().ToList();
-			_listAlertTypesShown.RemoveAll(GenericTools.IsODHQ);
 			if(_alertCategory.IsHQCategory) {
 				textDesc.IsEnabled=false;
 				butDelete.IsEnabled=false;

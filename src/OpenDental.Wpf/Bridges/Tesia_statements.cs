@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 

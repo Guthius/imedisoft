@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDentBusiness {

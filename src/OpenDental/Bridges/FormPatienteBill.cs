@@ -18,6 +18,7 @@ using System.IO;
 using System.Web;
 using System.Net;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {

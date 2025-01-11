@@ -21,6 +21,7 @@ using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using Microsoft.Web.WebView2.Core;
 using System.Threading.Tasks;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -147,7 +148,6 @@ Here is the desired behavior:
 		private ZoomSliderState _zoomSliderStateInitial;
 		///<summary>Property backer.</summary>
 		private int _zoomSliderValue;
-		private CloudIframe _cloudIframe=null;
 		#endregion Fields - Private
 
 		#region Constructor
@@ -163,12 +163,6 @@ Here is the desired behavior:
 				_odWebView2.Dock=DockStyle.Fill;
 				_odWebView2.DoBlockNavigation=true;
 				LayoutManager.Add(_odWebView2,this);
-			}
-			else if(false) {//For cloud, instead use CloudIframe.
-				_cloudIframe=new CloudIframe();
-				_cloudIframe.HideIframe(Handle);
-				_cloudIframe.Dock=DockStyle.Fill;
-				LayoutManager.Add(_cloudIframe,this);
 			}
 			_cursorCrosshair=new Cursor(GetType(),"CursorCrosshair.cur");
 			_cursorLineAdd=new Cursor(GetType(),"CursorLineAdd.cur");
@@ -241,10 +235,6 @@ Here is the desired behavior:
 		public void ClearPDFBrowser() {
 			if(!false) {
 				return;
-			}
-			//ODCloud does not use _odWebView2
-			if(!IsDisposed && _cloudIframe!=null && !_cloudIframe.IsDisposed) {
-				_cloudIframe.HideIframe(Handle);
 			}
 		}
 
@@ -551,12 +541,6 @@ Here is the desired behavior:
 
 		///<summary>Returns true if the CloudIframe control was hidden for ODCloud. Otherwise; false.</summary>
 		public bool HideWebBrowser() {
-			if(false) {
-				//ODCloud uses _cloudIframe instead of _odWebView2
-				if(!IsDisposed && _cloudIframe!=null && !_cloudIframe.IsDisposed) {
-					_cloudIframe.HideIframe(Handle);
-				}
-			}
 			return true;
 		}
 
@@ -1069,9 +1053,6 @@ Here is the desired behavior:
 		public void SelectTreeNode2(NodeTypeAndKey nodeTypeAndKey,string localPathImportedCloud="") {
 			_pointTranslation=new Point();
 			panelMain.Visible=true;
-			if(!IsDisposed && _cloudIframe!=null && !_cloudIframe.IsDisposed) {
-				_cloudIframe?.HideIframe(Handle);
-			}
 			if(_odWebView2!=null) {
 				_odWebView2.Visible=false;
 			}
@@ -1437,7 +1418,7 @@ Here is the desired behavior:
 							fileName=Path.GetDirectoryName(fileName)+"\\"+Path.GetFileNameWithoutExtension(fileName)+random.Next(9)+Path.GetExtension(fileName);
 						}
 						File.Copy(filePathSource,fileName);
-						if(ODEnvironment.IsCloudServer){//File path/name will not exist. Still copy the Bitmap so that it can be pasted on local computer.
+						if(/* ODEnvironment.IsCloudServer */ false){//File path/name will not exist. Still copy the Bitmap so that it can be pasted on local computer.
 							bitmapCopy=ImageHelper.CopyWithCropRotate(GetDocumentShowing(0),GetBitmapShowing(0));
 						}
 					}
@@ -1480,18 +1461,12 @@ Here is the desired behavior:
 				stringArray[0]=fileName;
 				dataObject.SetData(DataFormats.FileDrop,stringArray);
 			}
-			if(ODEnvironment.IsCloudServer){
-				int nodeType=(int)nodeTypeAndKey.NodeType;
-				ODCloudClient.CopyToClipboard(bitmapCopy,fileName,nodeType,nodeTypeAndKey.PriKey,dbNameOrUri);
+			try {
+				System.Windows.Clipboard.SetDataObject(dataObject);//System.Windows.Forms.Clipboard fails for Thinfinity
 			}
-			else{
-				try {
-					System.Windows.Clipboard.SetDataObject(dataObject);//System.Windows.Forms.Clipboard fails for Thinfinity
-				}
-				catch(Exception ex) {
-					MsgBox.Show(this,"Could not copy contents to the clipboard.  Please try again.");
-					return;
-				}
+			catch(Exception ex) {
+				MsgBox.Show(this,"Could not copy contents to the clipboard.  Please try again.");
+				return;
 			}
 			if(bitmapCopy!=null) {
 				bitmapCopy.Dispose();
@@ -1579,10 +1554,6 @@ Here is the desired behavior:
 		}
 
 		public void ToolBarExport_Click(bool doExportAsTiff=false){
-			if(ODEnvironment.IsCloudServer) {
-				ToolBarExport_ClickWeb();
-				return;
-			}
 			if(IsDocumentShowing()){
 				if(!Security.IsAuthorized(EnumPermType.ImageExport,GetDocumentShowing(0).DateCreated)) {
 					return;
@@ -1863,30 +1834,19 @@ Here is the desired behavior:
 			IDataObject iDataObject=null;
 			NodeTypeAndKey nodeTypeAndKey=null;
 			string dbNameOrUriCopied="";
-			if(ODEnvironment.IsCloudServer) {
-				dbNameOrUriCopied=ODCloudClient.GetDbNameOrUriFromClipboard();
-				ODCloudClient.CloudNodeTypeAndKey cloudNodeTypeAndKey=ODCloudClient.GetNodeTypeAndKey();
-				if(cloudNodeTypeAndKey!=null){
-					EnumImageNodeType enumImageNodeTypeCopied=(EnumImageNodeType)cloudNodeTypeAndKey.nodeType;
-					long imagePriKey=cloudNodeTypeAndKey.imagekey;
-					nodeTypeAndKey=new NodeTypeAndKey(enumImageNodeTypeCopied,imagePriKey);
-				}
+			try {
+				iDataObject=Clipboard.GetDataObject();
 			}
-			else{
-				try {
-					iDataObject=Clipboard.GetDataObject();
-				}
-				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
-					return;
-				}
-				if(iDataObject==null){
-					MsgBox.Show(this,"Clipboard is empty.");
-					return;
-				}
-				nodeTypeAndKey=(NodeTypeAndKey)iDataObject.GetData(typeof(NodeTypeAndKey));
-				dbNameOrUriCopied=(string)iDataObject.GetData("stringDbNameOrUri");//safe even if null
+			catch(Exception ex) {
+				MessageBox.Show(ex.Message);
+				return;
 			}
+			if(iDataObject==null){
+				MsgBox.Show(this,"Clipboard is empty.");
+				return;
+			}
+			nodeTypeAndKey=(NodeTypeAndKey)iDataObject.GetData(typeof(NodeTypeAndKey));
+			dbNameOrUriCopied=(string)iDataObject.GetData("stringDbNameOrUri");//safe even if null
 			string dbNameOrUri=DataConnectionBase.DataConnection.Database;
 			if(dbNameOrUri==dbNameOrUriCopied && nodeTypeAndKey!=null){
 				ToolBarPasteTypeAndKey(nodeTypeAndKey,showDocInfo:true);
@@ -4668,11 +4628,6 @@ Here is the desired behavior:
 					MessageBox.Show(Lan.g(this,"File not found")+": " + atoZFileName);
 				}
 				else {
-					if(false) {
-						_cloudIframe.ShowIframe(Handle);
-						_cloudIframe.DisplayFile(Handle,_odWebView2FilePath);
-						return;
-					}
 					if(_odWebView2.CoreWebView2==null) {
 						await _odWebView2.Init();//Throws exception if Microsoft WebView2 Runtime is not installed so need to have in try-catch.
 					}
@@ -4840,100 +4795,21 @@ Here is the desired behavior:
 			}
 		}
 
-		private void ToolBarExport_ClickWeb(){
-			if(IsDocumentShowing()) {
-				if(!Security.IsAuthorized(EnumPermType.ImageExport,GetDocumentShowing(0).DateCreated)) {
-					return;
-				}	
-				string tempFilePath=ODFileUtils.CombinePaths(Path.GetTempPath(),GetDocumentShowing(0).FileName);
-				string docPath=FileAtoZ.CombinePaths(ImageStore.GetPatientFolder(PatientCur,ImageStore.GetPreferredAtoZpath()),GetDocumentShowing(0).FileName);
-				FileAtoZ.Copy(docPath,tempFilePath,doOverwrite:true);
-				if(false) {
-					ThinfinityUtils.ExportForDownload(tempFilePath);
-					MsgBox.Show(this,"Done.");
-				}
-				else {//Is AppStream
-					CloudClientL.ExportForCloud(tempFilePath);
-				}
-				Def defDocCategory=Defs.GetDef(DefCat.ImageCats,GetDocumentShowing(0).DocCategory);
-				string logText="Document Exported: "+GetDocumentShowing(0).FileName+" with category "
-					+defDocCategory.ItemName+" to "+Path.GetDirectoryName(tempFilePath);
-				SecurityLogs.MakeLogEntry(EnumPermType.ImageExport,PatientCur.PatNum,logText,GetDocumentShowing(0).DocNum,GetDocumentShowing(0).DateTStamp);
-				return;
-			}
-			if(IsMountItemSelected()) {
-				if(!Security.IsAuthorized(EnumPermType.ImageExport,_documentArrayShowing[_idxSelectedInMount].DateCreated)) {
-					return;
-				}	
-				string tempFilePath=ODFileUtils.CombinePaths(Path.GetTempPath(),_documentArrayShowing[_idxSelectedInMount].FileName);
-				string docPath=FileAtoZ.CombinePaths(ImageStore.GetPatientFolder(PatientCur,ImageStore.GetPreferredAtoZpath()),_documentArrayShowing[_idxSelectedInMount].FileName);
-				FileAtoZ.Copy(docPath,tempFilePath,doOverwrite:true);
-				if(false) {
-					ThinfinityUtils.ExportForDownload(tempFilePath);
-					MsgBox.Show(this,"Done.");
-				}
-				else {
-					CloudClientL.ExportForCloud(tempFilePath);
-				}
-				Def defDocCategory=Defs.GetDef(DefCat.ImageCats,_documentArrayShowing[_idxSelectedInMount].DocCategory);
-				string logText="Document Exported: "+_documentArrayShowing[_idxSelectedInMount].FileName+" within mount "
-					+_mountShowing.Description+" with category "+defDocCategory.ItemName+" to "+Path.GetDirectoryName(tempFilePath);
-				SecurityLogs.MakeLogEntry(EnumPermType.ImageExport,PatientCur.PatNum,logText,_documentArrayShowing[_idxSelectedInMount].DocNum,
-					_documentArrayShowing[_idxSelectedInMount].DateTStamp);
-				return;
-			}
-			if(IsMountShowing()){
-				if(!Security.IsAuthorized(EnumPermType.ImageExport,_mountShowing.DateCreated)) {
-					return;
-				}
-				string tempFilePath=ODFileUtils.CombinePaths(Path.GetTempPath(),"mount.jpg");
-				Bitmap bitmapExport=new Bitmap(_mountShowing.Width,_mountShowing.Height);
-				Graphics g=Graphics.FromImage(bitmapExport);
-				g.TranslateTransform(bitmapExport.Width/2,bitmapExport.Height/2);//Center of image
-				DrawMount(g);
-				g.Dispose();
-				bitmapExport.Save(tempFilePath);
-				if(false){
-					ThinfinityUtils.ExportForDownload(tempFilePath);
-					bitmapExport.Dispose();
-					MsgBox.Show(this,"Done.");
-				}
-				else {//Is AppStream
-					CloudClientL.ExportForCloud(tempFilePath);
-					bitmapExport.Dispose();
-				}
-				Def defDocCategory=Defs.GetDef(DefCat.ImageCats,_mountShowing.DocCategory);
-				string logText="Mount Exported: "+_mountShowing.Description+" with category "
-					+defDocCategory.ItemName+" to "+Path.GetDirectoryName(tempFilePath);
-				SecurityLogs.MakeLogEntry(EnumPermType.ImageExport,PatientCur.PatNum,logText);
-				return;
-			}
-		}
-
 		///<summary>Supports multiple file imports (unless in Appstream), and user doesn't actually need to select a mount item first.</summary>
 		private void ToolBarImportMount(){
 			string[] stringArrayFileNames;
-			if(!false && false) {
-				List<string> listImportFilePaths=new List<string>(){ODCloudClient.ImportFileForCloud()};
-				if(listImportFilePaths[0].IsNullOrEmpty()) {
-					return;
-				}
-				stringArrayFileNames=listImportFilePaths.ToArray();
+			OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.Multiselect=true;
+			if(Prefs.GetContainsKey(nameof(PrefName.UseAlternateOpenFileDialogWindow)) && PrefC.GetBool(PrefName.UseAlternateOpenFileDialogWindow)){//Hidden pref, almost always false.
+				//We don't know why this makes any difference but people have mentioned this will stop some hanging issues.
+				//https://stackoverflow.com/questions/6718148/windows-forms-gui-hangs-when-calling-openfiledialog-showdialog
+				openFileDialog.ShowHelp=true;
 			}
-			else {
-				OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.Multiselect=true;
-				if(Prefs.GetContainsKey(nameof(PrefName.UseAlternateOpenFileDialogWindow)) && PrefC.GetBool(PrefName.UseAlternateOpenFileDialogWindow)){//Hidden pref, almost always false.
-					//We don't know why this makes any difference but people have mentioned this will stop some hanging issues.
-					//https://stackoverflow.com/questions/6718148/windows-forms-gui-hangs-when-calling-openfiledialog-showdialog
-					openFileDialog.ShowHelp=true;
-				}
-				openFileDialog.InitialDirectory=PrefC.GetString(PrefName.DefaultImageImportFolder);
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				stringArrayFileNames=openFileDialog.FileNames;
+			openFileDialog.InitialDirectory=PrefC.GetString(PrefName.DefaultImageImportFolder);
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
+			stringArrayFileNames=openFileDialog.FileNames;
 			if(stringArrayFileNames.Length<1) {
 				return;
 			}
@@ -4991,27 +4867,18 @@ Here is the desired behavior:
 		///<summary>Not importing to mount. Supports multiple imports at once (unless in AppStream).</summary>
 		private void ToolBarImportSingle() {
 			string[] stringArrayFileNames;
-			if(!false && false) {
-				List<string> listImportFilePaths=new List<string>(){ODCloudClient.ImportFileForCloud()};
-				if(listImportFilePaths[0].IsNullOrEmpty()) {
-					return;
-				}
-				stringArrayFileNames=listImportFilePaths.ToArray();
+			OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.Multiselect=true;
+			if(Prefs.GetContainsKey(nameof(PrefName.UseAlternateOpenFileDialogWindow)) && PrefC.GetBool(PrefName.UseAlternateOpenFileDialogWindow)){//Hidden pref, almost always false.
+				//We don't know why this makes any difference but people have mentioned this will stop some hanging issues.
+				//https://stackoverflow.com/questions/6718148/windows-forms-gui-hangs-when-calling-openfiledialog-showdialog
+				openFileDialog.ShowHelp=true;
 			}
-			else {
-				OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.Multiselect=true;
-				if(Prefs.GetContainsKey(nameof(PrefName.UseAlternateOpenFileDialogWindow)) && PrefC.GetBool(PrefName.UseAlternateOpenFileDialogWindow)){//Hidden pref, almost always false.
-					//We don't know why this makes any difference but people have mentioned this will stop some hanging issues.
-					//https://stackoverflow.com/questions/6718148/windows-forms-gui-hangs-when-calling-openfiledialog-showdialog
-					openFileDialog.ShowHelp=true;
-				}
-				openFileDialog.InitialDirectory=PrefC.GetString(PrefName.DefaultImageImportFolder);
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				stringArrayFileNames=openFileDialog.FileNames;
+			openFileDialog.InitialDirectory=PrefC.GetString(PrefName.DefaultImageImportFolder);
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
+			stringArrayFileNames=openFileDialog.FileNames;
 			if(stringArrayFileNames.Length<1) {
 				return;
 			}

@@ -8,6 +8,7 @@ using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	

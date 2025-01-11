@@ -71,7 +71,7 @@ public class PopupCrud
         table.Columns.Add("PopupNumArchive");
         table.Columns.Add("DateTimeDisabled");
         foreach (var popup in listPopups)
-            table.Rows.Add(SOut.Long(popup.PopupNum), SOut.Long(popup.PatNum), popup.Description, SOut.Bool(popup.IsDisabled), SOut.Int((int) popup.PopupLevel), SOut.Long(popup.UserNum), SOut.DateT(popup.DateTimeEntry, false), SOut.Bool(popup.IsArchived), SOut.Long(popup.PopupNumArchive), SOut.DateT(popup.DateTimeDisabled, false));
+            table.Rows.Add(SOut.Long(popup.PopupNum), SOut.Long(popup.PatNum), popup.Description, SOut.Bool(popup.IsDisabled), SOut.Int((int) popup.PopupLevel), SOut.Long(popup.UserNum), SOut.DateTime(popup.DateTimeEntry, false), SOut.Bool(popup.IsArchived), SOut.Long(popup.PopupNumArchive), SOut.DateTime(popup.DateTimeDisabled, false));
         return table;
     }
 
@@ -95,7 +95,7 @@ public class PopupCrud
                                     + DbHelper.Now() + ","
                                     + SOut.Bool(popup.IsArchived) + ","
                                     + SOut.Long(popup.PopupNumArchive) + ","
-                                    + SOut.DateT(popup.DateTimeDisabled) + ")";
+                                    + SOut.DateTime(popup.DateTimeDisabled) + ")";
         if (popup.Description == null) popup.Description = "";
         var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
         {
@@ -125,7 +125,7 @@ public class PopupCrud
                                     + DbHelper.Now() + ","
                                     + SOut.Bool(popup.IsArchived) + ","
                                     + SOut.Long(popup.PopupNumArchive) + ","
-                                    + SOut.DateT(popup.DateTimeDisabled) + ")";
+                                    + SOut.DateTime(popup.DateTimeDisabled) + ")";
         if (popup.Description == null) popup.Description = "";
         var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
         if (useExistingPK || isRandomKeys)
@@ -146,7 +146,7 @@ public class PopupCrud
                       //DateTimeEntry not allowed to change
                       + "IsArchived      =  " + SOut.Bool(popup.IsArchived) + ", "
                       + "PopupNumArchive =  " + SOut.Long(popup.PopupNumArchive) + ", "
-                      + "DateTimeDisabled=  " + SOut.DateT(popup.DateTimeDisabled) + " "
+                      + "DateTimeDisabled=  " + SOut.DateTime(popup.DateTimeDisabled) + " "
                       + "WHERE PopupNum = " + SOut.Long(popup.PopupNum);
         if (popup.Description == null) popup.Description = "";
         var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
@@ -202,7 +202,7 @@ public class PopupCrud
         if (popup.DateTimeDisabled != oldPopup.DateTimeDisabled)
         {
             if (command != "") command += ",";
-            command += "DateTimeDisabled = " + SOut.DateT(popup.DateTimeDisabled) + "";
+            command += "DateTimeDisabled = " + SOut.DateTime(popup.DateTimeDisabled) + "";
         }
 
         if (command == "") return false;

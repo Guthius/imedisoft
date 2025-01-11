@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 

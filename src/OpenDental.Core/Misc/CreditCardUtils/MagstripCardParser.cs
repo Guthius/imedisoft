@@ -46,7 +46,7 @@ public class MagstripCardParser
             //;1234123412341234=0305101193010877?
             //Key off of the presence of "=" but not "^"
             //Determine the presence of special characters
-            string[] tracks = _inputStripeStr.Split(new char[] {TRACK_SEPARATOR}, StringSplitOptions.RemoveEmptyEntries);
+            var tracks = _inputStripeStr.Split([TRACK_SEPARATOR], StringSplitOptions.RemoveEmptyEntries);
             if (tracks.Length > 0)
             {
                 //Explicitly set the track data based on the enum value passed in. If set to anything but All, we expect 1 and only 1 track to be present in trackString.
@@ -86,11 +86,6 @@ public class MagstripCardParser
             {
                 ParseTrack2();
             }
-
-            if (_hasTrack3)
-            {
-                ParseTrack3();
-            }
         }
         catch (MagstripCardParseException)
         {
@@ -106,26 +101,26 @@ public class MagstripCardParser
 
     private void ParseTrack1()
     {
-        if (String.IsNullOrEmpty(_track1Data))
+        if (string.IsNullOrEmpty(_track1Data))
         {
             throw new MagstripCardParseException("Track 1 data is empty.");
         }
 
-        string[] parts = _track1Data.Split(new char[] {FIELD_SEPARATOR}, StringSplitOptions.None);
+        var parts = _track1Data.Split([FIELD_SEPARATOR], StringSplitOptions.None);
         if (parts.Length != 3)
         {
             throw new MagstripCardParseException("Missing last field separator (^) in track 1 data.");
         }
 
         AccountNumber = CreditCardUtils.StripNonDigits(parts[0]);
-        if (!String.IsNullOrEmpty(parts[1]))
+        if (!string.IsNullOrEmpty(parts[1]))
         {
             _accountHolder = parts[1].Trim();
         }
 
-        if (!String.IsNullOrEmpty(_accountHolder))
+        if (!string.IsNullOrEmpty(_accountHolder))
         {
-            int nameDelim = _accountHolder.IndexOf("/");
+            var nameDelim = _accountHolder.IndexOf("/");
             if (nameDelim > -1)
             {
                 LastName = _accountHolder.Substring(0, nameDelim);
@@ -134,14 +129,14 @@ public class MagstripCardParser
         }
 
         //date format: YYMM
-        string expDate = parts[2].Substring(0, 4);
+        var expDate = parts[2].Substring(0, 4);
         ExpirationYear = ParseExpireYear(expDate);
         ExpirationMonth = ParseExpireMonth(expDate);
     }
 
     private void ParseTrack2()
     {
-        if (String.IsNullOrEmpty(Track2))
+        if (string.IsNullOrEmpty(Track2))
         {
             throw new MagstripCardParseException("Track 2 data is empty.");
         }
@@ -152,23 +147,23 @@ public class MagstripCardParser
         }
 
         //may have already parsed this info out if track 1 data present
-        if (String.IsNullOrEmpty(AccountNumber) || (ExpirationMonth == 0 || ExpirationYear == 0))
+        if (string.IsNullOrEmpty(AccountNumber) || ExpirationMonth == 0 || ExpirationYear == 0)
         {
             //Track 2 only cards
             //Ex: ;1234123412341234=0305101193010877?
-            int sepIndex = Track2.IndexOf('=');
+            var sepIndex = Track2.IndexOf('=');
             if (sepIndex < 0)
             {
                 throw new MagstripCardParseException("Invalid track 2 data.");
             }
 
-            string[] parts = Track2.Split(new char[] {'='}, StringSplitOptions.RemoveEmptyEntries);
+            var parts = Track2.Split(['='], StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 2)
             {
                 throw new MagstripCardParseException("Missing field separator (=) in track 2 data.");
             }
 
-            if (String.IsNullOrEmpty(AccountNumber))
+            if (string.IsNullOrEmpty(AccountNumber))
             {
                 AccountNumber = CreditCardUtils.StripNonDigits(parts[0]);
             }
@@ -176,19 +171,14 @@ public class MagstripCardParser
             if (ExpirationMonth == 0 || ExpirationYear == 0)
             {
                 //date format: YYMM
-                string expDate = parts[1].Substring(0, 4);
+                var expDate = parts[1].Substring(0, 4);
                 ExpirationYear = ParseExpireYear(expDate);
                 ExpirationMonth = ParseExpireMonth(expDate);
             }
         }
     }
-
-    private void ParseTrack3()
-    {
-        //not implemented
-    }
-
-    private int ParseExpireMonth(string s)
+    
+    private static int ParseExpireMonth(string s)
     {
         s = CreditCardUtils.StripNonDigits(s);
         if (!ValidateExpiration(s))
@@ -204,7 +194,7 @@ public class MagstripCardParser
         return int.Parse(s.Substring(2, 2));
     }
 
-    private int ParseExpireYear(string s)
+    private static int ParseExpireYear(string s)
     {
         s = CreditCardUtils.StripNonDigits(s);
         if (!ValidateExpiration(s))
@@ -217,7 +207,7 @@ public class MagstripCardParser
             s = s.Substring(0, 4);
         }
 
-        int y = int.Parse(s.Substring(0, 2));
+        var y = int.Parse(s.Substring(0, 2));
         if (y > 80)
         {
             y += 1900;
@@ -230,52 +220,32 @@ public class MagstripCardParser
         return y;
     }
 
-    private bool ValidateExpiration(string s)
+    private static bool ValidateExpiration(string s)
     {
-        if (String.IsNullOrEmpty(s))
+        if (string.IsNullOrEmpty(s))
         {
             return false;
         }
 
-        if (s.Length < 4)
-        {
-            return false;
-        }
-
-        return true;
+        return s.Length >= 4;
     }
 }
 
 public class MagstripCardParseException : Exception
 {
-    public MagstripCardParseException(Exception cause)
-        : base(cause.Message, cause)
+    public MagstripCardParseException(Exception cause) : base(cause.Message, cause)
     {
     }
 
-    public MagstripCardParseException(string msg)
-        : base(msg)
-    {
-    }
-
-    public MagstripCardParseException(string msg, Exception cause)
-        : base(msg, cause)
+    public MagstripCardParseException(string msg) : base(msg)
     {
     }
 }
 
-/// <summary>Represents the track(s) contained in the trackString passed into the MagstripCardParser.</summary>
 public enum EnumMagstripCardParseTrack
 {
-    /// <summary>0</summary>
     All,
-
-    /// <summary>1</summary>
     TrackOne,
-
-    /// <summary>2</summary>
     TrackTwo,
-
-    /// <summary>3</summary>
     TrackThree
 }

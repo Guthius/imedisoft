@@ -63,7 +63,7 @@ public class ReconcileCrud
         table.Columns.Add("DateReconcile");
         table.Columns.Add("IsLocked");
         foreach (var reconcile in listReconciles)
-            table.Rows.Add(SOut.Long(reconcile.ReconcileNum), SOut.Long(reconcile.AccountNum), SOut.Double(reconcile.StartingBal), SOut.Double(reconcile.EndingBal), SOut.DateT(reconcile.DateReconcile, false), SOut.Bool(reconcile.IsLocked));
+            table.Rows.Add(SOut.Long(reconcile.ReconcileNum), SOut.Long(reconcile.AccountNum), SOut.Double(reconcile.StartingBal), SOut.Double(reconcile.EndingBal), SOut.DateTime(reconcile.DateReconcile, false), SOut.Bool(reconcile.IsLocked));
         return table;
     }
 

@@ -1,11 +1,7 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using DataConnectionBase;
-
-#endregion
 
 namespace OpenDentBusiness.Crud;
 

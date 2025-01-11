@@ -48,8 +48,8 @@ public class HistAppointments
         DateTime dateTStart, DateTime dateTEnd, long clinicNum, long patNum, int aptStatus, int histApptAction, long aptNum)
     {
         var command = "SELECT * FROM histappointment "
-                      + "WHERE AptDateTime >= " + SOut.DateT(dateTStart) + " "
-                      + "AND AptDateTime < " + SOut.DateT(dateTEnd) + " ";
+                      + "WHERE AptDateTime >= " + SOut.DateTime(dateTStart) + " "
+                      + "AND AptDateTime < " + SOut.DateTime(dateTEnd) + " ";
         if (clinicNum > -1) command += "AND ClinicNum=" + SOut.Long(clinicNum) + " ";
         if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         if (aptStatus > -1) command += "AND AptStatus=" + SOut.Int(aptStatus) + " ";
@@ -69,14 +69,14 @@ public class HistAppointments
     ///<summary>Gets all HistAppointments that have a DateTStamp after dateTimeSince.</summary>
     public static List<HistAppointment> GetChangedSince(DateTime dateTimeSince)
     {
-        var command = "SELECT * FROM histappointment WHERE DateTStamp > " + SOut.DateT(dateTimeSince);
+        var command = "SELECT * FROM histappointment WHERE DateTStamp > " + SOut.DateTime(dateTimeSince);
         return HistAppointmentCrud.SelectMany(command);
     }
 
     ///<summary>Gets all AptNums for HistAppointments that have a DateTStamp after dateTimeSince.</summary>
     public static List<long> GetAptNumsChangedSince(DateTime dateTimeSince)
     {
-        var command = "SELECT AptNum FROM histappointment WHERE DateTStamp > " + SOut.DateT(dateTimeSince);
+        var command = "SELECT AptNum FROM histappointment WHERE DateTStamp > " + SOut.DateTime(dateTimeSince);
         return Db.GetListLong(command);
     }
 

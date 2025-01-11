@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.Thinfinity;
@@ -1149,7 +1150,7 @@ namespace OpenDental {
 			}
 			string filename="ProcCodes.xml";
 			string filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),filename); 
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Thinfinity: file download dialog will come up later, after file is created. AppStream: File will be created in client's Downloads folder.
 			}
 			else {
@@ -1165,15 +1166,7 @@ namespace OpenDental {
 			TextWriter textWriter=new StreamWriter(filePath);
 			xmlSerializer.Serialize(textWriter,listProcedureCodes);
 			textWriter.Close();
-			if(false){
-				ThinfinityUtils.ExportForDownload(filePath);
-			}
-			else if(false){
-				CloudClientL.ExportForCloud(filePath);
-			}
-			else {
-				MsgBox.Show(this,"Exported");
-			}
+			MsgBox.Show(this,"Exported");
 		}
 
 		private void butImport_Click(object sender,EventArgs e) {
@@ -1184,20 +1177,12 @@ namespace OpenDental {
 				SynchAndFillListFees(true);
 			}
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
-			}
+			importFilePath=openFileDialog.FileName;
 			int rowsInserted=0;
 			try {
 				rowsInserted=ImportProcCodes(importFilePath,null,"");
@@ -1248,7 +1233,7 @@ namespace OpenDental {
 				xmlDocumentNcodes.LoadXml(xmlData);
 				//Currently this will only run for NoFeeProcCodes.txt
 				//If we run this for another file we will need to double check the structure of the file and make changes to this if needed.
-				List<XmlNode> listXmlNodes=xmlDocumentNcodes.ChildNodes[1].ChildNodes.AsEnumerable<XmlNode>().ToList();
+				List<XmlNode> listXmlNodes=xmlDocumentNcodes.ChildNodes[1].ChildNodes.Cast<XmlNode>().ToList();
 				for(int i=0;i<listXmlNodes.Count;i++){//loop through procedureCodes
 				//foreach(XmlNode procNode in xmlDocumentNcodes.ChildNodes[1]){//1=ArrayOfProcedureCode
 					string procCode="";

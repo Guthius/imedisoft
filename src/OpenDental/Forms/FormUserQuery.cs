@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -211,7 +212,7 @@ namespace OpenDental
             IDataObject dataObject;
             try
             {
-                if (ODEnvironment.IsCloudServer)
+                if (/* ODEnvironment.IsCloudServer */ false)
                 {
                     textQuery.Text = ODClipboard.GetText();
                     return;
@@ -420,7 +421,7 @@ namespace OpenDental
                     saveFileDialog2.FileName = _userQuery.FileName;
                 }
 
-                if (ODEnvironment.IsCloudServer)
+                if (/* ODEnvironment.IsCloudServer */ false)
                 {
                     if (saveFileDialog2.ShowDialog() != DialogResult.OK)
                     {
@@ -543,18 +544,7 @@ namespace OpenDental
 
             streamWriter.Close();
             streamWriter.Dispose();
-            if (false)
-            {
-                ThinfinityUtils.ExportForDownload(filePath);
-            }
-            else if (false)
-            {
-                CloudClientL.ExportForCloud(filePath);
-            }
-            else
-            {
-                ODMessageBox.Show(Lan.g(this, "File created successfully"));
-            }
+            ODMessageBox.Show(Lan.g(this, "File created successfully"));
         }
 
         ///<summary>Formats the current report to be human-readable. Does NOT run the whole query again.</summary>

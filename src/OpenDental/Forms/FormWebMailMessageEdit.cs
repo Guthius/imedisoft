@@ -8,6 +8,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -499,7 +500,7 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					MessageBox.Show(this,"An error occurred sending the message. Please try again later or contact support.");
-					Logger.openlog.LogMB(this,System.Reflection.MethodBase.GetCurrentMethod().Name,ex.Message,Logger.Severity.ERROR);
+					Logger.Openlog.LogMB(this,System.Reflection.MethodBase.GetCurrentMethod().Name,ex.Message,Logger.Severity.ERROR);
 					butSend.Enabled=true;
 					return;
 				}

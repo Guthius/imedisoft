@@ -79,7 +79,7 @@ public class JournalEntryCrud
         table.Columns.Add("SecUserNumEdit");
         table.Columns.Add("SecDateTEdit");
         foreach (var journalEntry in listJournalEntrys)
-            table.Rows.Add(SOut.Long(journalEntry.JournalEntryNum), SOut.Long(journalEntry.TransactionNum), SOut.Long(journalEntry.AccountNum), SOut.DateT(journalEntry.DateDisplayed, false), SOut.Double(journalEntry.DebitAmt), SOut.Double(journalEntry.CreditAmt), journalEntry.Memo, journalEntry.Splits, journalEntry.CheckNumber, SOut.Long(journalEntry.ReconcileNum), SOut.Long(journalEntry.SecUserNumEntry), SOut.DateT(journalEntry.SecDateTEntry, false), SOut.Long(journalEntry.SecUserNumEdit), SOut.DateT(journalEntry.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(journalEntry.JournalEntryNum), SOut.Long(journalEntry.TransactionNum), SOut.Long(journalEntry.AccountNum), SOut.DateTime(journalEntry.DateDisplayed, false), SOut.Double(journalEntry.DebitAmt), SOut.Double(journalEntry.CreditAmt), journalEntry.Memo, journalEntry.Splits, journalEntry.CheckNumber, SOut.Long(journalEntry.ReconcileNum), SOut.Long(journalEntry.SecUserNumEntry), SOut.DateTime(journalEntry.SecDateTEntry, false), SOut.Long(journalEntry.SecUserNumEdit), SOut.DateTime(journalEntry.SecDateTEdit, false));
         return table;
     }
 

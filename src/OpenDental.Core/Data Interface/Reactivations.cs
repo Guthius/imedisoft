@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -117,7 +118,7 @@ public class Reactivations
         cmd += siteNum > 0 ? " AND pat.SiteNum=" + SOut.Long(siteNum) : "";
         cmd += billingType > 0 ? " AND pat.BillingType=" + SOut.Long(billingType) : "";
         cmd += showDoNotContact ? "" : " AND (react.DoNotContact IS NULL OR react.DoNotContact=0)";
-        cmd += contactInterval > -1 ? " AND (comm.DateLastContacted IS NULL OR comm.DateLastContacted <= " + SOut.DateT(DateTime.Today.AddDays(-contactInterval)) + ") " : "";
+        cmd += contactInterval > -1 ? " AND (comm.DateLastContacted IS NULL OR comm.DateLastContacted <= " + SOut.DateTime(DateTime.Today.AddDays(-contactInterval)) + ") " : "";
         //set number of contact attempts
         var maxReminds = PrefC.GetInt(PrefName.ReactivationCountContactMax);
         if (showReactivations == RecallListShowNumberReminders.SixPlus)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.AutoComm;
 

@@ -94,7 +94,7 @@ public class PaySplitCrud
         table.Columns.Add("PayPlanDebitType");
         table.Columns.Add("SecurityHash");
         foreach (var paySplit in listPaySplits)
-            table.Rows.Add(SOut.Long(paySplit.SplitNum), SOut.Double(paySplit.SplitAmt), SOut.Long(paySplit.PatNum), SOut.DateT(paySplit.ProcDate, false), SOut.Long(paySplit.PayNum), SOut.Bool(paySplit.IsDiscount), SOut.Byte(paySplit.DiscountType), SOut.Long(paySplit.ProvNum), SOut.Long(paySplit.PayPlanNum), SOut.DateT(paySplit.DatePay, false), SOut.Long(paySplit.ProcNum), SOut.DateT(paySplit.DateEntry, false), SOut.Long(paySplit.UnearnedType), SOut.Long(paySplit.ClinicNum), SOut.Long(paySplit.SecUserNumEntry), SOut.DateT(paySplit.SecDateTEdit, false), SOut.Long(paySplit.FSplitNum), SOut.Long(paySplit.AdjNum), SOut.Long(paySplit.PayPlanChargeNum), SOut.Int((int) paySplit.PayPlanDebitType), paySplit.SecurityHash);
+            table.Rows.Add(SOut.Long(paySplit.SplitNum), SOut.Double(paySplit.SplitAmt), SOut.Long(paySplit.PatNum), SOut.DateTime(paySplit.ProcDate, false), SOut.Long(paySplit.PayNum), SOut.Bool(paySplit.IsDiscount), SOut.Byte(paySplit.DiscountType), SOut.Long(paySplit.ProvNum), SOut.Long(paySplit.PayPlanNum), SOut.DateTime(paySplit.DatePay, false), SOut.Long(paySplit.ProcNum), SOut.DateTime(paySplit.DateEntry, false), SOut.Long(paySplit.UnearnedType), SOut.Long(paySplit.ClinicNum), SOut.Long(paySplit.SecUserNumEntry), SOut.DateTime(paySplit.SecDateTEdit, false), SOut.Long(paySplit.FSplitNum), SOut.Long(paySplit.AdjNum), SOut.Long(paySplit.PayPlanChargeNum), SOut.Int((int) paySplit.PayPlanDebitType), paySplit.SecurityHash);
         return table;
     }
 

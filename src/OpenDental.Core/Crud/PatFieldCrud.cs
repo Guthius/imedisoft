@@ -65,7 +65,7 @@ public class PatFieldCrud
         table.Columns.Add("SecDateEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var patField in listPatFields)
-            table.Rows.Add(SOut.Long(patField.PatFieldNum), SOut.Long(patField.PatNum), patField.FieldName, patField.FieldValue, SOut.Long(patField.SecUserNumEntry), SOut.DateT(patField.SecDateEntry, false), SOut.DateT(patField.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(patField.PatFieldNum), SOut.Long(patField.PatNum), patField.FieldName, patField.FieldValue, SOut.Long(patField.SecUserNumEntry), SOut.DateTime(patField.SecDateEntry, false), SOut.DateTime(patField.SecDateTEdit, false));
         return table;
     }
 

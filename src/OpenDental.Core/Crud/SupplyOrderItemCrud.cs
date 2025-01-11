@@ -63,7 +63,7 @@ public class SupplyOrderItemCrud
         table.Columns.Add("Price");
         table.Columns.Add("DateReceived");
         foreach (var supplyOrderItem in listSupplyOrderItems)
-            table.Rows.Add(SOut.Long(supplyOrderItem.SupplyOrderItemNum), SOut.Long(supplyOrderItem.SupplyOrderNum), SOut.Long(supplyOrderItem.SupplyNum), SOut.Int(supplyOrderItem.Qty), SOut.Double(supplyOrderItem.Price), SOut.DateT(supplyOrderItem.DateReceived, false));
+            table.Rows.Add(SOut.Long(supplyOrderItem.SupplyOrderItemNum), SOut.Long(supplyOrderItem.SupplyOrderNum), SOut.Long(supplyOrderItem.SupplyNum), SOut.Int(supplyOrderItem.Qty), SOut.Double(supplyOrderItem.Price), SOut.DateTime(supplyOrderItem.DateReceived, false));
         return table;
     }
 

@@ -15,6 +15,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Threading;
 using System.Net;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormReportSetup:FormODBase {
@@ -53,7 +54,7 @@ namespace OpenDental {
 			checkReportDisplayUnearnedTP.Checked=PrefC.GetBool(PrefName.ReportsDoShowHiddenTPPrepayments);
 			checkUserQueryDefaultRaw.Checked=PrefC.GetBool(PrefName.UserQueryDefaultRaw);
 			textIncompleteProcsExcludeCodes.Text=PrefC.GetString(PrefName.ReportsIncompleteProcsExcludeCodes);
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				tabControl1.TabPages.Remove(tabReportServer);//Web users can't change their database settings.
 			}
 			else {

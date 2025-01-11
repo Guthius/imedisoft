@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Drawing2D;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class DashToothChart:PictureBox,IDashWidgetField {

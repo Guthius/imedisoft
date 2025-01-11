@@ -14,7 +14,7 @@ public class Popups
         var listFamPatNums = Patients.GetAllFamilyPatNumsForGuars([pat.Guarantor]).FindAll(x => x != pat.PatNum);
         var listSuperFamPatNums = Patients.GetAllFamilyPatNumsForSuperFam([pat.SuperFamily]).FindAll(x => x != pat.PatNum);
         var command = @"SELECT * FROM popup
-				WHERE (DateTimeDisabled>" + SOut.DateT(DateTime.Now) + " OR DateTimeDisabled=" + SOut.DateT(DateTime.MinValue) + @")
+				WHERE (DateTimeDisabled>" + SOut.DateTime(DateTime.Now) + " OR DateTimeDisabled=" + SOut.DateTime(DateTime.MinValue) + @")
 				AND IsArchived=0
 				AND (
 					PatNum=" + SOut.Long(pat.PatNum);
@@ -210,7 +210,7 @@ public class Popups
     private static void EditPopupDate(DateTime oldDate, long newPk)
     {
         var commandUpdate = "UPDATE popup "
-                            + "SET DateTimeEntry = " + SOut.DateT(oldDate) + " "
+                            + "SET DateTimeEntry = " + SOut.DateTime(oldDate) + " "
                             + "WHERE PopupNum = " + SOut.Long(newPk);
         Db.NonQ(commandUpdate);
     }

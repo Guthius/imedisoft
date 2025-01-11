@@ -37,7 +37,7 @@ public class SmsFromMobiles
     /// </summary>
     public static List<SmsFromMobile> GetAllChangedSince(DateTime dateStart)
     {
-        var command = "SELECT * from smsfrommobile WHERE SecDateTEdit >= " + SOut.DateT(dateStart);
+        var command = "SELECT * from smsfrommobile WHERE SecDateTEdit >= " + SOut.DateTime(dateStart);
         return SmsFromMobileCrud.SelectMany(command);
     }
 

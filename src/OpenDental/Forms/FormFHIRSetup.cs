@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.XPath;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 

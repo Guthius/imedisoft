@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using ODCrypt;
 using OpenDentBusiness.Crud;

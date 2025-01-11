@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -201,10 +202,7 @@ namespace OpenDental {
 			if(url.StartsWith("about")) {
 				url=url.Replace("about:","http://");
 			}
-			if(false) {
-				ODCloudClient.LaunchFileWithODCloudClient(url);
-				return;
-			}
+
 			Process.Start(url);//Instead launch the URL into a new default browser window.
 		}
 

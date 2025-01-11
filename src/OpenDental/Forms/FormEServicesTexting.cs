@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Data;
 using System.Linq;
 using System.IO;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.WebServiceMainHQ;

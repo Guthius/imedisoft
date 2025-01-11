@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormCreditRecurringDateChoose:FormODBase {

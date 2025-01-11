@@ -75,7 +75,7 @@ public class InsBlueBookCrud
         table.Columns.Add("ClaimType");
         table.Columns.Add("ClaimNum");
         foreach (var insBlueBook in listInsBlueBooks)
-            table.Rows.Add(SOut.Long(insBlueBook.InsBlueBookNum), SOut.Long(insBlueBook.ProcCodeNum), SOut.Long(insBlueBook.CarrierNum), SOut.Long(insBlueBook.PlanNum), insBlueBook.GroupNum, SOut.Double(insBlueBook.InsPayAmt), SOut.Double(insBlueBook.AllowedOverride), SOut.DateT(insBlueBook.DateTEntry, false), SOut.Long(insBlueBook.ProcNum), SOut.DateT(insBlueBook.ProcDate, false), insBlueBook.ClaimType, SOut.Long(insBlueBook.ClaimNum));
+            table.Rows.Add(SOut.Long(insBlueBook.InsBlueBookNum), SOut.Long(insBlueBook.ProcCodeNum), SOut.Long(insBlueBook.CarrierNum), SOut.Long(insBlueBook.PlanNum), insBlueBook.GroupNum, SOut.Double(insBlueBook.InsPayAmt), SOut.Double(insBlueBook.AllowedOverride), SOut.DateTime(insBlueBook.DateTEntry, false), SOut.Long(insBlueBook.ProcNum), SOut.DateTime(insBlueBook.ProcDate, false), insBlueBook.ClaimType, SOut.Long(insBlueBook.ClaimNum));
         return table;
     }
 

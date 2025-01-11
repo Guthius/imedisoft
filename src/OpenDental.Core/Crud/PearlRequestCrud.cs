@@ -63,7 +63,7 @@ public class PearlRequestCrud
         table.Columns.Add("DateTSent");
         table.Columns.Add("DateTChecked");
         foreach (var pearlRequest in listPearlRequests)
-            table.Rows.Add(SOut.Long(pearlRequest.PearlRequestNum), pearlRequest.RequestId, SOut.Long(pearlRequest.DocNum), SOut.Int((int) pearlRequest.RequestStatus), SOut.DateT(pearlRequest.DateTSent, false), SOut.DateT(pearlRequest.DateTChecked, false));
+            table.Rows.Add(SOut.Long(pearlRequest.PearlRequestNum), pearlRequest.RequestId, SOut.Long(pearlRequest.DocNum), SOut.Int((int) pearlRequest.RequestStatus), SOut.DateTime(pearlRequest.DateTSent, false), SOut.DateTime(pearlRequest.DateTChecked, false));
         return table;
     }
 

@@ -25,8 +25,8 @@ public class EhrMeasureEvents
     public static List<EhrMeasureEvent> GetAllByTypeFromDB(DateTime dateStart, DateTime dateEnd, EhrMeasureEventType measureEventType, bool isAll)
     {
         var command = "SELECT * FROM ehrmeasureevent "
-                      + "WHERE DateTEvent >= " + SOut.DateT(dateStart) + " "
-                      + "AND DateTEvent <= " + SOut.DateT(dateEnd) + " ";
+                      + "WHERE DateTEvent >= " + SOut.DateTime(dateStart) + " "
+                      + "AND DateTEvent <= " + SOut.DateTime(dateEnd) + " ";
         if (!isAll) command += "AND EventType = " + SOut.Int((int) measureEventType) + " ";
         command += "ORDER BY EventType,DateTEvent,PatNum";
         return EhrMeasureEventCrud.SelectMany(command);

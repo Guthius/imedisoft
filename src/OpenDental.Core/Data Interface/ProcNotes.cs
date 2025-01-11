@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using ODCrypt;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.UI;
@@ -57,7 +58,7 @@ public class ProcNotes
     public static List<ProcNote> GetProcNotesForApi(int limit, int offset, long patNum, long procNum)
     {
         var command = "SELECT * FROM procnote "
-                      + "WHERE EntryDateTime>=" + SOut.DateT(DateTime.MinValue) + " "; //Needed to use WHERE clause so the rest can be AND.
+                      + "WHERE EntryDateTime>=" + SOut.DateTime(DateTime.MinValue) + " "; //Needed to use WHERE clause so the rest can be AND.
         if (patNum > 0) command += "AND procnote.PatNum=" + SOut.Long(patNum) + " ";
         if (procNum > 0) command += "AND procnote.ProcNum=" + SOut.Long(procNum) + " ";
         command += "ORDER BY procnotenum DESC " //Ensure order for limit and offset. DESC so the most recent is first, like the UI.

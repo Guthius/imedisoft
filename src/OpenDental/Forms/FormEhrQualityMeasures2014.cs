@@ -12,6 +12,7 @@ using System.Xml;
 using System.Xml.XPath;
 using CodeBase;
 using System.IO;
+using Imedisoft.Core.Caching;
 #if EHRTEST
 using EHR;
 #endif

@@ -170,9 +170,6 @@ namespace OpenDental {
 				case AlertType.OnlinePaymentsPending:
 					value+=Lan.g(this,"Pending Online Payments")+": ";
 					break;
-				case AlertType.VoiceMailMonitor:
-					value+=Lan.g(this,"Voice Mail Monitor")+": ";
-					break;
 				case AlertType.RadiologyProcedures:
 					value+=Lan.g(this,"Radiology Orders")+": ";
 					break;
@@ -190,9 +187,6 @@ namespace OpenDental {
 					break;
 				case AlertType.WebSchedASAPApptCreated:
 					value+=Lan.g(this,"New Web Sched ASAP Appointment")+": ";
-					break;
-				case AlertType.AsteriskServerMonitor:
-					value+=Lan.g(this,"Phone Tracking Server")+": ";
 					break;
 				case AlertType.WebSchedRecallApptCreated:
 					value+=Lan.g(this,"New Web Sched Recall Appointment")+": ";

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.Cloud.Shared;
@@ -360,7 +361,7 @@ namespace OpenDental {
 				return false;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.AgingRan,0,"Starting Aging - AR Manager");
-			Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateT(dtNow,false));//get lock on pref to block others
+			Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateTime(dtNow,false));//get lock on pref to block others
 			Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
 			msgText=Lan.g(this,"Calculating enterprise aging for all patients as of")+" "+dtToday.ToShortDateString()+"...";
 			ProgressWin progressOD=new ProgressWin();
@@ -694,13 +695,9 @@ namespace OpenDental {
 
 		private void butTsiOcp_Click(object sender,EventArgs e) {
 			string url="https://opendental.com/resources/redirects/redirecttransworldocp.html";
-			try {
-				if(!false && false) {
-					ODCloudClient.LaunchFileWithODCloudClient(url);
-				}
-				else {
-					Process.Start(url);
-				}
+			try
+			{
+				Process.Start(url);
 			}
 			catch(Exception ex) {
 				MsgBox.Show(this,"Failed to open web browser.  Please make sure you have a default browser set and are connected to the internet and then try again.");

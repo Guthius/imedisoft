@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -18,7 +19,7 @@ public class EmailHostingTemplates
     {
         var guid = ClinicPrefs.GetPrefValue(PrefName.MassEmailGuid, clinicNum);
         var secret = ClinicPrefs.GetPrefValue(PrefName.MassEmailSecret, clinicNum);
-        if (ODBuild.IsDebug()) return AccountApiMock.Get(clinicNum, guid, secret);
+        if (/* ODBuild.IsDebug() */ false) return AccountApiMock.Get(clinicNum, guid, secret);
         var emailHostingEndpoint = PrefC.GetString(PrefName.EmailHostingEndpoint);
         return new AccountApi(guid, secret, emailHostingEndpoint);
     }

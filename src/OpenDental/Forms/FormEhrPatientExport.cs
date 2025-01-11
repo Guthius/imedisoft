@@ -6,6 +6,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 

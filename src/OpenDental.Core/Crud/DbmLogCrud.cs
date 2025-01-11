@@ -68,7 +68,7 @@ public class DbmLogCrud
         table.Columns.Add("MethodName");
         table.Columns.Add("LogText");
         foreach (var dbmLog in listDbmLogs)
-            table.Rows.Add(SOut.Long(dbmLog.DbmLogNum), SOut.Long(dbmLog.UserNum), SOut.Long(dbmLog.FKey), SOut.Int((int) dbmLog.FKeyType), SOut.Int((int) dbmLog.ActionType), SOut.DateT(dbmLog.DateTimeEntry, false), dbmLog.MethodName, dbmLog.LogText);
+            table.Rows.Add(SOut.Long(dbmLog.DbmLogNum), SOut.Long(dbmLog.UserNum), SOut.Long(dbmLog.FKey), SOut.Int((int) dbmLog.FKeyType), SOut.Int((int) dbmLog.ActionType), SOut.DateTime(dbmLog.DateTimeEntry, false), dbmLog.MethodName, dbmLog.LogText);
         return table;
     }
 

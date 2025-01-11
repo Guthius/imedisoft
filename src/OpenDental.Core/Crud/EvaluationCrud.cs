@@ -71,7 +71,7 @@ public class EvaluationCrud
         table.Columns.Add("OverallGradeNumber");
         table.Columns.Add("Notes");
         foreach (var evaluation in listEvaluations)
-            table.Rows.Add(SOut.Long(evaluation.EvaluationNum), SOut.Long(evaluation.InstructNum), SOut.Long(evaluation.StudentNum), SOut.Long(evaluation.SchoolCourseNum), evaluation.EvalTitle, SOut.DateT(evaluation.DateEval, false), SOut.Long(evaluation.GradingScaleNum), evaluation.OverallGradeShowing, SOut.Float(evaluation.OverallGradeNumber), evaluation.Notes);
+            table.Rows.Add(SOut.Long(evaluation.EvaluationNum), SOut.Long(evaluation.InstructNum), SOut.Long(evaluation.StudentNum), SOut.Long(evaluation.SchoolCourseNum), evaluation.EvalTitle, SOut.DateTime(evaluation.DateEval, false), SOut.Long(evaluation.GradingScaleNum), evaluation.OverallGradeShowing, SOut.Float(evaluation.OverallGradeNumber), evaluation.Notes);
         return table;
     }
 

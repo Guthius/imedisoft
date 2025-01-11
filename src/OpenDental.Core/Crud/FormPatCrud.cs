@@ -57,7 +57,7 @@ public class FormPatCrud
         table.Columns.Add("PatNum");
         table.Columns.Add("FormDateTime");
         foreach (var formPat in listFormPats)
-            table.Rows.Add(SOut.Long(formPat.FormPatNum), SOut.Long(formPat.PatNum), SOut.DateT(formPat.FormDateTime, false));
+            table.Rows.Add(SOut.Long(formPat.FormPatNum), SOut.Long(formPat.PatNum), SOut.DateTime(formPat.FormDateTime, false));
         return table;
     }
 
@@ -74,7 +74,7 @@ public class FormPatCrud
 
         command +=
             SOut.Long(formPat.PatNum) + ","
-                                      + SOut.DateT(formPat.FormDateTime) + ")";
+                                      + SOut.DateTime(formPat.FormDateTime) + ")";
         {
             formPat.FormPatNum = Db.NonQ(command, true, "FormPatNum", "formPat");
         }
@@ -95,7 +95,7 @@ public class FormPatCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(formPat.FormPatNum) + ",";
         command +=
             SOut.Long(formPat.PatNum) + ","
-                                      + SOut.DateT(formPat.FormDateTime) + ")";
+                                      + SOut.DateTime(formPat.FormDateTime) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else
@@ -107,7 +107,7 @@ public class FormPatCrud
     {
         var command = "UPDATE formpat SET "
                       + "PatNum      =  " + SOut.Long(formPat.PatNum) + ", "
-                      + "FormDateTime=  " + SOut.DateT(formPat.FormDateTime) + " "
+                      + "FormDateTime=  " + SOut.DateTime(formPat.FormDateTime) + " "
                       + "WHERE FormPatNum = " + SOut.Long(formPat.FormPatNum);
         Db.NonQ(command);
     }
@@ -124,7 +124,7 @@ public class FormPatCrud
         if (formPat.FormDateTime != oldFormPat.FormDateTime)
         {
             if (command != "") command += ",";
-            command += "FormDateTime = " + SOut.DateT(formPat.FormDateTime) + "";
+            command += "FormDateTime = " + SOut.DateTime(formPat.FormDateTime) + "";
         }
 
         if (command == "") return false;

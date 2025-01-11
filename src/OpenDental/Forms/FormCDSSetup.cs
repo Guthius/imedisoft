@@ -162,7 +162,7 @@ namespace OpenDental {
 			for(int i=0;i<_listCDSPermissions.Count;i++) {
 				//TODO:instead of updating all permissions. Update only the permissions neccesary.
 				if(_listCDSPermissions[i].UserNum!=_listCDSPermissionsOld[i].UserNum) {
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 							throw new Exception("If this ever happens, something went wrong. We can explicitly loop through both lists and match patnums.");
 						}
 					else {

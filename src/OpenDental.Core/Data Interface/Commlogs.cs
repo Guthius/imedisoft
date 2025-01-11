@@ -19,7 +19,6 @@ public class Commlogs
     public static List<CommItemTypeAuto> GetCommItemTypes()
     {
         var listCommonItemTypeAutos = Enum.GetValues(typeof(CommItemTypeAuto)).Cast<CommItemTypeAuto>().ToList();
-        listCommonItemTypeAutos.RemoveAll(GenericTools.IsODHQ); //only remove the HQ commlog type(s) if we are not in HQ
         return listCommonItemTypeAutos;
     }
 
@@ -133,7 +132,6 @@ public class Commlogs
         var commType = GetTypeAuto(commItemTypeAuto);
         string command;
         var dateSQL = "CURDATE()";
-        if (ODBuild.IsUnitTest) dateSQL = SOut.Date(DateTime_.Today, true);
 
         if (commType == 0) return null;
 
@@ -294,33 +292,29 @@ public enum CommItemTypeAuto
 {
     ///<summary>0</summary>
     [ShortDescription("APPT")] [Description("Appointent")]
-    APPT,
+    APPT = 0,
 
     ///<summary>1</summary>
     [ShortDescription("FIN")] [Description("Financial")]
-    FIN,
+    FIN = 1,
 
     ///<summary>2</summary>
     [ShortDescription("RECALL")] [Description("Recall")]
-    RECALL,
+    RECALL = 2,
 
     ///<summary>3</summary>
     [ShortDescription("MISC")] [Description("Miscellaneous")]
-    MISC,
+    MISC = 3,
 
     ///<summary>4</summary>
     [ShortDescription("TEXT")] [Description("Text Communication (E-mail, Sms, etc.)")]
-    TEXT,
-
-    ///<summary>5</summary>
-    [ShortDescription("ODHQ")] [Description("Open Dental HQ-Generated")] [IsODHQ]
-    ODHQ,
+    TEXT = 4,
 
     ///<summary>6</summary>
     [ShortDescription("REACT")] [Description("Reactivation")]
-    REACT,
+    REACT = 6,
 
     ///<summary>6</summary>
     [ShortDescription("FHIR")] [Description("FHIR API")]
-    FHIR
+    FHIR = 7
 }

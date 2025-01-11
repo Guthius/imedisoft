@@ -78,7 +78,7 @@ public class FeeCrud
         table.Columns.Add("SecDateTEdit");
         table.Columns.Add("DateEffective");
         foreach (var fee in listFees)
-            table.Rows.Add(SOut.Long(fee.FeeNum), SOut.Double(fee.Amount), fee.OldCode, SOut.Long(fee.FeeSched), SOut.Bool(fee.UseDefaultFee), SOut.Bool(fee.UseDefaultCov), SOut.Long(fee.CodeNum), SOut.Long(fee.ClinicNum), SOut.Long(fee.ProvNum), SOut.Long(fee.SecUserNumEntry), SOut.DateT(fee.SecDateEntry, false), SOut.DateT(fee.SecDateTEdit, false), SOut.DateT(fee.DateEffective, false));
+            table.Rows.Add(SOut.Long(fee.FeeNum), SOut.Double(fee.Amount), fee.OldCode, SOut.Long(fee.FeeSched), SOut.Bool(fee.UseDefaultFee), SOut.Bool(fee.UseDefaultCov), SOut.Long(fee.CodeNum), SOut.Long(fee.ClinicNum), SOut.Long(fee.ProvNum), SOut.Long(fee.SecUserNumEntry), SOut.DateTime(fee.SecDateEntry, false), SOut.DateTime(fee.SecDateTEdit, false), SOut.DateTime(fee.DateEffective, false));
         return table;
     }
 

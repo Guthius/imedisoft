@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -430,11 +431,6 @@ namespace OpenDental
             GridRow row;
             for (int i = 0; i < listDefs.Count; i++)
             {
-                if (listDefs[i].ItemValue == CommItemTypeAuto.ODHQ.ToString())
-                {
-                    continue;
-                }
-
                 if (Defs.IsDefDeprecated(listDefs[i]))
                 {
                     listDefs[i].IsHidden = true;

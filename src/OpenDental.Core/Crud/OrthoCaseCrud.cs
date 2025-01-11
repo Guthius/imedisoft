@@ -85,7 +85,7 @@ public class OrthoCaseCrud
         table.Columns.Add("IsActive");
         table.Columns.Add("FeeInsSecondary");
         foreach (var orthoCase in listOrthoCases)
-            table.Rows.Add(SOut.Long(orthoCase.OrthoCaseNum), SOut.Long(orthoCase.PatNum), SOut.Long(orthoCase.ProvNum), SOut.Long(orthoCase.ClinicNum), SOut.Double(orthoCase.Fee), SOut.Double(orthoCase.FeeInsPrimary), SOut.Double(orthoCase.FeePat), SOut.DateT(orthoCase.BandingDate, false), SOut.DateT(orthoCase.DebondDate, false), SOut.DateT(orthoCase.DebondDateExpected, false), SOut.Bool(orthoCase.IsTransfer), SOut.Long(orthoCase.OrthoType), SOut.DateT(orthoCase.SecDateTEntry, false), SOut.Long(orthoCase.SecUserNumEntry), SOut.DateT(orthoCase.SecDateTEdit, false), SOut.Bool(orthoCase.IsActive), SOut.Double(orthoCase.FeeInsSecondary));
+            table.Rows.Add(SOut.Long(orthoCase.OrthoCaseNum), SOut.Long(orthoCase.PatNum), SOut.Long(orthoCase.ProvNum), SOut.Long(orthoCase.ClinicNum), SOut.Double(orthoCase.Fee), SOut.Double(orthoCase.FeeInsPrimary), SOut.Double(orthoCase.FeePat), SOut.DateTime(orthoCase.BandingDate, false), SOut.DateTime(orthoCase.DebondDate, false), SOut.DateTime(orthoCase.DebondDateExpected, false), SOut.Bool(orthoCase.IsTransfer), SOut.Long(orthoCase.OrthoType), SOut.DateTime(orthoCase.SecDateTEntry, false), SOut.Long(orthoCase.SecUserNumEntry), SOut.DateTime(orthoCase.SecDateTEdit, false), SOut.Bool(orthoCase.IsActive), SOut.Double(orthoCase.FeeInsSecondary));
         return table;
     }
 

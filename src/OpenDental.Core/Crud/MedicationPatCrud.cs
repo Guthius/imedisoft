@@ -75,7 +75,7 @@ public class MedicationPatCrud
         table.Columns.Add("ErxGuid");
         table.Columns.Add("IsCpoe");
         foreach (var medicationPat in listMedicationPats)
-            table.Rows.Add(SOut.Long(medicationPat.MedicationPatNum), SOut.Long(medicationPat.PatNum), SOut.Long(medicationPat.MedicationNum), medicationPat.PatNote, SOut.DateT(medicationPat.DateTStamp, false), SOut.DateT(medicationPat.DateStart, false), SOut.DateT(medicationPat.DateStop, false), SOut.Long(medicationPat.ProvNum), medicationPat.MedDescript, SOut.Long(medicationPat.RxCui), medicationPat.ErxGuid, SOut.Bool(medicationPat.IsCpoe));
+            table.Rows.Add(SOut.Long(medicationPat.MedicationPatNum), SOut.Long(medicationPat.PatNum), SOut.Long(medicationPat.MedicationNum), medicationPat.PatNote, SOut.DateTime(medicationPat.DateTStamp, false), SOut.DateTime(medicationPat.DateStart, false), SOut.DateTime(medicationPat.DateStop, false), SOut.Long(medicationPat.ProvNum), medicationPat.MedDescript, SOut.Long(medicationPat.RxCui), medicationPat.ErxGuid, SOut.Bool(medicationPat.IsCpoe));
         return table;
     }
 

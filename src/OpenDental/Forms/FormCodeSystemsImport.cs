@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Ionic.Zip;
 using OpenDental.UI;
 using OpenDentBusiness;

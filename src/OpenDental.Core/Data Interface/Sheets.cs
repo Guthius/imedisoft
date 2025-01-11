@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.UI;
 

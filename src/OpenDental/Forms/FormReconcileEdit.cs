@@ -7,6 +7,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using MigraDoc.DocumentObjectModel;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	/// <summary></summary>
@@ -260,7 +261,7 @@ namespace OpenDental {
 			documentRenderer.PrepareDocument();
 			migraDocPrintDocument.PrinterSettings=printDocument.PrinterSettings;
 			migraDocPrintDocument.Renderer=documentRenderer;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				using FormRpPrintPreview formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
 				formRpPrintPreview.ShowDialog();
 				return;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -111,7 +112,7 @@ namespace OpenDental
                     hl7Msg.MsgText = messageHL7.ToString();
                     hl7Msg.PatNum = patient.PatNum;
                     HL7Msgs.Insert(hl7Msg);
-                    if (ODBuild.IsDebug())
+                    if (/* ODBuild.IsDebug() */ false)
                     {
                         MessageBox.Show("Appointments", messageHL7.ToString());
                     }
@@ -540,7 +541,7 @@ namespace OpenDental
                     hl7Msg.MsgText = messageHL7.ToString();
                     hl7Msg.PatNum = patient.PatNum;
                     HL7Msgs.Insert(hl7Msg);
-                    if (ODBuild.IsDebug())
+                    if (/* ODBuild.IsDebug() */ false)
                     {
                         MessageBox.Show("Appointments", messageHL7.ToString());
                     }

@@ -97,7 +97,7 @@ public class EtransCrud
         table.Columns.Add("PatientNameRaw");
         table.Columns.Add("UserNum");
         foreach (var etrans in listEtranss)
-            table.Rows.Add(SOut.Long(etrans.EtransNum), SOut.DateT(etrans.DateTimeTrans, false), SOut.Long(etrans.ClearingHouseNum), SOut.Int((int) etrans.Etype), SOut.Long(etrans.ClaimNum), SOut.Int(etrans.OfficeSequenceNumber), SOut.Int(etrans.CarrierTransCounter), SOut.Int(etrans.CarrierTransCounter2), SOut.Long(etrans.CarrierNum), SOut.Long(etrans.CarrierNum2), SOut.Long(etrans.PatNum), SOut.Int(etrans.BatchNumber), etrans.AckCode, SOut.Int(etrans.TransSetNum), etrans.Note, SOut.Long(etrans.EtransMessageTextNum), SOut.Long(etrans.AckEtransNum), SOut.Long(etrans.PlanNum), SOut.Long(etrans.InsSubNum), etrans.TranSetId835, etrans.CarrierNameRaw, etrans.PatientNameRaw, SOut.Long(etrans.UserNum));
+            table.Rows.Add(SOut.Long(etrans.EtransNum), SOut.DateTime(etrans.DateTimeTrans, false), SOut.Long(etrans.ClearingHouseNum), SOut.Int((int) etrans.Etype), SOut.Long(etrans.ClaimNum), SOut.Int(etrans.OfficeSequenceNumber), SOut.Int(etrans.CarrierTransCounter), SOut.Int(etrans.CarrierTransCounter2), SOut.Long(etrans.CarrierNum), SOut.Long(etrans.CarrierNum2), SOut.Long(etrans.PatNum), SOut.Int(etrans.BatchNumber), etrans.AckCode, SOut.Int(etrans.TransSetNum), etrans.Note, SOut.Long(etrans.EtransMessageTextNum), SOut.Long(etrans.AckEtransNum), SOut.Long(etrans.PlanNum), SOut.Long(etrans.InsSubNum), etrans.TranSetId835, etrans.CarrierNameRaw, etrans.PatientNameRaw, SOut.Long(etrans.UserNum));
         return table;
     }
 
@@ -190,7 +190,7 @@ public class EtransCrud
     public static void Update(Etrans etrans)
     {
         var command = "UPDATE etrans SET "
-                      + "DateTimeTrans       =  " + SOut.DateT(etrans.DateTimeTrans) + ", "
+                      + "DateTimeTrans       =  " + SOut.DateTime(etrans.DateTimeTrans) + ", "
                       + "ClearingHouseNum    =  " + SOut.Long(etrans.ClearingHouseNum) + ", "
                       + "Etype               =  " + SOut.Int((int) etrans.Etype) + ", "
                       + "ClaimNum            =  " + SOut.Long(etrans.ClaimNum) + ", "
@@ -224,7 +224,7 @@ public class EtransCrud
         if (etrans.DateTimeTrans != oldEtrans.DateTimeTrans)
         {
             if (command != "") command += ",";
-            command += "DateTimeTrans = " + SOut.DateT(etrans.DateTimeTrans) + "";
+            command += "DateTimeTrans = " + SOut.DateTime(etrans.DateTimeTrans) + "";
         }
 
         if (etrans.ClearingHouseNum != oldEtrans.ClearingHouseNum)

@@ -44,7 +44,7 @@ public class LabPanels
                 strPatNumsEligibleForUpload += "PatNum='" + listPatNumsEligibleForUpload[i] + "' ";
             }
 
-            var command = "SELECT LabPanelNum FROM labpanel WHERE DateTStamp > " + SOut.DateT(dateChangedSince) + " AND (" + strPatNumsEligibleForUpload + ")";
+            var command = "SELECT LabPanelNum FROM labpanel WHERE DateTStamp > " + SOut.DateTime(dateChangedSince) + " AND (" + strPatNumsEligibleForUpload + ")";
             table = DataCore.GetTable(command);
         }
         else

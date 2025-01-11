@@ -132,7 +132,7 @@ public class HistAppointmentCrud
         table.Columns.Add("SecurityHash");
         table.Columns.Add("ItemOrderPlanned");
         foreach (var histAppointment in listHistAppointments)
-            table.Rows.Add(SOut.Long(histAppointment.HistApptNum), SOut.Long(histAppointment.HistUserNum), SOut.DateT(histAppointment.HistDateTStamp, false), SOut.Int((int) histAppointment.HistApptAction), SOut.Int((int) histAppointment.ApptSource), SOut.Long(histAppointment.AptNum), SOut.Long(histAppointment.PatNum), SOut.Int((int) histAppointment.AptStatus), histAppointment.Pattern, SOut.Long(histAppointment.Confirmed), SOut.Bool(histAppointment.TimeLocked), SOut.Long(histAppointment.Op), histAppointment.Note, SOut.Long(histAppointment.ProvNum), SOut.Long(histAppointment.ProvHyg), SOut.DateT(histAppointment.AptDateTime, false), SOut.Long(histAppointment.NextAptNum), SOut.Long(histAppointment.UnschedStatus), SOut.Bool(histAppointment.IsNewPatient), histAppointment.ProcDescript, SOut.Long(histAppointment.Assistant), SOut.Long(histAppointment.ClinicNum), SOut.Bool(histAppointment.IsHygiene), SOut.DateT(histAppointment.DateTStamp, false), SOut.DateT(histAppointment.DateTimeArrived, false), SOut.DateT(histAppointment.DateTimeSeated, false), SOut.DateT(histAppointment.DateTimeDismissed, false), SOut.Long(histAppointment.InsPlan1), SOut.Long(histAppointment.InsPlan2), SOut.DateT(histAppointment.DateTimeAskedToArrive, false), histAppointment.ProcsColored, SOut.Int(histAppointment.ColorOverride.ToArgb()), SOut.Long(histAppointment.AppointmentTypeNum), SOut.Long(histAppointment.SecUserNumEntry), SOut.DateT(histAppointment.SecDateTEntry, false), SOut.Int((int) histAppointment.Priority), histAppointment.ProvBarText, histAppointment.PatternSecondary, histAppointment.SecurityHash, SOut.Int(histAppointment.ItemOrderPlanned));
+            table.Rows.Add(SOut.Long(histAppointment.HistApptNum), SOut.Long(histAppointment.HistUserNum), SOut.DateTime(histAppointment.HistDateTStamp, false), SOut.Int((int) histAppointment.HistApptAction), SOut.Int((int) histAppointment.ApptSource), SOut.Long(histAppointment.AptNum), SOut.Long(histAppointment.PatNum), SOut.Int((int) histAppointment.AptStatus), histAppointment.Pattern, SOut.Long(histAppointment.Confirmed), SOut.Bool(histAppointment.TimeLocked), SOut.Long(histAppointment.Op), histAppointment.Note, SOut.Long(histAppointment.ProvNum), SOut.Long(histAppointment.ProvHyg), SOut.DateTime(histAppointment.AptDateTime, false), SOut.Long(histAppointment.NextAptNum), SOut.Long(histAppointment.UnschedStatus), SOut.Bool(histAppointment.IsNewPatient), histAppointment.ProcDescript, SOut.Long(histAppointment.Assistant), SOut.Long(histAppointment.ClinicNum), SOut.Bool(histAppointment.IsHygiene), SOut.DateTime(histAppointment.DateTStamp, false), SOut.DateTime(histAppointment.DateTimeArrived, false), SOut.DateTime(histAppointment.DateTimeSeated, false), SOut.DateTime(histAppointment.DateTimeDismissed, false), SOut.Long(histAppointment.InsPlan1), SOut.Long(histAppointment.InsPlan2), SOut.DateTime(histAppointment.DateTimeAskedToArrive, false), histAppointment.ProcsColored, SOut.Int(histAppointment.ColorOverride.ToArgb()), SOut.Long(histAppointment.AppointmentTypeNum), SOut.Long(histAppointment.SecUserNumEntry), SOut.DateTime(histAppointment.SecDateTEntry, false), SOut.Int((int) histAppointment.Priority), histAppointment.ProvBarText, histAppointment.PatternSecondary, histAppointment.SecurityHash, SOut.Int(histAppointment.ItemOrderPlanned));
         return table;
     }
 
@@ -162,7 +162,7 @@ public class HistAppointmentCrud
                                                    + DbHelper.ParamChar + "paramNote,"
                                                    + SOut.Long(histAppointment.ProvNum) + ","
                                                    + SOut.Long(histAppointment.ProvHyg) + ","
-                                                   + SOut.DateT(histAppointment.AptDateTime) + ","
+                                                   + SOut.DateTime(histAppointment.AptDateTime) + ","
                                                    + SOut.Long(histAppointment.NextAptNum) + ","
                                                    + SOut.Long(histAppointment.UnschedStatus) + ","
                                                    + SOut.Bool(histAppointment.IsNewPatient) + ","
@@ -171,17 +171,17 @@ public class HistAppointmentCrud
                                                    + SOut.Long(histAppointment.ClinicNum) + ","
                                                    + SOut.Bool(histAppointment.IsHygiene) + ","
                                                    //DateTStamp can only be set by MySQL
-                                                   + SOut.DateT(histAppointment.DateTimeArrived) + ","
-                                                   + SOut.DateT(histAppointment.DateTimeSeated) + ","
-                                                   + SOut.DateT(histAppointment.DateTimeDismissed) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeArrived) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeSeated) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeDismissed) + ","
                                                    + SOut.Long(histAppointment.InsPlan1) + ","
                                                    + SOut.Long(histAppointment.InsPlan2) + ","
-                                                   + SOut.DateT(histAppointment.DateTimeAskedToArrive) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeAskedToArrive) + ","
                                                    + DbHelper.ParamChar + "paramProcsColored,"
                                                    + SOut.Int(histAppointment.ColorOverride.ToArgb()) + ","
                                                    + SOut.Long(histAppointment.AppointmentTypeNum) + ","
                                                    + SOut.Long(histAppointment.SecUserNumEntry) + ","
-                                                   + SOut.DateT(histAppointment.SecDateTEntry) + ","
+                                                   + SOut.DateTime(histAppointment.SecDateTEntry) + ","
                                                    + SOut.Int((int) histAppointment.Priority) + ","
                                                    + "'" + SOut.String(histAppointment.ProvBarText) + "',"
                                                    + "'" + SOut.String(histAppointment.PatternSecondary) + "',"
@@ -224,7 +224,7 @@ public class HistAppointmentCrud
                                                    + DbHelper.ParamChar + "paramNote,"
                                                    + SOut.Long(histAppointment.ProvNum) + ","
                                                    + SOut.Long(histAppointment.ProvHyg) + ","
-                                                   + SOut.DateT(histAppointment.AptDateTime) + ","
+                                                   + SOut.DateTime(histAppointment.AptDateTime) + ","
                                                    + SOut.Long(histAppointment.NextAptNum) + ","
                                                    + SOut.Long(histAppointment.UnschedStatus) + ","
                                                    + SOut.Bool(histAppointment.IsNewPatient) + ","
@@ -233,17 +233,17 @@ public class HistAppointmentCrud
                                                    + SOut.Long(histAppointment.ClinicNum) + ","
                                                    + SOut.Bool(histAppointment.IsHygiene) + ","
                                                    //DateTStamp can only be set by MySQL
-                                                   + SOut.DateT(histAppointment.DateTimeArrived) + ","
-                                                   + SOut.DateT(histAppointment.DateTimeSeated) + ","
-                                                   + SOut.DateT(histAppointment.DateTimeDismissed) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeArrived) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeSeated) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeDismissed) + ","
                                                    + SOut.Long(histAppointment.InsPlan1) + ","
                                                    + SOut.Long(histAppointment.InsPlan2) + ","
-                                                   + SOut.DateT(histAppointment.DateTimeAskedToArrive) + ","
+                                                   + SOut.DateTime(histAppointment.DateTimeAskedToArrive) + ","
                                                    + DbHelper.ParamChar + "paramProcsColored,"
                                                    + SOut.Int(histAppointment.ColorOverride.ToArgb()) + ","
                                                    + SOut.Long(histAppointment.AppointmentTypeNum) + ","
                                                    + SOut.Long(histAppointment.SecUserNumEntry) + ","
-                                                   + SOut.DateT(histAppointment.SecDateTEntry) + ","
+                                                   + SOut.DateTime(histAppointment.SecDateTEntry) + ","
                                                    + SOut.Int((int) histAppointment.Priority) + ","
                                                    + "'" + SOut.String(histAppointment.ProvBarText) + "',"
                                                    + "'" + SOut.String(histAppointment.PatternSecondary) + "',"
@@ -277,7 +277,7 @@ public class HistAppointmentCrud
                       + "Note                 =  " + DbHelper.ParamChar + "paramNote, "
                       + "ProvNum              =  " + SOut.Long(histAppointment.ProvNum) + ", "
                       + "ProvHyg              =  " + SOut.Long(histAppointment.ProvHyg) + ", "
-                      + "AptDateTime          =  " + SOut.DateT(histAppointment.AptDateTime) + ", "
+                      + "AptDateTime          =  " + SOut.DateTime(histAppointment.AptDateTime) + ", "
                       + "NextAptNum           =  " + SOut.Long(histAppointment.NextAptNum) + ", "
                       + "UnschedStatus        =  " + SOut.Long(histAppointment.UnschedStatus) + ", "
                       + "IsNewPatient         =  " + SOut.Bool(histAppointment.IsNewPatient) + ", "
@@ -286,17 +286,17 @@ public class HistAppointmentCrud
                       + "ClinicNum            =  " + SOut.Long(histAppointment.ClinicNum) + ", "
                       + "IsHygiene            =  " + SOut.Bool(histAppointment.IsHygiene) + ", "
                       //DateTStamp can only be set by MySQL
-                      + "DateTimeArrived      =  " + SOut.DateT(histAppointment.DateTimeArrived) + ", "
-                      + "DateTimeSeated       =  " + SOut.DateT(histAppointment.DateTimeSeated) + ", "
-                      + "DateTimeDismissed    =  " + SOut.DateT(histAppointment.DateTimeDismissed) + ", "
+                      + "DateTimeArrived      =  " + SOut.DateTime(histAppointment.DateTimeArrived) + ", "
+                      + "DateTimeSeated       =  " + SOut.DateTime(histAppointment.DateTimeSeated) + ", "
+                      + "DateTimeDismissed    =  " + SOut.DateTime(histAppointment.DateTimeDismissed) + ", "
                       + "InsPlan1             =  " + SOut.Long(histAppointment.InsPlan1) + ", "
                       + "InsPlan2             =  " + SOut.Long(histAppointment.InsPlan2) + ", "
-                      + "DateTimeAskedToArrive=  " + SOut.DateT(histAppointment.DateTimeAskedToArrive) + ", "
+                      + "DateTimeAskedToArrive=  " + SOut.DateTime(histAppointment.DateTimeAskedToArrive) + ", "
                       + "ProcsColored         =  " + DbHelper.ParamChar + "paramProcsColored, "
                       + "ColorOverride        =  " + SOut.Int(histAppointment.ColorOverride.ToArgb()) + ", "
                       + "AppointmentTypeNum   =  " + SOut.Long(histAppointment.AppointmentTypeNum) + ", "
                       //SecUserNumEntry excluded from update
-                      + "SecDateTEntry        =  " + SOut.DateT(histAppointment.SecDateTEntry) + ", "
+                      + "SecDateTEntry        =  " + SOut.DateTime(histAppointment.SecDateTEntry) + ", "
                       + "Priority             =  " + SOut.Int((int) histAppointment.Priority) + ", "
                       + "ProvBarText          = '" + SOut.String(histAppointment.ProvBarText) + "', "
                       + "PatternSecondary     = '" + SOut.String(histAppointment.PatternSecondary) + "', "
@@ -395,7 +395,7 @@ public class HistAppointmentCrud
         if (histAppointment.AptDateTime != oldHistAppointment.AptDateTime)
         {
             if (command != "") command += ",";
-            command += "AptDateTime = " + SOut.DateT(histAppointment.AptDateTime) + "";
+            command += "AptDateTime = " + SOut.DateTime(histAppointment.AptDateTime) + "";
         }
 
         if (histAppointment.NextAptNum != oldHistAppointment.NextAptNum)
@@ -444,19 +444,19 @@ public class HistAppointmentCrud
         if (histAppointment.DateTimeArrived != oldHistAppointment.DateTimeArrived)
         {
             if (command != "") command += ",";
-            command += "DateTimeArrived = " + SOut.DateT(histAppointment.DateTimeArrived) + "";
+            command += "DateTimeArrived = " + SOut.DateTime(histAppointment.DateTimeArrived) + "";
         }
 
         if (histAppointment.DateTimeSeated != oldHistAppointment.DateTimeSeated)
         {
             if (command != "") command += ",";
-            command += "DateTimeSeated = " + SOut.DateT(histAppointment.DateTimeSeated) + "";
+            command += "DateTimeSeated = " + SOut.DateTime(histAppointment.DateTimeSeated) + "";
         }
 
         if (histAppointment.DateTimeDismissed != oldHistAppointment.DateTimeDismissed)
         {
             if (command != "") command += ",";
-            command += "DateTimeDismissed = " + SOut.DateT(histAppointment.DateTimeDismissed) + "";
+            command += "DateTimeDismissed = " + SOut.DateTime(histAppointment.DateTimeDismissed) + "";
         }
 
         if (histAppointment.InsPlan1 != oldHistAppointment.InsPlan1)
@@ -474,7 +474,7 @@ public class HistAppointmentCrud
         if (histAppointment.DateTimeAskedToArrive != oldHistAppointment.DateTimeAskedToArrive)
         {
             if (command != "") command += ",";
-            command += "DateTimeAskedToArrive = " + SOut.DateT(histAppointment.DateTimeAskedToArrive) + "";
+            command += "DateTimeAskedToArrive = " + SOut.DateTime(histAppointment.DateTimeAskedToArrive) + "";
         }
 
         if (histAppointment.ProcsColored != oldHistAppointment.ProcsColored)
@@ -499,7 +499,7 @@ public class HistAppointmentCrud
         if (histAppointment.SecDateTEntry != oldHistAppointment.SecDateTEntry)
         {
             if (command != "") command += ",";
-            command += "SecDateTEntry = " + SOut.DateT(histAppointment.SecDateTEntry) + "";
+            command += "SecDateTEntry = " + SOut.DateTime(histAppointment.SecDateTEntry) + "";
         }
 
         if (histAppointment.Priority != oldHistAppointment.Priority)

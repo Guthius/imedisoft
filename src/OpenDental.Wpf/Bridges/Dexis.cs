@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental.Bridges{
 	///<summary>Also used by the XDR bridge until 19.2 when XDR was broken out into its own bridge.</summary>
@@ -23,7 +24,7 @@ namespace OpenDental.Bridges{
 			ProgramProperty PPCur=ProgramProperties.GetCur(ForProgram,"InfoFile path");
 			string infoFile=PPCur.PropertyValue;
 			if(infoFile.Trim()=="") {
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					MsgBox.Show("Dexis","InfoFile path must not be empty.");
 					return;
 				}

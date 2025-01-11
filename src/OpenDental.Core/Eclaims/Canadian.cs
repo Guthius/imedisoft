@@ -13,6 +13,7 @@ using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
 using System.Xml;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.Eclaims {
 	public class Canadian {
@@ -262,7 +263,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			if(carrierReceiver.CDAnetVersion!="02") { //version 04
 				//A09 carrier transaction counter 5 N
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					strb.Append("00001");
 				}
 				else {		
@@ -703,7 +704,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			if(carrierReceiver.CDAnetVersion!="02") { //version 04
 				if(claim.ClaimType=="PreAuth") {
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						//We are required to test multi-page (up to 7 procs per page) predeterminations for certification. We do not actually do this in the real world.
 						//We will use the claim.PreAuthString here to pass these useless numbers in for testing purposes, since this field is not used for predetermination claims for any other reason.
 						int currentPredeterminationPageNumber=1;
@@ -729,7 +730,7 @@ namespace OpenDentBusiness.Eclaims {
 						strb.Append(Canadian.TidyN(claim.CanadaEstTreatStartDate.ToString("yyyyMMdd"),8));
 						double firstExamFee=0;
 						double diagnosticPhaseFee=0;
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							//Fields F26 and F27 are not required in the real world, but there are a few certification tests that require this information in order for the test to pass.
 							if(claim.PreAuthString!="") {
 								string[] preauthData=claim.PreAuthString.Split(new char[] { ',' });
@@ -790,7 +791,7 @@ namespace OpenDentBusiness.Eclaims {
 				//F11 tooth surface 5 A
 				//the SurfTidy function is very thorough, so it's OK to use TidyAN
 				if(procCode.TreatArea==TreatmentArea.Surf) {
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						//since the scripts use impossible surfaces, we need to just use raw database here
 						strb.Append(TidyAN(proc.Surf,5));
 					}
@@ -1574,7 +1575,7 @@ namespace OpenDentBusiness.Eclaims {
 					certFileName="OPENDENTAL.pem";
 				}
 				else if(network.Abbrev=="TELUS A" || network.Abbrev=="TELUS B") {
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						certFileName="OD_2023-02-05_2028-02-09_staging.pem";
 					}
 					else {
@@ -1604,7 +1605,7 @@ namespace OpenDentBusiness.Eclaims {
 							response=CustomerUpdatesProxy.GetWebServiceInstance().RequestCertCanadaABC(strbuild.ToString());
 						}
 						else if(network.Abbrev=="TELUS A" || network.Abbrev=="TELUS B") {
-							if(ODBuild.IsDebug()) {
+							if(/* ODBuild.IsDebug() */ false) {
 								response=CustomerUpdatesProxy.GetWebServiceInstance().RequestCertCanadaTelusAandBtest(strbuild.ToString());
 							}
 							else{

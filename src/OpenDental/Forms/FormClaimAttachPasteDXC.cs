@@ -12,6 +12,7 @@ using System.IO;
 using CodeBase;
 using OpenDentBusiness.Eclaims;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	

@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.ComponentModel;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 

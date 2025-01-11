@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;

@@ -19,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.UI;//even though they are in this project
 

@@ -208,8 +208,3 @@ public class DataConnection : IDisposable
     {
     }
 }
-
-public enum DatabaseType
-{
-    MySql
-}

@@ -12,6 +12,7 @@ using OpenDental.UI;
 using OpenDental;
 using OpenDentBusiness;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental.User_Controls.SetupWizard {
 	public partial class UserControlSetupWizRegKey:SetupWizControl {

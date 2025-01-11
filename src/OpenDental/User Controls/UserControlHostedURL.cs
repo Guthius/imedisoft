@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -115,14 +116,10 @@ namespace OpenDental.User_Controls {
 				ContextMenuStrip menu=new ContextMenuStrip();
 				ToolStripMenuItem browse = new ToolStripMenuItem("Browse");
 				browse.Click+=(sender, e) => {
-					if(!string.IsNullOrWhiteSpace(text.Text)) {
+					if(!string.IsNullOrWhiteSpace(text.Text))
+					{
 						string url=text.Text;
-						if(false) {
-							ODCloudClient.LaunchFileWithODCloudClient(url);
-						}
-						else {
-							System.Diagnostics.Process.Start(url);
-						}
+						System.Diagnostics.Process.Start(url);
 					}
 				};
 				menu.Items.Add(browse);

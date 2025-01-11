@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -310,7 +311,7 @@ public class CreditCards
         var table = DataCore.GetTable(command);
         //Query for latest payments seperately because this takes a very long time when run as a sub select
         if (table.Rows.Count < 1) return listRecurringChargeDatas;
-        var listStrCreditCardNums = table.Rows.AsEnumerable<DataRow>().Select(x => SOut.String(x["CreditCardNum"].ToString())).ToList();
+        var listStrCreditCardNums = table.Rows.Cast<DataRow>().Select(x => SOut.String(x["CreditCardNum"].ToString())).ToList();
         command = "SELECT cc.PatNum,cc.CreditCardNum,MAX(CASE WHEN " + DbHelper.Year("p.RecurringChargeDate") + " > 1880 "
                   + "THEN p.RecurringChargeDate ELSE p.PayDate END) RecurringChargeDate " +
                   "FROM creditcard cc " +
@@ -318,7 +319,7 @@ public class CreditCards
                   "INNER JOIN payment p ON p.paynum=rc.paynum AND p.IsRecurringCC=1 AND p.PayAmt > 0 " +
                   "WHERE cc.CreditCardNum IN (" + string.Join(",", listStrCreditCardNums) + ") " +
                   "GROUP BY cc.CreditCardNum";
-        var listDataRowLatestPayments = DataCore.GetTable(command).Rows.AsEnumerable<DataRow>().ToList();
+        var listDataRowLatestPayments = DataCore.GetTable(command).Rows.Cast<DataRow>().ToList();
         for (var i = 0; i < table.Rows.Count; i++)
         {
             var strCreditCardNum = table.Rows[i]["CreditCardNum"].ToString();

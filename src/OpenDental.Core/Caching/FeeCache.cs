@@ -1,8 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Caching;
 
 /// <summary>
 ///     A limited fee class that eliminates unused fields. Used by the FeeCache to keep memory usage down.

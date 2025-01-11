@@ -6,6 +6,7 @@ using System.Linq;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.Eclaims;
@@ -300,7 +301,7 @@ public class ClaimProcs
 					INNER JOIN procedurelog on claimproc.ProcNum=procedurelog.ProcNum
 					WHERE claimproc.ClaimProcNum={SOut.Long(claimProc.ClaimProcNum)} 
 					OR (procedurelog.ProcNumLab={SOut.Long(claimProc.ProcNum)} AND claimproc.Status={SOut.Enum(claimProc.Status)} ";
-            if (claimProc.Status == ClaimProcStatus.Supplemental) command += $"AND claimproc.DateCP={SOut.DateT(claimProc.DateCP)}"; //Supplemental claimprocs and their labs are made at the same time
+            if (claimProc.Status == ClaimProcStatus.Supplemental) command += $"AND claimproc.DateCP={SOut.DateTime(claimProc.DateCP)}"; //Supplemental claimprocs and their labs are made at the same time
             command += $"AND claimproc.ClaimNum={SOut.Long(claimProc.ClaimNum)})";
             listClaimProcsToDelete = DataCore.GetList(command, ClaimProcCrud.RowToObj);
             DeleteMany(listClaimProcsToDelete);

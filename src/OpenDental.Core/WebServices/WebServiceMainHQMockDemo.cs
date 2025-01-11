@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Bridges;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 using OpenDentBusiness.Remoting;

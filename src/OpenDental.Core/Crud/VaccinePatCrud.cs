@@ -93,7 +93,7 @@ public class VaccinePatCrud
         table.Columns.Add("AdministrationRoute");
         table.Columns.Add("AdministrationSite");
         foreach (var vaccinePat in listVaccinePats)
-            table.Rows.Add(SOut.Long(vaccinePat.VaccinePatNum), SOut.Long(vaccinePat.VaccineDefNum), SOut.DateT(vaccinePat.DateTimeStart, false), SOut.DateT(vaccinePat.DateTimeEnd, false), SOut.Float(vaccinePat.AdministeredAmt), SOut.Long(vaccinePat.DrugUnitNum), vaccinePat.LotNumber, SOut.Long(vaccinePat.PatNum), vaccinePat.Note, vaccinePat.FilledCity, vaccinePat.FilledST, SOut.Int((int) vaccinePat.CompletionStatus), SOut.Int((int) vaccinePat.AdministrationNoteCode), SOut.Long(vaccinePat.UserNum), SOut.Long(vaccinePat.ProvNumOrdering), SOut.Long(vaccinePat.ProvNumAdminister), SOut.DateT(vaccinePat.DateExpire, false), SOut.Int((int) vaccinePat.RefusalReason), SOut.Int((int) vaccinePat.ActionCode), SOut.Int((int) vaccinePat.AdministrationRoute), SOut.Int((int) vaccinePat.AdministrationSite));
+            table.Rows.Add(SOut.Long(vaccinePat.VaccinePatNum), SOut.Long(vaccinePat.VaccineDefNum), SOut.DateTime(vaccinePat.DateTimeStart, false), SOut.DateTime(vaccinePat.DateTimeEnd, false), SOut.Float(vaccinePat.AdministeredAmt), SOut.Long(vaccinePat.DrugUnitNum), vaccinePat.LotNumber, SOut.Long(vaccinePat.PatNum), vaccinePat.Note, vaccinePat.FilledCity, vaccinePat.FilledST, SOut.Int((int) vaccinePat.CompletionStatus), SOut.Int((int) vaccinePat.AdministrationNoteCode), SOut.Long(vaccinePat.UserNum), SOut.Long(vaccinePat.ProvNumOrdering), SOut.Long(vaccinePat.ProvNumAdminister), SOut.DateTime(vaccinePat.DateExpire, false), SOut.Int((int) vaccinePat.RefusalReason), SOut.Int((int) vaccinePat.ActionCode), SOut.Int((int) vaccinePat.AdministrationRoute), SOut.Int((int) vaccinePat.AdministrationSite));
         return table;
     }
 
@@ -110,8 +110,8 @@ public class VaccinePatCrud
 
         command +=
             SOut.Long(vaccinePat.VaccineDefNum) + ","
-                                                + SOut.DateT(vaccinePat.DateTimeStart) + ","
-                                                + SOut.DateT(vaccinePat.DateTimeEnd) + ","
+                                                + SOut.DateTime(vaccinePat.DateTimeStart) + ","
+                                                + SOut.DateTime(vaccinePat.DateTimeEnd) + ","
                                                 + SOut.Float(vaccinePat.AdministeredAmt) + ","
                                                 + SOut.Long(vaccinePat.DrugUnitNum) + ","
                                                 + "'" + SOut.String(vaccinePat.LotNumber) + "',"
@@ -151,8 +151,8 @@ public class VaccinePatCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(vaccinePat.VaccinePatNum) + ",";
         command +=
             SOut.Long(vaccinePat.VaccineDefNum) + ","
-                                                + SOut.DateT(vaccinePat.DateTimeStart) + ","
-                                                + SOut.DateT(vaccinePat.DateTimeEnd) + ","
+                                                + SOut.DateTime(vaccinePat.DateTimeStart) + ","
+                                                + SOut.DateTime(vaccinePat.DateTimeEnd) + ","
                                                 + SOut.Float(vaccinePat.AdministeredAmt) + ","
                                                 + SOut.Long(vaccinePat.DrugUnitNum) + ","
                                                 + "'" + SOut.String(vaccinePat.LotNumber) + "',"
@@ -183,8 +183,8 @@ public class VaccinePatCrud
     {
         var command = "UPDATE vaccinepat SET "
                       + "VaccineDefNum         =  " + SOut.Long(vaccinePat.VaccineDefNum) + ", "
-                      + "DateTimeStart         =  " + SOut.DateT(vaccinePat.DateTimeStart) + ", "
-                      + "DateTimeEnd           =  " + SOut.DateT(vaccinePat.DateTimeEnd) + ", "
+                      + "DateTimeStart         =  " + SOut.DateTime(vaccinePat.DateTimeStart) + ", "
+                      + "DateTimeEnd           =  " + SOut.DateTime(vaccinePat.DateTimeEnd) + ", "
                       + "AdministeredAmt       =  " + SOut.Float(vaccinePat.AdministeredAmt) + ", "
                       + "DrugUnitNum           =  " + SOut.Long(vaccinePat.DrugUnitNum) + ", "
                       + "LotNumber             = '" + SOut.String(vaccinePat.LotNumber) + "', "
@@ -220,13 +220,13 @@ public class VaccinePatCrud
         if (vaccinePat.DateTimeStart != oldVaccinePat.DateTimeStart)
         {
             if (command != "") command += ",";
-            command += "DateTimeStart = " + SOut.DateT(vaccinePat.DateTimeStart) + "";
+            command += "DateTimeStart = " + SOut.DateTime(vaccinePat.DateTimeStart) + "";
         }
 
         if (vaccinePat.DateTimeEnd != oldVaccinePat.DateTimeEnd)
         {
             if (command != "") command += ",";
-            command += "DateTimeEnd = " + SOut.DateT(vaccinePat.DateTimeEnd) + "";
+            command += "DateTimeEnd = " + SOut.DateTime(vaccinePat.DateTimeEnd) + "";
         }
 
         if (vaccinePat.AdministeredAmt != oldVaccinePat.AdministeredAmt)

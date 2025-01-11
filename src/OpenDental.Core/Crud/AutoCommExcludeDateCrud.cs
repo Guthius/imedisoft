@@ -36,7 +36,7 @@ public class AutoCommExcludeDateCrud
 
         command +=
             SOut.Long(autoCommExcludeDate.ClinicNum) + ","
-                                                     + SOut.DateT(autoCommExcludeDate.DateExclude) + ")";
+                                                     + SOut.DateTime(autoCommExcludeDate.DateExclude) + ")";
         {
             autoCommExcludeDate.AutoCommExcludeDateNum = Db.NonQ(command, true, "AutoCommExcludeDateNum", "autoCommExcludeDate");
         }

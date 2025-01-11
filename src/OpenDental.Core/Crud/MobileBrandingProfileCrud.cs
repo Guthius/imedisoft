@@ -61,7 +61,7 @@ public class MobileBrandingProfileCrud
         table.Columns.Add("LogoFilePath");
         table.Columns.Add("DateTStamp");
         foreach (var mobileBrandingProfile in listMobileBrandingProfiles)
-            table.Rows.Add(SOut.Long(mobileBrandingProfile.MobileBrandingProfileNum), SOut.Long(mobileBrandingProfile.ClinicNum), mobileBrandingProfile.OfficeDescription, mobileBrandingProfile.LogoFilePath, SOut.DateT(mobileBrandingProfile.DateTStamp, false));
+            table.Rows.Add(SOut.Long(mobileBrandingProfile.MobileBrandingProfileNum), SOut.Long(mobileBrandingProfile.ClinicNum), mobileBrandingProfile.OfficeDescription, mobileBrandingProfile.LogoFilePath, SOut.DateTime(mobileBrandingProfile.DateTStamp, false));
         return table;
     }
 

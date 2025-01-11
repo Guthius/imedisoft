@@ -175,7 +175,7 @@ namespace OpenDental.Bridges{
 		
 		public static void StartFileWatcher() {
 			Program prog = Programs.GetCur(ProgramName.iCat);
-			if(!Programs.IsEnabledByHq(prog,out _) || !prog.Enabled || ODEnvironment.IsCloudServer) {
+			if(!Programs.IsEnabledByHq(prog,out _) || !prog.Enabled || /* ODEnvironment.IsCloudServer */ false) {
 				return;
 			}
 			List<ProgramProperty> ForProgram =ProgramProperties.GetForProgram(Programs.GetProgramNum(ProgramName.iCat));

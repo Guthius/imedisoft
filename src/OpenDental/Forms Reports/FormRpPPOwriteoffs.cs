@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using System.Data;
 using CodeBase;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 
 //using System.IO;
 //using System.Text;

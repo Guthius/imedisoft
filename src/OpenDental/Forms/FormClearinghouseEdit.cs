@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Eclaims;
 
@@ -398,7 +399,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Invalid Comm Bridge.");
 				return false;
 			}
-			if(ODEnvironment.IsCloudServer 
+			if(/* ODEnvironment.IsCloudServer */ false 
 				&& Clearinghouses.IsDisabledForWeb(comboFormat.GetSelected<ElectronicClaimFormat>(),comboCommBridge.GetSelected<EclaimsCommBridge>())) 
 			{
 				MsgBox.Show(this,"This clearinghouse is not available while using Open Dental Cloud.");
@@ -527,22 +528,13 @@ namespace OpenDental{
 		private bool CheckOrCreateDirectory(string directoryName,string pathName) {
 			bool isUsingODCloudClient=x837Controller.DoSendBatchToCloudClient(ClearinghouseCur);
 			bool didDirectoryExist=false;
-			if(isUsingODCloudClient && ODEnvironment.IsCloudServer) {
-				didDirectoryExist=ODCloudClient.CheckOrCreateWithODCloudClient(directoryName,ODCloudClient.CloudClientAction.CheckForDirectory)=="Success";
-			}
-			else {
-				didDirectoryExist=Directory.Exists(directoryName);
-			}
+			didDirectoryExist=Directory.Exists(directoryName);
 			if(didDirectoryExist || !MsgBox.Show(this,MsgBoxButtons.YesNo,pathName+" path does not exist. Attempt to create?")) {
 				return true;//Nothing to create.
 			}
-			try {
-				if(isUsingODCloudClient && ODEnvironment.IsCloudServer) {
-					ODCloudClient.CheckOrCreateWithODCloudClient(directoryName,ODCloudClient.CloudClientAction.CreateDirectory);
-				}
-				else {
-					Directory.CreateDirectory(directoryName);
-				}
+			try
+			{
+				Directory.CreateDirectory(directoryName);
 				MsgBox.Show(this,"Folder created.");
 			}
 			catch {

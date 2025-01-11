@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using CodeBase;
-using DataConnectionBase;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Caching;
 
 public abstract class CacheAbs<TItem> where TItem : TableBase
 {

@@ -44,7 +44,6 @@ namespace OpenDentBusiness{
 		///<summary>If set to true, the BlockInbox button will start out pressed for this user.</summary>
 		public bool InboxHidePopups;
 		///<summary>FK to userod.UserNum.  The user num within the Central Manager database.  Only editable via CEMT.  Can change when CEMT syncs.</summary>
-		[CrudColumn(IsNotCemtColumn=true,IsCemtSyncKey=true)]
 		public long UserNumCEMT;
 		///<summary>The date and time of the most recent log in failure for this user.  Set to MinValue after user logs in successfully.</summary>
 		[CrudColumn(SpecialType=CrudSpecialColType.DateT,IsNotCemtColumn=true)]

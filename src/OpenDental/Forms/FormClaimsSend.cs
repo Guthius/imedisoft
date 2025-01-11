@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -232,7 +233,7 @@ namespace OpenDental{
 			ToolBarHistory.Buttons.Add(new ODToolBarButton(Lan.g(this,"Print List"),2,
 				Lan.g(this,"Print history list."),"PrintList"));
 			ToolBarHistory.Buttons.Add(new ODToolBarButton(Lan.g(this,"Outstanding Claims"),-1,"","OutstandingClaims"));
-			//if(ODBuild.IsDebug()) {
+			//if(/* ODBuild.IsDebug() */ false) {
 			//	ToolBarHistory.Buttons.Add(new ODToolBarButton(Lan.g(this,"Print Item"),2,
 			//		Lan.g(this,"For debugging, this will simply display the first item in the list."),"PrintItem"));
 			//}
@@ -697,7 +698,7 @@ namespace OpenDental{
 				clearinghouseDefault=ClearinghouseL.GetClearinghouseHq(hqClearinghouseNum);
 			}
 			if(clearinghouseDefault!=null && clearinghouseDefault.ISA08=="113504607" && Process.GetProcessesByName("TesiaLink").Length==0){
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"TesiaLink is not started.  Create file anyway?")){
 						return;
 					}
@@ -1281,7 +1282,7 @@ namespace OpenDental{
 				return;
 			}
 			if(gridHistory.SelectedIndices.Length==0){
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					gridHistory.SetSelected(0,true);//saves you a click when testing
 				}
 				else {

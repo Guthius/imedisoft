@@ -71,7 +71,7 @@ public class LabPanelCrud
         table.Columns.Add("ServiceName");
         table.Columns.Add("MedicalOrderNum");
         foreach (var labPanel in listLabPanels)
-            table.Rows.Add(SOut.Long(labPanel.LabPanelNum), SOut.Long(labPanel.PatNum), labPanel.RawMessage, labPanel.LabNameAddress, SOut.DateT(labPanel.DateTStamp, false), labPanel.SpecimenCondition, labPanel.SpecimenSource, labPanel.ServiceId, labPanel.ServiceName, SOut.Long(labPanel.MedicalOrderNum));
+            table.Rows.Add(SOut.Long(labPanel.LabPanelNum), SOut.Long(labPanel.PatNum), labPanel.RawMessage, labPanel.LabNameAddress, SOut.DateTime(labPanel.DateTStamp, false), labPanel.SpecimenCondition, labPanel.SpecimenSource, labPanel.ServiceId, labPanel.ServiceName, SOut.Long(labPanel.MedicalOrderNum));
         return table;
     }
 

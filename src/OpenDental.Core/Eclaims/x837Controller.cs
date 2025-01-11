@@ -39,7 +39,7 @@ namespace OpenDentBusiness.Eclaims
 				}
 			}
 			string saveFolder=clearinghouseClin.ExportPath;
-			if(!ODEnvironment.IsCloudServer && !Directory.Exists(saveFolder)) {
+			if(!/* ODEnvironment.IsCloudServer */ false && !Directory.Exists(saveFolder)) {
 				if(!isAutomatic) {
 					string message=saveFolder+Lans.g("Eclaims"," not found. Attempt to create?");
 					MessageBoxButtons messsageBoxButtons=MessageBoxButtons.YesNo;
@@ -62,7 +62,7 @@ namespace OpenDentBusiness.Eclaims
 				}
 			}
 			if(clearinghouseClin.CommBridge==EclaimsCommBridge.RECS){
-				if(!ODEnvironment.IsCloudServer && File.Exists(ODFileUtils.CombinePaths(saveFolder,"ecs.txt"))){
+				if(!/* ODEnvironment.IsCloudServer */ false && File.Exists(ODFileUtils.CombinePaths(saveFolder,"ecs.txt"))){
 					if(!isAutomatic) {
 						MessageBox.Show(RECSFileExistsMsg);
 					}
@@ -126,46 +126,25 @@ namespace OpenDentBusiness.Eclaims
 				MessageBox.Show(odex.Message,"x837");
 				return "";
 			}
-			if(clearinghouseClin.IsClaimExportAllowed) {
+			if(clearinghouseClin.IsClaimExportAllowed)
+			{
 				if(clearinghouseClin.CommBridge==EclaimsCommBridge.PostnTrack) {
 					//need to clear out all CRLF from entire file
 					messageText=messageText.Replace("\r","");
 					messageText=messageText.Replace("\n","");
 				}
-				if(ODEnvironment.IsCloudServer && DoSendBatchToCloudClient(clearinghouseClin)) {
-					try {
-						ODCloudClient.ExportClaim(saveFile,messageText,doOverwriteFile:clearinghouseClin.CommBridge!=EclaimsCommBridge.RECS);
-					}
-					catch(ODException odEx) {
-						if(odEx.ErrorCodeAsEnum==ODException.ErrorCodes.FileExists && clearinghouseClin.CommBridge==EclaimsCommBridge.RECS) {
-							MessageBox.Show(RECSFileExistsMsg,"x837");
-						}
-						else {
-							MessageBox.Show(odEx.Message,"x837");
-						}
-						if(odEx.ErrorCodeAsEnum!=ODException.ErrorCodes.ClaimArchiveFailed) {//If archiving failed, we can continue with sending.
-							return "";
-						}
-					}
-					catch(Exception ex) {
-						MessageBox.Show(ex.Message,"x837");
-						return "";
-					}
+				try {
+					File.WriteAllText(saveFile,messageText,Encoding.ASCII);
 				}
-				else {
-					try {
-						File.WriteAllText(saveFile,messageText,Encoding.ASCII);
-					}
-					catch(UnauthorizedAccessException ex) {
-						MessageBox.Show(ex.Message+"  Permissions for that folder need to be changed.","File Permissions");
-						return "";
-					}
-					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
-						return "";
-					}
-					CopyToArchive(saveFile);
+				catch(UnauthorizedAccessException ex) {
+					MessageBox.Show(ex.Message+"  Permissions for that folder need to be changed.","File Permissions");
+					return "";
 				}
+				catch(Exception ex) {
+					MessageBox.Show(ex.Message);
+					return "";
+				}
+				CopyToArchive(saveFile);
 			}
 			return messageText;
 		}

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
-using CodeBase;
 using OpenDentBusiness.Remoting;
 using OpenDentBusiness.UI;
 
@@ -82,16 +81,6 @@ namespace OpenDentBusiness {
 				_listHqPrograms=listHqProgs;
 			}
 			UpdateCaches();
-		}
-
-		///<summary>Unit test methods need to clear out the HqProgram cache between tests.</summary>
-		public static void ClearCaches() {
-			if(!ODBuild.IsUnitTest) {
-				return;
-			}
-			lock(_lock) {
-				_listHqPrograms=null;
-			}
 		}
 
 		private static void UpdateCaches() {			

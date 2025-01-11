@@ -69,7 +69,7 @@ public class EhrNotPerformedCrud
         table.Columns.Add("Note");
         table.Columns.Add("DateEntry");
         foreach (var ehrNotPerformed in listEhrNotPerformeds)
-            table.Rows.Add(SOut.Long(ehrNotPerformed.EhrNotPerformedNum), SOut.Long(ehrNotPerformed.PatNum), SOut.Long(ehrNotPerformed.ProvNum), ehrNotPerformed.CodeValue, ehrNotPerformed.CodeSystem, ehrNotPerformed.CodeValueReason, ehrNotPerformed.CodeSystemReason, ehrNotPerformed.Note, SOut.DateT(ehrNotPerformed.DateEntry, false));
+            table.Rows.Add(SOut.Long(ehrNotPerformed.EhrNotPerformedNum), SOut.Long(ehrNotPerformed.PatNum), SOut.Long(ehrNotPerformed.ProvNum), ehrNotPerformed.CodeValue, ehrNotPerformed.CodeSystem, ehrNotPerformed.CodeValueReason, ehrNotPerformed.CodeSystemReason, ehrNotPerformed.Note, SOut.DateTime(ehrNotPerformed.DateEntry, false));
         return table;
     }
 

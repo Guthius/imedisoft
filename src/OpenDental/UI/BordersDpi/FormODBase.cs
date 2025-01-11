@@ -351,7 +351,7 @@ namespace OpenDental {
 			}
 			ShowShadows();//Adds shadows to both modal (borderless) and non-modal (sizable with 0 border).
 			if(!ControlBox){
-				if(ODBuild.IsDebug()){
+				if(/* ODBuild.IsDebug() */ false){
 					//Some day I might do this:
 					//throw new ApplicationException("Control box (Close button at upper right) required on this form (and all forms in OD).  If you want an exception to this rule, ask Jordan.");
 				}
@@ -367,7 +367,7 @@ namespace OpenDental {
 			}*/
 			//BackColor=ODColorTheme.FormBackColor; .Control
 			if(LayoutManager==null){
-				if(ODBuild.IsDebug()){
+				if(/* ODBuild.IsDebug() */ false){
 					throw new Exception("Programmer needs to add InitializeLayoutManager() in constructor for this form: "+this.Name+". Add it right after InitializeComponent().");
 				}
 				else{
@@ -1347,35 +1347,12 @@ Refresh();
 				}
 				bool isKeyValid=OpenDentBusiness.Help.IsEncryptedKeyValid();//always true in debug
 				string manualPageURL=OpenDentBusiness.Help.GetManualPage(formName,isKeyValid);
-				if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
-					//manualPageURL="https://www.opendental.com/help/test1.html";
-				}
-				if(false) {
-					Process.Start(manualPageURL);
-				}
-				else if(false){
-					try{
-						ODCloudClient.LaunchFileWithODCloudClient(manualPageURL);
-					}
-					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
-						return;
-					}
-				}
-				else if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
-					//simulate the HQ behavior
-					FrmHelpBrowser frmHelpBrowser = new FrmHelpBrowser();
-					frmHelpBrowser.GoToPage(manualPageURL);
-					frmHelpBrowser.Show();
-				}
-				else{
-					Process.Start(manualPageURL);
-				}
+				Process.Start(manualPageURL);
+
 				if(!isKeyValid) {
 					//comes up on top of locked browser.
 					MsgBox.Show("To use the Open Dental Help feature you must be on support.");
 				}
-				return;
 			}//end of help button
 		}
 		#endregion Border Mouse

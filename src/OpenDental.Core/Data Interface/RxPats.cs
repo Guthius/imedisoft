@@ -57,7 +57,7 @@ public class RxPats
 
     public static List<long> GetChangedSinceRxNums(DateTime dateTChangedSince)
     {
-        var command = "SELECT RxNum FROM rxpat WHERE DateTStamp > " + SOut.DateT(dateTChangedSince) + " AND RxType=" + SOut.Enum(RxTypes.Rx);
+        var command = "SELECT RxNum FROM rxpat WHERE DateTStamp > " + SOut.DateTime(dateTChangedSince) + " AND RxType=" + SOut.Enum(RxTypes.Rx);
         var tableRxNums = DataCore.GetTable(command);
         var listRxNums = new List<long>(tableRxNums.Rows.Count);
         for (var i = 0; i < tableRxNums.Rows.Count; i++) listRxNums.Add(SIn.Long(tableRxNums.Rows[i]["RxNum"].ToString()));
@@ -98,7 +98,7 @@ public class RxPats
     ///<summary>Gets a list of rxpats optionally filtered for the API. Returns an empty list if not found.</summary>
     public static List<RxPat> GetRxPatsForApi(int limit, int offset, long patNum)
     {
-        var command = "SELECT * FROM rxpat WHERE DateTStamp >= " + SOut.DateT(DateTime.MinValue) + " ";
+        var command = "SELECT * FROM rxpat WHERE DateTStamp >= " + SOut.DateTime(DateTime.MinValue) + " ";
         if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         command += "ORDER BY RxNum " //Ensure order for limit and offset.
                    + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);

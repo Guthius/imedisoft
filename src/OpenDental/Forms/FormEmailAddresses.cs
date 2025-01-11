@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormEmailAddresses:FormODBase {

@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDental.Thinfinity;
@@ -76,31 +77,15 @@ namespace OpenDental {
 			}
 			XmlSerializer xmlSerializer=new XmlSerializer(typeof(SheetDef));
 			string fileName="SheetDefCustom.xml";
-			if(ODEnvironment.IsCloudServer) {
-				StringBuilder stringBuilder2=new StringBuilder();
-				using XmlWriter xmlWriter=XmlWriter.Create(stringBuilder2);
-				xmlSerializer.Serialize(xmlWriter,sheetDef);
-				xmlWriter.Close();
-				if(false) {
-					ThinfinityUtils.ExportForDownload(fileName,stringBuilder2.ToString());
-				}
-				else {//Is AppStream
-					string filePath=ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(),fileName);
-					File.WriteAllText(filePath,stringBuilder2.ToString());
-					CloudClientL.ExportForCloud(filePath);
-				}
+			using SaveFileDialog saveFileDialog=new SaveFileDialog();
+			saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
+			saveFileDialog.FileName=fileName;
+			if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
-			else {
-				using SaveFileDialog saveFileDialog=new SaveFileDialog();
-				saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				saveFileDialog.FileName=fileName;
-				if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				using TextWriter textWriter=new StreamWriter(saveFileDialog.FileName);
-				xmlSerializer.Serialize(textWriter,sheetDef);
-				textWriter.Close();
-			}
+			using TextWriter textWriter=new StreamWriter(saveFileDialog.FileName);
+			xmlSerializer.Serialize(textWriter,sheetDef);
+			textWriter.Close();
 			MsgBox.Show(this,"Exported");
 		}
 

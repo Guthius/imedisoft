@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Ionic.Zip;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	///<summary>Used in Ehr quality measures.</summary>
@@ -104,7 +105,7 @@ namespace OpenDentBusiness {
 			QualityMeasure weightCqmAll=GetEhrCqmData(QualityType2014.WeightChild_1_1,dateStart,dateEnd,provNum);//used for WeightChild_1_x
 			#region Debug Timer
 			TimeSpan weight1TimeSpan=s.Elapsed;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				s.Stop();
 				s.Restart();
 			}
@@ -112,7 +113,7 @@ namespace OpenDentBusiness {
 			QualityMeasure weightCqm3To11=GetEhrCqmData(QualityType2014.WeightChild_2_1,dateStart,dateEnd,provNum);//used for WeightChild_2_x
 			#region Debug Timer
 			TimeSpan weight2TimeSpan=s.Elapsed;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				s.Stop();
 				s.Restart();
 			}
@@ -120,7 +121,7 @@ namespace OpenDentBusiness {
 			QualityMeasure weightCqm12To16=GetEhrCqmData(QualityType2014.WeightChild_3_1,dateStart,dateEnd,provNum);//used for WeightChild_3_x
 			#region Debug Timer
 			TimeSpan weight3TimeSpan=s.Elapsed;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				s.Stop();
 				s.Restart();
 			}
@@ -6975,7 +6976,7 @@ BMI 18.5-25.";
 			Dictionary<long,string> dictPatNumXml=new Dictionary<long,string>();
 			System.Diagnostics.Stopwatch swGenerateXMLs=new System.Diagnostics.Stopwatch();
 			System.Diagnostics.Stopwatch swCreateZipFiles=new System.Diagnostics.Stopwatch();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				swGenerateXMLs.Restart();
 			}
 			#region Cateogry I QRDA Documents
@@ -7808,7 +7809,7 @@ BMI 18.5-25.";
 			}
 			_w.Flush();
 			_w.Close();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				swGenerateXMLs.Stop();
 				swCreateZipFiles.Restart();
 			}
@@ -7829,7 +7830,7 @@ BMI 18.5-25.";
 					zipCur.Save(folderRoot+"\\Measure_"+listAllEMeasureNums[i]+".zip");
 				}
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				swCreateZipFiles.Stop();
 				System.Windows.Forms.MessageBox.Show("Generating XMLs: "+swGenerateXMLs.Elapsed.ToString()+"\r\n"+"Creating zip files: "+swCreateZipFiles.Elapsed.ToString());
 			}

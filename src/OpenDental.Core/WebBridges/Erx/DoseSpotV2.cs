@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -524,7 +525,7 @@ namespace OpenDentBusiness {
 			DoseSpotRESTV2.GetNotificationCounts(token,out countRefillReqs,out countTransactionErrors,out countPendingPrescriptionsCount);
 			#region SOAP - Deprecated
 			//DoseSpotService.API api=new DoseSpotService.API();
-			//			if(ODBuild.IsDebug()) {
+			//			if(/* ODBuild.IsDebug() */ false) {
 			//				api.Url="https://my.staging.dosespot.com/api/12/api.asmx?wsdl";
 			//			}
 			//			DoseSpotService.GetPrescriberNotificationCountsRequest req=new DoseSpotService.GetPrescriberNotificationCountsRequest();
@@ -614,7 +615,7 @@ namespace OpenDentBusiness {
 			//			DoseSpotService.ClinicAddMessage req=new DoseSpotService.ClinicAddMessage();
 			//			req.Clinic=MakeDoseSpotClinic(clinicCur);
 			//			req.SingleSignOn=GetSingleSignOn(clinicID,clinicKey,userID,false);
-			//			if(ODBuild.IsDebug()) {
+			//			if(/* ODBuild.IsDebug() */ false) {
 			//				//This code will output the XML into the console.  This may be needed for DoseSpot when troubleshooting issues.
 			//				//This XML will be the soap body and exclude the header and envelope.
 			//				System.Xml.Serialization.XmlSerializer xml=new System.Xml.Serialization.XmlSerializer(req.GetType());
@@ -678,7 +679,7 @@ namespace OpenDentBusiness {
 				//					throw new ODException("Invalid email address for the current user.");
 				//				}
 				//				req.Clinician=MakeDoseSpotClinician(provOther,clinicCur,email.EmailUsername,true);//If the user isn't a provider, they are a proxy clinician.
-				//				if(ODBuild.IsDebug()) {
+				//				if(/* ODBuild.IsDebug() */ false) {
 				//					//This code will output the XML into the console.  This may be needed for DoseSpot when troubleshooting issues.
 				//					//This XML will be the soap body and exclude the header and envelope.
 				//					System.Xml.Serialization.XmlSerializer xml=new System.Xml.Serialization.XmlSerializer(req.GetType());
@@ -1685,7 +1686,7 @@ namespace OpenDentBusiness {
 			string doseSpotClinicKey="";
 			long clinicNum=Clinics.ClinicNum;
 			string doseSpotAdminId="";
-				if(!ODBuild.IsDebug()) {
+				if(!/* ODBuild.IsDebug() */ false) {
 					try {
 						doseSpotAdminId=WebServiceMainHQProxy.GetWebServiceMainHQInstance()
 						.BuildOAuthUrl(PrefC.GetString(PrefName.RegistrationKey),OAuthApplicationNames.DoseSpotAdminID.ToString());
@@ -1724,7 +1725,7 @@ namespace OpenDentBusiness {
 			if(programPropertyDoseSpotApiVersion.PropertyValue!="2") {
 				string clientId="";
 				string medispanClientId="";
-				if(!ODBuild.IsDebug()) {
+				if(!/* ODBuild.IsDebug() */ false) {
 					try {
 						clientId=WebServiceMainHQProxy.GetWebServiceMainHQInstance()
 						.BuildOAuthUrl(PrefC.GetString(PrefName.RegistrationKey),OAuthApplicationNames.DoseSpotClientID.ToString());
@@ -1797,7 +1798,7 @@ namespace OpenDentBusiness {
 					else {
 						throw new Exception("Unsupported HttpMethod type: "+httpMethod.Method);
 					}
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						if((typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 							return (T)Convert.ChangeType(response,typeof(T));
 						}
@@ -1837,7 +1838,7 @@ namespace OpenDentBusiness {
 		///in the API call.</summary>
 		public static string GetApiUrl(ApiRoute apiRoute,params string[] arrayRouteIDs) {
 			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.DoseSpotURL,"https://my.dosespot.com/webapi/v2");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				apiUrl="https://my.staging.dosespot.com/webapi/v2";
 			}
 			switch(apiRoute) {

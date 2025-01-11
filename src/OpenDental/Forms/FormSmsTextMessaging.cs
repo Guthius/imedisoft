@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Intuit.Ipp.Data;
 using OpenDental.UI;
@@ -915,104 +916,5 @@ namespace OpenDental {
 			public List<SmsToMobile> ListSmsToMobiles=new List<SmsToMobile>();
 		}
 		#endregion
-		
-		/*
-		private void InsertDemoData() {
-			if(ODBuild.IsDebug()) {
-				bool insertInboud=false;
-				bool insertOutbound=false;
-				if(!insertInboud&&!insertOutbound) {
-					return;
-				}
-				Random rand=new Random();
-				var clinics=Clinics.GetDeepCopy();
-				clinics.Add(Clinics.GetPracticeAsClinicZero());
-				var vlns=SmsPhones.GetAll();
-				var patients=Patients.GetAllPatients()
-					.FindAll(x => !string.IsNullOrEmpty(x.HmPhone))
-					.GroupBy(x => x.ClinicNum)
-					.ToDictionary(x => x.Key,x => x.ToList());
-				Action addMissingVLNs=new Action(() => {
-					var missingVlns=patients.Keys
-						.Select(x => x)
-						.Where(x => !vlns.Any(y => y.ClinicNum==x)).ToList();
-					foreach(var missingVln in missingVlns) {
-						SmsPhones.Insert(new SmsPhone() {
-							ClinicNum=missingVln,
-							CountryCode="US",
-							DateTimeActive=DateTime.Now.Subtract(TimeSpan.FromDays(1)),
-							PhoneNumber=rand.Next(0,999999999).ToString("D10"),
-						});
-					}
-					vlns=SmsPhones.GetAll();
-				});
-				if(insertInboud) {
-					List<SmsFromMobile> listInbound=new List<SmsFromMobile>();
-					int count=rand.Next(100,200);
-					addMissingVLNs();
-					for(int i = 0;i<count;i++) {
-						string unique=rand.Next(0,1000000).ToString("D7");
-						SmsPhone vln=vlns[rand.Next(0,vlns.Count)];
-						long clinicNum=vln.ClinicNum;
-						if(!patients.ContainsKey(clinicNum)) {
-							continue;
-						}
-						var patsForClinic=patients[clinicNum];
-						Patient pat=patsForClinic[rand.Next(0,patsForClinic.Count)];
-						string patPhone=pat.HmPhone;
-						listInbound.Add(new SmsFromMobile() {
-							ClinicNum=clinicNum,
-							DateTimeReceived=DateTime.Now.Subtract(TimeSpan.FromMinutes(rand.Next(5,2000))),
-							GuidMessage="TEST"+unique,
-							MobilePhoneNumber=patPhone,
-							MsgPart=1,
-							MsgTotal=1,
-							MsgRefID="x",
-							MsgText="msg - "+unique,
-							SmsPhoneNumber=vln.PhoneNumber,
-							SmsStatus=SmsFromStatus.ReceivedUnread,
-							PatNum=0, //Leave unassigned, we will find the match below
-						});
-					}
-					SmsFromMobiles.ProcessInboundSms(listInbound);
-				}
-				if(insertOutbound) {
-					List<SmsToMobile> listOutbound=new List<SmsToMobile>();
-					int count=rand.Next(10,100);
-					addMissingVLNs();
-					for(int i = 0;i<count;i++) {
-						string unique=rand.Next(0,1000000).ToString("D7");
-						SmsPhone vln=vlns[rand.Next(0,vlns.Count)];
-						long clinicNum=vln.ClinicNum;
-						if(!patients.ContainsKey(clinicNum)) {
-							continue;
-						}
-						var patsForClinic=patients[clinicNum];
-						Patient pat=patsForClinic[rand.Next(0,patsForClinic.Count)];
-						string patPhone=pat.HmPhone;
-						DateTime dtSent=DateTime.Now.Subtract(TimeSpan.FromMinutes(rand.Next(5,2000)));
-						listOutbound.Add(new SmsToMobile() {
-							ClinicNum=clinicNum,
-							DateTimeSent=dtSent,
-							DateTimeTerminated=dtSent.Add(TimeSpan.FromSeconds(rand.Next(60,240))),
-							GuidBatch="TEST"+unique,
-							GuidMessage="TEST"+unique,
-							IsTimeSensitive=true,
-							MobilePhoneNumber=patPhone,
-							MsgChargeUSD=.04f,
-							MsgParts=1,
-							MsgText="outbound - "+unique,
-							MsgType=SmsMessageSource.DirectSms,
-							PatNum=pat.PatNum,
-							SmsPhoneNumber=vln.PhoneNumber,
-							SmsStatus=SmsDeliveryStatus.DeliveryConf,
-						});
-					}
-					listOutbound.ForEach(x => SmsToMobiles.Insert(x));
-				}
-			}
-		}
-		*/
-
 	}
 }

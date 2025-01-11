@@ -35,9 +35,9 @@ public class ApptNewPatThankYouSentCrud
                 sbRow.Append(",");
             }
 
-            sbRow.Append(SOut.DateT(apptNewPatThankYouSent.ApptSecDateTEntry));
+            sbRow.Append(SOut.DateTime(apptNewPatThankYouSent.ApptSecDateTEntry));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(apptNewPatThankYouSent.DateTimeNewPatThankYouTransmit));
+            sbRow.Append(SOut.DateTime(apptNewPatThankYouSent.DateTimeNewPatThankYouTransmit));
             sbRow.Append(",");
             sbRow.Append(SOut.Long(apptNewPatThankYouSent.PatNum));
             sbRow.Append(",");
@@ -51,7 +51,7 @@ public class ApptNewPatThankYouSentCrud
             sbRow.Append(",");
             sbRow.Append(DbHelper.Now());
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(apptNewPatThankYouSent.DateTimeSent));
+            sbRow.Append(SOut.DateTime(apptNewPatThankYouSent.DateTimeSent));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(apptNewPatThankYouSent.ResponseDescript) + "'");
             sbRow.Append(",");
@@ -59,7 +59,7 @@ public class ApptNewPatThankYouSentCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(apptNewPatThankYouSent.ApptNum));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(apptNewPatThankYouSent.ApptDateTime));
+            sbRow.Append(SOut.DateTime(apptNewPatThankYouSent.ApptDateTime));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.Long(apptNewPatThankYouSent.TSPrior.Ticks) + "'");
             sbRow.Append(",");

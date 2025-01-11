@@ -111,7 +111,7 @@ public class PaySplits
     /// </summary>
     public static List<PaySplit> GetPaySplitsForApi(long payNum, long patNum, int limit, int offset)
     {
-        var command = "SELECT * FROM paysplit WHERE SecDateTEdit>=" + SOut.DateT(DateTime.MinValue) + " ";
+        var command = "SELECT * FROM paysplit WHERE SecDateTEdit>=" + SOut.DateTime(DateTime.MinValue) + " ";
         if (payNum != 0) command += "AND PayNum=" + SOut.Long(payNum) + " ";
         if (patNum != 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         command += "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);

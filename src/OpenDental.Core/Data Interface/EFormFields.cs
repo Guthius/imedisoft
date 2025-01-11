@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Xml;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;

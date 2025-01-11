@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -44,7 +45,7 @@ namespace OpenDental {
 			timeRun=new DateTime(1881,01,01,timeRun.Hour,timeRun.Minute,timeRun.Second);
 			//return Prefs.UpdateDateT(PrefName.ClaimSnapshotRunTime,dateTSnapshotRunTime);
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ClaimSnapshotRunTime);
-			prefValSync.PrefVal=POut.DateT(timeRun,false);
+			prefValSync.PrefVal=POut.DateTime(timeRun,false);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 

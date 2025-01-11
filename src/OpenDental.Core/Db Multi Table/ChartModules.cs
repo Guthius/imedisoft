@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 

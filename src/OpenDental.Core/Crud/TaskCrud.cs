@@ -95,7 +95,7 @@ public class TaskCrud
         table.Columns.Add("IsReadOnly");
         table.Columns.Add("TriageCategory");
         foreach (var task in listTasks)
-            table.Rows.Add(SOut.Long(task.TaskNum), SOut.Long(task.TaskListNum), SOut.DateT(task.DateTask, false), SOut.Long(task.KeyNum), task.Descript, SOut.Int((int) task.TaskStatus), SOut.Bool(task.IsRepeating), SOut.Int((int) task.DateType), SOut.Long(task.FromNum), SOut.Int((int) task.ObjectType), SOut.DateT(task.DateTimeEntry, false), SOut.Long(task.UserNum), SOut.DateT(task.DateTimeFinished, false), SOut.Long(task.PriorityDefNum), task.ReminderGroupId, SOut.Int((int) task.ReminderType), SOut.Int(task.ReminderFrequency), SOut.DateT(task.DateTimeOriginal, false), SOut.DateT(task.SecDateTEdit, false), task.DescriptOverride, SOut.Bool(task.IsReadOnly), SOut.Long(task.TriageCategory));
+            table.Rows.Add(SOut.Long(task.TaskNum), SOut.Long(task.TaskListNum), SOut.DateTime(task.DateTask, false), SOut.Long(task.KeyNum), task.Descript, SOut.Int((int) task.TaskStatus), SOut.Bool(task.IsRepeating), SOut.Int((int) task.DateType), SOut.Long(task.FromNum), SOut.Int((int) task.ObjectType), SOut.DateTime(task.DateTimeEntry, false), SOut.Long(task.UserNum), SOut.DateTime(task.DateTimeFinished, false), SOut.Long(task.PriorityDefNum), task.ReminderGroupId, SOut.Int((int) task.ReminderType), SOut.Int(task.ReminderFrequency), SOut.DateTime(task.DateTimeOriginal, false), SOut.DateTime(task.SecDateTEdit, false), task.DescriptOverride, SOut.Bool(task.IsReadOnly), SOut.Long(task.TriageCategory));
         return table;
     }
 
@@ -120,9 +120,9 @@ public class TaskCrud
                                         + SOut.Int((int) task.DateType) + ","
                                         + SOut.Long(task.FromNum) + ","
                                         + SOut.Int((int) task.ObjectType) + ","
-                                        + SOut.DateT(task.DateTimeEntry) + ","
+                                        + SOut.DateTime(task.DateTimeEntry) + ","
                                         + SOut.Long(task.UserNum) + ","
-                                        + SOut.DateT(task.DateTimeFinished) + ","
+                                        + SOut.DateTime(task.DateTimeFinished) + ","
                                         + SOut.Long(task.PriorityDefNum) + ","
                                         + "'" + SOut.String(task.ReminderGroupId) + "',"
                                         + SOut.Int((int) task.ReminderType) + ","
@@ -162,9 +162,9 @@ public class TaskCrud
                                         + SOut.Int((int) task.DateType) + ","
                                         + SOut.Long(task.FromNum) + ","
                                         + SOut.Int((int) task.ObjectType) + ","
-                                        + SOut.DateT(task.DateTimeEntry) + ","
+                                        + SOut.DateTime(task.DateTimeEntry) + ","
                                         + SOut.Long(task.UserNum) + ","
-                                        + SOut.DateT(task.DateTimeFinished) + ","
+                                        + SOut.DateTime(task.DateTimeFinished) + ","
                                         + SOut.Long(task.PriorityDefNum) + ","
                                         + "'" + SOut.String(task.ReminderGroupId) + "',"
                                         + SOut.Int((int) task.ReminderType) + ","
@@ -195,9 +195,9 @@ public class TaskCrud
                       + "DateType         =  " + SOut.Int((int) task.DateType) + ", "
                       + "FromNum          =  " + SOut.Long(task.FromNum) + ", "
                       + "ObjectType       =  " + SOut.Int((int) task.ObjectType) + ", "
-                      + "DateTimeEntry    =  " + SOut.DateT(task.DateTimeEntry) + ", "
+                      + "DateTimeEntry    =  " + SOut.DateTime(task.DateTimeEntry) + ", "
                       + "UserNum          =  " + SOut.Long(task.UserNum) + ", "
-                      + "DateTimeFinished =  " + SOut.DateT(task.DateTimeFinished) + ", "
+                      + "DateTimeFinished =  " + SOut.DateTime(task.DateTimeFinished) + ", "
                       + "PriorityDefNum   =  " + SOut.Long(task.PriorityDefNum) + ", "
                       + "ReminderGroupId  = '" + SOut.String(task.ReminderGroupId) + "', "
                       + "ReminderType     =  " + SOut.Int((int) task.ReminderType) + ", "
@@ -273,7 +273,7 @@ public class TaskCrud
         if (task.DateTimeEntry != oldTask.DateTimeEntry)
         {
             if (command != "") command += ",";
-            command += "DateTimeEntry = " + SOut.DateT(task.DateTimeEntry) + "";
+            command += "DateTimeEntry = " + SOut.DateTime(task.DateTimeEntry) + "";
         }
 
         if (task.UserNum != oldTask.UserNum)
@@ -285,7 +285,7 @@ public class TaskCrud
         if (task.DateTimeFinished != oldTask.DateTimeFinished)
         {
             if (command != "") command += ",";
-            command += "DateTimeFinished = " + SOut.DateT(task.DateTimeFinished) + "";
+            command += "DateTimeFinished = " + SOut.DateTime(task.DateTimeFinished) + "";
         }
 
         if (task.PriorityDefNum != oldTask.PriorityDefNum)

@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Microsoft.Win32;
 using OpenDentBusiness;
 using WpfControls.UI;

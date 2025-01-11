@@ -67,7 +67,7 @@ public class ProcNoteCrud
         table.Columns.Add("SigIsTopaz");
         table.Columns.Add("Signature");
         foreach (var procNote in listProcNotes)
-            table.Rows.Add(SOut.Long(procNote.ProcNoteNum), SOut.Long(procNote.PatNum), SOut.Long(procNote.ProcNum), SOut.DateT(procNote.EntryDateTime, false), SOut.Long(procNote.UserNum), procNote.Note, SOut.Bool(procNote.SigIsTopaz), procNote.Signature);
+            table.Rows.Add(SOut.Long(procNote.ProcNoteNum), SOut.Long(procNote.PatNum), SOut.Long(procNote.ProcNum), SOut.DateTime(procNote.EntryDateTime, false), SOut.Long(procNote.UserNum), procNote.Note, SOut.Bool(procNote.SigIsTopaz), procNote.Signature);
         return table;
     }
 

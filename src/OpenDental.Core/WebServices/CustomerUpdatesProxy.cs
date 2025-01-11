@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -18,7 +19,7 @@ namespace OpenDentBusiness {
 		///Also sets IWebProxy and ICredentials if specified for this customer.  Service1 is ready to use on return.</summary>
 		public static localhost.Service1 GetWebServiceInstance() {
 			localhost.Service1 ws=new localhost.Service1();//Points to the debug localhost instance by default.
-			if(!ODBuild.IsDebug()) {
+			if(!/* ODBuild.IsDebug() */ false) {
 				ws.Url=PrefC.GetString(PrefName.UpdateServerAddress);
 				ws.Timeout=(int)TimeSpan.FromMinutes(20).TotalMilliseconds;
 			}

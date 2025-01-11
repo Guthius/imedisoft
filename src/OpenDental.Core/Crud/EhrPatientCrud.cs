@@ -71,7 +71,7 @@ public class EhrPatientCrud
         table.Columns.Add("GenderIdentityNote");
         table.Columns.Add("DischargeDate");
         foreach (var ehrPatient in listEhrPatients)
-            table.Rows.Add(SOut.Long(ehrPatient.PatNum), ehrPatient.MotherMaidenFname, ehrPatient.MotherMaidenLname, SOut.Int((int) ehrPatient.VacShareOk), ehrPatient.MedicaidState, ehrPatient.SexualOrientation, ehrPatient.GenderIdentity, ehrPatient.SexualOrientationNote, ehrPatient.GenderIdentityNote, SOut.DateT(ehrPatient.DischargeDate, false));
+            table.Rows.Add(SOut.Long(ehrPatient.PatNum), ehrPatient.MotherMaidenFname, ehrPatient.MotherMaidenLname, SOut.Int((int) ehrPatient.VacShareOk), ehrPatient.MedicaidState, ehrPatient.SexualOrientation, ehrPatient.GenderIdentity, ehrPatient.SexualOrientationNote, ehrPatient.GenderIdentityNote, SOut.DateTime(ehrPatient.DischargeDate, false));
         return table;
     }
 
@@ -95,7 +95,7 @@ public class EhrPatientCrud
             + "'" + SOut.String(ehrPatient.GenderIdentity) + "',"
             + "'" + SOut.String(ehrPatient.SexualOrientationNote) + "',"
             + "'" + SOut.String(ehrPatient.GenderIdentityNote) + "',"
-            + SOut.DateT(ehrPatient.DischargeDate) + ")";
+            + SOut.DateTime(ehrPatient.DischargeDate) + ")";
         {
             ehrPatient.PatNum = Db.NonQ(command, true, "PatNum", "ehrPatient");
         }
@@ -123,7 +123,7 @@ public class EhrPatientCrud
             + "'" + SOut.String(ehrPatient.GenderIdentity) + "',"
             + "'" + SOut.String(ehrPatient.SexualOrientationNote) + "',"
             + "'" + SOut.String(ehrPatient.GenderIdentityNote) + "',"
-            + SOut.DateT(ehrPatient.DischargeDate) + ")";
+            + SOut.DateTime(ehrPatient.DischargeDate) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else
@@ -142,7 +142,7 @@ public class EhrPatientCrud
                       + "GenderIdentity       = '" + SOut.String(ehrPatient.GenderIdentity) + "', "
                       + "SexualOrientationNote= '" + SOut.String(ehrPatient.SexualOrientationNote) + "', "
                       + "GenderIdentityNote   = '" + SOut.String(ehrPatient.GenderIdentityNote) + "', "
-                      + "DischargeDate        =  " + SOut.DateT(ehrPatient.DischargeDate) + " "
+                      + "DischargeDate        =  " + SOut.DateTime(ehrPatient.DischargeDate) + " "
                       + "WHERE PatNum = " + SOut.Long(ehrPatient.PatNum);
         Db.NonQ(command);
     }
@@ -201,7 +201,7 @@ public class EhrPatientCrud
         if (ehrPatient.DischargeDate != oldEhrPatient.DischargeDate)
         {
             if (command != "") command += ",";
-            command += "DischargeDate = " + SOut.DateT(ehrPatient.DischargeDate) + "";
+            command += "DischargeDate = " + SOut.DateTime(ehrPatient.DischargeDate) + "";
         }
 
         if (command == "") return false;

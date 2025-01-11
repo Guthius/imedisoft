@@ -79,7 +79,7 @@ public class EFormCrud
         table.Columns.Add("SpaceToRightEachField");
         table.Columns.Add("SaveImageCategory");
         foreach (var eForm in listEForms)
-            table.Rows.Add(SOut.Long(eForm.EFormNum), SOut.Int((int) eForm.FormType), SOut.Long(eForm.PatNum), SOut.DateT(eForm.DateTimeShown, false), eForm.Description, SOut.DateT(eForm.DateTEdited, false), SOut.Int(eForm.MaxWidth), SOut.Long(eForm.EFormDefNum), SOut.Int((int) eForm.Status), SOut.Int(eForm.RevID), SOut.Bool(eForm.ShowLabelsBold), SOut.Int(eForm.SpaceBelowEachField), SOut.Int(eForm.SpaceToRightEachField), SOut.Long(eForm.SaveImageCategory));
+            table.Rows.Add(SOut.Long(eForm.EFormNum), SOut.Int((int) eForm.FormType), SOut.Long(eForm.PatNum), SOut.DateTime(eForm.DateTimeShown, false), eForm.Description, SOut.DateTime(eForm.DateTEdited, false), SOut.Int(eForm.MaxWidth), SOut.Long(eForm.EFormDefNum), SOut.Int((int) eForm.Status), SOut.Int(eForm.RevID), SOut.Bool(eForm.ShowLabelsBold), SOut.Int(eForm.SpaceBelowEachField), SOut.Int(eForm.SpaceToRightEachField), SOut.Long(eForm.SaveImageCategory));
         return table;
     }
 
@@ -97,9 +97,9 @@ public class EFormCrud
         command +=
             SOut.Int((int) eForm.FormType) + ","
                                            + SOut.Long(eForm.PatNum) + ","
-                                           + SOut.DateT(eForm.DateTimeShown) + ","
+                                           + SOut.DateTime(eForm.DateTimeShown) + ","
                                            + "'" + SOut.String(eForm.Description) + "',"
-                                           + SOut.DateT(eForm.DateTEdited) + ","
+                                           + SOut.DateTime(eForm.DateTEdited) + ","
                                            + SOut.Int(eForm.MaxWidth) + ","
                                            + SOut.Long(eForm.EFormDefNum) + ","
                                            + SOut.Int((int) eForm.Status) + ","
@@ -129,9 +129,9 @@ public class EFormCrud
         command +=
             SOut.Int((int) eForm.FormType) + ","
                                            + SOut.Long(eForm.PatNum) + ","
-                                           + SOut.DateT(eForm.DateTimeShown) + ","
+                                           + SOut.DateTime(eForm.DateTimeShown) + ","
                                            + "'" + SOut.String(eForm.Description) + "',"
-                                           + SOut.DateT(eForm.DateTEdited) + ","
+                                           + SOut.DateTime(eForm.DateTEdited) + ","
                                            + SOut.Int(eForm.MaxWidth) + ","
                                            + SOut.Long(eForm.EFormDefNum) + ","
                                            + SOut.Int((int) eForm.Status) + ","
@@ -152,9 +152,9 @@ public class EFormCrud
         var command = "UPDATE eform SET "
                       + "FormType             =  " + SOut.Int((int) eForm.FormType) + ", "
                       + "PatNum               =  " + SOut.Long(eForm.PatNum) + ", "
-                      + "DateTimeShown        =  " + SOut.DateT(eForm.DateTimeShown) + ", "
+                      + "DateTimeShown        =  " + SOut.DateTime(eForm.DateTimeShown) + ", "
                       + "Description          = '" + SOut.String(eForm.Description) + "', "
-                      + "DateTEdited          =  " + SOut.DateT(eForm.DateTEdited) + ", "
+                      + "DateTEdited          =  " + SOut.DateTime(eForm.DateTEdited) + ", "
                       + "MaxWidth             =  " + SOut.Int(eForm.MaxWidth) + ", "
                       + "EFormDefNum          =  " + SOut.Long(eForm.EFormDefNum) + ", "
                       + "Status               =  " + SOut.Int((int) eForm.Status) + ", "
@@ -185,7 +185,7 @@ public class EFormCrud
         if (eForm.DateTimeShown != oldEForm.DateTimeShown)
         {
             if (command != "") command += ",";
-            command += "DateTimeShown = " + SOut.DateT(eForm.DateTimeShown) + "";
+            command += "DateTimeShown = " + SOut.DateTime(eForm.DateTimeShown) + "";
         }
 
         if (eForm.Description != oldEForm.Description)
@@ -197,7 +197,7 @@ public class EFormCrud
         if (eForm.DateTEdited != oldEForm.DateTEdited)
         {
             if (command != "") command += ",";
-            command += "DateTEdited = " + SOut.DateT(eForm.DateTEdited) + "";
+            command += "DateTEdited = " + SOut.DateTime(eForm.DateTEdited) + "";
         }
 
         if (eForm.MaxWidth != oldEForm.MaxWidth)

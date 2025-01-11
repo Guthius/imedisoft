@@ -61,7 +61,7 @@ public class Etrans835AttachCrud
         table.Columns.Add("ClpSegmentIndex");
         table.Columns.Add("DateTimeEntry");
         foreach (var etrans835Attach in listEtrans835Attachs)
-            table.Rows.Add(SOut.Long(etrans835Attach.Etrans835AttachNum), SOut.Long(etrans835Attach.EtransNum), SOut.Long(etrans835Attach.ClaimNum), SOut.Int(etrans835Attach.ClpSegmentIndex), SOut.DateT(etrans835Attach.DateTimeEntry, false));
+            table.Rows.Add(SOut.Long(etrans835Attach.Etrans835AttachNum), SOut.Long(etrans835Attach.EtransNum), SOut.Long(etrans835Attach.ClaimNum), SOut.Int(etrans835Attach.ClpSegmentIndex), SOut.DateTime(etrans835Attach.DateTimeEntry, false));
         return table;
     }
 

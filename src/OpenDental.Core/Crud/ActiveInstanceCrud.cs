@@ -56,8 +56,8 @@ public class ActiveInstanceCrud
             SOut.Long(activeInstance.ComputerNum) + ","
                                                   + SOut.Long(activeInstance.UserNum) + ","
                                                   + SOut.Long(activeInstance.ProcessId) + ","
-                                                  + SOut.DateT(activeInstance.DateTimeLastActive) + ","
-                                                  + SOut.DateT(activeInstance.DateTRecorded) + ","
+                                                  + SOut.DateTime(activeInstance.DateTimeLastActive) + ","
+                                                  + SOut.DateTime(activeInstance.DateTRecorded) + ","
                                                   + SOut.Int((int) activeInstance.ConnectionType) + ")";
 
         activeInstance.ActiveInstanceNum = Db.NonQ(command, true, "ActiveInstanceNum", "activeInstance");
@@ -70,8 +70,8 @@ public class ActiveInstanceCrud
                       + "ComputerNum       =  " + SOut.Long(activeInstance.ComputerNum) + ", "
                       + "UserNum           =  " + SOut.Long(activeInstance.UserNum) + ", "
                       + "ProcessId         =  " + SOut.Long(activeInstance.ProcessId) + ", "
-                      + "DateTimeLastActive=  " + SOut.DateT(activeInstance.DateTimeLastActive) + ", "
-                      + "DateTRecorded     =  " + SOut.DateT(activeInstance.DateTRecorded) + ", "
+                      + "DateTimeLastActive=  " + SOut.DateTime(activeInstance.DateTimeLastActive) + ", "
+                      + "DateTRecorded     =  " + SOut.DateTime(activeInstance.DateTRecorded) + ", "
                       + "ConnectionType    =  " + SOut.Int((int) activeInstance.ConnectionType) + " "
                       + "WHERE ActiveInstanceNum = " + SOut.Long(activeInstance.ActiveInstanceNum);
         Db.NonQ(command);

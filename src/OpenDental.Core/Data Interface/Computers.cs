@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -19,7 +20,7 @@ public class Computers
         computer.CompName = clientComputerName;
         var computerNum = Insert(computer);
         //Never copy the printer rows for Thinfinity or AppStream
-        if (ODEnvironment.IsCloudServer) return;
+        if (/* ODEnvironment.IsCloudServer */ false) return;
         if (clientComputerName.ToLower() != hostComputerName.ToLower())
             CopyPrinterRowsForComputer(computerNum, hostComputerName); //This computer is an RDP remote client. Copy the host computer's printer settings for the new computer.
         else if (PrefC.GetBool(PrefName.EasyHidePrinters)) Printers.PutForSit(PrintSituation.Default, clientComputerName, "", true);

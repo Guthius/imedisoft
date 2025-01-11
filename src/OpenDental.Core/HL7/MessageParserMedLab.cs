@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>This is the engine that will parse our incoming HL7 messages for MedLab interfaces.</summary>

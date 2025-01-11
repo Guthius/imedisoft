@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {

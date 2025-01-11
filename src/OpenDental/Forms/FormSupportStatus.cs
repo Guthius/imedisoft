@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Xml;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormSupportStatus:FormODBase {
@@ -32,10 +33,9 @@ namespace OpenDental {
 			xmlWriter.Close();
 			OpenDentBusiness.localhost.Service1 updateService=CustomerUpdatesProxy.GetWebServiceInstance();
 			string result="";
-			try {
-				if(!CodeBase.ODBuild.IsDebug()) {
-					result=updateService.RequestRegKeyStatus(stringBuilder.ToString());
-				}
+			try
+			{
+				result=updateService.RequestRegKeyStatus(stringBuilder.ToString());
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
@@ -58,10 +58,6 @@ namespace OpenDental {
 				labelHelpKey.Text="error:"+ex;
 			}
 			Cursor=Cursors.Default;
-			if(CodeBase.ODBuild.IsDebug()) {
-				labelStatusValue.Text="debug mode";
-				return;
-			}
 			XmlDocument xmlDocument=new XmlDocument();
 			xmlDocument.LoadXml(result);
 			XmlNode xmlNode=xmlDocument.SelectSingleNode("//Error");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -20,7 +21,7 @@ public class TimeSlots
         var recall = Recalls.GetRecall(recallNum);
         if (recall == null)
         {
-            throw new ODException(Lans.g("WebSched", "The recall appointment you are trying to schedule is no longer available.") + "\r\n" + 
+            throw new ODException(Lans.g("WebSched", "The recall appointment you are trying to schedule is no longer available.") + "\r\n" +
                                   Lans.g("WebSched", "Please call us to schedule your appointment."));
         }
 
@@ -49,8 +50,7 @@ public class TimeSlots
     ///Will consider restriction blockouts when scheduling if set up for the recall type.
     ///Optionally pass in a recall object in order to consider all other recalls due for the patient.  This will potentially affect the time pattern.
     ///Throws exceptions.</summary>
-    public static List<TimeSlot> GetAvailableWebSchedTimeSlots(RecallType recallType, List<Provider> listProviders, ClinicDto clinic
-        , DateTime dateStart, DateTime dateEnd, Recall recallCur = null, Logger.IWriteLine log = null, bool isFromWebSched = true)
+    public static List<TimeSlot> GetAvailableWebSchedTimeSlots(RecallType recallType, List<Provider> listProviders, ClinicDto clinic, DateTime dateStart, DateTime dateEnd, Recall recallCur = null, Logger.IWriteLine log = null, bool isFromWebSched = true)
     {
         if (recallType == null)
         {
@@ -176,9 +176,7 @@ public class TimeSlots
     ///Optionally set defNumApptType if looking for time slots for New Pat Appt which will apply the DefNum to all time slots found.
     ///Optionally set listRestrictToBlockouts to only consider open time slots that fall within those scheduled blockouts.
     ///Throws exceptions.</summary>
-    public static List<TimeSlot> GetTimeSlotsForRange(DateTime dateStart, DateTime dateEnd, string timePattern, List<long> listProvNums
-        , List<Operatory> listOperatories, List<Schedule> listSchedules, ClinicDto clinic, long defNumApptType = 0, Logger.IWriteLine log = null, bool isDoubleBookingAllowed = true
-        , List<Schedule> listRestrictToBlockouts = null)
+    public static List<TimeSlot> GetTimeSlotsForRange(DateTime dateStart, DateTime dateEnd, string timePattern, List<long> listProvNums, List<Operatory> listOperatories, List<Schedule> listSchedules, ClinicDto clinic, long defNumApptType = 0, Logger.IWriteLine log = null, bool isDoubleBookingAllowed = true, List<Schedule> listRestrictToBlockouts = null)
     {
         //Order the operatories passed in by their ItemOrder just in case they were passed in all jumbled up.
         var listOpNums = listOperatories.OrderBy(x => x.ItemOrder).Select(x => x.OperatoryNum).Distinct().ToList();
@@ -300,10 +298,7 @@ public class TimeSlots
     ///Make sure that timePattern is always passed in utilizing 5 minute increments (no conversion will be applied to the pattern passed in).
     ///Optionally set defNumApptType if looking for time slots for New Pat Appt which will apply the DefNum to all time slots found.
     ///Optionally pass in blockouts that represent valid openings.  A provider schedule must overlap these to be considered.</summary>
-    public static void AddTimeSlotsFromSchedule(List<TimeSlot> listAvailableTimeSlots, Schedule schedule, long operatoryNum
-        , TimeSpan timeSchedStart, TimeSpan timeSchedStop, List<Schedule> listBlockouts
-        , Dictionary<DateTime, List<ApptSearchProviderSchedule>> dictProvSchedules, List<Appointment> listApptsForOps, string timePattern
-        , long defNumApptType = 0, bool isDoubleBookingAllowed = true, List<Schedule> listRestrictToBlockouts = null)
+    public static void AddTimeSlotsFromSchedule(List<TimeSlot> listAvailableTimeSlots, Schedule schedule, long operatoryNum, TimeSpan timeSchedStart, TimeSpan timeSchedStop, List<Schedule> listBlockouts, Dictionary<DateTime, List<ApptSearchProviderSchedule>> dictProvSchedules, List<Appointment> listApptsForOps, string timePattern, long defNumApptType = 0, bool isDoubleBookingAllowed = true, List<Schedule> listRestrictToBlockouts = null)
     {
         //Figure out how large of a time slot we need to find in order to consider this time slot "available".
         var apptLengthMins = timePattern.Length * 5;
@@ -497,8 +492,7 @@ public class TimeSlots
     ///there are any appointment rules for codes associated with that appointment type. If there are rules, checks for double-booking according
     ///to those rules using Appointments.GetDoubleBookedCodes. Otherwise, if there are no rules, checks preferences WebSchedNewPatApptDoubleBooking
     ///and WebSchedRecallDoubleBooking to determine the double booking rules to use.</summary>
-    private static bool IsApptTimeSlotDoubleBooked(List<ApptSearchProviderSchedule> listProviderSchedules, List<Appointment> listApptsForDateAndOp
-        , long provNum, string timePattern, DateTime dateTimeAppointmentStart, long defNumApptType = 0, bool isDoubleBookingAllowed = true)
+    private static bool IsApptTimeSlotDoubleBooked(List<ApptSearchProviderSchedule> listProviderSchedules, List<Appointment> listApptsForDateAndOp, long provNum, string timePattern, DateTime dateTimeAppointmentStart, long defNumApptType = 0, bool isDoubleBookingAllowed = true)
     {
         var apptType = AppointmentTypes.GetApptTypeForDef(defNumApptType);
         //If there is an appointment type, try to determine double booking based on any rules associated with those proc codes
@@ -540,8 +534,7 @@ public class TimeSlots
 
     ///<summary>Checks to see if the provider has any double booking issues with the appointment time pattern passed in.
     ///Logic in this method ignores HYG conflicts purposefully for Web Sched. timePattern must be a time pattern in 5 minute increments.</summary>
-    private static bool IsApptPatternDoubleBooked(List<ApptSearchProviderSchedule> listProviderSchedules, long provNum, string timePattern
-        , DateTime dateTimeAppointmentStart)
+    private static bool IsApptPatternDoubleBooked(List<ApptSearchProviderSchedule> listProviderSchedules, long provNum, string timePattern, DateTime dateTimeAppointmentStart)
     {
         var listProviderSchedulesForProv = listProviderSchedules.FindAll(x => x.ProviderNum == provNum);
         //Figure out what 5 min increment the dateTimeAppointmentStart passed in starts on.

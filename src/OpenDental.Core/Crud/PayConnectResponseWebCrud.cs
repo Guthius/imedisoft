@@ -121,7 +121,7 @@ public class PayConnectResponseWebCrud
         table.Columns.Add("EmailResponse");
         table.Columns.Add("LogGuid");
         foreach (var payConnectResponseWeb in listPayConnectResponseWebs)
-            table.Rows.Add(SOut.Long(payConnectResponseWeb.PayConnectResponseWebNum), SOut.Long(payConnectResponseWeb.PatNum), SOut.Long(payConnectResponseWeb.PayNum), SOut.Int((int) payConnectResponseWeb.CCSource), SOut.Double(payConnectResponseWeb.Amount), payConnectResponseWeb.PayNote, payConnectResponseWeb.AccountToken, payConnectResponseWeb.PayToken, SOut.Int((int) payConnectResponseWeb.ProcessingStatus), SOut.DateT(payConnectResponseWeb.DateTimeEntry, false), SOut.DateT(payConnectResponseWeb.DateTimePending, false), SOut.DateT(payConnectResponseWeb.DateTimeCompleted, false), SOut.DateT(payConnectResponseWeb.DateTimeExpired, false), SOut.DateT(payConnectResponseWeb.DateTimeLastError, false), payConnectResponseWeb.LastResponseStr, SOut.Bool(payConnectResponseWeb.IsTokenSaved), payConnectResponseWeb.PaymentToken, payConnectResponseWeb.ExpDateToken, payConnectResponseWeb.RefNumber, SOut.Int((int) payConnectResponseWeb.TransType), payConnectResponseWeb.EmailResponse, payConnectResponseWeb.LogGuid);
+            table.Rows.Add(SOut.Long(payConnectResponseWeb.PayConnectResponseWebNum), SOut.Long(payConnectResponseWeb.PatNum), SOut.Long(payConnectResponseWeb.PayNum), SOut.Int((int) payConnectResponseWeb.CCSource), SOut.Double(payConnectResponseWeb.Amount), payConnectResponseWeb.PayNote, payConnectResponseWeb.AccountToken, payConnectResponseWeb.PayToken, SOut.Int((int) payConnectResponseWeb.ProcessingStatus), SOut.DateTime(payConnectResponseWeb.DateTimeEntry, false), SOut.DateTime(payConnectResponseWeb.DateTimePending, false), SOut.DateTime(payConnectResponseWeb.DateTimeCompleted, false), SOut.DateTime(payConnectResponseWeb.DateTimeExpired, false), SOut.DateTime(payConnectResponseWeb.DateTimeLastError, false), payConnectResponseWeb.LastResponseStr, SOut.Bool(payConnectResponseWeb.IsTokenSaved), payConnectResponseWeb.PaymentToken, payConnectResponseWeb.ExpDateToken, payConnectResponseWeb.RefNumber, SOut.Int((int) payConnectResponseWeb.TransType), payConnectResponseWeb.EmailResponse, payConnectResponseWeb.LogGuid);
         return table;
     }
 
@@ -146,10 +146,10 @@ public class PayConnectResponseWebCrud
                                                     + "'" + SOut.String(payConnectResponseWeb.PayToken) + "',"
                                                     + "'" + SOut.String(payConnectResponseWeb.ProcessingStatus.ToString()) + "',"
                                                     + DbHelper.Now() + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimePending) + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimeCompleted) + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimeExpired) + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimeLastError) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimePending) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimeCompleted) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimeExpired) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimeLastError) + ","
                                                     + DbHelper.ParamChar + "paramLastResponseStr,"
                                                     + SOut.Bool(payConnectResponseWeb.IsTokenSaved) + ","
                                                     + "'" + SOut.String(payConnectResponseWeb.PaymentToken) + "',"
@@ -188,10 +188,10 @@ public class PayConnectResponseWebCrud
                                                     + "'" + SOut.String(payConnectResponseWeb.PayToken) + "',"
                                                     + "'" + SOut.String(payConnectResponseWeb.ProcessingStatus.ToString()) + "',"
                                                     + DbHelper.Now() + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimePending) + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimeCompleted) + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimeExpired) + ","
-                                                    + SOut.DateT(payConnectResponseWeb.DateTimeLastError) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimePending) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimeCompleted) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimeExpired) + ","
+                                                    + SOut.DateTime(payConnectResponseWeb.DateTimeLastError) + ","
                                                     + DbHelper.ParamChar + "paramLastResponseStr,"
                                                     + SOut.Bool(payConnectResponseWeb.IsTokenSaved) + ","
                                                     + "'" + SOut.String(payConnectResponseWeb.PaymentToken) + "',"
@@ -221,10 +221,10 @@ public class PayConnectResponseWebCrud
                       + "PayToken                = '" + SOut.String(payConnectResponseWeb.PayToken) + "', "
                       + "ProcessingStatus        = '" + SOut.String(payConnectResponseWeb.ProcessingStatus.ToString()) + "', "
                       //DateTimeEntry not allowed to change
-                      + "DateTimePending         =  " + SOut.DateT(payConnectResponseWeb.DateTimePending) + ", "
-                      + "DateTimeCompleted       =  " + SOut.DateT(payConnectResponseWeb.DateTimeCompleted) + ", "
-                      + "DateTimeExpired         =  " + SOut.DateT(payConnectResponseWeb.DateTimeExpired) + ", "
-                      + "DateTimeLastError       =  " + SOut.DateT(payConnectResponseWeb.DateTimeLastError) + ", "
+                      + "DateTimePending         =  " + SOut.DateTime(payConnectResponseWeb.DateTimePending) + ", "
+                      + "DateTimeCompleted       =  " + SOut.DateTime(payConnectResponseWeb.DateTimeCompleted) + ", "
+                      + "DateTimeExpired         =  " + SOut.DateTime(payConnectResponseWeb.DateTimeExpired) + ", "
+                      + "DateTimeLastError       =  " + SOut.DateTime(payConnectResponseWeb.DateTimeLastError) + ", "
                       + "LastResponseStr         =  " + DbHelper.ParamChar + "paramLastResponseStr, "
                       + "IsTokenSaved            =  " + SOut.Bool(payConnectResponseWeb.IsTokenSaved) + ", "
                       + "PaymentToken            = '" + SOut.String(payConnectResponseWeb.PaymentToken) + "', "
@@ -294,25 +294,25 @@ public class PayConnectResponseWebCrud
         if (payConnectResponseWeb.DateTimePending != oldPayConnectResponseWeb.DateTimePending)
         {
             if (command != "") command += ",";
-            command += "DateTimePending = " + SOut.DateT(payConnectResponseWeb.DateTimePending) + "";
+            command += "DateTimePending = " + SOut.DateTime(payConnectResponseWeb.DateTimePending) + "";
         }
 
         if (payConnectResponseWeb.DateTimeCompleted != oldPayConnectResponseWeb.DateTimeCompleted)
         {
             if (command != "") command += ",";
-            command += "DateTimeCompleted = " + SOut.DateT(payConnectResponseWeb.DateTimeCompleted) + "";
+            command += "DateTimeCompleted = " + SOut.DateTime(payConnectResponseWeb.DateTimeCompleted) + "";
         }
 
         if (payConnectResponseWeb.DateTimeExpired != oldPayConnectResponseWeb.DateTimeExpired)
         {
             if (command != "") command += ",";
-            command += "DateTimeExpired = " + SOut.DateT(payConnectResponseWeb.DateTimeExpired) + "";
+            command += "DateTimeExpired = " + SOut.DateTime(payConnectResponseWeb.DateTimeExpired) + "";
         }
 
         if (payConnectResponseWeb.DateTimeLastError != oldPayConnectResponseWeb.DateTimeLastError)
         {
             if (command != "") command += ",";
-            command += "DateTimeLastError = " + SOut.DateT(payConnectResponseWeb.DateTimeLastError) + "";
+            command += "DateTimeLastError = " + SOut.DateTime(payConnectResponseWeb.DateTimeLastError) + "";
         }
 
         if (payConnectResponseWeb.LastResponseStr != oldPayConnectResponseWeb.LastResponseStr)

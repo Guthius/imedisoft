@@ -37,7 +37,7 @@ namespace CodeBase.Controls {
 				string warning ="Microsoft WebView2 is not available on this device. " +
 					"To use this feature, the Microsoft WebView2 Runtime needs to be downloaded and installed on this machine.\r\n" +
 					"Would you like to download the WebView2 Runtime now?";
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					warning+="\r\nIf you are in debug, make sure you are running in x86 config instead of Any CPU. Also, make sure RequiredDlls\\WebView2Loader.dll has been copied to your bin folder.";
 				}
 					if(MessageBox.Show(warning,"Error",MessageBoxButtons.YesNo)==DialogResult.Yes)

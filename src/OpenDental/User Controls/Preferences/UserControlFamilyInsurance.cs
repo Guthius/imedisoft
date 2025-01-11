@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using CodeBase;
 using OpenDentBusiness;
 using System.Diagnostics;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class UserControlFamilyInsurance:UserControl {

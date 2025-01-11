@@ -84,7 +84,7 @@ public class TsiTransLogCrud
         table.Columns.Add("ClinicNum");
         table.Columns.Add("AggTransLogNum");
         foreach (var tsiTransLog in listTsiTransLogs)
-            table.Rows.Add(SOut.Long(tsiTransLog.TsiTransLogNum), SOut.Long(tsiTransLog.PatNum), SOut.Long(tsiTransLog.UserNum), SOut.Int((int) tsiTransLog.TransType), SOut.DateT(tsiTransLog.TransDateTime, false), SOut.Int((int) tsiTransLog.ServiceType), SOut.Int((int) tsiTransLog.ServiceCode), tsiTransLog.ClientId, SOut.Double(tsiTransLog.TransAmt), SOut.Double(tsiTransLog.AccountBalance), SOut.Int((int) tsiTransLog.FKeyType), SOut.Long(tsiTransLog.FKey), tsiTransLog.RawMsgText, tsiTransLog.TransJson, SOut.Long(tsiTransLog.ClinicNum), SOut.Long(tsiTransLog.AggTransLogNum));
+            table.Rows.Add(SOut.Long(tsiTransLog.TsiTransLogNum), SOut.Long(tsiTransLog.PatNum), SOut.Long(tsiTransLog.UserNum), SOut.Int((int) tsiTransLog.TransType), SOut.DateTime(tsiTransLog.TransDateTime, false), SOut.Int((int) tsiTransLog.ServiceType), SOut.Int((int) tsiTransLog.ServiceCode), tsiTransLog.ClientId, SOut.Double(tsiTransLog.TransAmt), SOut.Double(tsiTransLog.AccountBalance), SOut.Int((int) tsiTransLog.FKeyType), SOut.Long(tsiTransLog.FKey), tsiTransLog.RawMsgText, tsiTransLog.TransJson, SOut.Long(tsiTransLog.ClinicNum), SOut.Long(tsiTransLog.AggTransLogNum));
         return table;
     }
 

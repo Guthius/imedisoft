@@ -24,6 +24,7 @@ using SHDocVw;
 using SparksToothChart;
 using OpenDental.Bridges;
 using System.Drawing.Imaging;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 //using System.Threading;//no threading in UI
@@ -1565,7 +1566,7 @@ namespace OpenDental {
 						hl7Msg.MsgText=messageHL7.ToString();
 						hl7Msg.PatNum=Pd.PatNum;
 						HL7Msgs.Insert(hl7Msg);
-						if(ODBuild.IsDebug()) { 
+						if(/* ODBuild.IsDebug() */ false) { 
 							MessageBox.Show(this,messageHL7.ToString());
 						}
 					}
@@ -4872,7 +4873,7 @@ namespace OpenDental {
 				}
 				//We'll just go ahead and let everyone use it, whether on support or not.
 				//The code below might be useful if we decide to restrict usage a little more.
-				//if(ODBuild.IsTrial()){
+				//if(/* ODBuild.IsTrial() */ false){
 				//	ToothChartRelay.IsSparks3DPresent=true;
 				//}
 				//else if(OpenDentalHelp.ODHelp.IsEncryptedKeyValid()){//always true in debug
@@ -8391,7 +8392,7 @@ namespace OpenDental {
 			else {
 				provider=Providers.GetProv(Pd.Patient.PriProv);
 			}
-			bool isNewCropDisabledForWeb=ODEnvironment.IsCloudServer && Programs.GetListDisabledForWeb().Contains("NewCrop");
+			bool isNewCropDisabledForWeb=/* ODEnvironment.IsCloudServer */ false && Programs.GetListDisabledForWeb().Contains("NewCrop");
 			if(erxOption==ErxOption.DoseSpotWithNewCrop) {
 				//ODCloud does not support NewCrop eRx so just use DoseSpot if in web mode.
 				if(!isNewCropDisabledForWeb && provider.IsErxEnabled==ErxEnabledStatus.EnabledWithLegacy) {
@@ -8673,7 +8674,7 @@ namespace OpenDental {
 					}
 				}
 				//Running this block in debug won't work.
-				if(!ODBuild.IsDebug()) {
+				if(!/* ODBuild.IsDebug() */ false) {
 					if(!isEmp && Security.CurUser.ProvNum!=0) {//Not a proxy clinician, so we want to validate that they are allowed access.
 						try {
 							DoseSpot.ValidateProvider(provider,clinicNum);
@@ -8851,7 +8852,7 @@ namespace OpenDental {
 //			string additionalHeaders="Content-Type: application/x-www-form-urlencoded\r\n";
 //			IWebBrowserApp IE=(IWebBrowserApp)IEControl;
 //			IE.Visible=true;
-//			if(ODBuild.IsDebug()) {
+//			if(/* ODBuild.IsDebug() */ false) {
 //				string newCropUrl="http://preproduction.newcropaccounts.com/interfaceV7/rxentry.aspx";
 //			}
 //			else {
@@ -8965,7 +8966,7 @@ namespace OpenDental {
 				hl7ProcAttach.ProcNum=listProcedures[i].ProcNum;
 				HL7ProcAttaches.Insert(hl7ProcAttach);
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				MsgBox.Show(this,messageHL7.ToString());
 				return;
 			}

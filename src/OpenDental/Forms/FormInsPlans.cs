@@ -14,6 +14,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Text;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 

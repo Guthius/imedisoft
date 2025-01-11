@@ -71,7 +71,7 @@ public class VaccineObsCrud
         table.Columns.Add("DateObs");
         table.Columns.Add("MethodCode");
         foreach (var vaccineObs in listVaccineObss)
-            table.Rows.Add(SOut.Long(vaccineObs.VaccineObsNum), SOut.Long(vaccineObs.VaccinePatNum), SOut.Int((int) vaccineObs.ValType), SOut.Int((int) vaccineObs.IdentifyingCode), vaccineObs.ValReported, SOut.Int((int) vaccineObs.ValCodeSystem), SOut.Long(vaccineObs.VaccineObsNumGroup), vaccineObs.UcumCode, SOut.DateT(vaccineObs.DateObs, false), vaccineObs.MethodCode);
+            table.Rows.Add(SOut.Long(vaccineObs.VaccineObsNum), SOut.Long(vaccineObs.VaccinePatNum), SOut.Int((int) vaccineObs.ValType), SOut.Int((int) vaccineObs.IdentifyingCode), vaccineObs.ValReported, SOut.Int((int) vaccineObs.ValCodeSystem), SOut.Long(vaccineObs.VaccineObsNumGroup), vaccineObs.UcumCode, SOut.DateTime(vaccineObs.DateObs, false), vaccineObs.MethodCode);
         return table;
     }
 

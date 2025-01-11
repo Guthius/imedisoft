@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -178,10 +179,6 @@ namespace OpenDental{
 				if(FormOpenDental.IsRegKeyForTesting) {
 					retVal+=" - "+Lan.g("FormOpenDental","Developer Only License")+" - "+Lan.g("FormOpenDental","Not for use with live patient data")+" - ";
 				}
-				//Now check to see if this database has been put into "Testing Mode"
-				if(Introspection.IsTestingMode) {
-					retVal+=" <TESTING MODE ENABLED> ";
-				}
 				return retVal;
 			}
 			retVal+=" - "+_patientSelected.GetNameLF();
@@ -291,7 +288,7 @@ namespace OpenDental{
 			if(!PrefC.GetBool(PrefName.AddressVerifyWithUSPS)) {
 				return false;
 			}
-			if(ODBuild.IsTrial()) {
+			if(/* ODBuild.IsTrial() */ false) {
 				return false;
 			}
 			if(OpenDentBusiness.Help.IsEncryptedKeyValid()) {

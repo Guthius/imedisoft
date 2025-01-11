@@ -23,6 +23,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using NHunspell;
 using OpenDental;
 using Newtonsoft.Json;
@@ -706,7 +707,7 @@ How to use the TextRich control:
 					if(HunspellGlobal.Spell(matchCollection[i].Value.ToLower()) ) {//Hunspell is case sensitive, so this tries different casing.
 						continue;
 					}
-					//if(ODBuild.IsDebug()
+					//if(/* ODBuild.IsDebug() */ false
 					//	&& (Environment.MachineName.ToLower()=="jordansgalaxybk" || Environment.MachineName.ToLower()=="jordanhome" || Environment.MachineName.ToLower()=="jordancryo"))
 					//{
 						//for some testing without a db
@@ -1348,7 +1349,7 @@ How to use the TextRich control:
 		}
 
 		private bool IsUsingSpellCheck(){
-			//if(ODBuild.IsDebug()) {
+			//if(/* ODBuild.IsDebug() */ false) {
 			//	if(Environment.MachineName.ToLower()=="jordansgalaxybk" || Environment.MachineName.ToLower()=="jordanhome" || Environment.MachineName.ToLower()=="jordancryo") {
 			//		return true;//for some testing without a db
 			//	}

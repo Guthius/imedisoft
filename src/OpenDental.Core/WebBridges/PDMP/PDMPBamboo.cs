@@ -257,7 +257,7 @@ namespace OpenDentBusiness {
 							strResponse=readStream.ReadToEnd();
 							readStream.Close();
 						}
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							if((typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 								return (T)Convert.ChangeType(response,typeof(T));
 							}

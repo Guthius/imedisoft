@@ -8,6 +8,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 

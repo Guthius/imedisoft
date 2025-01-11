@@ -2493,12 +2493,6 @@
       <DependentUpon>TestForWpf.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ClinicSelector\ClinicPrefHelper.cs" />
-    <Compile Include="UI\CloudIframe.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\CloudIframe.Designer.cs">
-      <DependentUpon>CloudIframe.cs</DependentUpon>
-    </Compile>
     <Compile Include="UI\Direct2D\Direct2d.cs" />
     <Compile Include="UI\FolderBrowserDialog.cs" />
     <Compile Include="UI\ControlDoubleBuffered.cs">

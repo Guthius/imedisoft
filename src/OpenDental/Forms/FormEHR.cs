@@ -8,6 +8,7 @@ using OpenDental.UI;
 using CodeBase;
 using DataConnectionBase;
 using System.Reflection;
+using Imedisoft.Core.Caching;
 #if EHRTEST
 using EHR;
 #endif

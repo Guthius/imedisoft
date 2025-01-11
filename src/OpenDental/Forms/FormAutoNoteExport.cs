@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using CodeBase;
 using OpenDentBusiness;
 using System.IO;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormAutoNoteExport:FormODBase {
@@ -82,7 +83,7 @@ namespace OpenDental {
 				return;
 			}
 			string fileName;
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//file download dialog will come up later, after file is created.
 				fileName="autonotes.json";
 			}

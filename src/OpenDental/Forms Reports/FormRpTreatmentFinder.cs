@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -68,7 +69,7 @@ namespace OpenDental{
 			int monthStart=comboMonthStart.SelectedIndex;
 			double aboveAmount=PIn.Double(textOverAmount.Text);
 			Stopwatch sw=new Stopwatch();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw=Stopwatch.StartNew();
 			}
 			gridMain.BeginUpdate();
@@ -95,12 +96,7 @@ namespace OpenDental{
 				comboBoxMultiBilling.GetListSelected<Def>().Select(x => x.DefNum).ToList(),codeRangeFilter.StartRange,codeRangeFilter.EndRange,
 				comboClinics.ListClinicNumsSelected,checkBenefitAssumeGeneral.Checked,checkUseTreatingProvider.Checked))
 			{
-				if(true) {
-					_listHeaders=table.Columns.AsEnumerable<DataColumn>().Select(x=>x.ColumnName).ToList();
-				}
-				else {
-					_listHeaders=table.Columns.AsEnumerable<DataColumn>().Where(x=>!x.ColumnName.Contains("clinic")).Select(x=>x.ColumnName).ToList();
-				}
+				_listHeaders=table.Columns.Cast<DataColumn>().Select(x=>x.ColumnName).ToList();
 				GridRow row;
 				foreach(DataRow rowCur in table.Rows) {
 					for(int i=8;i<=16;i++) {
@@ -127,7 +123,7 @@ namespace OpenDental{
 				}
 			}
 			gridMain.EndUpdate();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw.Stop();
 				Console.WriteLine("Finished fetching data and filling grid: {0}, Rows: {1}",(sw.Elapsed.Seconds==0?"":(sw.Elapsed.Seconds+" sec "))+(sw.Elapsed.TotalMilliseconds-(sw.Elapsed.Seconds*1000))+" ms",gridMain.ListGridRows.Count);
 			}
@@ -407,15 +403,8 @@ namespace OpenDental{
         MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
-			if(false) {
-				ThinfinityUtils.ExportForDownload(filePath);
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePath);
-			}
-			else {
-				MessageBox.Show(Lan.g(this,"File created successfully"));
-			}
+
+			MessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		private void butPrint_Click(object sender,EventArgs e) {

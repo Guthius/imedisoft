@@ -43,7 +43,7 @@ public class WikiListHists
     ///<summary>Deletes all WikiListHists before the given cutoff date. Returns the number of entries deleted.</summary>
     public static long DeleteBeforeDate(DateTime dateCutoff)
     {
-        var command = $"Delete FROM wikilisthist WHERE DateTimeSaved <= {SOut.DateT(dateCutoff)} ";
+        var command = $"Delete FROM wikilisthist WHERE DateTimeSaved <= {SOut.DateTime(dateCutoff)} ";
         return Db.NonQ(command);
     }
 

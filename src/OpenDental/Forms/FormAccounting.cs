@@ -11,6 +11,7 @@ using CodeBase;
 using System.Collections.Generic;
 using OpenDental.Thinfinity;
 using System.Linq;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 	/// <summary>By default, shows all active accounts. Can be found at Manage->Accounting.</summary>
@@ -42,7 +43,7 @@ namespace OpenDental{
 			MenuItemOD menuItemSetup=new MenuItemOD("Setup");
 			menuMain.Add(menuItemSetup);
 			menuItemSetup.Add("Open Dental", menuItemOpenDental_Click);
-			if(!ODEnvironment.IsCloudInstance) {
+			if(!/* ODEnvironment.IsCloudInstance */ false) {
 				menuItemSetup.Add("QuickBooks", menuItemQuickBooks_Click);
 			}
 			//Lock-----------------------------------------------------------------------------------------------------------
@@ -211,7 +212,7 @@ namespace OpenDental{
 					saveFileDialog.Filter="CSV files(*.csv)|*.csv|All files(*.*)|*.*";
 				}
 				saveFileDialog.FileName=gridMain.Title;
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					if(saveFileDialog.ShowDialog()!=DialogResult.OK) { 
 						return;
 					}
@@ -299,15 +300,7 @@ namespace OpenDental{
 			}
 			streamWriter.Close();
 			streamWriter.Dispose();
-			if(false) {
-				ThinfinityUtils.ExportForDownload(filePath);
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePath);
-			}
-			else {
-				MessageBox.Show(Lan.g(this,"File created successfully"));
-			}
+			MessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {

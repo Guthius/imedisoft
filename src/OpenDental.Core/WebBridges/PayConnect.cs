@@ -22,17 +22,13 @@ namespace OpenDentBusiness {
 			public bool IsProcessCreditCard;
 		}
 
-		
-		public static string CleanString(string str){
-			return "";
-		}
 
 		private static PayConnectService.Credentials GetCredentials(Program prog,long clinicNum){
 			PayConnectService.Credentials cred=new PayConnectService.Credentials();
 			cred.Username=OpenDentBusiness.ProgramProperties.GetPropVal(prog.ProgramNum,"Username",clinicNum);
 			cred.Password=CDT.Class1.TryDecrypt(OpenDentBusiness.ProgramProperties.GetPropVal(prog.ProgramNum,"Password",clinicNum));
 			cred.Client="OpenDental2";
-			if(ODBuild.IsDebug() || Introspection.IsTestingMode) {
+			if(/* ODBuild.IsDebug() */ false || Introspection.IsTestingMode) {
 				cred.ServiceID="DCI Web Service ID: 002778";//Testing
 			}
 			else {
@@ -47,7 +43,7 @@ namespace OpenDentBusiness {
 			//Default the URL to the live WSDL.
 			string url="https://webservices.dentalxchange.com/merchant/MerchantService?wsdl";
 			//Force debug instances to point to the prelive WSDL. Engineers can either change this specific variable OR utilize introspection to override.
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				url="https://prelive2.dentalxchange.com/merchant/MerchantService?wsdl";
 			}
 			//Return the url that was set above OR return the value within the PayConnectWebServiceURL IntrospectionEntity if introspection is being used.
@@ -396,7 +392,7 @@ namespace OpenDentBusiness {
 			///<summary>Any logging event. Sent as Verbose by default but can be sent as any log level.</summary>
 			protected static void OnLoggerEvent(string s,LogLevel logLevel = LogLevel.Verbose) {
 				if(LoggerEvent!=null) {
-					LoggerEvent?.Invoke(null,new Logger.LoggerEventArgs(s,logLevel));
+					LoggerEvent?.Invoke(null,new Logger.LoggerEventArgs());
 				}
 			}
 			///<summary>Logging event for a specific PayConnect. Uses json serializer so use sparingly if speed is an issue. 
@@ -411,17 +407,17 @@ namespace OpenDentBusiness {
 			///This thread will be awakened instantly if a new OTK becomes available (via PayConnect.WakeupWebPaymentsMonitor event).</summary>
 			public static void OnThreadRun(ODThread odThread) {
 				//Set next run interval to long by default;
-				odThread.TimeIntervalMS=(int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+				odThread.TimeIntervalMs=(int)TimeSpan.FromMinutes(1).TotalMilliseconds;
 				try {
 					//Returns number of OTKs still left in pending state.
 					if(ProcessOutstandingTransactions()>0) { //We still have pending OTKs, set next run interval to short.
-						odThread.TimeIntervalMS=(int)TimeSpan.FromSeconds(.5).TotalMilliseconds;
+						odThread.TimeIntervalMs=(int)TimeSpan.FromSeconds(.5).TotalMilliseconds;
 					}
 				}
 				catch(Exception e) {
 					OnLoggerEvent(e.Message,LogLevel.Error);
 					//Something unforeseen went wrong, throttle the next run interval a bit.
-					odThread.TimeIntervalMS=(int)TimeSpan.FromSeconds(10).TotalMilliseconds;
+					odThread.TimeIntervalMs=(int)TimeSpan.FromSeconds(10).TotalMilliseconds;
 				}
 			}
 
@@ -740,7 +736,7 @@ namespace OpenDentBusiness {
 		private static List<string> GetClientRequestHeaders() {
 			return new List<string>() {
 				"Client: OpenDental2",
-				$"ServiceID: DCI Web Service ID: {(ODBuild.IsDebug() || Introspection.IsTestingMode ? "002778" : "006328")}",
+				$"ServiceID: DCI Web Service ID: {(/* ODBuild.IsDebug() */ false || Introspection.IsTestingMode ? "002778" : "006328")}",
 				"Version: 0310",
 			};
 		}
@@ -749,7 +745,7 @@ namespace OpenDentBusiness {
 		private static List<string> GetClientRequestHeadersForWebURL() {
 			return new List<string>() {
 				"Client: OpenDentalPortalMS",
-				$"ServiceID: {(ODBuild.IsDebug() || Introspection.IsTestingMode ? "72yHWxY8:m15TJn!6yTw" : "z7fohsdUAs287mQh6516")}",
+				$"ServiceID: {(/* ODBuild.IsDebug() */ false || Introspection.IsTestingMode ? "72yHWxY8:m15TJn!6yTw" : "z7fohsdUAs287mQh6516")}",
 				"Version: 0310",
 			};
 		}
@@ -822,7 +818,7 @@ namespace OpenDentBusiness {
 					else {
 						throw new Exception("Unsupported HttpMethod type: "+method.Method);
 					}
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						if((typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 							return (T)Convert.ChangeType(res,typeof(T));
 						}
@@ -861,7 +857,7 @@ namespace OpenDentBusiness {
 		///<summary>Returns the full URL according to the route/route id given.</summary>
 		private static string GetApiUrl(ApiRoute route) {
 			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PayConnectRestURL,"https://payconnect.dentalxchange.com/pay/rest/PayService");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				apiUrl="https://prelive2.dentalxchange.com/pay/rest/PayService";
 			}
 			switch(route) {

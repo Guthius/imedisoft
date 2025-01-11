@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	///<summary>Database table is procedurelog.  A procedure for a patient.  Can be treatment planned or completed.  Once it's completed, it gets tracked more closely by the security portion of the program.  A procedure can NEVER be deleted.  Status can just be changed to "deleted".</summary>

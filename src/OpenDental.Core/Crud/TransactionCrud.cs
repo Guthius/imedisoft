@@ -67,7 +67,7 @@ public class TransactionCrud
         table.Columns.Add("SecDateTEdit");
         table.Columns.Add("TransactionInvoiceNum");
         foreach (var transaction in listTransactions)
-            table.Rows.Add(SOut.Long(transaction.TransactionNum), SOut.DateT(transaction.DateTimeEntry, false), SOut.Long(transaction.UserNum), SOut.Long(transaction.DepositNum), SOut.Long(transaction.PayNum), SOut.Long(transaction.SecUserNumEdit), SOut.DateT(transaction.SecDateTEdit, false), SOut.Long(transaction.TransactionInvoiceNum));
+            table.Rows.Add(SOut.Long(transaction.TransactionNum), SOut.DateTime(transaction.DateTimeEntry, false), SOut.Long(transaction.UserNum), SOut.Long(transaction.DepositNum), SOut.Long(transaction.PayNum), SOut.Long(transaction.SecUserNumEdit), SOut.DateTime(transaction.SecDateTEdit, false), SOut.Long(transaction.TransactionInvoiceNum));
         return table;
     }
 

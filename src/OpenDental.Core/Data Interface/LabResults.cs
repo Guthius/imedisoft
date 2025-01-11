@@ -31,7 +31,7 @@ public class LabResults
 
     public static List<long> GetChangedSinceLabResultNums(DateTime dateChangedSince)
     {
-        var command = "SELECT LabResultNum FROM labresult WHERE DateTStamp > " + SOut.DateT(dateChangedSince);
+        var command = "SELECT LabResultNum FROM labresult WHERE DateTStamp > " + SOut.DateTime(dateChangedSince);
         var table = DataCore.GetTable(command);
         var listLabResultNums = new List<long>(table.Rows.Count);
         for (var i = 0; i < table.Rows.Count; i++) listLabResultNums.Add(SIn.Long(table.Rows[i]["LabResultNum"].ToString()));

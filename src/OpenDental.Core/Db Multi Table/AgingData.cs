@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	///<summary>Helper class that holds all of the data necessary for generating a billing list.

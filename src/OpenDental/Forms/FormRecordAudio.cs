@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormRecordAudio:FormODBase {
@@ -60,10 +61,6 @@ namespace OpenDental {
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
-			if(false) {
-				ODCloudClient.ExportForAppStream(_tempPath);
-				return;
-			}
 			using SaveFileDialog saveFileDialog=new SaveFileDialog();
 			string filename="message.wav";
 			saveFileDialog.FileName=filename;

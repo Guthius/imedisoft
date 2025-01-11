@@ -40,25 +40,7 @@ namespace OpenDental {
 			{
 				DisableAllExcept(webViewMain);
 			}
-			if(ODEnvironment.IsCloudInstance) {
-				if(_signupOut==null){
-					_signupOut=FormEServicesSetup.GetSignupOut();
-				}
-				UIHelper.ForceBringToFront(this);
-				if(false) {
-					Process.Start(_signupOut.SignupPortalUrl);
-				}
-				else if(false) {
-					try {
-						ODCloudClient.LaunchFileWithODCloudClient(_signupOut.SignupPortalUrl);
-					}
-					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
-					}
-				}
-				DialogResult=DialogResult.Abort;
-				return;
-			}
+
 			try {
 				await webViewMain.Init();
 			}
@@ -73,9 +55,6 @@ namespace OpenDental {
 				_signupOut=FormEServicesSetup.GetSignupOut();
 			}
 			ODException.SwallowAnyException(() => {
-			if(ODBuild.IsDebug()) {
-				_signupOut.SignupPortalUrl=_signupOut.SignupPortalUrl.Replace("https://www.patientviewer.com/SignupPortal/GWT/SignupPortal/SignupPortal.html","http://127.0.0.1:8888/SignupPortal.html");
-			}
 				webViewMain.CoreWebView2.Navigate(_signupOut.SignupPortalUrl);
 			});
 		}

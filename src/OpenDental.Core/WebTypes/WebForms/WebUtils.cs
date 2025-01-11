@@ -1,4 +1,5 @@
 ﻿using System;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDentBusiness.WebTypes.WebForms;

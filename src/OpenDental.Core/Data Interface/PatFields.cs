@@ -38,7 +38,7 @@ public class PatFields
     ///<summary>Gets all PatFields from the database. Used for API.</summary>
     public static List<PatField> GetPatFieldsForApi(int limit, int offset, long patNum, string fieldName, DateTime dateSecDateTEdit)
     {
-        var command = "SELECT * FROM patfield WHERE SecDateTEdit >= " + SOut.DateT(dateSecDateTEdit) + " ";
+        var command = "SELECT * FROM patfield WHERE SecDateTEdit >= " + SOut.DateTime(dateSecDateTEdit) + " ";
         if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         if (fieldName != "") command += "AND FieldName='" + SOut.String(fieldName) + "' ";
         command += "ORDER BY PatFieldNum " //Ensure order for limit and offset.

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using System.Windows.Threading;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	
@@ -62,7 +63,7 @@ namespace OpenDental {
 			if(PrefC.GetBool(PrefName.SecurityBadgesRequirePassword)) {
 				labelSwipeBadge.Visible=false;
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				timerShutdownInstance.Enabled=true;
 			}
 			FillListBox();

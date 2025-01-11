@@ -8,6 +8,7 @@ using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 

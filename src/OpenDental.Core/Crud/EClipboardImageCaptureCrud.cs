@@ -65,7 +65,7 @@ public class EClipboardImageCaptureCrud
         table.Columns.Add("DocNum");
         table.Columns.Add("OcrCaptureType");
         foreach (var eClipboardImageCapture in listEClipboardImageCaptures)
-            table.Rows.Add(SOut.Long(eClipboardImageCapture.EClipboardImageCaptureNum), SOut.Long(eClipboardImageCapture.PatNum), SOut.Long(eClipboardImageCapture.DefNum), SOut.Bool(eClipboardImageCapture.IsSelfPortrait), SOut.DateT(eClipboardImageCapture.DateTimeUpserted, false), SOut.Long(eClipboardImageCapture.DocNum), SOut.Int((int) eClipboardImageCapture.OcrCaptureType));
+            table.Rows.Add(SOut.Long(eClipboardImageCapture.EClipboardImageCaptureNum), SOut.Long(eClipboardImageCapture.PatNum), SOut.Long(eClipboardImageCapture.DefNum), SOut.Bool(eClipboardImageCapture.IsSelfPortrait), SOut.DateTime(eClipboardImageCapture.DateTimeUpserted, false), SOut.Long(eClipboardImageCapture.DocNum), SOut.Int((int) eClipboardImageCapture.OcrCaptureType));
         return table;
     }
 
@@ -84,7 +84,7 @@ public class EClipboardImageCaptureCrud
             SOut.Long(eClipboardImageCapture.PatNum) + ","
                                                      + SOut.Long(eClipboardImageCapture.DefNum) + ","
                                                      + SOut.Bool(eClipboardImageCapture.IsSelfPortrait) + ","
-                                                     + SOut.DateT(eClipboardImageCapture.DateTimeUpserted) + ","
+                                                     + SOut.DateTime(eClipboardImageCapture.DateTimeUpserted) + ","
                                                      + SOut.Long(eClipboardImageCapture.DocNum) + ","
                                                      + SOut.Int((int) eClipboardImageCapture.OcrCaptureType) + ")";
         {
@@ -109,7 +109,7 @@ public class EClipboardImageCaptureCrud
             SOut.Long(eClipboardImageCapture.PatNum) + ","
                                                      + SOut.Long(eClipboardImageCapture.DefNum) + ","
                                                      + SOut.Bool(eClipboardImageCapture.IsSelfPortrait) + ","
-                                                     + SOut.DateT(eClipboardImageCapture.DateTimeUpserted) + ","
+                                                     + SOut.DateTime(eClipboardImageCapture.DateTimeUpserted) + ","
                                                      + SOut.Long(eClipboardImageCapture.DocNum) + ","
                                                      + SOut.Int((int) eClipboardImageCapture.OcrCaptureType) + ")";
         if (useExistingPK || isRandomKeys)
@@ -125,7 +125,7 @@ public class EClipboardImageCaptureCrud
                       + "PatNum                   =  " + SOut.Long(eClipboardImageCapture.PatNum) + ", "
                       + "DefNum                   =  " + SOut.Long(eClipboardImageCapture.DefNum) + ", "
                       + "IsSelfPortrait           =  " + SOut.Bool(eClipboardImageCapture.IsSelfPortrait) + ", "
-                      + "DateTimeUpserted         =  " + SOut.DateT(eClipboardImageCapture.DateTimeUpserted) + ", "
+                      + "DateTimeUpserted         =  " + SOut.DateTime(eClipboardImageCapture.DateTimeUpserted) + ", "
                       + "DocNum                   =  " + SOut.Long(eClipboardImageCapture.DocNum) + ", "
                       + "OcrCaptureType           =  " + SOut.Int((int) eClipboardImageCapture.OcrCaptureType) + " "
                       + "WHERE EClipboardImageCaptureNum = " + SOut.Long(eClipboardImageCapture.EClipboardImageCaptureNum);
@@ -156,7 +156,7 @@ public class EClipboardImageCaptureCrud
         if (eClipboardImageCapture.DateTimeUpserted != oldEClipboardImageCapture.DateTimeUpserted)
         {
             if (command != "") command += ",";
-            command += "DateTimeUpserted = " + SOut.DateT(eClipboardImageCapture.DateTimeUpserted) + "";
+            command += "DateTimeUpserted = " + SOut.DateTime(eClipboardImageCapture.DateTimeUpserted) + "";
         }
 
         if (eClipboardImageCapture.DocNum != oldEClipboardImageCapture.DocNum)

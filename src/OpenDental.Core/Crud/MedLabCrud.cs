@@ -144,7 +144,7 @@ public class MedLabCrud
         table.Columns.Add("FileName");
         table.Columns.Add("OriginalPIDSegment");
         foreach (var medLab in listMedLabs)
-            table.Rows.Add(SOut.Long(medLab.MedLabNum), SOut.Long(medLab.ProvNum), medLab.SendingApp, medLab.SendingFacility, SOut.Long(medLab.PatNum), medLab.PatIDLab, medLab.PatIDAlt, medLab.PatAge, medLab.PatAccountNum, SOut.Int((int) medLab.PatFasting), medLab.SpecimenID, medLab.SpecimenIDFiller, medLab.ObsTestID, medLab.ObsTestDescript, medLab.ObsTestLoinc, medLab.ObsTestLoincText, SOut.DateT(medLab.DateTimeCollected, false), medLab.TotalVolume, SOut.Int((int) medLab.ActionCode), medLab.ClinicalInfo, SOut.DateT(medLab.DateTimeEntered, false), medLab.OrderingProvNPI, medLab.OrderingProvLocalID, medLab.OrderingProvLName, medLab.OrderingProvFName, medLab.SpecimenIDAlt, SOut.DateT(medLab.DateTimeReported, false), SOut.Int((int) medLab.ResultStatus), medLab.ParentObsID, medLab.ParentObsTestID, medLab.NotePat, medLab.NoteLab, medLab.FileName, medLab.OriginalPIDSegment);
+            table.Rows.Add(SOut.Long(medLab.MedLabNum), SOut.Long(medLab.ProvNum), medLab.SendingApp, medLab.SendingFacility, SOut.Long(medLab.PatNum), medLab.PatIDLab, medLab.PatIDAlt, medLab.PatAge, medLab.PatAccountNum, SOut.Int((int) medLab.PatFasting), medLab.SpecimenID, medLab.SpecimenIDFiller, medLab.ObsTestID, medLab.ObsTestDescript, medLab.ObsTestLoinc, medLab.ObsTestLoincText, SOut.DateTime(medLab.DateTimeCollected, false), medLab.TotalVolume, SOut.Int((int) medLab.ActionCode), medLab.ClinicalInfo, SOut.DateTime(medLab.DateTimeEntered, false), medLab.OrderingProvNPI, medLab.OrderingProvLocalID, medLab.OrderingProvLName, medLab.OrderingProvFName, medLab.SpecimenIDAlt, SOut.DateTime(medLab.DateTimeReported, false), SOut.Int((int) medLab.ResultStatus), medLab.ParentObsID, medLab.ParentObsTestID, medLab.NotePat, medLab.NoteLab, medLab.FileName, medLab.OriginalPIDSegment);
         return table;
     }
 
@@ -175,17 +175,17 @@ public class MedLabCrud
                                       + "'" + SOut.String(medLab.ObsTestDescript) + "',"
                                       + "'" + SOut.String(medLab.ObsTestLoinc) + "',"
                                       + "'" + SOut.String(medLab.ObsTestLoincText) + "',"
-                                      + SOut.DateT(medLab.DateTimeCollected) + ","
+                                      + SOut.DateTime(medLab.DateTimeCollected) + ","
                                       + "'" + SOut.String(medLab.TotalVolume) + "',"
                                       + "'" + SOut.String(medLab.ActionCode.ToString()) + "',"
                                       + "'" + SOut.String(medLab.ClinicalInfo) + "',"
-                                      + SOut.DateT(medLab.DateTimeEntered) + ","
+                                      + SOut.DateTime(medLab.DateTimeEntered) + ","
                                       + "'" + SOut.String(medLab.OrderingProvNPI) + "',"
                                       + "'" + SOut.String(medLab.OrderingProvLocalID) + "',"
                                       + "'" + SOut.String(medLab.OrderingProvLName) + "',"
                                       + "'" + SOut.String(medLab.OrderingProvFName) + "',"
                                       + "'" + SOut.String(medLab.SpecimenIDAlt) + "',"
-                                      + SOut.DateT(medLab.DateTimeReported) + ","
+                                      + SOut.DateTime(medLab.DateTimeReported) + ","
                                       + "'" + SOut.String(medLab.ResultStatus.ToString()) + "',"
                                       + "'" + SOut.String(medLab.ParentObsID) + "',"
                                       + "'" + SOut.String(medLab.ParentObsTestID) + "',"
@@ -233,17 +233,17 @@ public class MedLabCrud
                                       + "'" + SOut.String(medLab.ObsTestDescript) + "',"
                                       + "'" + SOut.String(medLab.ObsTestLoinc) + "',"
                                       + "'" + SOut.String(medLab.ObsTestLoincText) + "',"
-                                      + SOut.DateT(medLab.DateTimeCollected) + ","
+                                      + SOut.DateTime(medLab.DateTimeCollected) + ","
                                       + "'" + SOut.String(medLab.TotalVolume) + "',"
                                       + "'" + SOut.String(medLab.ActionCode.ToString()) + "',"
                                       + "'" + SOut.String(medLab.ClinicalInfo) + "',"
-                                      + SOut.DateT(medLab.DateTimeEntered) + ","
+                                      + SOut.DateTime(medLab.DateTimeEntered) + ","
                                       + "'" + SOut.String(medLab.OrderingProvNPI) + "',"
                                       + "'" + SOut.String(medLab.OrderingProvLocalID) + "',"
                                       + "'" + SOut.String(medLab.OrderingProvLName) + "',"
                                       + "'" + SOut.String(medLab.OrderingProvFName) + "',"
                                       + "'" + SOut.String(medLab.SpecimenIDAlt) + "',"
-                                      + SOut.DateT(medLab.DateTimeReported) + ","
+                                      + SOut.DateTime(medLab.DateTimeReported) + ","
                                       + "'" + SOut.String(medLab.ResultStatus.ToString()) + "',"
                                       + "'" + SOut.String(medLab.ParentObsID) + "',"
                                       + "'" + SOut.String(medLab.ParentObsTestID) + "',"
@@ -282,17 +282,17 @@ public class MedLabCrud
                       + "ObsTestDescript    = '" + SOut.String(medLab.ObsTestDescript) + "', "
                       + "ObsTestLoinc       = '" + SOut.String(medLab.ObsTestLoinc) + "', "
                       + "ObsTestLoincText   = '" + SOut.String(medLab.ObsTestLoincText) + "', "
-                      + "DateTimeCollected  =  " + SOut.DateT(medLab.DateTimeCollected) + ", "
+                      + "DateTimeCollected  =  " + SOut.DateTime(medLab.DateTimeCollected) + ", "
                       + "TotalVolume        = '" + SOut.String(medLab.TotalVolume) + "', "
                       + "ActionCode         = '" + SOut.String(medLab.ActionCode.ToString()) + "', "
                       + "ClinicalInfo       = '" + SOut.String(medLab.ClinicalInfo) + "', "
-                      + "DateTimeEntered    =  " + SOut.DateT(medLab.DateTimeEntered) + ", "
+                      + "DateTimeEntered    =  " + SOut.DateTime(medLab.DateTimeEntered) + ", "
                       + "OrderingProvNPI    = '" + SOut.String(medLab.OrderingProvNPI) + "', "
                       + "OrderingProvLocalID= '" + SOut.String(medLab.OrderingProvLocalID) + "', "
                       + "OrderingProvLName  = '" + SOut.String(medLab.OrderingProvLName) + "', "
                       + "OrderingProvFName  = '" + SOut.String(medLab.OrderingProvFName) + "', "
                       + "SpecimenIDAlt      = '" + SOut.String(medLab.SpecimenIDAlt) + "', "
-                      + "DateTimeReported   =  " + SOut.DateT(medLab.DateTimeReported) + ", "
+                      + "DateTimeReported   =  " + SOut.DateTime(medLab.DateTimeReported) + ", "
                       + "ResultStatus       = '" + SOut.String(medLab.ResultStatus.ToString()) + "', "
                       + "ParentObsID        = '" + SOut.String(medLab.ParentObsID) + "', "
                       + "ParentObsTestID    = '" + SOut.String(medLab.ParentObsTestID) + "', "
@@ -406,7 +406,7 @@ public class MedLabCrud
         if (medLab.DateTimeCollected != oldMedLab.DateTimeCollected)
         {
             if (command != "") command += ",";
-            command += "DateTimeCollected = " + SOut.DateT(medLab.DateTimeCollected) + "";
+            command += "DateTimeCollected = " + SOut.DateTime(medLab.DateTimeCollected) + "";
         }
 
         if (medLab.TotalVolume != oldMedLab.TotalVolume)
@@ -430,7 +430,7 @@ public class MedLabCrud
         if (medLab.DateTimeEntered != oldMedLab.DateTimeEntered)
         {
             if (command != "") command += ",";
-            command += "DateTimeEntered = " + SOut.DateT(medLab.DateTimeEntered) + "";
+            command += "DateTimeEntered = " + SOut.DateTime(medLab.DateTimeEntered) + "";
         }
 
         if (medLab.OrderingProvNPI != oldMedLab.OrderingProvNPI)
@@ -466,7 +466,7 @@ public class MedLabCrud
         if (medLab.DateTimeReported != oldMedLab.DateTimeReported)
         {
             if (command != "") command += ",";
-            command += "DateTimeReported = " + SOut.DateT(medLab.DateTimeReported) + "";
+            command += "DateTimeReported = " + SOut.DateTime(medLab.DateTimeReported) + "";
         }
 
         if (medLab.ResultStatus != oldMedLab.ResultStatus)

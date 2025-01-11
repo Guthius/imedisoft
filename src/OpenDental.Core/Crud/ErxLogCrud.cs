@@ -63,7 +63,7 @@ public class ErxLogCrud
         table.Columns.Add("ProvNum");
         table.Columns.Add("UserNum");
         foreach (var erxLog in listErxLogs)
-            table.Rows.Add(SOut.Long(erxLog.ErxLogNum), SOut.Long(erxLog.PatNum), erxLog.MsgText, SOut.DateT(erxLog.DateTStamp, false), SOut.Long(erxLog.ProvNum), SOut.Long(erxLog.UserNum));
+            table.Rows.Add(SOut.Long(erxLog.ErxLogNum), SOut.Long(erxLog.PatNum), erxLog.MsgText, SOut.DateTime(erxLog.DateTStamp, false), SOut.Long(erxLog.ProvNum), SOut.Long(erxLog.UserNum));
         return table;
     }
 

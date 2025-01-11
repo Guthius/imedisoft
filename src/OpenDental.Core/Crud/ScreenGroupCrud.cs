@@ -69,7 +69,7 @@ public class ScreenGroupCrud
         table.Columns.Add("GradeSchool");
         table.Columns.Add("SheetDefNum");
         foreach (var screenGroup in listScreenGroups)
-            table.Rows.Add(SOut.Long(screenGroup.ScreenGroupNum), screenGroup.Description, SOut.DateT(screenGroup.SGDate, false), screenGroup.ProvName, SOut.Long(screenGroup.ProvNum), SOut.Int((int) screenGroup.PlaceService), screenGroup.County, screenGroup.GradeSchool, SOut.Long(screenGroup.SheetDefNum));
+            table.Rows.Add(SOut.Long(screenGroup.ScreenGroupNum), screenGroup.Description, SOut.DateTime(screenGroup.SGDate, false), screenGroup.ProvName, SOut.Long(screenGroup.ProvNum), SOut.Int((int) screenGroup.PlaceService), screenGroup.County, screenGroup.GradeSchool, SOut.Long(screenGroup.SheetDefNum));
         return table;
     }
 

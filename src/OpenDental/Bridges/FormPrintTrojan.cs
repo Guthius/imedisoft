@@ -146,7 +146,7 @@ namespace OpenDental
 
         public Graphics Graph
         {
-            get { return (printerGraph != null) ? printerGraph : printPanel.backBuffer; }
+            get { return (printerGraph != null) ? printerGraph : printPanel.BackBuffer; }
         }
 
         public int PageHeight

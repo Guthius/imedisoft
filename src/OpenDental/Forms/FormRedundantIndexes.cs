@@ -18,7 +18,7 @@ namespace OpenDental {
 		}
 
 		private void FormRedundantIndexes_Load(object sender,EventArgs e) {
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				checkLogAddStatements.CheckedChanged-=checkLogAddStatements_CheckedChanged;
 				checkLogAddStatements.Checked=false;
 				checkLogAddStatements.Enabled=false;

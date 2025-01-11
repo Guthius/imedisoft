@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDentBusiness.WebTypes.WebForms;
@@ -17,19 +18,16 @@ public class WebForms_Sheets
             regKey = PrefC.GetString(PrefName.RegistrationKey);
         }
 
-        if (listClinicNums == null)
-        {
-            listClinicNums = new List<long>();
-        }
+        listClinicNums ??= [];
 
-        List<PayloadItem> listPayloadItems = new List<PayloadItem>()
+        var listPayloadItems = new List<PayloadItem>
         {
-            new PayloadItem(regKey, "RegKey"),
-            new PayloadItem(listClinicNums, "ListClinicNums"),
+            new(regKey, "RegKey"),
+            new(listClinicNums, "ListClinicNums"),
         };
-        string payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
-        //Gets all pending SheetIDs for the registration key and clinics.
-        string response = SheetsSynchProxy.GetWebServiceInstance().GetWebFormSheetIDs(payload);
+        var payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
+        
+        var response = SheetsSynchProxy.GetWebServiceInstance().GetWebFormSheetIDs(payload);
         return WebSerializer.DeserializeTag<List<long>>(response, "Success");
     }
 
@@ -40,29 +38,23 @@ public class WebForms_Sheets
             regKey = PrefC.GetString(PrefName.RegistrationKey);
         }
 
-        if (listSheetIDs == null)
-        {
-            listSheetIDs = new List<long>();
-        }
+        listSheetIDs ??= [];
+        listClinicNums ??= [];
 
-        if (listClinicNums == null)
+        var listPayloadItems = new List<PayloadItem>
         {
-            listClinicNums = new List<long>();
-        }
-
-        List<PayloadItem> listPayloadItems = new List<PayloadItem>()
-        {
-            new PayloadItem(regKey, "RegKey"),
-            new PayloadItem(listSheetIDs, "ListSheetIDs"),
-            new PayloadItem(listClinicNums, "ListClinicNums"),
+            new(regKey, "RegKey"),
+            new(listSheetIDs, "ListSheetIDs"),
+            new(listClinicNums, "ListClinicNums"),
         };
-        string payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
+        
+        var payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
         //Get pending sheets from HQ.
-        string resultXml = SheetsSynchProxy.GetWebServiceInstance().GetWebFormSheets(payload);
-        List<WebForms_Sheet> listWebForms_Sheets = WebSerializer.DeserializeTag<List<WebForms_Sheet>>(resultXml, "Success");
-        for (int i = 0; i < listWebForms_Sheets.Count; i++)
+        var resultXml = SheetsSynchProxy.GetWebServiceInstance().GetWebFormSheets(payload);
+        var listWebForms_Sheets = WebSerializer.DeserializeTag<List<WebForms_Sheet>>(resultXml, "Success");
+        for (var i = 0; i < listWebForms_Sheets.Count; i++)
         {
-            EServiceLog eServiceLog = EServiceLogs.MakeLogEntryWebForms(eServiceAction.WFDownloadedForm, 0, listWebForms_Sheets[i].ClinicNum, listWebForms_Sheets[i].SheetID);
+            var eServiceLog = EServiceLogs.MakeLogEntryWebForms(eServiceAction.WFDownloadedForm, 0, listWebForms_Sheets[i].ClinicNum, listWebForms_Sheets[i].SheetID);
             listWebForms_Sheets[i].EServiceLogGuid = eServiceLog.LogGuid;
         }
 
@@ -83,28 +75,30 @@ public class WebForms_Sheets
 
         try
         {
-            List<PayloadItem> listPayloadItems = new List<PayloadItem>
+            var listPayloadItems = new List<PayloadItem>
             {
-                new PayloadItem(regKey, "RegKey"),
-                new PayloadItem(listWebForms_Sheets.Select(x => x.SheetID).ToList(), "SheetNumsForDeletion")
+                new(regKey, "RegKey"),
+                new(listWebForms_Sheets.Select(x => x.SheetID).ToList(), "SheetNumsForDeletion")
             };
-            string payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
-            string result = SheetsSynchProxy.GetWebServiceInstance().DeleteSheetData(payload);
+            
+            var payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
+            var result = SheetsSynchProxy.GetWebServiceInstance().DeleteSheetData(payload);
+            
             PayloadHelper.CheckForError(result);
-            for (int i = 0; i < listWebForms_Sheets.Count; i++)
+            
+            for (var i = 0; i < listWebForms_Sheets.Count; i++)
             {
                 EServiceLogs.MakeLogEntryWebForms(eServiceAction.WFDeletedForm, FKey: listWebForms_Sheets[i].SheetID, logGuid: listWebForms_Sheets[i].EServiceLogGuid);
             }
-
-            return;
         }
         catch (Exception ex)
         {
-            string log = Lans.g("FormWebForms", "There was a problem telling HQ that the web forms were retrieved:") + $" '{ex.Message}'";
+            var log = Lans.g("FormWebForms", "There was a problem telling HQ that the web forms were retrieved:") + $" '{ex.Message}'";
+            
             log += "\r\n" + "  ^" + Lans.g("FormWebForms", "The following web forms will be downloaded again the next time forms are retrieved.");
             log += "\r\n" + "  ^" + Lans.g("FormWebForms", "SheetIDs:") + " " + string.Join(", ", listWebForms_Sheets.Select(x => x.SheetID));
+            
             EServiceLogs.MakeLogEntryWebForms(eServiceAction.WFError, note: log);
-            return;
         }
     }
 
@@ -113,9 +107,9 @@ public class WebForms_Sheets
         lName = "";
         fName = "";
         birthdate = new DateTime();
-        listPhoneNumbers = new List<string>();
+        listPhoneNumbers = [];
         email = "";
-        foreach (WebForms_SheetField field in sheet.SheetFields)
+        foreach (var field in sheet.SheetFields)
         {
             //Loop through each field.
             switch (field.FieldName.ToLower())
@@ -150,20 +144,13 @@ public class WebForms_Sheets
 
     public static DateTime ParseDateWebForms(string date, string webFormPrefCulture = null)
     {
-        string dateTimeFormat = "M/d/yyyy"; //Default to en-US format just in case we don't currently support the culture passed in.
+        var dateTimeFormat = "M/d/yyyy"; //Default to en-US format just in case we don't currently support the culture passed in.
         if (webFormPrefCulture.IsNullOrEmpty())
         {
-            if (WebForms_Preferences.TryGetPreference(out WebForms_Preference webFormPref))
-            {
-                webFormPrefCulture = webFormPref.CultureName;
-            }
-            else
-            {
-                webFormPrefCulture = PrefC.GetString(PrefName.LanguageAndRegion);
-            }
+            webFormPrefCulture = WebForms_Preferences.TryGetPreference(out var webFormPref) ? webFormPref.CultureName : PrefC.GetString(PrefName.LanguageAndRegion);
         }
 
-        string delimiterSupported = "/";
+        var delimiterSupported = "/";
         switch (webFormPrefCulture)
         {
             case "ar-JO":
@@ -193,10 +180,9 @@ public class WebForms_Sheets
                 break;
         }
 
-        DateTime retVal;
         //Ensure any characters in between digits are the correct delimiter.
-        string dateScrubbed = string.Join(delimiterSupported, Regex.Split(date, "[^\\d]+").Where(x => !string.IsNullOrWhiteSpace(x)));
-        if (!DateTime.TryParseExact(dateScrubbed, dateTimeFormat, new CultureInfo(webFormPrefCulture), DateTimeStyles.None, out retVal))
+        var dateScrubbed = string.Join(delimiterSupported, Regex.Split(date, "[^\\d]+").Where(x => !string.IsNullOrWhiteSpace(x)));
+        if (!DateTime.TryParseExact(dateScrubbed, dateTimeFormat, new CultureInfo(webFormPrefCulture), DateTimeStyles.None, out var retVal))
         {
             retVal = DateTime.MinValue;
         }
@@ -206,23 +192,13 @@ public class WebForms_Sheets
 
     public static List<long> FindSheetsForPat(WebForms_Sheet sheetToMatch, List<WebForms_Sheet> listSheets, string webFormPrefCulture)
     {
-        string lName;
-        string fName;
-        DateTime birthdate;
-        List<string> listPhoneNumbers;
-        string email;
-        ParseWebFormSheet(sheetToMatch, webFormPrefCulture, out lName, out fName, out birthdate, out listPhoneNumbers, out email);
-        List<long> listSheetIdMatch = new List<long>();
-        foreach (WebForms_Sheet sheet in listSheets)
+        ParseWebFormSheet(sheetToMatch, webFormPrefCulture, out var lName, out var fName, out var birthdate, out var listPhoneNumbers, out var email);
+        var listSheetIdMatch = new List<long>();
+        foreach (var sheet in listSheets)
         {
-            string lNameSheet = "";
-            string fNameSheet = "";
-            DateTime birthdateSheet = new DateTime();
-            List<string> listPhoneNumbersSheet = new List<string>();
-            string emailSheet = "";
-            ParseWebFormSheet(sheet, webFormPrefCulture, out lNameSheet, out fNameSheet, out birthdateSheet, out listPhoneNumbersSheet, out emailSheet);
+            ParseWebFormSheet(sheet, webFormPrefCulture, out var lNameSheet, out var fNameSheet, out var birthdateSheet, out var listPhoneNumbersSheet, out var emailSheet);
             if (lName == lNameSheet && fName == fNameSheet && birthdate == birthdateSheet && email == emailSheet //All phone numbers must match in both.
-                && listPhoneNumbers.Except(listPhoneNumbersSheet).Count() == 0 && listPhoneNumbersSheet.Except(listPhoneNumbers).Count() == 0)
+                && !listPhoneNumbers.Except(listPhoneNumbersSheet).Any() && !listPhoneNumbersSheet.Except(listPhoneNumbers).Any())
             {
                 listSheetIdMatch.Add(sheet.SheetID);
             }

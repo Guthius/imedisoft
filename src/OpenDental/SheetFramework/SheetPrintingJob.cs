@@ -117,7 +117,7 @@ namespace OpenDental {
 			}
 			Margins margins=new Margins(20,20,0,0);
 			int pageCount=0;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				foreach(Sheet s in _listSheets) {
 					//SetForceSinglePage(s);
 					SheetUtil.CalculateHeights(s,null,null,_isPrinting,_printMargin.Top,_printMargin.Bottom);
@@ -266,7 +266,7 @@ namespace OpenDental {
 			for(int i=0;i<copies;i++) {
 				_listSheets.Add(sheet.Copy());
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				isPreviewMode=true;
 			}
 			int pageCount=0;//Default for ODprintout.

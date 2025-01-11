@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Drawing.Printing;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormPatListResultsEHR2014:FormODBase {

@@ -63,7 +63,7 @@ public class OrthoProcLinkCrud
         table.Columns.Add("SecUserNumEntry");
         table.Columns.Add("ProcLinkType");
         foreach (var orthoProcLink in listOrthoProcLinks)
-            table.Rows.Add(SOut.Long(orthoProcLink.OrthoProcLinkNum), SOut.Long(orthoProcLink.OrthoCaseNum), SOut.Long(orthoProcLink.ProcNum), SOut.DateT(orthoProcLink.SecDateTEntry, false), SOut.Long(orthoProcLink.SecUserNumEntry), SOut.Int((int) orthoProcLink.ProcLinkType));
+            table.Rows.Add(SOut.Long(orthoProcLink.OrthoProcLinkNum), SOut.Long(orthoProcLink.OrthoCaseNum), SOut.Long(orthoProcLink.ProcNum), SOut.DateTime(orthoProcLink.SecDateTEntry, false), SOut.Long(orthoProcLink.SecUserNumEntry), SOut.Int((int) orthoProcLink.ProcLinkType));
         return table;
     }
 

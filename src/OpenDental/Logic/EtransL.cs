@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDentBusiness.Crud;
@@ -852,11 +853,8 @@ namespace OpenDental
                 }
                 catch (Exception ex)
                 {
-                    if (!ODBuild.IsUnitTest)
-                    {
-                        MessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
-                                        + Lan.g("FormEtrans834Preview", "to archive, probably due to a permission issue.") + "  " + ex.Message);
-                    }
+                    MessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
+                                    + Lan.g("FormEtrans834Preview", "to archive, probably due to a permission issue.") + "  " + ex.Message);
 
                     return false;
                 }
@@ -879,11 +877,8 @@ namespace OpenDental
             }
             catch (Exception ex)
             {
-                if (!ODBuild.IsUnitTest)
-                {
-                    MessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
-                                    + Lan.g("FormEtrans834Preview", "to archive, probably due to a permission issue.") + "  " + ex.Message);
-                }
+                MessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
+                                + Lan.g("FormEtrans834Preview", "to archive, probably due to a permission issue.") + "  " + ex.Message);
 
                 return false;
             }

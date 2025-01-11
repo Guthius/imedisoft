@@ -76,7 +76,7 @@ public class EhrMeasureEventCrud
         table.Columns.Add("DateStartTobacco");
         table.Columns.Add("TobaccoCessationDesire");
         foreach (var ehrMeasureEvent in listEhrMeasureEvents)
-            table.Rows.Add(SOut.Long(ehrMeasureEvent.EhrMeasureEventNum), SOut.DateT(ehrMeasureEvent.DateTEvent, false), SOut.Int((int) ehrMeasureEvent.EventType), SOut.Long(ehrMeasureEvent.PatNum), ehrMeasureEvent.MoreInfo, ehrMeasureEvent.CodeValueEvent, ehrMeasureEvent.CodeSystemEvent, ehrMeasureEvent.CodeValueResult, ehrMeasureEvent.CodeSystemResult, SOut.Long(ehrMeasureEvent.FKey), SOut.DateT(ehrMeasureEvent.DateStartTobacco, false), SOut.Byte(ehrMeasureEvent.TobaccoCessationDesire));
+            table.Rows.Add(SOut.Long(ehrMeasureEvent.EhrMeasureEventNum), SOut.DateTime(ehrMeasureEvent.DateTEvent, false), SOut.Int((int) ehrMeasureEvent.EventType), SOut.Long(ehrMeasureEvent.PatNum), ehrMeasureEvent.MoreInfo, ehrMeasureEvent.CodeValueEvent, ehrMeasureEvent.CodeSystemEvent, ehrMeasureEvent.CodeValueResult, ehrMeasureEvent.CodeSystemResult, SOut.Long(ehrMeasureEvent.FKey), SOut.DateTime(ehrMeasureEvent.DateStartTobacco, false), SOut.Byte(ehrMeasureEvent.TobaccoCessationDesire));
         return table;
     }
 
@@ -92,7 +92,7 @@ public class EhrMeasureEventCrud
         command += "DateTEvent,EventType,PatNum,MoreInfo,CodeValueEvent,CodeSystemEvent,CodeValueResult,CodeSystemResult,FKey,DateStartTobacco,TobaccoCessationDesire) VALUES(";
 
         command +=
-            SOut.DateT(ehrMeasureEvent.DateTEvent) + ","
+            SOut.DateTime(ehrMeasureEvent.DateTEvent) + ","
                                                    + SOut.Int((int) ehrMeasureEvent.EventType) + ","
                                                    + SOut.Long(ehrMeasureEvent.PatNum) + ","
                                                    + "'" + SOut.String(ehrMeasureEvent.MoreInfo) + "',"
@@ -143,7 +143,7 @@ public class EhrMeasureEventCrud
                 sbRow.Append(",");
             }
 
-            sbRow.Append(SOut.DateT(ehrMeasureEvent.DateTEvent));
+            sbRow.Append(SOut.DateTime(ehrMeasureEvent.DateTEvent));
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) ehrMeasureEvent.EventType));
             sbRow.Append(",");
@@ -194,7 +194,7 @@ public class EhrMeasureEventCrud
         command += "DateTEvent,EventType,PatNum,MoreInfo,CodeValueEvent,CodeSystemEvent,CodeValueResult,CodeSystemResult,FKey,DateStartTobacco,TobaccoCessationDesire) VALUES(";
         if (isRandomKeys || useExistingPK) command += SOut.Long(ehrMeasureEvent.EhrMeasureEventNum) + ",";
         command +=
-            SOut.DateT(ehrMeasureEvent.DateTEvent) + ","
+            SOut.DateTime(ehrMeasureEvent.DateTEvent) + ","
                                                    + SOut.Int((int) ehrMeasureEvent.EventType) + ","
                                                    + SOut.Long(ehrMeasureEvent.PatNum) + ","
                                                    + "'" + SOut.String(ehrMeasureEvent.MoreInfo) + "',"
@@ -215,7 +215,7 @@ public class EhrMeasureEventCrud
     public static void Update(EhrMeasureEvent ehrMeasureEvent)
     {
         var command = "UPDATE ehrmeasureevent SET "
-                      + "DateTEvent            =  " + SOut.DateT(ehrMeasureEvent.DateTEvent) + ", "
+                      + "DateTEvent            =  " + SOut.DateTime(ehrMeasureEvent.DateTEvent) + ", "
                       + "EventType             =  " + SOut.Int((int) ehrMeasureEvent.EventType) + ", "
                       + "PatNum                =  " + SOut.Long(ehrMeasureEvent.PatNum) + ", "
                       + "MoreInfo              = '" + SOut.String(ehrMeasureEvent.MoreInfo) + "', "
@@ -236,7 +236,7 @@ public class EhrMeasureEventCrud
         if (ehrMeasureEvent.DateTEvent != oldEhrMeasureEvent.DateTEvent)
         {
             if (command != "") command += ",";
-            command += "DateTEvent = " + SOut.DateT(ehrMeasureEvent.DateTEvent) + "";
+            command += "DateTEvent = " + SOut.DateTime(ehrMeasureEvent.DateTEvent) + "";
         }
 
         if (ehrMeasureEvent.EventType != oldEhrMeasureEvent.EventType)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 using OpenDental.Graph.Base;
 using OpenDentBusiness;
 

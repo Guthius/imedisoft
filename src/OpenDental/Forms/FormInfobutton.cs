@@ -13,6 +13,7 @@ using System.Xml.XPath;
 using System.IO;
 using OpenDental.UI;
 using System.Net;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormInfobutton:FormODBase {
@@ -285,7 +286,7 @@ namespace OpenDental {
 
 		private string GenerateKnowledgeRequestNotification() {
 //		KnowledgeRequestNotification.KnowledgeRequestNotification krn = new KnowledgeRequestNotification.KnowledgeRequestNotification();
-//		if(ODBuild.IsDebug()) {
+//		if(/* ODBuild.IsDebug() */ false) {
 //			krn.subject4List.Add(
 //				new KnowledgeRequestNotification.Subject3(
 //					new KnowledgeRequestNotification.Value("191166001","2.16.840.1.113883.6.96","SNOMEDCT","[X]Megaloblastic anemia NOS (disorder)"

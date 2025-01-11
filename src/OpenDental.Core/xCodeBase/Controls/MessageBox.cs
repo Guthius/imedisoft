@@ -3,77 +3,58 @@ using System.Windows.Forms;
 
 namespace CodeBase
 {
-    ///<summary>Jordan 6/5/2022 This class only exists because of the shortcomings of the old ODProgress.cs.
-    ///Once that progress bar is gone, we can remove this class also.
-    ///Purposefully overrides or hides System.Windows.Forms.MessageBox from any extending namespace.
-    ///This is so that we can inject our own code prior to System.Windows.Forms.MessageBox.Show().
-    ///This is necessary when a separate thread has UI and the owner thread needs to show a message box.
-    ///The idea behind this class is for any project to create its own MessageBox class that simply extends this one.
-    ///This will successfully hide System.Windows.Forms.MessageBox for the entire namespace of the extending class.
-    ///E.g. see OpenDental.MessageBox for more details.
-    ///Side note: Visual Studio may suggest simplifying MessageBox.Show() to ODMessageBox.Show().  Do not do this.  Either ignore the suggestion
-    ///or go remove the suggestion entirely in the Visual Studio settings.  To remove this suggestion from the OpenDental project...
-    ///Expand the References node in the Solution Explorer of the desired project > right click on Analyzers > Open Active Rule Set > 
-    ///Once the ruleset editor is open, search for IDE0002 and uncheck the check box > Save (a warning will show about making a new file).</summary>
     public class ODMessageBox
     {
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(string text)
+        public static DialogResult Show(string text)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text), () => System.Windows.Forms.MessageBox.Show(text));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text), () => MessageBox.Show(text));
         }
 
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(string text, string caption)
+        public static DialogResult Show(string text, string caption)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text, caption), () => System.Windows.Forms.MessageBox.Show(text, caption));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text, caption), () => MessageBox.Show(text, caption));
         }
 
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(System.Windows.Forms.IWin32Window owner, string text)
+        public static DialogResult Show(IWin32Window owner, string text)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text), () => System.Windows.Forms.MessageBox.Show(owner, text));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text), () => MessageBox.Show(owner, text));
         }
 
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(System.Windows.Forms.IWin32Window owner, string text, string caption)
+        public static DialogResult Show(string text, string caption, MessageBoxButtons buttons)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text, caption), () => System.Windows.Forms.MessageBox.Show(owner, text, caption));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text, caption, buttons), () => MessageBox.Show(text, caption, buttons));
         }
 
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(string text, string caption, System.Windows.Forms.MessageBoxButtons buttons)
+        public static DialogResult Show(IWin32Window owner, string text, string caption,
+            MessageBoxButtons buttons)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text, caption, buttons), () => System.Windows.Forms.MessageBox.Show(text, caption, buttons));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text, caption, buttons), () => MessageBox.Show(owner, text, caption, buttons));
         }
 
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(System.Windows.Forms.IWin32Window owner, string text, string caption,
-            System.Windows.Forms.MessageBoxButtons buttons)
+        public static DialogResult Show(string text, string caption, MessageBoxButtons buttons,
+            MessageBoxIcon icon)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text, caption, buttons), () => System.Windows.Forms.MessageBox.Show(owner, text, caption, buttons));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text, caption, buttons, icon), () => MessageBox.Show(text, caption, buttons, icon));
         }
 
         ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
         ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(string text, string caption, System.Windows.Forms.MessageBoxButtons buttons,
-            System.Windows.Forms.MessageBoxIcon icon)
+        public static DialogResult Show(IWin32Window owner, string text, string caption,
+            MessageBoxButtons buttons, MessageBoxIcon icon)
         {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text, caption, buttons, icon), () => System.Windows.Forms.MessageBox.Show(text, caption, buttons, icon));
-        }
-
-        ///<summary>Shows a message to the user.  Automatically checks to see if a progress window is showing and will ask the progress window
-        ///to show the message to the user so that the progress window doesn't cover up the question.</summary>
-        public static System.Windows.Forms.DialogResult Show(System.Windows.Forms.IWin32Window owner, string text, string caption,
-            System.Windows.Forms.MessageBoxButtons buttons, System.Windows.Forms.MessageBoxIcon icon)
-        {
-            return ShowHelper((formPB) => formPB.MsgBoxShow(text, caption, buttons, icon), () => System.Windows.Forms.MessageBox.Show(owner, text, caption, buttons, icon));
+            return ShowHelper(formPB => formPB.MsgBoxShow(text, caption, buttons, icon), () => MessageBox.Show(owner, text, caption, buttons, icon));
         }
 
         ///<summary>Invokes one of the funcs passed in based on if there are any active progress windows showing and has focus.
@@ -82,15 +63,11 @@ namespace CodeBase
         ///<param name="funcShowOverProgress">The func that should execute if a progress window is currently showing to the user.</param>
         ///<param name="funcShow">The func that should execute if no progress window is currently showing to the user.</param>
         ///<returns>The dialog result from the func that ended up getting invoked.</returns>
-        private static System.Windows.Forms.DialogResult ShowHelper(Func<FormProgressBase, System.Windows.Forms.DialogResult> funcShowOverProgress,
-            Func<System.Windows.Forms.DialogResult> funcShow)
+        private static DialogResult ShowHelper(Func<FormProgressBase, DialogResult> funcShowOverProgress,
+            Func<DialogResult> funcShow)
         {
             //Unit tests are not designed to display message boxes.
             //Throw an exception instead of displaying the message so that unit tests cannot get locked up.
-            if (ODBuild.IsUnitTest)
-            {
-                throw new ApplicationException("Message boxes are not allowed for unit tests.");
-            }
 
             //Get the active form for the current application.  This property will return null if another application has focus (not our application).
             //This is rare enough that it is acceptable to default the parent of the message box to the progress window (if one is present).
@@ -109,7 +86,7 @@ namespace CodeBase
             //There is a progress window present and it could be the active form for the application or another application has focus and we don't know.
             //It is rare enough for applications to leave progress windows open while showing dialogs or new forms to the user.
             //Default to forcing the active progress window to be the parent form of the new message box because that scenario is so rare.
-            System.Windows.Forms.DialogResult dialogResult = System.Windows.Forms.DialogResult.Abort;
+            DialogResult dialogResult = DialogResult.Abort;
             try
             {
                 FormPB.InvokeIfRequired(() => dialogResult = funcShowOverProgress(FormPB));

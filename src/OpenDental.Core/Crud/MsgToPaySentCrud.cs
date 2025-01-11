@@ -92,7 +92,7 @@ public class MsgToPaySentCrud
         table.Columns.Add("ShortGUID");
         table.Columns.Add("DateTimeSendFailed");
         foreach (var msgToPaySent in listMsgToPaySents)
-            table.Rows.Add(SOut.Long(msgToPaySent.MsgToPaySentNum), SOut.Long(msgToPaySent.PatNum), SOut.Long(msgToPaySent.ClinicNum), SOut.Long(msgToPaySent.ApptNum), SOut.DateT(msgToPaySent.ApptDateTime, false), SOut.Long(msgToPaySent.TSPrior.Ticks), SOut.Long(msgToPaySent.StatementNum), SOut.Int((int) msgToPaySent.SendStatus), SOut.Int((int) msgToPaySent.Source), SOut.Int((int) msgToPaySent.MessageType), SOut.Long(msgToPaySent.MessageFk), msgToPaySent.Subject, msgToPaySent.Message, SOut.Int((int) msgToPaySent.EmailType), SOut.DateT(msgToPaySent.DateTimeEntry, false), SOut.DateT(msgToPaySent.DateTimeSent, false), msgToPaySent.ResponseDescript, SOut.Long(msgToPaySent.ApptReminderRuleNum), msgToPaySent.ShortGUID, SOut.DateT(msgToPaySent.DateTimeSendFailed, false));
+            table.Rows.Add(SOut.Long(msgToPaySent.MsgToPaySentNum), SOut.Long(msgToPaySent.PatNum), SOut.Long(msgToPaySent.ClinicNum), SOut.Long(msgToPaySent.ApptNum), SOut.DateTime(msgToPaySent.ApptDateTime, false), SOut.Long(msgToPaySent.TSPrior.Ticks), SOut.Long(msgToPaySent.StatementNum), SOut.Int((int) msgToPaySent.SendStatus), SOut.Int((int) msgToPaySent.Source), SOut.Int((int) msgToPaySent.MessageType), SOut.Long(msgToPaySent.MessageFk), msgToPaySent.Subject, msgToPaySent.Message, SOut.Int((int) msgToPaySent.EmailType), SOut.DateTime(msgToPaySent.DateTimeEntry, false), SOut.DateTime(msgToPaySent.DateTimeSent, false), msgToPaySent.ResponseDescript, SOut.Long(msgToPaySent.ApptReminderRuleNum), msgToPaySent.ShortGUID, SOut.DateTime(msgToPaySent.DateTimeSendFailed, false));
         return table;
     }
 
@@ -111,7 +111,7 @@ public class MsgToPaySentCrud
             SOut.Long(msgToPaySent.PatNum) + ","
                                            + SOut.Long(msgToPaySent.ClinicNum) + ","
                                            + SOut.Long(msgToPaySent.ApptNum) + ","
-                                           + SOut.DateT(msgToPaySent.ApptDateTime) + ","
+                                           + SOut.DateTime(msgToPaySent.ApptDateTime) + ","
                                            + "'" + SOut.Long(msgToPaySent.TSPrior.Ticks) + "',"
                                            + SOut.Long(msgToPaySent.StatementNum) + ","
                                            + SOut.Int((int) msgToPaySent.SendStatus) + ","
@@ -122,11 +122,11 @@ public class MsgToPaySentCrud
                                            + DbHelper.ParamChar + "paramMessage,"
                                            + SOut.Int((int) msgToPaySent.EmailType) + ","
                                            + DbHelper.Now() + ","
-                                           + SOut.DateT(msgToPaySent.DateTimeSent) + ","
+                                           + SOut.DateTime(msgToPaySent.DateTimeSent) + ","
                                            + DbHelper.ParamChar + "paramResponseDescript,"
                                            + SOut.Long(msgToPaySent.ApptReminderRuleNum) + ","
                                            + "'" + SOut.String(msgToPaySent.ShortGUID) + "',"
-                                           + SOut.DateT(msgToPaySent.DateTimeSendFailed) + ")";
+                                           + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + ")";
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
         var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
         if (msgToPaySent.Message == null) msgToPaySent.Message = "";
@@ -155,7 +155,7 @@ public class MsgToPaySentCrud
             SOut.Long(msgToPaySent.PatNum) + ","
                                            + SOut.Long(msgToPaySent.ClinicNum) + ","
                                            + SOut.Long(msgToPaySent.ApptNum) + ","
-                                           + SOut.DateT(msgToPaySent.ApptDateTime) + ","
+                                           + SOut.DateTime(msgToPaySent.ApptDateTime) + ","
                                            + "'" + SOut.Long(msgToPaySent.TSPrior.Ticks) + "',"
                                            + SOut.Long(msgToPaySent.StatementNum) + ","
                                            + SOut.Int((int) msgToPaySent.SendStatus) + ","
@@ -166,11 +166,11 @@ public class MsgToPaySentCrud
                                            + DbHelper.ParamChar + "paramMessage,"
                                            + SOut.Int((int) msgToPaySent.EmailType) + ","
                                            + DbHelper.Now() + ","
-                                           + SOut.DateT(msgToPaySent.DateTimeSent) + ","
+                                           + SOut.DateTime(msgToPaySent.DateTimeSent) + ","
                                            + DbHelper.ParamChar + "paramResponseDescript,"
                                            + SOut.Long(msgToPaySent.ApptReminderRuleNum) + ","
                                            + "'" + SOut.String(msgToPaySent.ShortGUID) + "',"
-                                           + SOut.DateT(msgToPaySent.DateTimeSendFailed) + ")";
+                                           + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + ")";
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
         var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
         if (msgToPaySent.Message == null) msgToPaySent.Message = "";
@@ -190,7 +190,7 @@ public class MsgToPaySentCrud
                       + "PatNum             =  " + SOut.Long(msgToPaySent.PatNum) + ", "
                       + "ClinicNum          =  " + SOut.Long(msgToPaySent.ClinicNum) + ", "
                       + "ApptNum            =  " + SOut.Long(msgToPaySent.ApptNum) + ", "
-                      + "ApptDateTime       =  " + SOut.DateT(msgToPaySent.ApptDateTime) + ", "
+                      + "ApptDateTime       =  " + SOut.DateTime(msgToPaySent.ApptDateTime) + ", "
                       + "TSPrior            =  " + SOut.Long(msgToPaySent.TSPrior.Ticks) + ", "
                       + "StatementNum       =  " + SOut.Long(msgToPaySent.StatementNum) + ", "
                       + "SendStatus         =  " + SOut.Int((int) msgToPaySent.SendStatus) + ", "
@@ -201,11 +201,11 @@ public class MsgToPaySentCrud
                       + "Message            =  " + DbHelper.ParamChar + "paramMessage, "
                       + "EmailType          =  " + SOut.Int((int) msgToPaySent.EmailType) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeSent       =  " + SOut.DateT(msgToPaySent.DateTimeSent) + ", "
+                      + "DateTimeSent       =  " + SOut.DateTime(msgToPaySent.DateTimeSent) + ", "
                       + "ResponseDescript   =  " + DbHelper.ParamChar + "paramResponseDescript, "
                       + "ApptReminderRuleNum=  " + SOut.Long(msgToPaySent.ApptReminderRuleNum) + ", "
                       + "ShortGUID          = '" + SOut.String(msgToPaySent.ShortGUID) + "', "
-                      + "DateTimeSendFailed =  " + SOut.DateT(msgToPaySent.DateTimeSendFailed) + " "
+                      + "DateTimeSendFailed =  " + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + " "
                       + "WHERE MsgToPaySentNum = " + SOut.Long(msgToPaySent.MsgToPaySentNum);
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
         var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
@@ -240,7 +240,7 @@ public class MsgToPaySentCrud
         if (msgToPaySent.ApptDateTime != oldMsgToPaySent.ApptDateTime)
         {
             if (command != "") command += ",";
-            command += "ApptDateTime = " + SOut.DateT(msgToPaySent.ApptDateTime) + "";
+            command += "ApptDateTime = " + SOut.DateTime(msgToPaySent.ApptDateTime) + "";
         }
 
         if (msgToPaySent.TSPrior != oldMsgToPaySent.TSPrior)
@@ -301,7 +301,7 @@ public class MsgToPaySentCrud
         if (msgToPaySent.DateTimeSent != oldMsgToPaySent.DateTimeSent)
         {
             if (command != "") command += ",";
-            command += "DateTimeSent = " + SOut.DateT(msgToPaySent.DateTimeSent) + "";
+            command += "DateTimeSent = " + SOut.DateTime(msgToPaySent.DateTimeSent) + "";
         }
 
         if (msgToPaySent.ResponseDescript != oldMsgToPaySent.ResponseDescript)
@@ -325,7 +325,7 @@ public class MsgToPaySentCrud
         if (msgToPaySent.DateTimeSendFailed != oldMsgToPaySent.DateTimeSendFailed)
         {
             if (command != "") command += ",";
-            command += "DateTimeSendFailed = " + SOut.DateT(msgToPaySent.DateTimeSendFailed) + "";
+            command += "DateTimeSendFailed = " + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + "";
         }
 
         if (command == "") return false;

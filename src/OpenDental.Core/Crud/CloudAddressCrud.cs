@@ -46,7 +46,7 @@ public class CloudAddressCrud
         command +=
             "'" + SOut.String(cloudAddress.IpAddress) + "',"
             + SOut.Long(cloudAddress.UserNumLastConnect) + ","
-            + SOut.DateT(cloudAddress.DateTimeLastConnect) + ")";
+            + SOut.DateTime(cloudAddress.DateTimeLastConnect) + ")";
         {
             cloudAddress.CloudAddressNum = Db.NonQ(command, true, "CloudAddressNum", "cloudAddress");
         }
@@ -58,7 +58,7 @@ public class CloudAddressCrud
         var command = "UPDATE cloudaddress SET "
                       + "IpAddress          = '" + SOut.String(cloudAddress.IpAddress) + "', "
                       + "UserNumLastConnect =  " + SOut.Long(cloudAddress.UserNumLastConnect) + ", "
-                      + "DateTimeLastConnect=  " + SOut.DateT(cloudAddress.DateTimeLastConnect) + " "
+                      + "DateTimeLastConnect=  " + SOut.DateTime(cloudAddress.DateTimeLastConnect) + " "
                       + "WHERE CloudAddressNum = " + SOut.Long(cloudAddress.CloudAddressNum);
         Db.NonQ(command);
     }

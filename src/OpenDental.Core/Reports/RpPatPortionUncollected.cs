@@ -14,7 +14,7 @@ namespace OpenDentBusiness {
 		
 		public static DataTable GetPatUncollected(DateTime dateFrom,DateTime dateTo,List<long> listClinicNums) {
 			Stopwatch s=new Stopwatch();;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				s.Start();
 			}
 			bool hasClinicsEnabled=ReportsComplex.RunFuncOnReportServer(() => true);
@@ -77,7 +77,7 @@ namespace OpenDentBusiness {
 				WHERE proc.Fee-proc.InsEst+COALESCE(adj.adjAmt,0)-COALESCE(pay.splitAmt,0)>0.005
 				ORDER BY proc.ProcDate,patient.LName,patient.FName,procedurecode.ProcCode";
 			DataTable table=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				s.Stop();
 				Console.WriteLine("Total time to generate report with "+string.Format("{0:#,##0.##}",table.Rows.Count)+" rows: "
 					+(s.Elapsed.Hours>0?(s.Elapsed.Hours+" hours "):"")+(s.Elapsed.Minutes>0?(s.Elapsed.Minutes+" min "):"")

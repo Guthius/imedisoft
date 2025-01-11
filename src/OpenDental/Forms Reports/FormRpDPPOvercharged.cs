@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.ReportingComplex;
 using OpenDental.UI;
 using OpenDentBusiness;

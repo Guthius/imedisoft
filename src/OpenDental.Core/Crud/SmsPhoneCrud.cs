@@ -65,7 +65,7 @@ public class SmsPhoneCrud
         table.Columns.Add("InactiveCode");
         table.Columns.Add("CountryCode");
         foreach (var smsPhone in listSmsPhones)
-            table.Rows.Add(SOut.Long(smsPhone.SmsPhoneNum), SOut.Long(smsPhone.ClinicNum), smsPhone.PhoneNumber, SOut.DateT(smsPhone.DateTimeActive, false), SOut.DateT(smsPhone.DateTimeInactive, false), smsPhone.InactiveCode, smsPhone.CountryCode);
+            table.Rows.Add(SOut.Long(smsPhone.SmsPhoneNum), SOut.Long(smsPhone.ClinicNum), smsPhone.PhoneNumber, SOut.DateTime(smsPhone.DateTimeActive, false), SOut.DateTime(smsPhone.DateTimeInactive, false), smsPhone.InactiveCode, smsPhone.CountryCode);
         return table;
     }
 
@@ -83,8 +83,8 @@ public class SmsPhoneCrud
         command +=
             SOut.Long(smsPhone.ClinicNum) + ","
                                           + "'" + SOut.String(smsPhone.PhoneNumber) + "',"
-                                          + SOut.DateT(smsPhone.DateTimeActive) + ","
-                                          + SOut.DateT(smsPhone.DateTimeInactive) + ","
+                                          + SOut.DateTime(smsPhone.DateTimeActive) + ","
+                                          + SOut.DateTime(smsPhone.DateTimeInactive) + ","
                                           + "'" + SOut.String(smsPhone.InactiveCode) + "',"
                                           + "'" + SOut.String(smsPhone.CountryCode) + "')";
         {
@@ -108,8 +108,8 @@ public class SmsPhoneCrud
         command +=
             SOut.Long(smsPhone.ClinicNum) + ","
                                           + "'" + SOut.String(smsPhone.PhoneNumber) + "',"
-                                          + SOut.DateT(smsPhone.DateTimeActive) + ","
-                                          + SOut.DateT(smsPhone.DateTimeInactive) + ","
+                                          + SOut.DateTime(smsPhone.DateTimeActive) + ","
+                                          + SOut.DateTime(smsPhone.DateTimeInactive) + ","
                                           + "'" + SOut.String(smsPhone.InactiveCode) + "',"
                                           + "'" + SOut.String(smsPhone.CountryCode) + "')";
         if (useExistingPK || isRandomKeys)
@@ -124,8 +124,8 @@ public class SmsPhoneCrud
         var command = "UPDATE smsphone SET "
                       + "ClinicNum       =  " + SOut.Long(smsPhone.ClinicNum) + ", "
                       + "PhoneNumber     = '" + SOut.String(smsPhone.PhoneNumber) + "', "
-                      + "DateTimeActive  =  " + SOut.DateT(smsPhone.DateTimeActive) + ", "
-                      + "DateTimeInactive=  " + SOut.DateT(smsPhone.DateTimeInactive) + ", "
+                      + "DateTimeActive  =  " + SOut.DateTime(smsPhone.DateTimeActive) + ", "
+                      + "DateTimeInactive=  " + SOut.DateTime(smsPhone.DateTimeInactive) + ", "
                       + "InactiveCode    = '" + SOut.String(smsPhone.InactiveCode) + "', "
                       + "CountryCode     = '" + SOut.String(smsPhone.CountryCode) + "' "
                       + "WHERE SmsPhoneNum = " + SOut.Long(smsPhone.SmsPhoneNum);
@@ -150,13 +150,13 @@ public class SmsPhoneCrud
         if (smsPhone.DateTimeActive != oldSmsPhone.DateTimeActive)
         {
             if (command != "") command += ",";
-            command += "DateTimeActive = " + SOut.DateT(smsPhone.DateTimeActive) + "";
+            command += "DateTimeActive = " + SOut.DateTime(smsPhone.DateTimeActive) + "";
         }
 
         if (smsPhone.DateTimeInactive != oldSmsPhone.DateTimeInactive)
         {
             if (command != "") command += ",";
-            command += "DateTimeInactive = " + SOut.DateT(smsPhone.DateTimeInactive) + "";
+            command += "DateTimeInactive = " + SOut.DateTime(smsPhone.DateTimeInactive) + "";
         }
 
         if (smsPhone.InactiveCode != oldSmsPhone.InactiveCode)

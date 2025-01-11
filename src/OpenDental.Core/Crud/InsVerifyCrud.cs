@@ -73,7 +73,7 @@ public class InsVerifyCrud
         table.Columns.Add("HoursAvailableForVerification");
         table.Columns.Add("SecDateTEdit");
         foreach (var insVerify in listInsVerifys)
-            table.Rows.Add(SOut.Long(insVerify.InsVerifyNum), SOut.DateT(insVerify.DateLastVerified, false), SOut.Long(insVerify.UserNum), SOut.Int((int) insVerify.VerifyType), SOut.Long(insVerify.FKey), SOut.Long(insVerify.DefNum), SOut.DateT(insVerify.DateLastAssigned, false), insVerify.Note, SOut.DateT(insVerify.DateTimeEntry, false), SOut.Double(insVerify.HoursAvailableForVerification), SOut.DateT(insVerify.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(insVerify.InsVerifyNum), SOut.DateTime(insVerify.DateLastVerified, false), SOut.Long(insVerify.UserNum), SOut.Int((int) insVerify.VerifyType), SOut.Long(insVerify.FKey), SOut.Long(insVerify.DefNum), SOut.DateTime(insVerify.DateLastAssigned, false), insVerify.Note, SOut.DateTime(insVerify.DateTimeEntry, false), SOut.Double(insVerify.HoursAvailableForVerification), SOut.DateTime(insVerify.SecDateTEdit, false));
         return table;
     }
 

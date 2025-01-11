@@ -95,7 +95,7 @@ public class SheetCrud
         table.Columns.Add("RevID");
         table.Columns.Add("WebFormSheetID");
         foreach (var sheet in listSheets)
-            table.Rows.Add(SOut.Long(sheet.SheetNum), SOut.Int((int) sheet.SheetType), SOut.Long(sheet.PatNum), SOut.DateT(sheet.DateTimeSheet, false), SOut.Float(sheet.FontSize), sheet.FontName, SOut.Int(sheet.Width), SOut.Int(sheet.Height), SOut.Bool(sheet.IsLandscape), sheet.InternalNote, sheet.Description, SOut.Byte(sheet.ShowInTerminal), SOut.Bool(sheet.IsWebForm), SOut.Bool(sheet.IsMultiPage), SOut.Bool(sheet.IsDeleted), SOut.Long(sheet.SheetDefNum), SOut.Long(sheet.DocNum), SOut.Long(sheet.ClinicNum), SOut.DateT(sheet.DateTSheetEdited, false), SOut.Bool(sheet.HasMobileLayout), SOut.Int(sheet.RevID), SOut.Long(sheet.WebFormSheetID));
+            table.Rows.Add(SOut.Long(sheet.SheetNum), SOut.Int((int) sheet.SheetType), SOut.Long(sheet.PatNum), SOut.DateTime(sheet.DateTimeSheet, false), SOut.Float(sheet.FontSize), sheet.FontName, SOut.Int(sheet.Width), SOut.Int(sheet.Height), SOut.Bool(sheet.IsLandscape), sheet.InternalNote, sheet.Description, SOut.Byte(sheet.ShowInTerminal), SOut.Bool(sheet.IsWebForm), SOut.Bool(sheet.IsMultiPage), SOut.Bool(sheet.IsDeleted), SOut.Long(sheet.SheetDefNum), SOut.Long(sheet.DocNum), SOut.Long(sheet.ClinicNum), SOut.DateTime(sheet.DateTSheetEdited, false), SOut.Bool(sheet.HasMobileLayout), SOut.Int(sheet.RevID), SOut.Long(sheet.WebFormSheetID));
         return table;
     }
 
@@ -113,7 +113,7 @@ public class SheetCrud
         command +=
             SOut.Int((int) sheet.SheetType) + ","
                                             + SOut.Long(sheet.PatNum) + ","
-                                            + SOut.DateT(sheet.DateTimeSheet) + ","
+                                            + SOut.DateTime(sheet.DateTimeSheet) + ","
                                             + SOut.Float(sheet.FontSize) + ","
                                             + "'" + SOut.String(sheet.FontName) + "',"
                                             + SOut.Int(sheet.Width) + ","
@@ -155,7 +155,7 @@ public class SheetCrud
         command +=
             SOut.Int((int) sheet.SheetType) + ","
                                             + SOut.Long(sheet.PatNum) + ","
-                                            + SOut.DateT(sheet.DateTimeSheet) + ","
+                                            + SOut.DateTime(sheet.DateTimeSheet) + ","
                                             + SOut.Float(sheet.FontSize) + ","
                                             + "'" + SOut.String(sheet.FontName) + "',"
                                             + SOut.Int(sheet.Width) + ","
@@ -188,7 +188,7 @@ public class SheetCrud
         var command = "UPDATE sheet SET "
                       + "SheetType       =  " + SOut.Int((int) sheet.SheetType) + ", "
                       + "PatNum          =  " + SOut.Long(sheet.PatNum) + ", "
-                      + "DateTimeSheet   =  " + SOut.DateT(sheet.DateTimeSheet) + ", "
+                      + "DateTimeSheet   =  " + SOut.DateTime(sheet.DateTimeSheet) + ", "
                       + "FontSize        =  " + SOut.Float(sheet.FontSize) + ", "
                       + "FontName        = '" + SOut.String(sheet.FontName) + "', "
                       + "Width           =  " + SOut.Int(sheet.Width) + ", "
@@ -203,7 +203,7 @@ public class SheetCrud
                       + "SheetDefNum     =  " + SOut.Long(sheet.SheetDefNum) + ", "
                       + "DocNum          =  " + SOut.Long(sheet.DocNum) + ", "
                       + "ClinicNum       =  " + SOut.Long(sheet.ClinicNum) + ", "
-                      + "DateTSheetEdited=  " + SOut.DateT(sheet.DateTSheetEdited) + ", "
+                      + "DateTSheetEdited=  " + SOut.DateTime(sheet.DateTSheetEdited) + ", "
                       + "HasMobileLayout =  " + SOut.Bool(sheet.HasMobileLayout) + ", "
                       + "RevID           =  " + SOut.Int(sheet.RevID) + ", "
                       + "WebFormSheetID  =  " + SOut.Long(sheet.WebFormSheetID) + " "
@@ -231,7 +231,7 @@ public class SheetCrud
         if (sheet.DateTimeSheet != oldSheet.DateTimeSheet)
         {
             if (command != "") command += ",";
-            command += "DateTimeSheet = " + SOut.DateT(sheet.DateTimeSheet) + "";
+            command += "DateTimeSheet = " + SOut.DateTime(sheet.DateTimeSheet) + "";
         }
 
         if (sheet.FontSize != oldSheet.FontSize)
@@ -321,7 +321,7 @@ public class SheetCrud
         if (sheet.DateTSheetEdited != oldSheet.DateTSheetEdited)
         {
             if (command != "") command += ",";
-            command += "DateTSheetEdited = " + SOut.DateT(sheet.DateTSheetEdited) + "";
+            command += "DateTSheetEdited = " + SOut.DateTime(sheet.DateTSheetEdited) + "";
         }
 
         if (sheet.HasMobileLayout != oldSheet.HasMobileLayout)

@@ -1,70 +1,52 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace OpenDentBusiness {
-	public static class TimeSpanExtension {
+namespace OpenDentBusiness;
 
-		///<summary>-H:mm.  If zero, then returns empty string.  Hours can be greater than 24.</summary>
-		public static string ToStringHmm(this TimeSpan tspan) {
-			if(tspan==TimeSpan.Zero) {
-				return "";
-			}
-			string retVal="";
-			if(tspan < TimeSpan.Zero) {
-				retVal+="-";
-				tspan=tspan.Duration();
-			}
-			//It has to be done this way to support hours greater than 24.
-			int hours=(tspan.Days*24)+tspan.Hours;
-			retVal+=hours.ToString()+":"+tspan.Minutes.ToString().PadLeft(2,'0');
-			return retVal;
-		}
+public static class TimeSpanExtension
+{
+    public static string ToStringHmm(this TimeSpan tspan)
+    {
+        if (tspan == TimeSpan.Zero)
+        {
+            return "";
+        }
 
-		///<summary>-H:mm:ss.  If zero, then returns empty string.</summary>
-		public static string ToStringHmmss(this TimeSpan tspan) {
-			if(tspan==TimeSpan.Zero) {
-				return "";
-			}
-			string retVal="";
-			if(tspan < TimeSpan.Zero) {
-				retVal+="-";
-				tspan=tspan.Duration();
-			}
-			int hours=(tspan.Days*24)+tspan.Hours;
-			retVal+=hours.ToString()+":"+tspan.Minutes.ToString().PadLeft(2,'0')+":"+tspan.Seconds.ToString().PadLeft(2,'0');
-			return retVal;
-		}
+        var retVal = "";
+        if (tspan < TimeSpan.Zero)
+        {
+            retVal += "-";
+            tspan = tspan.Duration();
+        }
 
-		///<summary>-mm:ss.  If zero, then returns empty string.</summary>
-		public static string ToStringmmss(this TimeSpan tspan) {
-			if(tspan==TimeSpan.Zero) {
-				return "";
-			}
-			string retVal="";
-			if(tspan < TimeSpan.Zero) {
-				retVal+="-";
-				tspan=tspan.Duration();
-			}
-			retVal+=((int)tspan.TotalMinutes).ToString().PadLeft(2,'0')+":"+tspan.Seconds.ToString().PadLeft(2,'0');
-			return retVal;
-		}
+        //It has to be done this way to support hours greater than 24.
+        var hours = tspan.Days * 24 + tspan.Hours;
+        retVal += hours + ":" + tspan.Minutes.ToString().PadLeft(2, '0');
+        return retVal;
+    }
 
-		///<summary>Does not work well with negative values.</summary>
-		public static string ToString(this TimeSpan tspan,string format) {
-			DateTime dt=DateTime.Today;
-			dt=dt+tspan;
-			return dt.ToString(format);
-		}
+    public static string ToStringHmmss(this TimeSpan tspan)
+    {
+        if (tspan == TimeSpan.Zero)
+        {
+            return "";
+        }
 
-		///<summary>Does not work well with negative values.</summary>
-		public static string ToShortTimeString(this TimeSpan tspan) {
-			DateTime dt=DateTime.Today;
-			dt=dt+tspan;
-			return dt.ToShortTimeString();
-		}
+        var retVal = "";
+        if (tspan < TimeSpan.Zero)
+        {
+            retVal += "-";
+            tspan = tspan.Duration();
+        }
 
+        var hours = tspan.Days * 24 + tspan.Hours;
+        retVal += hours + ":" + tspan.Minutes.ToString().PadLeft(2, '0') + ":" + tspan.Seconds.ToString().PadLeft(2, '0');
+        return retVal;
+    }
 
-	}
+    public static string ToShortTimeString(this TimeSpan tspan)
+    {
+        var dt = DateTime.Today;
+        dt += tspan;
+        return dt.ToShortTimeString();
+    }
 }

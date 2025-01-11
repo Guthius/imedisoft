@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -547,7 +548,7 @@ public class Fees
     public static List<Fee> GetFeesForApi(int limit, int offset, long feeSched, long codeNum, long clinicNum, long provNum)
     {
         var command = "SELECT * from fee"
-                      + " WHERE SecDateTEdit>=" + SOut.DateT(DateTime.MinValue);
+                      + " WHERE SecDateTEdit>=" + SOut.DateTime(DateTime.MinValue);
         if (feeSched > 0) command += " AND FeeSched=" + SOut.Long(feeSched);
         if (codeNum > 0) command += " AND CodeNum=" + SOut.Long(codeNum);
         if (clinicNum > -1) command += " AND ClinicNum=" + SOut.Long(clinicNum);

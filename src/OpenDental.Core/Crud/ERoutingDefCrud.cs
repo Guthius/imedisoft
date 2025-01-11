@@ -65,7 +65,7 @@ public class ERoutingDefCrud
         table.Columns.Add("SecDateTEntered");
         table.Columns.Add("DateLastModified");
         foreach (var eRoutingDef in listERoutingDefs)
-            table.Rows.Add(SOut.Long(eRoutingDef.ERoutingDefNum), SOut.Long(eRoutingDef.ClinicNum), eRoutingDef.Description, SOut.Long(eRoutingDef.UserNumCreated), SOut.Long(eRoutingDef.UserNumModified), SOut.DateT(eRoutingDef.SecDateTEntered, false), SOut.DateT(eRoutingDef.DateLastModified, false));
+            table.Rows.Add(SOut.Long(eRoutingDef.ERoutingDefNum), SOut.Long(eRoutingDef.ClinicNum), eRoutingDef.Description, SOut.Long(eRoutingDef.UserNumCreated), SOut.Long(eRoutingDef.UserNumModified), SOut.DateTime(eRoutingDef.SecDateTEntered, false), SOut.DateTime(eRoutingDef.DateLastModified, false));
         return table;
     }
 
@@ -86,7 +86,7 @@ public class ERoutingDefCrud
                                              + SOut.Long(eRoutingDef.UserNumCreated) + ","
                                              + SOut.Long(eRoutingDef.UserNumModified) + ","
                                              + DbHelper.Now() + ","
-                                             + SOut.DateT(eRoutingDef.DateLastModified) + ")";
+                                             + SOut.DateTime(eRoutingDef.DateLastModified) + ")";
         {
             eRoutingDef.ERoutingDefNum = Db.NonQ(command, true, "ERoutingDefNum", "eRoutingDef");
         }
@@ -111,7 +111,7 @@ public class ERoutingDefCrud
                                              + SOut.Long(eRoutingDef.UserNumCreated) + ","
                                              + SOut.Long(eRoutingDef.UserNumModified) + ","
                                              + DbHelper.Now() + ","
-                                             + SOut.DateT(eRoutingDef.DateLastModified) + ")";
+                                             + SOut.DateTime(eRoutingDef.DateLastModified) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else
@@ -127,7 +127,7 @@ public class ERoutingDefCrud
                       + "UserNumCreated  =  " + SOut.Long(eRoutingDef.UserNumCreated) + ", "
                       + "UserNumModified =  " + SOut.Long(eRoutingDef.UserNumModified) + ", "
                       //SecDateTEntered not allowed to change
-                      + "DateLastModified=  " + SOut.DateT(eRoutingDef.DateLastModified) + " "
+                      + "DateLastModified=  " + SOut.DateTime(eRoutingDef.DateLastModified) + " "
                       + "WHERE ERoutingDefNum = " + SOut.Long(eRoutingDef.ERoutingDefNum);
         Db.NonQ(command);
     }
@@ -163,7 +163,7 @@ public class ERoutingDefCrud
         if (eRoutingDef.DateLastModified != oldERoutingDef.DateLastModified)
         {
             if (command != "") command += ",";
-            command += "DateLastModified = " + SOut.DateT(eRoutingDef.DateLastModified) + "";
+            command += "DateLastModified = " + SOut.DateTime(eRoutingDef.DateLastModified) + "";
         }
 
         if (command == "") return false;

@@ -72,7 +72,7 @@ public class XWebs
     {
         if (InputEvent != null)
         {
-            InputEvent(sender, new Logger.LoggerEventArgs(s, LogLevel.Verbose));
+            InputEvent(sender, new Logger.LoggerEventArgs());
         }
     }
 
@@ -81,7 +81,7 @@ public class XWebs
     {
         if (OutputEvent != null)
         {
-            OutputEvent(sender, new Logger.LoggerEventArgs(s, LogLevel.Verbose));
+            OutputEvent(sender, new Logger.LoggerEventArgs());
         }
     }
 
@@ -156,7 +156,7 @@ public class XWebs
             get
             {
                 string xWebGatewayUrl = "https://gw.t3secure.net/x-chargeweb.dll";
-                if (ODBuild.IsDebug() || UseXWebTestGateway)
+                if (/* ODBuild.IsDebug() */ false || UseXWebTestGateway)
                 {
                     xWebGatewayUrl = "https://test.t3secure.net/x-chargeweb.dll";
                 }
@@ -789,9 +789,8 @@ public class XWebs
     #endregion
 }
 
-///<summary>Where this charge is coming from.</summary>
 public enum ChargeSource
 {
     PatientPortal,
-    RecurringCharges,
+    RecurringCharges
 }

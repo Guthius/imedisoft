@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	[Serializable]

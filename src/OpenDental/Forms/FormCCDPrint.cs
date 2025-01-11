@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using MigraDoc.DocumentObjectModel.Shapes;
@@ -297,10 +298,10 @@ namespace OpenDental {
 			else {
 				if(_responseStatus!="R" && _formId=="05") { //Manual claim form (CDA claim form)
 					//In debug mode, show the form on screen to save paper. Do not print to printer.
-					PrintClaimForm(isPreview:ODBuild.IsDebug());
+					PrintClaimForm(isPreview:/* ODBuild.IsDebug() */ false);
 				}
 				else { //All other Canadian forms
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						new FormCCDPrint(_etrans.Copy(),_messageText,0,false,_doPrintPatientCopy);//In debug mode, show the form on screen to save paper. Do not print to printer.
 					}
 					else {

@@ -59,7 +59,7 @@ public class ICD9Crud
         table.Columns.Add("Description");
         table.Columns.Add("DateTStamp");
         foreach (var iCD9 in listICD9s)
-            table.Rows.Add(SOut.Long(iCD9.ICD9Num), iCD9.ICD9Code, iCD9.Description, SOut.DateT(iCD9.DateTStamp, false));
+            table.Rows.Add(SOut.Long(iCD9.ICD9Num), iCD9.ICD9Code, iCD9.Description, SOut.DateTime(iCD9.DateTStamp, false));
         return table;
     }
 

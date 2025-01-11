@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness{
 

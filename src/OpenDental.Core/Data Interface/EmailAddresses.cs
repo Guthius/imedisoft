@@ -7,6 +7,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 

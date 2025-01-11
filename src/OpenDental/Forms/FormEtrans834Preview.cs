@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormEtrans834Preview:FormODBase {

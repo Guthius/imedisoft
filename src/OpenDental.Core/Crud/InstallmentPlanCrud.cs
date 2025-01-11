@@ -65,7 +65,7 @@ public class InstallmentPlanCrud
         table.Columns.Add("APR");
         table.Columns.Add("Note");
         foreach (var installmentPlan in listInstallmentPlans)
-            table.Rows.Add(SOut.Long(installmentPlan.InstallmentPlanNum), SOut.Long(installmentPlan.PatNum), SOut.DateT(installmentPlan.DateAgreement, false), SOut.DateT(installmentPlan.DateFirstPayment, false), SOut.Double(installmentPlan.MonthlyPayment), SOut.Float(installmentPlan.APR), installmentPlan.Note);
+            table.Rows.Add(SOut.Long(installmentPlan.InstallmentPlanNum), SOut.Long(installmentPlan.PatNum), SOut.DateTime(installmentPlan.DateAgreement, false), SOut.DateTime(installmentPlan.DateFirstPayment, false), SOut.Double(installmentPlan.MonthlyPayment), SOut.Float(installmentPlan.APR), installmentPlan.Note);
         return table;
     }
 

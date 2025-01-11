@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -60,7 +61,7 @@ namespace OpenDental {
 				return;
 			}
 			timeClaimRun=new DateTime(1881,01,01,timeClaimRun.Hour,timeClaimRun.Minute,timeClaimRun.Second);
-			prefValSync.PrefVal=POut.DateT(timeClaimRun,false);
+			prefValSync.PrefVal=POut.DateTime(timeClaimRun,false);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 

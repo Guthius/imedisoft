@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -167,7 +168,7 @@ public class Referrals
     ///<summary>Gets all Referrals from the database. Returns empty list if not found.</summary>
     public static List<Referral> GetReferralsForApi(int limit, int offset, bool isHidden, bool notPerson, bool isDoctor, bool isPreferred, bool isPatient)
     {
-        var command = "SELECT * FROM referral WHERE DateTStamp>=" + SOut.DateT(DateTime.MinValue) + " ";
+        var command = "SELECT * FROM referral WHERE DateTStamp>=" + SOut.DateTime(DateTime.MinValue) + " ";
         if (isHidden) command += "AND IsHidden=1 ";
         if (notPerson) command += "AND NotPerson=1 ";
         if (isDoctor) command += "AND IsDoctor=1 ";

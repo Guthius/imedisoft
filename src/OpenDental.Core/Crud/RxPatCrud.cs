@@ -101,7 +101,7 @@ public class RxPatCrud
         table.Columns.Add("UserNum");
         table.Columns.Add("RxType");
         foreach (var rxPat in listRxPats)
-            table.Rows.Add(SOut.Long(rxPat.RxNum), SOut.Long(rxPat.PatNum), SOut.DateT(rxPat.RxDate, false), rxPat.Drug, rxPat.Sig, rxPat.Disp, rxPat.Refills, SOut.Long(rxPat.ProvNum), rxPat.Notes, SOut.Long(rxPat.PharmacyNum), SOut.Bool(rxPat.IsControlled), SOut.DateT(rxPat.DateTStamp, false), SOut.Int((int) rxPat.SendStatus), SOut.Long(rxPat.RxCui), rxPat.DosageCode, rxPat.ErxGuid, SOut.Bool(rxPat.IsErxOld), rxPat.ErxPharmacyInfo, SOut.Bool(rxPat.IsProcRequired), SOut.Long(rxPat.ProcNum), SOut.Double(rxPat.DaysOfSupply), rxPat.PatientInstruction, SOut.Long(rxPat.ClinicNum), SOut.Long(rxPat.UserNum), SOut.Int((int) rxPat.RxType));
+            table.Rows.Add(SOut.Long(rxPat.RxNum), SOut.Long(rxPat.PatNum), SOut.DateTime(rxPat.RxDate, false), rxPat.Drug, rxPat.Sig, rxPat.Disp, rxPat.Refills, SOut.Long(rxPat.ProvNum), rxPat.Notes, SOut.Long(rxPat.PharmacyNum), SOut.Bool(rxPat.IsControlled), SOut.DateTime(rxPat.DateTStamp, false), SOut.Int((int) rxPat.SendStatus), SOut.Long(rxPat.RxCui), rxPat.DosageCode, rxPat.ErxGuid, SOut.Bool(rxPat.IsErxOld), rxPat.ErxPharmacyInfo, SOut.Bool(rxPat.IsProcRequired), SOut.Long(rxPat.ProcNum), SOut.Double(rxPat.DaysOfSupply), rxPat.PatientInstruction, SOut.Long(rxPat.ClinicNum), SOut.Long(rxPat.UserNum), SOut.Int((int) rxPat.RxType));
         return table;
     }
 

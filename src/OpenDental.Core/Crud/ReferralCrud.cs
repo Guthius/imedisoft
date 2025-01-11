@@ -107,7 +107,7 @@ public class ReferralCrud
         table.Columns.Add("BusinessName");
         table.Columns.Add("DisplayNote");
         foreach (var referral in listReferrals)
-            table.Rows.Add(SOut.Long(referral.ReferralNum), referral.LName, referral.FName, referral.MName, referral.SSN, SOut.Bool(referral.UsingTIN), SOut.Long(referral.Specialty), referral.ST, referral.Telephone, referral.Address, referral.Address2, referral.City, referral.Zip, referral.Note, referral.Phone2, SOut.Bool(referral.IsHidden), SOut.Bool(referral.NotPerson), referral.Title, referral.EMail, SOut.Long(referral.PatNum), referral.NationalProvID, SOut.Long(referral.Slip), SOut.Bool(referral.IsDoctor), SOut.Bool(referral.IsTrustedDirect), SOut.DateT(referral.DateTStamp, false), SOut.Bool(referral.IsPreferred), referral.BusinessName, referral.DisplayNote);
+            table.Rows.Add(SOut.Long(referral.ReferralNum), referral.LName, referral.FName, referral.MName, referral.SSN, SOut.Bool(referral.UsingTIN), SOut.Long(referral.Specialty), referral.ST, referral.Telephone, referral.Address, referral.Address2, referral.City, referral.Zip, referral.Note, referral.Phone2, SOut.Bool(referral.IsHidden), SOut.Bool(referral.NotPerson), referral.Title, referral.EMail, SOut.Long(referral.PatNum), referral.NationalProvID, SOut.Long(referral.Slip), SOut.Bool(referral.IsDoctor), SOut.Bool(referral.IsTrustedDirect), SOut.DateTime(referral.DateTStamp, false), SOut.Bool(referral.IsPreferred), referral.BusinessName, referral.DisplayNote);
         return table;
     }
 

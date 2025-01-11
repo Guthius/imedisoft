@@ -72,7 +72,7 @@ public class InsEditPatLogCrud
         table.Columns.Add("ParentKey");
         table.Columns.Add("Description");
         foreach (var insEditPatLog in listInsEditPatLogs)
-            table.Rows.Add(SOut.Long(insEditPatLog.InsEditPatLogNum), SOut.Long(insEditPatLog.FKey), SOut.Int((int) insEditPatLog.LogType), insEditPatLog.FieldName, insEditPatLog.OldValue, insEditPatLog.NewValue, SOut.Long(insEditPatLog.UserNum), SOut.DateT(insEditPatLog.DateTStamp, false), SOut.Long(insEditPatLog.ParentKey), insEditPatLog.Description);
+            table.Rows.Add(SOut.Long(insEditPatLog.InsEditPatLogNum), SOut.Long(insEditPatLog.FKey), SOut.Int((int) insEditPatLog.LogType), insEditPatLog.FieldName, insEditPatLog.OldValue, insEditPatLog.NewValue, SOut.Long(insEditPatLog.UserNum), SOut.DateTime(insEditPatLog.DateTStamp, false), SOut.Long(insEditPatLog.ParentKey), insEditPatLog.Description);
         return table;
     }
 

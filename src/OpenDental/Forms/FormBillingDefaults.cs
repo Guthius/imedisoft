@@ -9,6 +9,7 @@ using System.Linq;
 using OpenDentBusiness;
 using System.IO;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -261,7 +262,7 @@ namespace OpenDental {
 		
 		private void listElectBilling_SelectedIndexChanged(object sender,EventArgs e) {
 			//In Web mode do not allow ClaimX or EDS to be selected, provide warning if they are.
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				string disabledBillingProvider="";
 				if(listElectBilling.SelectedIndex==3) {
 					disabledBillingProvider+="ClaimX";

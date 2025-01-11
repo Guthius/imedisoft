@@ -83,7 +83,7 @@ public class XChargeTransactionCrud
         table.Columns.Add("TransactionDateTime");
         table.Columns.Add("BatchTotal");
         foreach (var xChargeTransaction in listXChargeTransactions)
-            table.Rows.Add(SOut.Long(xChargeTransaction.XChargeTransactionNum), xChargeTransaction.TransType, SOut.Double(xChargeTransaction.Amount), xChargeTransaction.CCEntry, SOut.Long(xChargeTransaction.PatNum), xChargeTransaction.Result, xChargeTransaction.ClerkID, xChargeTransaction.ResultCode, xChargeTransaction.Expiration, xChargeTransaction.CCType, xChargeTransaction.CreditCardNum, xChargeTransaction.BatchNum, xChargeTransaction.ItemNum, xChargeTransaction.ApprCode, SOut.DateT(xChargeTransaction.TransactionDateTime, false), SOut.Double(xChargeTransaction.BatchTotal));
+            table.Rows.Add(SOut.Long(xChargeTransaction.XChargeTransactionNum), xChargeTransaction.TransType, SOut.Double(xChargeTransaction.Amount), xChargeTransaction.CCEntry, SOut.Long(xChargeTransaction.PatNum), xChargeTransaction.Result, xChargeTransaction.ClerkID, xChargeTransaction.ResultCode, xChargeTransaction.Expiration, xChargeTransaction.CCType, xChargeTransaction.CreditCardNum, xChargeTransaction.BatchNum, xChargeTransaction.ItemNum, xChargeTransaction.ApprCode, SOut.DateTime(xChargeTransaction.TransactionDateTime, false), SOut.Double(xChargeTransaction.BatchTotal));
         return table;
     }
 
@@ -112,7 +112,7 @@ public class XChargeTransactionCrud
             + "'" + SOut.String(xChargeTransaction.BatchNum) + "',"
             + "'" + SOut.String(xChargeTransaction.ItemNum) + "',"
             + "'" + SOut.String(xChargeTransaction.ApprCode) + "',"
-            + SOut.DateT(xChargeTransaction.TransactionDateTime) + ","
+            + SOut.DateTime(xChargeTransaction.TransactionDateTime) + ","
             + SOut.Double(xChargeTransaction.BatchTotal) + ")";
         {
             xChargeTransaction.XChargeTransactionNum = Db.NonQ(command, true, "XChargeTransactionNum", "xChargeTransaction");
@@ -146,7 +146,7 @@ public class XChargeTransactionCrud
             + "'" + SOut.String(xChargeTransaction.BatchNum) + "',"
             + "'" + SOut.String(xChargeTransaction.ItemNum) + "',"
             + "'" + SOut.String(xChargeTransaction.ApprCode) + "',"
-            + SOut.DateT(xChargeTransaction.TransactionDateTime) + ","
+            + SOut.DateTime(xChargeTransaction.TransactionDateTime) + ","
             + SOut.Double(xChargeTransaction.BatchTotal) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
@@ -171,7 +171,7 @@ public class XChargeTransactionCrud
                       + "BatchNum             = '" + SOut.String(xChargeTransaction.BatchNum) + "', "
                       + "ItemNum              = '" + SOut.String(xChargeTransaction.ItemNum) + "', "
                       + "ApprCode             = '" + SOut.String(xChargeTransaction.ApprCode) + "', "
-                      + "TransactionDateTime  =  " + SOut.DateT(xChargeTransaction.TransactionDateTime) + ", "
+                      + "TransactionDateTime  =  " + SOut.DateTime(xChargeTransaction.TransactionDateTime) + ", "
                       + "BatchTotal           =  " + SOut.Double(xChargeTransaction.BatchTotal) + " "
                       + "WHERE XChargeTransactionNum = " + SOut.Long(xChargeTransaction.XChargeTransactionNum);
         Db.NonQ(command);
@@ -261,7 +261,7 @@ public class XChargeTransactionCrud
         if (xChargeTransaction.TransactionDateTime != oldXChargeTransaction.TransactionDateTime)
         {
             if (command != "") command += ",";
-            command += "TransactionDateTime = " + SOut.DateT(xChargeTransaction.TransactionDateTime) + "";
+            command += "TransactionDateTime = " + SOut.DateTime(xChargeTransaction.TransactionDateTime) + "";
         }
 
         if (xChargeTransaction.BatchTotal != oldXChargeTransaction.BatchTotal)

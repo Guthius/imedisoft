@@ -61,7 +61,7 @@ public class EobAttachCrud
         table.Columns.Add("FileName");
         table.Columns.Add("RawBase64");
         foreach (var eobAttach in listEobAttachs)
-            table.Rows.Add(SOut.Long(eobAttach.EobAttachNum), SOut.Long(eobAttach.ClaimPaymentNum), SOut.DateT(eobAttach.DateTCreated, false), eobAttach.FileName, eobAttach.RawBase64);
+            table.Rows.Add(SOut.Long(eobAttach.EobAttachNum), SOut.Long(eobAttach.ClaimPaymentNum), SOut.DateTime(eobAttach.DateTCreated, false), eobAttach.FileName, eobAttach.RawBase64);
         return table;
     }
 
@@ -78,7 +78,7 @@ public class EobAttachCrud
 
         command +=
             SOut.Long(eobAttach.ClaimPaymentNum) + ","
-                                                 + SOut.DateT(eobAttach.DateTCreated) + ","
+                                                 + SOut.DateTime(eobAttach.DateTCreated) + ","
                                                  + "'" + SOut.String(eobAttach.FileName) + "',"
                                                  + DbHelper.ParamChar + "paramRawBase64)";
         if (eobAttach.RawBase64 == null) eobAttach.RawBase64 = "";
@@ -103,7 +103,7 @@ public class EobAttachCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(eobAttach.EobAttachNum) + ",";
         command +=
             SOut.Long(eobAttach.ClaimPaymentNum) + ","
-                                                 + SOut.DateT(eobAttach.DateTCreated) + ","
+                                                 + SOut.DateTime(eobAttach.DateTCreated) + ","
                                                  + "'" + SOut.String(eobAttach.FileName) + "',"
                                                  + DbHelper.ParamChar + "paramRawBase64)";
         if (eobAttach.RawBase64 == null) eobAttach.RawBase64 = "";
@@ -119,7 +119,7 @@ public class EobAttachCrud
     {
         var command = "UPDATE eobattach SET "
                       + "ClaimPaymentNum=  " + SOut.Long(eobAttach.ClaimPaymentNum) + ", "
-                      + "DateTCreated   =  " + SOut.DateT(eobAttach.DateTCreated) + ", "
+                      + "DateTCreated   =  " + SOut.DateTime(eobAttach.DateTCreated) + ", "
                       + "FileName       = '" + SOut.String(eobAttach.FileName) + "', "
                       + "RawBase64      =  " + DbHelper.ParamChar + "paramRawBase64 "
                       + "WHERE EobAttachNum = " + SOut.Long(eobAttach.EobAttachNum);
@@ -140,7 +140,7 @@ public class EobAttachCrud
         if (eobAttach.DateTCreated != oldEobAttach.DateTCreated)
         {
             if (command != "") command += ",";
-            command += "DateTCreated = " + SOut.DateT(eobAttach.DateTCreated) + "";
+            command += "DateTCreated = " + SOut.DateTime(eobAttach.DateTCreated) + "";
         }
 
         if (eobAttach.FileName != oldEobAttach.FileName)

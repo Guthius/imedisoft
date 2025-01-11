@@ -90,7 +90,7 @@ public class SmsToMobileCrud
         table.Columns.Add("MsgDiscountUSD");
         table.Columns.Add("SecDateTEdit");
         foreach (var smsToMobile in listSmsToMobiles)
-            table.Rows.Add(SOut.Long(smsToMobile.SmsToMobileNum), SOut.Long(smsToMobile.PatNum), smsToMobile.GuidMessage, smsToMobile.GuidBatch, smsToMobile.SmsPhoneNumber, smsToMobile.MobilePhoneNumber, SOut.Bool(smsToMobile.IsTimeSensitive), SOut.Int((int) smsToMobile.MsgType), smsToMobile.MsgText, SOut.Int((int) smsToMobile.SmsStatus), SOut.Int(smsToMobile.MsgParts), SOut.Float(smsToMobile.MsgChargeUSD), SOut.Long(smsToMobile.ClinicNum), smsToMobile.CustErrorText, SOut.DateT(smsToMobile.DateTimeSent, false), SOut.DateT(smsToMobile.DateTimeTerminated, false), SOut.Bool(smsToMobile.IsHidden), SOut.Float(smsToMobile.MsgDiscountUSD), SOut.DateT(smsToMobile.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(smsToMobile.SmsToMobileNum), SOut.Long(smsToMobile.PatNum), smsToMobile.GuidMessage, smsToMobile.GuidBatch, smsToMobile.SmsPhoneNumber, smsToMobile.MobilePhoneNumber, SOut.Bool(smsToMobile.IsTimeSensitive), SOut.Int((int) smsToMobile.MsgType), smsToMobile.MsgText, SOut.Int((int) smsToMobile.SmsStatus), SOut.Int(smsToMobile.MsgParts), SOut.Float(smsToMobile.MsgChargeUSD), SOut.Long(smsToMobile.ClinicNum), smsToMobile.CustErrorText, SOut.DateTime(smsToMobile.DateTimeSent, false), SOut.DateTime(smsToMobile.DateTimeTerminated, false), SOut.Bool(smsToMobile.IsHidden), SOut.Float(smsToMobile.MsgDiscountUSD), SOut.DateTime(smsToMobile.SecDateTEdit, false));
         return table;
     }
 
@@ -119,8 +119,8 @@ public class SmsToMobileCrud
                                           + SOut.Float(smsToMobile.MsgChargeUSD) + ","
                                           + SOut.Long(smsToMobile.ClinicNum) + ","
                                           + "'" + SOut.String(smsToMobile.CustErrorText) + "',"
-                                          + SOut.DateT(smsToMobile.DateTimeSent) + ","
-                                          + SOut.DateT(smsToMobile.DateTimeTerminated) + ","
+                                          + SOut.DateTime(smsToMobile.DateTimeSent) + ","
+                                          + SOut.DateTime(smsToMobile.DateTimeTerminated) + ","
                                           + SOut.Bool(smsToMobile.IsHidden) + ","
                                           + SOut.Float(smsToMobile.MsgDiscountUSD) + ")";
         //SecDateTEdit can only be set by MySQL
@@ -192,9 +192,9 @@ public class SmsToMobileCrud
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(smsToMobile.CustErrorText) + "'");
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(smsToMobile.DateTimeSent));
+            sbRow.Append(SOut.DateTime(smsToMobile.DateTimeSent));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(smsToMobile.DateTimeTerminated));
+            sbRow.Append(SOut.DateTime(smsToMobile.DateTimeTerminated));
             sbRow.Append(",");
             sbRow.Append(SOut.Bool(smsToMobile.IsHidden));
             sbRow.Append(",");
@@ -243,8 +243,8 @@ public class SmsToMobileCrud
                                           + SOut.Float(smsToMobile.MsgChargeUSD) + ","
                                           + SOut.Long(smsToMobile.ClinicNum) + ","
                                           + "'" + SOut.String(smsToMobile.CustErrorText) + "',"
-                                          + SOut.DateT(smsToMobile.DateTimeSent) + ","
-                                          + SOut.DateT(smsToMobile.DateTimeTerminated) + ","
+                                          + SOut.DateTime(smsToMobile.DateTimeSent) + ","
+                                          + SOut.DateTime(smsToMobile.DateTimeTerminated) + ","
                                           + SOut.Bool(smsToMobile.IsHidden) + ","
                                           + SOut.Float(smsToMobile.MsgDiscountUSD) + ")";
         //SecDateTEdit can only be set by MySQL
@@ -273,8 +273,8 @@ public class SmsToMobileCrud
                       + "MsgChargeUSD      =  " + SOut.Float(smsToMobile.MsgChargeUSD) + ", "
                       + "ClinicNum         =  " + SOut.Long(smsToMobile.ClinicNum) + ", "
                       + "CustErrorText     = '" + SOut.String(smsToMobile.CustErrorText) + "', "
-                      + "DateTimeSent      =  " + SOut.DateT(smsToMobile.DateTimeSent) + ", "
-                      + "DateTimeTerminated=  " + SOut.DateT(smsToMobile.DateTimeTerminated) + ", "
+                      + "DateTimeSent      =  " + SOut.DateTime(smsToMobile.DateTimeSent) + ", "
+                      + "DateTimeTerminated=  " + SOut.DateTime(smsToMobile.DateTimeTerminated) + ", "
                       + "IsHidden          =  " + SOut.Bool(smsToMobile.IsHidden) + ", "
                       + "MsgDiscountUSD    =  " + SOut.Float(smsToMobile.MsgDiscountUSD) + " "
                       //SecDateTEdit can only be set by MySQL
@@ -368,13 +368,13 @@ public class SmsToMobileCrud
         if (smsToMobile.DateTimeSent != oldSmsToMobile.DateTimeSent)
         {
             if (command != "") command += ",";
-            command += "DateTimeSent = " + SOut.DateT(smsToMobile.DateTimeSent) + "";
+            command += "DateTimeSent = " + SOut.DateTime(smsToMobile.DateTimeSent) + "";
         }
 
         if (smsToMobile.DateTimeTerminated != oldSmsToMobile.DateTimeTerminated)
         {
             if (command != "") command += ",";
-            command += "DateTimeTerminated = " + SOut.DateT(smsToMobile.DateTimeTerminated) + "";
+            command += "DateTimeTerminated = " + SOut.DateTime(smsToMobile.DateTimeTerminated) + "";
         }
 
         if (smsToMobile.IsHidden != oldSmsToMobile.IsHidden)

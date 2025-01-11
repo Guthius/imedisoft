@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using OpenDental.Bridges;
@@ -54,7 +55,7 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(ODEnvironment.IsCloudServer){
+			if(/* ODEnvironment.IsCloudServer */ false){
 				sigBoxWrapper.Enabled=false;
 			}
 			comboTerminal.Items.Clear();

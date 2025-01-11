@@ -63,7 +63,7 @@ public class PerioExamCrud
         table.Columns.Add("DateTMeasureEdit");
         table.Columns.Add("Note");
         foreach (var perioExam in listPerioExams)
-            table.Rows.Add(SOut.Long(perioExam.PerioExamNum), SOut.Long(perioExam.PatNum), SOut.DateT(perioExam.ExamDate, false), SOut.Long(perioExam.ProvNum), SOut.DateT(perioExam.DateTMeasureEdit, false), perioExam.Note);
+            table.Rows.Add(SOut.Long(perioExam.PerioExamNum), SOut.Long(perioExam.PatNum), SOut.DateTime(perioExam.ExamDate, false), SOut.Long(perioExam.ProvNum), SOut.DateTime(perioExam.DateTMeasureEdit, false), perioExam.Note);
         return table;
     }
 
@@ -125,7 +125,7 @@ public class PerioExamCrud
                       + "PatNum          =  " + SOut.Long(perioExam.PatNum) + ", "
                       + "ExamDate        =  " + SOut.Date(perioExam.ExamDate) + ", "
                       + "ProvNum         =  " + SOut.Long(perioExam.ProvNum) + ", "
-                      + "DateTMeasureEdit=  " + SOut.DateT(perioExam.DateTMeasureEdit) + ", "
+                      + "DateTMeasureEdit=  " + SOut.DateTime(perioExam.DateTMeasureEdit) + ", "
                       + "Note            =  " + DbHelper.ParamChar + "paramNote "
                       + "WHERE PerioExamNum = " + SOut.Long(perioExam.PerioExamNum);
         if (perioExam.Note == null) perioExam.Note = "";
@@ -157,7 +157,7 @@ public class PerioExamCrud
         if (perioExam.DateTMeasureEdit != oldPerioExam.DateTMeasureEdit)
         {
             if (command != "") command += ",";
-            command += "DateTMeasureEdit = " + SOut.DateT(perioExam.DateTMeasureEdit) + "";
+            command += "DateTMeasureEdit = " + SOut.DateTime(perioExam.DateTMeasureEdit) + "";
         }
 
         if (perioExam.Note != oldPerioExam.Note)

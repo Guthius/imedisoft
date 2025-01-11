@@ -65,7 +65,7 @@ public class EncounterCrud
         table.Columns.Add("Note");
         table.Columns.Add("DateEncounter");
         foreach (var encounter in listEncounters)
-            table.Rows.Add(SOut.Long(encounter.EncounterNum), SOut.Long(encounter.PatNum), SOut.Long(encounter.ProvNum), encounter.CodeValue, encounter.CodeSystem, encounter.Note, SOut.DateT(encounter.DateEncounter, false));
+            table.Rows.Add(SOut.Long(encounter.EncounterNum), SOut.Long(encounter.PatNum), SOut.Long(encounter.ProvNum), encounter.CodeValue, encounter.CodeSystem, encounter.Note, SOut.DateTime(encounter.DateEncounter, false));
         return table;
     }
 

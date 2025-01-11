@@ -59,7 +59,7 @@ public class UpdateHistoryCrud
         table.Columns.Add("ProgramVersion");
         table.Columns.Add("Signature");
         foreach (var updateHistory in listUpdateHistorys)
-            table.Rows.Add(SOut.Long(updateHistory.UpdateHistoryNum), SOut.DateT(updateHistory.DateTimeUpdated, false), updateHistory.ProgramVersion, updateHistory.Signature);
+            table.Rows.Add(SOut.Long(updateHistory.UpdateHistoryNum), SOut.DateTime(updateHistory.DateTimeUpdated, false), updateHistory.ProgramVersion, updateHistory.Signature);
         return table;
     }
 

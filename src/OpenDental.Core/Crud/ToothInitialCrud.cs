@@ -72,7 +72,7 @@ public class ToothInitialCrud
         table.Columns.Add("SecDateTEdit");
         table.Columns.Add("DrawText");
         foreach (var toothInitial in listToothInitials)
-            table.Rows.Add(SOut.Long(toothInitial.ToothInitialNum), SOut.Long(toothInitial.PatNum), toothInitial.ToothNum, SOut.Int((int) toothInitial.InitialType), SOut.Float(toothInitial.Movement), toothInitial.DrawingSegment, SOut.Int(toothInitial.ColorDraw.ToArgb()), SOut.DateT(toothInitial.SecDateTEntry, false), SOut.DateT(toothInitial.SecDateTEdit, false), toothInitial.DrawText);
+            table.Rows.Add(SOut.Long(toothInitial.ToothInitialNum), SOut.Long(toothInitial.PatNum), toothInitial.ToothNum, SOut.Int((int) toothInitial.InitialType), SOut.Float(toothInitial.Movement), toothInitial.DrawingSegment, SOut.Int(toothInitial.ColorDraw.ToArgb()), SOut.DateTime(toothInitial.SecDateTEntry, false), SOut.DateTime(toothInitial.SecDateTEdit, false), toothInitial.DrawText);
         return table;
     }
 

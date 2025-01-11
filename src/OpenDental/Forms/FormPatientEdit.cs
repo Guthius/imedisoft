@@ -10,6 +10,7 @@ using OpenDentBusiness.HL7;
 using System.Diagnostics;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -1568,14 +1569,10 @@ End of Checklist================================================================
 				MsgBox.Show(this,"Please fill in Address, City, and ST before using maps.");
 				return;
 			}
-			try {
+			try
+			{
 				string mapUrl="http://maps.google.com/maps?t=m&q="+textAddress.Text+" "+textAddress2.Text+" "+textCity.Text+" "+textState.Text;
-				if (false) {
-					ODCloudClient.LaunchFileWithODCloudClient(mapUrl);
-				}
-				else {
-					Process.Start(mapUrl);
-				}
+				Process.Start(mapUrl);
 			}
 			catch {
 				MsgBox.Show(this,"Failed to open web browser.  Please make sure you have a default browser set and are connected to the internet then try again.");

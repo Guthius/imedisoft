@@ -105,7 +105,7 @@ public class ProcTPCrud
         table.Columns.Add("ClinicNum");
         table.Columns.Add("CatPercUCR");
         foreach (var procTP in listProcTPs)
-            table.Rows.Add(SOut.Long(procTP.ProcTPNum), SOut.Long(procTP.TreatPlanNum), SOut.Long(procTP.PatNum), SOut.Long(procTP.ProcNumOrig), SOut.Int(procTP.ItemOrder), SOut.Long(procTP.Priority), procTP.ToothNumTP, procTP.Surf, procTP.ProcCode, procTP.Descript, SOut.Double(procTP.FeeAmt), SOut.Double(procTP.PriInsAmt), SOut.Double(procTP.SecInsAmt), SOut.Double(procTP.PatAmt), SOut.Double(procTP.Discount), procTP.Prognosis, procTP.Dx, procTP.ProcAbbr, SOut.Long(procTP.SecUserNumEntry), SOut.DateT(procTP.SecDateEntry, false), SOut.DateT(procTP.SecDateTEdit, false), SOut.Double(procTP.FeeAllowed), SOut.Double(procTP.TaxAmt), SOut.Long(procTP.ProvNum), SOut.DateT(procTP.DateTP, false), SOut.Long(procTP.ClinicNum), SOut.Double(procTP.CatPercUCR));
+            table.Rows.Add(SOut.Long(procTP.ProcTPNum), SOut.Long(procTP.TreatPlanNum), SOut.Long(procTP.PatNum), SOut.Long(procTP.ProcNumOrig), SOut.Int(procTP.ItemOrder), SOut.Long(procTP.Priority), procTP.ToothNumTP, procTP.Surf, procTP.ProcCode, procTP.Descript, SOut.Double(procTP.FeeAmt), SOut.Double(procTP.PriInsAmt), SOut.Double(procTP.SecInsAmt), SOut.Double(procTP.PatAmt), SOut.Double(procTP.Discount), procTP.Prognosis, procTP.Dx, procTP.ProcAbbr, SOut.Long(procTP.SecUserNumEntry), SOut.DateTime(procTP.SecDateEntry, false), SOut.DateTime(procTP.SecDateTEdit, false), SOut.Double(procTP.FeeAllowed), SOut.Double(procTP.TaxAmt), SOut.Long(procTP.ProvNum), SOut.DateTime(procTP.DateTP, false), SOut.Long(procTP.ClinicNum), SOut.Double(procTP.CatPercUCR));
         return table;
     }
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.SheetFramework;
@@ -38,7 +39,7 @@ namespace OpenDental {
 			menuItemSetup.Add("eForms",menuItemEForms_Click);
 			menuItemSetup.Add("Image Categories",menuItemImageCats_Click);
 			menuItemSetup.Add("Options",menuItemOptions_Click);
-			//if(ODBuild.IsDebug() || false) {
+			//if(/* ODBuild.IsDebug() */ false || false) {
 			//	menuItemSetup.Add("Import Rules",menuItemImportRules_Click);
 			//}
 			menuMain.EndUpdate();
@@ -316,7 +317,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Cannot open kiosk unless process signal interval is set. To set it, go to Setup > Miscellaneous.");
 				return;
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Thinfinity messes up window ordering so sometimes FormOpenDental is visible in Kiosk mode.
 				for(int i=0;i<Application.OpenForms.Count;i++) {
 					Application.OpenForms[i].Visible=false;
@@ -326,7 +327,7 @@ namespace OpenDental {
 			formTerminal.IsSimpleMode=true;
 			formTerminal.PatNum=PatNum;
 			formTerminal.ShowDialog();
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				for(int i=0;i<Application.OpenForms.Count;i++) {
 					Application.OpenForms[i].Visible=true;
 				}
@@ -457,7 +458,7 @@ namespace OpenDental {
 					return;
 				}
 			}
-			//if(ODBuild.IsDebug() || false) {
+			//if(/* ODBuild.IsDebug() */ false || false) {
 				//this is for testing the new automatic import
 				//	MsgBox.Show(this,"Done");
 				//	return;

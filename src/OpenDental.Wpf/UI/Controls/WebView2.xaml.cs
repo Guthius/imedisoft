@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Microsoft.Web.WebView2.Core;
 
 namespace WpfControls.UI {
@@ -79,7 +80,7 @@ namespace WpfControls.UI {
 				//string userDataFolder= "C:\\Program Files (x86)\\OpenDental\\OpenDental.exe.WebView2";
 				//New location is like this:
 				//C:\\Users\\User\\AppData\\Local\\Temp\\opendental
-				string userDataFolder=OpenDentBusiness.PrefC.GetTempFolderPath();
+				string userDataFolder=PrefC.GetTempFolderPath();
 				try {
 					//exceptions include no permission for folder, or runtime not installed, like not running in x86
 					CoreWebView2Environment coreWebView2Environment=await CoreWebView2Environment.CreateAsync(userDataFolder:userDataFolder);

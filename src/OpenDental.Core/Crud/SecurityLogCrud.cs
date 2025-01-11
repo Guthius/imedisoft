@@ -75,7 +75,7 @@ public class SecurityLogCrud
         table.Columns.Add("DefNumError");
         table.Columns.Add("DateTPrevious");
         foreach (var securityLog in listSecurityLogs)
-            table.Rows.Add(SOut.Long(securityLog.SecurityLogNum), SOut.Int((int) securityLog.PermType), SOut.Long(securityLog.UserNum), SOut.DateT(securityLog.LogDateTime, false), securityLog.LogText, SOut.Long(securityLog.PatNum), securityLog.CompName, SOut.Long(securityLog.FKey), SOut.Int((int) securityLog.LogSource), SOut.Long(securityLog.DefNum), SOut.Long(securityLog.DefNumError), SOut.DateT(securityLog.DateTPrevious, false));
+            table.Rows.Add(SOut.Long(securityLog.SecurityLogNum), SOut.Int((int) securityLog.PermType), SOut.Long(securityLog.UserNum), SOut.DateTime(securityLog.LogDateTime, false), securityLog.LogText, SOut.Long(securityLog.PatNum), securityLog.CompName, SOut.Long(securityLog.FKey), SOut.Int((int) securityLog.LogSource), SOut.Long(securityLog.DefNum), SOut.Long(securityLog.DefNumError), SOut.DateTime(securityLog.DateTPrevious, false));
         return table;
     }
 
@@ -101,7 +101,7 @@ public class SecurityLogCrud
                                                  + SOut.Int((int) securityLog.LogSource) + ","
                                                  + SOut.Long(securityLog.DefNum) + ","
                                                  + SOut.Long(securityLog.DefNumError) + ","
-                                                 + SOut.DateT(securityLog.DateTPrevious) + ")";
+                                                 + SOut.DateTime(securityLog.DateTPrevious) + ")";
         if (securityLog.LogText == null) securityLog.LogText = "";
         var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
         {
@@ -133,7 +133,7 @@ public class SecurityLogCrud
                                                  + SOut.Int((int) securityLog.LogSource) + ","
                                                  + SOut.Long(securityLog.DefNum) + ","
                                                  + SOut.Long(securityLog.DefNumError) + ","
-                                                 + SOut.DateT(securityLog.DateTPrevious) + ")";
+                                                 + SOut.DateTime(securityLog.DateTPrevious) + ")";
         if (securityLog.LogText == null) securityLog.LogText = "";
         var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
         if (useExistingPK || isRandomKeys)
@@ -156,7 +156,7 @@ public class SecurityLogCrud
                       + "LogSource     =  " + SOut.Int((int) securityLog.LogSource) + ", "
                       + "DefNum        =  " + SOut.Long(securityLog.DefNum) + ", "
                       + "DefNumError   =  " + SOut.Long(securityLog.DefNumError) + ", "
-                      + "DateTPrevious =  " + SOut.DateT(securityLog.DateTPrevious) + " "
+                      + "DateTPrevious =  " + SOut.DateTime(securityLog.DateTPrevious) + " "
                       + "WHERE SecurityLogNum = " + SOut.Long(securityLog.SecurityLogNum);
         if (securityLog.LogText == null) securityLog.LogText = "";
         var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
@@ -224,7 +224,7 @@ public class SecurityLogCrud
         if (securityLog.DateTPrevious != oldSecurityLog.DateTPrevious)
         {
             if (command != "") command += ",";
-            command += "DateTPrevious = " + SOut.DateT(securityLog.DateTPrevious) + "";
+            command += "DateTPrevious = " + SOut.DateTime(securityLog.DateTPrevious) + "";
         }
 
         if (command == "") return false;

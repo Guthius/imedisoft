@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -21,9 +22,6 @@ namespace OpenDental {
 			InitializeLayoutManager();
 			Lan.F(this);
 			textPatientFacingPaymentUrl.Text=WebAppUtil.GetWebAppUrl(eServiceCode.PaymentPortalUI,Clinics.ClinicNum);
-			if(!true) {
-				comboClinicPicker.Visible=false;
-			}
 		}
 
 		private void FormEServicesPaymentPortal_Load(object sender,EventArgs e) {

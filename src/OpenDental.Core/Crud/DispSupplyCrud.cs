@@ -63,7 +63,7 @@ public class DispSupplyCrud
         table.Columns.Add("DispQuantity");
         table.Columns.Add("Note");
         foreach (var dispSupply in listDispSupplys)
-            table.Rows.Add(SOut.Long(dispSupply.DispSupplyNum), SOut.Long(dispSupply.SupplyNum), SOut.Long(dispSupply.ProvNum), SOut.DateT(dispSupply.DateDispensed, false), SOut.Float(dispSupply.DispQuantity), dispSupply.Note);
+            table.Rows.Add(SOut.Long(dispSupply.DispSupplyNum), SOut.Long(dispSupply.SupplyNum), SOut.Long(dispSupply.ProvNum), SOut.DateTime(dispSupply.DateDispensed, false), SOut.Float(dispSupply.DispQuantity), dispSupply.Note);
         return table;
     }
 

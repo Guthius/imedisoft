@@ -130,7 +130,7 @@ public class DocumentCrud
         table.Columns.Add("UserNum");
         table.Columns.Add("ChartLetterHash");
         foreach (var document in listDocuments)
-            table.Rows.Add(SOut.Long(document.DocNum), document.Description, SOut.DateT(document.DateCreated, false), SOut.Long(document.DocCategory), SOut.Long(document.PatNum), document.FileName, SOut.Int((int) document.ImgType), SOut.Bool(document.IsFlipped), SOut.Float(document.DegreesRotated), document.ToothNumbers, document.Note, SOut.Bool(document.SigIsTopaz), document.Signature, SOut.Int(document.CropX), SOut.Int(document.CropY), SOut.Int(document.CropW), SOut.Int(document.CropH), SOut.Int(document.WindowingMin), SOut.Int(document.WindowingMax), SOut.Long(document.MountItemNum), SOut.DateT(document.DateTStamp, false), document.RawBase64, document.Thumbnail, document.ExternalGUID, SOut.Int((int) document.ExternalSource), SOut.Long(document.ProvNum), SOut.Bool(document.IsCropOld), document.OcrResponseData, SOut.Int((int) document.ImageCaptureType), SOut.Bool(document.PrintHeading), SOut.Int((int) document.ChartLetterStatus), SOut.Long(document.UserNum), document.ChartLetterHash);
+            table.Rows.Add(SOut.Long(document.DocNum), document.Description, SOut.DateTime(document.DateCreated, false), SOut.Long(document.DocCategory), SOut.Long(document.PatNum), document.FileName, SOut.Int((int) document.ImgType), SOut.Bool(document.IsFlipped), SOut.Float(document.DegreesRotated), document.ToothNumbers, document.Note, SOut.Bool(document.SigIsTopaz), document.Signature, SOut.Int(document.CropX), SOut.Int(document.CropY), SOut.Int(document.CropW), SOut.Int(document.CropH), SOut.Int(document.WindowingMin), SOut.Int(document.WindowingMax), SOut.Long(document.MountItemNum), SOut.DateTime(document.DateTStamp, false), document.RawBase64, document.Thumbnail, document.ExternalGUID, SOut.Int((int) document.ExternalSource), SOut.Long(document.ProvNum), SOut.Bool(document.IsCropOld), document.OcrResponseData, SOut.Int((int) document.ImageCaptureType), SOut.Bool(document.PrintHeading), SOut.Int((int) document.ChartLetterStatus), SOut.Long(document.UserNum), document.ChartLetterHash);
         return table;
     }
 
@@ -147,7 +147,7 @@ public class DocumentCrud
 
         command +=
             "'" + SOut.String(document.Description) + "',"
-            + SOut.DateT(document.DateCreated) + ","
+            + SOut.DateTime(document.DateCreated) + ","
             + SOut.Long(document.DocCategory) + ","
             + SOut.Long(document.PatNum) + ","
             + "'" + SOut.String(document.FileName) + "',"
@@ -208,7 +208,7 @@ public class DocumentCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(document.DocNum) + ",";
         command +=
             "'" + SOut.String(document.Description) + "',"
-            + SOut.DateT(document.DateCreated) + ","
+            + SOut.DateTime(document.DateCreated) + ","
             + SOut.Long(document.DocCategory) + ","
             + SOut.Long(document.PatNum) + ","
             + "'" + SOut.String(document.FileName) + "',"
@@ -260,7 +260,7 @@ public class DocumentCrud
     {
         var command = "UPDATE document SET "
                       + "Description      = '" + SOut.String(document.Description) + "', "
-                      + "DateCreated      =  " + SOut.DateT(document.DateCreated) + ", "
+                      + "DateCreated      =  " + SOut.DateTime(document.DateCreated) + ", "
                       + "DocCategory      =  " + SOut.Long(document.DocCategory) + ", "
                       + "PatNum           =  " + SOut.Long(document.PatNum) + ", "
                       + "FileName         = '" + SOut.String(document.FileName) + "', "
@@ -317,7 +317,7 @@ public class DocumentCrud
         if (document.DateCreated != oldDocument.DateCreated)
         {
             if (command != "") command += ",";
-            command += "DateCreated = " + SOut.DateT(document.DateCreated) + "";
+            command += "DateCreated = " + SOut.DateTime(document.DateCreated) + "";
         }
 
         if (document.DocCategory != oldDocument.DocCategory)

@@ -184,9 +184,6 @@ namespace OpenDental {
 	public class FriendlyException {
 		///<summary>Assumes friendlyMessage is already translated.  Will throw an exception when running UnitTests.</summary>
 		public static void Show(string friendlyMessage,Exception ex,bool isUnhandledException=false) {
-			if(ODBuild.IsUnitTest) {
-				throw new Exception(friendlyMessage,ex);
-			}
 			FrmFriendlyException frmFriendlyException=new FrmFriendlyException(friendlyMessage,ex,isUnhandledException);
 			try {
 				frmFriendlyException.ShowDialog();

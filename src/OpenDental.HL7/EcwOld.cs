@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.XPath;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
 
@@ -32,7 +33,7 @@ namespace OpenDentHL7 {
 			if(Programs.UsingEcwTightOrFullMode()) {
 				ecwOldIsStandalone=false;
 			}
-			//if(ODBuild.IsDebug()) {//just so I don't forget to remove it later.
+			//if(/* ODBuild.IsDebug() */ false) {//just so I don't forget to remove it later.
 				//IsStandalone=false;
 			//}
 			ecwOldHl7FolderOut=PrefC.GetString(PrefName.HL7FolderOut);

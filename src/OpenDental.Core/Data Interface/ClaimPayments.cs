@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -197,7 +198,7 @@ public class ClaimPayments
 
         if (table.Rows[0][0].ToString() != "0" && !HasAutoDeposit(claimPayment))
             //if claimpayment is already attached to a deposit and was not created automatically
-            if (!ODBuild.IsDebug())
+            if (!/* ODBuild.IsDebug() */ false)
                 throw new ApplicationException(Lans.g("ClaimPayments", "Not allowed to delete a payment attached to a deposit."));
 
         //validate eobs

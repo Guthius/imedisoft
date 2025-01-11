@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using CodeBase;
 using System.Collections.Generic;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using OpenDental.Cloud.Storage;
 using Dropbox = OpenDentBusiness.Dropbox;
 
@@ -77,7 +78,7 @@ namespace OpenDental{
 					ActiveControl=textLocalPath;//Focus on textLocalPath, since this is the only textbox the user can edit in this case.
 				}
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				textSftpUsername.UseSystemPasswordChar=true;
 				butOK.Enabled=false;
 				DisableMostControls();

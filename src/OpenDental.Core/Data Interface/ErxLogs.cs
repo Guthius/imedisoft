@@ -19,7 +19,7 @@ public class ErxLogs
     /// </summary>
     public static ErxLog GetLatestForPat(long patNum, DateTime dateTimeMax)
     {
-        var command = DbHelper.LimitOrderBy("SELECT * FROM erxlog WHERE PatNum=" + SOut.Long(patNum) + " AND DateTStamp<" + SOut.DateT(dateTimeMax) + " ORDER BY DateTStamp DESC", 1);
+        var command = DbHelper.LimitOrderBy("SELECT * FROM erxlog WHERE PatNum=" + SOut.Long(patNum) + " AND DateTStamp<" + SOut.DateTime(dateTimeMax) + " ORDER BY DateTStamp DESC", 1);
         var listErxLogs = ErxLogCrud.SelectMany(command);
         if (listErxLogs.Count == 0) return null;
         return listErxLogs[0];

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -106,7 +107,7 @@ namespace OpenDental{
 				return false;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.AgingRan,0,"Starting Aging - Finance Charges window");
-			Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateT(dateTNow,false));//get lock on pref to block others
+			Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateTime(dateTNow,false));//get lock on pref to block others
 			Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
 			ProgressWin progressOD=new ProgressWin();
 			progressOD.ActionMain=()=>{

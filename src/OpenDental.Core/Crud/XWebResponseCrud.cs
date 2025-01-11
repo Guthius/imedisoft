@@ -138,7 +138,7 @@ public class XWebResponseCrud
         table.Columns.Add("EmailResponse");
         table.Columns.Add("LogGuid");
         foreach (var xWebResponse in listXWebResponses)
-            table.Rows.Add(SOut.Long(xWebResponse.XWebResponseNum), SOut.Long(xWebResponse.PatNum), SOut.Long(xWebResponse.ProvNum), SOut.Long(xWebResponse.ClinicNum), SOut.Long(xWebResponse.PaymentNum), SOut.DateT(xWebResponse.DateTEntry, false), SOut.DateT(xWebResponse.DateTUpdate, false), SOut.Int((int) xWebResponse.TransactionStatus), SOut.Int(xWebResponse.ResponseCode), SOut.Int((int) xWebResponse.XWebResponseCode), xWebResponse.ResponseDescription, xWebResponse.OTK, xWebResponse.HpfUrl, SOut.DateT(xWebResponse.HpfExpiration, false), xWebResponse.TransactionID, xWebResponse.TransactionType, xWebResponse.Alias, xWebResponse.CardType, xWebResponse.CardBrand, xWebResponse.CardBrandShort, xWebResponse.MaskedAcctNum, SOut.Double(xWebResponse.Amount), xWebResponse.ApprovalCode, xWebResponse.CardCodeResponse, SOut.Int(xWebResponse.ReceiptID), xWebResponse.ExpDate, xWebResponse.EntryMethod, xWebResponse.ProcessorResponse, SOut.Int(xWebResponse.BatchNum), SOut.Double(xWebResponse.BatchAmount), SOut.DateT(xWebResponse.AccountExpirationDate, false), xWebResponse.DebugError, xWebResponse.PayNote, SOut.Int((int) xWebResponse.CCSource), xWebResponse.OrderId, xWebResponse.EmailResponse, xWebResponse.LogGuid);
+            table.Rows.Add(SOut.Long(xWebResponse.XWebResponseNum), SOut.Long(xWebResponse.PatNum), SOut.Long(xWebResponse.ProvNum), SOut.Long(xWebResponse.ClinicNum), SOut.Long(xWebResponse.PaymentNum), SOut.DateTime(xWebResponse.DateTEntry, false), SOut.DateTime(xWebResponse.DateTUpdate, false), SOut.Int((int) xWebResponse.TransactionStatus), SOut.Int(xWebResponse.ResponseCode), SOut.Int((int) xWebResponse.XWebResponseCode), xWebResponse.ResponseDescription, xWebResponse.OTK, xWebResponse.HpfUrl, SOut.DateTime(xWebResponse.HpfExpiration, false), xWebResponse.TransactionID, xWebResponse.TransactionType, xWebResponse.Alias, xWebResponse.CardType, xWebResponse.CardBrand, xWebResponse.CardBrandShort, xWebResponse.MaskedAcctNum, SOut.Double(xWebResponse.Amount), xWebResponse.ApprovalCode, xWebResponse.CardCodeResponse, SOut.Int(xWebResponse.ReceiptID), xWebResponse.ExpDate, xWebResponse.EntryMethod, xWebResponse.ProcessorResponse, SOut.Int(xWebResponse.BatchNum), SOut.Double(xWebResponse.BatchAmount), SOut.DateTime(xWebResponse.AccountExpirationDate, false), xWebResponse.DebugError, xWebResponse.PayNote, SOut.Int((int) xWebResponse.CCSource), xWebResponse.OrderId, xWebResponse.EmailResponse, xWebResponse.LogGuid);
         return table;
     }
 
@@ -159,14 +159,14 @@ public class XWebResponseCrud
                                            + SOut.Long(xWebResponse.ClinicNum) + ","
                                            + SOut.Long(xWebResponse.PaymentNum) + ","
                                            + DbHelper.Now() + ","
-                                           + SOut.DateT(xWebResponse.DateTUpdate) + ","
+                                           + SOut.DateTime(xWebResponse.DateTUpdate) + ","
                                            + SOut.Int((int) xWebResponse.TransactionStatus) + ","
                                            + SOut.Int(xWebResponse.ResponseCode) + ","
                                            + "'" + SOut.String(xWebResponse.XWebResponseCode.ToString()) + "',"
                                            + "'" + SOut.String(xWebResponse.ResponseDescription) + "',"
                                            + "'" + SOut.String(xWebResponse.OTK) + "',"
                                            + DbHelper.ParamChar + "paramHpfUrl,"
-                                           + SOut.DateT(xWebResponse.HpfExpiration) + ","
+                                           + SOut.DateTime(xWebResponse.HpfExpiration) + ","
                                            + "'" + SOut.String(xWebResponse.TransactionID) + "',"
                                            + "'" + SOut.String(xWebResponse.TransactionType) + "',"
                                            + "'" + SOut.String(xWebResponse.Alias) + "',"
@@ -220,14 +220,14 @@ public class XWebResponseCrud
                                            + SOut.Long(xWebResponse.ClinicNum) + ","
                                            + SOut.Long(xWebResponse.PaymentNum) + ","
                                            + DbHelper.Now() + ","
-                                           + SOut.DateT(xWebResponse.DateTUpdate) + ","
+                                           + SOut.DateTime(xWebResponse.DateTUpdate) + ","
                                            + SOut.Int((int) xWebResponse.TransactionStatus) + ","
                                            + SOut.Int(xWebResponse.ResponseCode) + ","
                                            + "'" + SOut.String(xWebResponse.XWebResponseCode.ToString()) + "',"
                                            + "'" + SOut.String(xWebResponse.ResponseDescription) + "',"
                                            + "'" + SOut.String(xWebResponse.OTK) + "',"
                                            + DbHelper.ParamChar + "paramHpfUrl,"
-                                           + SOut.DateT(xWebResponse.HpfExpiration) + ","
+                                           + SOut.DateTime(xWebResponse.HpfExpiration) + ","
                                            + "'" + SOut.String(xWebResponse.TransactionID) + "',"
                                            + "'" + SOut.String(xWebResponse.TransactionType) + "',"
                                            + "'" + SOut.String(xWebResponse.Alias) + "',"
@@ -272,14 +272,14 @@ public class XWebResponseCrud
                       + "ClinicNum            =  " + SOut.Long(xWebResponse.ClinicNum) + ", "
                       + "PaymentNum           =  " + SOut.Long(xWebResponse.PaymentNum) + ", "
                       //DateTEntry not allowed to change
-                      + "DateTUpdate          =  " + SOut.DateT(xWebResponse.DateTUpdate) + ", "
+                      + "DateTUpdate          =  " + SOut.DateTime(xWebResponse.DateTUpdate) + ", "
                       + "TransactionStatus    =  " + SOut.Int((int) xWebResponse.TransactionStatus) + ", "
                       + "ResponseCode         =  " + SOut.Int(xWebResponse.ResponseCode) + ", "
                       + "XWebResponseCode     = '" + SOut.String(xWebResponse.XWebResponseCode.ToString()) + "', "
                       + "ResponseDescription  = '" + SOut.String(xWebResponse.ResponseDescription) + "', "
                       + "OTK                  = '" + SOut.String(xWebResponse.OTK) + "', "
                       + "HpfUrl               =  " + DbHelper.ParamChar + "paramHpfUrl, "
-                      + "HpfExpiration        =  " + SOut.DateT(xWebResponse.HpfExpiration) + ", "
+                      + "HpfExpiration        =  " + SOut.DateTime(xWebResponse.HpfExpiration) + ", "
                       + "TransactionID        = '" + SOut.String(xWebResponse.TransactionID) + "', "
                       + "TransactionType      = '" + SOut.String(xWebResponse.TransactionType) + "', "
                       + "Alias                = '" + SOut.String(xWebResponse.Alias) + "', "
@@ -344,7 +344,7 @@ public class XWebResponseCrud
         if (xWebResponse.DateTUpdate != oldXWebResponse.DateTUpdate)
         {
             if (command != "") command += ",";
-            command += "DateTUpdate = " + SOut.DateT(xWebResponse.DateTUpdate) + "";
+            command += "DateTUpdate = " + SOut.DateTime(xWebResponse.DateTUpdate) + "";
         }
 
         if (xWebResponse.TransactionStatus != oldXWebResponse.TransactionStatus)
@@ -386,7 +386,7 @@ public class XWebResponseCrud
         if (xWebResponse.HpfExpiration != oldXWebResponse.HpfExpiration)
         {
             if (command != "") command += ",";
-            command += "HpfExpiration = " + SOut.DateT(xWebResponse.HpfExpiration) + "";
+            command += "HpfExpiration = " + SOut.DateTime(xWebResponse.HpfExpiration) + "";
         }
 
         if (xWebResponse.TransactionID != oldXWebResponse.TransactionID)

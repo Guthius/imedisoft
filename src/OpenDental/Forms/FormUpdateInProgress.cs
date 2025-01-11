@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using CodeBase;
 using System.Xml;
 using System.Xml.XPath;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormUpdateInProgress:FormODBase {

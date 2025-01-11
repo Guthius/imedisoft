@@ -10,6 +10,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using System.Globalization;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{

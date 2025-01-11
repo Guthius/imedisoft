@@ -10,6 +10,7 @@ using OpenDental.ReportingComplex;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental
 {

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using DentalXChange.Dps.Pos;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using MigraDoc.DocumentObjectModel;
@@ -2693,7 +2694,7 @@ namespace OpenDental {
 		private void PrintReceipt(string receiptStr,string strAuditDescription) {//TODO: Implement ODprintout pattern - MigraDoc
 			MigraDocPrintDocument migraDocPrintDocument=new MigraDocPrintDocument(new DocumentRenderer(CreatePDFDoc(receiptStr)));
 			migraDocPrintDocument.Renderer.PrepareDocument();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				using FormRpPrintPreview formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
 				formRpPrintPreview.ShowDialog();
 				return;
@@ -3901,7 +3902,7 @@ namespace OpenDental {
 		///If prepaidAmt is not zero, then will show the xcharge window with the given prepaid amount and let the user enter card # and exp.
 		///A patient is not required for prepaid cards.</summary>
 		public string MakeXChargeTransaction(double prepaidAmt = 0) {
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				MsgBox.Show(this,"XCharge is not available while using Open Dental Cloud.");
 				return null;
 			}

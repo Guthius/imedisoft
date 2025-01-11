@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Drawing;
 using System.Xml.Serialization;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness{
 	

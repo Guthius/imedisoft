@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 

@@ -537,7 +537,7 @@ namespace OpenDental {
 				e.Cancel=true;
 				return;
 			}
-			else if(e.Url.ToString().Contains("wikifile:") && !ODEnvironment.IsCloudInstance) {
+			else if(e.Url.ToString().Contains("wikifile:") && !/* ODEnvironment.IsCloudInstance */ false) {
 				string fileName=e.Url.ToString().Substring(e.Url.ToString().LastIndexOf("wikifile:")+9).Replace("/","\\");
 				if(!File.Exists(fileName)) {
 					MessageBox.Show(Lan.g(this,"File does not exist: ")+fileName);
@@ -552,7 +552,7 @@ namespace OpenDental {
 				e.Cancel=true;
 				return;
 			}
-			else if(e.Url.ToString().Contains("folder:") && !ODEnvironment.IsCloudInstance) {
+			else if(e.Url.ToString().Contains("folder:") && !/* ODEnvironment.IsCloudInstance */ false) {
 				string folderName=e.Url.ToString().Substring(e.Url.ToString().LastIndexOf("folder:")+7).Replace("/","\\");
 				if(!Directory.Exists(folderName)) {
 					MessageBox.Show(Lan.g(this,"Folder does not exist: ")+folderName);
@@ -598,13 +598,9 @@ namespace OpenDental {
 				return;
 			}
 			else if(e.Url.ToString().StartsWith("http")) {//navigating outside of wiki by clicking a link
-				try {
-					if(false) {
-						ODCloudClient.LaunchFileWithODCloudClient(e.Url.ToString());
-					}
-					else {
-						System.Diagnostics.Process.Start(e.Url.ToString());
-					}
+				try
+				{
+					System.Diagnostics.Process.Start(e.Url.ToString());
 				}
 				catch(Exception ex) {
 				}
@@ -664,13 +660,9 @@ namespace OpenDental {
 				return;
 			}
 			if(wikiLinkMouseHoverName.StartsWith("http")) {
-				try {
-					if(false) {
-						ODCloudClient.LaunchFileWithODCloudClient(wikiLinkMouseHoverName);
-					}
-					else {
-						System.Diagnostics.Process.Start(wikiLinkMouseHoverName);
-					}
+				try
+				{
+					System.Diagnostics.Process.Start(wikiLinkMouseHoverName);
 				}
 				catch(Exception ex) {
 				}

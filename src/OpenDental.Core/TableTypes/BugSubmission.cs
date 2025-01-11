@@ -310,7 +310,6 @@ namespace OpenDentBusiness {
 				_info.PreviousUpdateTime=listHist.Count>0 ? listHist[0].DateTimeUpdated : DateTime.MinValue;//Show when they updated to the current version.
 			});
 			ODException.SwallowAnyException(() => { _info.ModuleNameCur=moduleName; });
-			ODException.SwallowAnyException(() => { _info.StorageEngine=MiscData.GetStorageEngine(); });
 			ODException.SwallowAnyException(() => { _info.OpenDentBusinessVersion=MiscData.GetAssemblyVersion(); });
 			ODException.SwallowAnyException(() => { _info.EnvSessionName=Environment.GetEnvironmentVariable("SESSIONNAME"); });
 			ODException.SwallowAnyException(() => { _info.DbmsVersion=MiscData.GetMySqlVersion(getRawVersion:true); });

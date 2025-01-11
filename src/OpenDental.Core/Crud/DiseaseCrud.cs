@@ -71,7 +71,7 @@ public class DiseaseCrud
         table.Columns.Add("SnomedProblemType");
         table.Columns.Add("FunctionStatus");
         foreach (var disease in listDiseases)
-            table.Rows.Add(SOut.Long(disease.DiseaseNum), SOut.Long(disease.PatNum), SOut.Long(disease.DiseaseDefNum), disease.PatNote, SOut.DateT(disease.DateTStamp, false), SOut.Int((int) disease.ProbStatus), SOut.DateT(disease.DateStart, false), SOut.DateT(disease.DateStop, false), disease.SnomedProblemType, SOut.Int((int) disease.FunctionStatus));
+            table.Rows.Add(SOut.Long(disease.DiseaseNum), SOut.Long(disease.PatNum), SOut.Long(disease.DiseaseDefNum), disease.PatNote, SOut.DateTime(disease.DateTStamp, false), SOut.Int((int) disease.ProbStatus), SOut.DateTime(disease.DateStart, false), SOut.DateTime(disease.DateStop, false), disease.SnomedProblemType, SOut.Int((int) disease.FunctionStatus));
         return table;
     }
 

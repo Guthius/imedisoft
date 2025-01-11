@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 
@@ -129,13 +130,6 @@ namespace OpenDental{
 		}
 
 		private void butExport_Click(object sender, System.EventArgs e) {
-			if(false) {
-				using MemoryStream memoryStream=new MemoryStream();
-				_bitmapTemp.Save(memoryStream,ImageFormat.Jpeg);
-				byte[] byteArray=memoryStream.ToArray();
-				CloudClientL.ExportForCloud("Screenshot.jpg",false,byteArray);
-				return;
-			}
 			using SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
 			saveFileDialog.AddExtension=true;
 			saveFileDialog.Title=Lan.g(this,"Select Folder to Save Image To");

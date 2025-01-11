@@ -93,7 +93,7 @@ public class EServiceShortGuidCrud
         table.Columns.Add("DateTimeExpiration");
         table.Columns.Add("DateTEntry");
         foreach (var eServiceShortGuid in listEServiceShortGuids)
-            table.Rows.Add(SOut.Long(eServiceShortGuid.EServiceShortGuidNum), SOut.Int((int) eServiceShortGuid.EServiceCode), eServiceShortGuid.ShortGuid, eServiceShortGuid.ShortURL, SOut.Long(eServiceShortGuid.FKey), SOut.Int((int) eServiceShortGuid.FKeyType), SOut.DateT(eServiceShortGuid.DateTimeExpiration, false), SOut.DateT(eServiceShortGuid.DateTEntry, false));
+            table.Rows.Add(SOut.Long(eServiceShortGuid.EServiceShortGuidNum), SOut.Int((int) eServiceShortGuid.EServiceCode), eServiceShortGuid.ShortGuid, eServiceShortGuid.ShortURL, SOut.Long(eServiceShortGuid.FKey), SOut.Int((int) eServiceShortGuid.FKeyType), SOut.DateTime(eServiceShortGuid.DateTimeExpiration, false), SOut.DateTime(eServiceShortGuid.DateTEntry, false));
         return table;
     }
 
@@ -114,7 +114,7 @@ public class EServiceShortGuidCrud
             + "'" + SOut.String(eServiceShortGuid.ShortURL) + "',"
             + SOut.Long(eServiceShortGuid.FKey) + ","
             + "'" + SOut.String(eServiceShortGuid.FKeyType.ToString()) + "',"
-            + SOut.DateT(eServiceShortGuid.DateTimeExpiration) + ","
+            + SOut.DateTime(eServiceShortGuid.DateTimeExpiration) + ","
             + DbHelper.Now() + ")";
         {
             eServiceShortGuid.EServiceShortGuidNum = Db.NonQ(command, true, "EServiceShortGuidNum", "eServiceShortGuid");
@@ -166,7 +166,7 @@ public class EServiceShortGuidCrud
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(eServiceShortGuid.FKeyType.ToString()) + "'");
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(eServiceShortGuid.DateTimeExpiration));
+            sbRow.Append(SOut.DateTime(eServiceShortGuid.DateTimeExpiration));
             sbRow.Append(",");
             sbRow.Append(DbHelper.Now());
             sbRow.Append(")");
@@ -204,7 +204,7 @@ public class EServiceShortGuidCrud
             + "'" + SOut.String(eServiceShortGuid.ShortURL) + "',"
             + SOut.Long(eServiceShortGuid.FKey) + ","
             + "'" + SOut.String(eServiceShortGuid.FKeyType.ToString()) + "',"
-            + SOut.DateT(eServiceShortGuid.DateTimeExpiration) + ","
+            + SOut.DateTime(eServiceShortGuid.DateTimeExpiration) + ","
             + DbHelper.Now() + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
@@ -221,7 +221,7 @@ public class EServiceShortGuidCrud
                       + "ShortURL            = '" + SOut.String(eServiceShortGuid.ShortURL) + "', "
                       + "FKey                =  " + SOut.Long(eServiceShortGuid.FKey) + ", "
                       + "FKeyType            = '" + SOut.String(eServiceShortGuid.FKeyType.ToString()) + "', "
-                      + "DateTimeExpiration  =  " + SOut.DateT(eServiceShortGuid.DateTimeExpiration) + " "
+                      + "DateTimeExpiration  =  " + SOut.DateTime(eServiceShortGuid.DateTimeExpiration) + " "
                       //DateTEntry not allowed to change
                       + "WHERE EServiceShortGuidNum = " + SOut.Long(eServiceShortGuid.EServiceShortGuidNum);
         Db.NonQ(command);
@@ -263,7 +263,7 @@ public class EServiceShortGuidCrud
         if (eServiceShortGuid.DateTimeExpiration != oldEServiceShortGuid.DateTimeExpiration)
         {
             if (command != "") command += ",";
-            command += "DateTimeExpiration = " + SOut.DateT(eServiceShortGuid.DateTimeExpiration) + "";
+            command += "DateTimeExpiration = " + SOut.DateTime(eServiceShortGuid.DateTimeExpiration) + "";
         }
 
         //DateTEntry not allowed to change

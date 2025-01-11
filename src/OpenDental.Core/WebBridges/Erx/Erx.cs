@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
 namespace OpenDentBusiness
@@ -431,7 +432,7 @@ namespace OpenDentBusiness
         public static string GetRxDoseSpotUrl(string stringSSOQuery)
         {
             string doseSpotUrl = Introspection.GetOverride(Introspection.IntrospectionEntity.DoseSpotSingleSignOnURL, "https://my.dosespot.com/LoginSingleSignOn.aspx");
-            if (ODBuild.IsDebug())
+            if (/* ODBuild.IsDebug() */ false)
             {
                 doseSpotUrl = "https://my.staging.dosespot.com/LoginSingleSignOn.aspx?b=2";
             }
@@ -448,7 +449,7 @@ namespace OpenDentBusiness
         public static string GetLegacyUrl()
         {
             string newCropUrl = Introspection.GetOverride(Introspection.IntrospectionEntity.NewCropRxEntryURL, "https://secure.newcropaccounts.com/interfacev7/rxentry.aspx");
-            if (ODBuild.IsDebug())
+            if (/* ODBuild.IsDebug() */ false)
             {
                 newCropUrl = "https://preproduction.newcropaccounts.com/interfaceV7/rxentry.aspx";
             }

@@ -11,6 +11,7 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using SparksToothChart;
 using WpfControls.UI;

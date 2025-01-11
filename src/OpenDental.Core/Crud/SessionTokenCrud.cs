@@ -61,7 +61,7 @@ public class SessionTokenCrud
         table.Columns.Add("TokenType");
         table.Columns.Add("FKey");
         foreach (var sessionToken in listSessionTokens)
-            table.Rows.Add(SOut.Long(sessionToken.SessionTokenNum), sessionToken.SessionTokenHash, SOut.DateT(sessionToken.Expiration, false), SOut.Int((int) sessionToken.TokenType), SOut.Long(sessionToken.FKey));
+            table.Rows.Add(SOut.Long(sessionToken.SessionTokenNum), sessionToken.SessionTokenHash, SOut.DateTime(sessionToken.Expiration, false), SOut.Int((int) sessionToken.TokenType), SOut.Long(sessionToken.FKey));
         return table;
     }
 
@@ -78,7 +78,7 @@ public class SessionTokenCrud
 
         command +=
             "'" + SOut.String(sessionToken.SessionTokenHash) + "',"
-            + SOut.DateT(sessionToken.Expiration) + ","
+            + SOut.DateTime(sessionToken.Expiration) + ","
             + SOut.Int((int) sessionToken.TokenType) + ","
             + SOut.Long(sessionToken.FKey) + ")";
         {
@@ -101,7 +101,7 @@ public class SessionTokenCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(sessionToken.SessionTokenNum) + ",";
         command +=
             "'" + SOut.String(sessionToken.SessionTokenHash) + "',"
-            + SOut.DateT(sessionToken.Expiration) + ","
+            + SOut.DateTime(sessionToken.Expiration) + ","
             + SOut.Int((int) sessionToken.TokenType) + ","
             + SOut.Long(sessionToken.FKey) + ")";
         if (useExistingPK || isRandomKeys)
@@ -115,7 +115,7 @@ public class SessionTokenCrud
     {
         var command = "UPDATE sessiontoken SET "
                       + "SessionTokenHash= '" + SOut.String(sessionToken.SessionTokenHash) + "', "
-                      + "Expiration      =  " + SOut.DateT(sessionToken.Expiration) + ", "
+                      + "Expiration      =  " + SOut.DateTime(sessionToken.Expiration) + ", "
                       + "TokenType       =  " + SOut.Int((int) sessionToken.TokenType) + ", "
                       + "FKey            =  " + SOut.Long(sessionToken.FKey) + " "
                       + "WHERE SessionTokenNum = " + SOut.Long(sessionToken.SessionTokenNum);
@@ -134,7 +134,7 @@ public class SessionTokenCrud
         if (sessionToken.Expiration != oldSessionToken.Expiration)
         {
             if (command != "") command += ",";
-            command += "Expiration = " + SOut.DateT(sessionToken.Expiration) + "";
+            command += "Expiration = " + SOut.DateTime(sessionToken.Expiration) + "";
         }
 
         if (sessionToken.TokenType != oldSessionToken.TokenType)

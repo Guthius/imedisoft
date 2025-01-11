@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -309,7 +310,7 @@ namespace OpenDental {
 
 		private void butSend_Click(object sender,System.EventArgs e) {
 			BillingUseElectronicEnum electronicBillingType=PrefC.GetEnum<BillingUseElectronicEnum>(PrefName.BillingUseElectronic);
-			if(ODEnvironment.IsCloudServer && electronicBillingType.In(
+			if(/* ODEnvironment.IsCloudServer */ false && electronicBillingType.In(
 					BillingUseElectronicEnum.ClaimX,
 					BillingUseElectronicEnum.EDS,
 					BillingUseElectronicEnum.POS
@@ -490,16 +491,11 @@ namespace OpenDental {
 			if(sendStatementsIO.PdfMasterDocument!=null) {
 				string tempFileOutputDocument = PrefC.GetRandomTempFile(".pdf");
 				sendStatementsIO.PdfMasterDocument.Save(tempFileOutputDocument);
-				if(false) {
-					ThinfinityUtils.HandleFile(tempFileOutputDocument);
+				try {
+					Process.Start(tempFileOutputDocument);
 				}
-				else {
-					try {
-						Process.Start(tempFileOutputDocument);
-					}
-					catch(Exception ex) {
-						MsgBox.Show(Lan.g(this,"Error: Please make sure Adobe Reader is installed.")+ex.Message);
-					}
+				catch(Exception ex) {
+					MsgBox.Show(Lan.g(this,"Error: Please make sure Adobe Reader is installed.")+ex.Message);
 				}
 			}
 			#endregion

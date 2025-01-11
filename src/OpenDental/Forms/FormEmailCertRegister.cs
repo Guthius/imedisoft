@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -66,10 +67,6 @@ namespace OpenDental {
 		}
 
 		private void butBrowse_Click(object sender,EventArgs e) {
-			if(!false && false) {
-				textCertFilePath.Text=ODCloudClient.ImportFileForCloud();
-				return;
-			}
 			if(openFileDialogCert.ShowDialog()==DialogResult.OK) {
 				textCertFilePath.Text=openFileDialogCert.FileName;
 			}

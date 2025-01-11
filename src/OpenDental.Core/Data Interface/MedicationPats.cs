@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -174,7 +175,7 @@ public class MedicationPats
                 strPatNumsEligibleForUpload += "PatNum='" + listPatNumsEligibleForUpload[i] + "' ";
             }
 
-            var command = "SELECT MedicationPatNum FROM medicationpat WHERE DateTStamp > " + SOut.DateT(dateTimeChangedSince) + " AND (" + strPatNumsEligibleForUpload + ")";
+            var command = "SELECT MedicationPatNum FROM medicationpat WHERE DateTStamp > " + SOut.DateTime(dateTimeChangedSince) + " AND (" + strPatNumsEligibleForUpload + ")";
             tableMedicationPatNums = DataCore.GetTable(command);
         }
         else

@@ -220,7 +220,7 @@ public class PatientCrud
         table.Columns.Add("ShortCodeOptIn");
         table.Columns.Add("SecurityHash");
         foreach (var patient in listPatients)
-            table.Rows.Add(SOut.Long(patient.PatNum), patient.LName, patient.FName, patient.MiddleI, patient.Preferred, SOut.Int((int) patient.PatStatus), SOut.Int((int) patient.Gender), SOut.Int((int) patient.Position), SOut.DateT(patient.Birthdate, false), patient.SSN, patient.Address, patient.Address2, patient.City, patient.State, patient.Zip, patient.HmPhone, patient.WkPhone, patient.WirelessPhone, SOut.Long(patient.Guarantor), patient.CreditType, patient.Email, patient.Salutation, SOut.Double(patient.EstBalance), SOut.Long(patient.PriProv), SOut.Long(patient.SecProv), SOut.Long(patient.FeeSched), SOut.Long(patient.BillingType), patient.ImageFolder, patient.AddrNote, patient.FamFinUrgNote, patient.MedUrgNote, patient.ApptModNote, patient.StudentStatus, patient.SchoolName, patient.ChartNumber, patient.MedicaidID, SOut.Double(patient.Bal_0_30), SOut.Double(patient.Bal_31_60), SOut.Double(patient.Bal_61_90), SOut.Double(patient.BalOver90), SOut.Double(patient.InsEst), SOut.Double(patient.BalTotal), SOut.Long(patient.EmployerNum), patient.EmploymentNote, patient.County, SOut.Int((int) patient.GradeLevel), SOut.Int((int) patient.Urgency), SOut.DateT(patient.DateFirstVisit, false), SOut.Long(patient.ClinicNum), patient.HasIns, patient.TrophyFolder, SOut.Bool(patient.PlannedIsDone), SOut.Bool(patient.Premed), patient.Ward, SOut.Int((int) patient.PreferConfirmMethod), SOut.Int((int) patient.PreferContactMethod), SOut.Int((int) patient.PreferRecallMethod), SOut.Time(patient.SchedBeforeTime, false), SOut.Time(patient.SchedAfterTime, false), SOut.Byte(patient.SchedDayOfWeek), patient.Language, SOut.DateT(patient.AdmitDate, false), patient.Title, SOut.Double(patient.PayPlanDue), SOut.Long(patient.SiteNum), SOut.DateT(patient.DateTStamp, false), SOut.Long(patient.ResponsParty), SOut.Byte(patient.CanadianEligibilityCode), SOut.Int(patient.AskToArriveEarly), SOut.Int((int) patient.PreferContactConfidential), SOut.Long(patient.SuperFamily), SOut.Int((int) patient.TxtMsgOk), patient.SmokingSnoMed, patient.Country, SOut.DateT(patient.DateTimeDeceased, false), SOut.Int(patient.BillingCycleDay), SOut.Long(patient.SecUserNumEntry), SOut.DateT(patient.SecDateEntry, false), SOut.Bool(patient.HasSuperBilling), SOut.Long(patient.PatNumCloneFrom), SOut.Long(patient.DiscountPlanNum), SOut.Bool(patient.HasSignedTil), SOut.Int((int) patient.ShortCodeOptIn), patient.SecurityHash);
+            table.Rows.Add(SOut.Long(patient.PatNum), patient.LName, patient.FName, patient.MiddleI, patient.Preferred, SOut.Int((int) patient.PatStatus), SOut.Int((int) patient.Gender), SOut.Int((int) patient.Position), SOut.DateTime(patient.Birthdate, false), patient.SSN, patient.Address, patient.Address2, patient.City, patient.State, patient.Zip, patient.HmPhone, patient.WkPhone, patient.WirelessPhone, SOut.Long(patient.Guarantor), patient.CreditType, patient.Email, patient.Salutation, SOut.Double(patient.EstBalance), SOut.Long(patient.PriProv), SOut.Long(patient.SecProv), SOut.Long(patient.FeeSched), SOut.Long(patient.BillingType), patient.ImageFolder, patient.AddrNote, patient.FamFinUrgNote, patient.MedUrgNote, patient.ApptModNote, patient.StudentStatus, patient.SchoolName, patient.ChartNumber, patient.MedicaidID, SOut.Double(patient.Bal_0_30), SOut.Double(patient.Bal_31_60), SOut.Double(patient.Bal_61_90), SOut.Double(patient.BalOver90), SOut.Double(patient.InsEst), SOut.Double(patient.BalTotal), SOut.Long(patient.EmployerNum), patient.EmploymentNote, patient.County, SOut.Int((int) patient.GradeLevel), SOut.Int((int) patient.Urgency), SOut.DateTime(patient.DateFirstVisit, false), SOut.Long(patient.ClinicNum), patient.HasIns, patient.TrophyFolder, SOut.Bool(patient.PlannedIsDone), SOut.Bool(patient.Premed), patient.Ward, SOut.Int((int) patient.PreferConfirmMethod), SOut.Int((int) patient.PreferContactMethod), SOut.Int((int) patient.PreferRecallMethod), SOut.Time(patient.SchedBeforeTime, false), SOut.Time(patient.SchedAfterTime, false), SOut.Byte(patient.SchedDayOfWeek), patient.Language, SOut.DateTime(patient.AdmitDate, false), patient.Title, SOut.Double(patient.PayPlanDue), SOut.Long(patient.SiteNum), SOut.DateTime(patient.DateTStamp, false), SOut.Long(patient.ResponsParty), SOut.Byte(patient.CanadianEligibilityCode), SOut.Int(patient.AskToArriveEarly), SOut.Int((int) patient.PreferContactConfidential), SOut.Long(patient.SuperFamily), SOut.Int((int) patient.TxtMsgOk), patient.SmokingSnoMed, patient.Country, SOut.DateTime(patient.DateTimeDeceased, false), SOut.Int(patient.BillingCycleDay), SOut.Long(patient.SecUserNumEntry), SOut.DateTime(patient.SecDateEntry, false), SOut.Bool(patient.HasSuperBilling), SOut.Long(patient.PatNumCloneFrom), SOut.Long(patient.DiscountPlanNum), SOut.Bool(patient.HasSignedTil), SOut.Int((int) patient.ShortCodeOptIn), patient.SecurityHash);
         return table;
     }
 
@@ -309,7 +309,7 @@ public class PatientCrud
             + SOut.Int((int) patient.TxtMsgOk) + ","
             + "'" + SOut.String(patient.SmokingSnoMed) + "',"
             + "'" + SOut.String(patient.Country) + "',"
-            + SOut.DateT(patient.DateTimeDeceased) + ","
+            + SOut.DateTime(patient.DateTimeDeceased) + ","
             + SOut.Int(patient.BillingCycleDay) + ","
             + SOut.Long(patient.SecUserNumEntry) + ","
             + DbHelper.Now() + ","
@@ -508,7 +508,7 @@ public class PatientCrud
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(patient.Country) + "'");
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(patient.DateTimeDeceased));
+            sbRow.Append(SOut.DateTime(patient.DateTimeDeceased));
             sbRow.Append(",");
             sbRow.Append(SOut.Int(patient.BillingCycleDay));
             sbRow.Append(",");
@@ -630,7 +630,7 @@ public class PatientCrud
             + SOut.Int((int) patient.TxtMsgOk) + ","
             + "'" + SOut.String(patient.SmokingSnoMed) + "',"
             + "'" + SOut.String(patient.Country) + "',"
-            + SOut.DateT(patient.DateTimeDeceased) + ","
+            + SOut.DateTime(patient.DateTimeDeceased) + ","
             + SOut.Int(patient.BillingCycleDay) + ","
             + SOut.Long(patient.SecUserNumEntry) + ","
             + DbHelper.Now() + ","
@@ -727,7 +727,7 @@ public class PatientCrud
                       + "TxtMsgOk                 =  " + SOut.Int((int) patient.TxtMsgOk) + ", "
                       + "SmokingSnoMed            = '" + SOut.String(patient.SmokingSnoMed) + "', "
                       + "Country                  = '" + SOut.String(patient.Country) + "', "
-                      + "DateTimeDeceased         =  " + SOut.DateT(patient.DateTimeDeceased) + ", "
+                      + "DateTimeDeceased         =  " + SOut.DateTime(patient.DateTimeDeceased) + ", "
                       + "BillingCycleDay          =  " + SOut.Int(patient.BillingCycleDay) + ", "
                       //SecUserNumEntry excluded from update
                       //SecDateEntry not allowed to change
@@ -1184,7 +1184,7 @@ public class PatientCrud
         if (patient.DateTimeDeceased != oldPatient.DateTimeDeceased)
         {
             if (command != "") command += ",";
-            command += "DateTimeDeceased = " + SOut.DateT(patient.DateTimeDeceased) + "";
+            command += "DateTimeDeceased = " + SOut.DateTime(patient.DateTimeDeceased) + "";
         }
 
         if (patient.BillingCycleDay != oldPatient.BillingCycleDay)

@@ -63,7 +63,7 @@ public class GroupPermissionCrud
         table.Columns.Add("PermType");
         table.Columns.Add("FKey");
         foreach (var groupPermission in listGroupPermissions)
-            table.Rows.Add(SOut.Long(groupPermission.GroupPermNum), SOut.DateT(groupPermission.NewerDate, false), SOut.Int(groupPermission.NewerDays), SOut.Long(groupPermission.UserGroupNum), SOut.Int((int) groupPermission.PermType), SOut.Long(groupPermission.FKey));
+            table.Rows.Add(SOut.Long(groupPermission.GroupPermNum), SOut.DateTime(groupPermission.NewerDate, false), SOut.Int(groupPermission.NewerDays), SOut.Long(groupPermission.UserGroupNum), SOut.Int((int) groupPermission.PermType), SOut.Long(groupPermission.FKey));
         return table;
     }
 

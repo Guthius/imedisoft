@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using OpenDentBusiness.Remoting;
@@ -35,7 +36,7 @@ namespace OpenDentBusiness {
 				return Lans.g("Clearinghouse","Unable to update. No default dental clearinghouse set.");
 			}
 			//Uncomment for testing use
-			//if(ODBuild.IsDebug()) {
+			//if(/* ODBuild.IsDebug() */ false) {
 			//	json=File.ReadAllText(@"..\..\..\UnitTests\Resources\test-n-cpl.txt");
 			//}
 			//If ITRANS2 is fully setup, then use the local ITRANS2 install on server to import carrier data.

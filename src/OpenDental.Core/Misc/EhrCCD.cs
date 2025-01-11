@@ -12,6 +12,7 @@ using CodeBase;
 using System.Xml;
 using System.Xml.XPath;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.FileIO;
 

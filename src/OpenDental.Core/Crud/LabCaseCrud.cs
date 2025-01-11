@@ -81,7 +81,7 @@ public class LabCaseCrud
         table.Columns.Add("DateTStamp");
         table.Columns.Add("InvoiceNum");
         foreach (var labCase in listLabCases)
-            table.Rows.Add(SOut.Long(labCase.LabCaseNum), SOut.Long(labCase.PatNum), SOut.Long(labCase.LaboratoryNum), SOut.Long(labCase.AptNum), SOut.Long(labCase.PlannedAptNum), SOut.DateT(labCase.DateTimeDue, false), SOut.DateT(labCase.DateTimeCreated, false), SOut.DateT(labCase.DateTimeSent, false), SOut.DateT(labCase.DateTimeRecd, false), SOut.DateT(labCase.DateTimeChecked, false), SOut.Long(labCase.ProvNum), labCase.Instructions, SOut.Double(labCase.LabFee), SOut.DateT(labCase.DateTStamp, false), labCase.InvoiceNum);
+            table.Rows.Add(SOut.Long(labCase.LabCaseNum), SOut.Long(labCase.PatNum), SOut.Long(labCase.LaboratoryNum), SOut.Long(labCase.AptNum), SOut.Long(labCase.PlannedAptNum), SOut.DateTime(labCase.DateTimeDue, false), SOut.DateTime(labCase.DateTimeCreated, false), SOut.DateTime(labCase.DateTimeSent, false), SOut.DateTime(labCase.DateTimeRecd, false), SOut.DateTime(labCase.DateTimeChecked, false), SOut.Long(labCase.ProvNum), labCase.Instructions, SOut.Double(labCase.LabFee), SOut.DateTime(labCase.DateTStamp, false), labCase.InvoiceNum);
         return table;
     }
 
@@ -101,11 +101,11 @@ public class LabCaseCrud
                                       + SOut.Long(labCase.LaboratoryNum) + ","
                                       + SOut.Long(labCase.AptNum) + ","
                                       + SOut.Long(labCase.PlannedAptNum) + ","
-                                      + SOut.DateT(labCase.DateTimeDue) + ","
-                                      + SOut.DateT(labCase.DateTimeCreated) + ","
-                                      + SOut.DateT(labCase.DateTimeSent) + ","
-                                      + SOut.DateT(labCase.DateTimeRecd) + ","
-                                      + SOut.DateT(labCase.DateTimeChecked) + ","
+                                      + SOut.DateTime(labCase.DateTimeDue) + ","
+                                      + SOut.DateTime(labCase.DateTimeCreated) + ","
+                                      + SOut.DateTime(labCase.DateTimeSent) + ","
+                                      + SOut.DateTime(labCase.DateTimeRecd) + ","
+                                      + SOut.DateTime(labCase.DateTimeChecked) + ","
                                       + SOut.Long(labCase.ProvNum) + ","
                                       + DbHelper.ParamChar + "paramInstructions,"
                                       + SOut.Double(labCase.LabFee) + ","
@@ -136,11 +136,11 @@ public class LabCaseCrud
                                       + SOut.Long(labCase.LaboratoryNum) + ","
                                       + SOut.Long(labCase.AptNum) + ","
                                       + SOut.Long(labCase.PlannedAptNum) + ","
-                                      + SOut.DateT(labCase.DateTimeDue) + ","
-                                      + SOut.DateT(labCase.DateTimeCreated) + ","
-                                      + SOut.DateT(labCase.DateTimeSent) + ","
-                                      + SOut.DateT(labCase.DateTimeRecd) + ","
-                                      + SOut.DateT(labCase.DateTimeChecked) + ","
+                                      + SOut.DateTime(labCase.DateTimeDue) + ","
+                                      + SOut.DateTime(labCase.DateTimeCreated) + ","
+                                      + SOut.DateTime(labCase.DateTimeSent) + ","
+                                      + SOut.DateTime(labCase.DateTimeRecd) + ","
+                                      + SOut.DateTime(labCase.DateTimeChecked) + ","
                                       + SOut.Long(labCase.ProvNum) + ","
                                       + DbHelper.ParamChar + "paramInstructions,"
                                       + SOut.Double(labCase.LabFee) + ","
@@ -162,11 +162,11 @@ public class LabCaseCrud
                       + "LaboratoryNum  =  " + SOut.Long(labCase.LaboratoryNum) + ", "
                       + "AptNum         =  " + SOut.Long(labCase.AptNum) + ", "
                       + "PlannedAptNum  =  " + SOut.Long(labCase.PlannedAptNum) + ", "
-                      + "DateTimeDue    =  " + SOut.DateT(labCase.DateTimeDue) + ", "
-                      + "DateTimeCreated=  " + SOut.DateT(labCase.DateTimeCreated) + ", "
-                      + "DateTimeSent   =  " + SOut.DateT(labCase.DateTimeSent) + ", "
-                      + "DateTimeRecd   =  " + SOut.DateT(labCase.DateTimeRecd) + ", "
-                      + "DateTimeChecked=  " + SOut.DateT(labCase.DateTimeChecked) + ", "
+                      + "DateTimeDue    =  " + SOut.DateTime(labCase.DateTimeDue) + ", "
+                      + "DateTimeCreated=  " + SOut.DateTime(labCase.DateTimeCreated) + ", "
+                      + "DateTimeSent   =  " + SOut.DateTime(labCase.DateTimeSent) + ", "
+                      + "DateTimeRecd   =  " + SOut.DateTime(labCase.DateTimeRecd) + ", "
+                      + "DateTimeChecked=  " + SOut.DateTime(labCase.DateTimeChecked) + ", "
                       + "ProvNum        =  " + SOut.Long(labCase.ProvNum) + ", "
                       + "Instructions   =  " + DbHelper.ParamChar + "paramInstructions, "
                       + "LabFee         =  " + SOut.Double(labCase.LabFee) + ", "
@@ -208,31 +208,31 @@ public class LabCaseCrud
         if (labCase.DateTimeDue != oldLabCase.DateTimeDue)
         {
             if (command != "") command += ",";
-            command += "DateTimeDue = " + SOut.DateT(labCase.DateTimeDue) + "";
+            command += "DateTimeDue = " + SOut.DateTime(labCase.DateTimeDue) + "";
         }
 
         if (labCase.DateTimeCreated != oldLabCase.DateTimeCreated)
         {
             if (command != "") command += ",";
-            command += "DateTimeCreated = " + SOut.DateT(labCase.DateTimeCreated) + "";
+            command += "DateTimeCreated = " + SOut.DateTime(labCase.DateTimeCreated) + "";
         }
 
         if (labCase.DateTimeSent != oldLabCase.DateTimeSent)
         {
             if (command != "") command += ",";
-            command += "DateTimeSent = " + SOut.DateT(labCase.DateTimeSent) + "";
+            command += "DateTimeSent = " + SOut.DateTime(labCase.DateTimeSent) + "";
         }
 
         if (labCase.DateTimeRecd != oldLabCase.DateTimeRecd)
         {
             if (command != "") command += ",";
-            command += "DateTimeRecd = " + SOut.DateT(labCase.DateTimeRecd) + "";
+            command += "DateTimeRecd = " + SOut.DateTime(labCase.DateTimeRecd) + "";
         }
 
         if (labCase.DateTimeChecked != oldLabCase.DateTimeChecked)
         {
             if (command != "") command += ",";
-            command += "DateTimeChecked = " + SOut.DateT(labCase.DateTimeChecked) + "";
+            command += "DateTimeChecked = " + SOut.DateTime(labCase.DateTimeChecked) + "";
         }
 
         if (labCase.ProvNum != oldLabCase.ProvNum)

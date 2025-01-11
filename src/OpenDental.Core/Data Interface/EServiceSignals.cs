@@ -161,7 +161,7 @@ public class EServiceSignals
         if (dateTime.Year < 1880) return; //Nothing to do.
         var command = "UPDATE eservicesignal SET IsProcessed=1 "
                       + "WHERE Severity=" + SOut.Int((int) eServiceSignalSeverity.Error) + " "
-                      + "AND SigDateTime BETWEEN " + SOut.DateT(dateTime.AddMinutes(-15)) + " AND " + SOut.DateT(dateTime.AddMinutes(15));
+                      + "AND SigDateTime BETWEEN " + SOut.DateTime(dateTime.AddMinutes(-15)) + " AND " + SOut.DateTime(dateTime.AddMinutes(15));
         Db.NonQ(command);
     }
 

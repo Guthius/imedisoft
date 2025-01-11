@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.HL7;
@@ -198,9 +199,9 @@ public class Appointments
     public static List<AppointmentWithServerDT> GetAppointmentsForApi(int limit, int offset, DateTime dateTStart, DateTime dateTEnd, DateTime dateTStamp, long clinicNum, long patNum, int aptStatus, long operatoryNum)
     {
         var command = "SELECT * FROM appointment "
-                      + "WHERE AptDateTime >= " + SOut.DateT(dateTStart) + " "
-                      + "AND AptDateTime < " + SOut.DateT(dateTEnd) + " "
-                      + "AND DateTStamp >= " + SOut.DateT(dateTStamp) + " ";
+                      + "WHERE AptDateTime >= " + SOut.DateTime(dateTStart) + " "
+                      + "AND AptDateTime < " + SOut.DateTime(dateTEnd) + " "
+                      + "AND DateTStamp >= " + SOut.DateTime(dateTStamp) + " ";
         if (clinicNum > -1) command += "AND ClinicNum=" + SOut.Long(clinicNum) + " ";
         if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         if (aptStatus > -1) command += "AND AptStatus=" + SOut.Int(aptStatus) + " ";
@@ -264,9 +265,9 @@ public class Appointments
         command += "LEFT JOIN eservicelog ON appointment.AptNum=eservicelog.FKey "
                    + "AND eservicelog.EserviceAction=" + SOut.Int((int) eServiceAction.WSAppointmentScheduledFromServer) + " "
                    + "AND eservicelog.EServiceType IN (" + string.Join(",", listEserviceTypes.Select(x => (int) x)) + ") ";
-        command += "WHERE appointment.AptDateTime >= " + SOut.DateT(dateTStart) + " "
-                   + "AND appointment.AptDateTime < " + SOut.DateT(dateTEnd) + " "
-                   + "AND appointment.DateTStamp >= " + SOut.DateT(dateTStamp) + " ";
+        command += "WHERE appointment.AptDateTime >= " + SOut.DateTime(dateTStart) + " "
+                   + "AND appointment.AptDateTime < " + SOut.DateTime(dateTEnd) + " "
+                   + "AND appointment.DateTStamp >= " + SOut.DateTime(dateTStamp) + " ";
         if (clinicNum > -1) command += "AND appointment.ClinicNum=" + SOut.Long(clinicNum) + " ";
         command += "ORDER BY appointment.AptDateTime,appointment.AptNum " //same fixed order each time
                    + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
@@ -332,8 +333,8 @@ public class Appointments
     public static List<Appointment> GetAppointmentsStartingWithinPeriod(DateTime dateTStart, DateTime dateTEnd, params ApptStatus[] apptStatusIgnoreArray)
     {
         var command = "SELECT * FROM appointment "
-                      + "WHERE AptDateTime >= " + SOut.DateT(dateTStart) + " "
-                      + "AND AptDateTime <= " + SOut.DateT(dateTEnd);
+                      + "WHERE AptDateTime >= " + SOut.DateTime(dateTStart) + " "
+                      + "AND AptDateTime <= " + SOut.DateTime(dateTEnd);
         if (apptStatusIgnoreArray.Length > 0)
         {
             command += "AND AptStatus NOT IN (";
@@ -362,8 +363,8 @@ public class Appointments
         //It is very important to format these filters as DateT. That will allow the index to be used. 
         //Truncate dateStart/dateEnd down to .Date in order to mimic the behavior of DbHelper.DtimeToDate().
         command += "AND AptStatus!=" + SOut.Int((int) ApptStatus.UnschedList) + " "
-                   + "AND AptDateTime>=" + SOut.DateT(dateTStart.Date) + " ";
-        if (dateTEnd.Year > 1880) command += "AND AptDateTime<=" + SOut.DateT(dateTEnd.Date.AddDays(1)) + " ";
+                   + "AND AptDateTime>=" + SOut.DateTime(dateTStart.Date) + " ";
+        if (dateTEnd.Year > 1880) command += "AND AptDateTime<=" + SOut.DateTime(dateTEnd.Date.AddDays(1)) + " ";
         if (listProvNums != null)
         {
             var listProvNumsFinal = listProvNums.FindAll(x => x > 0);
@@ -489,8 +490,8 @@ public class Appointments
     public static List<Appointment> GetSchedApptsForPeriod(DateTime dateStart, DateTime dateEnd)
     {
         var command = "SELECT * FROM appointment "
-                      + "WHERE AptDateTime >= " + SOut.DateT(dateStart) + " "
-                      + "AND AptDateTime <= " + SOut.DateT(dateEnd) + " "
+                      + "WHERE AptDateTime >= " + SOut.DateTime(dateStart) + " "
+                      + "AND AptDateTime <= " + SOut.DateTime(dateEnd) + " "
                       + "AND AptStatus=" + SOut.Int((int) ApptStatus.Scheduled);
         var listAppointments = AppointmentCrud.TableToList(DataCore.GetTable(command));
         return listAppointments;
@@ -643,7 +644,7 @@ public class Appointments
     public static long GetProvNumFromLastApptForPat(long patNum)
     {
         var command = "SELECT ProvNum FROM appointment WHERE AptStatus IN (" + (int) ApptStatus.Complete + "," + (int) ApptStatus.Scheduled + ")"
-                      + " AND AptDateTime<=" + SOut.DateT(DateTime.Now)
+                      + " AND AptDateTime<=" + SOut.DateTime(DateTime.Now)
                       + " AND PatNum=" + SOut.Long(patNum)
                       + " ORDER BY AptDateTime DESC LIMIT 1";
         var result = DataCore.GetScalar(command);
@@ -1532,7 +1533,7 @@ public class Appointments
 				appt.ProvNum
 				FROM appointment appt
 				WHERE (appt.ProvNum=" + SOut.Long(provNum) + " OR appt.ProvHyg=" + SOut.Long(provNum) + ")" +
-                      " AND appt.AptDateTime BETWEEN " + SOut.DateT(dateTimeAppointmentStart.Date) + " AND " + SOut.DateT(dateTimeAppointmentStart.AddDays(1).Date);
+                      " AND appt.AptDateTime BETWEEN " + SOut.DateTime(dateTimeAppointmentStart.Date) + " AND " + SOut.DateTime(dateTimeAppointmentStart.AddDays(1).Date);
         return dcon.GetTable(command);
     }
 
@@ -1621,7 +1622,7 @@ public class Appointments
         table.Columns.Add("LName");
         table.Columns.Add("waitTime");
         table.Columns.Add("OpNum");
-        var strDateTime = SOut.DateT(dateTime);
+        var strDateTime = SOut.DateTime(dateTime);
         var command = "SELECT DateTimeArrived,DateTimeSeated,LName,FName,Preferred," + strDateTime + " dateTimeNow,Op "
                       + "FROM appointment "
                       + "JOIN patient ON appointment.PatNum=patient.PatNum "
@@ -2381,8 +2382,8 @@ public class Appointments
 
     public static List<Appointment> GetChangedSince(DateTime dateTimeChangedSince, DateTime dateTimeExcludeOlderThan)
     {
-        var command = "SELECT * FROM appointment WHERE DateTStamp > " + SOut.DateT(dateTimeChangedSince)
-                                                                      + " AND AptDateTime > " + SOut.DateT(dateTimeExcludeOlderThan);
+        var command = "SELECT * FROM appointment WHERE DateTStamp > " + SOut.DateTime(dateTimeChangedSince)
+                                                                      + " AND AptDateTime > " + SOut.DateTime(dateTimeExcludeOlderThan);
         return AppointmentCrud.SelectMany(command);
     }
 
@@ -2392,8 +2393,8 @@ public class Appointments
     /// </summary>
     public static List<long> GetChangedSinceAptNums(DateTime dateTimeChangedSince, DateTime dateTimeExcludeOlderThan)
     {
-        var command = "SELECT AptNum FROM appointment WHERE DateTStamp > " + SOut.DateT(dateTimeChangedSince)
-                                                                           + " AND AptDateTime > " + SOut.DateT(dateTimeExcludeOlderThan);
+        var command = "SELECT AptNum FROM appointment WHERE DateTStamp > " + SOut.DateTime(dateTimeChangedSince)
+                                                                           + " AND AptDateTime > " + SOut.DateTime(dateTimeExcludeOlderThan);
         var table = DataCore.GetTable(command);
         var aptnums = new List<long>(table.Rows.Count);
         for (var i = 0; i < table.Rows.Count; i++) aptnums.Add(SIn.Long(table.Rows[i]["AptNum"].ToString()));
@@ -3160,7 +3161,7 @@ public class Appointments
         command += ",SecurityHash='" + SOut.String(appointment.SecurityHash) + "'";
         if (PrefC.GetLong(PrefName.AppointmentTimeArrivedTrigger) == defNumApptConfirmed)
         {
-            command += ",DateTimeArrived=" + SOut.DateT(DateTime.Now);
+            command += ",DateTimeArrived=" + SOut.DateTime(DateTime.Now);
             //createSheetsForCheckin will create any eForms also.
             if (createSheetsForCheckin)
             {
@@ -3170,11 +3171,11 @@ public class Appointments
         }
         else if (PrefC.GetLong(PrefName.AppointmentTimeSeatedTrigger) == defNumApptConfirmed)
         {
-            command += ",DateTimeSeated=" + SOut.DateT(DateTime.Now);
+            command += ",DateTimeSeated=" + SOut.DateTime(DateTime.Now);
         }
         else if (PrefC.GetLong(PrefName.AppointmentTimeDismissedTrigger) == defNumApptConfirmed)
         {
-            command += ",DateTimeDismissed=" + SOut.DateT(DateTime.Now);
+            command += ",DateTimeDismissed=" + SOut.DateTime(DateTime.Now);
         }
 
         command += " WHERE AptNum=" + SOut.Long(appointment.AptNum);
@@ -3507,7 +3508,7 @@ public class Appointments
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (ODBuild.IsDebug()) MessageBox.Show(messageHL7.ToString());
+                if (/* ODBuild.IsDebug() */ false) MessageBox.Show(messageHL7.ToString());
             }
         }
 
@@ -3842,8 +3843,8 @@ public class Appointments
         var command = "SELECT COUNT(appointment.AptNum) "
                       + "FROM appointment "
                       + "WHERE appointment.Op=" + SOut.Long(operatory) + " "
-                      + "AND appointment.AptDateTime < " + SOut.DateT(dateTimeSlotEnd) + " "
-                      + "AND appointment.AptDateTime+INTERVAL LENGTH(appointment.Pattern)*5 MINUTE > " + SOut.DateT(dateTimeSlotStart) + " "
+                      + "AND appointment.AptDateTime < " + SOut.DateTime(dateTimeSlotEnd) + " "
+                      + "AND appointment.AptDateTime+INTERVAL LENGTH(appointment.Pattern)*5 MINUTE > " + SOut.DateTime(dateTimeSlotStart) + " "
                       + "AND appointment.AptStatus IN(" + string.Join(",", ListScheduledApptStatuses.Select(x => SOut.Int((int) x))) + ") ";
         if (appointment.AptNum != 0) //If we are checking for an already existing appointment, then we don't count this appointment as filling the slot.
             command += "AND appointment.AptNum!=" + SOut.Long(appointment.AptNum);
@@ -4521,7 +4522,7 @@ public class Appointments
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (ODBuild.IsDebug()) throw new Exception(messageHL7.ToString());
+                if (/* ODBuild.IsDebug() */ false) throw new Exception(messageHL7.ToString());
             }
         }
 
@@ -4573,7 +4574,7 @@ public class Appointments
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (ODBuild.IsDebug()) Console.WriteLine(messageHL7.ToString());
+                if (/* ODBuild.IsDebug() */ false) Console.WriteLine(messageHL7.ToString());
             }
         }
 
@@ -5380,7 +5381,7 @@ public class Appointments
                     hl7Msg.MsgText = messageHL7.ToString();
                     hl7Msg.PatNum = patient.PatNum;
                     HL7Msgs.Insert(hl7Msg);
-                    if (ODBuild.IsDebug()) Console.WriteLine(messageHL7.ToString());
+                    if (/* ODBuild.IsDebug() */ false) Console.WriteLine(messageHL7.ToString());
                 }
             }
 

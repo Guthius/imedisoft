@@ -7,6 +7,7 @@ using CodeBase;
 using OpenDental.UI;
 using System.Data;
 using System.Text;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {

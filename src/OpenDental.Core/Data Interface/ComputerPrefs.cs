@@ -25,7 +25,7 @@ public class ComputerPrefs
     {
         get
         {
-            if (_computerPrefLocal == null || (ODEnvironment.IsCloudInstance && _computerPrefLocal.ComputerName.ToLower() != ODEnvironment.MachineName.ToLower()))
+            if (_computerPrefLocal == null)
             {
                 _computerPrefLocal = GetForLocalComputer();
                 _computerPrefLocalOld = _computerPrefLocal.Copy();
@@ -64,7 +64,7 @@ public class ComputerPrefs
             {
                 //This shows a dialog box, which causes paint to call this again. Recursive bad stuff happens, so we essentially only want to show this once.
                 _didShowError = true;
-                Logger.openlog.LogMB("Error in the database computerpref table. The computer name '"
+                Logger.Openlog.LogMB("Error in the database computerpref table. The computer name '"
                                      + SOut.String(computerName) + "' is a ComputerName in multiple records. Please run the "
                                      + $"database maintenance method {SOut.String(nameof(DatabaseMaintenances.ComputerPrefDuplicates))}, then call us for help if you still get this message.",
                     Logger.Severity.WARNING);

@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using static PdfSharp.Pdf.PdfArray;
 

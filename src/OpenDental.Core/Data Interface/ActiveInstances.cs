@@ -51,21 +51,21 @@ public class ActiveInstances
     public static List<ActiveInstance> GetAllOldInstances()
     {
         var dateTimeToCheck = DateTime.Now.AddMinutes(-4);
-        var command = "SELECT * FROM activeinstance WHERE DateTRecorded < " + SOut.DateT(dateTimeToCheck);
+        var command = "SELECT * FROM activeinstance WHERE DateTRecorded < " + SOut.DateTime(dateTimeToCheck);
         return ActiveInstanceCrud.SelectMany(command);
     }
 
     public static List<ActiveInstance> GetAllResponsiveActiveInstances()
     {
         var dateTimeToCheck = DateTime.Now.AddMinutes(-4);
-        var command = "SELECT * FROM activeinstance WHERE DateTRecorded > " + SOut.DateT(dateTimeToCheck);
+        var command = "SELECT * FROM activeinstance WHERE DateTRecorded > " + SOut.DateTime(dateTimeToCheck);
         return ActiveInstanceCrud.SelectMany(command);
     }
     
     public static int GetCountCloudActiveInstances(long excludeInstanceNum = 0)
     {
         var dateTimeToCheck = DateTime.Now.AddMinutes(-4);
-        var command = "SELECT COUNT(*) FROM activeinstance WHERE DateTRecorded > " + SOut.DateT(dateTimeToCheck)
+        var command = "SELECT COUNT(*) FROM activeinstance WHERE DateTRecorded > " + SOut.DateTime(dateTimeToCheck)
                                                                                    + " AND ConnectionType=" + SOut.Enum(ConnectionTypes.Thinfinity);
         if (excludeInstanceNum != 0) command += " AND ActiveInstanceNum!=" + SOut.Long(excludeInstanceNum);
         return SIn.Int(Db.GetCount(command));
@@ -111,7 +111,7 @@ public class ActiveInstances
         else
         {
             activeInstance.DateTimeLastActive = Security.DateTimeLastActivity;
-            if (ODEnvironment.IsCloudServer && (activeInstance.UserNum != userNum || activeInstance.ComputerNum != computerNum || activeInstance.ProcessId != processId))
+            if (/* ODEnvironment.IsCloudServer */ false && (activeInstance.UserNum != userNum || activeInstance.ComputerNum != computerNum || activeInstance.ProcessId != processId))
             {
                 activeInstance.UserNum = userNum;
                 activeInstance.ComputerNum = computerNum;

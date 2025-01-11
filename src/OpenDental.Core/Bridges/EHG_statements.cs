@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -397,7 +398,7 @@ namespace OpenDentBusiness.Bridges {
 			if(!string.IsNullOrEmpty(serverNameOverride)) {
 				serverName=serverNameOverride;
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				//serverName="https://prelive.dentalxchange.com/dci/upload.svl";      //test URL for claims
 				//serverName="https://claimconnect.dentalxchange.com/dci/upload.svl"; //live URL for claims
 				//serverName="https://prelive.dentalxchange.com/dci/upload.svl";      //test URL for Stmts

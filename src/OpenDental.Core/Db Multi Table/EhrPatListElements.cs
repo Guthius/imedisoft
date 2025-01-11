@@ -62,7 +62,7 @@ namespace OpenDentBusiness {
 							//00:00:00
 							case HL70125.TM:
 								select+=",ehrlabresult"+i+".ObservationValueTime";
-								where+="AND ehrlabresult"+i+".ObservationValueTime"+GetOperandText(elementList[i].Operand)+"'"+POut.TSpan(PIn.TimeSpan(elementList[i].LabValue))+"' "
+								where+="AND ehrlabresult"+i+".ObservationValueTime"+GetOperandText(elementList[i].Operand)+"'"+POut.TimeSpan(PIn.TimeSpan(elementList[i].LabValue))+"' "
 									+"AND ehrlabresult"+i+".ValueType='TM' ";
 								break;
 							case HL70125.SN:

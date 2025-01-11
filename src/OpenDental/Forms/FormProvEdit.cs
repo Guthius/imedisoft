@@ -12,6 +12,7 @@ using System.Linq;
 using CodeBase;
 using System.Data;
 using System.Text;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 

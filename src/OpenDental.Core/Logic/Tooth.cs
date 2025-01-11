@@ -6,15 +6,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness{
 	/// <summary></summary>
 	public class Tooth{
-		
-		public Tooth(){
-			
-		}
-
 		#region Fields
 		private static List<string> _listUniversal = new List<string> { "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9", "10", "11", "12", "13", "14", "15", "16", 
 																"32", "31", "30", "29", "28", "27", "26", "25", "24", "23", "22", "21", "20", "19", "18", "17",

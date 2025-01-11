@@ -14,6 +14,7 @@ using OpenDentBusiness.FileIO;
 using static OpenDentBusiness.Eclaims.Canadian;
 using System.Transactions;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness.Eclaims {
@@ -617,7 +618,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			if(carrier.CDAnetVersion!="02") { //version 04
 																				//A09 carrier transaction counter 5 N
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					strb.Append("11111");
 				}
 				else {

@@ -61,7 +61,7 @@ public class DocumentMiscCrud
         table.Columns.Add("DocMiscType");
         table.Columns.Add("RawBase64");
         foreach (var documentMisc in listDocumentMiscs)
-            table.Rows.Add(SOut.Long(documentMisc.DocMiscNum), SOut.DateT(documentMisc.DateCreated, false), documentMisc.FileName, SOut.Int((int) documentMisc.DocMiscType), documentMisc.RawBase64);
+            table.Rows.Add(SOut.Long(documentMisc.DocMiscNum), SOut.DateTime(documentMisc.DateCreated, false), documentMisc.FileName, SOut.Int((int) documentMisc.DocMiscType), documentMisc.RawBase64);
         return table;
     }
 

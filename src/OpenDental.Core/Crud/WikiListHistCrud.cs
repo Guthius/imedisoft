@@ -63,7 +63,7 @@ public class WikiListHistCrud
         table.Columns.Add("ListContent");
         table.Columns.Add("DateTimeSaved");
         foreach (var wikiListHist in listWikiListHists)
-            table.Rows.Add(SOut.Long(wikiListHist.WikiListHistNum), SOut.Long(wikiListHist.UserNum), wikiListHist.ListName, wikiListHist.ListHeaders, wikiListHist.ListContent, SOut.DateT(wikiListHist.DateTimeSaved, false));
+            table.Rows.Add(SOut.Long(wikiListHist.WikiListHistNum), SOut.Long(wikiListHist.UserNum), wikiListHist.ListName, wikiListHist.ListHeaders, wikiListHist.ListContent, SOut.DateTime(wikiListHist.DateTimeSaved, false));
         return table;
     }
 
@@ -83,7 +83,7 @@ public class WikiListHistCrud
                                             + "'" + SOut.String(wikiListHist.ListName) + "',"
                                             + DbHelper.ParamChar + "paramListHeaders,"
                                             + DbHelper.ParamChar + "paramListContent,"
-                                            + SOut.DateT(wikiListHist.DateTimeSaved) + ")";
+                                            + SOut.DateTime(wikiListHist.DateTimeSaved) + ")";
         if (wikiListHist.ListHeaders == null) wikiListHist.ListHeaders = "";
         var paramListHeaders = new OdSqlParameter("paramListHeaders", OdDbType.Text, SOut.StringParam(wikiListHist.ListHeaders));
         if (wikiListHist.ListContent == null) wikiListHist.ListContent = "";
@@ -111,7 +111,7 @@ public class WikiListHistCrud
                                             + "'" + SOut.String(wikiListHist.ListName) + "',"
                                             + DbHelper.ParamChar + "paramListHeaders,"
                                             + DbHelper.ParamChar + "paramListContent,"
-                                            + SOut.DateT(wikiListHist.DateTimeSaved) + ")";
+                                            + SOut.DateTime(wikiListHist.DateTimeSaved) + ")";
         if (wikiListHist.ListHeaders == null) wikiListHist.ListHeaders = "";
         var paramListHeaders = new OdSqlParameter("paramListHeaders", OdDbType.Text, SOut.StringParam(wikiListHist.ListHeaders));
         if (wikiListHist.ListContent == null) wikiListHist.ListContent = "";
@@ -130,7 +130,7 @@ public class WikiListHistCrud
                       + "ListName       = '" + SOut.String(wikiListHist.ListName) + "', "
                       + "ListHeaders    =  " + DbHelper.ParamChar + "paramListHeaders, "
                       + "ListContent    =  " + DbHelper.ParamChar + "paramListContent, "
-                      + "DateTimeSaved  =  " + SOut.DateT(wikiListHist.DateTimeSaved) + " "
+                      + "DateTimeSaved  =  " + SOut.DateTime(wikiListHist.DateTimeSaved) + " "
                       + "WHERE WikiListHistNum = " + SOut.Long(wikiListHist.WikiListHistNum);
         if (wikiListHist.ListHeaders == null) wikiListHist.ListHeaders = "";
         var paramListHeaders = new OdSqlParameter("paramListHeaders", OdDbType.Text, SOut.StringParam(wikiListHist.ListHeaders));
@@ -169,7 +169,7 @@ public class WikiListHistCrud
         if (wikiListHist.DateTimeSaved != oldWikiListHist.DateTimeSaved)
         {
             if (command != "") command += ",";
-            command += "DateTimeSaved = " + SOut.DateT(wikiListHist.DateTimeSaved) + "";
+            command += "DateTimeSaved = " + SOut.DateTime(wikiListHist.DateTimeSaved) + "";
         }
 
         if (command == "") return false;

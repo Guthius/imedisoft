@@ -8,6 +8,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -39,7 +40,7 @@ namespace OpenDental {
 		///<summary>Populate filters and set default selections.</summary>
 		private void SetFiltersAndDefaults() {
 			//We always get X835s for all X835Statuses, so we fill this list once on load.
-			_listX835Statuses=Enum.GetValues(typeof(X835Status)).AsEnumerable<X835Status>().ToList();
+			_listX835Statuses=Enum.GetValues(typeof(X835Status)).Cast<X835Status>().ToList();
 			if(true) {
 				comboClinics.IsAllSelected=true;//Defaults to 'All' so that 835s with missing clinic will show.
 			}
@@ -48,7 +49,7 @@ namespace OpenDental {
 			}
 			dateRangePicker.SetDateTimeFrom(DateTime.Today.AddDays(-7));
 			dateRangePicker.SetDateTimeTo(DateTime.Today);
-			List<X835AutoProcessed> listX835AutoProcessedValues=Enum.GetValues(typeof(X835AutoProcessed)).AsEnumerable<X835AutoProcessed>().ToList();
+			List<X835AutoProcessed> listX835AutoProcessedValues=Enum.GetValues(typeof(X835AutoProcessed)).Cast<X835AutoProcessed>().ToList();
 			for(int i=0;i<listX835AutoProcessedValues.Count;i++) {
 				if(listX835AutoProcessedValues[i]==X835AutoProcessed.None) {
 					continue;

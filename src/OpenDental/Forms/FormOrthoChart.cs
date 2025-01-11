@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -220,7 +221,7 @@ namespace OpenDental {
 			LockControls();
 			labelLocked.Text="Locked by: "+Userods.GetName(userNum);
 			_userNumLocked=userNum;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				//Helpful to know who when you have multiple windows open for testing.
 				MsgBox.Show(this,Userods.GetName(userNum)+Lan.g(this," has taken control. If you made any changes, they were saved."));
 			}
@@ -1154,7 +1155,7 @@ namespace OpenDental {
 			}
 			try {
 			//TODO: Implement ODprintout pattern
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					using FormRpPrintPreview formRpPrintPreview = new FormRpPrintPreview(printDocument);
 					formRpPrintPreview.ShowDialog();
 				}

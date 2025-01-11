@@ -14,6 +14,7 @@ using OpenDentBusiness;
 using CodeBase;
 using OpenDentBusiness.WebTypes;
 using System.Text;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
 using PdfSharp.Pdf;
@@ -4454,7 +4455,7 @@ namespace OpenDental {
 				}
 			}
 			else {//not email
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					//don't bother to check valid path because it's just debug.
 					Document document2=Documents.GetByNum(statement.DocNum);
 					string imgPath=ImageStore.GetFilePath(document2,guarFolder);

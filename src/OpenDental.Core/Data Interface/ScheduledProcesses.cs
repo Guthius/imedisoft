@@ -63,7 +63,7 @@ public class ScheduledProcesses
         var command = $@"SELECT * FROM scheduledprocess 
 				WHERE ScheduledAction='{SOut.String(scheduledActionEnum.ToString())}' AND 
 				FrequencyToRun='{SOut.String(frequencyToRunEnum.ToString())}' AND 
-				TIME(TimeToRun)=TIME({SOut.DateT(dateTimeToRun)}) ";
+				TIME(TimeToRun)=TIME({SOut.DateTime(dateTimeToRun)}) ";
         return ScheduledProcessCrud.SelectMany(command);
     }
 

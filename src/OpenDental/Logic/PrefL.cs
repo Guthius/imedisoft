@@ -10,6 +10,7 @@ using System.Xml;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using MySqlConnector;
 using OpenDental.Cloud.Shared;
 using OpenDental.UI;
@@ -152,7 +153,7 @@ namespace OpenDental
                 updateServerName = PrefC.GetString(PrefName.WebServiceServerName);
             }
 
-            if (ODEnvironment.IsCloudServer)
+            if (/* ODEnvironment.IsCloudServer */ false)
             {
                 //We do not want to install in case this is a pre-test cloud database.
                 if (!isSilent)

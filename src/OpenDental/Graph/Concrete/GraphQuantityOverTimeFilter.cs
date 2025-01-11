@@ -655,7 +655,7 @@ namespace OpenDental.Graph.Concrete
             }
             catch (Exception e)
             {
-                if (ODBuild.IsDebug())
+                if (/* ODBuild.IsDebug() */ false)
                 {
                     MessageBox.Show(e.Message);
                 }

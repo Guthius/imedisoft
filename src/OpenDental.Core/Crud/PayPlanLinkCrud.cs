@@ -63,7 +63,7 @@ public class PayPlanLinkCrud
         table.Columns.Add("AmountOverride");
         table.Columns.Add("SecDateTEntry");
         foreach (var payPlanLink in listPayPlanLinks)
-            table.Rows.Add(SOut.Long(payPlanLink.PayPlanLinkNum), SOut.Long(payPlanLink.PayPlanNum), SOut.Int((int) payPlanLink.LinkType), SOut.Long(payPlanLink.FKey), SOut.Double(payPlanLink.AmountOverride), SOut.DateT(payPlanLink.SecDateTEntry, false));
+            table.Rows.Add(SOut.Long(payPlanLink.PayPlanLinkNum), SOut.Long(payPlanLink.PayPlanNum), SOut.Int((int) payPlanLink.LinkType), SOut.Long(payPlanLink.FKey), SOut.Double(payPlanLink.AmountOverride), SOut.DateTime(payPlanLink.SecDateTEntry, false));
         return table;
     }
 

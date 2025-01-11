@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormUpdate : FormODBase {
@@ -32,7 +33,7 @@ namespace OpenDental {
 		}
 
 		private void FormUpdate_Load(object sender, System.EventArgs e) {
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				MsgBox.Show(this,"Updates are not allowed manually from within the program. Please call support.");
 				Close();
 				return;

@@ -61,7 +61,7 @@ public class PayorTypeCrud
         table.Columns.Add("SopCode");
         table.Columns.Add("Note");
         foreach (var payorType in listPayorTypes)
-            table.Rows.Add(SOut.Long(payorType.PayorTypeNum), SOut.Long(payorType.PatNum), SOut.DateT(payorType.DateStart, false), payorType.SopCode, payorType.Note);
+            table.Rows.Add(SOut.Long(payorType.PayorTypeNum), SOut.Long(payorType.PatNum), SOut.DateTime(payorType.DateStart, false), payorType.SopCode, payorType.Note);
         return table;
     }
 

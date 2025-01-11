@@ -4,8 +4,9 @@ using System.Globalization;
 using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Features.Clinics;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Caching;
 
 public class Cache
 {

@@ -68,7 +68,7 @@ public class EmailSecureCrud
         table.Columns.Add("DateTEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var emailSecure in listEmailSecures)
-            table.Rows.Add(SOut.Long(emailSecure.EmailSecureNum), SOut.Long(emailSecure.ClinicNum), SOut.Long(emailSecure.PatNum), SOut.Long(emailSecure.EmailMessageNum), SOut.Long(emailSecure.EmailChainFK), SOut.Long(emailSecure.EmailFK), SOut.DateT(emailSecure.DateTEntry, false), SOut.DateT(emailSecure.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(emailSecure.EmailSecureNum), SOut.Long(emailSecure.ClinicNum), SOut.Long(emailSecure.PatNum), SOut.Long(emailSecure.EmailMessageNum), SOut.Long(emailSecure.EmailChainFK), SOut.Long(emailSecure.EmailFK), SOut.DateTime(emailSecure.DateTEntry, false), SOut.DateTime(emailSecure.SecDateTEdit, false));
         return table;
     }
 

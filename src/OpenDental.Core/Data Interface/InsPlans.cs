@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -70,7 +71,7 @@ public class InsPlans
     ///<summary>Gets a list of plans from the database for the API.</summary>
     public static List<InsPlan> GetInsPlansForApi(int limit, int offset, string planType, long carrierNum)
     {
-        var command = "SELECT * FROM insplan WHERE SecDateEntry >= " + SOut.DateT(DateTime.MinValue) + " ";
+        var command = "SELECT * FROM insplan WHERE SecDateEntry >= " + SOut.DateTime(DateTime.MinValue) + " ";
         if (planType != null) command += "AND PlanType='" + SOut.String(planType) + "' ";
         if (carrierNum > 0) command += "AND CarrierNum=" + SOut.Long(carrierNum) + " ";
         command += "ORDER BY PlanNum " //same fixed order each time

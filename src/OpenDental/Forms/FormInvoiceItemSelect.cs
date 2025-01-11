@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormInvoiceItemSelect:FormODBase {

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -175,7 +176,7 @@ public class Providers
 
     public static List<Provider> GetChangedSince(DateTime changedSince)
     {
-        var command = "SELECT * FROM provider WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT * FROM provider WHERE DateTStamp > " + SOut.DateTime(changedSince);
         //DataTable table=DataCore.GetTable(command);
         //return TableToList(table);
         return ProviderCrud.SelectMany(command);
@@ -187,7 +188,7 @@ public class Providers
     /// </summary>
     public static List<ProviderForApi> GetChangedSinceForApi(int limit, int offset, DateTime changedSince)
     {
-        var command = "SELECT * FROM provider WHERE DateTStamp >= " + SOut.DateT(changedSince) + " ORDER BY provnum "
+        var command = "SELECT * FROM provider WHERE DateTStamp >= " + SOut.DateTime(changedSince) + " ORDER BY provnum "
                       + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
         var commandDateTime = "SELECT " + DbHelper.Now();
         var dateTimeServer = SIn.DateTime(DataCore.GetScalar(commandDateTime)); //run before providers for rigorous inclusion of providers
@@ -644,7 +645,7 @@ public class Providers
 
     public static List<long> GetChangedSinceProvNums(DateTime changedSince)
     {
-        var command = "SELECT ProvNum FROM provider WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT ProvNum FROM provider WHERE DateTStamp > " + SOut.DateTime(changedSince);
         var dt = DataCore.GetTable(command);
         var provnums = new List<long>(dt.Rows.Count);
         for (var i = 0; i < dt.Rows.Count; i++) provnums.Add(SIn.Long(dt.Rows[i]["ProvNum"].ToString()));

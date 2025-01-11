@@ -74,32 +74,15 @@ namespace OpenDental {
 		}
 
 		/// <summary>Opens file picker, and sets path.</summary>
-		private void butSelectImage_Click(object sender,EventArgs e) {
-			if(!false && false) {
-				string importedImagePath=ODCloudClient.ImportFileForCloud();
-				if(importedImagePath.IsNullOrEmpty()) {
-					return; //User cancelled out file selection
-				}
-				string pathAToZ="";
-				//ImportFileForCloud stores the imported image in the FileTransfer folder which is periodically emptied. Store the image in ODI.
-				try {
-					pathAToZ=FileAtoZ.CombinePaths(ImageStore.GetMobileBrandingImageFolder(),Path.GetFileName(importedImagePath));
-					FileAtoZ.Copy(importedImagePath,pathAToZ,doOverwrite:true);
-				}
-				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
-				}
-				textFilePathImage.Text=pathAToZ;
+		private void butSelectImage_Click(object sender,EventArgs e)
+		{
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.Multiselect=false;
+			DialogResult dialogResult=openFileDialog.ShowDialog();
+			if(dialogResult!=DialogResult.OK) {
+				return;
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.Multiselect=false;
-				DialogResult dialogResult=openFileDialog.ShowDialog();
-				if(dialogResult!=DialogResult.OK) {
-					return;
-				}
-				textFilePathImage.Text=openFileDialog.FileName;
-			}
+			textFilePathImage.Text=openFileDialog.FileName;
 			TrySetPreviewImage();
 		}
 

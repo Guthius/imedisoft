@@ -64,7 +64,7 @@ public class MedicationCrud
         table.Columns.Add("DateTStamp");
         table.Columns.Add("RxCui");
         foreach (var medication in listMedications)
-            table.Rows.Add(SOut.Long(medication.MedicationNum), medication.MedName, SOut.Long(medication.GenericNum), medication.Notes, SOut.DateT(medication.DateTStamp, false), SOut.Long(medication.RxCui));
+            table.Rows.Add(SOut.Long(medication.MedicationNum), medication.MedName, SOut.Long(medication.GenericNum), medication.Notes, SOut.DateTime(medication.DateTStamp, false), SOut.Long(medication.RxCui));
         return table;
     }
 

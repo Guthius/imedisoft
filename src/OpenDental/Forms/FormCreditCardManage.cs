@@ -12,6 +12,7 @@ using OpenDental.Bridges;
 using CodeBase;
 using System.Text;
 using System.Globalization;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -313,7 +314,7 @@ namespace OpenDental {
 				}
 			}
 			if(hasXCharge) {
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					MsgBox.Show(this,"XCharge is not available while using Open Dental Cloud.");
 					return;
 				}

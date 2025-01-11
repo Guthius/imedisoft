@@ -73,7 +73,7 @@ public class EServiceLogCrud
         table.Columns.Add("DateTimeUploaded");
         table.Columns.Add("Note");
         foreach (var eServiceLog in listEServiceLogs)
-            table.Rows.Add(SOut.Long(eServiceLog.EServiceLogNum), SOut.Int((int) eServiceLog.KeyType), SOut.Int((int) eServiceLog.EServiceType), SOut.Int((int) eServiceLog.EServiceAction), SOut.DateT(eServiceLog.LogDateTime, false), SOut.Long(eServiceLog.PatNum), SOut.Long(eServiceLog.ClinicNum), eServiceLog.LogGuid, SOut.Long(eServiceLog.FKey), SOut.DateT(eServiceLog.DateTimeUploaded, false), eServiceLog.Note);
+            table.Rows.Add(SOut.Long(eServiceLog.EServiceLogNum), SOut.Int((int) eServiceLog.KeyType), SOut.Int((int) eServiceLog.EServiceType), SOut.Int((int) eServiceLog.EServiceAction), SOut.DateTime(eServiceLog.LogDateTime, false), SOut.Long(eServiceLog.PatNum), SOut.Long(eServiceLog.ClinicNum), eServiceLog.LogGuid, SOut.Long(eServiceLog.FKey), SOut.DateTime(eServiceLog.DateTimeUploaded, false), eServiceLog.Note);
         return table;
     }
 
@@ -97,7 +97,7 @@ public class EServiceLogCrud
                                                 + SOut.Long(eServiceLog.ClinicNum) + ","
                                                 + "'" + SOut.String(eServiceLog.LogGuid) + "',"
                                                 + SOut.Long(eServiceLog.FKey) + ","
-                                                + SOut.DateT(eServiceLog.DateTimeUploaded) + ","
+                                                + SOut.DateTime(eServiceLog.DateTimeUploaded) + ","
                                                 + "'" + SOut.String(eServiceLog.Note) + "')";
         {
             eServiceLog.EServiceLogNum = Db.NonQ(command, true, "EServiceLogNum", "eServiceLog");
@@ -126,7 +126,7 @@ public class EServiceLogCrud
                                                 + SOut.Long(eServiceLog.ClinicNum) + ","
                                                 + "'" + SOut.String(eServiceLog.LogGuid) + "',"
                                                 + SOut.Long(eServiceLog.FKey) + ","
-                                                + SOut.DateT(eServiceLog.DateTimeUploaded) + ","
+                                                + SOut.DateTime(eServiceLog.DateTimeUploaded) + ","
                                                 + "'" + SOut.String(eServiceLog.Note) + "')";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
@@ -146,7 +146,7 @@ public class EServiceLogCrud
                       + "ClinicNum       =  " + SOut.Long(eServiceLog.ClinicNum) + ", "
                       + "LogGuid         = '" + SOut.String(eServiceLog.LogGuid) + "', "
                       + "FKey            =  " + SOut.Long(eServiceLog.FKey) + ", "
-                      + "DateTimeUploaded=  " + SOut.DateT(eServiceLog.DateTimeUploaded) + ", "
+                      + "DateTimeUploaded=  " + SOut.DateTime(eServiceLog.DateTimeUploaded) + ", "
                       + "Note            = '" + SOut.String(eServiceLog.Note) + "' "
                       + "WHERE EServiceLogNum = " + SOut.Long(eServiceLog.EServiceLogNum);
         Db.NonQ(command);
@@ -201,7 +201,7 @@ public class EServiceLogCrud
         if (eServiceLog.DateTimeUploaded != oldEServiceLog.DateTimeUploaded)
         {
             if (command != "") command += ",";
-            command += "DateTimeUploaded = " + SOut.DateT(eServiceLog.DateTimeUploaded) + "";
+            command += "DateTimeUploaded = " + SOut.DateTime(eServiceLog.DateTimeUploaded) + "";
         }
 
         if (eServiceLog.Note != oldEServiceLog.Note)

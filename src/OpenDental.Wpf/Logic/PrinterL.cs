@@ -164,7 +164,7 @@ then change:
 
 		///<summary>Attempts to print if in RELEASE mode or if in DEBUG mode will open printout in FormPrintPreview. Returns true if succesfully printed, or if preview is shown and OK is clicked.</summary>
 		public static bool TryPrintOrDebugClassicPreview(Printout printout){
-			if(ODBuild.IsDebug() || printout.IsForcedPreview) {
+			if(/* ODBuild.IsDebug() */ false || printout.IsForcedPreview) {
 				return PreviewClassic(printout);
 			}
 			return TryPrint(printout);

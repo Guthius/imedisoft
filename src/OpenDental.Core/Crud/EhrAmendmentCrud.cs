@@ -73,7 +73,7 @@ public class EhrAmendmentCrud
         table.Columns.Add("DateTAcceptDeny");
         table.Columns.Add("DateTAppend");
         foreach (var ehrAmendment in listEhrAmendments)
-            table.Rows.Add(SOut.Long(ehrAmendment.EhrAmendmentNum), SOut.Long(ehrAmendment.PatNum), SOut.Int((int) ehrAmendment.IsAccepted), ehrAmendment.Description, SOut.Int((int) ehrAmendment.Source), ehrAmendment.SourceName, ehrAmendment.FileName, ehrAmendment.RawBase64, SOut.DateT(ehrAmendment.DateTRequest, false), SOut.DateT(ehrAmendment.DateTAcceptDeny, false), SOut.DateT(ehrAmendment.DateTAppend, false));
+            table.Rows.Add(SOut.Long(ehrAmendment.EhrAmendmentNum), SOut.Long(ehrAmendment.PatNum), SOut.Int((int) ehrAmendment.IsAccepted), ehrAmendment.Description, SOut.Int((int) ehrAmendment.Source), ehrAmendment.SourceName, ehrAmendment.FileName, ehrAmendment.RawBase64, SOut.DateTime(ehrAmendment.DateTRequest, false), SOut.DateTime(ehrAmendment.DateTAcceptDeny, false), SOut.DateTime(ehrAmendment.DateTAppend, false));
         return table;
     }
 
@@ -96,9 +96,9 @@ public class EhrAmendmentCrud
                                            + DbHelper.ParamChar + "paramSourceName,"
                                            + "'" + SOut.String(ehrAmendment.FileName) + "',"
                                            + DbHelper.ParamChar + "paramRawBase64,"
-                                           + SOut.DateT(ehrAmendment.DateTRequest) + ","
-                                           + SOut.DateT(ehrAmendment.DateTAcceptDeny) + ","
-                                           + SOut.DateT(ehrAmendment.DateTAppend) + ")";
+                                           + SOut.DateTime(ehrAmendment.DateTRequest) + ","
+                                           + SOut.DateTime(ehrAmendment.DateTAcceptDeny) + ","
+                                           + SOut.DateTime(ehrAmendment.DateTAppend) + ")";
         if (ehrAmendment.Description == null) ehrAmendment.Description = "";
         var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(ehrAmendment.Description));
         if (ehrAmendment.SourceName == null) ehrAmendment.SourceName = "";
@@ -131,9 +131,9 @@ public class EhrAmendmentCrud
                                            + DbHelper.ParamChar + "paramSourceName,"
                                            + "'" + SOut.String(ehrAmendment.FileName) + "',"
                                            + DbHelper.ParamChar + "paramRawBase64,"
-                                           + SOut.DateT(ehrAmendment.DateTRequest) + ","
-                                           + SOut.DateT(ehrAmendment.DateTAcceptDeny) + ","
-                                           + SOut.DateT(ehrAmendment.DateTAppend) + ")";
+                                           + SOut.DateTime(ehrAmendment.DateTRequest) + ","
+                                           + SOut.DateTime(ehrAmendment.DateTAcceptDeny) + ","
+                                           + SOut.DateTime(ehrAmendment.DateTAppend) + ")";
         if (ehrAmendment.Description == null) ehrAmendment.Description = "";
         var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(ehrAmendment.Description));
         if (ehrAmendment.SourceName == null) ehrAmendment.SourceName = "";
@@ -157,9 +157,9 @@ public class EhrAmendmentCrud
                       + "SourceName     =  " + DbHelper.ParamChar + "paramSourceName, "
                       + "FileName       = '" + SOut.String(ehrAmendment.FileName) + "', "
                       + "RawBase64      =  " + DbHelper.ParamChar + "paramRawBase64, "
-                      + "DateTRequest   =  " + SOut.DateT(ehrAmendment.DateTRequest) + ", "
-                      + "DateTAcceptDeny=  " + SOut.DateT(ehrAmendment.DateTAcceptDeny) + ", "
-                      + "DateTAppend    =  " + SOut.DateT(ehrAmendment.DateTAppend) + " "
+                      + "DateTRequest   =  " + SOut.DateTime(ehrAmendment.DateTRequest) + ", "
+                      + "DateTAcceptDeny=  " + SOut.DateTime(ehrAmendment.DateTAcceptDeny) + ", "
+                      + "DateTAppend    =  " + SOut.DateTime(ehrAmendment.DateTAppend) + " "
                       + "WHERE EhrAmendmentNum = " + SOut.Long(ehrAmendment.EhrAmendmentNum);
         if (ehrAmendment.Description == null) ehrAmendment.Description = "";
         var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(ehrAmendment.Description));
@@ -218,19 +218,19 @@ public class EhrAmendmentCrud
         if (ehrAmendment.DateTRequest != oldEhrAmendment.DateTRequest)
         {
             if (command != "") command += ",";
-            command += "DateTRequest = " + SOut.DateT(ehrAmendment.DateTRequest) + "";
+            command += "DateTRequest = " + SOut.DateTime(ehrAmendment.DateTRequest) + "";
         }
 
         if (ehrAmendment.DateTAcceptDeny != oldEhrAmendment.DateTAcceptDeny)
         {
             if (command != "") command += ",";
-            command += "DateTAcceptDeny = " + SOut.DateT(ehrAmendment.DateTAcceptDeny) + "";
+            command += "DateTAcceptDeny = " + SOut.DateTime(ehrAmendment.DateTAcceptDeny) + "";
         }
 
         if (ehrAmendment.DateTAppend != oldEhrAmendment.DateTAppend)
         {
             if (command != "") command += ",";
-            command += "DateTAppend = " + SOut.DateT(ehrAmendment.DateTAppend) + "";
+            command += "DateTAppend = " + SOut.DateTime(ehrAmendment.DateTAppend) + "";
         }
 
         if (command == "") return false;

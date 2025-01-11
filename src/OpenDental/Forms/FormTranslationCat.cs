@@ -81,7 +81,7 @@ namespace OpenDental{
 		private void butExport_Click(object sender, System.EventArgs e) {
 			string fileName=CultureInfo.CurrentCulture.Name+".sql";//eg en-US.sql
 			string filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//file download dialog will come up later for Thinfinity, after file is created.
 			}
 			else {
@@ -107,14 +107,6 @@ namespace OpenDental{
 				);
 			}//for
 			streamWriter.Close();
-			if(false) {
-				ThinfinityUtils.ExportForDownload(filePath);
-				return;
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePath);
-				return;
-			}
 			MessageBox.Show("Done");
 		}
 

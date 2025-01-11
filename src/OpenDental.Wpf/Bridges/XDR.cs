@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental.Bridges{
@@ -28,7 +29,7 @@ namespace OpenDental.Bridges{
 			string locationID=listXDRProperties.FirstOrDefault(x => x.ClinicNum==Clinics.ClinicNum && x.PropertyDesc==XDR.PropertyDescs.LocationID)?.PropertyValue;
 			string infoFile=listXDRProperties.FirstOrDefault(x => x.PropertyDesc==XDR.PropertyDescs.InfoFilePath)?.PropertyValue;
 			if(infoFile.Trim()=="") {
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					MsgBox.Show("XDR","InfoFile path must not be empty.");
 					return;
 				}

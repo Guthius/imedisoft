@@ -88,7 +88,7 @@ public class PayPlanChargeCrud
         table.Columns.Add("LinkType");
         table.Columns.Add("IsOffset");
         foreach (var payPlanCharge in listPayPlanCharges)
-            table.Rows.Add(SOut.Long(payPlanCharge.PayPlanChargeNum), SOut.Long(payPlanCharge.PayPlanNum), SOut.Long(payPlanCharge.Guarantor), SOut.Long(payPlanCharge.PatNum), SOut.DateT(payPlanCharge.ChargeDate, false), SOut.Double(payPlanCharge.Principal), SOut.Double(payPlanCharge.Interest), payPlanCharge.Note, SOut.Long(payPlanCharge.ProvNum), SOut.Long(payPlanCharge.ClinicNum), SOut.Int((int) payPlanCharge.ChargeType), SOut.Long(payPlanCharge.ProcNum), SOut.DateT(payPlanCharge.SecDateTEntry, false), SOut.DateT(payPlanCharge.SecDateTEdit, false), SOut.Long(payPlanCharge.StatementNum), SOut.Long(payPlanCharge.FKey), SOut.Int((int) payPlanCharge.LinkType), SOut.Bool(payPlanCharge.IsOffset));
+            table.Rows.Add(SOut.Long(payPlanCharge.PayPlanChargeNum), SOut.Long(payPlanCharge.PayPlanNum), SOut.Long(payPlanCharge.Guarantor), SOut.Long(payPlanCharge.PatNum), SOut.DateTime(payPlanCharge.ChargeDate, false), SOut.Double(payPlanCharge.Principal), SOut.Double(payPlanCharge.Interest), payPlanCharge.Note, SOut.Long(payPlanCharge.ProvNum), SOut.Long(payPlanCharge.ClinicNum), SOut.Int((int) payPlanCharge.ChargeType), SOut.Long(payPlanCharge.ProcNum), SOut.DateTime(payPlanCharge.SecDateTEntry, false), SOut.DateTime(payPlanCharge.SecDateTEdit, false), SOut.Long(payPlanCharge.StatementNum), SOut.Long(payPlanCharge.FKey), SOut.Int((int) payPlanCharge.LinkType), SOut.Bool(payPlanCharge.IsOffset));
         return table;
     }
 

@@ -41,7 +41,7 @@ namespace OpenDental{
 			if(_program==null) {
 				return;//should never happen
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				linkLabel1.Text+="\r\n"+Lans.g(this,"X-Charge is not supported while using Open Dental Cloud. Use EdgeExpress instead.");
 			}
 			if(true) {
@@ -248,10 +248,6 @@ namespace OpenDental{
 
 		private void linkLabel1_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
 			string url="https://opendental.com/resources/redirects/redirectopenedge.html";
-			if(false) {
-				ODCloudClient.LaunchFileWithODCloudClient(url);
-				return;
-			}
 			Process.Start(url);
 		}
 
@@ -412,7 +408,7 @@ namespace OpenDental{
 		}
 
 		private void checkEnabled_CheckedChanged(object sender,EventArgs e) {
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				bool isDisabledForWeb=Programs.GetListDisabledForWeb().Contains(_program.ProgName);
 				if(checkEnabled.Checked && isDisabledForWeb) {
 					checkEnabled.Checked=false;

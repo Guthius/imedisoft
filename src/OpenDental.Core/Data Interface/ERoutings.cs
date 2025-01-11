@@ -22,7 +22,7 @@ public class ERoutings
         var command =
             $@"SELECT * FROM erouting 
 				WHERE PatNum = {SOut.Long(patNum)} 
-				AND SecDateTEntry BETWEEN {SOut.DateT(DateTime.Today)} AND {SOut.DateT(DateTime.Now)}
+				AND SecDateTEntry BETWEEN {SOut.DateTime(DateTime.Today)} AND {SOut.DateTime(DateTime.Now)}
 				AND !IsComplete
 				ORDER BY SecDateTEntry DESC
 				LIMIT 1";
@@ -31,7 +31,7 @@ public class ERoutings
 
     public static List<ERouting> GetAllForClinicInDateRange(long clinicNum, DateTime dateFrom, DateTime dateTo, bool includeAll)
     {
-        var command = $"SELECT * FROM erouting WHERE SecDateTEntry BETWEEN {SOut.DateT(dateFrom)} AND {SOut.DateT(dateTo)} + INTERVAL 1 DAY ";
+        var command = $"SELECT * FROM erouting WHERE SecDateTEntry BETWEEN {SOut.DateTime(dateFrom)} AND {SOut.DateTime(dateTo)} + INTERVAL 1 DAY ";
         if (includeAll) command += "AND ClinicNum=" + SOut.Long(clinicNum);
 
         return ERoutingCrud.SelectMany(command);

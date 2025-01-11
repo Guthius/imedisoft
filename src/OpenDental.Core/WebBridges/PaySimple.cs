@@ -292,7 +292,7 @@ namespace OpenDentBusiness {
 			string apiKey=ProgramProperties.GetPropValForClinicOrDefault(Programs.GetCur(ProgramName.PaySimple).ProgramNum
 				,PropertyDescs.PaySimpleApiKey
 				,clinicNum);
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				//string apiUserName="APIUser155356";
 				//string apiKey="QkQRj8i0QDPOtUBhbTWx7irBrqospeY8RDC4HxW2LD3IDIfo1bcumTMomp7IJbYONjIna84QPwMwfFLMTtZcMJ2Bm4meQIfojgsDrZr5HxAnQkylHJgF7t2XUDoVy6I0";
 			}
@@ -1428,7 +1428,7 @@ namespace OpenDentBusiness {
 						else {
 							throw new Exception("Unsupported HttpMethod type: "+method.Method);
 						}
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							if((typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 								return new RequestResponse<T>((T)Convert.ChangeType(res,typeof(T)),res);
 							}
@@ -1632,7 +1632,7 @@ namespace OpenDentBusiness {
 			///<summary>Returns the full URL according to the route/route id given.</summary>
 			private static string GetApiUrl(ApiRoute route,string routeId="") {
 				string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PaySimpleApiURL,"https://api.paysimple.com");
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					apiUrl="https://sandbox-api.paysimple.com";
 				}
 				if(!(route==ApiRoute.Webhook || route==ApiRoute.AllWebhooks)) {

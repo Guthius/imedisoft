@@ -61,7 +61,7 @@ public class PromotionCrud
         table.Columns.Add("ClinicNum");
         table.Columns.Add("TypePromotion");
         foreach (var promotion in listPromotions)
-            table.Rows.Add(SOut.Long(promotion.PromotionNum), promotion.PromotionName, SOut.DateT(promotion.DateTimeCreated, false), SOut.Long(promotion.ClinicNum), SOut.Int((int) promotion.TypePromotion));
+            table.Rows.Add(SOut.Long(promotion.PromotionNum), promotion.PromotionName, SOut.DateTime(promotion.DateTimeCreated, false), SOut.Long(promotion.ClinicNum), SOut.Int((int) promotion.TypePromotion));
         return table;
     }
 

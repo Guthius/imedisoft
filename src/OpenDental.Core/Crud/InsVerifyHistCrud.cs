@@ -77,7 +77,7 @@ public class InsVerifyHistCrud
         table.Columns.Add("HoursAvailableForVerification");
         table.Columns.Add("SecDateTEdit");
         foreach (var insVerifyHist in listInsVerifyHists)
-            table.Rows.Add(SOut.Long(insVerifyHist.InsVerifyHistNum), SOut.Long(insVerifyHist.VerifyUserNum), SOut.Long(insVerifyHist.InsVerifyNum), SOut.DateT(insVerifyHist.DateLastVerified, false), SOut.Long(insVerifyHist.UserNum), SOut.Int((int) insVerifyHist.VerifyType), SOut.Long(insVerifyHist.FKey), SOut.Long(insVerifyHist.DefNum), insVerifyHist.Note, SOut.DateT(insVerifyHist.DateLastAssigned, false), SOut.DateT(insVerifyHist.DateTimeEntry, false), SOut.Double(insVerifyHist.HoursAvailableForVerification), SOut.DateT(insVerifyHist.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(insVerifyHist.InsVerifyHistNum), SOut.Long(insVerifyHist.VerifyUserNum), SOut.Long(insVerifyHist.InsVerifyNum), SOut.DateTime(insVerifyHist.DateLastVerified, false), SOut.Long(insVerifyHist.UserNum), SOut.Int((int) insVerifyHist.VerifyType), SOut.Long(insVerifyHist.FKey), SOut.Long(insVerifyHist.DefNum), insVerifyHist.Note, SOut.DateTime(insVerifyHist.DateLastAssigned, false), SOut.DateTime(insVerifyHist.DateTimeEntry, false), SOut.Double(insVerifyHist.HoursAvailableForVerification), SOut.DateTime(insVerifyHist.SecDateTEdit, false));
         return table;
     }
 
@@ -102,7 +102,7 @@ public class InsVerifyHistCrud
                                                    + SOut.Long(insVerifyHist.DefNum) + ","
                                                    + DbHelper.ParamChar + "paramNote,"
                                                    + SOut.Date(insVerifyHist.DateLastAssigned) + ","
-                                                   + SOut.DateT(insVerifyHist.DateTimeEntry) + ","
+                                                   + SOut.DateTime(insVerifyHist.DateTimeEntry) + ","
                                                    + SOut.Double(insVerifyHist.HoursAvailableForVerification) + ")";
         //SecDateTEdit can only be set by MySQL
         if (insVerifyHist.Note == null) insVerifyHist.Note = "";
@@ -135,7 +135,7 @@ public class InsVerifyHistCrud
                                                    + SOut.Long(insVerifyHist.DefNum) + ","
                                                    + DbHelper.ParamChar + "paramNote,"
                                                    + SOut.Date(insVerifyHist.DateLastAssigned) + ","
-                                                   + SOut.DateT(insVerifyHist.DateTimeEntry) + ","
+                                                   + SOut.DateTime(insVerifyHist.DateTimeEntry) + ","
                                                    + SOut.Double(insVerifyHist.HoursAvailableForVerification) + ")";
         //SecDateTEdit can only be set by MySQL
         if (insVerifyHist.Note == null) insVerifyHist.Note = "";
@@ -159,7 +159,7 @@ public class InsVerifyHistCrud
                       + "DefNum                       =  " + SOut.Long(insVerifyHist.DefNum) + ", "
                       + "Note                         =  " + DbHelper.ParamChar + "paramNote, "
                       + "DateLastAssigned             =  " + SOut.Date(insVerifyHist.DateLastAssigned) + ", "
-                      + "DateTimeEntry                =  " + SOut.DateT(insVerifyHist.DateTimeEntry) + ", "
+                      + "DateTimeEntry                =  " + SOut.DateTime(insVerifyHist.DateTimeEntry) + ", "
                       + "HoursAvailableForVerification=  " + SOut.Double(insVerifyHist.HoursAvailableForVerification) + " "
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE InsVerifyHistNum = " + SOut.Long(insVerifyHist.InsVerifyHistNum);
@@ -228,7 +228,7 @@ public class InsVerifyHistCrud
         if (insVerifyHist.DateTimeEntry != oldInsVerifyHist.DateTimeEntry)
         {
             if (command != "") command += ",";
-            command += "DateTimeEntry = " + SOut.DateT(insVerifyHist.DateTimeEntry) + "";
+            command += "DateTimeEntry = " + SOut.DateTime(insVerifyHist.DateTimeEntry) + "";
         }
 
         if (insVerifyHist.HoursAvailableForVerification != oldInsVerifyHist.HoursAvailableForVerification)

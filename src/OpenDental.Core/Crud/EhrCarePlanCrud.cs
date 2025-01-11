@@ -61,7 +61,7 @@ public class EhrCarePlanCrud
         table.Columns.Add("Instructions");
         table.Columns.Add("DatePlanned");
         foreach (var ehrCarePlan in listEhrCarePlans)
-            table.Rows.Add(SOut.Long(ehrCarePlan.EhrCarePlanNum), SOut.Long(ehrCarePlan.PatNum), ehrCarePlan.SnomedEducation, ehrCarePlan.Instructions, SOut.DateT(ehrCarePlan.DatePlanned, false));
+            table.Rows.Add(SOut.Long(ehrCarePlan.EhrCarePlanNum), SOut.Long(ehrCarePlan.PatNum), ehrCarePlan.SnomedEducation, ehrCarePlan.Instructions, SOut.DateTime(ehrCarePlan.DatePlanned, false));
         return table;
     }
 

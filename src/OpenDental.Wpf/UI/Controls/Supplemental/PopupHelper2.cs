@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace WpfControls.UI {
@@ -171,10 +172,7 @@ namespace WpfControls.UI {
 				if(!url.ToLower().StartsWith("http")) {
 					url=@"http://"+url;
 				}
-				if(!false && false) {
-					ODCloudClient.LaunchFileWithODCloudClient(url);
-					return;
-				}
+
 				Process.Start(url);
 			}
 			catch {

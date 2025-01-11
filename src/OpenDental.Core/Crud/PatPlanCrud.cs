@@ -73,7 +73,7 @@ public class PatPlanCrud
         table.Columns.Add("SecDateTEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var patPlan in listPatPlans)
-            table.Rows.Add(SOut.Long(patPlan.PatPlanNum), SOut.Long(patPlan.PatNum), SOut.Byte(patPlan.Ordinal), SOut.Bool(patPlan.IsPending), SOut.Int((int) patPlan.Relationship), patPlan.PatID, SOut.Long(patPlan.InsSubNum), SOut.Double(patPlan.OrthoAutoFeeBilledOverride), SOut.DateT(patPlan.OrthoAutoNextClaimDate, false), SOut.DateT(patPlan.SecDateTEntry, false), SOut.DateT(patPlan.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(patPlan.PatPlanNum), SOut.Long(patPlan.PatNum), SOut.Byte(patPlan.Ordinal), SOut.Bool(patPlan.IsPending), SOut.Int((int) patPlan.Relationship), patPlan.PatID, SOut.Long(patPlan.InsSubNum), SOut.Double(patPlan.OrthoAutoFeeBilledOverride), SOut.DateTime(patPlan.OrthoAutoNextClaimDate, false), SOut.DateTime(patPlan.SecDateTEntry, false), SOut.DateTime(patPlan.SecDateTEdit, false));
         return table;
     }
 

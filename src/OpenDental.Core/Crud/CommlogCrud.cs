@@ -59,7 +59,7 @@ public class CommlogCrud
 
         command +=
             SOut.Long(commlog.PatNum) + ","
-                                      + SOut.DateT(commlog.CommDateTime) + ","
+                                      + SOut.DateTime(commlog.CommDateTime) + ","
                                       + SOut.Long(commlog.CommType) + ","
                                       + DbHelper.ParamChar + "paramNote,"
                                       + SOut.Int((int) commlog.Mode_) + ","
@@ -68,7 +68,7 @@ public class CommlogCrud
                                       + DbHelper.ParamChar + "paramSignature,"
                                       + SOut.Bool(commlog.SigIsTopaz) + ","
                                       //DateTStamp can only be set by MySQL
-                                      + SOut.DateT(commlog.DateTimeEnd) + ","
+                                      + SOut.DateTime(commlog.DateTimeEnd) + ","
                                       + SOut.Int((int) commlog.CommSource) + ","
                                       + SOut.Long(commlog.ProgramNum) + ","
                                       + DbHelper.Now() + ","
@@ -88,7 +88,7 @@ public class CommlogCrud
     {
         var command = "UPDATE commlog SET "
                       + "PatNum              =  " + SOut.Long(commlog.PatNum) + ", "
-                      + "CommDateTime        =  " + SOut.DateT(commlog.CommDateTime) + ", "
+                      + "CommDateTime        =  " + SOut.DateTime(commlog.CommDateTime) + ", "
                       + "CommType            =  " + SOut.Long(commlog.CommType) + ", "
                       + "Note                =  " + DbHelper.ParamChar + "paramNote, "
                       + "Mode_               =  " + SOut.Int((int) commlog.Mode_) + ", "
@@ -97,7 +97,7 @@ public class CommlogCrud
                       + "Signature           =  " + DbHelper.ParamChar + "paramSignature, "
                       + "SigIsTopaz          =  " + SOut.Bool(commlog.SigIsTopaz) + ", "
                       //DateTStamp can only be set by MySQL
-                      + "DateTimeEnd         =  " + SOut.DateT(commlog.DateTimeEnd) + ", "
+                      + "DateTimeEnd         =  " + SOut.DateTime(commlog.DateTimeEnd) + ", "
                       + "CommSource          =  " + SOut.Int((int) commlog.CommSource) + ", "
                       + "ProgramNum          =  " + SOut.Long(commlog.ProgramNum) + ", "
                       //DateTEntry not allowed to change
@@ -123,7 +123,7 @@ public class CommlogCrud
         if (commlog.CommDateTime != oldCommlog.CommDateTime)
         {
             if (command != "") command += ",";
-            command += "CommDateTime = " + SOut.DateT(commlog.CommDateTime) + "";
+            command += "CommDateTime = " + SOut.DateTime(commlog.CommDateTime) + "";
         }
 
         if (commlog.CommType != oldCommlog.CommType)
@@ -172,7 +172,7 @@ public class CommlogCrud
         if (commlog.DateTimeEnd != oldCommlog.DateTimeEnd)
         {
             if (command != "") command += ",";
-            command += "DateTimeEnd = " + SOut.DateT(commlog.DateTimeEnd) + "";
+            command += "DateTimeEnd = " + SOut.DateTime(commlog.DateTimeEnd) + "";
         }
 
         if (commlog.CommSource != oldCommlog.CommSource)

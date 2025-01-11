@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using NDde;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -56,7 +57,7 @@ namespace OpenDental.Bridges {
 			string communicationFile=ProgramProperties.GetPropValFromList(listProgramProperties,"Communication files folder path");//This path is the folder where all comm files will be stored. 
 			string fileName="Patient_"+ODEnvironment.MachineName+".txt";
 			if(communicationFile.Trim()=="") {
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					MsgBox.Show("DexisIntegrator","Communication files folder path must not be empty.");
 					return;
 				}
@@ -101,7 +102,7 @@ namespace OpenDental.Bridges {
 				//would prompt that no patient was selected. We added an optional Thread.Sleep to WriteAllBytesThenStart to ensure that 
 				//the file is done being written to and added a progress bar to let users know OD did not stutter or freeze.
 				ProgressWin progressOD=new ProgressWin();
-				Action actionWriteStartDexis=() => ODFileUtils.WriteAllBytesThenStart(communicationFile,memoryStream.ToArray(),processPath,"\"@"+communicationFile+"\"",millisecondsToSleep:2000);
+				Action actionWriteStartDexis=() => ODFileUtils.WriteAllBytesThenStart(communicationFile,memoryStream.ToArray(),processPath,"\"@"+communicationFile+"\"",millisecondsToSleep: 2000);
 				progressOD.ActionMain=actionWriteStartDexis;
 				progressOD.StartingMessage="Writing patient data to communication file.";
 				progressOD.ShowDialog();

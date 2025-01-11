@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.AutoComm;
@@ -242,7 +243,7 @@ public class Patients
     /// </summary>
     public static Family GetFamily(long patNum)
     {
-        return ODMethodsT.Coalesce(GetFamilies(new List<long> {patNum}).FirstOrDefault(), new Family());
+        return GetFamilies(new List<long> {patNum}).FirstOrDefault() ?? new Family();
     }
 
     /// <summary>
@@ -409,7 +410,7 @@ public class Patients
 
     public static List<Patient> GetChangedSince(DateTime changedSince)
     {
-        var command = "SELECT * FROM patient WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT * FROM patient WHERE DateTStamp > " + SOut.DateTime(changedSince);
         //command+=" "+DbHelper.LimitAnd(1000);
         return PatientCrud.SelectMany(command);
     }
@@ -420,7 +421,7 @@ public class Patients
     /// </summary>
     public static List<long> GetChangedSincePatNums(DateTime changedSince)
     {
-        var command = "SELECT PatNum From patient WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT PatNum From patient WHERE DateTStamp > " + SOut.DateTime(changedSince);
         var dt = DataCore.GetTable(command);
         var patnums = new List<long>(dt.Rows.Count);
         for (var i = 0; i < dt.Rows.Count; i++) patnums.Add(SIn.Long(dt.Rows[i]["PatNum"].ToString()));
@@ -431,7 +432,7 @@ public class Patients
     public static List<PatientWithServerDT> GetPatientsSimpleForApi(int limit, int offset, string lName, string fName,
         DateTime birthdate, int patStatus, long clinicNum, DateTime dateTStamp, long priProv, int gender, int position, long guarantor, long superFamily, long employerNum)
     {
-        var command = "SELECT * FROM patient WHERE DateTStamp >= " + SOut.DateT(dateTStamp) + " "
+        var command = "SELECT * FROM patient WHERE DateTStamp >= " + SOut.DateTime(dateTStamp) + " "
                       + "AND PatStatus != " + SOut.Int((int) PatientStatus.Deleted) + " "; //Do not return Deleted patients.
         if (!lName.IsNullOrEmpty()) command += "AND LName LIKE '%" + SOut.String(lName) + "%' ";
         if (!fName.IsNullOrEmpty()) command += "AND FName LIKE '%" + SOut.String(fName) + "%' ";
@@ -794,9 +795,9 @@ public class Patients
             {
                 command = $@"SELECT PatNum,
 						COALESCE(MIN(CASE WHEN AptStatus={SOut.Int((int) ApptStatus.Scheduled)} AND AptDateTime>={DbHelper.Now()}
-							THEN AptDateTime END),{SOut.DateT(DateTime.MinValue)}) NextVisit,
+							THEN AptDateTime END),{SOut.DateTime(DateTime.MinValue)}) NextVisit,
 						COALESCE(MAX(CASE WHEN AptStatus={SOut.Int((int) ApptStatus.Complete)} AND AptDateTime<={DbHelper.Now()}
-							THEN AptDateTime END),{SOut.DateT(DateTime.MinValue)}) LastVisit
+							THEN AptDateTime END),{SOut.DateTime(DateTime.MinValue)}) LastVisit
 						FROM appointment 
 						WHERE AptStatus IN({SOut.Int((int) ApptStatus.Scheduled)},{SOut.Int((int) ApptStatus.Complete)})
 						AND PatNum IN ({string.Join(",", listPatNumStrs)})
@@ -3608,7 +3609,7 @@ public class Patients
                            + "SELECT DISTINCT PatNum "
                            + "FROM procedurelog "
                            + "WHERE ProcStatus IN " + procstatus + " "
-                           + "AND ProcDate > " + SOut.DateT(fromDate, true) +
+                           + "AND ProcDate > " + SOut.DateTime(fromDate, true) +
                            ") ";
             if (doIncludeAppointments) //Appt in date range.
                 whereClause += "AND ";
@@ -3618,7 +3619,7 @@ public class Patients
             whereClause += "PatNum NOT IN ("
                            + "SELECT DISTINCT PatNum "
                            + "FROM appointment "
-                           + "WHERE AptDateTime > " + SOut.DateT(fromDate, true)
+                           + "WHERE AptDateTime > " + SOut.DateTime(fromDate, true)
                            //ONly grabi "valid" appointments so they can be filtered out of the list of inactive patients in the Patient Status Setter tool
                            + " AND AptStatus IN ("
                            + SOut.Enum(ApptStatus.Scheduled) + ","
@@ -4051,7 +4052,7 @@ public class Patients
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (ODBuild.IsDebug()) result.Msg = messageHL7.ToString();
+                if (/* ODBuild.IsDebug() */ false) result.Msg = messageHL7.ToString();
             }
         }
 

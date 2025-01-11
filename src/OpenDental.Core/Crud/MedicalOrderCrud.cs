@@ -65,7 +65,7 @@ public class MedicalOrderCrud
         table.Columns.Add("IsDiscontinued");
         table.Columns.Add("ProvNum");
         foreach (var medicalOrder in listMedicalOrders)
-            table.Rows.Add(SOut.Long(medicalOrder.MedicalOrderNum), SOut.Int((int) medicalOrder.MedOrderType), SOut.Long(medicalOrder.PatNum), SOut.DateT(medicalOrder.DateTimeOrder, false), medicalOrder.Description, SOut.Bool(medicalOrder.IsDiscontinued), SOut.Long(medicalOrder.ProvNum));
+            table.Rows.Add(SOut.Long(medicalOrder.MedicalOrderNum), SOut.Int((int) medicalOrder.MedOrderType), SOut.Long(medicalOrder.PatNum), SOut.DateTime(medicalOrder.DateTimeOrder, false), medicalOrder.Description, SOut.Bool(medicalOrder.IsDiscontinued), SOut.Long(medicalOrder.ProvNum));
         return table;
     }
 
@@ -83,7 +83,7 @@ public class MedicalOrderCrud
         command +=
             SOut.Int((int) medicalOrder.MedOrderType) + ","
                                                       + SOut.Long(medicalOrder.PatNum) + ","
-                                                      + SOut.DateT(medicalOrder.DateTimeOrder) + ","
+                                                      + SOut.DateTime(medicalOrder.DateTimeOrder) + ","
                                                       + "'" + SOut.String(medicalOrder.Description) + "',"
                                                       + SOut.Bool(medicalOrder.IsDiscontinued) + ","
                                                       + SOut.Long(medicalOrder.ProvNum) + ")";
@@ -108,7 +108,7 @@ public class MedicalOrderCrud
         command +=
             SOut.Int((int) medicalOrder.MedOrderType) + ","
                                                       + SOut.Long(medicalOrder.PatNum) + ","
-                                                      + SOut.DateT(medicalOrder.DateTimeOrder) + ","
+                                                      + SOut.DateTime(medicalOrder.DateTimeOrder) + ","
                                                       + "'" + SOut.String(medicalOrder.Description) + "',"
                                                       + SOut.Bool(medicalOrder.IsDiscontinued) + ","
                                                       + SOut.Long(medicalOrder.ProvNum) + ")";
@@ -124,7 +124,7 @@ public class MedicalOrderCrud
         var command = "UPDATE medicalorder SET "
                       + "MedOrderType   =  " + SOut.Int((int) medicalOrder.MedOrderType) + ", "
                       + "PatNum         =  " + SOut.Long(medicalOrder.PatNum) + ", "
-                      + "DateTimeOrder  =  " + SOut.DateT(medicalOrder.DateTimeOrder) + ", "
+                      + "DateTimeOrder  =  " + SOut.DateTime(medicalOrder.DateTimeOrder) + ", "
                       + "Description    = '" + SOut.String(medicalOrder.Description) + "', "
                       + "IsDiscontinued =  " + SOut.Bool(medicalOrder.IsDiscontinued) + ", "
                       + "ProvNum        =  " + SOut.Long(medicalOrder.ProvNum) + " "
@@ -150,7 +150,7 @@ public class MedicalOrderCrud
         if (medicalOrder.DateTimeOrder != oldMedicalOrder.DateTimeOrder)
         {
             if (command != "") command += ",";
-            command += "DateTimeOrder = " + SOut.DateT(medicalOrder.DateTimeOrder) + "";
+            command += "DateTimeOrder = " + SOut.DateTime(medicalOrder.DateTimeOrder) + "";
         }
 
         if (medicalOrder.Description != oldMedicalOrder.Description)

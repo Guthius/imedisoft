@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using MySqlConnector;
 
 namespace OpenDentBusiness{
@@ -143,7 +144,7 @@ namespace OpenDentBusiness{
 						+"finished or date and time is cleared.");
 				}
 				else {
-					Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateT(dtNow,false));//get lock on pref to block others
+					Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateTime(dtNow,false));//get lock on pref to block others
 					Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
 					try {
 						Ledgers.ComputeAging(listGuarantorNums,DateTime.Today.Date);

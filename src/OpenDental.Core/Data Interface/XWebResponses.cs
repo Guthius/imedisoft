@@ -38,7 +38,7 @@ public class XWebResponses
                       + "AND xwebresponse.ResponseCode IN("
                       + SOut.Int((int) XWebResponseCodes.Approval) + ","
                       + SOut.Int((int) XWebResponseCodes.PartialApproval) + ") "
-                      + "AND xwebresponse.DateTUpdate BETWEEN " + SOut.DateT(dateFrom) + " AND " + SOut.DateT(dateTo.AddDays(1)) + " ";
+                      + "AND xwebresponse.DateTUpdate BETWEEN " + SOut.DateTime(dateFrom) + " AND " + SOut.DateTime(dateTo.AddDays(1)) + " ";
         if (listClinicNums.Count > 0) command += "AND xwebresponse.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";
 
         #endregion
@@ -57,7 +57,7 @@ public class XWebResponses
                    + "LEFT JOIN creditcard ON creditcard.PayConnectToken=payconnectresponseweb.PaymentToken "
                    + "LEFT JOIN payment ON payment.PayNum=payconnectresponseweb.PayNum "
                    + "LEFT JOIN clinic ON clinic.ClinicNum=payment.ClinicNum "
-                   + "WHERE payconnectresponseweb.DateTimeCompleted BETWEEN " + SOut.DateT(dateFrom) + " AND " + SOut.DateT(dateTo.AddDays(1)) + " "
+                   + "WHERE payconnectresponseweb.DateTimeCompleted BETWEEN " + SOut.DateTime(dateFrom) + " AND " + SOut.DateTime(dateTo.AddDays(1)) + " "
                    + "AND payconnectresponseweb.ProcessingStatus='" + PayConnectWebStatus.Completed + "' "
                    + "AND payconnectresponseweb.TransType!='' ";
         if (listClinicNums.Count > 0) command += "AND payment.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";

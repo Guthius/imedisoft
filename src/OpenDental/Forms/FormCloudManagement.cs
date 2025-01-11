@@ -9,6 +9,7 @@ using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Xml.Serialization;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDental {

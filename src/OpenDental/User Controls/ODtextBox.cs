@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	/// <summary>This is used instead of a regular textbox when quickpaste functionality is needed.</summary>
@@ -362,7 +363,7 @@ namespace OpenDental {
 		}
 
 		private bool IsUsingSpellCheck(){
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower().In("jordansgalaxybk","jordanhome","jordancryo")){
+			if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower().In("jordansgalaxybk","jordanhome","jordancryo")){
 				return false;//for testing without a db
 			}
 			if(!SpellCheckIsEnabled){//for this control, as set in the designer
@@ -685,7 +686,7 @@ namespace OpenDental {
 		
 		protected override void OnKeyUp(KeyEventArgs e) {
 			base.OnKeyUp(e);
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower().In("jordansgalaxybk","jordanhome")){
+			if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower().In("jordansgalaxybk","jordanhome")){
 				return;//for testing without a db
 			}
 			if(IsUsingSpellCheck()) {//Only spell check if enabled
@@ -738,7 +739,7 @@ namespace OpenDental {
 			_graphicsBuffer=Graphics.FromImage(bitmapOverlay);
 			_graphicsBuffer.Clear(Color.Transparent);//We don't want to overwrite the text in the rich text box.
 			Graphics graphicsTextBox=Graphics.FromHwnd(this.Handle);
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				if(spellCheckResult==null) {
 					spellCheckResult=new SpellCheckResult();
 				}
@@ -752,7 +753,7 @@ namespace OpenDental {
 				graphicsTextBox.DrawImage(bitmapOverlay,0,0,Width,Height);
 				graphicsTextBox.Dispose();
 				bitmapOverlay.Dispose();
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					spellCheckResult.WavyLineArea.ListWavyLineRects.Add(rectangleWavyLineArea);
 				}
 				return;
@@ -760,7 +761,7 @@ namespace OpenDental {
 			CharBounds charBounds=GetVisibleCharIndices();
 			//Get the visible start and end char indices and use them to get the visible line heights.
 			List<int> listVisibleLineHeights=GetVisibleLineHeights(widthOverride);//Used for measuring line heights
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				spellCheckResult.WavyLineArea.startCharIndex=charBounds.StartCharIndex;
 				spellCheckResult.WavyLineArea.startLineIndex=this.GetLineFromCharIndex(charBounds.StartCharIndex);
 				spellCheckResult.WavyLineArea.endCharIndex=charBounds.EndCharIndex;
@@ -777,7 +778,7 @@ namespace OpenDental {
 				}
 				Rectangle rectangleWavyLineArea=new Rectangle(1,start.Y,this.Width,2);
 				_graphicsBuffer.FillRectangle(new SolidBrush(BackColor),rectangleWavyLineArea);
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					spellCheckResult.WavyLineArea.ListWavyLineRects.Add(rectangleWavyLineArea);
 				}
 			}
@@ -791,7 +792,7 @@ namespace OpenDental {
 		///Returns a SpellCheckResult which is a helper object designed for unit tests that only gets filled in debug mode.</summary>
 		public SpellCheckResult SpellCheck() {
 			SpellCheckResult spellCheckResult=null;//Never keep track of this type of information in a live environment.
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				spellCheckResult=new SpellCheckResult();
 			}
 			//Only spell check if enabled
@@ -807,7 +808,7 @@ namespace OpenDental {
 			}
 			//Clear out old lines from last draw.
 			List<MatchOD> listVisibleWords=GetVisibleWords();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				spellCheckResult.ListVisibleLineHeights=GetVisibleLineHeights();
 				spellCheckResult.ListVisibleWords=listVisibleWords;
 			}
@@ -865,7 +866,7 @@ namespace OpenDental {
 			}			
 			//Wait until now to clear lines minimize the amount of time between old and new underlines.
 			ClearWavyLines(spellCheckResult:spellCheckResult);
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				spellCheckResult.ListMisspelledWords=listMisspelledWords;
 			}
 			//If we have no lines to draw we return before starting any underlining.
@@ -874,7 +875,7 @@ namespace OpenDental {
 			}
 			List<int> listVisibleLineHeights=GetVisibleLineHeights();
 			List<WavyLine> listWavyLines=null;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				listWavyLines=new List<WavyLine>();
 				spellCheckResult.WavyLineArea.ListWavyLines=listWavyLines;
 			}
@@ -1018,7 +1019,7 @@ namespace OpenDental {
 			pointStart.Y=pointStart.Y+startLineHeight;//move from top of line to bottom of line
 			pointEnd.Y=pointEnd.Y+startLineHeight;//move from top of line to bottom of line
 			WavyLine wavyLine=new WavyLine();
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				wavyLine.LineIndex=startLineIndex;
 				wavyLine.LineHeight=startLineHeight;
 				wavyLine.PointStart=new Point(pointStart.X,pointStart.Y);
@@ -1038,7 +1039,7 @@ namespace OpenDental {
 				Point pointEndTemp=pointStart;
 				pointEndTemp.X=this.Width;
 				while(pointEndTemp.Y<=pointEnd.Y && lineIndex<listVisibleLineHeights.Count) {//One line at a time.
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						if(wavyLine==null) {
 							wavyLine=new WavyLine();
 							wavyLine.LineIndex=lineIndex;
@@ -1058,13 +1059,13 @@ namespace OpenDental {
 							listPointFs.Add(new PointF(pointStart.X+i*lengthWave+lengthWave/2f,pointStart.Y+LayoutManager.ScaleF(1)));
 						}
 						_graphicsBuffer.DrawLines(pen,listPointFs.ToArray());
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							wavyLine.ListPointFs.AddRange(listPointFs);
 						}
 					}
 					else {
 						_graphicsBuffer.DrawLine(pen,pointStart,pointEnd);
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							wavyLine.ListPointFs.AddRange(new List<PointF>() { pointStart,pointEnd });
 						}
 					}
@@ -1081,7 +1082,7 @@ namespace OpenDental {
 					else {//not the last line of mispelled word, so draw wavy line to end of this line
 						pointEndTemp.X=this.Width;
 					}
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						if(listWavyLines!=null) {
 							listWavyLines.Add(wavyLine);
 						}
@@ -1101,17 +1102,17 @@ namespace OpenDental {
 						listPointFs.Add(new PointF(pointStart.X+i*lengthWave+lengthWave/2f,pointStart.Y+LayoutManager.ScaleF(1)));
 					}
 					_graphicsBuffer.DrawLines(pen,listPointFs.ToArray());
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						wavyLine.ListPointFs.AddRange(listPointFs);
 					}
 				}
 				else {
 					_graphicsBuffer.DrawLine(pen,pointStart,pointEnd);
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						wavyLine.ListPointFs.AddRange(new List<PointF>() { pointStart,pointEnd });
 					}
 				}
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					if(listWavyLines!=null) {
 						listWavyLines.Add(wavyLine);
 					}

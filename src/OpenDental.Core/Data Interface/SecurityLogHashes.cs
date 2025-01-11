@@ -86,12 +86,12 @@ public class SecurityLogHashes
         //logString+=securityLog.SecurityLogNum;
         logString += ((int) securityLog.PermType).ToString();
         logString += securityLog.UserNum;
-        logString += SOut.DateT(securityLog.LogDateTime, false);
+        logString += SOut.DateTime(securityLog.LogDateTime, false);
         logString += securityLog.LogText;
         //logString+=securityLog.CompName;
         logString += securityLog.PatNum;
         //logString+=securityLog.FKey.ToString();
-        if (securityLog.DateTPrevious != DateTime.MinValue) logString += SOut.DateT(securityLog.DateTPrevious, false);
+        if (securityLog.DateTPrevious != DateTime.MinValue) logString += SOut.DateTime(securityLog.DateTPrevious, false);
         var byteArrayUnicode = Encoding.Unicode.GetBytes(logString);
         var byteArray = hashAlgorithm.ComputeHash(byteArrayUnicode);
         return Convert.ToBase64String(byteArray);

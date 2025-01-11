@@ -173,7 +173,7 @@ namespace OpenDental.Graph.Dashboard
                 FilterIndex = 1,
                 RestoreDirectory = true,
             };
-            if (ODEnvironment.IsCloudInstance)
+            if (/* ODEnvironment.IsCloudInstance */ false)
             {
                 sd.FileName = ODFileUtils.CombinePaths(Path.GetTempPath(), "image_export.pdf");
             }
@@ -199,15 +199,6 @@ namespace OpenDental.Graph.Dashboard
                 }
 
                 pdfDoc.Save(sd.FileName);
-                if (false)
-                {
-                    ThinfinityUtils.ExportForDownload(sd.FileName);
-                }
-
-                if (false)
-                {
-                    ODCloudClient.ExportForAppStream(sd.FileName);
-                }
 
                 MessageBox.Show(Lans.g(this, "File saved."));
             }

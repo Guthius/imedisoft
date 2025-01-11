@@ -7,6 +7,7 @@ using System.Linq;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 using OpenDentBusiness.Crud;
@@ -109,7 +110,7 @@ public class ProcedureCodes
 
     public static List<ProcedureCode> GetChangedSince(DateTime dateTimeChangedSince)
     {
-        var command = "SELECT * FROM procedurecode WHERE DateTStamp > " + SOut.DateT(dateTimeChangedSince);
+        var command = "SELECT * FROM procedurecode WHERE DateTStamp > " + SOut.DateTime(dateTimeChangedSince);
         return ProcedureCodeCrud.SelectMany(command);
     }
 
@@ -1062,7 +1063,7 @@ public class ProcedureCodes
     public static List<ProcedureCode> GetProcCodesForApi(int limit, int offset, DateTime dateTStamp)
     {
         var command = "SELECT * FROM procedurecode ";
-        if (dateTStamp > DateTime.MinValue) command += "WHERE DateTStamp >= " + SOut.DateT(dateTStamp) + " ";
+        if (dateTStamp > DateTime.MinValue) command += "WHERE DateTStamp >= " + SOut.DateTime(dateTStamp) + " ";
         command += "ORDER BY CodeNum " //Ensure order for limit and offset. Ordered by ProcCode in 23.3.24 and older.
                    + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
         return ProcedureCodeCrud.SelectMany(command);

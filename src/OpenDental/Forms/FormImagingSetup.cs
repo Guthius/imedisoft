@@ -9,6 +9,7 @@ using CodeBase;
 using System.Diagnostics;
 using Microsoft.VisualBasic;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -95,12 +96,6 @@ namespace OpenDental{
 		}
 
 		private void butSetScanner_Click(object sender,EventArgs e) {
-			if(ODEnvironment.IsCloudServer) {
-				if(CloudClientL.IsCloudClientRunning()) {
-					ODCloudClient.SetDefaultScanner();
-				}
-				return;
-			}
 			try {
 				ImagingDeviceManager.Twain.ActivateEZTwain();
 			}

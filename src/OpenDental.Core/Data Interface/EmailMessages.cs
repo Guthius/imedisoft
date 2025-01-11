@@ -27,6 +27,7 @@ using Health.Direct.Common.Domains;
 using Health.Direct.Common.Mail;
 using Health.Direct.Common.Mail.Notifications;
 using Health.Direct.ResolverPlugins;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using MimeKit;
 using Newtonsoft.Json;
@@ -449,7 +450,7 @@ public class EmailMessages
     ///<summary>Deletes all EmailMessages before the given cutOffDate. Returns the number of entries deleted.</summary>
     public static long DeleteBeforeDate(DateTime dateCutoff)
     {
-        var command = "DELETE FROM emailmessage WHERE MsgDateTime <= " + SOut.DateT(dateCutoff) + " ";
+        var command = "DELETE FROM emailmessage WHERE MsgDateTime <= " + SOut.DateTime(dateCutoff) + " ";
         return Db.NonQ(command);
     }
 
@@ -1800,17 +1801,8 @@ public class EmailMessages
             return;
         }
 
-        var microsoftTokenHelper = new MicrosoftTokenHelper();
-        if (ODEnvironment.IsCloudInstance)
-        {
-            var strMicrosoftAuthCodesJSON = ODCloudClient.GetMicrosoftAccessToken(emailAddress.EmailUsername, emailAddress.RefreshToken);
-            if (!strMicrosoftAuthCodesJSON.IsNullOrEmpty()) microsoftTokenHelper = JsonConvert.DeserializeObject<MicrosoftTokenHelper>(strMicrosoftAuthCodesJSON);
-        }
-        else
-        {
-            microsoftTokenHelper = System.Threading.Tasks.Task.Run(async () =>
-                await MicrosoftApiConnector.GetAccessToken(emailAddress.EmailUsername, emailAddress.RefreshToken)).GetAwaiter().GetResult();
-        }
+        var microsoftTokenHelper = System.Threading.Tasks.Task.Run(async () =>
+            await MicrosoftApiConnector.GetAccessToken(emailAddress.EmailUsername, emailAddress.RefreshToken)).GetAwaiter().GetResult();
 
         if (microsoftTokenHelper.ErrorMessage != "" || microsoftTokenHelper.AccessToken == "") return; //authentication was cancelled or there was an error so just return.
 

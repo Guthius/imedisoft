@@ -5,6 +5,7 @@ using System.Text;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Cloud.Shared;
 using OpenDental.Cloud.Storage;
@@ -57,7 +58,7 @@ public class TsiTransLogs
                       + "SELECT PatNum,MAX(TransDateTime) transDateTime "
                       + "FROM tsitranslog "
                       + "WHERE TransType IN(" + string.Join(",", listStatusTransTypes) + ") "
-                      + "AND TransDateTime>" + SOut.DateT(DateTime.Now.AddDays(-50)) + " "
+                      + "AND TransDateTime>" + SOut.DateTime(DateTime.Now.AddDays(-50)) + " "
                       + "GROUP BY PatNum"
                       + ") mostRecentTrans ON tsitranslog.PatNum=mostRecentTrans.PatNum "
                       + "AND tsitranslog.TransDateTime=mostRecentTrans.transDateTime "
@@ -81,7 +82,7 @@ public class TsiTransLogs
                       + "FROM tsitranslog "
                       + "WHERE PatNum=" + SOut.Long(guarNum) + " "
                       + "AND TransType IN(" + string.Join(",", listStatusTransTypes) + ") "
-                      + "AND TransDateTime>" + SOut.DateT(DateTime.Now.AddDays(-50)) + " "
+                      + "AND TransDateTime>" + SOut.DateTime(DateTime.Now.AddDays(-50)) + " "
                       + "GROUP BY PatNum"
                       + ") mostRecentLog ON tsitranslog.PatNum=mostRecentLog.PatNum AND tsitranslog.TransDateTime=mostRecentLog.transDateTime";
         return SIn.Bool(DataCore.GetScalar(command));

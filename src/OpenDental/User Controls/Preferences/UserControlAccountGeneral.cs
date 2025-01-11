@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -67,7 +68,7 @@ namespace OpenDental {
 				prefValSync.PrefVal="";
 			}
 			else {
-				prefValSync.PrefVal=POut.DateT(timeAgingRun,false);
+				prefValSync.PrefVal=POut.DateTime(timeAgingRun,false);
 			}
 			SyncChanged?.Invoke(this,new EventArgs());
 		}

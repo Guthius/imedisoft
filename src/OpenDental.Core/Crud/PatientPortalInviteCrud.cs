@@ -79,7 +79,7 @@ public class PatientPortalInviteCrud
         table.Columns.Add("ApptDateTime");
         table.Columns.Add("TSPrior");
         foreach (var patientPortalInvite in listPatientPortalInvites)
-            table.Rows.Add(SOut.Long(patientPortalInvite.PatientPortalInviteNum), SOut.Long(patientPortalInvite.PatNum), SOut.Long(patientPortalInvite.ClinicNum), SOut.Int((int) patientPortalInvite.SendStatus), SOut.Int((int) patientPortalInvite.MessageType), SOut.Long(patientPortalInvite.MessageFk), SOut.DateT(patientPortalInvite.DateTimeEntry, false), SOut.DateT(patientPortalInvite.DateTimeSent, false), patientPortalInvite.ResponseDescript, SOut.Long(patientPortalInvite.ApptReminderRuleNum), SOut.Long(patientPortalInvite.ApptNum), SOut.DateT(patientPortalInvite.ApptDateTime, false), SOut.Long(patientPortalInvite.TSPrior.Ticks));
+            table.Rows.Add(SOut.Long(patientPortalInvite.PatientPortalInviteNum), SOut.Long(patientPortalInvite.PatNum), SOut.Long(patientPortalInvite.ClinicNum), SOut.Int((int) patientPortalInvite.SendStatus), SOut.Int((int) patientPortalInvite.MessageType), SOut.Long(patientPortalInvite.MessageFk), SOut.DateTime(patientPortalInvite.DateTimeEntry, false), SOut.DateTime(patientPortalInvite.DateTimeSent, false), patientPortalInvite.ResponseDescript, SOut.Long(patientPortalInvite.ApptReminderRuleNum), SOut.Long(patientPortalInvite.ApptNum), SOut.DateTime(patientPortalInvite.ApptDateTime, false), SOut.Long(patientPortalInvite.TSPrior.Ticks));
         return table;
     }
 
@@ -101,11 +101,11 @@ public class PatientPortalInviteCrud
                                                   + SOut.Int((int) patientPortalInvite.MessageType) + ","
                                                   + SOut.Long(patientPortalInvite.MessageFk) + ","
                                                   + DbHelper.Now() + ","
-                                                  + SOut.DateT(patientPortalInvite.DateTimeSent) + ","
+                                                  + SOut.DateTime(patientPortalInvite.DateTimeSent) + ","
                                                   + DbHelper.ParamChar + "paramResponseDescript,"
                                                   + SOut.Long(patientPortalInvite.ApptReminderRuleNum) + ","
                                                   + SOut.Long(patientPortalInvite.ApptNum) + ","
-                                                  + SOut.DateT(patientPortalInvite.ApptDateTime) + ","
+                                                  + SOut.DateTime(patientPortalInvite.ApptDateTime) + ","
                                                   + "'" + SOut.Long(patientPortalInvite.TSPrior.Ticks) + "')";
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
         var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(patientPortalInvite.ResponseDescript));
@@ -161,7 +161,7 @@ public class PatientPortalInviteCrud
             sbRow.Append(",");
             sbRow.Append(DbHelper.Now());
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(patientPortalInvite.DateTimeSent));
+            sbRow.Append(SOut.DateTime(patientPortalInvite.DateTimeSent));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(patientPortalInvite.ResponseDescript) + "'");
             sbRow.Append(",");
@@ -169,7 +169,7 @@ public class PatientPortalInviteCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(patientPortalInvite.ApptNum));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(patientPortalInvite.ApptDateTime));
+            sbRow.Append(SOut.DateTime(patientPortalInvite.ApptDateTime));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.Long(patientPortalInvite.TSPrior.Ticks) + "'");
             sbRow.Append(")");
@@ -208,11 +208,11 @@ public class PatientPortalInviteCrud
                                                   + SOut.Int((int) patientPortalInvite.MessageType) + ","
                                                   + SOut.Long(patientPortalInvite.MessageFk) + ","
                                                   + DbHelper.Now() + ","
-                                                  + SOut.DateT(patientPortalInvite.DateTimeSent) + ","
+                                                  + SOut.DateTime(patientPortalInvite.DateTimeSent) + ","
                                                   + DbHelper.ParamChar + "paramResponseDescript,"
                                                   + SOut.Long(patientPortalInvite.ApptReminderRuleNum) + ","
                                                   + SOut.Long(patientPortalInvite.ApptNum) + ","
-                                                  + SOut.DateT(patientPortalInvite.ApptDateTime) + ","
+                                                  + SOut.DateTime(patientPortalInvite.ApptDateTime) + ","
                                                   + "'" + SOut.Long(patientPortalInvite.TSPrior.Ticks) + "')";
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
         var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(patientPortalInvite.ResponseDescript));
@@ -232,11 +232,11 @@ public class PatientPortalInviteCrud
                       + "MessageType           =  " + SOut.Int((int) patientPortalInvite.MessageType) + ", "
                       + "MessageFk             =  " + SOut.Long(patientPortalInvite.MessageFk) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeSent          =  " + SOut.DateT(patientPortalInvite.DateTimeSent) + ", "
+                      + "DateTimeSent          =  " + SOut.DateTime(patientPortalInvite.DateTimeSent) + ", "
                       + "ResponseDescript      =  " + DbHelper.ParamChar + "paramResponseDescript, "
                       + "ApptReminderRuleNum   =  " + SOut.Long(patientPortalInvite.ApptReminderRuleNum) + ", "
                       + "ApptNum               =  " + SOut.Long(patientPortalInvite.ApptNum) + ", "
-                      + "ApptDateTime          =  " + SOut.DateT(patientPortalInvite.ApptDateTime) + ", "
+                      + "ApptDateTime          =  " + SOut.DateTime(patientPortalInvite.ApptDateTime) + ", "
                       + "TSPrior               =  " + SOut.Long(patientPortalInvite.TSPrior.Ticks) + " "
                       + "WHERE PatientPortalInviteNum = " + SOut.Long(patientPortalInvite.PatientPortalInviteNum);
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
@@ -281,7 +281,7 @@ public class PatientPortalInviteCrud
         if (patientPortalInvite.DateTimeSent != oldPatientPortalInvite.DateTimeSent)
         {
             if (command != "") command += ",";
-            command += "DateTimeSent = " + SOut.DateT(patientPortalInvite.DateTimeSent) + "";
+            command += "DateTimeSent = " + SOut.DateTime(patientPortalInvite.DateTimeSent) + "";
         }
 
         if (patientPortalInvite.ResponseDescript != oldPatientPortalInvite.ResponseDescript)
@@ -305,7 +305,7 @@ public class PatientPortalInviteCrud
         if (patientPortalInvite.ApptDateTime != oldPatientPortalInvite.ApptDateTime)
         {
             if (command != "") command += ",";
-            command += "ApptDateTime = " + SOut.DateT(patientPortalInvite.ApptDateTime) + "";
+            command += "ApptDateTime = " + SOut.DateTime(patientPortalInvite.ApptDateTime) + "";
         }
 
         if (patientPortalInvite.TSPrior != oldPatientPortalInvite.TSPrior)

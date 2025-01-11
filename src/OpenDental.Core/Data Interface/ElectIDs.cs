@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.Dentalxchange2016;
 using OpenDentBusiness.Eclaims;

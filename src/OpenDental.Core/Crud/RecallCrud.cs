@@ -84,7 +84,7 @@ public class RecallCrud
         table.Columns.Add("Priority");
         table.Columns.Add("TimePatternOverride");
         foreach (var recall in listRecalls)
-            table.Rows.Add(SOut.Long(recall.RecallNum), SOut.Long(recall.PatNum), SOut.DateT(recall.DateDueCalc, false), SOut.DateT(recall.DateDue, false), SOut.DateT(recall.DatePrevious, false), SOut.Int(recall.RecallInterval.ToInt()), SOut.Long(recall.RecallStatus), recall.Note, SOut.Bool(recall.IsDisabled), SOut.DateT(recall.DateTStamp, false), SOut.Long(recall.RecallTypeNum), SOut.Double(recall.DisableUntilBalance), SOut.DateT(recall.DisableUntilDate, false), SOut.DateT(recall.DateScheduled, false), SOut.Int((int) recall.Priority), recall.TimePatternOverride);
+            table.Rows.Add(SOut.Long(recall.RecallNum), SOut.Long(recall.PatNum), SOut.DateTime(recall.DateDueCalc, false), SOut.DateTime(recall.DateDue, false), SOut.DateTime(recall.DatePrevious, false), SOut.Int(recall.RecallInterval.ToInt()), SOut.Long(recall.RecallStatus), recall.Note, SOut.Bool(recall.IsDisabled), SOut.DateTime(recall.DateTStamp, false), SOut.Long(recall.RecallTypeNum), SOut.Double(recall.DisableUntilBalance), SOut.DateTime(recall.DisableUntilDate, false), SOut.DateTime(recall.DateScheduled, false), SOut.Int((int) recall.Priority), recall.TimePatternOverride);
         return table;
     }
 

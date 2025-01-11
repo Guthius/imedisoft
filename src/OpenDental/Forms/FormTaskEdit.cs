@@ -11,6 +11,7 @@ using CodeBase;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	/// <summary>

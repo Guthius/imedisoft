@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -42,7 +43,7 @@ namespace OpenDental {
 				}
 			}
 			string username=textUser.Text;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				if(username=="") {
 					username="Admin";
 					password="pass";

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -221,12 +222,7 @@ namespace OpenDental {
 			//}
 			//else {//Prompt for file.
 			string fileName;
-			if(!false && false) {
-				fileName=ODCloudClient.ImportFileForCloud();
-			}
-			else {
-				fileName=GetFilenameFromUser(true);
-			}
+			fileName=GetFilenameFromUser(true);
 			if(fileName.IsNullOrEmpty()) {
 				return;
 			}
@@ -269,7 +265,7 @@ namespace OpenDental {
 			}
 			int countExportedMeds=0;
 			string fileName;
-			if(ODEnvironment.IsCloudInstance) {
+			if(/* ODEnvironment.IsCloudInstance */ false) {
 				fileName="ExportedMedications.txt";
 			}
 			else {

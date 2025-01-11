@@ -12,6 +12,7 @@ using System.IO;
 using CodeBase;
 using OpenDentBusiness.Eclaims;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	///<summary>This image picker shows all images and mounts for a specific patient and lets you send one to DXC. The code in this form was basically just copied in chunks from FormImagePickerPatient.</summary>

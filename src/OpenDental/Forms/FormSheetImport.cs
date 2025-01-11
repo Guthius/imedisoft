@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	///<summary>Also handles eForm import.</summary>

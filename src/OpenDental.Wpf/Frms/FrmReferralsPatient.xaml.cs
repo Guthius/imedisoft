@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls;
 using WpfControls.UI;

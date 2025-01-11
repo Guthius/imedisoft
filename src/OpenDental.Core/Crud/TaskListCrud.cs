@@ -73,7 +73,7 @@ public class TaskListCrud
         table.Columns.Add("GlobalTaskFilterType");
         table.Columns.Add("TaskListStatus");
         foreach (var taskList in listTaskLists)
-            table.Rows.Add(SOut.Long(taskList.TaskListNum), taskList.Descript, SOut.Long(taskList.Parent), SOut.DateT(taskList.DateTL, false), SOut.Bool(taskList.IsRepeating), SOut.Int((int) taskList.DateType), SOut.Long(taskList.FromNum), SOut.Int((int) taskList.ObjectType), SOut.DateT(taskList.DateTimeEntry, false), SOut.Int((int) taskList.GlobalTaskFilterType), SOut.Int((int) taskList.TaskListStatus));
+            table.Rows.Add(SOut.Long(taskList.TaskListNum), taskList.Descript, SOut.Long(taskList.Parent), SOut.DateTime(taskList.DateTL, false), SOut.Bool(taskList.IsRepeating), SOut.Int((int) taskList.DateType), SOut.Long(taskList.FromNum), SOut.Int((int) taskList.ObjectType), SOut.DateTime(taskList.DateTimeEntry, false), SOut.Int((int) taskList.GlobalTaskFilterType), SOut.Int((int) taskList.TaskListStatus));
         return table;
     }
 
@@ -145,7 +145,7 @@ public class TaskListCrud
                       + "DateType            =  " + SOut.Int((int) taskList.DateType) + ", "
                       + "FromNum             =  " + SOut.Long(taskList.FromNum) + ", "
                       + "ObjectType          =  " + SOut.Int((int) taskList.ObjectType) + ", "
-                      + "DateTimeEntry       =  " + SOut.DateT(taskList.DateTimeEntry) + ", "
+                      + "DateTimeEntry       =  " + SOut.DateTime(taskList.DateTimeEntry) + ", "
                       + "GlobalTaskFilterType=  " + SOut.Int((int) taskList.GlobalTaskFilterType) + ", "
                       + "TaskListStatus      =  " + SOut.Int((int) taskList.TaskListStatus) + " "
                       + "WHERE TaskListNum = " + SOut.Long(taskList.TaskListNum);
@@ -200,7 +200,7 @@ public class TaskListCrud
         if (taskList.DateTimeEntry != oldTaskList.DateTimeEntry)
         {
             if (command != "") command += ",";
-            command += "DateTimeEntry = " + SOut.DateT(taskList.DateTimeEntry) + "";
+            command += "DateTimeEntry = " + SOut.DateTime(taskList.DateTimeEntry) + "";
         }
 
         if (taskList.GlobalTaskFilterType != oldTaskList.GlobalTaskFilterType)

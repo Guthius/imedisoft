@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -79,15 +80,6 @@ namespace OpenDental {
 
 		private void butNavigateTo_Click(object sender,EventArgs e) {
 			if(!string.IsNullOrWhiteSpace(textHostedUrlPortal.Text)) {
-				if(!false && false) {
-					try {
-						ODCloudClient.LaunchFileWithODCloudClient(textHostedUrlPortal.Text);
-					}
-					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
-					}
-					return;
-				}
 				Process.Start(textHostedUrlPortal.Text);
 			}
 		}
@@ -141,7 +133,7 @@ namespace OpenDental {
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
-			if(!ODBuild.IsDebug()) {
+			if(!/* ODBuild.IsDebug() */ false) {
 				if(!textPatientFacingUrlPortal.Text.ToUpper().StartsWith("HTTPS")) {
 					MsgBox.Show(this,"Patient Facing URL must start with HTTPS.");
 					return;

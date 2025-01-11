@@ -20,6 +20,7 @@ using MigraDoc.Rendering.Printing;
 using Document=OpenDentBusiness.Document;
 using OpenDentBusiness.WebTypes;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -1628,7 +1629,7 @@ namespace OpenDental{
 				migraDocPrintDocument.Renderer=documentRenderer;
 				//we might want to surround some of this with a try-catch
 				//TODO: Implement ODprintout pattern - MigraDoc
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					using FormRpPrintPreview formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
 					formRpPrintPreview.ShowDialog();
 				}

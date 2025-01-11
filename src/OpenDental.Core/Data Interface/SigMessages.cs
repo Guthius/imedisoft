@@ -33,7 +33,7 @@ public class SigMessages
     {
         var listSigMessages = new List<SigMessage>();
         var command = @"SELECT * FROM sigmessage "
-                      + "WHERE AckDateTime < " + SOut.DateT(new DateTime(1880, 1, 1)) + " "
+                      + "WHERE AckDateTime < " + SOut.DateTime(new DateTime(1880, 1, 1)) + " "
                       + "ORDER BY MessageDateTime";
         listSigMessages = SigMessageCrud.SelectMany(command);
         listSigMessages.Sort();
@@ -45,8 +45,8 @@ public class SigMessages
     {
         var listSigMessages = new List<SigMessage>();
         var command = "SELECT * FROM sigmessage "
-                      + "WHERE (MessageDateTime > " + SOut.DateT(dateTimeSince) + " "
-                      + "OR AckDateTime > " + SOut.DateT(dateTimeSince) + " "
+                      + "WHERE (MessageDateTime > " + SOut.DateTime(dateTimeSince) + " "
+                      + "OR AckDateTime > " + SOut.DateTime(dateTimeSince) + " "
                       + "OR AckDateTime < " + SOut.Date(new DateTime(1880, 1, 1), true) + ") " //always include all unacked.
                       + "ORDER BY MessageDateTime";
         //note: this might return an occasional row that has both times newer.
@@ -74,7 +74,7 @@ public class SigMessages
                       + "OR sigmessage.SigElementDefNumExtra=sigelementdef.SigElementDefNum "
                       + "OR sigmessage.SigElementDefNumMsg=sigelementdef.SigElementDefNum) "
                       + "WHERE sigmessage.AckDateTime < " + SOut.Date(new DateTime(1880, 1, 1), true) + " "
-                      + "AND MessageDateTime <= " + SOut.DateT(dateTime) + " "
+                      + "AND MessageDateTime <= " + SOut.DateTime(dateTime) + " "
                       + "AND sigelementdef.LightRow=" + SOut.Long(buttonIndex);
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return;
@@ -111,7 +111,7 @@ public class SigMessages
         //Get all ack'd messages older than two days.
         var command = "";
         //easier to read than using the DbHelper Functions
-        command = "SELECT SigMessageNum FROM sigmessage WHERE AckDateTime > " + SOut.DateT(new DateTime(1880, 1, 1)) + " "
+        command = "SELECT SigMessageNum FROM sigmessage WHERE AckDateTime > " + SOut.DateTime(new DateTime(1880, 1, 1)) + " "
                   + "AND AckDateTime < DATE_ADD(NOW(),INTERVAL -2 DAY)";
         var table = DataCore.GetTable(command);
         if (table.Rows.Count < 1) return; //Nothing to delete.

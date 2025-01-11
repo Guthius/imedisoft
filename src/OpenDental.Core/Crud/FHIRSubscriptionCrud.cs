@@ -73,7 +73,7 @@ public class FHIRSubscriptionCrud
         table.Columns.Add("DateEnd");
         table.Columns.Add("APIKeyHash");
         foreach (var fHIRSubscription in listFHIRSubscriptions)
-            table.Rows.Add(SOut.Long(fHIRSubscription.FHIRSubscriptionNum), fHIRSubscription.Criteria, fHIRSubscription.Reason, SOut.Int((int) fHIRSubscription.SubStatus), fHIRSubscription.ErrorNote, SOut.Int((int) fHIRSubscription.ChannelType), fHIRSubscription.ChannelEndpoint, fHIRSubscription.ChannelPayLoad, fHIRSubscription.ChannelHeader, SOut.DateT(fHIRSubscription.DateEnd, false), fHIRSubscription.APIKeyHash);
+            table.Rows.Add(SOut.Long(fHIRSubscription.FHIRSubscriptionNum), fHIRSubscription.Criteria, fHIRSubscription.Reason, SOut.Int((int) fHIRSubscription.SubStatus), fHIRSubscription.ErrorNote, SOut.Int((int) fHIRSubscription.ChannelType), fHIRSubscription.ChannelEndpoint, fHIRSubscription.ChannelPayLoad, fHIRSubscription.ChannelHeader, SOut.DateTime(fHIRSubscription.DateEnd, false), fHIRSubscription.APIKeyHash);
         return table;
     }
 
@@ -97,7 +97,7 @@ public class FHIRSubscriptionCrud
             + "'" + SOut.String(fHIRSubscription.ChannelEndpoint) + "',"
             + "'" + SOut.String(fHIRSubscription.ChannelPayLoad) + "',"
             + "'" + SOut.String(fHIRSubscription.ChannelHeader) + "',"
-            + SOut.DateT(fHIRSubscription.DateEnd) + ","
+            + SOut.DateTime(fHIRSubscription.DateEnd) + ","
             + "'" + SOut.String(fHIRSubscription.APIKeyHash) + "')";
         if (fHIRSubscription.ErrorNote == null) fHIRSubscription.ErrorNote = "";
         var paramErrorNote = new OdSqlParameter("paramErrorNote", OdDbType.Text, SOut.StringParam(fHIRSubscription.ErrorNote));
@@ -128,7 +128,7 @@ public class FHIRSubscriptionCrud
             + "'" + SOut.String(fHIRSubscription.ChannelEndpoint) + "',"
             + "'" + SOut.String(fHIRSubscription.ChannelPayLoad) + "',"
             + "'" + SOut.String(fHIRSubscription.ChannelHeader) + "',"
-            + SOut.DateT(fHIRSubscription.DateEnd) + ","
+            + SOut.DateTime(fHIRSubscription.DateEnd) + ","
             + "'" + SOut.String(fHIRSubscription.APIKeyHash) + "')";
         if (fHIRSubscription.ErrorNote == null) fHIRSubscription.ErrorNote = "";
         var paramErrorNote = new OdSqlParameter("paramErrorNote", OdDbType.Text, SOut.StringParam(fHIRSubscription.ErrorNote));
@@ -150,7 +150,7 @@ public class FHIRSubscriptionCrud
                       + "ChannelEndpoint    = '" + SOut.String(fHIRSubscription.ChannelEndpoint) + "', "
                       + "ChannelPayLoad     = '" + SOut.String(fHIRSubscription.ChannelPayLoad) + "', "
                       + "ChannelHeader      = '" + SOut.String(fHIRSubscription.ChannelHeader) + "', "
-                      + "DateEnd            =  " + SOut.DateT(fHIRSubscription.DateEnd) + ", "
+                      + "DateEnd            =  " + SOut.DateTime(fHIRSubscription.DateEnd) + ", "
                       + "APIKeyHash         = '" + SOut.String(fHIRSubscription.APIKeyHash) + "' "
                       + "WHERE FHIRSubscriptionNum = " + SOut.Long(fHIRSubscription.FHIRSubscriptionNum);
         if (fHIRSubscription.ErrorNote == null) fHIRSubscription.ErrorNote = "";
@@ -212,7 +212,7 @@ public class FHIRSubscriptionCrud
         if (fHIRSubscription.DateEnd != oldFHIRSubscription.DateEnd)
         {
             if (command != "") command += ",";
-            command += "DateEnd = " + SOut.DateT(fHIRSubscription.DateEnd) + "";
+            command += "DateEnd = " + SOut.DateTime(fHIRSubscription.DateEnd) + "";
         }
 
         if (fHIRSubscription.APIKeyHash != oldFHIRSubscription.APIKeyHash)

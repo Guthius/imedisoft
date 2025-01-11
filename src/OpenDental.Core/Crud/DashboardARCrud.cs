@@ -59,7 +59,7 @@ public class DashboardARCrud
         table.Columns.Add("BalTotal");
         table.Columns.Add("InsEst");
         foreach (var dashboardAR in listDashboardARs)
-            table.Rows.Add(SOut.Long(dashboardAR.DashboardARNum), SOut.DateT(dashboardAR.DateCalc, false), SOut.Double(dashboardAR.BalTotal), SOut.Double(dashboardAR.InsEst));
+            table.Rows.Add(SOut.Long(dashboardAR.DashboardARNum), SOut.DateTime(dashboardAR.DateCalc, false), SOut.Double(dashboardAR.BalTotal), SOut.Double(dashboardAR.InsEst));
         return table;
     }
 

@@ -79,7 +79,7 @@ public class OperatoryCrud
         table.Columns.Add("IsNewPatAppt");
         table.Columns.Add("OperatoryType");
         foreach (var operatory in listOperatorys)
-            table.Rows.Add(SOut.Long(operatory.OperatoryNum), operatory.OpName, operatory.Abbrev, SOut.Int(operatory.ItemOrder), SOut.Bool(operatory.IsHidden), SOut.Long(operatory.ProvDentist), SOut.Long(operatory.ProvHygienist), SOut.Bool(operatory.IsHygiene), SOut.Long(operatory.ClinicNum), SOut.Bool(operatory.SetProspective), SOut.DateT(operatory.DateTStamp, false), SOut.Bool(operatory.IsWebSched), SOut.Bool(operatory.IsNewPatAppt), SOut.Long(operatory.OperatoryType));
+            table.Rows.Add(SOut.Long(operatory.OperatoryNum), operatory.OpName, operatory.Abbrev, SOut.Int(operatory.ItemOrder), SOut.Bool(operatory.IsHidden), SOut.Long(operatory.ProvDentist), SOut.Long(operatory.ProvHygienist), SOut.Bool(operatory.IsHygiene), SOut.Long(operatory.ClinicNum), SOut.Bool(operatory.SetProspective), SOut.DateTime(operatory.DateTStamp, false), SOut.Bool(operatory.IsWebSched), SOut.Bool(operatory.IsNewPatAppt), SOut.Long(operatory.OperatoryType));
         return table;
     }
 

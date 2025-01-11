@@ -30,7 +30,7 @@ namespace OpenDental.Bridges{
 
 		///<Summary>There might be incoming files that we have to watch for.  They will get processed and deleted.  There is no user interface for this function.  This method is called when OD first starts up.</Summary>
 		public static void InitializeFileWatcher(){
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				return;//bridge is not enabled for THINFINITY mode or AppStream.
 			}
 			if(!Directory.Exists(dir)){

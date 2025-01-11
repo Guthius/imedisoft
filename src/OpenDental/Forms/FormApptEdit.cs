@@ -17,6 +17,7 @@ using PdfSharp.Pdf;
 using CodeBase;
 using System.Collections;
 using System.Globalization;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -119,7 +120,7 @@ namespace OpenDental{
 			}
 			_listProcNumsPreSelected=listProcNumsPreSelected;
 			this.contrApptProvSlider.FormApptEdit_CheckTimeLocked=checkTimeLocked;
-			//if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome") {
+			//if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="jordanhome") {
 			//	textNote.RightClickLinks=true;
 			//}
 		}
@@ -1230,7 +1231,7 @@ namespace OpenDental{
 				hl7Msg.MsgText=messageHL7.ToString();
 				hl7Msg.PatNum=_patient.PatNum;
 				HL7Msgs.Insert(hl7Msg);
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					MessageBox.Show(this,messageHL7.ToString());
 				}
 			}
@@ -2205,7 +2206,7 @@ namespace OpenDental{
 						hl7Msg.MsgText=messageHL7.ToString();
 						hl7Msg.PatNum=_patient.PatNum;
 						HL7Msgs.Insert(hl7Msg);
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							MessageBox.Show(this,messageHL7.ToString());
 						}
 					}

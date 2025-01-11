@@ -27,7 +27,7 @@ namespace OpenDental {
 			datePicker.SetDateTimeTo(dateFirstDayOfTheMonth.AddMonths(1));
 			checkDistinctLogGuid.Checked=false;
 			//"All" first, then alphabetical
-			List<eServiceType> listEserviceTypes=Enum.GetValues(typeof(eServiceType)).AsEnumerable<eServiceType>()
+			List<eServiceType> listEserviceTypes=Enum.GetValues(typeof(eServiceType)).Cast<eServiceType>()
 				.OrderByDescending(x => x==eServiceType.Unknown).ThenBy(x => x.GetDescription(useShortVersionIfAvailable:true)).ToList();
 			for(int i=0;i<listEserviceTypes.Count;i++) {
 				comboBoxTypes.Items.Add(listEserviceTypes[i].GetDescription(useShortVersionIfAvailable:true), listEserviceTypes[i]);

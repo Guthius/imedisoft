@@ -24,13 +24,13 @@ namespace OpenDental.Bridges {
 		public static void StartupCheck(){
 			//Skip all if not using Trojan.
 			Program ProgramCur=Programs.GetCur(ProgramName.Trojan);
-			if(!Programs.IsEnabledByHq(ProgramCur,out _) || !ProgramCur.Enabled || ODEnvironment.IsCloudServer) {
+			if(!Programs.IsEnabledByHq(ProgramCur,out _) || !ProgramCur.Enabled || /* ODEnvironment.IsCloudServer */ false) {
 				return;
 			}
 			//Ensure that Trojan has a sane install.
 			RegistryKey regKey=Registry.LocalMachine.OpenSubKey("Software\\TROJAN BENEFIT SERVICE");
 			string file="";
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				file=@"C:\Trojan\ETW\";
 				ProcessDeletedPlans(file+@"DELETEDPLANS.TXT");
 				ProcessTrojanPlanUpdates(file+@"ALLPLANS.TXT");

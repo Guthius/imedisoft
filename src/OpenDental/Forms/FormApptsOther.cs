@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using OpenDentBusiness.UI;
 using OpenDentBusiness.HL7;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -245,7 +246,7 @@ namespace OpenDental {
 						hl7Msg.MsgText=messageHL7.ToString();
 						hl7Msg.PatNum=_patient.PatNum;
 						HL7Msgs.Insert(hl7Msg);
-						if(ODBuild.IsDebug()) {
+						if(/* ODBuild.IsDebug() */ false) {
 							MessageBox.Show(this,messageHL7.ToString());
 						}
 					}

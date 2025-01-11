@@ -61,7 +61,7 @@ public class DatabaseMaintenanceCrud
         table.Columns.Add("IsOld");
         table.Columns.Add("DateLastRun");
         foreach (var databaseMaintenance in listDatabaseMaintenances)
-            table.Rows.Add(SOut.Long(databaseMaintenance.DatabaseMaintenanceNum), databaseMaintenance.MethodName, SOut.Bool(databaseMaintenance.IsHidden), SOut.Bool(databaseMaintenance.IsOld), SOut.DateT(databaseMaintenance.DateLastRun, false));
+            table.Rows.Add(SOut.Long(databaseMaintenance.DatabaseMaintenanceNum), databaseMaintenance.MethodName, SOut.Bool(databaseMaintenance.IsHidden), SOut.Bool(databaseMaintenance.IsOld), SOut.DateTime(databaseMaintenance.DateLastRun, false));
         return table;
     }
 
@@ -80,7 +80,7 @@ public class DatabaseMaintenanceCrud
             "'" + SOut.String(databaseMaintenance.MethodName) + "',"
             + SOut.Bool(databaseMaintenance.IsHidden) + ","
             + SOut.Bool(databaseMaintenance.IsOld) + ","
-            + SOut.DateT(databaseMaintenance.DateLastRun) + ")";
+            + SOut.DateTime(databaseMaintenance.DateLastRun) + ")";
         {
             databaseMaintenance.DatabaseMaintenanceNum = Db.NonQ(command, true, "DatabaseMaintenanceNum", "databaseMaintenance");
         }
@@ -103,7 +103,7 @@ public class DatabaseMaintenanceCrud
             "'" + SOut.String(databaseMaintenance.MethodName) + "',"
             + SOut.Bool(databaseMaintenance.IsHidden) + ","
             + SOut.Bool(databaseMaintenance.IsOld) + ","
-            + SOut.DateT(databaseMaintenance.DateLastRun) + ")";
+            + SOut.DateTime(databaseMaintenance.DateLastRun) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else
@@ -117,7 +117,7 @@ public class DatabaseMaintenanceCrud
                       + "MethodName            = '" + SOut.String(databaseMaintenance.MethodName) + "', "
                       + "IsHidden              =  " + SOut.Bool(databaseMaintenance.IsHidden) + ", "
                       + "IsOld                 =  " + SOut.Bool(databaseMaintenance.IsOld) + ", "
-                      + "DateLastRun           =  " + SOut.DateT(databaseMaintenance.DateLastRun) + " "
+                      + "DateLastRun           =  " + SOut.DateTime(databaseMaintenance.DateLastRun) + " "
                       + "WHERE DatabaseMaintenanceNum = " + SOut.Long(databaseMaintenance.DatabaseMaintenanceNum);
         Db.NonQ(command);
     }
@@ -146,7 +146,7 @@ public class DatabaseMaintenanceCrud
         if (databaseMaintenance.DateLastRun != oldDatabaseMaintenance.DateLastRun)
         {
             if (command != "") command += ",";
-            command += "DateLastRun = " + SOut.DateT(databaseMaintenance.DateLastRun) + "";
+            command += "DateLastRun = " + SOut.DateTime(databaseMaintenance.DateLastRun) + "";
         }
 
         if (command == "") return false;

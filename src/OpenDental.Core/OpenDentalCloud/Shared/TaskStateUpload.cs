@@ -1,6 +1,3 @@
-﻿namespace OpenDental.Cloud.Shared
-{
-    public abstract class TaskStateUpload : TaskStateFile
-    {
-    }
-}
+﻿namespace OpenDental.Cloud.Shared;
+
+public abstract class TaskStateUpload : TaskStateFile;

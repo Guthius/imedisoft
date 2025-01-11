@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormEtrans834Import:FormODBase {
@@ -27,7 +28,7 @@ namespace OpenDental {
 
 		private void FormEtrans834Import_Load(object sender,EventArgs e) {
 			textImportPath.Text=PrefC.GetString(PrefName.Ins834ImportPath);
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Not implemented yet for OD Cloud
 				textImportPath.Text="";
 				textImportPath.Enabled=false;

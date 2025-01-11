@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -61,7 +62,6 @@ namespace OpenDental {
 			_isStartingUp=true;
 			labelSavedManually.Visible=false;
 			_listDefsCommlogTypes=Defs.GetDefsForCategory(DefCat.CommLogTypes,true);
-			_listDefsCommlogTypes.RemoveAll(x => x.ItemValue==CommItemTypeAuto.ODHQ.ToString());
 			//there will usually be a commtype set before this dialog is opened
 			for(int i=0;i<_listDefsCommlogTypes.Count;i++){
 				listType.Items.Add(_listDefsCommlogTypes[i].ItemName);
@@ -125,7 +125,7 @@ namespace OpenDental {
 			textNote.SelectionStart=textNote.Text.Length;
 			textNote.Focus();
 			butEditAutoNote.Visible=GetHasAutoNotePrompt();
-			if(!ODBuild.IsDebug()) {
+			if(!/* ODBuild.IsDebug() */ false) {
 				labelCommlogNum.Visible=false;
 				textCommlogNum.Visible=false;
 			}

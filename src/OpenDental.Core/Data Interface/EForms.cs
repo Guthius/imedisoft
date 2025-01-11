@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using OpenDentBusiness.Crud;
 

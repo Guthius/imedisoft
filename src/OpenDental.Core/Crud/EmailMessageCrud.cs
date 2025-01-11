@@ -108,7 +108,7 @@ public class EmailMessageCrud
         table.Columns.Add("MsgType");
         table.Columns.Add("FailReason");
         foreach (var emailMessage in listEmailMessages)
-            table.Rows.Add(SOut.Long(emailMessage.EmailMessageNum), SOut.Long(emailMessage.PatNum), emailMessage.ToAddress, emailMessage.FromAddress, emailMessage.Subject, emailMessage.BodyText, SOut.DateT(emailMessage.MsgDateTime, false), SOut.Int((int) emailMessage.SentOrReceived), emailMessage.RecipientAddress, emailMessage.RawEmailIn, SOut.Long(emailMessage.ProvNumWebMail), SOut.Long(emailMessage.PatNumSubj), emailMessage.CcAddress, emailMessage.BccAddress, SOut.Int((int) emailMessage.HideIn), SOut.Long(emailMessage.AptNum), SOut.Long(emailMessage.UserNum), SOut.Int((int) emailMessage.HtmlType), SOut.DateT(emailMessage.SecDateTEntry, false), SOut.DateT(emailMessage.SecDateTEdit, false), SOut.Int((int) emailMessage.MsgType), emailMessage.FailReason);
+            table.Rows.Add(SOut.Long(emailMessage.EmailMessageNum), SOut.Long(emailMessage.PatNum), emailMessage.ToAddress, emailMessage.FromAddress, emailMessage.Subject, emailMessage.BodyText, SOut.DateTime(emailMessage.MsgDateTime, false), SOut.Int((int) emailMessage.SentOrReceived), emailMessage.RecipientAddress, emailMessage.RawEmailIn, SOut.Long(emailMessage.ProvNumWebMail), SOut.Long(emailMessage.PatNumSubj), emailMessage.CcAddress, emailMessage.BccAddress, SOut.Int((int) emailMessage.HideIn), SOut.Long(emailMessage.AptNum), SOut.Long(emailMessage.UserNum), SOut.Int((int) emailMessage.HtmlType), SOut.DateTime(emailMessage.SecDateTEntry, false), SOut.DateTime(emailMessage.SecDateTEdit, false), SOut.Int((int) emailMessage.MsgType), emailMessage.FailReason);
         return table;
     }
 
@@ -129,7 +129,7 @@ public class EmailMessageCrud
                                            + DbHelper.ParamChar + "paramFromAddress,"
                                            + DbHelper.ParamChar + "paramSubject,"
                                            + DbHelper.ParamChar + "paramBodyText,"
-                                           + SOut.DateT(emailMessage.MsgDateTime) + ","
+                                           + SOut.DateTime(emailMessage.MsgDateTime) + ","
                                            + SOut.Int((int) emailMessage.SentOrReceived) + ","
                                            + "'" + SOut.String(emailMessage.RecipientAddress) + "',"
                                            + DbHelper.ParamChar + "paramRawEmailIn,"
@@ -183,7 +183,7 @@ public class EmailMessageCrud
                                            + DbHelper.ParamChar + "paramFromAddress,"
                                            + DbHelper.ParamChar + "paramSubject,"
                                            + DbHelper.ParamChar + "paramBodyText,"
-                                           + SOut.DateT(emailMessage.MsgDateTime) + ","
+                                           + SOut.DateTime(emailMessage.MsgDateTime) + ","
                                            + SOut.Int((int) emailMessage.SentOrReceived) + ","
                                            + "'" + SOut.String(emailMessage.RecipientAddress) + "',"
                                            + DbHelper.ParamChar + "paramRawEmailIn,"
@@ -228,7 +228,7 @@ public class EmailMessageCrud
                       + "FromAddress     =  " + DbHelper.ParamChar + "paramFromAddress, "
                       + "Subject         =  " + DbHelper.ParamChar + "paramSubject, "
                       + "BodyText        =  " + DbHelper.ParamChar + "paramBodyText, "
-                      + "MsgDateTime     =  " + SOut.DateT(emailMessage.MsgDateTime) + ", "
+                      + "MsgDateTime     =  " + SOut.DateTime(emailMessage.MsgDateTime) + ", "
                       + "SentOrReceived  =  " + SOut.Int((int) emailMessage.SentOrReceived) + ", "
                       + "RecipientAddress= '" + SOut.String(emailMessage.RecipientAddress) + "', "
                       + "RawEmailIn      =  " + DbHelper.ParamChar + "paramRawEmailIn, "
@@ -298,7 +298,7 @@ public class EmailMessageCrud
         if (emailMessage.MsgDateTime != oldEmailMessage.MsgDateTime)
         {
             if (command != "") command += ",";
-            command += "MsgDateTime = " + SOut.DateT(emailMessage.MsgDateTime) + "";
+            command += "MsgDateTime = " + SOut.DateTime(emailMessage.MsgDateTime) + "";
         }
 
         if (emailMessage.SentOrReceived != oldEmailMessage.SentOrReceived)

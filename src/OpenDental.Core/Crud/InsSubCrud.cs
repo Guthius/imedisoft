@@ -77,7 +77,7 @@ public class InsSubCrud
         table.Columns.Add("SecDateEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var insSub in listInsSubs)
-            table.Rows.Add(SOut.Long(insSub.InsSubNum), SOut.Long(insSub.PlanNum), SOut.Long(insSub.Subscriber), SOut.DateT(insSub.DateEffective, false), SOut.DateT(insSub.DateTerm, false), SOut.Bool(insSub.ReleaseInfo), SOut.Bool(insSub.AssignBen), insSub.SubscriberID, insSub.BenefitNotes, insSub.SubscNote, SOut.Long(insSub.SecUserNumEntry), SOut.DateT(insSub.SecDateEntry, false), SOut.DateT(insSub.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(insSub.InsSubNum), SOut.Long(insSub.PlanNum), SOut.Long(insSub.Subscriber), SOut.DateTime(insSub.DateEffective, false), SOut.DateTime(insSub.DateTerm, false), SOut.Bool(insSub.ReleaseInfo), SOut.Bool(insSub.AssignBen), insSub.SubscriberID, insSub.BenefitNotes, insSub.SubscNote, SOut.Long(insSub.SecUserNumEntry), SOut.DateTime(insSub.SecDateEntry, false), SOut.DateTime(insSub.SecDateTEdit, false));
         return table;
     }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -33,13 +34,13 @@ public class RepeatCharges
         if (patNumSuperFamily == 0)
             command += "WHERE rc.ProcCode='" + SOut.String(procCode) + "' "
                        + "AND rc.ChargeAmt=" + SOut.Double(chargeAmt) + " "
-                       + "AND rc.DateStart>=" + SOut.DateT(dateGreaterThan);
+                       + "AND rc.DateStart>=" + SOut.DateTime(dateGreaterThan);
         else
             command += "INNER JOIN patient p ON p.PatNum=rc.PatNum "
                        + "WHERE p.SuperFamily=" + SOut.Long(patNumSuperFamily) + " "
                        + "AND rc.ProcCode='" + SOut.String(procCode) + "' "
                        + "AND rc.ChargeAmt=" + SOut.Double(chargeAmt) + " "
-                       + "AND rc.DateStart>=" + SOut.DateT(dateGreaterThan);
+                       + "AND rc.DateStart>=" + SOut.DateTime(dateGreaterThan);
         return RepeatChargeCrud.SelectMany(command);
     }
 
@@ -356,7 +357,7 @@ public class RepeatCharges
                     }
                     else
                     {
-                        Prefs.UpdateString(PrefName.AgingBeginDateTime, SOut.DateT(dtNow, false)); //get lock on pref to block others
+                        Prefs.UpdateString(PrefName.AgingBeginDateTime, SOut.DateTime(dtNow, false)); //get lock on pref to block others
                         Signalods.SetInvalid(InvalidType.Prefs); //signal a cache refresh so other computers will have the updated pref as quickly as possible
                         try
                         {

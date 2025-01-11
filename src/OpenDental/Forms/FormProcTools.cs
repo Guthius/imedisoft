@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -35,7 +36,7 @@ namespace OpenDental{
 		}
 
 		private void FormProcTools_Load(object sender,EventArgs e) {
-			if(ODBuild.IsTrial()) {
+			if(/* ODBuild.IsTrial() */ false) {
 				checkTcodes.Checked=false;
 				checkNcodes.Checked=false;
 				checkDcodes.Checked=false;

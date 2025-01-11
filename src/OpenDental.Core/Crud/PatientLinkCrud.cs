@@ -61,7 +61,7 @@ public class PatientLinkCrud
         table.Columns.Add("LinkType");
         table.Columns.Add("DateTimeLink");
         foreach (var patientLink in listPatientLinks)
-            table.Rows.Add(SOut.Long(patientLink.PatientLinkNum), SOut.Long(patientLink.PatNumFrom), SOut.Long(patientLink.PatNumTo), SOut.Int((int) patientLink.LinkType), SOut.DateT(patientLink.DateTimeLink, false));
+            table.Rows.Add(SOut.Long(patientLink.PatientLinkNum), SOut.Long(patientLink.PatNumFrom), SOut.Long(patientLink.PatNumTo), SOut.Int((int) patientLink.LinkType), SOut.DateTime(patientLink.DateTimeLink, false));
         return table;
     }
 

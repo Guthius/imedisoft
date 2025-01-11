@@ -75,7 +75,7 @@ public class SigMessageCrud
         table.Columns.Add("SigElementDefNumExtra");
         table.Columns.Add("SigElementDefNumMsg");
         foreach (var sigMessage in listSigMessages)
-            table.Rows.Add(SOut.Long(sigMessage.SigMessageNum), sigMessage.ButtonText, SOut.Int(sigMessage.ButtonIndex), SOut.Byte(sigMessage.SynchIcon), sigMessage.FromUser, sigMessage.ToUser, SOut.DateT(sigMessage.MessageDateTime, false), SOut.DateT(sigMessage.AckDateTime, false), sigMessage.SigText, SOut.Long(sigMessage.SigElementDefNumUser), SOut.Long(sigMessage.SigElementDefNumExtra), SOut.Long(sigMessage.SigElementDefNumMsg));
+            table.Rows.Add(SOut.Long(sigMessage.SigMessageNum), sigMessage.ButtonText, SOut.Int(sigMessage.ButtonIndex), SOut.Byte(sigMessage.SynchIcon), sigMessage.FromUser, sigMessage.ToUser, SOut.DateTime(sigMessage.MessageDateTime, false), SOut.DateTime(sigMessage.AckDateTime, false), sigMessage.SigText, SOut.Long(sigMessage.SigElementDefNumUser), SOut.Long(sigMessage.SigElementDefNumExtra), SOut.Long(sigMessage.SigElementDefNumMsg));
         return table;
     }
 
@@ -97,7 +97,7 @@ public class SigMessageCrud
             + "'" + SOut.String(sigMessage.FromUser) + "',"
             + "'" + SOut.String(sigMessage.ToUser) + "',"
             + DbHelper.Now() + ","
-            + SOut.DateT(sigMessage.AckDateTime) + ","
+            + SOut.DateTime(sigMessage.AckDateTime) + ","
             + "'" + SOut.String(sigMessage.SigText) + "',"
             + SOut.Long(sigMessage.SigElementDefNumUser) + ","
             + SOut.Long(sigMessage.SigElementDefNumExtra) + ","
@@ -127,7 +127,7 @@ public class SigMessageCrud
             + "'" + SOut.String(sigMessage.FromUser) + "',"
             + "'" + SOut.String(sigMessage.ToUser) + "',"
             + DbHelper.Now() + ","
-            + SOut.DateT(sigMessage.AckDateTime) + ","
+            + SOut.DateTime(sigMessage.AckDateTime) + ","
             + "'" + SOut.String(sigMessage.SigText) + "',"
             + SOut.Long(sigMessage.SigElementDefNumUser) + ","
             + SOut.Long(sigMessage.SigElementDefNumExtra) + ","
@@ -148,7 +148,7 @@ public class SigMessageCrud
                       + "FromUser             = '" + SOut.String(sigMessage.FromUser) + "', "
                       + "ToUser               = '" + SOut.String(sigMessage.ToUser) + "', "
                       //MessageDateTime not allowed to change
-                      + "AckDateTime          =  " + SOut.DateT(sigMessage.AckDateTime) + ", "
+                      + "AckDateTime          =  " + SOut.DateTime(sigMessage.AckDateTime) + ", "
                       + "SigText              = '" + SOut.String(sigMessage.SigText) + "', "
                       + "SigElementDefNumUser =  " + SOut.Long(sigMessage.SigElementDefNumUser) + ", "
                       + "SigElementDefNumExtra=  " + SOut.Long(sigMessage.SigElementDefNumExtra) + ", "
@@ -194,7 +194,7 @@ public class SigMessageCrud
         if (sigMessage.AckDateTime != oldSigMessage.AckDateTime)
         {
             if (command != "") command += ",";
-            command += "AckDateTime = " + SOut.DateT(sigMessage.AckDateTime) + "";
+            command += "AckDateTime = " + SOut.DateTime(sigMessage.AckDateTime) + "";
         }
 
         if (sigMessage.SigText != oldSigMessage.SigText)

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;
 using OpenDentBusiness;
@@ -213,7 +214,7 @@ namespace OpenDental {
 			butPrevious.IsEnabled=false;
 			FillSearchOption();
 			SetGridCols();
-			if(ODEnvironment.IsCloudInstance) {
+			if(/* ODEnvironment.IsCloudInstance */ false) {
 				//Keyboard does not currently work with THINFINITY users.
 				//Disable keyboard for Appstream, help button launches URL on VM and options button can get to VM control panel.
 				butOnScreenKeyboard.Visible=false;
@@ -888,7 +889,7 @@ namespace OpenDental {
 			if(!Security.IsAuthorized(EnumPermType.PatientEdit)) {
 				return;
 			}
-			if(ODBuild.IsTrial()) { 
+			if(/* ODBuild.IsTrial() */ false) { 
 				MsgBox.Show(this,"Trial version.  Maximum 30 patients");
 				if(Patients.GetNumberPatients()>30){
 					MsgBox.Show(this,"Maximum reached");
@@ -938,7 +939,7 @@ namespace OpenDental {
 			if(!Security.IsAuthorized(EnumPermType.PatientEdit)) {
 				return;
 			}
-			if(ODBuild.IsTrial()) { 
+			if(/* ODBuild.IsTrial() */ false) { 
 				MsgBox.Show(this,"Trial version.  Maximum 30 patients");
 				if(Patients.GetNumberPatients()>30){
 					MsgBox.Show(this,"Maximum reached");

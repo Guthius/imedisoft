@@ -63,7 +63,7 @@ public class WikiPageHistCrud
         table.Columns.Add("DateTimeSaved");
         table.Columns.Add("IsDeleted");
         foreach (var wikiPageHist in listWikiPageHists)
-            table.Rows.Add(SOut.Long(wikiPageHist.WikiPageNum), SOut.Long(wikiPageHist.UserNum), wikiPageHist.PageTitle, wikiPageHist.PageContent, SOut.DateT(wikiPageHist.DateTimeSaved, false), SOut.Bool(wikiPageHist.IsDeleted));
+            table.Rows.Add(SOut.Long(wikiPageHist.WikiPageNum), SOut.Long(wikiPageHist.UserNum), wikiPageHist.PageTitle, wikiPageHist.PageContent, SOut.DateTime(wikiPageHist.DateTimeSaved, false), SOut.Bool(wikiPageHist.IsDeleted));
         return table;
     }
 
@@ -82,7 +82,7 @@ public class WikiPageHistCrud
             SOut.Long(wikiPageHist.UserNum) + ","
                                             + "'" + SOut.String(wikiPageHist.PageTitle) + "',"
                                             + DbHelper.ParamChar + "paramPageContent,"
-                                            + SOut.DateT(wikiPageHist.DateTimeSaved) + ","
+                                            + SOut.DateTime(wikiPageHist.DateTimeSaved) + ","
                                             + SOut.Bool(wikiPageHist.IsDeleted) + ")";
         if (wikiPageHist.PageContent == null) wikiPageHist.PageContent = "";
         var paramPageContent = new OdSqlParameter("paramPageContent", OdDbType.Text, SOut.StringParam(wikiPageHist.PageContent));
@@ -108,7 +108,7 @@ public class WikiPageHistCrud
             SOut.Long(wikiPageHist.UserNum) + ","
                                             + "'" + SOut.String(wikiPageHist.PageTitle) + "',"
                                             + DbHelper.ParamChar + "paramPageContent,"
-                                            + SOut.DateT(wikiPageHist.DateTimeSaved) + ","
+                                            + SOut.DateTime(wikiPageHist.DateTimeSaved) + ","
                                             + SOut.Bool(wikiPageHist.IsDeleted) + ")";
         if (wikiPageHist.PageContent == null) wikiPageHist.PageContent = "";
         var paramPageContent = new OdSqlParameter("paramPageContent", OdDbType.Text, SOut.StringParam(wikiPageHist.PageContent));
@@ -125,7 +125,7 @@ public class WikiPageHistCrud
                       + "UserNum      =  " + SOut.Long(wikiPageHist.UserNum) + ", "
                       + "PageTitle    = '" + SOut.String(wikiPageHist.PageTitle) + "', "
                       + "PageContent  =  " + DbHelper.ParamChar + "paramPageContent, "
-                      + "DateTimeSaved=  " + SOut.DateT(wikiPageHist.DateTimeSaved) + ", "
+                      + "DateTimeSaved=  " + SOut.DateTime(wikiPageHist.DateTimeSaved) + ", "
                       + "IsDeleted    =  " + SOut.Bool(wikiPageHist.IsDeleted) + " "
                       + "WHERE WikiPageNum = " + SOut.Long(wikiPageHist.WikiPageNum);
         if (wikiPageHist.PageContent == null) wikiPageHist.PageContent = "";
@@ -157,7 +157,7 @@ public class WikiPageHistCrud
         if (wikiPageHist.DateTimeSaved != oldWikiPageHist.DateTimeSaved)
         {
             if (command != "") command += ",";
-            command += "DateTimeSaved = " + SOut.DateT(wikiPageHist.DateTimeSaved) + "";
+            command += "DateTimeSaved = " + SOut.DateTime(wikiPageHist.DateTimeSaved) + "";
         }
 
         if (wikiPageHist.IsDeleted != oldWikiPageHist.IsDeleted)

@@ -43,7 +43,7 @@ namespace OpenDentBusiness.Shared {
 			//but we don't care at this point, so ignore
 			//set OfficeManagement | OffManConnected = 1 to make sidexis ready to accept a message.
 			WritePrivateProfileString("OfficeManagement","OffManConnected","1",iniFile);
-			if(ODBuild.IsDebug() && sendBox.IsNullOrEmpty()) {
+			if(/* ODBuild.IsDebug() */ false && sendBox.IsNullOrEmpty()) {
 				sendBox=@"C:\Bridges\Sirona\iniFile.ini";
 			}
 			#endregion

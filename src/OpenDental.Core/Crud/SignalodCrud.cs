@@ -81,7 +81,7 @@ public class SignalodCrud
         table.Columns.Add("RemoteRole");
         table.Columns.Add("MsgValue");
         foreach (var signalod in listSignalods)
-            table.Rows.Add(SOut.Long(signalod.SignalNum), SOut.DateT(signalod.DateViewing, false), SOut.DateT(signalod.SigDateTime, false), SOut.Long(signalod.FKey), SOut.Int((int) signalod.FKeyType), SOut.Int((int) signalod.IType), SOut.Int(signalod.RemoteRole), signalod.MsgValue);
+            table.Rows.Add(SOut.Long(signalod.SignalNum), SOut.DateTime(signalod.DateViewing, false), SOut.DateTime(signalod.SigDateTime, false), SOut.Long(signalod.FKey), SOut.Int((int) signalod.FKeyType), SOut.Int((int) signalod.IType), SOut.Int(signalod.RemoteRole), signalod.MsgValue);
         return table;
     }
 

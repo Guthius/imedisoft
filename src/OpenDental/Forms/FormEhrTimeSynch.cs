@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -109,7 +110,7 @@ namespace OpenDental {
 			NTPv4 ntp=new NTPv4();
 			double nistOffset;
 			try {
-				nistOffset=ntp.getTime(textNistUrl.Text);
+				nistOffset=ntp.GetTime(textNistUrl.Text);
 			}
 			catch {
 				MsgBox.Show(this,"Invalid NIST Server URL");

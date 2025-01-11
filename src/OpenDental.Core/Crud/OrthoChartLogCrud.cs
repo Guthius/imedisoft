@@ -69,7 +69,7 @@ public class OrthoChartLogCrud
         table.Columns.Add("OrthoChartRowNum");
         table.Columns.Add("LogData");
         foreach (var orthoChartLog in listOrthoChartLogs)
-            table.Rows.Add(SOut.Long(orthoChartLog.OrthoChartLogNum), SOut.Long(orthoChartLog.PatNum), orthoChartLog.ComputerName, SOut.DateT(orthoChartLog.DateTimeLog, false), SOut.DateT(orthoChartLog.DateTimeService, false), SOut.Long(orthoChartLog.UserNum), SOut.Long(orthoChartLog.ProvNum), SOut.Long(orthoChartLog.OrthoChartRowNum), orthoChartLog.LogData);
+            table.Rows.Add(SOut.Long(orthoChartLog.OrthoChartLogNum), SOut.Long(orthoChartLog.PatNum), orthoChartLog.ComputerName, SOut.DateTime(orthoChartLog.DateTimeLog, false), SOut.DateTime(orthoChartLog.DateTimeService, false), SOut.Long(orthoChartLog.UserNum), SOut.Long(orthoChartLog.ProvNum), SOut.Long(orthoChartLog.OrthoChartRowNum), orthoChartLog.LogData);
         return table;
     }
 
@@ -87,8 +87,8 @@ public class OrthoChartLogCrud
         command +=
             SOut.Long(orthoChartLog.PatNum) + ","
                                             + "'" + SOut.String(orthoChartLog.ComputerName) + "',"
-                                            + SOut.DateT(orthoChartLog.DateTimeLog) + ","
-                                            + SOut.DateT(orthoChartLog.DateTimeService) + ","
+                                            + SOut.DateTime(orthoChartLog.DateTimeLog) + ","
+                                            + SOut.DateTime(orthoChartLog.DateTimeService) + ","
                                             + SOut.Long(orthoChartLog.UserNum) + ","
                                             + SOut.Long(orthoChartLog.ProvNum) + ","
                                             + SOut.Long(orthoChartLog.OrthoChartRowNum) + ","
@@ -116,8 +116,8 @@ public class OrthoChartLogCrud
         command +=
             SOut.Long(orthoChartLog.PatNum) + ","
                                             + "'" + SOut.String(orthoChartLog.ComputerName) + "',"
-                                            + SOut.DateT(orthoChartLog.DateTimeLog) + ","
-                                            + SOut.DateT(orthoChartLog.DateTimeService) + ","
+                                            + SOut.DateTime(orthoChartLog.DateTimeLog) + ","
+                                            + SOut.DateTime(orthoChartLog.DateTimeService) + ","
                                             + SOut.Long(orthoChartLog.UserNum) + ","
                                             + SOut.Long(orthoChartLog.ProvNum) + ","
                                             + SOut.Long(orthoChartLog.OrthoChartRowNum) + ","
@@ -136,8 +136,8 @@ public class OrthoChartLogCrud
         var command = "UPDATE orthochartlog SET "
                       + "PatNum          =  " + SOut.Long(orthoChartLog.PatNum) + ", "
                       + "ComputerName    = '" + SOut.String(orthoChartLog.ComputerName) + "', "
-                      + "DateTimeLog     =  " + SOut.DateT(orthoChartLog.DateTimeLog) + ", "
-                      + "DateTimeService =  " + SOut.DateT(orthoChartLog.DateTimeService) + ", "
+                      + "DateTimeLog     =  " + SOut.DateTime(orthoChartLog.DateTimeLog) + ", "
+                      + "DateTimeService =  " + SOut.DateTime(orthoChartLog.DateTimeService) + ", "
                       + "UserNum         =  " + SOut.Long(orthoChartLog.UserNum) + ", "
                       + "ProvNum         =  " + SOut.Long(orthoChartLog.ProvNum) + ", "
                       + "OrthoChartRowNum=  " + SOut.Long(orthoChartLog.OrthoChartRowNum) + ", "
@@ -166,13 +166,13 @@ public class OrthoChartLogCrud
         if (orthoChartLog.DateTimeLog != oldOrthoChartLog.DateTimeLog)
         {
             if (command != "") command += ",";
-            command += "DateTimeLog = " + SOut.DateT(orthoChartLog.DateTimeLog) + "";
+            command += "DateTimeLog = " + SOut.DateTime(orthoChartLog.DateTimeLog) + "";
         }
 
         if (orthoChartLog.DateTimeService != oldOrthoChartLog.DateTimeService)
         {
             if (command != "") command += ",";
-            command += "DateTimeService = " + SOut.DateT(orthoChartLog.DateTimeService) + "";
+            command += "DateTimeService = " + SOut.DateTime(orthoChartLog.DateTimeService) + "";
         }
 
         if (orthoChartLog.UserNum != oldOrthoChartLog.UserNum)

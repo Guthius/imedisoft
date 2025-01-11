@@ -61,7 +61,7 @@ public class EhrSummaryCcdCrud
         table.Columns.Add("ContentSummary");
         table.Columns.Add("EmailAttachNum");
         foreach (var ehrSummaryCcd in listEhrSummaryCcds)
-            table.Rows.Add(SOut.Long(ehrSummaryCcd.EhrSummaryCcdNum), SOut.Long(ehrSummaryCcd.PatNum), SOut.DateT(ehrSummaryCcd.DateSummary, false), ehrSummaryCcd.ContentSummary, SOut.Long(ehrSummaryCcd.EmailAttachNum));
+            table.Rows.Add(SOut.Long(ehrSummaryCcd.EhrSummaryCcdNum), SOut.Long(ehrSummaryCcd.PatNum), SOut.DateTime(ehrSummaryCcd.DateSummary, false), ehrSummaryCcd.ContentSummary, SOut.Long(ehrSummaryCcd.EmailAttachNum));
         return table;
     }
 

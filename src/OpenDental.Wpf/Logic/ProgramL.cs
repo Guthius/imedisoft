@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental;
 using OpenDental.Bridges;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using xBridges=Bridges;//Bridges is ambiguous with OpenDental.Bridges
 

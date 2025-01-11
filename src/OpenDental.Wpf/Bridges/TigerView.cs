@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental.Bridges {
 	
@@ -197,7 +198,7 @@ namespace OpenDental.Bridges {
 		
 		public static void StartFileWatcher() {
 			Program prog = Programs.GetCur(ProgramName.TigerView);
-			if(!Programs.IsEnabledByHq(prog,out _) || !prog.Enabled || ODEnvironment.IsCloudServer) {
+			if(!Programs.IsEnabledByHq(prog,out _) || !prog.Enabled || /* ODEnvironment.IsCloudServer */ false) {
 				return;
 			}
 			List<ProgramProperty> propertiesForProgram =ProgramProperties.GetForProgram(prog.ProgramNum);

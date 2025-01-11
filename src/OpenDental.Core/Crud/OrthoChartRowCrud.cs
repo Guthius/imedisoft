@@ -63,7 +63,7 @@ public class OrthoChartRowCrud
         table.Columns.Add("ProvNum");
         table.Columns.Add("Signature");
         foreach (var orthoChartRow in listOrthoChartRows)
-            table.Rows.Add(SOut.Long(orthoChartRow.OrthoChartRowNum), SOut.Long(orthoChartRow.PatNum), SOut.DateT(orthoChartRow.DateTimeService, false), SOut.Long(orthoChartRow.UserNum), SOut.Long(orthoChartRow.ProvNum), orthoChartRow.Signature);
+            table.Rows.Add(SOut.Long(orthoChartRow.OrthoChartRowNum), SOut.Long(orthoChartRow.PatNum), SOut.DateTime(orthoChartRow.DateTimeService, false), SOut.Long(orthoChartRow.UserNum), SOut.Long(orthoChartRow.ProvNum), orthoChartRow.Signature);
         return table;
     }
 
@@ -80,7 +80,7 @@ public class OrthoChartRowCrud
 
         command +=
             SOut.Long(orthoChartRow.PatNum) + ","
-                                            + SOut.DateT(orthoChartRow.DateTimeService) + ","
+                                            + SOut.DateTime(orthoChartRow.DateTimeService) + ","
                                             + SOut.Long(orthoChartRow.UserNum) + ","
                                             + SOut.Long(orthoChartRow.ProvNum) + ","
                                             + DbHelper.ParamChar + "paramSignature)";
@@ -106,7 +106,7 @@ public class OrthoChartRowCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(orthoChartRow.OrthoChartRowNum) + ",";
         command +=
             SOut.Long(orthoChartRow.PatNum) + ","
-                                            + SOut.DateT(orthoChartRow.DateTimeService) + ","
+                                            + SOut.DateTime(orthoChartRow.DateTimeService) + ","
                                             + SOut.Long(orthoChartRow.UserNum) + ","
                                             + SOut.Long(orthoChartRow.ProvNum) + ","
                                             + DbHelper.ParamChar + "paramSignature)";
@@ -123,7 +123,7 @@ public class OrthoChartRowCrud
     {
         var command = "UPDATE orthochartrow SET "
                       + "PatNum          =  " + SOut.Long(orthoChartRow.PatNum) + ", "
-                      + "DateTimeService =  " + SOut.DateT(orthoChartRow.DateTimeService) + ", "
+                      + "DateTimeService =  " + SOut.DateTime(orthoChartRow.DateTimeService) + ", "
                       + "UserNum         =  " + SOut.Long(orthoChartRow.UserNum) + ", "
                       + "ProvNum         =  " + SOut.Long(orthoChartRow.ProvNum) + ", "
                       + "Signature       =  " + DbHelper.ParamChar + "paramSignature "
@@ -145,7 +145,7 @@ public class OrthoChartRowCrud
         if (orthoChartRow.DateTimeService != oldOrthoChartRow.DateTimeService)
         {
             if (command != "") command += ",";
-            command += "DateTimeService = " + SOut.DateT(orthoChartRow.DateTimeService) + "";
+            command += "DateTimeService = " + SOut.DateTime(orthoChartRow.DateTimeService) + "";
         }
 
         if (orthoChartRow.UserNum != oldOrthoChartRow.UserNum)

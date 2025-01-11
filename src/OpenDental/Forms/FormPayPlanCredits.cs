@@ -7,6 +7,7 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Printing;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	///<summary>This form should not be made available for insurance payment plans.</summary>

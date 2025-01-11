@@ -82,7 +82,7 @@ public class DashboardCellCrud
         table.Columns.Add("LastQueryData");
         table.Columns.Add("RefreshRateSeconds");
         foreach (var dashboardCell in listDashboardCells)
-            table.Rows.Add(SOut.Long(dashboardCell.DashboardCellNum), SOut.Long(dashboardCell.DashboardLayoutNum), SOut.Int(dashboardCell.CellRow), SOut.Int(dashboardCell.CellColumn), SOut.Int((int) dashboardCell.CellType), dashboardCell.CellSettings, SOut.DateT(dashboardCell.LastQueryTime, false), dashboardCell.LastQueryData, SOut.Int(dashboardCell.RefreshRateSeconds));
+            table.Rows.Add(SOut.Long(dashboardCell.DashboardCellNum), SOut.Long(dashboardCell.DashboardLayoutNum), SOut.Int(dashboardCell.CellRow), SOut.Int(dashboardCell.CellColumn), SOut.Int((int) dashboardCell.CellType), dashboardCell.CellSettings, SOut.DateTime(dashboardCell.LastQueryTime, false), dashboardCell.LastQueryData, SOut.Int(dashboardCell.RefreshRateSeconds));
         return table;
     }
 
@@ -103,7 +103,7 @@ public class DashboardCellCrud
                                                         + SOut.Int(dashboardCell.CellColumn) + ","
                                                         + "'" + SOut.String(dashboardCell.CellType.ToString()) + "',"
                                                         + DbHelper.ParamChar + "paramCellSettings,"
-                                                        + SOut.DateT(dashboardCell.LastQueryTime) + ","
+                                                        + SOut.DateTime(dashboardCell.LastQueryTime) + ","
                                                         + DbHelper.ParamChar + "paramLastQueryData,"
                                                         + SOut.Int(dashboardCell.RefreshRateSeconds) + ")";
         if (dashboardCell.CellSettings == null) dashboardCell.CellSettings = "";
@@ -134,7 +134,7 @@ public class DashboardCellCrud
                                                         + SOut.Int(dashboardCell.CellColumn) + ","
                                                         + "'" + SOut.String(dashboardCell.CellType.ToString()) + "',"
                                                         + DbHelper.ParamChar + "paramCellSettings,"
-                                                        + SOut.DateT(dashboardCell.LastQueryTime) + ","
+                                                        + SOut.DateTime(dashboardCell.LastQueryTime) + ","
                                                         + DbHelper.ParamChar + "paramLastQueryData,"
                                                         + SOut.Int(dashboardCell.RefreshRateSeconds) + ")";
         if (dashboardCell.CellSettings == null) dashboardCell.CellSettings = "";
@@ -156,7 +156,7 @@ public class DashboardCellCrud
                       + "CellColumn        =  " + SOut.Int(dashboardCell.CellColumn) + ", "
                       + "CellType          = '" + SOut.String(dashboardCell.CellType.ToString()) + "', "
                       + "CellSettings      =  " + DbHelper.ParamChar + "paramCellSettings, "
-                      + "LastQueryTime     =  " + SOut.DateT(dashboardCell.LastQueryTime) + ", "
+                      + "LastQueryTime     =  " + SOut.DateTime(dashboardCell.LastQueryTime) + ", "
                       + "LastQueryData     =  " + DbHelper.ParamChar + "paramLastQueryData, "
                       + "RefreshRateSeconds=  " + SOut.Int(dashboardCell.RefreshRateSeconds) + " "
                       + "WHERE DashboardCellNum = " + SOut.Long(dashboardCell.DashboardCellNum);
@@ -203,7 +203,7 @@ public class DashboardCellCrud
         if (dashboardCell.LastQueryTime != oldDashboardCell.LastQueryTime)
         {
             if (command != "") command += ",";
-            command += "LastQueryTime = " + SOut.DateT(dashboardCell.LastQueryTime) + "";
+            command += "LastQueryTime = " + SOut.DateTime(dashboardCell.LastQueryTime) + "";
         }
 
         if (dashboardCell.LastQueryData != oldDashboardCell.LastQueryData)

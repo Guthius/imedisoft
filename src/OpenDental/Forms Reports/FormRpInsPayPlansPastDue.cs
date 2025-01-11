@@ -10,6 +10,7 @@ using OpenDental.UI;
 using System.Drawing.Printing;
 using System.IO;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 
 namespace OpenDental {
@@ -197,7 +198,7 @@ namespace OpenDental {
 		private void butExport_Click(object sender,System.EventArgs e) {
 			string fileName=Lan.g(this,"Outstanding Insurance Payment Plans");
 			string filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				//Thinfinity: file download dialog will come up later, after file is created. AppStream: File will be created in client's Downloads folder.
 				filePath+=".txt";//Provide the filepath an extension so that Thinfinity can offer as a download.
 			}
@@ -249,15 +250,8 @@ namespace OpenDental {
 				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
-			if(false) {
-				ThinfinityUtils.ExportForDownload(filePath);
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePath);
-			}
-			else {
-				MessageBox.Show(Lan.g(this,"File created successfully"));
-			}
+
+			MessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		///<summary>Class that contains a singular payment plan and all relevant information to be displayed in the grid.

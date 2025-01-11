@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDentBusiness.WebTypes.WebForms;
@@ -8,7 +8,7 @@ public class WebForms_Preferences
 {
     public static bool SetPreferences(WebForms_Preference pref, string regKey = null, string urlOverride = null)
     {
-        bool retVal = false;
+        var retVal = false;
         if (string.IsNullOrEmpty(regKey))
         {
             regKey = PrefC.GetString(PrefName.RegistrationKey);
@@ -16,17 +16,21 @@ public class WebForms_Preferences
 
         try
         {
-            List<PayloadItem> listPayloadItems = new List<PayloadItem>
+            var listPayloadItems = new List<PayloadItem>
             {
-                new PayloadItem(regKey, "RegKey"),
-                new PayloadItem(pref, nameof(WebForms_Preference))
+                new(regKey, "RegKey"),
+                new(pref, nameof(WebForms_Preference))
             };
-            string payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
-            SheetsSynchProxy.UrlOverride = urlOverride; //SheetsSynchProxy.GetWebServiceInstance() gracefully handles null.
+
+            var payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, listPayloadItems.ToArray());
+
+            SheetsSynchProxy.UrlOverride = urlOverride;
+
             retVal = WebSerializer.DeserializeTag<bool>(SheetsSynchProxy.GetWebServiceInstance().SetPreferences(payload), "Success");
         }
-        catch (Exception ex)
+        catch
         {
+            // ignored
         }
 
         return retVal;
@@ -42,15 +46,15 @@ public class WebForms_Preferences
 
         try
         {
-            string payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, new PayloadItem(regKey, "RegKey"));
+            var payload = PayloadHelper.CreatePayloadWebHostSynch(regKey, new PayloadItem(regKey, "RegKey"));
 
             _webForms_Preference = WebSerializer.DeserializeTag<WebForms_Preference>(SheetsSynchProxy.GetWebServiceInstance().GetPreferences(payload), "Success");
+
+            return true;
         }
-        catch (Exception ex)
+        catch
         {
             return false;
         }
-
-        return true;
     }
 }

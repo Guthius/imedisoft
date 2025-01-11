@@ -67,7 +67,7 @@ public class MobileNotificationCrud
         table.Columns.Add("DateTimeExpires");
         table.Columns.Add("AppTarget");
         foreach (var mobileNotification in listMobileNotifications)
-            table.Rows.Add(SOut.Long(mobileNotification.MobileNotificationNum), SOut.Int((int) mobileNotification.NotificationType), mobileNotification.DeviceId, mobileNotification.PrimaryKeys, mobileNotification.Tags, SOut.DateT(mobileNotification.DateTimeEntry, false), SOut.DateT(mobileNotification.DateTimeExpires, false), SOut.Int((int) mobileNotification.AppTarget));
+            table.Rows.Add(SOut.Long(mobileNotification.MobileNotificationNum), SOut.Int((int) mobileNotification.NotificationType), mobileNotification.DeviceId, mobileNotification.PrimaryKeys, mobileNotification.Tags, SOut.DateTime(mobileNotification.DateTimeEntry, false), SOut.DateTime(mobileNotification.DateTimeExpires, false), SOut.Int((int) mobileNotification.AppTarget));
         return table;
     }
 
@@ -87,8 +87,8 @@ public class MobileNotificationCrud
                                                                 + "'" + SOut.String(mobileNotification.DeviceId) + "',"
                                                                 + DbHelper.ParamChar + "paramPrimaryKeys,"
                                                                 + DbHelper.ParamChar + "paramTags,"
-                                                                + SOut.DateT(mobileNotification.DateTimeEntry) + ","
-                                                                + SOut.DateT(mobileNotification.DateTimeExpires) + ","
+                                                                + SOut.DateTime(mobileNotification.DateTimeEntry) + ","
+                                                                + SOut.DateTime(mobileNotification.DateTimeExpires) + ","
                                                                 + SOut.Int((int) mobileNotification.AppTarget) + ")";
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
         var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", OdDbType.Text, SOut.StringParam(mobileNotification.PrimaryKeys));
@@ -117,8 +117,8 @@ public class MobileNotificationCrud
                                                                 + "'" + SOut.String(mobileNotification.DeviceId) + "',"
                                                                 + DbHelper.ParamChar + "paramPrimaryKeys,"
                                                                 + DbHelper.ParamChar + "paramTags,"
-                                                                + SOut.DateT(mobileNotification.DateTimeEntry) + ","
-                                                                + SOut.DateT(mobileNotification.DateTimeExpires) + ","
+                                                                + SOut.DateTime(mobileNotification.DateTimeEntry) + ","
+                                                                + SOut.DateTime(mobileNotification.DateTimeExpires) + ","
                                                                 + SOut.Int((int) mobileNotification.AppTarget) + ")";
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
         var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", OdDbType.Text, SOut.StringParam(mobileNotification.PrimaryKeys));
@@ -138,8 +138,8 @@ public class MobileNotificationCrud
                       + "DeviceId             = '" + SOut.String(mobileNotification.DeviceId) + "', "
                       + "PrimaryKeys          =  " + DbHelper.ParamChar + "paramPrimaryKeys, "
                       + "Tags                 =  " + DbHelper.ParamChar + "paramTags, "
-                      + "DateTimeEntry        =  " + SOut.DateT(mobileNotification.DateTimeEntry) + ", "
-                      + "DateTimeExpires      =  " + SOut.DateT(mobileNotification.DateTimeExpires) + ", "
+                      + "DateTimeEntry        =  " + SOut.DateTime(mobileNotification.DateTimeEntry) + ", "
+                      + "DateTimeExpires      =  " + SOut.DateTime(mobileNotification.DateTimeExpires) + ", "
                       + "AppTarget            =  " + SOut.Int((int) mobileNotification.AppTarget) + " "
                       + "WHERE MobileNotificationNum = " + SOut.Long(mobileNotification.MobileNotificationNum);
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
@@ -179,13 +179,13 @@ public class MobileNotificationCrud
         if (mobileNotification.DateTimeEntry != oldMobileNotification.DateTimeEntry)
         {
             if (command != "") command += ",";
-            command += "DateTimeEntry = " + SOut.DateT(mobileNotification.DateTimeEntry) + "";
+            command += "DateTimeEntry = " + SOut.DateTime(mobileNotification.DateTimeEntry) + "";
         }
 
         if (mobileNotification.DateTimeExpires != oldMobileNotification.DateTimeExpires)
         {
             if (command != "") command += ",";
-            command += "DateTimeExpires = " + SOut.DateT(mobileNotification.DateTimeExpires) + "";
+            command += "DateTimeExpires = " + SOut.DateTime(mobileNotification.DateTimeExpires) + "";
         }
 
         if (mobileNotification.AppTarget != oldMobileNotification.AppTarget)

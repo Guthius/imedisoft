@@ -7,6 +7,7 @@ using System.Resources;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;

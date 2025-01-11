@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
+using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDental;
 using OpenDentBusiness;

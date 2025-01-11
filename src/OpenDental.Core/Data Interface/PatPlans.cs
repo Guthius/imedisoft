@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -276,7 +277,7 @@ public class PatPlans
     ///<summary>Gets multiple PatPlans from database. Returns null if not found.</summary>
     public static List<PatPlan> GetPatPlansForApi(int limit, int offset, long patNum, long insSubNum)
     {
-        var command = "SELECT * FROM patplan WHERE SecDateTEdit>=" + SOut.DateT(DateTime.MinValue) + " ";
+        var command = "SELECT * FROM patplan WHERE SecDateTEdit>=" + SOut.DateTime(DateTime.MinValue) + " ";
         if (patNum > -1) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         if (insSubNum > -1) command += "AND InsSubNum=" + SOut.Long(insSubNum) + " ";
         command += "ORDER BY PatPlanNum " //same fixed order each time

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.Eclaims;
 
@@ -99,7 +100,7 @@ public class InsVerifies
     /// </summary>
     public static List<InsVerify> GetInsVerifiesForApi(int limit, int offset, int verifyType, DateTime secDateTEdit)
     {
-        var command = "SELECT * FROM insverify WHERE SecDateTEdit>=" + SOut.DateT(secDateTEdit) + " ";
+        var command = "SELECT * FROM insverify WHERE SecDateTEdit>=" + SOut.DateTime(secDateTEdit) + " ";
         if (verifyType > -1) command += " AND VerifyType=" + SOut.Int(verifyType) + " ";
         command += " ORDER BY insverifynum " //Ensure order for limit and offset.
                    + " LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);

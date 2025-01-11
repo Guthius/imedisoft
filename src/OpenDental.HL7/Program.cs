@@ -14,7 +14,7 @@ namespace OpenDentHL7 {
 		/// The main entry point for the application.
 		/// </summary>
 		static void Main(string[] args) {
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				Application.EnableVisualStyles();
 				Application.SetCompatibleTextRenderingDefault(false);
 				Application.Run(new FormDebug("OpenDentHL7"));

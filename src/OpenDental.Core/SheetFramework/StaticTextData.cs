@@ -239,7 +239,7 @@ namespace OpenDentBusiness {
 					staticTextFieldDependency=_dictDependencies[listEnumStaticTextFields[i]];
 				}
 				catch{
-					if(ODBuild.IsDebug()){
+					if(/* ODBuild.IsDebug() */ false){
 						//Programmer must add [staticTextFieldValue] to the dictionary linking these text fields to the data in StaticTextData.
 						//Only throwing in Debug in case a customer has some other [notAnActualStaticTextField] type string entered in their sheet.
 						//We don't want to crash Sheets for an otherwise perfectly valid Sheet, this exception is intended to force a programmer to implement
@@ -266,7 +266,7 @@ namespace OpenDentBusiness {
 		///<summary>Runs the required queries to populate the necessary StaticTextData fields corresponding to staticTextDependencies.</summary>
 		private void LoadData(StaticTextFieldDependency staticTextDependencies,Patient pat,Family fam,List<long> listProcCodeNums) {
 			System.Diagnostics.Stopwatch timer=null;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				timer=new System.Diagnostics.Stopwatch();
 				timer.Start();
 			}
@@ -354,7 +354,7 @@ namespace OpenDentBusiness {
 			if(IsQueryNeeded(ref ListSelectedTpProcs,StaticTextFieldDependency.ListSelectedTpProcs)) {
 				ListSelectedTpProcs=Procedures.RefreshForProcCodeNums(pat.PatNum, listProcCodeNums);
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				timer.Stop();
 				Console.WriteLine("Static text field query time (ms): "+timer.ElapsedMilliseconds);
 			}

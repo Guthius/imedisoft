@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.DirectoryServices;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormGlobalSecurity:FormODBase {

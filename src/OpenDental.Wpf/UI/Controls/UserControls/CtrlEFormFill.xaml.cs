@@ -18,6 +18,7 @@ using System.Xml;
 using Newtonsoft.Json;
 using OpenDental.Drawing;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	/*

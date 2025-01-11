@@ -65,7 +65,7 @@ public class HL7MsgCrud
         table.Columns.Add("PatNum");
         table.Columns.Add("Note");
         foreach (var hL7Msg in listHL7Msgs)
-            table.Rows.Add(SOut.Long(hL7Msg.HL7MsgNum), SOut.Int((int) hL7Msg.HL7Status), hL7Msg.MsgText, SOut.Long(hL7Msg.AptNum), SOut.DateT(hL7Msg.DateTStamp, false), SOut.Long(hL7Msg.PatNum), hL7Msg.Note);
+            table.Rows.Add(SOut.Long(hL7Msg.HL7MsgNum), SOut.Int((int) hL7Msg.HL7Status), hL7Msg.MsgText, SOut.Long(hL7Msg.AptNum), SOut.DateTime(hL7Msg.DateTStamp, false), SOut.Long(hL7Msg.PatNum), hL7Msg.Note);
         return table;
     }
 

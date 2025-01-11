@@ -10,6 +10,7 @@ using OpenDentBusiness;
 using OpenDental;
 using OpenDental.UI;
 using System.Diagnostics;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormVitalsignEdit2014:FormODBase {

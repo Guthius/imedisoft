@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Tao.Platform.Windows;
 using OpenDental.UI;

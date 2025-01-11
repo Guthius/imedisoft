@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Data;
 using System.Linq;
 using System.IO;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.WebServiceMainHQ;
 using OpenDentBusiness.WebTypes.WebSched.TimeSlot;
 

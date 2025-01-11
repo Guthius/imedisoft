@@ -61,7 +61,7 @@ public class InsBlueBookLogCrud
         table.Columns.Add("DateTEntry");
         table.Columns.Add("Description");
         foreach (var insBlueBookLog in listInsBlueBookLogs)
-            table.Rows.Add(SOut.Long(insBlueBookLog.InsBlueBookLogNum), SOut.Long(insBlueBookLog.ClaimProcNum), SOut.Double(insBlueBookLog.AllowedFee), SOut.DateT(insBlueBookLog.DateTEntry, false), insBlueBookLog.Description);
+            table.Rows.Add(SOut.Long(insBlueBookLog.InsBlueBookLogNum), SOut.Long(insBlueBookLog.ClaimProcNum), SOut.Double(insBlueBookLog.AllowedFee), SOut.DateTime(insBlueBookLog.DateTEntry, false), insBlueBookLog.Description);
         return table;
     }
 

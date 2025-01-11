@@ -11,6 +11,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Thinfinity;
 
@@ -1284,7 +1285,7 @@ namespace OpenDental {
 			//generate suffix from i
 			for(int i=0;i<=1297;i++) {//1296=36*36 to represent all acceptable suffixes for file name consisting of two alphanumeric digits; +1 to catch error. (A-Z, 0-9)
 				fileSuffix="";
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					return ""; //we don't have a way to check if the file exists.
 				}
 				if(i==1297) {

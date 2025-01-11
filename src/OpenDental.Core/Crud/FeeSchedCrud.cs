@@ -69,7 +69,7 @@ public class FeeSchedCrud
         table.Columns.Add("SecDateEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var feeSched in listFeeScheds)
-            table.Rows.Add(SOut.Long(feeSched.FeeSchedNum), feeSched.Description, SOut.Int((int) feeSched.FeeSchedType), SOut.Int(feeSched.ItemOrder), SOut.Bool(feeSched.IsHidden), SOut.Bool(feeSched.IsGlobal), SOut.Long(feeSched.SecUserNumEntry), SOut.DateT(feeSched.SecDateEntry, false), SOut.DateT(feeSched.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(feeSched.FeeSchedNum), feeSched.Description, SOut.Int((int) feeSched.FeeSchedType), SOut.Int(feeSched.ItemOrder), SOut.Bool(feeSched.IsHidden), SOut.Bool(feeSched.IsGlobal), SOut.Long(feeSched.SecUserNumEntry), SOut.DateTime(feeSched.SecDateEntry, false), SOut.DateTime(feeSched.SecDateTEdit, false));
         return table;
     }
 

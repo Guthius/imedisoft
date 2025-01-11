@@ -106,7 +106,7 @@ public class TaskHists
     ///<summary>Deletes all TaskHists before the given cutoff date. Returns the number of entries deleted.</summary>
     public static long DeleteBeforeDate(DateTime dateCutoff)
     {
-        var command = $"DELETE FROM taskhist WHERE DateTStamp <= {SOut.DateT(dateCutoff)} ";
+        var command = $"DELETE FROM taskhist WHERE DateTStamp <= {SOut.DateTime(dateCutoff)} ";
         return Db.NonQ(command);
     }
 

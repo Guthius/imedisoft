@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.ComponentModel;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -45,9 +46,6 @@ namespace OpenDental {
 		private void UserControlSecurityTree_Load(object sender,EventArgs e) {
 			if(ReadOnly) {
 				treePermissions.BackColor = SystemColors.Control;
-			}
-			if(CodeBase.ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
-				textXpos.Visible=true;
 			}
 		}
 
@@ -183,7 +181,7 @@ namespace OpenDental {
 					node2.Nodes.Add(node3);
 					node3=SetNode(EnumPermType.UserQueryAdmin);
 					node2.Nodes.Add(node3);
-					if(!ODEnvironment.IsCloudServer) {
+					if(!/* ODEnvironment.IsCloudServer */ false) {
 						node3=SetNode(EnumPermType.CommandQuery);
 						node2.Nodes.Add(node3);
 					}

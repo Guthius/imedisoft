@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 using Word=Microsoft.Office.Interop.Word;
 
 namespace OpenDental{

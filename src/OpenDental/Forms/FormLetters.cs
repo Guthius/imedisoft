@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using CodeBase;
 using System.IO;
 using System.Collections.Generic;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 	/// <summary></summary>

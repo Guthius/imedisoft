@@ -11,6 +11,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -110,7 +111,7 @@ namespace OpenDental {
 
 		private void FormModulePrefs_Load(object sender,EventArgs e) {
 			FillUserControls();
-			if(ODBuild.IsDebug())	{
+			if(/* ODBuild.IsDebug() */ false)	{
 				LoadUserControls();
 			}
 			else {
@@ -129,7 +130,7 @@ namespace OpenDental {
 			else {
 				treeMain.SelectedNode=treeMain.Nodes[SelectedNode];
 			}
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower().In("jordanhome","jordancryo")){
+			if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower().In("jordanhome","jordancryo")){
 				//_listPrefInfos=Prefs.GetAllPrefInfos();
 			}
 			panelInfo=new UI.PanelOD();
@@ -214,7 +215,7 @@ namespace OpenDental {
 			}
 			//Variations of this code are used from time to time to automatically add/edit db items.
 			/*
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower().In("jordanhome","jordancryo")){
+			if(/* ODBuild.IsDebug() * false && Environment.MachineName.ToLower().In("jordanhome","jordancryo")){
 				Control parent=control.Parent;
 				while(true){
 					if(parent is null){

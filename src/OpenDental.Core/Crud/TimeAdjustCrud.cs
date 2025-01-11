@@ -75,7 +75,7 @@ public class TimeAdjustCrud
         table.Columns.Add("IsUnpaidProtectedLeave");
         table.Columns.Add("SecuUserNumEntry");
         foreach (var timeAdjust in listTimeAdjusts)
-            table.Rows.Add(SOut.Long(timeAdjust.TimeAdjustNum), SOut.Long(timeAdjust.EmployeeNum), SOut.DateT(timeAdjust.TimeEntry, false), SOut.Time(timeAdjust.RegHours, false), SOut.Time(timeAdjust.OTimeHours, false), timeAdjust.Note, SOut.Bool(timeAdjust.IsAuto), SOut.Long(timeAdjust.ClinicNum), SOut.Long(timeAdjust.PtoDefNum), SOut.Time(timeAdjust.PtoHours, false), SOut.Bool(timeAdjust.IsUnpaidProtectedLeave), SOut.Long(timeAdjust.SecuUserNumEntry));
+            table.Rows.Add(SOut.Long(timeAdjust.TimeAdjustNum), SOut.Long(timeAdjust.EmployeeNum), SOut.DateTime(timeAdjust.TimeEntry, false), SOut.Time(timeAdjust.RegHours, false), SOut.Time(timeAdjust.OTimeHours, false), timeAdjust.Note, SOut.Bool(timeAdjust.IsAuto), SOut.Long(timeAdjust.ClinicNum), SOut.Long(timeAdjust.PtoDefNum), SOut.Time(timeAdjust.PtoHours, false), SOut.Bool(timeAdjust.IsUnpaidProtectedLeave), SOut.Long(timeAdjust.SecuUserNumEntry));
         return table;
     }
 
@@ -92,14 +92,14 @@ public class TimeAdjustCrud
 
         command +=
             SOut.Long(timeAdjust.EmployeeNum) + ","
-                                              + SOut.DateT(timeAdjust.TimeEntry) + ","
-                                              + "'" + SOut.TSpan(timeAdjust.RegHours) + "',"
-                                              + "'" + SOut.TSpan(timeAdjust.OTimeHours) + "',"
+                                              + SOut.DateTime(timeAdjust.TimeEntry) + ","
+                                              + "'" + SOut.TimeSpan(timeAdjust.RegHours) + "',"
+                                              + "'" + SOut.TimeSpan(timeAdjust.OTimeHours) + "',"
                                               + DbHelper.ParamChar + "paramNote,"
                                               + SOut.Bool(timeAdjust.IsAuto) + ","
                                               + SOut.Long(timeAdjust.ClinicNum) + ","
                                               + SOut.Long(timeAdjust.PtoDefNum) + ","
-                                              + "'" + SOut.TSpan(timeAdjust.PtoHours) + "',"
+                                              + "'" + SOut.TimeSpan(timeAdjust.PtoHours) + "',"
                                               + SOut.Bool(timeAdjust.IsUnpaidProtectedLeave) + ","
                                               + SOut.Long(timeAdjust.SecuUserNumEntry) + ")";
         if (timeAdjust.Note == null) timeAdjust.Note = "";
@@ -124,14 +124,14 @@ public class TimeAdjustCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(timeAdjust.TimeAdjustNum) + ",";
         command +=
             SOut.Long(timeAdjust.EmployeeNum) + ","
-                                              + SOut.DateT(timeAdjust.TimeEntry) + ","
-                                              + "'" + SOut.TSpan(timeAdjust.RegHours) + "',"
-                                              + "'" + SOut.TSpan(timeAdjust.OTimeHours) + "',"
+                                              + SOut.DateTime(timeAdjust.TimeEntry) + ","
+                                              + "'" + SOut.TimeSpan(timeAdjust.RegHours) + "',"
+                                              + "'" + SOut.TimeSpan(timeAdjust.OTimeHours) + "',"
                                               + DbHelper.ParamChar + "paramNote,"
                                               + SOut.Bool(timeAdjust.IsAuto) + ","
                                               + SOut.Long(timeAdjust.ClinicNum) + ","
                                               + SOut.Long(timeAdjust.PtoDefNum) + ","
-                                              + "'" + SOut.TSpan(timeAdjust.PtoHours) + "',"
+                                              + "'" + SOut.TimeSpan(timeAdjust.PtoHours) + "',"
                                               + SOut.Bool(timeAdjust.IsUnpaidProtectedLeave) + ","
                                               + SOut.Long(timeAdjust.SecuUserNumEntry) + ")";
         if (timeAdjust.Note == null) timeAdjust.Note = "";
@@ -147,14 +147,14 @@ public class TimeAdjustCrud
     {
         var command = "UPDATE timeadjust SET "
                       + "EmployeeNum           =  " + SOut.Long(timeAdjust.EmployeeNum) + ", "
-                      + "TimeEntry             =  " + SOut.DateT(timeAdjust.TimeEntry) + ", "
-                      + "RegHours              = '" + SOut.TSpan(timeAdjust.RegHours) + "', "
-                      + "OTimeHours            = '" + SOut.TSpan(timeAdjust.OTimeHours) + "', "
+                      + "TimeEntry             =  " + SOut.DateTime(timeAdjust.TimeEntry) + ", "
+                      + "RegHours              = '" + SOut.TimeSpan(timeAdjust.RegHours) + "', "
+                      + "OTimeHours            = '" + SOut.TimeSpan(timeAdjust.OTimeHours) + "', "
                       + "Note                  =  " + DbHelper.ParamChar + "paramNote, "
                       + "IsAuto                =  " + SOut.Bool(timeAdjust.IsAuto) + ", "
                       + "ClinicNum             =  " + SOut.Long(timeAdjust.ClinicNum) + ", "
                       + "PtoDefNum             =  " + SOut.Long(timeAdjust.PtoDefNum) + ", "
-                      + "PtoHours              = '" + SOut.TSpan(timeAdjust.PtoHours) + "', "
+                      + "PtoHours              = '" + SOut.TimeSpan(timeAdjust.PtoHours) + "', "
                       + "IsUnpaidProtectedLeave=  " + SOut.Bool(timeAdjust.IsUnpaidProtectedLeave) + ", "
                       + "SecuUserNumEntry      =  " + SOut.Long(timeAdjust.SecuUserNumEntry) + " "
                       + "WHERE TimeAdjustNum = " + SOut.Long(timeAdjust.TimeAdjustNum);
@@ -175,19 +175,19 @@ public class TimeAdjustCrud
         if (timeAdjust.TimeEntry != oldTimeAdjust.TimeEntry)
         {
             if (command != "") command += ",";
-            command += "TimeEntry = " + SOut.DateT(timeAdjust.TimeEntry) + "";
+            command += "TimeEntry = " + SOut.DateTime(timeAdjust.TimeEntry) + "";
         }
 
         if (timeAdjust.RegHours != oldTimeAdjust.RegHours)
         {
             if (command != "") command += ",";
-            command += "RegHours = '" + SOut.TSpan(timeAdjust.RegHours) + "'";
+            command += "RegHours = '" + SOut.TimeSpan(timeAdjust.RegHours) + "'";
         }
 
         if (timeAdjust.OTimeHours != oldTimeAdjust.OTimeHours)
         {
             if (command != "") command += ",";
-            command += "OTimeHours = '" + SOut.TSpan(timeAdjust.OTimeHours) + "'";
+            command += "OTimeHours = '" + SOut.TimeSpan(timeAdjust.OTimeHours) + "'";
         }
 
         if (timeAdjust.Note != oldTimeAdjust.Note)
@@ -217,7 +217,7 @@ public class TimeAdjustCrud
         if (timeAdjust.PtoHours != oldTimeAdjust.PtoHours)
         {
             if (command != "") command += ",";
-            command += "PtoHours = '" + SOut.TSpan(timeAdjust.PtoHours) + "'";
+            command += "PtoHours = '" + SOut.TimeSpan(timeAdjust.PtoHours) + "'";
         }
 
         if (timeAdjust.IsUnpaidProtectedLeave != oldTimeAdjust.IsUnpaidProtectedLeave)

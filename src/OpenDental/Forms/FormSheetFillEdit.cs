@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -255,16 +256,9 @@ namespace OpenDental {
 					SheetPrinting.CreatePdf(SheetCur,filePathAndName,StatementCur,MedLabCur);
 				}
 			}
-			try {
-				if(false) {
-					ThinfinityUtils.HandleFile(filePathAndName);
-				}
-				else if(false) {
-					CloudClientL.ExportForCloud(filePathAndName);
-				}
-				else {
-					Process.Start(filePathAndName);
-				}
+			try
+			{
+				Process.Start(filePathAndName);
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(Lan.g(this,"Unable to open the file."),ex);
@@ -643,7 +637,7 @@ namespace OpenDental {
 				labelShowInTerminal.Visible=false;
 				textShowInTerminal.Visible=false;
 				butToKiosk.Visible=false;
-				if(!ODBuild.IsDebug()) {
+				if(!/* ODBuild.IsDebug() */ false) {
 					butPrintOrEmail.Visible=false;
 					butPDF.Visible=false;
 				}

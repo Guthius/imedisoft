@@ -97,7 +97,7 @@ namespace OpenDental {
 		}
 
 		private void butAcquire_Click(object sender, EventArgs e){
-			if(!ODBuild.IsTrial()
+			if(!/* ODBuild.IsTrial() */ false
 				&& !OpenDentBusiness.Help.IsEncryptedKeyValid())//always true in debug
 			{
 				MsgBox.Show(this,"This feature requires an active support plan.");
@@ -133,7 +133,7 @@ namespace OpenDental {
 		}
 
 		private void butMountAndAcquire_Click(object sender, EventArgs e){
-			if(!ODBuild.IsTrial()
+			if(!/* ODBuild.IsTrial() */ false
 				&& !OpenDentBusiness.Help.IsEncryptedKeyValid())//always true in debug
 			{
 				MsgBox.Show(this,"This feature requires an active support plan.");

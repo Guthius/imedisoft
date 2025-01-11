@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -34,7 +35,7 @@ public class EServiceLogs
     /// </summary>
     public static List<EServiceLog> GetEServiceLog(long clinicNum, DateTime dateFrom, DateTime dateTo)
     {
-        var command = $"SELECT * FROM eservicelog WHERE LogDateTime BETWEEN {SOut.DateT(dateFrom)} AND {SOut.DateT(dateTo)}";
+        var command = $"SELECT * FROM eservicelog WHERE LogDateTime BETWEEN {SOut.DateTime(dateFrom)} AND {SOut.DateTime(dateTo)}";
         if (true && clinicNum != -2) //-2 is the 'All' identifier
             command += $" AND ClinicNum={SOut.Long(clinicNum)}";
         return EServiceLogCrud.SelectMany(command);
@@ -45,7 +46,7 @@ public class EServiceLogs
     {
         if (limit < 1) throw new ArgumentException("Value must be greater than zero", "limit");
 
-        var command = $"SELECT * FROM eservicelog WHERE DateTimeUploaded={SOut.DateT(DateTime.MinValue)} ORDER BY LogDateTime ASC LIMIT {SOut.Int(limit)}";
+        var command = $"SELECT * FROM eservicelog WHERE DateTimeUploaded={SOut.DateTime(DateTime.MinValue)} ORDER BY LogDateTime ASC LIMIT {SOut.Int(limit)}";
         return EServiceLogCrud.SelectMany(command);
     }
 
@@ -87,7 +88,7 @@ public class EServiceLogs
     ///<summary>Deletes all EServiceLogs taht were uploaded over a year ago.</summary>
     public static long DeleteOldLogs()
     {
-        var command = $"DELETE FROM eservicelog WHERE DateTimeUploaded<DATE_SUB(NOW(), INTERVAL 1 YEAR) AND DateTimeUploaded!={SOut.DateT(DateTime.MinValue)}";
+        var command = $"DELETE FROM eservicelog WHERE DateTimeUploaded<DATE_SUB(NOW(), INTERVAL 1 YEAR) AND DateTimeUploaded!={SOut.DateTime(DateTime.MinValue)}";
         return Db.NonQ(command);
     }
 

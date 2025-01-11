@@ -98,7 +98,7 @@ public class PaymentCrud
         table.Columns.Add("IsCcCompleted");
         table.Columns.Add("MerchantFee");
         foreach (var payment in listPayments)
-            table.Rows.Add(SOut.Long(payment.PayNum), SOut.Long(payment.PayType), SOut.DateT(payment.PayDate, false), SOut.Double(payment.PayAmt), payment.CheckNum, payment.BankBranch, payment.PayNote, SOut.Bool(payment.IsSplit), SOut.Long(payment.PatNum), SOut.Long(payment.ClinicNum), SOut.DateT(payment.DateEntry, false), SOut.Long(payment.DepositNum), payment.Receipt, SOut.Bool(payment.IsRecurringCC), SOut.Long(payment.SecUserNumEntry), SOut.DateT(payment.SecDateTEdit, false), SOut.Int((int) payment.PaymentSource), SOut.Int((int) payment.ProcessStatus), SOut.DateT(payment.RecurringChargeDate, false), payment.ExternalId, SOut.Int((int) payment.PaymentStatus), SOut.Bool(payment.IsCcCompleted), SOut.Double(payment.MerchantFee));
+            table.Rows.Add(SOut.Long(payment.PayNum), SOut.Long(payment.PayType), SOut.DateTime(payment.PayDate, false), SOut.Double(payment.PayAmt), payment.CheckNum, payment.BankBranch, payment.PayNote, SOut.Bool(payment.IsSplit), SOut.Long(payment.PatNum), SOut.Long(payment.ClinicNum), SOut.DateTime(payment.DateEntry, false), SOut.Long(payment.DepositNum), payment.Receipt, SOut.Bool(payment.IsRecurringCC), SOut.Long(payment.SecUserNumEntry), SOut.DateTime(payment.SecDateTEdit, false), SOut.Int((int) payment.PaymentSource), SOut.Int((int) payment.ProcessStatus), SOut.DateTime(payment.RecurringChargeDate, false), payment.ExternalId, SOut.Int((int) payment.PaymentStatus), SOut.Bool(payment.IsCcCompleted), SOut.Double(payment.MerchantFee));
         return table;
     }
 

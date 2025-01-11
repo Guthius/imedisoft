@@ -91,7 +91,7 @@ public class VitalsignCrud
         table.Columns.Add("BMIPercentile");
         table.Columns.Add("Pulse");
         foreach (var vitalsign in listVitalsigns)
-            table.Rows.Add(SOut.Long(vitalsign.VitalsignNum), SOut.Long(vitalsign.PatNum), SOut.Float(vitalsign.Height), SOut.Float(vitalsign.Weight), SOut.Int(vitalsign.BpSystolic), SOut.Int(vitalsign.BpDiastolic), SOut.DateT(vitalsign.DateTaken, false), SOut.Bool(vitalsign.HasFollowupPlan), SOut.Bool(vitalsign.IsIneligible), vitalsign.Documentation, SOut.Bool(vitalsign.ChildGotNutrition), SOut.Bool(vitalsign.ChildGotPhysCouns), vitalsign.WeightCode, vitalsign.HeightExamCode, vitalsign.WeightExamCode, vitalsign.BMIExamCode, SOut.Long(vitalsign.EhrNotPerformedNum), SOut.Long(vitalsign.PregDiseaseNum), SOut.Int(vitalsign.BMIPercentile), SOut.Int(vitalsign.Pulse));
+            table.Rows.Add(SOut.Long(vitalsign.VitalsignNum), SOut.Long(vitalsign.PatNum), SOut.Float(vitalsign.Height), SOut.Float(vitalsign.Weight), SOut.Int(vitalsign.BpSystolic), SOut.Int(vitalsign.BpDiastolic), SOut.DateTime(vitalsign.DateTaken, false), SOut.Bool(vitalsign.HasFollowupPlan), SOut.Bool(vitalsign.IsIneligible), vitalsign.Documentation, SOut.Bool(vitalsign.ChildGotNutrition), SOut.Bool(vitalsign.ChildGotPhysCouns), vitalsign.WeightCode, vitalsign.HeightExamCode, vitalsign.WeightExamCode, vitalsign.BMIExamCode, SOut.Long(vitalsign.EhrNotPerformedNum), SOut.Long(vitalsign.PregDiseaseNum), SOut.Int(vitalsign.BMIPercentile), SOut.Int(vitalsign.Pulse));
         return table;
     }
 

@@ -174,7 +174,7 @@ namespace OpenDentBusiness{
 		}
 
 		public override string ToString() {
-			//if(ODBuild.IsDebug()) {
+			//if(/* ODBuild.IsDebug() */ false) {
 			//	return YPos.ToString();
 			//}
 			return FieldName+" "+FieldValue;

@@ -61,7 +61,7 @@ public class HieQueues
                     continue;
                 }
 
-                if (!Directory.Exists(hieClinicForPat.PathExportCCD) && !ODBuild.IsUnitTest)
+                if (!Directory.Exists(hieClinicForPat.PathExportCCD))
                 {
                     listLogMsgs.Add($"Export directory does not exist '{hieClinicForPat.PathExportCCD}' for HIE clinic number '{hieClinicForPat.HieClinicNum}'.");
                     continue;
@@ -99,36 +99,33 @@ public class HieQueues
                         continue;
                     }
                 }
-
-                if (!ODBuild.IsUnitTest)
+                
+                //Don't create ccd export if running Unit Tests
+                //Process summary of care for the patient to the export path specified.
+                var ccdTextForPat = EhrCCD.GenerateSummaryOfCare(patient, out _, false);
+                var pathCcdExportWOExt = ODFileUtils.CombinePaths(hieClinicForPat.PathExportCCD, $"ccd_{DateTime_.Now.ToString("yyyyMMdd")}_{patient.PatNum}");
+                var fileExt = ".xml";
+                var pathCcdExport = pathCcdExportWOExt + fileExt;
+                if (File.Exists(pathCcdExport))
                 {
-                    //Don't create ccd export if running Unit Tests
-                    //Process summary of care for the patient to the export path specified.
-                    var ccdTextForPat = EhrCCD.GenerateSummaryOfCare(patient, out _, false);
-                    var pathCcdExportWOExt = ODFileUtils.CombinePaths(hieClinicForPat.PathExportCCD, $"ccd_{DateTime_.Now.ToString("yyyyMMdd")}_{patient.PatNum}");
-                    var fileExt = ".xml";
-                    var pathCcdExport = pathCcdExportWOExt + fileExt;
-                    if (File.Exists(pathCcdExport))
+                    var loopCount = 1;
+                    while (true)
                     {
-                        var loopCount = 1;
-                        while (true)
-                        {
-                            if (!File.Exists(pathCcdExportWOExt + $"_{loopCount}{fileExt}")) break;
-                            loopCount++;
-                        }
-
-                        pathCcdExport = pathCcdExportWOExt + $"_{loopCount}{fileExt}";
+                        if (!File.Exists(pathCcdExportWOExt + $"_{loopCount}{fileExt}")) break;
+                        loopCount++;
                     }
 
-                    try
-                    {
-                        File.WriteAllText(pathCcdExport, ccdTextForPat);
-                    }
-                    catch (Exception ex)
-                    {
-                        listLogMsgs.Add($"Failed to write ccd file for PatNum {patient.PatNum} to path {pathCcdExport}.\r\n{ex.Message}");
-                        continue; //We will try again later.
-                    }
+                    pathCcdExport = pathCcdExportWOExt + $"_{loopCount}{fileExt}";
+                }
+
+                try
+                {
+                    File.WriteAllText(pathCcdExport, ccdTextForPat);
+                }
+                catch (Exception ex)
+                {
+                    listLogMsgs.Add($"Failed to write ccd file for PatNum {patient.PatNum} to path {pathCcdExport}.\r\n{ex.Message}");
+                    continue; //We will try again later.
                 }
 
                 EhrMeasureEvents.CreateEventForPat(patient.PatNum, EhrMeasureEventType.SummaryOfCareProvidedToDrElectronic);

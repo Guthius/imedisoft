@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -440,7 +441,7 @@ public class Tasks
     ///<summary>Gets multiple Tasks from database. Returns empty list if not found.</summary>
     public static List<Task> GetTasksForApi(int limit, int offset, long taskListNum, long keyNum, int objectType, int taskStatus, DateTime dateTimeOriginal)
     {
-        var command = "SELECT * FROM task WHERE DateTimeOriginal >= " + SOut.DateT(dateTimeOriginal) + " ";
+        var command = "SELECT * FROM task WHERE DateTimeOriginal >= " + SOut.DateTime(dateTimeOriginal) + " ";
         if (taskListNum > -1) command += "AND TaskListNum=" + SOut.Long(taskListNum) + " ";
         if (keyNum > -1) command += "AND KeyNum=" + SOut.Long(keyNum) + " ";
         if (objectType > -1) command += "AND ObjectType=" + SOut.Int(objectType) + " ";
@@ -454,7 +455,7 @@ public class Tasks
     public static int GetCountReminderTasks(string reminderGroupId, DateTime dateTimeAsOf)
     {
         var command = "SELECT COUNT(*) FROM task "
-                      + "WHERE task.ReminderGroupId='" + SOut.String(reminderGroupId) + "' AND DateTimeEntry > " + SOut.DateT(dateTimeAsOf);
+                      + "WHERE task.ReminderGroupId='" + SOut.String(reminderGroupId) + "' AND DateTimeEntry > " + SOut.DateTime(dateTimeAsOf);
         return SIn.Int(Db.GetCount(command));
     }
 

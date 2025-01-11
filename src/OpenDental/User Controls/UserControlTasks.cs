@@ -11,6 +11,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -2069,7 +2070,7 @@ namespace OpenDental {
 				else {
 					//If the user has task filters on this TaskList or one of its children, prompt the user they may be moving tasks that are filtered.
 					if((EnumTaskFilterType)PrefC.GetInt(PrefName.TasksGlobalFilterType)!=EnumTaskFilterType.Disabled &&
-						(_enumTaskFilterTypeForList!=EnumTaskFilterType.None || TaskLists.HasGlobalFilterTypeInTree(taskListNew)) && !ODBuild.IsUnitTest)
+					   (_enumTaskFilterTypeForList!=EnumTaskFilterType.None || TaskLists.HasGlobalFilterTypeInTree(taskListNew)))
 					{
 						if(!MsgBox.Show(this,MsgBoxButtons.OKCancel
 							,"Task filters are turned on in this task list or one of its sub lists.  Pasting will cause filtered tasks to move as "

@@ -22,6 +22,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using System.Xml;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {

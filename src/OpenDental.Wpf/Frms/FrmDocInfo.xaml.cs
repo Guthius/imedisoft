@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
@@ -48,7 +49,7 @@ namespace OpenDental {
 
 		
 		public void FrmDocInfo_Load(object sender, System.EventArgs e){
-			if(CodeBase.ODBuild.IsDebug()){
+			if(/* ODBuild.IsDebug() */ false){
 				labelDocNum.Text="DocNum:"+_document.DocNum.ToString();
 			}
 			else{
@@ -71,7 +72,7 @@ namespace OpenDental {
 			if(_isOkDisabled) {
 				butSave.IsEnabled=false;
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				butOpen.Text="Open File";
 				if(Path.GetExtension(_document.FileName).ToLower()!=".pdf") {
 					if(false) {
@@ -157,18 +158,7 @@ namespace OpenDental {
 		}
 
 		private void butOpen_Click(object sender,EventArgs e) {
-			if(true) {
-				if(false) {
-					ThinfinityUtils.HandleFile(textFileName.Text);
-				}
-				else if(false) {
-					CloudClientL.ExportForCloud(textFileName.Text,doPromptForName:false);
-				}
-				else {
-					System.Diagnostics.Process.Start("Explorer",Path.GetDirectoryName(textFileName.Text));
-				}
-				return;
-			}
+			System.Diagnostics.Process.Start("Explorer",Path.GetDirectoryName(textFileName.Text));
 		}
 
 		private void FillComboProv(){

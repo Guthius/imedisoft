@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using ODCrypt;
 using OpenDentBusiness.Crud;
@@ -712,7 +713,7 @@ public class Procedures
     {
         var listProcedureForApis = new List<ProcedureForApi>();
         var command = "SELECT * FROM procedurelog "
-                      + "WHERE DateTStamp>=" + SOut.DateT(dateTStamp) + " ";
+                      + "WHERE DateTStamp>=" + SOut.DateTime(dateTStamp) + " ";
         if (aptNum != 0) command += "AND AptNum='" + SOut.Long(aptNum) + "'";
         command += " ORDER BY ProcNum DESC";
         var commandDatetime = "SELECT " + DbHelper.Now();
@@ -1239,7 +1240,7 @@ public class Procedures
     {
         var listProcedureForApis = new List<ProcedureForApi>();
         var command = "SELECT * FROM procedurelog "
-                      + "WHERE DateTStamp>=" + SOut.DateT(dateTStamp) + " ";
+                      + "WHERE DateTStamp>=" + SOut.DateTime(dateTStamp) + " ";
         if (patNum != 0) command += "AND PatNum='" + SOut.Long(patNum) + "' ";
         if (aptNum != 0) command += "AND AptNum='" + SOut.Long(aptNum) + "' ";
         if (plannedAptNum != 0) command += "AND PlannedAptNum='" + SOut.Long(plannedAptNum) + "' ";
@@ -2820,7 +2821,7 @@ public class Procedures
         ODEvent.Fire(ODEventType.FeeSched, new ProgressBarHelper("Getting table of fees to update..."
             , progressBarEventType: ProgBarEventType.TextMsg));
         var s = new Stopwatch();
-        if (ODBuild.IsDebug()) s.Start();
+        if (/* ODBuild.IsDebug() */ false) s.Start();
 
         #region Create Thread Queue Data
 
@@ -2908,7 +2909,7 @@ public class Procedures
                     lock (_lockObjQueueThread)
                     {
                         table = _queueDataTables.Dequeue();
-                        if (ODBuild.IsDebug()) Console.WriteLine("Main thread, dequeue batch, queue count: " + _queueDataTables.Count);
+                        if (/* ODBuild.IsDebug() */ false) Console.WriteLine("Main thread, dequeue batch, queue count: " + _queueDataTables.Count);
                     }
                 }
                 catch (Exception ex)
@@ -3076,9 +3077,9 @@ public class Procedures
             {
                 var command = "UPDATE procedurelog SET ProcFee=" + SOut.Double(x.Key) + " WHERE ProcNum IN (" + string.Join(",", y) + ")";
                 var s1 = new Stopwatch();
-                if (ODBuild.IsDebug()) s1.Start();
+                if (/* ODBuild.IsDebug() */ false) s1.Start();
                 Db.NonQ(command);
-                if (ODBuild.IsDebug())
+                if (/* ODBuild.IsDebug() */ false)
                 {
                     s1.Stop();
                     Console.WriteLine("Updated " + y.Count + " procedures, runtime: " + s1.Elapsed.TotalSeconds + " sec");
@@ -3108,7 +3109,7 @@ public class Procedures
             _odThreadQueueData = null;
         }
 
-        if (ODBuild.IsDebug())
+        if (/* ODBuild.IsDebug() */ false)
         {
             s.Stop();
             Console.WriteLine("Runtime: " + s.Elapsed.Minutes + " min " + (s.Elapsed.TotalSeconds - s.Elapsed.Minutes * 60) + " sec");
@@ -3121,7 +3122,7 @@ public class Procedures
     private static void QueueDataBatches(ODThread odThread)
     {
         var s = new Stopwatch();
-        if (ODBuild.IsDebug()) s.Start();
+        if (/* ODBuild.IsDebug() */ false) s.Start();
         try
         {
             var isMedFeeUsedForNewProcs = PrefC.GetBool(PrefName.MedicalFeeUsedForNewProcs);
@@ -3177,9 +3178,9 @@ public class Procedures
             var listActions = listQueries.Select(x => new Action(() =>
             {
                 var s1 = new Stopwatch();
-                if (ODBuild.IsDebug()) s1.Start();
+                if (/* ODBuild.IsDebug() */ false) s1.Start();
                 var table = DataCore.GetTable(x);
-                if (ODBuild.IsDebug()) s1.Stop();
+                if (/* ODBuild.IsDebug() */ false) s1.Stop();
                 if (table.Rows.Count > 0)
                 {
                     while (_queueDataTables.Count > 5)
@@ -3188,7 +3189,7 @@ public class Procedures
                     lock (_lockObjQueueThread)
                     {
                         _queueDataTables.Enqueue(table);
-                        if (ODBuild.IsDebug()) Console.WriteLine(odThread.Name + " - enqueue batch, queue count: " + _queueDataTables.Count + ", runtime: " + s1.Elapsed.TotalSeconds + " sec");
+                        if (/* ODBuild.IsDebug() */ false) Console.WriteLine(odThread.Name + " - enqueue batch, queue count: " + _queueDataTables.Count + ", runtime: " + s1.Elapsed.TotalSeconds + " sec");
                     }
                 }
             })).ToList();
@@ -3209,7 +3210,7 @@ public class Procedures
         {
             //always make sure to notify the main thread that the thread is done so the main thread doesn't wait for eternity
             _isQueueDone = true;
-            if (ODBuild.IsDebug())
+            if (/* ODBuild.IsDebug() */ false)
             {
                 s.Stop();
                 Console.WriteLine(odThread.Name + " - Done, enqueue total count: " + _listProcNumsMaxForGroups.Count

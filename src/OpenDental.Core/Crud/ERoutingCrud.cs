@@ -63,7 +63,7 @@ public class ERoutingCrud
         table.Columns.Add("SecDateTEntry");
         table.Columns.Add("IsComplete");
         foreach (var eRouting in listERoutings)
-            table.Rows.Add(SOut.Long(eRouting.ERoutingNum), eRouting.Description, SOut.Long(eRouting.PatNum), SOut.Long(eRouting.ClinicNum), SOut.DateT(eRouting.SecDateTEntry, false), SOut.Bool(eRouting.IsComplete));
+            table.Rows.Add(SOut.Long(eRouting.ERoutingNum), eRouting.Description, SOut.Long(eRouting.PatNum), SOut.Long(eRouting.ClinicNum), SOut.DateTime(eRouting.SecDateTEntry, false), SOut.Bool(eRouting.IsComplete));
         return table;
     }
 

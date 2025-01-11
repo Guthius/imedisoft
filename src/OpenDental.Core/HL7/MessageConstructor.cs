@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>This is the engine that will construct our outgoing HL7 messages.</summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -91,7 +92,7 @@ public class ICD9s
     public static List<long> GetChangedSinceICD9Nums(DateTime dateTChangedSince)
     {
         //string command="SELECT ICD9Num FROM icd9 WHERE DateTStamp > "+POut.DateT(changedSince);//Dennis: delete this line later
-        var command = "SELECT ICD9Num FROM icd9 WHERE DateTStamp > " + SOut.DateT(dateTChangedSince)
+        var command = "SELECT ICD9Num FROM icd9 WHERE DateTStamp > " + SOut.DateTime(dateTChangedSince)
                                                                      + " AND ICD9Num in (SELECT ICD9Num FROM disease)";
         var table = DataCore.GetTable(command);
         var listIcd9Nums = new List<long>(table.Rows.Count);

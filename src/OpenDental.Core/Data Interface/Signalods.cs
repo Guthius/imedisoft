@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -46,7 +47,7 @@ public class Signalods
         //By selecting signals less than Now() we avoid missing signals the next time this function is called. Without the addition of Now() it was possible
         //to miss up to ((N-1)/N)% of the signals generated in the worst case scenario.
         var command = "SELECT * FROM signalod "
-                      + "WHERE (SigDateTime>" + SOut.DateT(dateTSince) + " AND SigDateTime< " + DbHelper.Now() + ") ";
+                      + "WHERE (SigDateTime>" + SOut.DateTime(dateTSince) + " AND SigDateTime< " + DbHelper.Now() + ") ";
         if (!listInvalidTypes.IsNullOrEmpty()) command += "AND IType IN(" + string.Join(",", listInvalidTypes.Select(x => (int) x)) + ") ";
         if (!listInvalidTypesExclude.IsNullOrEmpty()) command += "AND IType NOT IN(" + string.Join(",", listInvalidTypesExclude.Select(x => (int) x)) + ") ";
         command += "ORDER BY SigDateTime";
@@ -71,7 +72,7 @@ public class Signalods
         //By selecting signals less than Now() we avoid missing signals the next time this function is called. Without the addition of Now() it was possible
         //to miss up to ((N-1)/N)% of the signals generated in the worst case scenario.
         var command = "SELECT * FROM signalod "
-                      + "WHERE (SigDateTime>" + SOut.DateT(dateTSince) + " AND SigDateTime< " + DbHelper.Now() + ") ";
+                      + "WHERE (SigDateTime>" + SOut.DateTime(dateTSince) + " AND SigDateTime< " + DbHelper.Now() + ") ";
         if (!listInvalidTypes.IsNullOrEmpty()) command += "AND IType IN(" + string.Join(",", listInvalidTypes.Select(x => (int) x)) + ") ";
         command += "ORDER BY SignalNum "
                    + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
@@ -121,7 +122,7 @@ public class Signalods
 
         //string[] array=;
         var command = $"SELECT COUNT(*) FROM signalod "
-                      + $"WHERE SigDateTime>{SOut.DateT(dateTimeSinceLastChecked)} "
+                      + $"WHERE SigDateTime>{SOut.DateTime(dateTimeSinceLastChecked)} "
                       + $"AND SigDateTime<{DbHelper.Now()} "
                       + $"AND IType IN({string.Join(",", invalidTypeArray.Select(x => SOut.Int((int) x)))})";
         var numSitesSignals = SIn.Int(Db.GetCount(command));

@@ -86,7 +86,7 @@ public class WebSchedRecallCrud
         table.Columns.Add("ApptReminderRuleNum");
         table.Columns.Add("ShortGUID");
         foreach (var webSchedRecall in listWebSchedRecalls)
-            table.Rows.Add(SOut.Long(webSchedRecall.WebSchedRecallNum), SOut.Long(webSchedRecall.RecallNum), SOut.DateT(webSchedRecall.DateDue, false), SOut.Int(webSchedRecall.ReminderCount), SOut.DateT(webSchedRecall.DateTimeSendFailed, false), SOut.Int((int) webSchedRecall.Source), SOut.Long(webSchedRecall.CommlogNum), SOut.Long(webSchedRecall.PatNum), SOut.Long(webSchedRecall.ClinicNum), SOut.Int((int) webSchedRecall.SendStatus), SOut.Int((int) webSchedRecall.MessageType), SOut.Long(webSchedRecall.MessageFk), SOut.DateT(webSchedRecall.DateTimeEntry, false), SOut.DateT(webSchedRecall.DateTimeSent, false), webSchedRecall.ResponseDescript, SOut.Long(webSchedRecall.ApptReminderRuleNum), webSchedRecall.ShortGUID);
+            table.Rows.Add(SOut.Long(webSchedRecall.WebSchedRecallNum), SOut.Long(webSchedRecall.RecallNum), SOut.DateTime(webSchedRecall.DateDue, false), SOut.Int(webSchedRecall.ReminderCount), SOut.DateTime(webSchedRecall.DateTimeSendFailed, false), SOut.Int((int) webSchedRecall.Source), SOut.Long(webSchedRecall.CommlogNum), SOut.Long(webSchedRecall.PatNum), SOut.Long(webSchedRecall.ClinicNum), SOut.Int((int) webSchedRecall.SendStatus), SOut.Int((int) webSchedRecall.MessageType), SOut.Long(webSchedRecall.MessageFk), SOut.DateTime(webSchedRecall.DateTimeEntry, false), SOut.DateTime(webSchedRecall.DateTimeSent, false), webSchedRecall.ResponseDescript, SOut.Long(webSchedRecall.ApptReminderRuleNum), webSchedRecall.ShortGUID);
         return table;
     }
 
@@ -103,9 +103,9 @@ public class WebSchedRecallCrud
 
         command +=
             SOut.Long(webSchedRecall.RecallNum) + ","
-                                                + SOut.DateT(webSchedRecall.DateDue) + ","
+                                                + SOut.DateTime(webSchedRecall.DateDue) + ","
                                                 + SOut.Int(webSchedRecall.ReminderCount) + ","
-                                                + SOut.DateT(webSchedRecall.DateTimeSendFailed) + ","
+                                                + SOut.DateTime(webSchedRecall.DateTimeSendFailed) + ","
                                                 + SOut.Int((int) webSchedRecall.Source) + ","
                                                 + SOut.Long(webSchedRecall.CommlogNum) + ","
                                                 + SOut.Long(webSchedRecall.PatNum) + ","
@@ -114,7 +114,7 @@ public class WebSchedRecallCrud
                                                 + SOut.Int((int) webSchedRecall.MessageType) + ","
                                                 + SOut.Long(webSchedRecall.MessageFk) + ","
                                                 + DbHelper.Now() + ","
-                                                + SOut.DateT(webSchedRecall.DateTimeSent) + ","
+                                                + SOut.DateTime(webSchedRecall.DateTimeSent) + ","
                                                 + DbHelper.ParamChar + "paramResponseDescript,"
                                                 + SOut.Long(webSchedRecall.ApptReminderRuleNum) + ","
                                                 + "'" + SOut.String(webSchedRecall.ShortGUID) + "')";
@@ -162,11 +162,11 @@ public class WebSchedRecallCrud
 
             sbRow.Append(SOut.Long(webSchedRecall.RecallNum));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(webSchedRecall.DateDue));
+            sbRow.Append(SOut.DateTime(webSchedRecall.DateDue));
             sbRow.Append(",");
             sbRow.Append(SOut.Int(webSchedRecall.ReminderCount));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(webSchedRecall.DateTimeSendFailed));
+            sbRow.Append(SOut.DateTime(webSchedRecall.DateTimeSendFailed));
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) webSchedRecall.Source));
             sbRow.Append(",");
@@ -184,7 +184,7 @@ public class WebSchedRecallCrud
             sbRow.Append(",");
             sbRow.Append(DbHelper.Now());
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(webSchedRecall.DateTimeSent));
+            sbRow.Append(SOut.DateTime(webSchedRecall.DateTimeSent));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(webSchedRecall.ResponseDescript) + "'");
             sbRow.Append(",");
@@ -222,9 +222,9 @@ public class WebSchedRecallCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(webSchedRecall.WebSchedRecallNum) + ",";
         command +=
             SOut.Long(webSchedRecall.RecallNum) + ","
-                                                + SOut.DateT(webSchedRecall.DateDue) + ","
+                                                + SOut.DateTime(webSchedRecall.DateDue) + ","
                                                 + SOut.Int(webSchedRecall.ReminderCount) + ","
-                                                + SOut.DateT(webSchedRecall.DateTimeSendFailed) + ","
+                                                + SOut.DateTime(webSchedRecall.DateTimeSendFailed) + ","
                                                 + SOut.Int((int) webSchedRecall.Source) + ","
                                                 + SOut.Long(webSchedRecall.CommlogNum) + ","
                                                 + SOut.Long(webSchedRecall.PatNum) + ","
@@ -233,7 +233,7 @@ public class WebSchedRecallCrud
                                                 + SOut.Int((int) webSchedRecall.MessageType) + ","
                                                 + SOut.Long(webSchedRecall.MessageFk) + ","
                                                 + DbHelper.Now() + ","
-                                                + SOut.DateT(webSchedRecall.DateTimeSent) + ","
+                                                + SOut.DateTime(webSchedRecall.DateTimeSent) + ","
                                                 + DbHelper.ParamChar + "paramResponseDescript,"
                                                 + SOut.Long(webSchedRecall.ApptReminderRuleNum) + ","
                                                 + "'" + SOut.String(webSchedRecall.ShortGUID) + "')";
@@ -250,9 +250,9 @@ public class WebSchedRecallCrud
     {
         var command = "UPDATE webschedrecall SET "
                       + "RecallNum          =  " + SOut.Long(webSchedRecall.RecallNum) + ", "
-                      + "DateDue            =  " + SOut.DateT(webSchedRecall.DateDue) + ", "
+                      + "DateDue            =  " + SOut.DateTime(webSchedRecall.DateDue) + ", "
                       + "ReminderCount      =  " + SOut.Int(webSchedRecall.ReminderCount) + ", "
-                      + "DateTimeSendFailed =  " + SOut.DateT(webSchedRecall.DateTimeSendFailed) + ", "
+                      + "DateTimeSendFailed =  " + SOut.DateTime(webSchedRecall.DateTimeSendFailed) + ", "
                       + "Source             =  " + SOut.Int((int) webSchedRecall.Source) + ", "
                       + "CommlogNum         =  " + SOut.Long(webSchedRecall.CommlogNum) + ", "
                       + "PatNum             =  " + SOut.Long(webSchedRecall.PatNum) + ", "
@@ -261,7 +261,7 @@ public class WebSchedRecallCrud
                       + "MessageType        =  " + SOut.Int((int) webSchedRecall.MessageType) + ", "
                       + "MessageFk          =  " + SOut.Long(webSchedRecall.MessageFk) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeSent       =  " + SOut.DateT(webSchedRecall.DateTimeSent) + ", "
+                      + "DateTimeSent       =  " + SOut.DateTime(webSchedRecall.DateTimeSent) + ", "
                       + "ResponseDescript   =  " + DbHelper.ParamChar + "paramResponseDescript, "
                       + "ApptReminderRuleNum=  " + SOut.Long(webSchedRecall.ApptReminderRuleNum) + ", "
                       + "ShortGUID          = '" + SOut.String(webSchedRecall.ShortGUID) + "' "
@@ -283,7 +283,7 @@ public class WebSchedRecallCrud
         if (webSchedRecall.DateDue != oldWebSchedRecall.DateDue)
         {
             if (command != "") command += ",";
-            command += "DateDue = " + SOut.DateT(webSchedRecall.DateDue) + "";
+            command += "DateDue = " + SOut.DateTime(webSchedRecall.DateDue) + "";
         }
 
         if (webSchedRecall.ReminderCount != oldWebSchedRecall.ReminderCount)
@@ -295,7 +295,7 @@ public class WebSchedRecallCrud
         if (webSchedRecall.DateTimeSendFailed != oldWebSchedRecall.DateTimeSendFailed)
         {
             if (command != "") command += ",";
-            command += "DateTimeSendFailed = " + SOut.DateT(webSchedRecall.DateTimeSendFailed) + "";
+            command += "DateTimeSendFailed = " + SOut.DateTime(webSchedRecall.DateTimeSendFailed) + "";
         }
 
         if (webSchedRecall.Source != oldWebSchedRecall.Source)
@@ -344,7 +344,7 @@ public class WebSchedRecallCrud
         if (webSchedRecall.DateTimeSent != oldWebSchedRecall.DateTimeSent)
         {
             if (command != "") command += ",";
-            command += "DateTimeSent = " + SOut.DateT(webSchedRecall.DateTimeSent) + "";
+            command += "DateTimeSent = " + SOut.DateTime(webSchedRecall.DateTimeSent) + "";
         }
 
         if (webSchedRecall.ResponseDescript != oldWebSchedRecall.ResponseDescript)

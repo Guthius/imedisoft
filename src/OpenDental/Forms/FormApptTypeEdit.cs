@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDentBusiness.UI;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormApptTypeEdit:FormODBase {

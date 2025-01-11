@@ -76,15 +76,15 @@ public class AsapCommCrud
                                      + SOut.Long(asapComm.ClinicNum) + ","
                                      + "'" + SOut.String(asapComm.ShortGUID) + "',"
                                      + DbHelper.Now() + ","
-                                     + SOut.DateT(asapComm.DateTimeExpire) + ","
-                                     + SOut.DateT(asapComm.DateTimeSmsScheduled) + ","
+                                     + SOut.DateTime(asapComm.DateTimeExpire) + ","
+                                     + SOut.DateTime(asapComm.DateTimeSmsScheduled) + ","
                                      + SOut.Int((int) asapComm.SmsSendStatus) + ","
                                      + SOut.Int((int) asapComm.EmailSendStatus) + ","
-                                     + SOut.DateT(asapComm.DateTimeSmsSent) + ","
-                                     + SOut.DateT(asapComm.DateTimeEmailSent) + ","
+                                     + SOut.DateTime(asapComm.DateTimeSmsSent) + ","
+                                     + SOut.DateTime(asapComm.DateTimeEmailSent) + ","
                                      + SOut.Long(asapComm.EmailMessageNum) + ","
                                      + SOut.Int((int) asapComm.ResponseStatus) + ","
-                                     + SOut.DateT(asapComm.DateTimeOrig) + ","
+                                     + SOut.DateTime(asapComm.DateTimeOrig) + ","
                                      + DbHelper.ParamChar + "paramTemplateText,"
                                      + DbHelper.ParamChar + "paramTemplateEmail,"
                                      + "'" + SOut.String(asapComm.TemplateEmailSubj) + "',"
@@ -153,23 +153,23 @@ public class AsapCommCrud
             sbRow.Append(",");
             sbRow.Append(DbHelper.Now());
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(asapComm.DateTimeExpire));
+            sbRow.Append(SOut.DateTime(asapComm.DateTimeExpire));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(asapComm.DateTimeSmsScheduled));
+            sbRow.Append(SOut.DateTime(asapComm.DateTimeSmsScheduled));
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) asapComm.SmsSendStatus));
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) asapComm.EmailSendStatus));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(asapComm.DateTimeSmsSent));
+            sbRow.Append(SOut.DateTime(asapComm.DateTimeSmsSent));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(asapComm.DateTimeEmailSent));
+            sbRow.Append(SOut.DateTime(asapComm.DateTimeEmailSent));
             sbRow.Append(",");
             sbRow.Append(SOut.Long(asapComm.EmailMessageNum));
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) asapComm.ResponseStatus));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(asapComm.DateTimeOrig));
+            sbRow.Append(SOut.DateTime(asapComm.DateTimeOrig));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(asapComm.TemplateText) + "'");
             sbRow.Append(",");

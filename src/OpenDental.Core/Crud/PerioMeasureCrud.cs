@@ -78,7 +78,7 @@ public class PerioMeasureCrud
         table.Columns.Add("SecDateTEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var perioMeasure in listPerioMeasures)
-            table.Rows.Add(SOut.Long(perioMeasure.PerioMeasureNum), SOut.Long(perioMeasure.PerioExamNum), SOut.Int((int) perioMeasure.SequenceType), SOut.Int(perioMeasure.IntTooth), SOut.Int(perioMeasure.ToothValue), SOut.Int(perioMeasure.MBvalue), SOut.Int(perioMeasure.Bvalue), SOut.Int(perioMeasure.DBvalue), SOut.Int(perioMeasure.MLvalue), SOut.Int(perioMeasure.Lvalue), SOut.Int(perioMeasure.DLvalue), SOut.DateT(perioMeasure.SecDateTEntry, false), SOut.DateT(perioMeasure.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(perioMeasure.PerioMeasureNum), SOut.Long(perioMeasure.PerioExamNum), SOut.Int((int) perioMeasure.SequenceType), SOut.Int(perioMeasure.IntTooth), SOut.Int(perioMeasure.ToothValue), SOut.Int(perioMeasure.MBvalue), SOut.Int(perioMeasure.Bvalue), SOut.Int(perioMeasure.DBvalue), SOut.Int(perioMeasure.MLvalue), SOut.Int(perioMeasure.Lvalue), SOut.Int(perioMeasure.DLvalue), SOut.DateTime(perioMeasure.SecDateTEntry, false), SOut.DateTime(perioMeasure.SecDateTEdit, false));
         return table;
     }
 

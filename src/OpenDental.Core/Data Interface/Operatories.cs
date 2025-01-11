@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -58,7 +59,7 @@ public class Operatories
 
     public static List<Operatory> GetChangedSince(DateTime dateTChangedSince)
     {
-        var command = "SELECT * FROM operatory WHERE DateTStamp > " + SOut.DateT(dateTChangedSince);
+        var command = "SELECT * FROM operatory WHERE DateTStamp > " + SOut.DateTime(dateTChangedSince);
         return OperatoryCrud.SelectMany(command);
     }
 

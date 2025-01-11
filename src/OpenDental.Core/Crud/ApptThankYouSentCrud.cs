@@ -46,8 +46,8 @@ public class ApptThankYouSentCrud
     public static void Update(ApptThankYouSent apptThankYouSent)
     {
         var command = "UPDATE apptthankyousent SET "
-                      + "ApptSecDateTEntry       =  " + SOut.DateT(apptThankYouSent.ApptSecDateTEntry) + ", "
-                      + "DateTimeThankYouTransmit=  " + SOut.DateT(apptThankYouSent.DateTimeThankYouTransmit) + ", "
+                      + "ApptSecDateTEntry       =  " + SOut.DateTime(apptThankYouSent.ApptSecDateTEntry) + ", "
+                      + "DateTimeThankYouTransmit=  " + SOut.DateTime(apptThankYouSent.DateTimeThankYouTransmit) + ", "
                       + "DoNotResend             =  " + SOut.Bool(apptThankYouSent.DoNotResend) + ", "
                       + "PatNum                  =  " + SOut.Long(apptThankYouSent.PatNum) + ", "
                       + "ClinicNum               =  " + SOut.Long(apptThankYouSent.ClinicNum) + ", "
@@ -55,11 +55,11 @@ public class ApptThankYouSentCrud
                       + "MessageType             =  " + SOut.Int((int) apptThankYouSent.MessageType) + ", "
                       + "MessageFk               =  " + SOut.Long(apptThankYouSent.MessageFk) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeSent            =  " + SOut.DateT(apptThankYouSent.DateTimeSent) + ", "
+                      + "DateTimeSent            =  " + SOut.DateTime(apptThankYouSent.DateTimeSent) + ", "
                       + "ResponseDescript        =  " + DbHelper.ParamChar + "paramResponseDescript, "
                       + "ApptReminderRuleNum     =  " + SOut.Long(apptThankYouSent.ApptReminderRuleNum) + ", "
                       + "ApptNum                 =  " + SOut.Long(apptThankYouSent.ApptNum) + ", "
-                      + "ApptDateTime            =  " + SOut.DateT(apptThankYouSent.ApptDateTime) + ", "
+                      + "ApptDateTime            =  " + SOut.DateTime(apptThankYouSent.ApptDateTime) + ", "
                       + "TSPrior                 =  " + SOut.Long(apptThankYouSent.TSPrior.Ticks) + ", "
                       + "ShortGUID               = '" + SOut.String(apptThankYouSent.ShortGUID) + "' "
                       + "WHERE ApptThankYouSentNum = " + SOut.Long(apptThankYouSent.ApptThankYouSentNum);

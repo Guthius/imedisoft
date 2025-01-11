@@ -81,7 +81,7 @@ public class MobileAppDeviceCrud
         table.Columns.Add("ODTouchLastAttempt");
         table.Columns.Add("IsODTouchEnabled");
         foreach (var mobileAppDevice in listMobileAppDevices)
-            table.Rows.Add(SOut.Long(mobileAppDevice.MobileAppDeviceNum), SOut.Long(mobileAppDevice.ClinicNum), mobileAppDevice.DeviceName, mobileAppDevice.UniqueID, SOut.Bool(mobileAppDevice.IsEclipboardEnabled), SOut.Long(mobileAppDevice.PatNum), SOut.Bool(mobileAppDevice.IsBYODDevice), SOut.DateT(mobileAppDevice.LastCheckInActivity, false), SOut.DateT(mobileAppDevice.EclipboardLastAttempt, false), SOut.DateT(mobileAppDevice.EclipboardLastLogin, false), SOut.Int((int) mobileAppDevice.DevicePage), SOut.Long(mobileAppDevice.UserNum), SOut.DateT(mobileAppDevice.ODTouchLastLogin, false), SOut.DateT(mobileAppDevice.ODTouchLastAttempt, false), SOut.Bool(mobileAppDevice.IsODTouchEnabled));
+            table.Rows.Add(SOut.Long(mobileAppDevice.MobileAppDeviceNum), SOut.Long(mobileAppDevice.ClinicNum), mobileAppDevice.DeviceName, mobileAppDevice.UniqueID, SOut.Bool(mobileAppDevice.IsEclipboardEnabled), SOut.Long(mobileAppDevice.PatNum), SOut.Bool(mobileAppDevice.IsBYODDevice), SOut.DateTime(mobileAppDevice.LastCheckInActivity, false), SOut.DateTime(mobileAppDevice.EclipboardLastAttempt, false), SOut.DateTime(mobileAppDevice.EclipboardLastLogin, false), SOut.Int((int) mobileAppDevice.DevicePage), SOut.Long(mobileAppDevice.UserNum), SOut.DateTime(mobileAppDevice.ODTouchLastLogin, false), SOut.DateTime(mobileAppDevice.ODTouchLastAttempt, false), SOut.Bool(mobileAppDevice.IsODTouchEnabled));
         return table;
     }
 
@@ -103,13 +103,13 @@ public class MobileAppDeviceCrud
                                                  + SOut.Bool(mobileAppDevice.IsEclipboardEnabled) + ","
                                                  + SOut.Long(mobileAppDevice.PatNum) + ","
                                                  + SOut.Bool(mobileAppDevice.IsBYODDevice) + ","
-                                                 + SOut.DateT(mobileAppDevice.LastCheckInActivity) + ","
-                                                 + SOut.DateT(mobileAppDevice.EclipboardLastAttempt) + ","
-                                                 + SOut.DateT(mobileAppDevice.EclipboardLastLogin) + ","
+                                                 + SOut.DateTime(mobileAppDevice.LastCheckInActivity) + ","
+                                                 + SOut.DateTime(mobileAppDevice.EclipboardLastAttempt) + ","
+                                                 + SOut.DateTime(mobileAppDevice.EclipboardLastLogin) + ","
                                                  + SOut.Int((int) mobileAppDevice.DevicePage) + ","
                                                  + SOut.Long(mobileAppDevice.UserNum) + ","
-                                                 + SOut.DateT(mobileAppDevice.ODTouchLastLogin) + ","
-                                                 + SOut.DateT(mobileAppDevice.ODTouchLastAttempt) + ","
+                                                 + SOut.DateTime(mobileAppDevice.ODTouchLastLogin) + ","
+                                                 + SOut.DateTime(mobileAppDevice.ODTouchLastAttempt) + ","
                                                  + SOut.Bool(mobileAppDevice.IsODTouchEnabled) + ")";
         {
             mobileAppDevice.MobileAppDeviceNum = Db.NonQ(command, true, "MobileAppDeviceNum", "mobileAppDevice");
@@ -136,13 +136,13 @@ public class MobileAppDeviceCrud
                                                  + SOut.Bool(mobileAppDevice.IsEclipboardEnabled) + ","
                                                  + SOut.Long(mobileAppDevice.PatNum) + ","
                                                  + SOut.Bool(mobileAppDevice.IsBYODDevice) + ","
-                                                 + SOut.DateT(mobileAppDevice.LastCheckInActivity) + ","
-                                                 + SOut.DateT(mobileAppDevice.EclipboardLastAttempt) + ","
-                                                 + SOut.DateT(mobileAppDevice.EclipboardLastLogin) + ","
+                                                 + SOut.DateTime(mobileAppDevice.LastCheckInActivity) + ","
+                                                 + SOut.DateTime(mobileAppDevice.EclipboardLastAttempt) + ","
+                                                 + SOut.DateTime(mobileAppDevice.EclipboardLastLogin) + ","
                                                  + SOut.Int((int) mobileAppDevice.DevicePage) + ","
                                                  + SOut.Long(mobileAppDevice.UserNum) + ","
-                                                 + SOut.DateT(mobileAppDevice.ODTouchLastLogin) + ","
-                                                 + SOut.DateT(mobileAppDevice.ODTouchLastAttempt) + ","
+                                                 + SOut.DateTime(mobileAppDevice.ODTouchLastLogin) + ","
+                                                 + SOut.DateTime(mobileAppDevice.ODTouchLastAttempt) + ","
                                                  + SOut.Bool(mobileAppDevice.IsODTouchEnabled) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
@@ -160,13 +160,13 @@ public class MobileAppDeviceCrud
                       + "IsEclipboardEnabled  =  " + SOut.Bool(mobileAppDevice.IsEclipboardEnabled) + ", "
                       + "PatNum               =  " + SOut.Long(mobileAppDevice.PatNum) + ", "
                       + "IsBYODDevice         =  " + SOut.Bool(mobileAppDevice.IsBYODDevice) + ", "
-                      + "LastCheckInActivity  =  " + SOut.DateT(mobileAppDevice.LastCheckInActivity) + ", "
-                      + "EclipboardLastAttempt=  " + SOut.DateT(mobileAppDevice.EclipboardLastAttempt) + ", "
-                      + "EclipboardLastLogin  =  " + SOut.DateT(mobileAppDevice.EclipboardLastLogin) + ", "
+                      + "LastCheckInActivity  =  " + SOut.DateTime(mobileAppDevice.LastCheckInActivity) + ", "
+                      + "EclipboardLastAttempt=  " + SOut.DateTime(mobileAppDevice.EclipboardLastAttempt) + ", "
+                      + "EclipboardLastLogin  =  " + SOut.DateTime(mobileAppDevice.EclipboardLastLogin) + ", "
                       + "DevicePage           =  " + SOut.Int((int) mobileAppDevice.DevicePage) + ", "
                       + "UserNum              =  " + SOut.Long(mobileAppDevice.UserNum) + ", "
-                      + "ODTouchLastLogin     =  " + SOut.DateT(mobileAppDevice.ODTouchLastLogin) + ", "
-                      + "ODTouchLastAttempt   =  " + SOut.DateT(mobileAppDevice.ODTouchLastAttempt) + ", "
+                      + "ODTouchLastLogin     =  " + SOut.DateTime(mobileAppDevice.ODTouchLastLogin) + ", "
+                      + "ODTouchLastAttempt   =  " + SOut.DateTime(mobileAppDevice.ODTouchLastAttempt) + ", "
                       + "IsODTouchEnabled     =  " + SOut.Bool(mobileAppDevice.IsODTouchEnabled) + " "
                       + "WHERE MobileAppDeviceNum = " + SOut.Long(mobileAppDevice.MobileAppDeviceNum);
         Db.NonQ(command);
@@ -214,19 +214,19 @@ public class MobileAppDeviceCrud
         if (mobileAppDevice.LastCheckInActivity != oldMobileAppDevice.LastCheckInActivity)
         {
             if (command != "") command += ",";
-            command += "LastCheckInActivity = " + SOut.DateT(mobileAppDevice.LastCheckInActivity) + "";
+            command += "LastCheckInActivity = " + SOut.DateTime(mobileAppDevice.LastCheckInActivity) + "";
         }
 
         if (mobileAppDevice.EclipboardLastAttempt != oldMobileAppDevice.EclipboardLastAttempt)
         {
             if (command != "") command += ",";
-            command += "EclipboardLastAttempt = " + SOut.DateT(mobileAppDevice.EclipboardLastAttempt) + "";
+            command += "EclipboardLastAttempt = " + SOut.DateTime(mobileAppDevice.EclipboardLastAttempt) + "";
         }
 
         if (mobileAppDevice.EclipboardLastLogin != oldMobileAppDevice.EclipboardLastLogin)
         {
             if (command != "") command += ",";
-            command += "EclipboardLastLogin = " + SOut.DateT(mobileAppDevice.EclipboardLastLogin) + "";
+            command += "EclipboardLastLogin = " + SOut.DateTime(mobileAppDevice.EclipboardLastLogin) + "";
         }
 
         if (mobileAppDevice.DevicePage != oldMobileAppDevice.DevicePage)
@@ -244,13 +244,13 @@ public class MobileAppDeviceCrud
         if (mobileAppDevice.ODTouchLastLogin != oldMobileAppDevice.ODTouchLastLogin)
         {
             if (command != "") command += ",";
-            command += "ODTouchLastLogin = " + SOut.DateT(mobileAppDevice.ODTouchLastLogin) + "";
+            command += "ODTouchLastLogin = " + SOut.DateTime(mobileAppDevice.ODTouchLastLogin) + "";
         }
 
         if (mobileAppDevice.ODTouchLastAttempt != oldMobileAppDevice.ODTouchLastAttempt)
         {
             if (command != "") command += ",";
-            command += "ODTouchLastAttempt = " + SOut.DateT(mobileAppDevice.ODTouchLastAttempt) + "";
+            command += "ODTouchLastAttempt = " + SOut.DateTime(mobileAppDevice.ODTouchLastAttempt) + "";
         }
 
         if (mobileAppDevice.IsODTouchEnabled != oldMobileAppDevice.IsODTouchEnabled)

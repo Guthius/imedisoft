@@ -83,7 +83,7 @@ public class PatientNoteCrud
         table.Columns.Add("UserNumOrthoLocked");
         table.Columns.Add("Pronoun");
         foreach (var patientNote in listPatientNotes)
-            table.Rows.Add(SOut.Long(patientNote.PatNum), patientNote.FamFinancial, patientNote.ApptPhone, patientNote.Medical, patientNote.Service, patientNote.MedicalComp, patientNote.Treatment, patientNote.ICEName, patientNote.ICEPhone, SOut.Int(patientNote.OrthoMonthsTreatOverride), SOut.DateT(patientNote.DateOrthoPlacementOverride, false), SOut.DateT(patientNote.SecDateTEntry, false), SOut.DateT(patientNote.SecDateTEdit, false), SOut.Int((int) patientNote.Consent), SOut.Long(patientNote.UserNumOrthoLocked), SOut.Int((int) patientNote.Pronoun));
+            table.Rows.Add(SOut.Long(patientNote.PatNum), patientNote.FamFinancial, patientNote.ApptPhone, patientNote.Medical, patientNote.Service, patientNote.MedicalComp, patientNote.Treatment, patientNote.ICEName, patientNote.ICEPhone, SOut.Int(patientNote.OrthoMonthsTreatOverride), SOut.DateTime(patientNote.DateOrthoPlacementOverride, false), SOut.DateTime(patientNote.SecDateTEntry, false), SOut.DateTime(patientNote.SecDateTEdit, false), SOut.Int((int) patientNote.Consent), SOut.Long(patientNote.UserNumOrthoLocked), SOut.Int((int) patientNote.Pronoun));
         return table;
     }
 

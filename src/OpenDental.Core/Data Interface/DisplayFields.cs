@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 

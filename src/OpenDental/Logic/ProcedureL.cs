@@ -4,6 +4,7 @@ using System.Windows;
 using OpenDentBusiness;
 using System;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public class ProcedureL {

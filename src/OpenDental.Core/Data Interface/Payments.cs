@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.WebTypes.Shared.XWeb;

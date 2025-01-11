@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using OpenDentBusiness.SheetFramework;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 

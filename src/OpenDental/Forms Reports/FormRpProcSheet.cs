@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using CodeBase;
 using System.Linq;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 

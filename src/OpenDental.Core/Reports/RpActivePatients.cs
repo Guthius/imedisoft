@@ -43,7 +43,7 @@ namespace OpenDentBusiness {
 				LEFT JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum
 				LEFT JOIN provider ON provider.ProvNum=patient.PriProv 
 				WHERE procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+@"
-					AND procedurelog.ProcDate BETWEEN "+POut.DateT(dateStart)+@" AND "+POut.DateT(dateEnd);
+					AND procedurelog.ProcDate BETWEEN "+POut.DateTime(dateStart)+@" AND "+POut.DateTime(dateEnd);
 			if(!hasAllProvs) {
 				command+=@" AND (patient.PriProv IN("+String.Join(",",listProvNums)+") OR patient.SecProv IN("+String.Join(",",listProvNums)+")) ";
 			}

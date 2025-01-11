@@ -208,7 +208,7 @@ public class LabCases
     ///<summary>Gets a list of labCases optionally filtered for the API. Returns an empty list if not found.</summary>
     public static List<LabCase> GetLabCasesForApi(int limit, int offset, long patNum, long laboratoryNum, long aptNum, long plannedAptNum, long provNum)
     {
-        var command = "SELECT * FROM labcase WHERE DateTStamp>=" + SOut.DateT(DateTime.MinValue) + " ";
+        var command = "SELECT * FROM labcase WHERE DateTStamp>=" + SOut.DateTime(DateTime.MinValue) + " ";
         if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
         if (laboratoryNum > 0) command += "AND LaboratoryNum=" + SOut.Long(laboratoryNum) + " ";
         if (aptNum > -1) command += "AND AptNum=" + SOut.Long(aptNum) + " ";

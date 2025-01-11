@@ -707,7 +707,7 @@ Scrollable Control: For example, a panel that's set to AutoScroll=true.  These c
 
 		#region Methods - Layout
 		public static bool IsTestingMode(){
-			if(!ODBuild.IsDebug()){
+			if(!/* ODBuild.IsDebug() */ false){
 				return false;//any layout issue for a customer will tend to just misdraw slightly instead of crashing
 			}
 			//But for all of our engineers, it will hard crash.  Jordan will usually be involved.

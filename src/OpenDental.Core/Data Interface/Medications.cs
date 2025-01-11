@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -235,7 +236,7 @@ public class Medications
 
     public static List<long> GetChangedSinceMedicationNums(DateTime dateChangedSince)
     {
-        var command = "SELECT MedicationNum FROM medication WHERE DateTStamp > " + SOut.DateT(dateChangedSince);
+        var command = "SELECT MedicationNum FROM medication WHERE DateTStamp > " + SOut.DateTime(dateChangedSince);
         var table = DataCore.GetTable(command);
         var listMedicationNums = new List<long>(table.Rows.Count);
         for (var i = 0; i < table.Rows.Count; i++) listMedicationNums.Add(SIn.Long(table.Rows[i]["MedicationNum"].ToString()));

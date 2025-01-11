@@ -70,7 +70,7 @@ public class UserWebCrud
         table.Columns.Add("DateTimeLastLogin");
         table.Columns.Add("RequirePasswordChange");
         foreach (var userWeb in listUserWebs)
-            table.Rows.Add(SOut.Long(userWeb.UserWebNum), SOut.Long(userWeb.FKey), SOut.Int((int) userWeb.FKeyType), userWeb.UserName, userWeb.Password, userWeb.PasswordResetCode, SOut.Bool(userWeb.RequireUserNameChange), SOut.DateT(userWeb.DateTimeLastLogin, false), SOut.Bool(userWeb.RequirePasswordChange));
+            table.Rows.Add(SOut.Long(userWeb.UserWebNum), SOut.Long(userWeb.FKey), SOut.Int((int) userWeb.FKeyType), userWeb.UserName, userWeb.Password, userWeb.PasswordResetCode, SOut.Bool(userWeb.RequireUserNameChange), SOut.DateTime(userWeb.DateTimeLastLogin, false), SOut.Bool(userWeb.RequirePasswordChange));
         return table;
     }
 
@@ -92,7 +92,7 @@ public class UserWebCrud
                                     + "'" + SOut.String(userWeb.Password) + "',"
                                     + "'" + SOut.String(userWeb.PasswordResetCode) + "',"
                                     + SOut.Bool(userWeb.RequireUserNameChange) + ","
-                                    + SOut.DateT(userWeb.DateTimeLastLogin) + ","
+                                    + SOut.DateTime(userWeb.DateTimeLastLogin) + ","
                                     + SOut.Bool(userWeb.RequirePasswordChange) + ")";
         {
             userWeb.UserWebNum = Db.NonQ(command, true, "UserWebNum", "userWeb");
@@ -146,7 +146,7 @@ public class UserWebCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Bool(userWeb.RequireUserNameChange));
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(userWeb.DateTimeLastLogin));
+            sbRow.Append(SOut.DateTime(userWeb.DateTimeLastLogin));
             sbRow.Append(",");
             sbRow.Append(SOut.Bool(userWeb.RequirePasswordChange));
             sbRow.Append(")");
@@ -185,7 +185,7 @@ public class UserWebCrud
                                     + "'" + SOut.String(userWeb.Password) + "',"
                                     + "'" + SOut.String(userWeb.PasswordResetCode) + "',"
                                     + SOut.Bool(userWeb.RequireUserNameChange) + ","
-                                    + SOut.DateT(userWeb.DateTimeLastLogin) + ","
+                                    + SOut.DateTime(userWeb.DateTimeLastLogin) + ","
                                     + SOut.Bool(userWeb.RequirePasswordChange) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
@@ -203,7 +203,7 @@ public class UserWebCrud
                       + "Password             = '" + SOut.String(userWeb.Password) + "', "
                       + "PasswordResetCode    = '" + SOut.String(userWeb.PasswordResetCode) + "', "
                       + "RequireUserNameChange=  " + SOut.Bool(userWeb.RequireUserNameChange) + ", "
-                      + "DateTimeLastLogin    =  " + SOut.DateT(userWeb.DateTimeLastLogin) + ", "
+                      + "DateTimeLastLogin    =  " + SOut.DateTime(userWeb.DateTimeLastLogin) + ", "
                       + "RequirePasswordChange=  " + SOut.Bool(userWeb.RequirePasswordChange) + " "
                       + "WHERE UserWebNum = " + SOut.Long(userWeb.UserWebNum);
         Db.NonQ(command);
@@ -251,7 +251,7 @@ public class UserWebCrud
         if (userWeb.DateTimeLastLogin != oldUserWeb.DateTimeLastLogin)
         {
             if (command != "") command += ",";
-            command += "DateTimeLastLogin = " + SOut.DateT(userWeb.DateTimeLastLogin) + "";
+            command += "DateTimeLastLogin = " + SOut.DateTime(userWeb.DateTimeLastLogin) + "";
         }
 
         if (userWeb.RequirePasswordChange != oldUserWeb.RequirePasswordChange)

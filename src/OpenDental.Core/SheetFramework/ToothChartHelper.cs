@@ -8,6 +8,7 @@ using CodeBase;
 using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 using System.Windows.Media.Media3D;
+using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness.SheetFramework{

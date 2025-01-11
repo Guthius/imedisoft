@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
 using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;

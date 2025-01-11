@@ -67,7 +67,7 @@ public class OrthoChartCrud
         table.Columns.Add("ProvNum");
         table.Columns.Add("OrthoChartRowNum");
         foreach (var orthoChart in listOrthoCharts)
-            table.Rows.Add(SOut.Long(orthoChart.OrthoChartNum), SOut.Long(orthoChart.PatNum), SOut.DateT(orthoChart.DateService, false), orthoChart.FieldName, orthoChart.FieldValue, SOut.Long(orthoChart.UserNum), SOut.Long(orthoChart.ProvNum), SOut.Long(orthoChart.OrthoChartRowNum));
+            table.Rows.Add(SOut.Long(orthoChart.OrthoChartNum), SOut.Long(orthoChart.PatNum), SOut.DateTime(orthoChart.DateService, false), orthoChart.FieldName, orthoChart.FieldValue, SOut.Long(orthoChart.UserNum), SOut.Long(orthoChart.ProvNum), SOut.Long(orthoChart.OrthoChartRowNum));
         return table;
     }
 

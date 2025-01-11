@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Bridges;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -88,7 +89,7 @@ namespace OpenDental
 
             #endregion Supplemental Tab
 
-            if (ODEnvironment.IsCloudServer)
+            if (/* ODEnvironment.IsCloudServer */ false)
             {
                 //OD Cloud users cannot use this tool because they're InnoDb.
                 tabControl1.TabPages.Remove(tabPageBackup);

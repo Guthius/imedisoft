@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
@@ -47,7 +48,7 @@ public class Pharmacies
 
     public static List<long> GetChangedSincePharmacyNums(DateTime changedSince)
     {
-        var command = "SELECT PharmacyNum FROM pharmacy WHERE DateTStamp > " + SOut.DateT(changedSince);
+        var command = "SELECT PharmacyNum FROM pharmacy WHERE DateTStamp > " + SOut.DateTime(changedSince);
         var dt = DataCore.GetTable(command);
         var provnums = new List<long>(dt.Rows.Count);
         for (var i = 0; i < dt.Rows.Count; i++) provnums.Add(SIn.Long(dt.Rows[i]["PharmacyNum"].ToString()));

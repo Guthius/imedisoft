@@ -7,6 +7,7 @@ using System.Text;
 using System.Linq;
 using CodeBase;
 using System.Reflection;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	///<summary>RESTful bridge to podium service. Without using REST Sharp or JSON libraries this code might not work properly.</summary>
@@ -184,7 +185,7 @@ namespace OpenDentBusiness {
 			}
 			//We either have a phoneNumber or email (or both), so send it to Podium.
 			string isTestString="false";
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				isTestString="true";
 			}
 			try {

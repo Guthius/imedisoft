@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.localhost;
 

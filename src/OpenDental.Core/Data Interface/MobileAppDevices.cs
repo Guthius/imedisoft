@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -150,14 +151,14 @@ public class MobileAppDevices
                 return;
             }
 
-            command = "UPDATE mobileappdevice SET PatNum=" + SOut.Long(0) + ",LastCheckInActivity=" + SOut.DateT(DateTime.Now)
+            command = "UPDATE mobileappdevice SET PatNum=" + SOut.Long(0) + ",LastCheckInActivity=" + SOut.DateTime(DateTime.Now)
                       + " WHERE MobileAppDeviceNum=" + SOut.Long(mobileAppDeviceNum);
             Db.NonQ(command);
             Signalods.SetInvalid(InvalidType.EClipboard);
             return;
         }
 
-        command = "UPDATE mobileappdevice SET PatNum=" + SOut.Long(patNum) + ",LastCheckInActivity=" + SOut.DateT(DateTime.Now)
+        command = "UPDATE mobileappdevice SET PatNum=" + SOut.Long(patNum) + ",LastCheckInActivity=" + SOut.DateTime(DateTime.Now)
                   + " WHERE MobileAppDeviceNum=" + SOut.Long(mobileAppDeviceNum);
         Db.NonQ(command);
         Signalods.SetInvalid(InvalidType.EClipboard);

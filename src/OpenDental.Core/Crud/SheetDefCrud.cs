@@ -83,7 +83,7 @@ public class SheetDefCrud
         table.Columns.Add("AutoCheckSaveImage");
         table.Columns.Add("AutoCheckSaveImageDocCategory");
         foreach (var sheetDef in listSheetDefs)
-            table.Rows.Add(SOut.Long(sheetDef.SheetDefNum), sheetDef.Description, SOut.Int((int) sheetDef.SheetType), SOut.Float(sheetDef.FontSize), sheetDef.FontName, SOut.Int(sheetDef.Width), SOut.Int(sheetDef.Height), SOut.Bool(sheetDef.IsLandscape), SOut.Int(sheetDef.PageCount), SOut.Bool(sheetDef.IsMultiPage), SOut.Int((int) sheetDef.BypassGlobalLock), SOut.Bool(sheetDef.HasMobileLayout), SOut.DateT(sheetDef.DateTCreated, false), SOut.Int(sheetDef.RevID), SOut.Bool(sheetDef.AutoCheckSaveImage), SOut.Long(sheetDef.AutoCheckSaveImageDocCategory));
+            table.Rows.Add(SOut.Long(sheetDef.SheetDefNum), sheetDef.Description, SOut.Int((int) sheetDef.SheetType), SOut.Float(sheetDef.FontSize), sheetDef.FontName, SOut.Int(sheetDef.Width), SOut.Int(sheetDef.Height), SOut.Bool(sheetDef.IsLandscape), SOut.Int(sheetDef.PageCount), SOut.Bool(sheetDef.IsMultiPage), SOut.Int((int) sheetDef.BypassGlobalLock), SOut.Bool(sheetDef.HasMobileLayout), SOut.DateTime(sheetDef.DateTCreated, false), SOut.Int(sheetDef.RevID), SOut.Bool(sheetDef.AutoCheckSaveImage), SOut.Long(sheetDef.AutoCheckSaveImageDocCategory));
         return table;
     }
 
@@ -110,7 +110,7 @@ public class SheetDefCrud
             + SOut.Bool(sheetDef.IsMultiPage) + ","
             + SOut.Int((int) sheetDef.BypassGlobalLock) + ","
             + SOut.Bool(sheetDef.HasMobileLayout) + ","
-            + SOut.DateT(sheetDef.DateTCreated) + ","
+            + SOut.DateTime(sheetDef.DateTCreated) + ","
             + SOut.Int(sheetDef.RevID) + ","
             + SOut.Bool(sheetDef.AutoCheckSaveImage) + ","
             + SOut.Long(sheetDef.AutoCheckSaveImageDocCategory) + ")";
@@ -144,7 +144,7 @@ public class SheetDefCrud
             + SOut.Bool(sheetDef.IsMultiPage) + ","
             + SOut.Int((int) sheetDef.BypassGlobalLock) + ","
             + SOut.Bool(sheetDef.HasMobileLayout) + ","
-            + SOut.DateT(sheetDef.DateTCreated) + ","
+            + SOut.DateTime(sheetDef.DateTCreated) + ","
             + SOut.Int(sheetDef.RevID) + ","
             + SOut.Bool(sheetDef.AutoCheckSaveImage) + ","
             + SOut.Long(sheetDef.AutoCheckSaveImageDocCategory) + ")";
@@ -169,7 +169,7 @@ public class SheetDefCrud
                       + "IsMultiPage                  =  " + SOut.Bool(sheetDef.IsMultiPage) + ", "
                       + "BypassGlobalLock             =  " + SOut.Int((int) sheetDef.BypassGlobalLock) + ", "
                       + "HasMobileLayout              =  " + SOut.Bool(sheetDef.HasMobileLayout) + ", "
-                      + "DateTCreated                 =  " + SOut.DateT(sheetDef.DateTCreated) + ", "
+                      + "DateTCreated                 =  " + SOut.DateTime(sheetDef.DateTCreated) + ", "
                       + "RevID                        =  " + SOut.Int(sheetDef.RevID) + ", "
                       + "AutoCheckSaveImage           =  " + SOut.Bool(sheetDef.AutoCheckSaveImage) + ", "
                       + "AutoCheckSaveImageDocCategory=  " + SOut.Long(sheetDef.AutoCheckSaveImageDocCategory) + " "
@@ -249,7 +249,7 @@ public class SheetDefCrud
         if (sheetDef.DateTCreated != oldSheetDef.DateTCreated)
         {
             if (command != "") command += ",";
-            command += "DateTCreated = " + SOut.DateT(sheetDef.DateTCreated) + "";
+            command += "DateTCreated = " + SOut.DateTime(sheetDef.DateTCreated) + "";
         }
 
         if (sheetDef.RevID != oldSheetDef.RevID)

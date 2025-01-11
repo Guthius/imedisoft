@@ -14,6 +14,7 @@ using System.Xml;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Globalization;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 

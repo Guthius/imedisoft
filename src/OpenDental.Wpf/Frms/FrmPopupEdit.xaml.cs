@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using WpfControls.UI;
 
 namespace OpenDental {
@@ -103,7 +104,7 @@ namespace OpenDental {
 			if(PopupCur.PopupNumArchive!=0) {
 				butAudit.Visible=false;
 			}
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome") {
+			if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="jordanhome") {
 				textDescription.RightClickLinks=true;
 			}
 		}

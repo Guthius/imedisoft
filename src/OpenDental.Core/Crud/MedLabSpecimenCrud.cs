@@ -61,7 +61,7 @@ public class MedLabSpecimenCrud
         table.Columns.Add("SpecimenDescript");
         table.Columns.Add("DateTimeCollected");
         foreach (var medLabSpecimen in listMedLabSpecimens)
-            table.Rows.Add(SOut.Long(medLabSpecimen.MedLabSpecimenNum), SOut.Long(medLabSpecimen.MedLabNum), medLabSpecimen.SpecimenID, medLabSpecimen.SpecimenDescript, SOut.DateT(medLabSpecimen.DateTimeCollected, false));
+            table.Rows.Add(SOut.Long(medLabSpecimen.MedLabSpecimenNum), SOut.Long(medLabSpecimen.MedLabNum), medLabSpecimen.SpecimenID, medLabSpecimen.SpecimenDescript, SOut.DateTime(medLabSpecimen.DateTimeCollected, false));
         return table;
     }
 
@@ -80,7 +80,7 @@ public class MedLabSpecimenCrud
             SOut.Long(medLabSpecimen.MedLabNum) + ","
                                                 + "'" + SOut.String(medLabSpecimen.SpecimenID) + "',"
                                                 + "'" + SOut.String(medLabSpecimen.SpecimenDescript) + "',"
-                                                + SOut.DateT(medLabSpecimen.DateTimeCollected) + ")";
+                                                + SOut.DateTime(medLabSpecimen.DateTimeCollected) + ")";
         {
             medLabSpecimen.MedLabSpecimenNum = Db.NonQ(command, true, "MedLabSpecimenNum", "medLabSpecimen");
         }
@@ -103,7 +103,7 @@ public class MedLabSpecimenCrud
             SOut.Long(medLabSpecimen.MedLabNum) + ","
                                                 + "'" + SOut.String(medLabSpecimen.SpecimenID) + "',"
                                                 + "'" + SOut.String(medLabSpecimen.SpecimenDescript) + "',"
-                                                + SOut.DateT(medLabSpecimen.DateTimeCollected) + ")";
+                                                + SOut.DateTime(medLabSpecimen.DateTimeCollected) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else
@@ -117,7 +117,7 @@ public class MedLabSpecimenCrud
                       + "MedLabNum        =  " + SOut.Long(medLabSpecimen.MedLabNum) + ", "
                       + "SpecimenID       = '" + SOut.String(medLabSpecimen.SpecimenID) + "', "
                       + "SpecimenDescript = '" + SOut.String(medLabSpecimen.SpecimenDescript) + "', "
-                      + "DateTimeCollected=  " + SOut.DateT(medLabSpecimen.DateTimeCollected) + " "
+                      + "DateTimeCollected=  " + SOut.DateTime(medLabSpecimen.DateTimeCollected) + " "
                       + "WHERE MedLabSpecimenNum = " + SOut.Long(medLabSpecimen.MedLabSpecimenNum);
         Db.NonQ(command);
     }
@@ -146,7 +146,7 @@ public class MedLabSpecimenCrud
         if (medLabSpecimen.DateTimeCollected != oldMedLabSpecimen.DateTimeCollected)
         {
             if (command != "") command += ",";
-            command += "DateTimeCollected = " + SOut.DateT(medLabSpecimen.DateTimeCollected) + "";
+            command += "DateTimeCollected = " + SOut.DateTime(medLabSpecimen.DateTimeCollected) + "";
         }
 
         if (command == "") return false;

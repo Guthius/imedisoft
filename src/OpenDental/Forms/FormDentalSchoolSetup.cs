@@ -1,6 +1,7 @@
 using OpenDentBusiness;
 using System;
 using System.Windows.Forms;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormDentalSchoolSetup:FormODBase {

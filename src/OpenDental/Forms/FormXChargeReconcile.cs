@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormXChargeReconcile:FormODBase {
@@ -20,26 +21,18 @@ namespace OpenDental {
 		private void butImport_Click(object sender,EventArgs e) {
 			Cursor=Cursors.WaitCursor;
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			if(Directory.Exists(@"C:\X-Charge\")) {
+				openFileDialog.InitialDirectory=@"C:\X-Charge\";
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				if(Directory.Exists(@"C:\X-Charge\")) {
-					openFileDialog.InitialDirectory=@"C:\X-Charge\";
-				}
-				else if(Directory.Exists(@"C:\")) {
-					openFileDialog.InitialDirectory=@"C:\";
-				}
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					Cursor=Cursors.Default;
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
+			else if(Directory.Exists(@"C:\")) {
+				openFileDialog.InitialDirectory=@"C:\";
 			}
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				Cursor=Cursors.Default;
+				return;
+			}
+			importFilePath=openFileDialog.FileName;
 			if(!File.Exists(importFilePath)) {
 				Cursor=Cursors.Default;
 				MsgBox.Show(this,"File not found");

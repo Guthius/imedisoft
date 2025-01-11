@@ -83,7 +83,7 @@ namespace OpenDental {
 		}
 
 		public void GoToPage(string url) {
-			//if(CodeBase.ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
+			//if(CodeBase./* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="jordanhome"){
 			//webView2Main.Username="iis_readonly_user";
 			//webView2Main.Pw="vb8932mvdfh";
 			//This actually goes to a page that looks something like this: https://opendental.com/autoLogin.aspx?token=d83JWerd&redirect=help244/family.html

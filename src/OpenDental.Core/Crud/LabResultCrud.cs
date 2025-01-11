@@ -71,7 +71,7 @@ public class LabResultCrud
         table.Columns.Add("ObsRange");
         table.Columns.Add("AbnormalFlag");
         foreach (var labResult in listLabResults)
-            table.Rows.Add(SOut.Long(labResult.LabResultNum), SOut.Long(labResult.LabPanelNum), SOut.DateT(labResult.DateTimeTest, false), labResult.TestName, SOut.DateT(labResult.DateTStamp, false), labResult.TestID, labResult.ObsValue, labResult.ObsUnits, labResult.ObsRange, SOut.Int((int) labResult.AbnormalFlag));
+            table.Rows.Add(SOut.Long(labResult.LabResultNum), SOut.Long(labResult.LabPanelNum), SOut.DateTime(labResult.DateTimeTest, false), labResult.TestName, SOut.DateTime(labResult.DateTStamp, false), labResult.TestID, labResult.ObsValue, labResult.ObsUnits, labResult.ObsRange, SOut.Int((int) labResult.AbnormalFlag));
         return table;
     }
 
@@ -88,7 +88,7 @@ public class LabResultCrud
 
         command +=
             SOut.Long(labResult.LabPanelNum) + ","
-                                             + SOut.DateT(labResult.DateTimeTest) + ","
+                                             + SOut.DateTime(labResult.DateTimeTest) + ","
                                              + "'" + SOut.String(labResult.TestName) + "',"
                                              //DateTStamp can only be set by MySQL
                                              + "'" + SOut.String(labResult.TestID) + "',"
@@ -116,7 +116,7 @@ public class LabResultCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(labResult.LabResultNum) + ",";
         command +=
             SOut.Long(labResult.LabPanelNum) + ","
-                                             + SOut.DateT(labResult.DateTimeTest) + ","
+                                             + SOut.DateTime(labResult.DateTimeTest) + ","
                                              + "'" + SOut.String(labResult.TestName) + "',"
                                              //DateTStamp can only be set by MySQL
                                              + "'" + SOut.String(labResult.TestID) + "',"
@@ -135,7 +135,7 @@ public class LabResultCrud
     {
         var command = "UPDATE labresult SET "
                       + "LabPanelNum =  " + SOut.Long(labResult.LabPanelNum) + ", "
-                      + "DateTimeTest=  " + SOut.DateT(labResult.DateTimeTest) + ", "
+                      + "DateTimeTest=  " + SOut.DateTime(labResult.DateTimeTest) + ", "
                       + "TestName    = '" + SOut.String(labResult.TestName) + "', "
                       //DateTStamp can only be set by MySQL
                       + "TestID      = '" + SOut.String(labResult.TestID) + "', "
@@ -159,7 +159,7 @@ public class LabResultCrud
         if (labResult.DateTimeTest != oldLabResult.DateTimeTest)
         {
             if (command != "") command += ",";
-            command += "DateTimeTest = " + SOut.DateT(labResult.DateTimeTest) + "";
+            command += "DateTimeTest = " + SOut.DateTime(labResult.DateTimeTest) + "";
         }
 
         if (labResult.TestName != oldLabResult.TestName)

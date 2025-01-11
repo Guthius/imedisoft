@@ -99,7 +99,7 @@ public class UserodCrud
         table.Columns.Add("EClipboardClinicalPin");
         table.Columns.Add("BadgeId");
         foreach (var userod in listUserods)
-            table.Rows.Add(SOut.Long(userod.UserNum), userod.UserName, userod.Password, SOut.Long(userod.UserGroupNum), SOut.Long(userod.EmployeeNum), SOut.Long(userod.ClinicNum), SOut.Long(userod.ProvNum), SOut.Bool(userod.IsHidden), SOut.Long(userod.TaskListInBox), SOut.Int(userod.AnesthProvType), SOut.Bool(userod.DefaultHidePopups), SOut.Bool(userod.PasswordIsStrong), SOut.Bool(userod.ClinicIsRestricted), SOut.Bool(userod.InboxHidePopups), SOut.Long(userod.UserNumCEMT), SOut.DateT(userod.DateTFail, false), SOut.Byte(userod.FailedAttempts), userod.DomainUser, SOut.Bool(userod.IsPasswordResetRequired), userod.MobileWebPin, SOut.Byte(userod.MobileWebPinFailedAttempts), SOut.DateT(userod.DateTLastLogin, false), userod.EClipboardClinicalPin, userod.BadgeId);
+            table.Rows.Add(SOut.Long(userod.UserNum), userod.UserName, userod.Password, SOut.Long(userod.UserGroupNum), SOut.Long(userod.EmployeeNum), SOut.Long(userod.ClinicNum), SOut.Long(userod.ProvNum), SOut.Bool(userod.IsHidden), SOut.Long(userod.TaskListInBox), SOut.Int(userod.AnesthProvType), SOut.Bool(userod.DefaultHidePopups), SOut.Bool(userod.PasswordIsStrong), SOut.Bool(userod.ClinicIsRestricted), SOut.Bool(userod.InboxHidePopups), SOut.Long(userod.UserNumCEMT), SOut.DateTime(userod.DateTFail, false), SOut.Byte(userod.FailedAttempts), userod.DomainUser, SOut.Bool(userod.IsPasswordResetRequired), userod.MobileWebPin, SOut.Byte(userod.MobileWebPinFailedAttempts), SOut.DateTime(userod.DateTLastLogin, false), userod.EClipboardClinicalPin, userod.BadgeId);
         return table;
     }
 
@@ -129,13 +129,13 @@ public class UserodCrud
             + SOut.Bool(userod.ClinicIsRestricted) + ","
             + SOut.Bool(userod.InboxHidePopups) + ","
             + SOut.Long(userod.UserNumCEMT) + ","
-            + SOut.DateT(userod.DateTFail) + ","
+            + SOut.DateTime(userod.DateTFail) + ","
             + SOut.Byte(userod.FailedAttempts) + ","
             + "'" + SOut.String(userod.DomainUser) + "',"
             + SOut.Bool(userod.IsPasswordResetRequired) + ","
             + "'" + SOut.String(userod.MobileWebPin) + "',"
             + SOut.Byte(userod.MobileWebPinFailedAttempts) + ","
-            + SOut.DateT(userod.DateTLastLogin) + ","
+            + SOut.DateTime(userod.DateTLastLogin) + ","
             + "'" + SOut.String(userod.EClipboardClinicalPin) + "',"
             + "'" + SOut.String(userod.BadgeId) + "')";
         {
@@ -171,13 +171,13 @@ public class UserodCrud
             + SOut.Bool(userod.ClinicIsRestricted) + ","
             + SOut.Bool(userod.InboxHidePopups) + ","
             + SOut.Long(userod.UserNumCEMT) + ","
-            + SOut.DateT(userod.DateTFail) + ","
+            + SOut.DateTime(userod.DateTFail) + ","
             + SOut.Byte(userod.FailedAttempts) + ","
             + "'" + SOut.String(userod.DomainUser) + "',"
             + SOut.Bool(userod.IsPasswordResetRequired) + ","
             + "'" + SOut.String(userod.MobileWebPin) + "',"
             + SOut.Byte(userod.MobileWebPinFailedAttempts) + ","
-            + SOut.DateT(userod.DateTLastLogin) + ","
+            + SOut.DateTime(userod.DateTLastLogin) + ","
             + "'" + SOut.String(userod.EClipboardClinicalPin) + "',"
             + "'" + SOut.String(userod.BadgeId) + "')";
         if (useExistingPK || isRandomKeys)
@@ -204,13 +204,13 @@ public class UserodCrud
                       + "ClinicIsRestricted        =  " + SOut.Bool(userod.ClinicIsRestricted) + ", "
                       + "InboxHidePopups           =  " + SOut.Bool(userod.InboxHidePopups) + ", "
                       + "UserNumCEMT               =  " + SOut.Long(userod.UserNumCEMT) + ", "
-                      + "DateTFail                 =  " + SOut.DateT(userod.DateTFail) + ", "
+                      + "DateTFail                 =  " + SOut.DateTime(userod.DateTFail) + ", "
                       + "FailedAttempts            =  " + SOut.Byte(userod.FailedAttempts) + ", "
                       + "DomainUser                = '" + SOut.String(userod.DomainUser) + "', "
                       + "IsPasswordResetRequired   =  " + SOut.Bool(userod.IsPasswordResetRequired) + ", "
                       + "MobileWebPin              = '" + SOut.String(userod.MobileWebPin) + "', "
                       + "MobileWebPinFailedAttempts=  " + SOut.Byte(userod.MobileWebPinFailedAttempts) + ", "
-                      + "DateTLastLogin            =  " + SOut.DateT(userod.DateTLastLogin) + ", "
+                      + "DateTLastLogin            =  " + SOut.DateTime(userod.DateTLastLogin) + ", "
                       + "EClipboardClinicalPin     = '" + SOut.String(userod.EClipboardClinicalPin) + "', "
                       + "BadgeId                   = '" + SOut.String(userod.BadgeId) + "' "
                       + "WHERE UserNum = " + SOut.Long(userod.UserNum);
@@ -307,7 +307,7 @@ public class UserodCrud
         if (userod.DateTFail != oldUserod.DateTFail)
         {
             if (command != "") command += ",";
-            command += "DateTFail = " + SOut.DateT(userod.DateTFail) + "";
+            command += "DateTFail = " + SOut.DateTime(userod.DateTFail) + "";
         }
 
         if (userod.FailedAttempts != oldUserod.FailedAttempts)
@@ -343,7 +343,7 @@ public class UserodCrud
         if (userod.DateTLastLogin != oldUserod.DateTLastLogin)
         {
             if (command != "") command += ",";
-            command += "DateTLastLogin = " + SOut.DateT(userod.DateTLastLogin) + "";
+            command += "DateTLastLogin = " + SOut.DateTime(userod.DateTLastLogin) + "";
         }
 
         if (userod.EClipboardClinicalPin != oldUserod.EClipboardClinicalPin)
@@ -407,7 +407,7 @@ public class UserodCrud
                       + "ClinicIsRestricted   =  " + SOut.Bool(userod.ClinicIsRestricted) + ", "
                       + "InboxHidePopups      =  " + SOut.Bool(userod.InboxHidePopups) + ", "
                       + "DomainUser           = '" + SOut.String(userod.DomainUser) + "', "
-                      + "DateTLastLogin       =  " + SOut.DateT(userod.DateTLastLogin) + ", "
+                      + "DateTLastLogin       =  " + SOut.DateTime(userod.DateTLastLogin) + ", "
                       + "EClipboardClinicalPin= '" + SOut.String(userod.EClipboardClinicalPin) + "', "
                       + "BadgeId              = '" + SOut.String(userod.BadgeId) + "' "
                       + "WHERE UserNumCEMT = " + SOut.Long(userod.UserNumCEMT);

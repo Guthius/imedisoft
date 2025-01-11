@@ -15,6 +15,7 @@ using CodeBase;
 using SparksToothChart;
 using OpenDental.UI;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental{
 

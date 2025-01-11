@@ -63,7 +63,7 @@ public class DiscountPlanSubCrud
         table.Columns.Add("DateTerm");
         table.Columns.Add("SubNote");
         foreach (var discountPlanSub in listDiscountPlanSubs)
-            table.Rows.Add(SOut.Long(discountPlanSub.DiscountSubNum), SOut.Long(discountPlanSub.DiscountPlanNum), SOut.Long(discountPlanSub.PatNum), SOut.DateT(discountPlanSub.DateEffective, false), SOut.DateT(discountPlanSub.DateTerm, false), discountPlanSub.SubNote);
+            table.Rows.Add(SOut.Long(discountPlanSub.DiscountSubNum), SOut.Long(discountPlanSub.DiscountPlanNum), SOut.Long(discountPlanSub.PatNum), SOut.DateTime(discountPlanSub.DateEffective, false), SOut.DateTime(discountPlanSub.DateTerm, false), discountPlanSub.SubNote);
         return table;
     }
 

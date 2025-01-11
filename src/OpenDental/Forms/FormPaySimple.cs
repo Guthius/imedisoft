@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.IO;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using MigraDoc.DocumentObjectModel;
 
 namespace OpenDental {
@@ -449,7 +450,7 @@ namespace OpenDental {
 			documentRenderer.PrepareDocument();
 			migraDocPrintDocument.Renderer=documentRenderer;
 			//TODO: Implement ODprintout pattern - MigraDoc
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				using FormRpPrintPreview formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
 				formRpPrintPreview.ShowDialog();
 				return;

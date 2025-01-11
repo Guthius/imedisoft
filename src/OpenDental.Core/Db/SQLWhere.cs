@@ -113,7 +113,7 @@ public class SQLWhere
                 return SOut.Date(time);
             
             case DateTime time:
-                return SOut.DateT(time);
+                return SOut.DateTime(time);
             
             case string s:
                 return "'" + SOut.String(s) + "'";
@@ -131,7 +131,7 @@ public class SQLWhere
                 return SOut.Float(f);
             
             case TimeSpan span:
-                return "'" + SOut.TSpan(span) + "'";
+                return "'" + SOut.TimeSpan(span) + "'";
         }
         
         if (value.GetType().IsEnum)

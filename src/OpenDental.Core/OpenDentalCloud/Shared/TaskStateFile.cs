@@ -1,89 +1,73 @@
-﻿namespace OpenDental.Cloud.Shared
+﻿namespace OpenDental.Cloud.Shared;
+
+public abstract class TaskStateFile : TaskState
 {
-    public abstract class TaskStateFile : TaskState
+    private string _folder;
+    private string _fileName;
+    private byte[] _fileContent = new byte[1];
+    
+    public string Folder
     {
-        /// <summary>
-        /// If a file is greater than 2MB in size, we will break it up into chunks when uploading it to Dropbox.
-        /// </summary>
-        protected const int MaxFileSizeBytes = 2000000;
-
-        private string _folder;
-        private string _fileName;
-        private byte[] _fileContent = new byte[1];
-
-        /// <summary>
-        /// The folder of the corresponding file to be downloaded
-        /// </summary>
-        public string Folder
+        get
         {
-            get
+            string folder;
+
+            lock (Lock)
             {
-                string folder;
-
-                lock (Lock)
-                {
-                    folder = _folder;
-                }
-
-                return folder;
+                folder = _folder;
             }
-            set
+
+            return folder;
+        }
+        set
+        {
+            lock (Lock)
             {
-                lock (Lock)
-                {
-                    _folder = value;
-                }
+                _folder = value;
             }
         }
-
-        /// <summary>
-        /// The file name of the file to be downloaded.
-        /// </summary>
-        public string FileName
+    }
+    
+    public string FileName
+    {
+        get
         {
-            get
+            string fileName;
+
+            lock (Lock)
             {
-                string fileName;
-
-                lock (Lock)
-                {
-                    fileName = _fileName;
-                }
-
-                return fileName;
+                fileName = _fileName;
             }
-            set
+
+            return fileName;
+        }
+        set
+        {
+            lock (Lock)
             {
-                lock (Lock)
-                {
-                    _fileName = value;
-                }
+                _fileName = value;
             }
         }
-
-        /// <summary>
-        /// The file stored in bytes.
-        /// This value will grow while the download is still in progress.
-        /// </summary>
-        public byte[] ByteArray
+    }
+    
+    public byte[] ByteArray
+    {
+        get
         {
-            get
+            byte[] fileContent;
+
+            lock (Lock)
             {
-                byte[] fileContent;
-
-                lock (Lock)
-                {
-                    fileContent = _fileContent;
-                }
-
-                return fileContent;
+                fileContent = _fileContent;
             }
-            set
+
+            return fileContent;
+        }
+        set
+        {
+            lock (Lock)
             {
-                lock (Lock)
-                {
-                    _fileContent = value;
-                }
+                _fileContent = value;
             }
         }
     }

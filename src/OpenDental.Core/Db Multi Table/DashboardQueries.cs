@@ -48,7 +48,7 @@ namespace OpenDentBusiness {
 					listRet.Add(dash);
 					continue;
 				}
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					stopWatch.Restart();
 				}
 				//run historical aging on all patients based on the date entered.

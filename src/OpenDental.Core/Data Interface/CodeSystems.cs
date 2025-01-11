@@ -20,7 +20,7 @@ public class CodeSystems
     public static List<CodeSystem> GetForCurrentVersion(bool isMemberNation)
     {
         var command = "";
-        if (ODBuild.IsDebug())
+        if (/* ODBuild.IsDebug() */ false)
             command = "SELECT * FROM codesystem"; // WHERE CodeSystemName IN ('ICD9CM','RXNORM','SNOMEDCT','CPT')";
         else
             command = "SELECT * FROM codesystem WHERE CodeSystemName NOT IN ('AdministrativeSex','CDT')";

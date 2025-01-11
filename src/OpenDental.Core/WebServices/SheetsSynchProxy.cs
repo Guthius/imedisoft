@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDentBusiness {
@@ -57,7 +58,7 @@ namespace OpenDentBusiness {
 				sheetsSynchReal.Url=UrlOverride;
 				UrlOverride="";
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				//service.Url="http://localhost:2923/SheetsSynch.asmx";
 			}
 			return sheetsSynchReal;

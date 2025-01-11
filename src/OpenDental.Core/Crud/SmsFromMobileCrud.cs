@@ -85,7 +85,7 @@ public class SmsFromMobileCrud
         table.Columns.Add("GuidMessage");
         table.Columns.Add("SecDateTEdit");
         foreach (var smsFromMobile in listSmsFromMobiles)
-            table.Rows.Add(SOut.Long(smsFromMobile.SmsFromMobileNum), SOut.Long(smsFromMobile.PatNum), SOut.Long(smsFromMobile.ClinicNum), SOut.Long(smsFromMobile.CommlogNum), smsFromMobile.MsgText, SOut.DateT(smsFromMobile.DateTimeReceived, false), smsFromMobile.SmsPhoneNumber, smsFromMobile.MobilePhoneNumber, SOut.Int(smsFromMobile.MsgPart), SOut.Int(smsFromMobile.MsgTotal), smsFromMobile.MsgRefID, SOut.Int((int) smsFromMobile.SmsStatus), smsFromMobile.Flags, SOut.Bool(smsFromMobile.IsHidden), SOut.Int(smsFromMobile.MatchCount), smsFromMobile.GuidMessage, SOut.DateT(smsFromMobile.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(smsFromMobile.SmsFromMobileNum), SOut.Long(smsFromMobile.PatNum), SOut.Long(smsFromMobile.ClinicNum), SOut.Long(smsFromMobile.CommlogNum), smsFromMobile.MsgText, SOut.DateTime(smsFromMobile.DateTimeReceived, false), smsFromMobile.SmsPhoneNumber, smsFromMobile.MobilePhoneNumber, SOut.Int(smsFromMobile.MsgPart), SOut.Int(smsFromMobile.MsgTotal), smsFromMobile.MsgRefID, SOut.Int((int) smsFromMobile.SmsStatus), smsFromMobile.Flags, SOut.Bool(smsFromMobile.IsHidden), SOut.Int(smsFromMobile.MatchCount), smsFromMobile.GuidMessage, SOut.DateTime(smsFromMobile.SecDateTEdit, false));
         return table;
     }
 
@@ -105,7 +105,7 @@ public class SmsFromMobileCrud
                                             + SOut.Long(smsFromMobile.ClinicNum) + ","
                                             + SOut.Long(smsFromMobile.CommlogNum) + ","
                                             + DbHelper.ParamChar + "paramMsgText,"
-                                            + SOut.DateT(smsFromMobile.DateTimeReceived) + ","
+                                            + SOut.DateTime(smsFromMobile.DateTimeReceived) + ","
                                             + "'" + SOut.String(smsFromMobile.SmsPhoneNumber) + "',"
                                             + "'" + SOut.String(smsFromMobile.MobilePhoneNumber) + "',"
                                             + SOut.Int(smsFromMobile.MsgPart) + ","
@@ -142,7 +142,7 @@ public class SmsFromMobileCrud
                                             + SOut.Long(smsFromMobile.ClinicNum) + ","
                                             + SOut.Long(smsFromMobile.CommlogNum) + ","
                                             + DbHelper.ParamChar + "paramMsgText,"
-                                            + SOut.DateT(smsFromMobile.DateTimeReceived) + ","
+                                            + SOut.DateTime(smsFromMobile.DateTimeReceived) + ","
                                             + "'" + SOut.String(smsFromMobile.SmsPhoneNumber) + "',"
                                             + "'" + SOut.String(smsFromMobile.MobilePhoneNumber) + "',"
                                             + SOut.Int(smsFromMobile.MsgPart) + ","
@@ -170,7 +170,7 @@ public class SmsFromMobileCrud
                       + "ClinicNum        =  " + SOut.Long(smsFromMobile.ClinicNum) + ", "
                       + "CommlogNum       =  " + SOut.Long(smsFromMobile.CommlogNum) + ", "
                       + "MsgText          =  " + DbHelper.ParamChar + "paramMsgText, "
-                      + "DateTimeReceived =  " + SOut.DateT(smsFromMobile.DateTimeReceived) + ", "
+                      + "DateTimeReceived =  " + SOut.DateTime(smsFromMobile.DateTimeReceived) + ", "
                       + "SmsPhoneNumber   = '" + SOut.String(smsFromMobile.SmsPhoneNumber) + "', "
                       + "MobilePhoneNumber= '" + SOut.String(smsFromMobile.MobilePhoneNumber) + "', "
                       + "MsgPart          =  " + SOut.Int(smsFromMobile.MsgPart) + ", "
@@ -218,7 +218,7 @@ public class SmsFromMobileCrud
         if (smsFromMobile.DateTimeReceived != oldSmsFromMobile.DateTimeReceived)
         {
             if (command != "") command += ",";
-            command += "DateTimeReceived = " + SOut.DateT(smsFromMobile.DateTimeReceived) + "";
+            command += "DateTimeReceived = " + SOut.DateTime(smsFromMobile.DateTimeReceived) + "";
         }
 
         if (smsFromMobile.SmsPhoneNumber != oldSmsFromMobile.SmsPhoneNumber)

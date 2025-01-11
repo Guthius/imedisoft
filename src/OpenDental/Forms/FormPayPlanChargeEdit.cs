@@ -69,11 +69,11 @@ namespace OpenDental{
 			FillComboProv();
 			if(PayPlanChargeCur.SecDateTEntry==DateTime.MinValue) {
 				//First time form is ever opened and the date isn't saved to the db yet, show the current datetime
-				textDateEntry.Text=POut.DateT(DateTime.Now,false);
+				textDateEntry.Text=POut.DateTime(DateTime.Now,false);
 			}
 			else {
 				//Returning to the form, pull the stored datetime
-				textDateEntry.Text=POut.DateT(PayPlanChargeCur.SecDateTEntry,false);
+				textDateEntry.Text=POut.DateTime(PayPlanChargeCur.SecDateTEntry,false);
 			}
 			if(PayPlanChargeCur.SecDateTEdit==DateTime.MinValue) {
 				//Until job B15806 is complete, regaurding how MySQL 5.7 handles timestamps, SectDateTEdit will always show as MinValue for the user.
@@ -81,7 +81,7 @@ namespace OpenDental{
 			}
 			else {
 				//Edits exist, show stored datetime
-				textDateEdit.Text=POut.DateT(PayPlanChargeCur.SecDateTEdit,false);
+				textDateEdit.Text=POut.DateTime(PayPlanChargeCur.SecDateTEdit,false);
 			}
 			//Do not let the user edit certain fields when APR is present.
 			if(!CompareDouble.IsZero(_payPlan.APR)) {

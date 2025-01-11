@@ -30,6 +30,8 @@ using OpenDental.Bridges;
 using OpenDental.Thinfinity;
 using ImagingDeviceManager;
 using CodeBase.Controls;
+using Imedisoft.Core.Caching;
+
 #endregion using
 
 namespace OpenDental {
@@ -135,8 +137,6 @@ namespace OpenDental {
 		private int _zoomLevel=0;
 		///<summary>Represents the current factor for level of zoom from the initial zoom of the currently loaded image/mount. This is calculated directly as 2^ZoomLevel every time a zoom occurs. Recalculated from ZoomLevel each time, so that ZoomOverall always hits the exact same values for the exact same zoom levels (no loss of data).</summary>
 		private float _zoomOverall=1;
-		///<summary>Displays PDFs on ODCloud.</summary>
-		private CloudIframe _cloudIframe=null;
 		///<summary>True of current item selected in tree can be exported.</summary>
 		private bool _isExportable=false;
 		#endregion Fields - Private
@@ -280,15 +280,6 @@ namespace OpenDental {
 			NodeIdTag nodeId=(NodeIdTag)clickedNode.Tag;
 			if(nodeId.NodeType==EnumNodeType.None) {
 				return;
-			}
-			if(false) {//Not necessary for ODWebView2 control as user can both view the pdf inside of OD and outside of OD simultaneously.
-				if(!IsDisposed && !pictureBoxMain.IsDisposed) {
-					_cloudIframe?.HideIframe(pictureBoxMain.Handle);
-				}
-			}
-			if(false) {
-				MsgBox.Show(this,"Images stored directly in database. Export file in order to open with external program.");
-				return;//Documents must be stored in the A to Z Folder to open them outside of Open Dental.  Users can use the export button for now.
 			}
 			if(nodeId.NodeType==EnumNodeType.Mount) {
 				//Do nothing.  Must be consistent with how Docs are edited, so must use the Info button.
@@ -1256,12 +1247,6 @@ namespace OpenDental {
 				_odWebView2.Bounds=pictureBoxMain.Bounds;
 				LayoutManager.Add(_odWebView2,this);
 			}
-			else if(false) {
-				_cloudIframe=new CloudIframe();
-				_cloudIframe.HideIframe(pictureBoxMain.Handle);
-				_cloudIframe.Bounds=pictureBoxMain.Bounds;
-				LayoutManager.Add(_cloudIframe,pictureBoxMain);
-			}
 			contextTree.MenuItems.Clear();
 			contextTree.MenuItems.Add("Print",new System.EventHandler(menuTree_Click));
 			contextTree.MenuItems.Add("Delete",new System.EventHandler(menuTree_Click));
@@ -1505,9 +1490,6 @@ namespace OpenDental {
 				return;
 			}
 			pictureBoxMain.Visible=true;
-			if(!IsDisposed && !pictureBoxMain.IsDisposed) {
-				_cloudIframe?.HideIframe(pictureBoxMain.Handle);
-			}
 			if(_odWebView2!=null) {
 				_odWebView2.Visible=false;
 			}
@@ -1829,10 +1811,6 @@ namespace OpenDental {
 				return;
 			}
 			string fileName="";
-			if(ODEnvironment.IsCloudServer) {
-				ToolBarWebExport(nodeIdTag,apteryxDoc);
-				return;
-			}
 			SaveFileDialog dlg=new SaveFileDialog();
 			dlg.Title="Export a Document";
 			if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.ApteryxImage)) {
@@ -1953,31 +1931,22 @@ namespace OpenDental {
 				}
 			}
 			List<string> fileNames=new List<string>();
-			if(false) {
-				string fileName=ODCloudClient.ImportFileForCloud();
-				if(fileName.IsNullOrEmpty()) {
-					return; //User cancelled out of import
-				}
-				fileNames.Add(fileName);
+			OpenFileDialog openFileDialog=new OpenFileDialog();
+			openFileDialog.Multiselect=true;
+			if(Prefs.GetContainsKey(nameof(PrefName.UseAlternateOpenFileDialogWindow)) && PrefC.GetBool(PrefName.UseAlternateOpenFileDialogWindow)) {//Hidden pref, almost always false.
+				//We don't know why this makes any difference but people have mentioned this will stop some hanging issues.
+				//https://stackoverflow.com/questions/6718148/windows-forms-gui-hangs-when-calling-openfiledialog-showdialog
+				openFileDialog.ShowHelp=true;
 			}
-			else{
-				OpenFileDialog openFileDialog=new OpenFileDialog();
-				openFileDialog.Multiselect=true;
-				if(Prefs.GetContainsKey(nameof(PrefName.UseAlternateOpenFileDialogWindow)) && PrefC.GetBool(PrefName.UseAlternateOpenFileDialogWindow)) {//Hidden pref, almost always false.
-					//We don't know why this makes any difference but people have mentioned this will stop some hanging issues.
-					//https://stackoverflow.com/questions/6718148/windows-forms-gui-hangs-when-calling-openfiledialog-showdialog
-					openFileDialog.ShowHelp=true;
-				}
-				if(_ehrAmendment!=null) {
-					openFileDialog.Multiselect=false;//This image module control is reused in formEHR for amendments. If so, EhrAmendmentCur!=null and we should only allow single select.
-				}
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				fileNames=openFileDialog.FileNames.ToList();
-				if(fileNames.Count<1) {
-					return;
-				}
+			if(_ehrAmendment!=null) {
+				openFileDialog.Multiselect=false;//This image module control is reused in formEHR for amendments. If so, EhrAmendmentCur!=null and we should only allow single select.
+			}
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
+			}
+			fileNames=openFileDialog.FileNames.ToList();
+			if(fileNames.Count<1) {
+				return;
 			}
 			NodeIdTag nodeIdTag=new NodeIdTag();
 			bool copied=true;
@@ -2267,7 +2236,7 @@ namespace OpenDental {
 					//Not needed for _odWebView2 as WebView2 will automatically show a print preview when printing
 				}
 				else {
-					if(ODEnvironment.IsCloudServer) {
+					if(/* ODEnvironment.IsCloudServer */ false) {
 						PrinterL.TryPrintOrDebugClassicPreview(printDocument_PrintPage,Lan.g(this,"Image printed."));
 						return;
 					}
@@ -2332,115 +2301,6 @@ namespace OpenDental {
 			InvalidateSettings(ImageSettingFlags.ROTATE,false);//Refresh display.
 		}
 
-		private void ToolbarScanWeb(string scanType) {
-			if(!CloudClientL.IsCloudClientRunning()) {
-				return;
-			}
-			Bitmap bitmapScanned=null;
-			try {
-				//Ask the ODCloudClient to use a scanner on the client's computer
-				bitmapScanned=ODCloudClient.GetImageFromScanner(
-					ComputerPrefs.LocalComputer.ScanDocSelectSource,
-					ComputerPrefs.LocalComputer.ScanDocShowOptions,
-					ComputerPrefs.LocalComputer.ScanDocDuplex,
-					ComputerPrefs.LocalComputer.ScanDocGrayscale,
-					ComputerPrefs.LocalComputer.ScanDocResolution,
-					ComputerPrefs.LocalComputer.ScanDocQuality
-				);
-			}
-			catch (ODException ex) {
-				MessageBox.Show(ex.Message);
-				return;
-			}
-			catch (Exception ex) {
-				MessageBox.Show(ex.Message);
-				return;
-			}
-			if(bitmapScanned==null) {//The scan was probably cancelled.
-				return;
-			}
-			ImageType imgType;
-			if(scanType=="xray") {
-				imgType=ImageType.Radiograph;
-			}
-			else if(scanType=="photo") {
-				imgType=ImageType.Photo;
-			}
-			else {//Assume document
-				imgType=ImageType.Document;
-			}
-			bool saved=true;
-			if(_claimPaymentNum!=0) {//eob
-				EobAttach eob=null;
-				try {
-					eob=ImageStore.ImportEobAttach(bitmapScanned,_claimPaymentNum);
-				}
-				catch(Exception ex) {
-					saved=false;
-					MessageBox.Show(Lan.g(this,"Error saving eob")+": "+ex.Message);
-				}
-				if(bitmapScanned!=null) {
-					bitmapScanned.Dispose();
-					bitmapScanned=null;
-				}
-				if(saved) {
-					FillTree(false);
-					SelectTreeNode(GetTreeNode(MakeIdEob(eob.EobAttachNum)));
-				}
-			}
-			else if(_ehrAmendment!=null) {
-				//We only allow users to scan in one amendment at a time.  Keep track of the old file name.
-				string fileNameOld=_ehrAmendment.FileName;
-				try {
-					ImageStore.ImportAmdAttach(bitmapScanned,_ehrAmendment);
-					SelectTreeNode(null);
-					ImageStore.CleanAmdAttach(fileNameOld);//Delete the old scanned document.
-				}
-				catch(Exception ex) {
-					saved=false;
-					MessageBox.Show(Lan.g(this,"Error saving amendment")+": "+ex.Message);
-				}
-				if(bitmapScanned!=null) {
-					bitmapScanned.Dispose();
-					bitmapScanned=null;
-				}
-				if(saved) {
-					FillTree(false);
-					SelectTreeNode(GetTreeNode(MakeIdAmd(_ehrAmendment.EhrAmendmentNum)));
-				}
-			}
-			else {//regular Images module
-				Document doc = null;
-				try {//Create corresponding image file.
-					bool doPrintHeading=false;
-					if(imgType==ImageType.Radiograph) {
-						doPrintHeading=true;
-					}
-					doc=ImageStore.Import(bitmapScanned,GetCurrentCategory(),imgType,_patient,doPrintHeading:doPrintHeading);
-				}
-				catch(Exception ex) {
-					saved=false;
-					MessageBox.Show(Lan.g(this,"Unable to save document")+": "+ex.Message);
-				}
-				if(bitmapScanned!=null) {
-					bitmapScanned.Dispose();
-					bitmapScanned=null;
-				}
-				if(saved) {
-					FillTree(false);//Reload and keep new document selected.
-					SelectTreeNode(GetTreeNode(MakeIdDoc(doc.DocNum)));
-					FrmDocInfo frmDocInfo=new FrmDocInfo(_patient,_documentShowing,isDocCreate:true);
-					frmDocInfo.ShowDialog();
-					if(frmDocInfo.IsDialogCancel) {
-						DeleteSelection(false,false,doc);
-					}
-					else {
-						FillTree(true);//Update tree, in case the new document's icon or category were modified in formDocInfo.
-					}
-				}
-			}
-		}
-
 		///<summary>Valid values for scanType are "doc","xray",and "photo"</summary>
 		private void ToolBarScan_Click(string scanType) {
 			if(_ehrAmendment!=null) {
@@ -2450,10 +2310,7 @@ namespace OpenDental {
 					}
 				}
 			}
-			if(ODEnvironment.IsCloudServer) {
-				ToolbarScanWeb(scanType);
-				return;
-			}
+
 			Cursor=Cursors.WaitCursor;
 			Bitmap bitmapScanned=null;
 			IntPtr hdib=IntPtr.Zero;
@@ -2634,93 +2491,6 @@ namespace OpenDental {
 			}
 		}
 
-		private void ToolbarScanMultiWeb() {
-			if(!CloudClientL.IsCloudClientRunning()) {
-				return;
-			}
-			//Ask the ODCloudClient to use a scanner on the client's computer
-			string tempFile=ODCloudClient.GetImageMultiFromScanner(
-				ComputerPrefs.LocalComputer.ScanDocSelectSource,
-				ComputerPrefs.LocalComputer.ScanDocShowOptions,
-				ComputerPrefs.LocalComputer.ScanDocDuplex,
-				ComputerPrefs.LocalComputer.ScanDocGrayscale,
-				ComputerPrefs.LocalComputer.ScanDocResolution,
-				ComputerPrefs.LocalComputer.ScanDocQuality
-			);
-			if(tempFile==null) {
-				return;//The scan was probably cancelled
-			}
-			NodeIdTag nodeIdTag=new NodeIdTag();
-			bool copied=true;
-			if(_claimPaymentNum!=0) {//eob
-				EobAttach eob=null;
-				try {
-					eob=ImageStore.ImportEobAttach(tempFile,_claimPaymentNum);
-				}
-				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
-					copied = false;
-				}
-				if(copied) {
-					FillTree(false);
-					SelectTreeNode(GetTreeNode(MakeIdEob(eob.EobAttachNum)));
-				}
-				ImageStore.TryDeleteFile(tempFile
-					,actInUseException:(msg) => MsgBox.Show(msg)//Informs user when a 'file is in use' exception occurs.
-				);
-			}
-			else if(_ehrAmendment!=null) {//amendment
-				string fileNameOld=_ehrAmendment.FileName;
-				try {
-					ImageStore.ImportAmdAttach(tempFile,_ehrAmendment);
-					SelectTreeNode(null);
-					ImageStore.CleanAmdAttach(fileNameOld);
-				}
-				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
-					copied = false;
-				}
-				if(copied) {
-					FillTree(false);
-					SelectTreeNode(GetTreeNode(MakeIdAmd(_ehrAmendment.EhrAmendmentNum)));
-				}
-				ImageStore.TryDeleteFile(tempFile
-					,actInUseException:(msg) => MsgBox.Show(msg)//Informs user when a 'file is in use' exception occurs.
-				);
-			}
-			else {//regular Images module
-				Document doc=null;
-				try {
-					doc=ImageStore.Import(tempFile,GetCurrentCategory(),_patient);
-				}
-				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
-					copied = false;
-				}
-				if(copied) {
-					FillTree(false);
-					SelectTreeNode(GetTreeNode(MakeIdDoc(doc.DocNum)));
-					FrmDocInfo frmDocInfo=new FrmDocInfo(_patient,doc,isDocCreate:true);
-					frmDocInfo.ShowDialog();//some of the fields might get changed, but not the filename 
-					if(frmDocInfo.IsDialogCancel) {
-						DeleteSelection(false,false,doc);
-					}
-					else {
-						nodeIdTag=MakeIdDoc(doc.DocNum);
-						_documentShowing=doc.Copy();
-					}
-				}
-				ImageStore.TryDeleteFile(tempFile
-					,actInUseException:(msg) => MsgBox.Show(msg)//Informs user when a 'file is in use' exception occurs.
-				);
-				//Reselect the last successfully added node when necessary. js This code seems to be copied from import multi.  Simplify it.
-				if(doc!=null && !MakeIdDoc(doc.DocNum).Equals(nodeIdTag)) {
-					SelectTreeNode(GetTreeNode(MakeIdDoc(doc.DocNum)));
-				}
-				FillTree(true);
-			}
-		}
-
 		private void ToolBarScanMulti_Click() {
 			if(_ehrAmendment!=null) {
 				if(_ehrAmendment.FileName!=null && _ehrAmendment.FileName!="") {
@@ -2729,10 +2499,7 @@ namespace OpenDental {
 					}
 				}
 			}
-			if(ODEnvironment.IsCloudServer) {
-				ToolbarScanMultiWeb();
-				return;
-			}
+
 			string tempFile=PrefC.GetRandomTempFile(".pdf");
 			try {
 				ImagingDeviceManager.Twain.ActivateEZTwain();
@@ -3056,9 +2823,6 @@ namespace OpenDental {
 				Height-panelNoteHeight-(ToolBarPaint.Bottom+4)));
 			LayoutManager.Move(panelNote,new Rectangle(pictureBoxMain.Left,Height-panelNoteHeight-1,pictureBoxMain.Width,
 				(int)Math.Min(114,Height-pictureBoxMain.Location.Y)));
-			if(false && _cloudIframe!=null && _cloudIframe.Visible) {
-				LayoutManager.Move(_cloudIframe,pictureBoxMain.Bounds);
-			}
 			if(_odWebView2!=null && _odWebView2.Visible) {
 				LayoutManager.Move(_odWebView2,pictureBoxMain.Bounds);
 			}
@@ -3244,12 +3008,6 @@ namespace OpenDental {
 				}
 				else {
 					_odWebView2FilePath=pdfFilePath;
-					if(false) {
-						_cloudIframe.ShowIframe(pictureBoxMain.Handle);
-						_cloudIframe.DisplayFile(pictureBoxMain.Handle,_odWebView2FilePath);
-						_isExportable=true;
-						return;
-					}
 					//Set these fields before calling _odWebView2.Init() because the calling function will continue its execution while the Init() below is awaiting. And the calling
 					//function expects these fields to have already been set to their correct value.
 					pictureBoxMain.Visible=false;
@@ -3902,44 +3660,6 @@ namespace OpenDental {
 			}
 			if(refreshTree) {
 				FillTree(false);
-			}
-		}
-
-		private void ToolBarWebExport(NodeIdTag nodeIdTag,Document apteryxDoc) {
-			string tempFilePath="";
-			string docPath="";
-			if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.ApteryxImage)) {
-				Document doc;
-				if(nodeIdTag.NodeType==EnumNodeType.Doc) {
-					doc=Documents.GetByNum(nodeIdTag.PriKey);
-				}
-				else {
-					doc=apteryxDoc;
-				}
-				tempFilePath=ODFileUtils.CombinePaths(Path.GetTempPath(),doc.FileName);
-				docPath=FileAtoZ.CombinePaths(ImageStore.GetPatientFolder(_patient,ImageStore.GetPreferredAtoZpath()),doc.FileName);
-			}
-			else if(nodeIdTag.NodeType==EnumNodeType.Eob) {
-				EobAttach eob=EobAttaches.GetOne(nodeIdTag.PriKey);
-				tempFilePath=ODFileUtils.CombinePaths(Path.GetTempPath(),eob.FileName);
-				docPath=ODFileUtils.CombinePaths(ImageStore.GetEobFolder(),eob.FileName);
-			}
-			else if(nodeIdTag.NodeType==EnumNodeType.EhrAmend) {
-				EhrAmendment amd=EhrAmendments.GetOne(nodeIdTag.PriKey);
-				tempFilePath=ODFileUtils.CombinePaths(Path.GetTempPath(),amd.FileName);
-				docPath=ODFileUtils.CombinePaths(ImageStore.GetAmdFolder(),amd.FileName);
-			}
-			if(!string.IsNullOrEmpty(docPath)) {
-				FileAtoZ.Copy(docPath,tempFilePath,doOverwrite:true);
-				if(false) {
-					ThinfinityUtils.ExportForDownload(tempFilePath);
-				}
-				else {//Is AppStream
-					CloudClientL.ExportForCloud(tempFilePath,doPromptForName:false);
-				}
-			}
-			else {
-				MessageBox.Show("Unable to export file");
 			}
 		}
 

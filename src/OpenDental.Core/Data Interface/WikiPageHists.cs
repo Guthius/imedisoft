@@ -38,7 +38,7 @@ public class WikiPageHists
     ///<summary>Deletes all WikiPageHists before the given cutoff date. Returns the number of entries deleted.</summary>
     public static long DeleteBeforeDate(DateTime dateCutoff)
     {
-        var command = $"DELETE FROM wikipagehist WHERE DateTimeSaved <= {SOut.DateT(dateCutoff)} ";
+        var command = $"DELETE FROM wikipagehist WHERE DateTimeSaved <= {SOut.DateTime(dateCutoff)} ";
         return Db.NonQ(command);
     }
 

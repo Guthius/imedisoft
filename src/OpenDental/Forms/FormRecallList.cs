@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -694,7 +695,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"You need to set an email status, text status, and email and text status first in the Recall Setup window.");
 				return;
 			}
-			if(!ODBuild.IsDebug()) {
+			if(!/* ODBuild.IsDebug() */ false) {
 				if(EServiceSignals.GetListenerServiceStatus().In(
 					eServiceSignalSeverity.None,
 					eServiceSignalSeverity.NotEnabled,

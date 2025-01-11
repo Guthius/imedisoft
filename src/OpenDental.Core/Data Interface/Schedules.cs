@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -216,7 +217,7 @@ public class Schedules
 
     public static List<Schedule> GetChangedSince(DateTime changedSince)
     {
-        var command = "SELECT * schedule WHERE DateTStamp>" + SOut.DateT(changedSince) + " AND SchedType=" + SOut.Int((int) ScheduleType.Provider);
+        var command = "SELECT * schedule WHERE DateTStamp>" + SOut.DateTime(changedSince) + " AND SchedType=" + SOut.Int((int) ScheduleType.Provider);
         return RefreshAndFill(command);
     }
 

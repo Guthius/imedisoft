@@ -84,7 +84,7 @@ public class AppointmentCrud
                                           + DbHelper.ParamChar + "paramNote,"
                                           + SOut.Long(appointment.ProvNum) + ","
                                           + SOut.Long(appointment.ProvHyg) + ","
-                                          + SOut.DateT(appointment.AptDateTime) + ","
+                                          + SOut.DateTime(appointment.AptDateTime) + ","
                                           + SOut.Long(appointment.NextAptNum) + ","
                                           + SOut.Long(appointment.UnschedStatus) + ","
                                           + SOut.Bool(appointment.IsNewPatient) + ","
@@ -93,12 +93,12 @@ public class AppointmentCrud
                                           + SOut.Long(appointment.ClinicNum) + ","
                                           + SOut.Bool(appointment.IsHygiene) + ","
                                           //DateTStamp can only be set by MySQL
-                                          + SOut.DateT(appointment.DateTimeArrived) + ","
-                                          + SOut.DateT(appointment.DateTimeSeated) + ","
-                                          + SOut.DateT(appointment.DateTimeDismissed) + ","
+                                          + SOut.DateTime(appointment.DateTimeArrived) + ","
+                                          + SOut.DateTime(appointment.DateTimeSeated) + ","
+                                          + SOut.DateTime(appointment.DateTimeDismissed) + ","
                                           + SOut.Long(appointment.InsPlan1) + ","
                                           + SOut.Long(appointment.InsPlan2) + ","
-                                          + SOut.DateT(appointment.DateTimeAskedToArrive) + ","
+                                          + SOut.DateTime(appointment.DateTimeAskedToArrive) + ","
                                           + DbHelper.ParamChar + "paramProcsColored,"
                                           + SOut.Int(appointment.ColorOverride.ToArgb()) + ","
                                           + SOut.Long(appointment.AppointmentTypeNum) + ","
@@ -181,7 +181,7 @@ public class AppointmentCrud
         if (appointment.AptDateTime != oldAppointment.AptDateTime)
         {
             if (command != "") command += ",";
-            command += "AptDateTime = " + SOut.DateT(appointment.AptDateTime) + "";
+            command += "AptDateTime = " + SOut.DateTime(appointment.AptDateTime) + "";
         }
 
         if (appointment.NextAptNum != oldAppointment.NextAptNum)
@@ -230,19 +230,19 @@ public class AppointmentCrud
         if (appointment.DateTimeArrived != oldAppointment.DateTimeArrived)
         {
             if (command != "") command += ",";
-            command += "DateTimeArrived = " + SOut.DateT(appointment.DateTimeArrived) + "";
+            command += "DateTimeArrived = " + SOut.DateTime(appointment.DateTimeArrived) + "";
         }
 
         if (appointment.DateTimeSeated != oldAppointment.DateTimeSeated)
         {
             if (command != "") command += ",";
-            command += "DateTimeSeated = " + SOut.DateT(appointment.DateTimeSeated) + "";
+            command += "DateTimeSeated = " + SOut.DateTime(appointment.DateTimeSeated) + "";
         }
 
         if (appointment.DateTimeDismissed != oldAppointment.DateTimeDismissed)
         {
             if (command != "") command += ",";
-            command += "DateTimeDismissed = " + SOut.DateT(appointment.DateTimeDismissed) + "";
+            command += "DateTimeDismissed = " + SOut.DateTime(appointment.DateTimeDismissed) + "";
         }
 
         if (appointment.InsPlan1 != oldAppointment.InsPlan1)
@@ -260,7 +260,7 @@ public class AppointmentCrud
         if (appointment.DateTimeAskedToArrive != oldAppointment.DateTimeAskedToArrive)
         {
             if (command != "") command += ",";
-            command += "DateTimeAskedToArrive = " + SOut.DateT(appointment.DateTimeAskedToArrive) + "";
+            command += "DateTimeAskedToArrive = " + SOut.DateTime(appointment.DateTimeAskedToArrive) + "";
         }
 
         if (appointment.ProcsColored != oldAppointment.ProcsColored)

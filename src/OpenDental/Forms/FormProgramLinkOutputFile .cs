@@ -26,20 +26,11 @@ namespace OpenDental {
 
 		private void butImport_Click(object sender,EventArgs e) {
 			string[] stringArrayFileNames;
-			if(!false && false) {
-				List<string> listImportFilePaths=new List<string>(){ODCloudClient.ImportFileForCloud()};
-				if(listImportFilePaths[0].IsNullOrEmpty()) {
-					return;
-				}
-				stringArrayFileNames=listImportFilePaths.ToArray();
+			OpenFileDialog openFileDialog=new OpenFileDialog();
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
-			else {
-				OpenFileDialog openFileDialog=new OpenFileDialog();
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				stringArrayFileNames=openFileDialog.FileNames;
-			}
+			stringArrayFileNames=openFileDialog.FileNames;
 			if(stringArrayFileNames.Length<1) {
 				return;
 			}

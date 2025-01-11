@@ -420,12 +420,6 @@ namespace OpenDentBusiness {
 			}
 			return nullableIntPref.Value.In(intArrayEnabledValues);
 		}
-
-		///<summary>Gets the first Enum T with a ShortCodeAttribute such that SmsMessageSouce matches the given value.</summary>
-		public static T GetFirstOrDefault<T>(SmsMessageSource smsMessageSource) where T:Enum {
-			return Enum.GetValues(typeof(T)).AsEnumerable<T>()
-				.FirstOrDefault(x => EnumTools.GetAttributeOrDefault<ShortCodeAttribute>(x).SmsMessageSource.Contains(smsMessageSource));
-		}
 	}
 
 	

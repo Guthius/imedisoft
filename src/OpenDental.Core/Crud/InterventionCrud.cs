@@ -69,7 +69,7 @@ public class InterventionCrud
         table.Columns.Add("CodeSet");
         table.Columns.Add("IsPatDeclined");
         foreach (var intervention in listInterventions)
-            table.Rows.Add(SOut.Long(intervention.InterventionNum), SOut.Long(intervention.PatNum), SOut.Long(intervention.ProvNum), intervention.CodeValue, intervention.CodeSystem, intervention.Note, SOut.DateT(intervention.DateEntry, false), SOut.Int((int) intervention.CodeSet), SOut.Bool(intervention.IsPatDeclined));
+            table.Rows.Add(SOut.Long(intervention.InterventionNum), SOut.Long(intervention.PatNum), SOut.Long(intervention.ProvNum), intervention.CodeValue, intervention.CodeSystem, intervention.Note, SOut.DateTime(intervention.DateEntry, false), SOut.Int((int) intervention.CodeSet), SOut.Bool(intervention.IsPatDeclined));
         return table;
     }
 

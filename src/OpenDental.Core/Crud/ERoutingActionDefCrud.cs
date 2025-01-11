@@ -69,7 +69,7 @@ public class ERoutingActionDefCrud
         table.Columns.Add("ForeignKeyType");
         table.Columns.Add("LabelOverride");
         foreach (var eRoutingActionDef in listERoutingActionDefs)
-            table.Rows.Add(SOut.Long(eRoutingActionDef.ERoutingActionDefNum), SOut.Long(eRoutingActionDef.ERoutingDefNum), SOut.Int((int) eRoutingActionDef.ERoutingActionType), SOut.Int(eRoutingActionDef.ItemOrder), SOut.DateT(eRoutingActionDef.SecDateTEntry, false), SOut.DateT(eRoutingActionDef.DateTLastModified, false), SOut.Long(eRoutingActionDef.ForeignKey), SOut.Int((int) eRoutingActionDef.ForeignKeyType), eRoutingActionDef.LabelOverride);
+            table.Rows.Add(SOut.Long(eRoutingActionDef.ERoutingActionDefNum), SOut.Long(eRoutingActionDef.ERoutingDefNum), SOut.Int((int) eRoutingActionDef.ERoutingActionType), SOut.Int(eRoutingActionDef.ItemOrder), SOut.DateTime(eRoutingActionDef.SecDateTEntry, false), SOut.DateTime(eRoutingActionDef.DateTLastModified, false), SOut.Long(eRoutingActionDef.ForeignKey), SOut.Int((int) eRoutingActionDef.ForeignKeyType), eRoutingActionDef.LabelOverride);
         return table;
     }
 
@@ -89,7 +89,7 @@ public class ERoutingActionDefCrud
                                                         + SOut.Int((int) eRoutingActionDef.ERoutingActionType) + ","
                                                         + SOut.Int(eRoutingActionDef.ItemOrder) + ","
                                                         + DbHelper.Now() + ","
-                                                        + SOut.DateT(eRoutingActionDef.DateTLastModified) + ","
+                                                        + SOut.DateTime(eRoutingActionDef.DateTLastModified) + ","
                                                         + SOut.Long(eRoutingActionDef.ForeignKey) + ","
                                                         + SOut.Int((int) eRoutingActionDef.ForeignKeyType) + ","
                                                         + "'" + SOut.String(eRoutingActionDef.LabelOverride) + "')";
@@ -116,7 +116,7 @@ public class ERoutingActionDefCrud
                                                         + SOut.Int((int) eRoutingActionDef.ERoutingActionType) + ","
                                                         + SOut.Int(eRoutingActionDef.ItemOrder) + ","
                                                         + DbHelper.Now() + ","
-                                                        + SOut.DateT(eRoutingActionDef.DateTLastModified) + ","
+                                                        + SOut.DateTime(eRoutingActionDef.DateTLastModified) + ","
                                                         + SOut.Long(eRoutingActionDef.ForeignKey) + ","
                                                         + SOut.Int((int) eRoutingActionDef.ForeignKeyType) + ","
                                                         + "'" + SOut.String(eRoutingActionDef.LabelOverride) + "')";
@@ -134,7 +134,7 @@ public class ERoutingActionDefCrud
                       + "ERoutingActionType  =  " + SOut.Int((int) eRoutingActionDef.ERoutingActionType) + ", "
                       + "ItemOrder           =  " + SOut.Int(eRoutingActionDef.ItemOrder) + ", "
                       //SecDateTEntry not allowed to change
-                      + "DateTLastModified   =  " + SOut.DateT(eRoutingActionDef.DateTLastModified) + ", "
+                      + "DateTLastModified   =  " + SOut.DateTime(eRoutingActionDef.DateTLastModified) + ", "
                       + "ForeignKey          =  " + SOut.Long(eRoutingActionDef.ForeignKey) + ", "
                       + "ForeignKeyType      =  " + SOut.Int((int) eRoutingActionDef.ForeignKeyType) + ", "
                       + "LabelOverride       = '" + SOut.String(eRoutingActionDef.LabelOverride) + "' "
@@ -167,7 +167,7 @@ public class ERoutingActionDefCrud
         if (eRoutingActionDef.DateTLastModified != oldERoutingActionDef.DateTLastModified)
         {
             if (command != "") command += ",";
-            command += "DateTLastModified = " + SOut.DateT(eRoutingActionDef.DateTLastModified) + "";
+            command += "DateTLastModified = " + SOut.DateTime(eRoutingActionDef.DateTLastModified) + "";
         }
 
         if (eRoutingActionDef.ForeignKey != oldERoutingActionDef.ForeignKey)

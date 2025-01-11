@@ -78,132 +78,123 @@ namespace OpenDentBusiness {
 	///<summary>Enum representing different alert types. Any additional entries to this enum will need to be linked to the AlertCategory table. Do so with by calling the helper method in ConvertDatabases8. There will be one link to this type's specific category and one link to AlertCategory with InternalName 'OdAllTypes'.</summary>
 	public enum AlertType {
 		///<summary>0 - Generic. Informational, has no action associated with it</summary>
-		Generic,
+		Generic = 0,
 		///<summary>1 - Opens the Online Payments Window when clicked</summary>
 		[Description("Online Payments Pending")]
-		OnlinePaymentsPending,
-		///<summary>2 - Only used by Open Dental HQ. The server monitoring incoming voicemails is not working.</summary>
-		[Description("Voice Mail Monitor Issues"),IsODHQ()]
-		VoiceMailMonitor,
+		OnlinePaymentsPending = 1,
 		///<summary>3 - Opens the Radiology Order List window when clicked.</summary>
 		[Description("Radiology Orders")]
-		RadiologyProcedures,
+		RadiologyProcedures = 3,
 		///<summary>4 - A patient has clicked "Request Callback" on an e-Confirmation.</summary>
 		[Description("Patient Requests Callback")]
-		CallbackRequested,
+		CallbackRequested = 4,
 		///<summary>5 - Alerts related to the Web Sched New Pat eService.</summary>
 		[Description("Web Sched New Patient")]
-		WebSchedNewPat,
+		WebSchedNewPat = 5,
 		///<summary>6 - Alerts related to Web Sched New Patient Appointments.</summary>
 		[Description("Web Sched New Patient Appointment Created")]
-		WebSchedNewPatApptCreated,
+		WebSchedNewPatApptCreated = 6,
 		///<summary>7 - A number is not able to receive text messages.</summary>
 		[Description("Number Barred From Texting")]
-		NumberBarredFromTexting,
+		NumberBarredFromTexting = 7,
 		///<summary>8 - The number of MySQL connections to the server has exceeded half the allowed number of connections.</summary>
 		[Description("MySQL Maximum Connection Issues")]
-		MaxConnectionsMonitor,
+		MaxConnectionsMonitor = 8,
 		///<summary>9 - Alerts related to new ASAP appointments via web sched.</summary>
 		[Description("Web Sched ASAP Appointment Created")]
-		WebSchedASAPApptCreated,
-		///<summary>10 - Only used by Open Dental HQ. The Asterisk Server is not processing messages or is getting all blank payloads.</summary>
-		[Description("Phone Tracking Server Issues"),IsODHQ()]
-		AsteriskServerMonitor,
+		WebSchedASAPApptCreated = 9,
 		///<summary>11 - Multiple computers are running eConnector services. There should only ever be one.</summary>
 		[Description("Multiple eConnectors")]
-		MultipleEConnectors,
+		MultipleEConnectors = 11,
 		///<summary>12 - The eConnector is in a critical state and not currently turned on. There should only ever be one.</summary>
 		[Description("eConnection Down")]
-		EConnectorDown,
+		EConnectorDown = 12,
 		///<summary>13 - The eConnector has an error that is not critical but is worth looking into. There should only ever be one.</summary>
 		[Description("eConnection Error")]
-		EConnectorError,
+		EConnectorError = 13,
 		///<summary>14 - Alerts related to DoseSpot provider registration.</summary>
 		[Description("DoseSpot Provider Registered")]
-		DoseSpotProviderRegistered,
+		DoseSpotProviderRegistered = 14,
 		///<summary>15 - Alerts related to DoseSpot clinic registration.</summary>
 		[Description("DoseSpot Clinic Registered")]
-		DoseSpotClinicRegistered,
+		DoseSpotClinicRegistered = 15,
 		///<summary>16 - An appointment has been created via Web Sched Recall.</summary>
 		[Description("Web Sched Recall Appointment Created")]
-		WebSchedRecallApptCreated,
+		WebSchedRecallApptCreated = 16,
 		///<summary>17 - Alerts related to turning clinics on or off for eServices.</summary>
 		[Description("Clinic Feature Changed")]
-		ClinicsChanged,
+		ClinicsChanged = 17,
 		///<summary>18 - Alerts related to turning clinics on or off for eServices. Internal, not displayed to the customer.
 		///Will be processed by the eConnector and then deleted.</summary>
 		[Description("Clinic Feature Changed (internal)")]
-		ClinicsChangedInternal,
+		ClinicsChangedInternal = 18,
 		///<summary>19 - Multiple computers are running OpenDentalServices. There should only ever be one.</summary>
 		[Description("Multiple OpenDentalServices")]
-		MultipleOpenDentalServices,
+		MultipleOpenDentalServices = 19,
 		///<summary>20 - OpenDentalService is down.</summary>
 		[Description("OpenDentalService Down")]
-		OpenDentalServiceDown,
+		OpenDentalServiceDown = 20,
 		///<summary>21 - Triggered when a new WebMail is received from the patient portal.</summary>
 		[Description("New WebMail")]
-		WebMailReceived,
+		WebMailReceived = 21,
 		///<summary>22 - Triggered when the consecutive count of failed emails for clinic reaches greater than the value set in 
 		///EmailAlertMaxConsecutiveFails preference.</summary>
 		[Description("eConnector Email Send Failures")]
-		EconnectorEmailTooManySendFails,
+		EconnectorEmailTooManySendFails = 22,
 		///<summary>23 - Alert the user for things like not making a local supplemental backup within the last month.</summary>
 		[Description("Supplemental Backups")]
-		SupplementalBackups,
+		SupplementalBackups = 23,
 		///<summary>24 - Alert the user that the local time on the eConnector does not closely match the time of the database.  Intended to only have
 		///one instance max.</summary>
 		[Description("eConnector Time")]
-		EConnectorMySqlTime,
+		EConnectorMySqlTime = 24,
 		///<summary>25 - Alert the user that there are CareCredit batch errors.</summary>
 		[Description("CareCredit Batch Errors")]
-		CareCreditBatchError,
+		CareCreditBatchError = 25,
 		///<summary>26 - Alert the user that there are patients who have texted to indicate they have arrived for their appointment.</summary>
 		[Description("Patient Arrival")]
-		PatientArrival,
+		PatientArrival = 26,
 		///<summary>27 - Alert the user that there are new secure emails that have been downloaded.</summary>
 		[Description("New Secure Email")]
-		EmailSecure,
+		EmailSecure = 27,
 		///<summary>28 - An appointment has been created via Web Sched Exising Pat</summary>
 		[Description("Web Sched Existing Pat Appointment Created")]
-		WebSchedExistingPatApptCreated,
+		WebSchedExistingPatApptCreated = 28,
 		///<summary>29 - Alert the user when they're approaching their Cloud Session Limit (determined by CloudAlertWithinLimit pref)</summary>
 		[Description("Cloud Sessions Limit")]
-		CloudAlertWithinLimit,
+		CloudAlertWithinLimit = 29,
 		///<summary>30 - Alert that web forms are ready to be retrieved.</summary>
 		[Description("Web Forms Ready to Retrieve")]
-		WebFormsReady,
-		///<summary>31 - Alert HQ that a push hub client has reached its failure threshold or all push hub clients are failing</summary>
-		[Description("Push Hub client is down"),IsODHQ]
-		PushHubDown,
+		WebFormsReady = 30,
 		///<summary>32 - Alert that user action is required after an update.</summary>
 		[Description("Update Completed - Action Required")]
-		Update,
+		Update = 32,
 		///<summary>33 - Alert.</summary>
 		[Description("Replication Monitor Warning")]
-		ReplicationMonitor,
+		ReplicationMonitor = 33,
 		///<summary>34 - Alert that no recalls have sent in a period of time.</summary>
 		[Description("Web Sched Recalls Not Sending")]
-		WebSchedRecallsNotSending,
+		WebSchedRecallsNotSending = 34,
 		///<summary>35 - Alert if an account using 10DLC goes over their daily max limit or if we've neglected to set up our pref correctly</summary>
 		[Description("Clinic Has Gone Over Daily Max Message Limit for TenDlc")]
-		TenDlc,
+		TenDlc = 35,
 		///<summary>36 - Alert if a clinic is not signed for eConfirmations but is trying to use the AddToCalendar tag. FKey on this alert type is used to determine
 		///the type of autocomm that created this alert rather than a FKey to a db row.</summary>
 		[Description("Invalid Automated Messaging Tags Detected - AddToCalendar Not Allowed When Not Signed Up For eConfirmations")]
-		AddToCalendar,
+		AddToCalendar = 36,
 		///<summary>37 - Alert that is created when an eClipboard/ODM/ODT device tries to get a tooth chart image, but their eConn server is missing 
 		///a specific redistributable that allows the creation of the image.</summary>
 		[Description("Couldn't generate a tooth chart or perio chart image in the mobile app")]
-		EConnectorRedistributableMissing,
+		EConnectorRedistributableMissing = 37,
 		///<summary>38 - Alert that is created when the SMSQueuer is turned on but no Broadcaster Servers are configured to send out text messages. Requires Engineers to update BroadcasterThreadSettings.</summary>
 		[Description("The SMS thread is not configured to run and we have queued messages.")]
-		SMSThread,
+		SMSThread = 38,
 		///<summary>39 - Alert that is created when a procedure or group note's signature is cleared by another user editing that note.</summary>
 		[Description("Procedure or Group Note's Signature Cleared")]
-		SignatureCleared,
+		SignatureCleared = 39,
 		///<summary>40 - Alert that is created when an error occurs while uploading an image to Pearl or processing Pearl results.</summary>
 		[Description("Pearl AI Imaging Error")]
-		Pearl,
+		Pearl = 40,
 	}
 
 	///<summary>Represents the urgency of the alert.  Also determines the color for the menu item in the main menu.</summary>

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Remoting;
 
@@ -2880,7 +2881,7 @@ namespace OpenDentBusiness {
 			List<DataRow> rows=new List<DataRow>();
 			string command="SELECT AptDateTime,PatNum,ProcDescript "
 				+"FROM appointment "
-				+"WHERE AptDateTime > "+POut.DateT(DateTime.Now)+" "//Today.AddDays(1) midnight tonight
+				+"WHERE AptDateTime > "+POut.DateTime(DateTime.Now)+" "//Today.AddDays(1) midnight tonight
 				+"AND AptStatus !="+POut.Long((int)ApptStatus.Broken)+" "
 				+"AND AptStatus !="+POut.Long((int)ApptStatus.PtNote)+" "
 				+"AND AptStatus !="+POut.Long((int)ApptStatus.PtNoteCompleted)+" "

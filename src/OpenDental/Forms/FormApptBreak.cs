@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.Linq;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	public partial class FormApptBreak:FormODBase {

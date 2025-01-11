@@ -36,7 +36,7 @@ public class ComputerCrud
         table.Columns.Add("CompName");
         table.Columns.Add("LastHeartBeat");
         foreach (var computer in listComputers)
-            table.Rows.Add(SOut.Long(computer.ComputerNum), computer.CompName, SOut.DateT(computer.LastHeartBeat, false));
+            table.Rows.Add(SOut.Long(computer.ComputerNum), computer.CompName, SOut.DateTime(computer.LastHeartBeat, false));
         return table;
     }
 
@@ -48,7 +48,7 @@ public class ComputerCrud
 
         command +=
             "'" + SOut.String(computer.CompName) + "',"
-            + SOut.DateT(computer.LastHeartBeat) + ")";
+            + SOut.DateTime(computer.LastHeartBeat) + ")";
         {
             computer.ComputerNum = Db.NonQ(command, true, "ComputerNum", "computer");
         }

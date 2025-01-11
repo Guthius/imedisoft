@@ -93,7 +93,7 @@ public class TreatPlanCrud
         table.Columns.Add("SignaturePracticeText");
         table.Columns.Add("MobileAppDeviceNum");
         foreach (var treatPlan in listTreatPlans)
-            table.Rows.Add(SOut.Long(treatPlan.TreatPlanNum), SOut.Long(treatPlan.PatNum), SOut.DateT(treatPlan.DateTP, false), treatPlan.Heading, treatPlan.Note, treatPlan.Signature, SOut.Bool(treatPlan.SigIsTopaz), SOut.Long(treatPlan.ResponsParty), SOut.Long(treatPlan.DocNum), SOut.Int((int) treatPlan.TPStatus), SOut.Long(treatPlan.SecUserNumEntry), SOut.DateT(treatPlan.SecDateEntry, false), SOut.DateT(treatPlan.SecDateTEdit, false), SOut.Long(treatPlan.UserNumPresenter), SOut.Int((int) treatPlan.TPType), treatPlan.SignaturePractice, SOut.DateT(treatPlan.DateTSigned, false), SOut.DateT(treatPlan.DateTPracticeSigned, false), treatPlan.SignatureText, treatPlan.SignaturePracticeText, SOut.Long(treatPlan.MobileAppDeviceNum));
+            table.Rows.Add(SOut.Long(treatPlan.TreatPlanNum), SOut.Long(treatPlan.PatNum), SOut.DateTime(treatPlan.DateTP, false), treatPlan.Heading, treatPlan.Note, treatPlan.Signature, SOut.Bool(treatPlan.SigIsTopaz), SOut.Long(treatPlan.ResponsParty), SOut.Long(treatPlan.DocNum), SOut.Int((int) treatPlan.TPStatus), SOut.Long(treatPlan.SecUserNumEntry), SOut.DateTime(treatPlan.SecDateEntry, false), SOut.DateTime(treatPlan.SecDateTEdit, false), SOut.Long(treatPlan.UserNumPresenter), SOut.Int((int) treatPlan.TPType), treatPlan.SignaturePractice, SOut.DateTime(treatPlan.DateTSigned, false), SOut.DateTime(treatPlan.DateTPracticeSigned, false), treatPlan.SignatureText, treatPlan.SignaturePracticeText, SOut.Long(treatPlan.MobileAppDeviceNum));
         return table;
     }
 
@@ -124,8 +124,8 @@ public class TreatPlanCrud
                                         + SOut.Long(treatPlan.UserNumPresenter) + ","
                                         + SOut.Int((int) treatPlan.TPType) + ","
                                         + DbHelper.ParamChar + "paramSignaturePractice,"
-                                        + SOut.DateT(treatPlan.DateTSigned) + ","
-                                        + SOut.DateT(treatPlan.DateTPracticeSigned) + ","
+                                        + SOut.DateTime(treatPlan.DateTSigned) + ","
+                                        + SOut.DateTime(treatPlan.DateTPracticeSigned) + ","
                                         + "'" + SOut.String(treatPlan.SignatureText) + "',"
                                         + "'" + SOut.String(treatPlan.SignaturePracticeText) + "',"
                                         + SOut.Long(treatPlan.MobileAppDeviceNum) + ")";
@@ -169,8 +169,8 @@ public class TreatPlanCrud
                                         + SOut.Long(treatPlan.UserNumPresenter) + ","
                                         + SOut.Int((int) treatPlan.TPType) + ","
                                         + DbHelper.ParamChar + "paramSignaturePractice,"
-                                        + SOut.DateT(treatPlan.DateTSigned) + ","
-                                        + SOut.DateT(treatPlan.DateTPracticeSigned) + ","
+                                        + SOut.DateTime(treatPlan.DateTSigned) + ","
+                                        + SOut.DateTime(treatPlan.DateTPracticeSigned) + ","
                                         + "'" + SOut.String(treatPlan.SignatureText) + "',"
                                         + "'" + SOut.String(treatPlan.SignaturePracticeText) + "',"
                                         + SOut.Long(treatPlan.MobileAppDeviceNum) + ")";
@@ -205,8 +205,8 @@ public class TreatPlanCrud
                       + "UserNumPresenter     =  " + SOut.Long(treatPlan.UserNumPresenter) + ", "
                       + "TPType               =  " + SOut.Int((int) treatPlan.TPType) + ", "
                       + "SignaturePractice    =  " + DbHelper.ParamChar + "paramSignaturePractice, "
-                      + "DateTSigned          =  " + SOut.DateT(treatPlan.DateTSigned) + ", "
-                      + "DateTPracticeSigned  =  " + SOut.DateT(treatPlan.DateTPracticeSigned) + ", "
+                      + "DateTSigned          =  " + SOut.DateTime(treatPlan.DateTSigned) + ", "
+                      + "DateTPracticeSigned  =  " + SOut.DateTime(treatPlan.DateTPracticeSigned) + ", "
                       + "SignatureText        = '" + SOut.String(treatPlan.SignatureText) + "', "
                       + "SignaturePracticeText= '" + SOut.String(treatPlan.SignaturePracticeText) + "', "
                       + "MobileAppDeviceNum   =  " + SOut.Long(treatPlan.MobileAppDeviceNum) + " "
@@ -301,13 +301,13 @@ public class TreatPlanCrud
         if (treatPlan.DateTSigned != oldTreatPlan.DateTSigned)
         {
             if (command != "") command += ",";
-            command += "DateTSigned = " + SOut.DateT(treatPlan.DateTSigned) + "";
+            command += "DateTSigned = " + SOut.DateTime(treatPlan.DateTSigned) + "";
         }
 
         if (treatPlan.DateTPracticeSigned != oldTreatPlan.DateTPracticeSigned)
         {
             if (command != "") command += ",";
-            command += "DateTPracticeSigned = " + SOut.DateT(treatPlan.DateTPracticeSigned) + "";
+            command += "DateTPracticeSigned = " + SOut.DateTime(treatPlan.DateTPracticeSigned) + "";
         }
 
         if (treatPlan.SignatureText != oldTreatPlan.SignatureText)

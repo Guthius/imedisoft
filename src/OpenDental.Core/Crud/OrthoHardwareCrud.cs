@@ -67,7 +67,7 @@ public class OrthoHardwareCrud
         table.Columns.Add("Note");
         table.Columns.Add("IsHidden");
         foreach (var orthoHardware in listOrthoHardwares)
-            table.Rows.Add(SOut.Long(orthoHardware.OrthoHardwareNum), SOut.Long(orthoHardware.PatNum), SOut.DateT(orthoHardware.DateExam, false), SOut.Int((int) orthoHardware.OrthoHardwareType), SOut.Long(orthoHardware.OrthoHardwareSpecNum), orthoHardware.ToothRange, orthoHardware.Note, SOut.Bool(orthoHardware.IsHidden));
+            table.Rows.Add(SOut.Long(orthoHardware.OrthoHardwareNum), SOut.Long(orthoHardware.PatNum), SOut.DateTime(orthoHardware.DateExam, false), SOut.Int((int) orthoHardware.OrthoHardwareType), SOut.Long(orthoHardware.OrthoHardwareSpecNum), orthoHardware.ToothRange, orthoHardware.Note, SOut.Bool(orthoHardware.IsHidden));
         return table;
     }
 

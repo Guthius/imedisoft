@@ -70,7 +70,7 @@ public class SmsToMobiles
     /// </summary>
     public static List<SmsToMobile> GetAllChangedSince(DateTime dateStart)
     {
-        var command = "SELECT * from smstomobile WHERE SecDateTEdit >= " + SOut.DateT(dateStart);
+        var command = "SELECT * from smstomobile WHERE SecDateTEdit >= " + SOut.DateTime(dateStart);
         return SmsToMobileCrud.SelectMany(command);
     }
 

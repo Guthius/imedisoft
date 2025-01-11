@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.AutoComm;
 

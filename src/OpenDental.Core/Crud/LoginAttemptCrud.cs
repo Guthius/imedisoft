@@ -59,7 +59,7 @@ public class LoginAttemptCrud
         table.Columns.Add("LoginType");
         table.Columns.Add("DateTFail");
         foreach (var loginAttempt in listLoginAttempts)
-            table.Rows.Add(SOut.Long(loginAttempt.LoginAttemptNum), loginAttempt.UserName, SOut.Int((int) loginAttempt.LoginType), SOut.DateT(loginAttempt.DateTFail, false));
+            table.Rows.Add(SOut.Long(loginAttempt.LoginAttemptNum), loginAttempt.UserName, SOut.Int((int) loginAttempt.LoginType), SOut.DateTime(loginAttempt.DateTFail, false));
         return table;
     }
 

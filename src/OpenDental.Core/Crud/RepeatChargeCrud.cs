@@ -85,7 +85,7 @@ public class RepeatChargeCrud
         table.Columns.Add("UnearnedTypes");
         table.Columns.Add("Frequency");
         foreach (var repeatCharge in listRepeatCharges)
-            table.Rows.Add(SOut.Long(repeatCharge.RepeatChargeNum), SOut.Long(repeatCharge.PatNum), repeatCharge.ProcCode, SOut.Double(repeatCharge.ChargeAmt), SOut.DateT(repeatCharge.DateStart, false), SOut.DateT(repeatCharge.DateStop, false), repeatCharge.Note, SOut.Bool(repeatCharge.CopyNoteToProc), SOut.Bool(repeatCharge.CreatesClaim), SOut.Bool(repeatCharge.IsEnabled), SOut.Bool(repeatCharge.UsePrepay), repeatCharge.Npi, repeatCharge.ErxAccountId, repeatCharge.ProviderName, SOut.Double(repeatCharge.ChargeAmtAlt, 4), repeatCharge.UnearnedTypes, SOut.Int((int) repeatCharge.Frequency));
+            table.Rows.Add(SOut.Long(repeatCharge.RepeatChargeNum), SOut.Long(repeatCharge.PatNum), repeatCharge.ProcCode, SOut.Double(repeatCharge.ChargeAmt), SOut.DateTime(repeatCharge.DateStart, false), SOut.DateTime(repeatCharge.DateStop, false), repeatCharge.Note, SOut.Bool(repeatCharge.CopyNoteToProc), SOut.Bool(repeatCharge.CreatesClaim), SOut.Bool(repeatCharge.IsEnabled), SOut.Bool(repeatCharge.UsePrepay), repeatCharge.Npi, repeatCharge.ErxAccountId, repeatCharge.ProviderName, SOut.Double(repeatCharge.ChargeAmtAlt, 4), repeatCharge.UnearnedTypes, SOut.Int((int) repeatCharge.Frequency));
         return table;
     }
 

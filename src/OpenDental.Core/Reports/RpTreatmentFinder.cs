@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CodeBase;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	public class RpTreatmentFinder {
@@ -20,7 +21,7 @@ namespace OpenDentBusiness {
 		{
 			Stopwatch sw=null;
 			Stopwatch sTotal=null;
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw=Stopwatch.StartNew();
 				sTotal=Stopwatch.StartNew();
 			}
@@ -48,7 +49,7 @@ namespace OpenDentBusiness {
 			//dictionary with Key=PatNum, Value=AmtPlanned
 			Dictionary<long,double> dictAmtPlanned=new Dictionary<long,double>();
 			using(DataTable tablePlanned=GetDictAmtPlanned(patsWithAppts,dateFrom,dateTo,listProviders,listBilling,code1,code2,listClinicNums,useTreatingProvider)) {
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					sw.Stop();
 					Console.WriteLine("Get tablePlanned: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+tablePlanned.Rows.Count);
 					sw=Stopwatch.StartNew();
@@ -66,7 +67,7 @@ namespace OpenDentBusiness {
 				dictPatInfo=tablePat.Select().ToDictionary(x => PIn.Long(x["PatPlanNum"].ToString()),
 					x => Tuple.Create(PIn.Double(x["AmtPending"].ToString()),PIn.Double(x["AmtUsed"].ToString())));
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw.Stop();
 				Console.WriteLine("Get dictPatInfo: "+sw.Elapsed.TotalSeconds+" sec, Count: "+dictPatInfo.Count);
 				sw=Stopwatch.StartNew();
@@ -77,7 +78,7 @@ namespace OpenDentBusiness {
 				dictFamInfo=tableFam.Select().ToDictionary(x => PIn.Long(x["InsSubNum"].ToString()),
 					x => Tuple.Create(PIn.Double(x["AmtPending"].ToString()),PIn.Double(x["AmtUsed"].ToString())));
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw.Stop();
 				Console.WriteLine("Get dictFamInfo: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+dictFamInfo.Count);
 				sw=Stopwatch.StartNew();
@@ -88,13 +89,13 @@ namespace OpenDentBusiness {
 				dictAnnualMax=tableAnnualMax.Select().ToDictionary(x => PIn.Long(x["PlanNum"].ToString()),
 					x => Tuple.Create(PIn.Double(x["AnnualMaxInd"].ToString()),PIn.Double(x["AnnualMaxFam"].ToString())));
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw.Stop();
 				Console.WriteLine("Get dictAnnualMax: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+dictAnnualMax.Count);
 				sw=Stopwatch.StartNew();
 			}
 			using(DataTable rawtable=GetTableRaw(noIns,monthStart,patNumStr)) {
-				if(ODBuild.IsDebug()) {
+				if(/* ODBuild.IsDebug() */ false) {
 					sw.Stop();
 					Console.WriteLine("Get RawTable: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+rawtable.Rows.Count);
 					sw=Stopwatch.StartNew();
@@ -174,7 +175,7 @@ namespace OpenDentBusiness {
 					table.Rows.Add(row);
 				}
 			}
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				sw.Stop();
 				sTotal.Stop();
 				Console.WriteLine("Finished Filling DataTable: {0}\r\n\tTotal time: {1}\r\n\tRows: {2}",
@@ -196,8 +197,8 @@ namespace OpenDentBusiness {
 				AND patient.PatStatus={POut.Int((int)PatientStatus.Patient)}{(string.IsNullOrEmpty(code1)?"":$@"
 				AND procedurecode.ProcCode>='{POut.String(code1)}'
 				AND procedurecode.ProcCode<='{POut.String(code2)}'")}
-				{(dateFrom.Year<=1880?"":$@"AND procedurelog.DateTP>={POut.DateT(dateFrom)}")}
-				{((dateTo.Year<=1880 || dateFrom>dateTo)?"":$@"AND procedurelog.DateTP<={POut.DateT(dateTo)}")}
+				{(dateFrom.Year<=1880?"":$@"AND procedurelog.DateTP>={POut.DateTime(dateFrom)}")}
+				{((dateTo.Year<=1880 || dateFrom>dateTo)?"":$@"AND procedurelog.DateTP<={POut.DateTime(dateTo)}")}
 				{(listProvNums.IsNullOrEmpty() || listProvNums.Contains(0)?"":$@"
 				AND {(useTreatingProvider?"procedurelog.ProvNum":"patient.PriProv")} IN ({string.Join(",",listProvNums)})")}{(listBillTypes.IsNullOrEmpty() || listBillTypes.Contains(0)?"":$@"
 				AND patient.BillingType IN ({string.Join(",",listBillTypes)})")}{(!true || listClinicNums.IsNullOrEmpty()?"":$@"

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using CodeBase;
 using System.ComponentModel;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
 namespace OpenDentBusiness {

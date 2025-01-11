@@ -12,6 +12,7 @@ using OpenDental.UI;
 using OpenDental;
 using OpenDentBusiness;
 using System.IO;
+using Imedisoft.Core.Caching;
 using Microsoft.VisualBasic.FileIO;
 
 

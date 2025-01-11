@@ -67,7 +67,7 @@ public class OrthoScheduleCrud
         table.Columns.Add("IsActive");
         table.Columns.Add("SecDateTEdit");
         foreach (var orthoSchedule in listOrthoSchedules)
-            table.Rows.Add(SOut.Long(orthoSchedule.OrthoScheduleNum), SOut.DateT(orthoSchedule.BandingDateOverride, false), SOut.DateT(orthoSchedule.DebondDateOverride, false), SOut.Double(orthoSchedule.BandingAmount), SOut.Double(orthoSchedule.VisitAmount), SOut.Double(orthoSchedule.DebondAmount), SOut.Bool(orthoSchedule.IsActive), SOut.DateT(orthoSchedule.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(orthoSchedule.OrthoScheduleNum), SOut.DateTime(orthoSchedule.BandingDateOverride, false), SOut.DateTime(orthoSchedule.DebondDateOverride, false), SOut.Double(orthoSchedule.BandingAmount), SOut.Double(orthoSchedule.VisitAmount), SOut.Double(orthoSchedule.DebondAmount), SOut.Bool(orthoSchedule.IsActive), SOut.DateTime(orthoSchedule.SecDateTEdit, false));
         return table;
     }
 

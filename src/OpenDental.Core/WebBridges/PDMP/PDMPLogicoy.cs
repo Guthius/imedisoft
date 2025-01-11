@@ -57,7 +57,7 @@ namespace OpenDentBusiness {
 					else {
 						throw new Exception("Unsupported HttpMethod type: "+method.Method);
 					}
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						if((typeof(T)==typeof(string))) {//If user wants the entire json response as a string
 							return (T)Convert.ChangeType(res,typeof(T));
 						}

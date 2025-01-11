@@ -29,13 +29,7 @@ public class CentralConnection : TableBase
 
     ///<summary>If connecting to the web service. Can be on VPN, or can be over https.</summary>
     public string ServiceURI;
-
-    ///<summary>Deprecated.  If connecting to the web service.</summary>
-    public string OdUser;
-
-    ///<summary>Deprecated.  If connecting to the web service.  Symmetrically encrypted.</summary>
-    public string OdPassword;
-
+    
     ///<summary>When being used by ConnectionStore xml file, must deserialize to a ConnectionNames enum value. Otherwise just used as a generic notes field.</summary>
     [CrudColumn(SpecialType = CrudSpecialColType.IsText)]
     public string Note;

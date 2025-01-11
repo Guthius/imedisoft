@@ -270,7 +270,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"No queries in the Query Feed to log.");
 				return;
 			}
-			if(ODEnvironment.IsCloudServer) {
+			if(/* ODEnvironment.IsCloudServer */ false) {
 				MsgBox.Show(this,"Logging not supported while using Open Dental Cloud.");
 				return;
 			}

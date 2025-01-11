@@ -102,7 +102,7 @@ namespace WpfControls.UI {
 
 		///<summary>This happens on background thread.</summary>
 		private void DoWork(){	
-			if(ODBuild.IsDebug()){
+			if(/* ODBuild.IsDebug() */ false){
 				if(TestSleep){
 					Thread.Sleep(3000);
 				}

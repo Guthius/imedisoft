@@ -1,31 +1,27 @@
-﻿namespace OpenDental.Cloud.Shared
+﻿namespace OpenDental.Cloud.Shared;
+
+public abstract class TaskStateDelete : TaskState
 {
-    public abstract class TaskStateDelete : TaskState
+    private string _path;
+    
+    public string Path
     {
-        private string _path;
-
-        /// <summary>
-        /// The folder of the corresponding file to be deleted
-        /// </summary>
-        public string Path
+        get
         {
-            get
-            {
-                string path;
+            string path;
                 
-                lock (Lock)
-                {
-                    path = _path;
-                }
-
-                return path;
-            }
-            set
+            lock (Lock)
             {
-                lock (Lock)
-                {
-                    _path = value;
-                }
+                path = _path;
+            }
+
+            return path;
+        }
+        set
+        {
+            lock (Lock)
+            {
+                _path = value;
             }
         }
     }

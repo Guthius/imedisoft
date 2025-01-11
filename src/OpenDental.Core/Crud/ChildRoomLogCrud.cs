@@ -47,8 +47,8 @@ public class ChildRoomLogCrud
         command += "DateTEntered,DateTDisplayed,ChildNum,EmployeeNum,IsComing,ChildRoomNum,RatioChange) VALUES(";
 
         command +=
-            SOut.DateT(childRoomLog.DateTEntered) + ","
-                                                  + SOut.DateT(childRoomLog.DateTDisplayed) + ","
+            SOut.DateTime(childRoomLog.DateTEntered) + ","
+                                                  + SOut.DateTime(childRoomLog.DateTDisplayed) + ","
                                                   + SOut.Long(childRoomLog.ChildNum) + ","
                                                   + SOut.Long(childRoomLog.EmployeeNum) + ","
                                                   + SOut.Bool(childRoomLog.IsComing) + ","
@@ -63,8 +63,8 @@ public class ChildRoomLogCrud
     public static void Update(ChildRoomLog childRoomLog)
     {
         var command = "UPDATE childroomlog SET "
-                      + "DateTEntered   =  " + SOut.DateT(childRoomLog.DateTEntered) + ", "
-                      + "DateTDisplayed =  " + SOut.DateT(childRoomLog.DateTDisplayed) + ", "
+                      + "DateTEntered   =  " + SOut.DateTime(childRoomLog.DateTEntered) + ", "
+                      + "DateTDisplayed =  " + SOut.DateTime(childRoomLog.DateTDisplayed) + ", "
                       + "ChildNum       =  " + SOut.Long(childRoomLog.ChildNum) + ", "
                       + "EmployeeNum    =  " + SOut.Long(childRoomLog.EmployeeNum) + ", "
                       + "IsComing       =  " + SOut.Bool(childRoomLog.IsComing) + ", "

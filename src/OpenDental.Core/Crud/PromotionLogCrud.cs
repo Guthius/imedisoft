@@ -78,7 +78,7 @@ public class PromotionLogCrud
         table.Columns.Add("ResponseDescript");
         table.Columns.Add("ApptReminderRuleNum");
         foreach (var promotionLog in listPromotionLogs)
-            table.Rows.Add(SOut.Long(promotionLog.PromotionLogNum), SOut.Long(promotionLog.PromotionNum), SOut.Long(promotionLog.EmailHostingFK), SOut.Int((int) promotionLog.PromotionStatus), SOut.Long(promotionLog.PatNum), SOut.Long(promotionLog.ClinicNum), SOut.Int((int) promotionLog.SendStatus), SOut.Int((int) promotionLog.MessageType), SOut.Long(promotionLog.MessageFk), SOut.DateT(promotionLog.DateTimeEntry, false), SOut.DateT(promotionLog.DateTimeSent, false), promotionLog.ResponseDescript, SOut.Long(promotionLog.ApptReminderRuleNum));
+            table.Rows.Add(SOut.Long(promotionLog.PromotionLogNum), SOut.Long(promotionLog.PromotionNum), SOut.Long(promotionLog.EmailHostingFK), SOut.Int((int) promotionLog.PromotionStatus), SOut.Long(promotionLog.PatNum), SOut.Long(promotionLog.ClinicNum), SOut.Int((int) promotionLog.SendStatus), SOut.Int((int) promotionLog.MessageType), SOut.Long(promotionLog.MessageFk), SOut.DateTime(promotionLog.DateTimeEntry, false), SOut.DateTime(promotionLog.DateTimeSent, false), promotionLog.ResponseDescript, SOut.Long(promotionLog.ApptReminderRuleNum));
         return table;
     }
 
@@ -103,7 +103,7 @@ public class PromotionLogCrud
                                                  + SOut.Int((int) promotionLog.MessageType) + ","
                                                  + SOut.Long(promotionLog.MessageFk) + ","
                                                  + DbHelper.Now() + ","
-                                                 + SOut.DateT(promotionLog.DateTimeSent) + ","
+                                                 + SOut.DateTime(promotionLog.DateTimeSent) + ","
                                                  + DbHelper.ParamChar + "paramResponseDescript,"
                                                  + SOut.Long(promotionLog.ApptReminderRuleNum) + ")";
         if (promotionLog.ResponseDescript == null) promotionLog.ResponseDescript = "";
@@ -166,7 +166,7 @@ public class PromotionLogCrud
             sbRow.Append(",");
             sbRow.Append(DbHelper.Now());
             sbRow.Append(",");
-            sbRow.Append(SOut.DateT(promotionLog.DateTimeSent));
+            sbRow.Append(SOut.DateTime(promotionLog.DateTimeSent));
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(promotionLog.ResponseDescript) + "'");
             sbRow.Append(",");
@@ -210,7 +210,7 @@ public class PromotionLogCrud
                                                  + SOut.Int((int) promotionLog.MessageType) + ","
                                                  + SOut.Long(promotionLog.MessageFk) + ","
                                                  + DbHelper.Now() + ","
-                                                 + SOut.DateT(promotionLog.DateTimeSent) + ","
+                                                 + SOut.DateTime(promotionLog.DateTimeSent) + ","
                                                  + DbHelper.ParamChar + "paramResponseDescript,"
                                                  + SOut.Long(promotionLog.ApptReminderRuleNum) + ")";
         if (promotionLog.ResponseDescript == null) promotionLog.ResponseDescript = "";
@@ -234,7 +234,7 @@ public class PromotionLogCrud
                       + "MessageType        =  " + SOut.Int((int) promotionLog.MessageType) + ", "
                       + "MessageFk          =  " + SOut.Long(promotionLog.MessageFk) + ", "
                       //DateTimeEntry not allowed to change
-                      + "DateTimeSent       =  " + SOut.DateT(promotionLog.DateTimeSent) + ", "
+                      + "DateTimeSent       =  " + SOut.DateTime(promotionLog.DateTimeSent) + ", "
                       + "ResponseDescript   =  " + DbHelper.ParamChar + "paramResponseDescript, "
                       + "ApptReminderRuleNum=  " + SOut.Long(promotionLog.ApptReminderRuleNum) + " "
                       + "WHERE PromotionLogNum = " + SOut.Long(promotionLog.PromotionLogNum);
@@ -298,7 +298,7 @@ public class PromotionLogCrud
         if (promotionLog.DateTimeSent != oldPromotionLog.DateTimeSent)
         {
             if (command != "") command += ",";
-            command += "DateTimeSent = " + SOut.DateT(promotionLog.DateTimeSent) + "";
+            command += "DateTimeSent = " + SOut.DateTime(promotionLog.DateTimeSent) + "";
         }
 
         if (promotionLog.ResponseDescript != oldPromotionLog.ResponseDescript)

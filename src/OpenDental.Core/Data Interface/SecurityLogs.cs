@@ -396,7 +396,7 @@ public class SecurityLogs
             ODEvent.Fire(ODEventType.ProgressBar,
                 Lans.g("FormBackup", "Removing old data from securityloghash table. Rows deleted so far:") + " " + countDeleted);
             //limiting to 100,000 to avoid out of memory exceptions
-            var command = $"SELECT SecurityLogNum FROM securitylog WHERE DATE(LogDateTime) <= {SOut.DateT(date.Date)} LIMIT 100000";
+            var command = $"SELECT SecurityLogNum FROM securitylog WHERE DATE(LogDateTime) <= {SOut.DateTime(date.Date)} LIMIT 100000";
             listSecurityLogNums = Db.GetListLong(command);
             if (listSecurityLogNums.Count < 1) break;
             SecurityLogHashes.DeleteForSecurityLogEntries(listSecurityLogNums);

@@ -8,6 +8,7 @@ using System.Threading;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Crud;
@@ -635,7 +636,7 @@ public class RecurringChargerator
         strBuilderResultText = new StringBuilder();
         amount = 0;
         receipt = new StringBuilder();
-        if (ODEnvironment.IsCloudServer)
+        if (/* ODEnvironment.IsCloudServer */ false)
         {
             MarkFailed(chargeData, Lans.g(_lanThis, "XCharge is not available while using Open Dental Cloud."));
             return false;

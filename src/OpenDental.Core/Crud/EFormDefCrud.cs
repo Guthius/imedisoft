@@ -73,7 +73,7 @@ public class EFormDefCrud
         table.Columns.Add("SpaceToRightEachField");
         table.Columns.Add("SaveImageCategory");
         foreach (var eFormDef in listEFormDefs)
-            table.Rows.Add(SOut.Long(eFormDef.EFormDefNum), SOut.Int((int) eFormDef.FormType), eFormDef.Description, SOut.DateT(eFormDef.DateTCreated, false), SOut.Bool(eFormDef.IsInternalHidden), SOut.Int(eFormDef.MaxWidth), SOut.Int(eFormDef.RevID), SOut.Bool(eFormDef.ShowLabelsBold), SOut.Int(eFormDef.SpaceBelowEachField), SOut.Int(eFormDef.SpaceToRightEachField), SOut.Long(eFormDef.SaveImageCategory));
+            table.Rows.Add(SOut.Long(eFormDef.EFormDefNum), SOut.Int((int) eFormDef.FormType), eFormDef.Description, SOut.DateTime(eFormDef.DateTCreated, false), SOut.Bool(eFormDef.IsInternalHidden), SOut.Int(eFormDef.MaxWidth), SOut.Int(eFormDef.RevID), SOut.Bool(eFormDef.ShowLabelsBold), SOut.Int(eFormDef.SpaceBelowEachField), SOut.Int(eFormDef.SpaceToRightEachField), SOut.Long(eFormDef.SaveImageCategory));
         return table;
     }
 
@@ -91,7 +91,7 @@ public class EFormDefCrud
         command +=
             SOut.Int((int) eFormDef.FormType) + ","
                                               + "'" + SOut.String(eFormDef.Description) + "',"
-                                              + SOut.DateT(eFormDef.DateTCreated) + ","
+                                              + SOut.DateTime(eFormDef.DateTCreated) + ","
                                               + SOut.Bool(eFormDef.IsInternalHidden) + ","
                                               + SOut.Int(eFormDef.MaxWidth) + ","
                                               + SOut.Int(eFormDef.RevID) + ","
@@ -120,7 +120,7 @@ public class EFormDefCrud
         command +=
             SOut.Int((int) eFormDef.FormType) + ","
                                               + "'" + SOut.String(eFormDef.Description) + "',"
-                                              + SOut.DateT(eFormDef.DateTCreated) + ","
+                                              + SOut.DateTime(eFormDef.DateTCreated) + ","
                                               + SOut.Bool(eFormDef.IsInternalHidden) + ","
                                               + SOut.Int(eFormDef.MaxWidth) + ","
                                               + SOut.Int(eFormDef.RevID) + ","
@@ -140,7 +140,7 @@ public class EFormDefCrud
         var command = "UPDATE eformdef SET "
                       + "FormType             =  " + SOut.Int((int) eFormDef.FormType) + ", "
                       + "Description          = '" + SOut.String(eFormDef.Description) + "', "
-                      + "DateTCreated         =  " + SOut.DateT(eFormDef.DateTCreated) + ", "
+                      + "DateTCreated         =  " + SOut.DateTime(eFormDef.DateTCreated) + ", "
                       + "IsInternalHidden     =  " + SOut.Bool(eFormDef.IsInternalHidden) + ", "
                       + "MaxWidth             =  " + SOut.Int(eFormDef.MaxWidth) + ", "
                       + "RevID                =  " + SOut.Int(eFormDef.RevID) + ", "
@@ -170,7 +170,7 @@ public class EFormDefCrud
         if (eFormDef.DateTCreated != oldEFormDef.DateTCreated)
         {
             if (command != "") command += ",";
-            command += "DateTCreated = " + SOut.DateT(eFormDef.DateTCreated) + "";
+            command += "DateTCreated = " + SOut.DateTime(eFormDef.DateTCreated) + "";
         }
 
         if (eFormDef.IsInternalHidden != oldEFormDef.IsInternalHidden)

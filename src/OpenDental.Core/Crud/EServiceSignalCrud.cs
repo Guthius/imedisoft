@@ -69,7 +69,7 @@ public class EServiceSignalCrud
         table.Columns.Add("Tag");
         table.Columns.Add("IsProcessed");
         foreach (var eServiceSignal in listEServiceSignals)
-            table.Rows.Add(SOut.Long(eServiceSignal.EServiceSignalNum), SOut.Int(eServiceSignal.ServiceCode), SOut.Int(eServiceSignal.ReasonCategory), SOut.Int(eServiceSignal.ReasonCode), SOut.Int((int) eServiceSignal.Severity), eServiceSignal.Description, SOut.DateT(eServiceSignal.SigDateTime, false), eServiceSignal.Tag, SOut.Bool(eServiceSignal.IsProcessed));
+            table.Rows.Add(SOut.Long(eServiceSignal.EServiceSignalNum), SOut.Int(eServiceSignal.ServiceCode), SOut.Int(eServiceSignal.ReasonCategory), SOut.Int(eServiceSignal.ReasonCode), SOut.Int((int) eServiceSignal.Severity), eServiceSignal.Description, SOut.DateTime(eServiceSignal.SigDateTime, false), eServiceSignal.Tag, SOut.Bool(eServiceSignal.IsProcessed));
         return table;
     }
 
@@ -90,7 +90,7 @@ public class EServiceSignalCrud
                                                  + SOut.Int(eServiceSignal.ReasonCode) + ","
                                                  + SOut.Int((int) eServiceSignal.Severity) + ","
                                                  + DbHelper.ParamChar + "paramDescription,"
-                                                 + SOut.DateT(eServiceSignal.SigDateTime) + ","
+                                                 + SOut.DateTime(eServiceSignal.SigDateTime) + ","
                                                  + DbHelper.ParamChar + "paramTag,"
                                                  + SOut.Bool(eServiceSignal.IsProcessed) + ")";
         if (eServiceSignal.Description == null) eServiceSignal.Description = "";
@@ -121,7 +121,7 @@ public class EServiceSignalCrud
                                                  + SOut.Int(eServiceSignal.ReasonCode) + ","
                                                  + SOut.Int((int) eServiceSignal.Severity) + ","
                                                  + DbHelper.ParamChar + "paramDescription,"
-                                                 + SOut.DateT(eServiceSignal.SigDateTime) + ","
+                                                 + SOut.DateTime(eServiceSignal.SigDateTime) + ","
                                                  + DbHelper.ParamChar + "paramTag,"
                                                  + SOut.Bool(eServiceSignal.IsProcessed) + ")";
         if (eServiceSignal.Description == null) eServiceSignal.Description = "";
@@ -143,7 +143,7 @@ public class EServiceSignalCrud
                       + "ReasonCode       =  " + SOut.Int(eServiceSignal.ReasonCode) + ", "
                       + "Severity         =  " + SOut.Int((int) eServiceSignal.Severity) + ", "
                       + "Description      =  " + DbHelper.ParamChar + "paramDescription, "
-                      + "SigDateTime      =  " + SOut.DateT(eServiceSignal.SigDateTime) + ", "
+                      + "SigDateTime      =  " + SOut.DateTime(eServiceSignal.SigDateTime) + ", "
                       + "Tag              =  " + DbHelper.ParamChar + "paramTag, "
                       + "IsProcessed      =  " + SOut.Bool(eServiceSignal.IsProcessed) + " "
                       + "WHERE EServiceSignalNum = " + SOut.Long(eServiceSignal.EServiceSignalNum);
@@ -190,7 +190,7 @@ public class EServiceSignalCrud
         if (eServiceSignal.SigDateTime != oldEServiceSignal.SigDateTime)
         {
             if (command != "") command += ",";
-            command += "SigDateTime = " + SOut.DateT(eServiceSignal.SigDateTime) + "";
+            command += "SigDateTime = " + SOut.DateTime(eServiceSignal.SigDateTime) + "";
         }
 
         if (eServiceSignal.Tag != oldEServiceSignal.Tag)

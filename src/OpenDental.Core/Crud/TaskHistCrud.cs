@@ -103,7 +103,7 @@ public class TaskHistCrud
         table.Columns.Add("IsReadOnly");
         table.Columns.Add("TriageCategory");
         foreach (var taskHist in listTaskHists)
-            table.Rows.Add(SOut.Long(taskHist.TaskHistNum), SOut.Long(taskHist.UserNumHist), SOut.DateT(taskHist.DateTStamp, false), SOut.Bool(taskHist.IsNoteChange), SOut.Long(taskHist.TaskNum), SOut.Long(taskHist.TaskListNum), SOut.DateT(taskHist.DateTask, false), SOut.Long(taskHist.KeyNum), taskHist.Descript, SOut.Int((int) taskHist.TaskStatus), SOut.Bool(taskHist.IsRepeating), SOut.Int((int) taskHist.DateType), SOut.Long(taskHist.FromNum), SOut.Int((int) taskHist.ObjectType), SOut.DateT(taskHist.DateTimeEntry, false), SOut.Long(taskHist.UserNum), SOut.DateT(taskHist.DateTimeFinished, false), SOut.Long(taskHist.PriorityDefNum), taskHist.ReminderGroupId, SOut.Int((int) taskHist.ReminderType), SOut.Int(taskHist.ReminderFrequency), SOut.DateT(taskHist.DateTimeOriginal, false), SOut.DateT(taskHist.SecDateTEdit, false), taskHist.DescriptOverride, SOut.Bool(taskHist.IsReadOnly), SOut.Long(taskHist.TriageCategory));
+            table.Rows.Add(SOut.Long(taskHist.TaskHistNum), SOut.Long(taskHist.UserNumHist), SOut.DateTime(taskHist.DateTStamp, false), SOut.Bool(taskHist.IsNoteChange), SOut.Long(taskHist.TaskNum), SOut.Long(taskHist.TaskListNum), SOut.DateTime(taskHist.DateTask, false), SOut.Long(taskHist.KeyNum), taskHist.Descript, SOut.Int((int) taskHist.TaskStatus), SOut.Bool(taskHist.IsRepeating), SOut.Int((int) taskHist.DateType), SOut.Long(taskHist.FromNum), SOut.Int((int) taskHist.ObjectType), SOut.DateTime(taskHist.DateTimeEntry, false), SOut.Long(taskHist.UserNum), SOut.DateTime(taskHist.DateTimeFinished, false), SOut.Long(taskHist.PriorityDefNum), taskHist.ReminderGroupId, SOut.Int((int) taskHist.ReminderType), SOut.Int(taskHist.ReminderFrequency), SOut.DateTime(taskHist.DateTimeOriginal, false), SOut.DateTime(taskHist.SecDateTEdit, false), taskHist.DescriptOverride, SOut.Bool(taskHist.IsReadOnly), SOut.Long(taskHist.TriageCategory));
         return table;
     }
 
@@ -132,14 +132,14 @@ public class TaskHistCrud
                                             + SOut.Int((int) taskHist.DateType) + ","
                                             + SOut.Long(taskHist.FromNum) + ","
                                             + SOut.Int((int) taskHist.ObjectType) + ","
-                                            + SOut.DateT(taskHist.DateTimeEntry) + ","
+                                            + SOut.DateTime(taskHist.DateTimeEntry) + ","
                                             + SOut.Long(taskHist.UserNum) + ","
-                                            + SOut.DateT(taskHist.DateTimeFinished) + ","
+                                            + SOut.DateTime(taskHist.DateTimeFinished) + ","
                                             + SOut.Long(taskHist.PriorityDefNum) + ","
                                             + "'" + SOut.String(taskHist.ReminderGroupId) + "',"
                                             + SOut.Int((int) taskHist.ReminderType) + ","
                                             + SOut.Int(taskHist.ReminderFrequency) + ","
-                                            + SOut.DateT(taskHist.DateTimeOriginal) + ","
+                                            + SOut.DateTime(taskHist.DateTimeOriginal) + ","
                                             //SecDateTEdit can only be set by MySQL
                                             + "'" + SOut.String(taskHist.DescriptOverride) + "',"
                                             + SOut.Bool(taskHist.IsReadOnly) + ","
@@ -178,14 +178,14 @@ public class TaskHistCrud
                                             + SOut.Int((int) taskHist.DateType) + ","
                                             + SOut.Long(taskHist.FromNum) + ","
                                             + SOut.Int((int) taskHist.ObjectType) + ","
-                                            + SOut.DateT(taskHist.DateTimeEntry) + ","
+                                            + SOut.DateTime(taskHist.DateTimeEntry) + ","
                                             + SOut.Long(taskHist.UserNum) + ","
-                                            + SOut.DateT(taskHist.DateTimeFinished) + ","
+                                            + SOut.DateTime(taskHist.DateTimeFinished) + ","
                                             + SOut.Long(taskHist.PriorityDefNum) + ","
                                             + "'" + SOut.String(taskHist.ReminderGroupId) + "',"
                                             + SOut.Int((int) taskHist.ReminderType) + ","
                                             + SOut.Int(taskHist.ReminderFrequency) + ","
-                                            + SOut.DateT(taskHist.DateTimeOriginal) + ","
+                                            + SOut.DateTime(taskHist.DateTimeOriginal) + ","
                                             //SecDateTEdit can only be set by MySQL
                                             + "'" + SOut.String(taskHist.DescriptOverride) + "',"
                                             + SOut.Bool(taskHist.IsReadOnly) + ","
@@ -215,14 +215,14 @@ public class TaskHistCrud
                       + "DateType         =  " + SOut.Int((int) taskHist.DateType) + ", "
                       + "FromNum          =  " + SOut.Long(taskHist.FromNum) + ", "
                       + "ObjectType       =  " + SOut.Int((int) taskHist.ObjectType) + ", "
-                      + "DateTimeEntry    =  " + SOut.DateT(taskHist.DateTimeEntry) + ", "
+                      + "DateTimeEntry    =  " + SOut.DateTime(taskHist.DateTimeEntry) + ", "
                       + "UserNum          =  " + SOut.Long(taskHist.UserNum) + ", "
-                      + "DateTimeFinished =  " + SOut.DateT(taskHist.DateTimeFinished) + ", "
+                      + "DateTimeFinished =  " + SOut.DateTime(taskHist.DateTimeFinished) + ", "
                       + "PriorityDefNum   =  " + SOut.Long(taskHist.PriorityDefNum) + ", "
                       + "ReminderGroupId  = '" + SOut.String(taskHist.ReminderGroupId) + "', "
                       + "ReminderType     =  " + SOut.Int((int) taskHist.ReminderType) + ", "
                       + "ReminderFrequency=  " + SOut.Int(taskHist.ReminderFrequency) + ", "
-                      + "DateTimeOriginal =  " + SOut.DateT(taskHist.DateTimeOriginal) + ", "
+                      + "DateTimeOriginal =  " + SOut.DateTime(taskHist.DateTimeOriginal) + ", "
                       //SecDateTEdit can only be set by MySQL
                       + "DescriptOverride = '" + SOut.String(taskHist.DescriptOverride) + "', "
                       + "IsReadOnly       =  " + SOut.Bool(taskHist.IsReadOnly) + ", "
@@ -312,7 +312,7 @@ public class TaskHistCrud
         if (taskHist.DateTimeEntry != oldTaskHist.DateTimeEntry)
         {
             if (command != "") command += ",";
-            command += "DateTimeEntry = " + SOut.DateT(taskHist.DateTimeEntry) + "";
+            command += "DateTimeEntry = " + SOut.DateTime(taskHist.DateTimeEntry) + "";
         }
 
         if (taskHist.UserNum != oldTaskHist.UserNum)
@@ -324,7 +324,7 @@ public class TaskHistCrud
         if (taskHist.DateTimeFinished != oldTaskHist.DateTimeFinished)
         {
             if (command != "") command += ",";
-            command += "DateTimeFinished = " + SOut.DateT(taskHist.DateTimeFinished) + "";
+            command += "DateTimeFinished = " + SOut.DateTime(taskHist.DateTimeFinished) + "";
         }
 
         if (taskHist.PriorityDefNum != oldTaskHist.PriorityDefNum)
@@ -354,7 +354,7 @@ public class TaskHistCrud
         if (taskHist.DateTimeOriginal != oldTaskHist.DateTimeOriginal)
         {
             if (command != "") command += ",";
-            command += "DateTimeOriginal = " + SOut.DateT(taskHist.DateTimeOriginal) + "";
+            command += "DateTimeOriginal = " + SOut.DateTime(taskHist.DateTimeOriginal) + "";
         }
 
         //SecDateTEdit can only be set by MySQL

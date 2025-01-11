@@ -22,7 +22,7 @@ namespace OpenDental {
 		private void FormChooseDatabase_Load(object sender,EventArgs e) {
 			Logger.LogToPath("Load",LogPath.Startup,LogPhase.Start);
 			FillForm();
-			if(ODEnvironment.IsCloudInstance) {
+			if(/* ODEnvironment.IsCloudInstance */ false) {
 				//Don't let the user choose another office's database (this window should never show anyway because NoShowOnStartup should be true)
 				DisableAllExcept(butOK);
 			}
@@ -33,7 +33,7 @@ namespace OpenDental {
 		private void FillForm() {
 			Logger.LogToPath("FillForm",LogPath.Startup,LogPhase.Start);
 			if(ChooseDatabaseInfo_.IsAccessedFromMainMenu) {
-				if(ODEnvironment.IsCloudInstance) {
+				if(/* ODEnvironment.IsCloudInstance */ false) {
 					textUser.UseSystemPasswordChar=true;
 				}
 				comboComputerName.Enabled=false;
@@ -53,13 +53,8 @@ namespace OpenDental {
 			comboDatabase.Text=ChooseDatabaseInfo_.CentralConnectionCur.DatabaseName;
 			textUser.Text=ChooseDatabaseInfo_.CentralConnectionCur.MySqlUser;
 			textPassword.Text=ChooseDatabaseInfo_.CentralConnectionCur.MySqlPassword;
-			textPassword.PasswordChar=(textPassword.Text=="" ? default(char) : '*');
-			textUser2.Text=ChooseDatabaseInfo_.CentralConnectionCur.OdUser;
-			textPassword2.Text=ChooseDatabaseInfo_.CentralConnectionCur.OdPassword;
+			textPassword.PasswordChar=(textPassword.Text=="" ? '\0' : '*');
 			textPEM.Text=ChooseDatabaseInfo_.CentralConnectionCur.SslCA??"";
-			if(listType.Items.Count > 0 && listType.Items.Count >= 2) {
-				listType.SelectedIndex=(int)ChooseDatabaseInfo_.DatabaseType;
-			}
 			textConnectionString.Text=ChooseDatabaseInfo_.ConnectionString;
 			checkNoShow.Checked=(ChooseDatabaseInfo_.NoShow==YN.Yes);
 			if(ChooseDatabaseInfo_.AllowAutoLogin) {
@@ -79,7 +74,6 @@ namespace OpenDental {
 				textUser2.Select();
 				return;
 			}
-			FillComboComputerNames();
 			FillComboDatabases();
 			if(textUser2.Text!="") {
 				textPassword2.Select();
@@ -95,29 +89,18 @@ namespace OpenDental {
 			ChooseDatabaseInfo_.CentralConnectionCur.MySqlPassword=textPassword.Text;
 			ChooseDatabaseInfo_.NoShow=(checkNoShow.Checked ? YN.Yes : YN.No);
 			ChooseDatabaseInfo_.CentralConnectionCur.ServiceURI=(checkConnectServer.Checked ? textURI.Text : "");
-			ChooseDatabaseInfo_.CentralConnectionCur.OdUser=textUser2.Text;
-			ChooseDatabaseInfo_.CentralConnectionCur.OdPassword=textPassword2.Text;
 			ChooseDatabaseInfo_.CentralConnectionCur.WebServiceIsEcw=checkUsingEcw.Checked;
-			ChooseDatabaseInfo_.DatabaseType=DatabaseType.MySql;
 			ChooseDatabaseInfo_.CentralConnectionCur.SslCA=textPEM.Text;
 			ChooseDatabaseInfo_.ConnectionString=textConnectionString.Text;
 			//Only save AutoLogin if connecting to MT and AutoLogin box is checked.
 			ChooseDatabaseInfo_.CentralConnectionCur.IsAutomaticLogin=(checkBoxAutomaticLogin.Checked && checkConnectServer.Checked);
 			ChooseDatabaseInfo_.UseDynamicMode=checkDynamicMode.Checked;
 		}
-
-		private void FillComboComputerNames() {
-			Logger.LogToPath("FillComboComputerNames",LogPath.Startup,LogPhase.Start);
-			comboComputerName.Items.Clear();
-			List<string> listComputerNames = CentralConnections.GetComputerNames();
-			comboComputerName.Items.AddRange(listComputerNames.ToArray());
-			Logger.LogToPath("FillComboComputerNames",LogPath.Startup,LogPhase.End);
-		}
-
+		
 		private void FillComboDatabases() {
 			Logger.LogToPath("FillComboDatabases",LogPath.Startup,LogPhase.Start);
 			comboDatabase.Items.Clear();
-			List<string> listNames=CentralConnections.GetDatabases(ChooseDatabaseInfo_.CentralConnectionCur,ChooseDatabaseInfo_.DatabaseType);
+			List<string> listNames=CentralConnections.GetDatabases(ChooseDatabaseInfo_.CentralConnectionCur);
 			comboDatabase.Items.AddRange(listNames.ToArray());
 			Logger.LogToPath("FillComboDatabases",LogPath.Startup,LogPhase.End);
 		}
@@ -171,7 +154,6 @@ namespace OpenDental {
 			try {
 				CentralConnections.TryToConnect(
 					ChooseDatabaseInfo_.CentralConnectionCur,
-					ChooseDatabaseInfo_.DatabaseType,
 					ChooseDatabaseInfo_.ConnectionString,
 					noShowOnStartup:(ChooseDatabaseInfo_.NoShow==YN.Yes),
 					listAdminCompNames:ChooseDatabaseInfo_.ListAdminCompNames,

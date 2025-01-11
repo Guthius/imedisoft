@@ -67,7 +67,7 @@ public class FHIRContactPointCrud
         table.Columns.Add("DateStart");
         table.Columns.Add("DateEnd");
         foreach (var fHIRContactPoint in listFHIRContactPoints)
-            table.Rows.Add(SOut.Long(fHIRContactPoint.FHIRContactPointNum), SOut.Long(fHIRContactPoint.FHIRSubscriptionNum), SOut.Int((int) fHIRContactPoint.ContactSystem), fHIRContactPoint.ContactValue, SOut.Int((int) fHIRContactPoint.ContactUse), SOut.Int(fHIRContactPoint.ItemOrder), SOut.DateT(fHIRContactPoint.DateStart, false), SOut.DateT(fHIRContactPoint.DateEnd, false));
+            table.Rows.Add(SOut.Long(fHIRContactPoint.FHIRContactPointNum), SOut.Long(fHIRContactPoint.FHIRSubscriptionNum), SOut.Int((int) fHIRContactPoint.ContactSystem), fHIRContactPoint.ContactValue, SOut.Int((int) fHIRContactPoint.ContactUse), SOut.Int(fHIRContactPoint.ItemOrder), SOut.DateTime(fHIRContactPoint.DateStart, false), SOut.DateTime(fHIRContactPoint.DateEnd, false));
         return table;
     }
 

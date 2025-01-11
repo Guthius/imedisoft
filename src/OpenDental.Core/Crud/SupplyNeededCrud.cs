@@ -57,7 +57,7 @@ public class SupplyNeededCrud
         table.Columns.Add("Description");
         table.Columns.Add("DateAdded");
         foreach (var supplyNeeded in listSupplyNeededs)
-            table.Rows.Add(SOut.Long(supplyNeeded.SupplyNeededNum), supplyNeeded.Description, SOut.DateT(supplyNeeded.DateAdded, false));
+            table.Rows.Add(SOut.Long(supplyNeeded.SupplyNeededNum), supplyNeeded.Description, SOut.DateTime(supplyNeeded.DateAdded, false));
         return table;
     }
 

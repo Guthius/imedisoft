@@ -13,8 +13,8 @@ public class ScreenGroups
     {
         var command =
             "SELECT * from screengroup "
-            + "WHERE SGDate >= " + SOut.DateT(dateFrom) + " "
-            + "AND SGDate < " + SOut.DateT(dateTo.AddDays(1)) + " " //Was including entries form the next day. Changed from <= to <.
+            + "WHERE SGDate >= " + SOut.DateTime(dateFrom) + " "
+            + "AND SGDate < " + SOut.DateTime(dateTo.AddDays(1)) + " " //Was including entries form the next day. Changed from <= to <.
             //added one day since it's calculated based on midnight.
             + "ORDER BY SGDate,ScreenGroupNum";
         return ScreenGroupCrud.SelectMany(command);

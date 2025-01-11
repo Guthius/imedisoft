@@ -74,7 +74,7 @@ namespace OpenDental{
 		}
 
 		private bool CanEnableProgram() {
-			if(!ODEnvironment.IsCloudServer) {
+			if(!/* ODEnvironment.IsCloudServer */ false) {
 				return true;
 			}
 			if(Programs.GetListDisabledForWeb().Contains(ProgramCur.ProgName)) {
@@ -213,19 +213,11 @@ namespace OpenDental{
 
 		private void butImport_Click(object sender,EventArgs e) {
 			string importFilePath;
-			if(!false && false) {
-				importFilePath=ODCloudClient.ImportFileForCloud();
-				if(importFilePath.IsNullOrEmpty()) {
-					return; //User cancelled out of OpenFileDialog
-				}
+			using OpenFileDialog openFileDialog=new OpenFileDialog();
+			if(openFileDialog.ShowDialog()!=DialogResult.OK) {
+				return;
 			}
-			else {
-				using OpenFileDialog openFileDialog=new OpenFileDialog();
-				if(openFileDialog.ShowDialog()!=DialogResult.OK) {
-					return;
-				}
-				importFilePath=openFileDialog.FileName;
-			}
+			importFilePath=openFileDialog.FileName;
 			try {
 				Image imageImported=Image.FromFile(importFilePath);
 				if(imageImported.Size!=new Size(22,22)) {
@@ -333,7 +325,7 @@ namespace OpenDental{
 				return;
 			}
 			if(checkEnabled.Checked && textPluginDllName.Text!="") {
-				if(ODEnvironment.IsCloudServer) {
+				if(/* ODEnvironment.IsCloudServer */ false) {
 					MessageBox.Show(Lan.g(this,"Plugins are not allowed while using Open Dental Cloud."));
 					return;
 				}

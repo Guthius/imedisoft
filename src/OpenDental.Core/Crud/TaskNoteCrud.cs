@@ -61,7 +61,7 @@ public class TaskNoteCrud
         table.Columns.Add("DateTimeNote");
         table.Columns.Add("Note");
         foreach (var taskNote in listTaskNotes)
-            table.Rows.Add(SOut.Long(taskNote.TaskNoteNum), SOut.Long(taskNote.TaskNum), SOut.Long(taskNote.UserNum), SOut.DateT(taskNote.DateTimeNote, false), taskNote.Note);
+            table.Rows.Add(SOut.Long(taskNote.TaskNoteNum), SOut.Long(taskNote.TaskNum), SOut.Long(taskNote.UserNum), SOut.DateTime(taskNote.DateTimeNote, false), taskNote.Note);
         return table;
     }
 
@@ -120,7 +120,7 @@ public class TaskNoteCrud
         var command = "UPDATE tasknote SET "
                       + "TaskNum     =  " + SOut.Long(taskNote.TaskNum) + ", "
                       + "UserNum     =  " + SOut.Long(taskNote.UserNum) + ", "
-                      + "DateTimeNote=  " + SOut.DateT(taskNote.DateTimeNote) + ", "
+                      + "DateTimeNote=  " + SOut.DateTime(taskNote.DateTimeNote) + ", "
                       + "Note        =  " + DbHelper.ParamChar + "paramNote "
                       + "WHERE TaskNoteNum = " + SOut.Long(taskNote.TaskNoteNum);
         if (taskNote.Note == null) taskNote.Note = "";
@@ -146,7 +146,7 @@ public class TaskNoteCrud
         if (taskNote.DateTimeNote != oldTaskNote.DateTimeNote)
         {
             if (command != "") command += ",";
-            command += "DateTimeNote = " + SOut.DateT(taskNote.DateTimeNote) + "";
+            command += "DateTimeNote = " + SOut.DateTime(taskNote.DateTimeNote) + "";
         }
 
         if (taskNote.Note != oldTaskNote.Note)

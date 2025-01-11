@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	public class RpReceivablesBreakdown {

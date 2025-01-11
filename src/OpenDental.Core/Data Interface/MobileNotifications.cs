@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using OpenDentBusiness.Crud;
 using PdfSharp.Pdf;
@@ -25,8 +26,8 @@ public class MobileNotifications
         //in between both inserts. Because the CRUD generator does not support fractional seconds, if the query were not inclusive, the second mobile notification
         //would be ignored the next poll and never retrieved. The first poll should have been deleted by the time the second poll occurs protecting us from processsing
         //duplicate mobile notifications.
-        var command = "SELECT * FROM mobilenotification WHERE DateTimeEntry>=" + SOut.DateT(dateTimeLastPoll)
-                                                                               + " AND DateTimeExpires>" + SOut.DateT(DateTime_.Now)
+        var command = "SELECT * FROM mobilenotification WHERE DateTimeEntry>=" + SOut.DateTime(dateTimeLastPoll)
+                                                                               + " AND DateTimeExpires>" + SOut.DateTime(DateTime_.Now)
                                                                                + " AND DeviceId='" + SOut.String(deviceId) + "'"
                                                                                + " AND AppTarget='" + SOut.Enum(enumAppTarget) + "'";
         var listMobileNotifications = MobileNotificationCrud.SelectMany(command);
@@ -70,7 +71,7 @@ public class MobileNotifications
     ///<summary>Deletes all mobile notifications from the DB that have expired.</summary>
     public static void DeleteExpired()
     {
-        var command = "DELETE FROM mobilenotification WHERE DateTimeExpires<=" + SOut.DateT(DateTime_.Now);
+        var command = "DELETE FROM mobilenotification WHERE DateTimeExpires<=" + SOut.DateTime(DateTime_.Now);
         Db.NonQ(command);
     }
 

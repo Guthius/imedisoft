@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
 using OpenDentBusiness.Crud;
@@ -198,7 +199,7 @@ public class Statements
         if (listPatnumsEligibleForUpload.Count > 0)
             for (var i = 0; i < listPatnumsEligibleForUpload.Count; i++)
             {
-                var command = "SELECT StatementNum FROM statement WHERE DateTStamp > " + SOut.DateT(dateChangedSince) + " AND PatNum='"
+                var command = "SELECT StatementNum FROM statement WHERE DateTStamp > " + SOut.DateTime(dateChangedSince) + " AND PatNum='"
                               + listPatnumsEligibleForUpload[i] + "' ORDER BY DateSent DESC, StatementNum DESC " + strLimit;
                 table = DataCore.GetTable(command);
                 for (var j = 0; j < table.Rows.Count; j++) listStatementNums.Add(SIn.Long(table.Rows[j]["StatementNum"].ToString()));

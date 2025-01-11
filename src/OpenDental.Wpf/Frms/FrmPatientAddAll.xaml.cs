@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
@@ -3267,7 +3268,7 @@ namespace OpenDental {
 					hl7Msg.MsgText=messageHL7.ToString();
 					hl7Msg.PatNum=patientArrayInFam[i].PatNum;
 					HL7Msgs.Insert(hl7Msg);
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						MsgBox.Show(hl7Msg.ToString());
 					}
 				}

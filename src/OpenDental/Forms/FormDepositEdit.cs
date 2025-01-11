@@ -14,6 +14,7 @@ using CodeBase;
 using System.IO;
 using OpenDental.Thinfinity;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -688,15 +689,7 @@ namespace OpenDental{
 			Sheet sheet=CreateAndFillSheet();
 			string filePathAndName=PrefC.GetRandomTempFile(".pdf");
 			SheetPrinting.CreatePdf(sheet,filePathAndName,null);
-			if(false) {
-				ThinfinityUtils.HandleFile(filePathAndName);
-			}
-			else if(false) {
-				CloudClientL.ExportForCloud(filePathAndName);
-			}
-			else {
-				Process.Start(filePathAndName);
-			}
+			Process.Start(filePathAndName);
 		}
 
 		private void butEmailPDF_Click(object sender,EventArgs e) {

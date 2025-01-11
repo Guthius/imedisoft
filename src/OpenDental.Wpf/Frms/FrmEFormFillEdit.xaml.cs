@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Drawing;
 using PdfSharp;
 using PdfSharp.Drawing;
@@ -279,7 +280,7 @@ namespace OpenDental {
 			_wasUnchanged=false;
 			_wasSaved=false;
 			ctrlEFormFill.FillFieldsFromControls();
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
+			if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="jordanhome"){
 				//This is how we test required fields in OD proper.
 				//There are certainly other ways of doing it.
 				//Med list was tricky because that checkbox is not actually present in the filled field.

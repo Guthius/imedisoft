@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Ionic.Zip;
 using OpenDental.UI;
@@ -365,10 +366,6 @@ namespace OpenDental{
 
 		private void linkLabel1_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
 			string url="https://www.payconnect.com/";
-			if(false) {
-				ODCloudClient.LaunchFileWithODCloudClient(url);
-				return;
-			}
 			Process.Start(url);
 		}
 
@@ -400,18 +397,6 @@ namespace OpenDental{
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
 				MessageBox.Show(Lan.g(this,"Unable to download driver. Error message")+": "+ex.Message);
-				return;
-			}
-			if(ODEnvironment.IsCloudServer) {
-				//ODCloud, send the installer to the client computer instead of installing it here on the server computer.
-				if(false) {
-					Thinfinity.ThinfinityUtils.ExportForDownload(zipFileName);
-				}
-				else {//Is AppStream
-					CloudClientL.ExportForCloud(zipFileName,doPromptForName:false);
-				}
-				Cursor=Cursors.Default;
-				MessageBox.Show(Lans.g(this,"Download complete. Run the Setup.exe file in the downloaded zip file."));
 				return;
 			}
 			MemoryStream memoryStream=new MemoryStream();

@@ -13,6 +13,7 @@ using System.Net;
 using System.Xml;
 using System.Text.RegularExpressions;
 using System.IO;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 

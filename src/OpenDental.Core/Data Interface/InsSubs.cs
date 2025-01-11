@@ -224,7 +224,7 @@ public class InsSubs
     ///<summary>Gets a list of InsSubs directly from the database. Used in ODApi.</summary>
     public static List<InsSub> GetInsSubsForApi(int limit, int offset, long planNum, long patNum, DateTime secDateTEdit)
     {
-        var command = "SELECT * FROM inssub WHERE SecDateTEdit >= " + SOut.DateT(secDateTEdit) + " ";
+        var command = "SELECT * FROM inssub WHERE SecDateTEdit >= " + SOut.DateTime(secDateTEdit) + " ";
         if (patNum > 0) command += "AND Subscriber=" + SOut.Long(patNum) + " ";
         if (planNum > 0) command += "AND PlanNum=" + SOut.Long(planNum) + " ";
         command += "ORDER BY inssubnum " //Ensure order for limit and offset.

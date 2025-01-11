@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Imedisoft.Core.Caching;
 using Interop.QBFC10;
 using OpenDentBusiness;
 

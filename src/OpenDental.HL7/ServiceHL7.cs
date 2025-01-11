@@ -17,6 +17,7 @@ using OpenDentBusiness.HL7;
 using Tamir.SharpSsh.jsch;
 using System.Collections;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentHL7 {
 	public partial class ServiceHL7:ServiceBase {

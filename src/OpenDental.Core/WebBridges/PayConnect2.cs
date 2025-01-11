@@ -14,6 +14,7 @@ using Bridges;
 using OpenDentBusiness.com.dentalxchange.webservices;
 using Newtonsoft.Json.Converters;
 using System.Windows.Controls;
+using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	public class PayConnect2 {
@@ -195,7 +196,7 @@ namespace OpenDentBusiness {
 		///<summary>Handles Debug/Introspection overrides</summary>
 		public static string GetApiBaseUrl() {
 			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PayConnectRestURL,"https://api.dentalxchange.com/payments");
-			if(ODBuild.IsDebug()) {
+			if(/* ODBuild.IsDebug() */ false) {
 				apiUrl="https://staging-api.dentalxchange.com/payments";
 			}
 			return apiUrl;

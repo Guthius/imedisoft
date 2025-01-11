@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Word=Microsoft.Office.Interop.Word;
 using WpfControls;
 

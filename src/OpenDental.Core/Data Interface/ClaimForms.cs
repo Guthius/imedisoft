@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Xml.Serialization;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.Properties;
 

@@ -612,7 +612,7 @@ namespace OpenDental {
 			if(true && GetClinicNumEClipboardTab()==0) {
 				isClinicSignedUp=Clinics.GetForUserod(Security.CurUser).Any(x => MobileAppDevices.IsClinicSignedUpForEClipboard(x.Id));
 			}
-			if(ODBuild.IsDebug() && Environment.MachineName.ToLower()=="jordanhome"){
+			if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower()=="jordanhome"){
 				isClinicSignedUp=true;
 			}
 			bool doUseDefaults=GetClinicNumEClipboardTab()!=0 && checkEClipboardUseDefaults.Checked;

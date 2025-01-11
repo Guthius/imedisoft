@@ -70,7 +70,7 @@ public class EmailSecureAttachCrud
         table.Columns.Add("DateTEntry");
         table.Columns.Add("SecDateTEdit");
         foreach (var emailSecureAttach in listEmailSecureAttachs)
-            table.Rows.Add(SOut.Long(emailSecureAttach.EmailSecureAttachNum), SOut.Long(emailSecureAttach.ClinicNum), SOut.Long(emailSecureAttach.EmailAttachNum), SOut.Long(emailSecureAttach.EmailSecureNum), emailSecureAttach.AttachmentGuid, emailSecureAttach.DisplayedFileName, emailSecureAttach.Extension, SOut.DateT(emailSecureAttach.DateTEntry, false), SOut.DateT(emailSecureAttach.SecDateTEdit, false));
+            table.Rows.Add(SOut.Long(emailSecureAttach.EmailSecureAttachNum), SOut.Long(emailSecureAttach.ClinicNum), SOut.Long(emailSecureAttach.EmailAttachNum), SOut.Long(emailSecureAttach.EmailSecureNum), emailSecureAttach.AttachmentGuid, emailSecureAttach.DisplayedFileName, emailSecureAttach.Extension, SOut.DateTime(emailSecureAttach.DateTEntry, false), SOut.DateTime(emailSecureAttach.SecDateTEdit, false));
         return table;
     }
 

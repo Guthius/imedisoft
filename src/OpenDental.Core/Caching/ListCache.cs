@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Caching;
 
 public abstract class ListCache<TItem>
 {

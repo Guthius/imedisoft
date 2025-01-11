@@ -65,7 +65,7 @@ public class OrthoPlanLinkCrud
         table.Columns.Add("SecDateTEntry");
         table.Columns.Add("SecUserNumEntry");
         foreach (var orthoPlanLink in listOrthoPlanLinks)
-            table.Rows.Add(SOut.Long(orthoPlanLink.OrthoPlanLinkNum), SOut.Long(orthoPlanLink.OrthoCaseNum), SOut.Int((int) orthoPlanLink.LinkType), SOut.Long(orthoPlanLink.FKey), SOut.Bool(orthoPlanLink.IsActive), SOut.DateT(orthoPlanLink.SecDateTEntry, false), SOut.Long(orthoPlanLink.SecUserNumEntry));
+            table.Rows.Add(SOut.Long(orthoPlanLink.OrthoPlanLinkNum), SOut.Long(orthoPlanLink.OrthoCaseNum), SOut.Int((int) orthoPlanLink.LinkType), SOut.Long(orthoPlanLink.FKey), SOut.Bool(orthoPlanLink.IsActive), SOut.DateTime(orthoPlanLink.SecDateTEntry, false), SOut.Long(orthoPlanLink.SecUserNumEntry));
         return table;
     }
 

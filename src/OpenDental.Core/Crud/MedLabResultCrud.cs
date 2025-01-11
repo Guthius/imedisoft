@@ -122,7 +122,7 @@ public class MedLabResultCrud
         table.Columns.Add("DocNum");
         table.Columns.Add("Note");
         foreach (var medLabResult in listMedLabResults)
-            table.Rows.Add(SOut.Long(medLabResult.MedLabResultNum), SOut.Long(medLabResult.MedLabNum), medLabResult.ObsID, medLabResult.ObsText, medLabResult.ObsLoinc, medLabResult.ObsLoincText, medLabResult.ObsIDSub, medLabResult.ObsValue, SOut.Int((int) medLabResult.ObsSubType), medLabResult.ObsUnits, medLabResult.ReferenceRange, SOut.Int((int) medLabResult.AbnormalFlag), SOut.Int((int) medLabResult.ResultStatus), SOut.DateT(medLabResult.DateTimeObs, false), medLabResult.FacilityID, SOut.Long(medLabResult.DocNum), medLabResult.Note);
+            table.Rows.Add(SOut.Long(medLabResult.MedLabResultNum), SOut.Long(medLabResult.MedLabNum), medLabResult.ObsID, medLabResult.ObsText, medLabResult.ObsLoinc, medLabResult.ObsLoincText, medLabResult.ObsIDSub, medLabResult.ObsValue, SOut.Int((int) medLabResult.ObsSubType), medLabResult.ObsUnits, medLabResult.ReferenceRange, SOut.Int((int) medLabResult.AbnormalFlag), SOut.Int((int) medLabResult.ResultStatus), SOut.DateTime(medLabResult.DateTimeObs, false), medLabResult.FacilityID, SOut.Long(medLabResult.DocNum), medLabResult.Note);
         return table;
     }
 
@@ -150,7 +150,7 @@ public class MedLabResultCrud
                                               + "'" + SOut.String(medLabResult.ReferenceRange) + "',"
                                               + "'" + SOut.String(medLabResult.AbnormalFlag.ToString()) + "',"
                                               + "'" + SOut.String(medLabResult.ResultStatus.ToString()) + "',"
-                                              + SOut.DateT(medLabResult.DateTimeObs) + ","
+                                              + SOut.DateTime(medLabResult.DateTimeObs) + ","
                                               + "'" + SOut.String(medLabResult.FacilityID) + "',"
                                               + SOut.Long(medLabResult.DocNum) + ","
                                               + DbHelper.ParamChar + "paramNote)";
@@ -189,7 +189,7 @@ public class MedLabResultCrud
                                               + "'" + SOut.String(medLabResult.ReferenceRange) + "',"
                                               + "'" + SOut.String(medLabResult.AbnormalFlag.ToString()) + "',"
                                               + "'" + SOut.String(medLabResult.ResultStatus.ToString()) + "',"
-                                              + SOut.DateT(medLabResult.DateTimeObs) + ","
+                                              + SOut.DateTime(medLabResult.DateTimeObs) + ","
                                               + "'" + SOut.String(medLabResult.FacilityID) + "',"
                                               + SOut.Long(medLabResult.DocNum) + ","
                                               + DbHelper.ParamChar + "paramNote)";
@@ -219,7 +219,7 @@ public class MedLabResultCrud
                       + "ReferenceRange = '" + SOut.String(medLabResult.ReferenceRange) + "', "
                       + "AbnormalFlag   = '" + SOut.String(medLabResult.AbnormalFlag.ToString()) + "', "
                       + "ResultStatus   = '" + SOut.String(medLabResult.ResultStatus.ToString()) + "', "
-                      + "DateTimeObs    =  " + SOut.DateT(medLabResult.DateTimeObs) + ", "
+                      + "DateTimeObs    =  " + SOut.DateTime(medLabResult.DateTimeObs) + ", "
                       + "FacilityID     = '" + SOut.String(medLabResult.FacilityID) + "', "
                       + "DocNum         =  " + SOut.Long(medLabResult.DocNum) + ", "
                       + "Note           =  " + DbHelper.ParamChar + "paramNote "
@@ -309,7 +309,7 @@ public class MedLabResultCrud
         if (medLabResult.DateTimeObs != oldMedLabResult.DateTimeObs)
         {
             if (command != "") command += ",";
-            command += "DateTimeObs = " + SOut.DateT(medLabResult.DateTimeObs) + "";
+            command += "DateTimeObs = " + SOut.DateTime(medLabResult.DateTimeObs) + "";
         }
 
         if (medLabResult.FacilityID != oldMedLabResult.FacilityID)

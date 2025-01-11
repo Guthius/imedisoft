@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -82,7 +83,7 @@ namespace OpenDental {
 				//Prefs_client.RefreshClient();
 			}
 			catch(Exception ex) {
-				Logger.openlog.LogMB("Failed to create A to Z folders: "+ex.ToString(),Logger.Severity.ERROR);
+				Logger.Openlog.LogMB("Failed to create A to Z folders: "+ex.ToString(),Logger.Severity.ERROR);
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Created AtoZ Folder");
 			IsDialogOK=true;

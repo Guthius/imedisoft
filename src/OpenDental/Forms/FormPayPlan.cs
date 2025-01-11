@@ -14,6 +14,7 @@ using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
 using System.Text;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using PdfSharp.Pdf;
 using OpenDentBusiness.WebTypes;

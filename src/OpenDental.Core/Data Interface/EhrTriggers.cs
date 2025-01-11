@@ -1274,7 +1274,7 @@ public class EhrTriggers
             default:
                 //command="SELECT * FROM ehrtrigger WHERE false";//should not return any results.
                 return null;
-            //if(ODBuild.IsDebug()) {
+            //if(/* ODBuild.IsDebug() */ false) {
             //throw new Exception(triggerObject.GetType().ToString()+" object not implemented as intervention trigger yet. Add to the list above to handle.");
             //}
             //break;

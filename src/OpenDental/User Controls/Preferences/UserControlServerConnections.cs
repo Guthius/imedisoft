@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -123,7 +124,7 @@ namespace OpenDental {
 					streamReader=new StreamReader(filename);
 				}
 				catch(Exception) {
-					if(ODBuild.IsDebug()){
+					if(/* ODBuild.IsDebug() */ false){
 						return new string[0];
 					}
 				}
@@ -188,7 +189,7 @@ namespace OpenDental {
 
 		#region Methods - Public
 		public void FillServerConnections() {
-			if(ODEnvironment.IsCloudServer) {//Web users can't change their database settings.
+			if(/* ODEnvironment.IsCloudServer */ false) {//Web users can't change their database settings.
 				checkUseReadOnlyServer.Enabled=false;
 				groupBoxReadOnlyServerSetup.Enabled=false;
 			}

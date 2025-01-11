@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
@@ -588,7 +589,7 @@ namespace OpenDental {
 					hl7Msg.MsgText=messageHl7.ToString();
 					hl7Msg.PatNum=patientNew.PatNum;
 					HL7Msgs.Insert(hl7Msg);
-					if(ODBuild.IsDebug()) {
+					if(/* ODBuild.IsDebug() */ false) {
 						MessageBox.Show("FormWebForms",messageHl7.ToString());
 					}
 				}

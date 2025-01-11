@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using OpenDentBusiness.Crud;
 

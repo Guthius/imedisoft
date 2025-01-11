@@ -252,7 +252,7 @@ namespace OpenDental {
 
 		///<summary>Updates the RichTextBox for the given index and message. Returns false if index is invalid.</summary>
 		public bool UpdateRichTextBoxText(int index,string msg) {
-			RichTextBox[] richTextBoxes=panelScroll.Controls.AsEnumerable<Control>().OfType<RichTextBox>().ToArray();
+			RichTextBox[] richTextBoxes=panelScroll.Controls.Cast<Control>().OfType<RichTextBox>().ToArray();
 			if(!index.Between(0,richTextBoxes.Length-1)) {
 				return false;
 			}
@@ -334,7 +334,7 @@ namespace OpenDental {
 		///<summary>Returns the control which previsouly existing in the panel or returns the new control if it was added.</summary>
 		private Control AddOrUpdatePanelScrollChildControl(Control control) {
 			//Control name never changes once set on a control above.
-			Control existingControl=panelScroll.Controls.AsEnumerable<Control>().FirstOrDefault(x => x.Name==control.Name);
+			Control existingControl=panelScroll.Controls.Cast<Control>().FirstOrDefault(x => x.Name==control.Name);
 			if(existingControl==null) {
 				LayoutManager.Add(control,panelScroll);
 				return control;

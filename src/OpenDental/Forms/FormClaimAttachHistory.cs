@@ -14,6 +14,7 @@ using OpenDentBusiness.Eclaims;
 using System.Text;
 using OpenDental.Thinfinity;
 using System.Diagnostics;
+using Imedisoft.Core.Caching;
 
 namespace OpenDental {
 	

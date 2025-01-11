@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -1482,19 +1483,8 @@ namespace OpenDental.ReportingComplex
                 MessageBox.Show(Lan.g(this, "File in use by another program.  Close and try again."));
                 return;
             }
-
-            if (false)
-            {
-                ThinfinityUtils.ExportForDownload(filePath);
-            }
-            else if (false)
-            {
-                CloudClientL.ExportForCloud(filePath);
-            }
-            else
-            {
-                MessageBox.Show(Lan.g(this, "File created successfully"));
-            }
+            
+            MessageBox.Show(Lan.g(this, "File created successfully"));
         }
 
         private void OnWrapText_Click()

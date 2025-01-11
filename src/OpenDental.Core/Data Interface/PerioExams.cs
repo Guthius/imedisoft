@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 using OpenDentBusiness.SheetFramework;

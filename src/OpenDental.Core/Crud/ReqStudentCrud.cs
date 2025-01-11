@@ -69,7 +69,7 @@ public class ReqStudentCrud
         table.Columns.Add("InstructorNum");
         table.Columns.Add("DateCompleted");
         foreach (var reqStudent in listReqStudents)
-            table.Rows.Add(SOut.Long(reqStudent.ReqStudentNum), SOut.Long(reqStudent.ReqNeededNum), reqStudent.Descript, SOut.Long(reqStudent.SchoolCourseNum), SOut.Long(reqStudent.ProvNum), SOut.Long(reqStudent.AptNum), SOut.Long(reqStudent.PatNum), SOut.Long(reqStudent.InstructorNum), SOut.DateT(reqStudent.DateCompleted, false));
+            table.Rows.Add(SOut.Long(reqStudent.ReqStudentNum), SOut.Long(reqStudent.ReqNeededNum), reqStudent.Descript, SOut.Long(reqStudent.SchoolCourseNum), SOut.Long(reqStudent.ProvNum), SOut.Long(reqStudent.AptNum), SOut.Long(reqStudent.PatNum), SOut.Long(reqStudent.InstructorNum), SOut.DateTime(reqStudent.DateCompleted, false));
         return table;
     }
 
