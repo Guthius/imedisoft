@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -61,7 +62,7 @@ namespace OpenDental{
 			else{
 				textRowsPerIncr.Text=ApptViewCur.RowsPerIncr.ToString();
 			}
-			textWidthOpMinimum.Text=POut.Int(ApptViewCur.WidthOpMinimum);
+			textWidthOpMinimum.Text=SOut.Int(ApptViewCur.WidthOpMinimum);
 			textScrollTime.Text=ApptViewCur.ApptTimeScrollStart.ToStringHmm();
 			checkDynamicScroll.Checked=ApptViewCur.IsScrollStartDynamic;
 			checkApptBubblesDisabled.Checked=ApptViewCur.IsApptBubblesDisabled;
@@ -619,12 +620,12 @@ namespace OpenDental{
 				Convert.ToInt32(textRowsPerIncr.Text);
 			}
 			catch{
-				MessageBox.Show(Lan.g(this,"Must be a number between 1 and 3."));
+				ODMessageBox.Show(Lan.g(this,"Must be a number between 1 and 3."));
 				e.Cancel=true;
 				return;
 			}
-			if(PIn.Long(textRowsPerIncr.Text)<1 || PIn.Long(textRowsPerIncr.Text)>3){
-				MessageBox.Show(Lan.g(this,"Must be a number between 1 and 3."));
+			if(SIn.Long(textRowsPerIncr.Text)<1 || SIn.Long(textRowsPerIncr.Text)>3){
+				ODMessageBox.Show(Lan.g(this,"Must be a number between 1 and 3."));
 				e.Cancel=true;
 			}
 		}
@@ -637,7 +638,7 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			//this does mess up the item orders a little, but missing numbers don't actually hurt anything.
-			if(MessageBox.Show(Lan.g(this,"Delete this view?"),"",MessageBoxButtons.OKCancel)
+			if(ODMessageBox.Show(Lan.g(this,"Delete this view?"),"",MessageBoxButtons.OKCancel)
 				!=DialogResult.OK){
 				return;
 			}
@@ -657,7 +658,7 @@ namespace OpenDental{
 				return;
 			}
 			if(textDescription.Text==""){
-				MessageBox.Show(Lan.g(this,"A description must be entered."));
+				ODMessageBox.Show(Lan.g(this,"A description must be entered."));
 				return;
 			}
 			int widthOpMinimum=0;
@@ -672,7 +673,7 @@ namespace OpenDental{
 				return;
 			}
 			if(_listApptViewItemsDisplayedMain.Count==0){
-				MessageBox.Show(Lan.g(this,"At least one row type must be displayed."));
+				ODMessageBox.Show(Lan.g(this,"At least one row type must be displayed."));
 				return;
 			}
 			DateTime timeBefore=new DateTime();//only the time portion will be used.
@@ -782,7 +783,7 @@ namespace OpenDental{
 			}
 			ApptViewCur.WaitingRmName=listWaitingRmNameFormat.GetSelected<EnumWaitingRmName>();
 			ApptViewCur.Description=textDescription.Text;
-			ApptViewCur.RowsPerIncr=PIn.Byte(textRowsPerIncr.Text);//already validated
+			ApptViewCur.RowsPerIncr=SIn.Byte(textRowsPerIncr.Text);//already validated
 			ApptViewCur.WidthOpMinimum=widthOpMinimum;
 			ApptViewCur.ApptTimeScrollStart=timeScroll.TimeOfDay;
 			ApptViewCur.IsScrollStartDynamic=checkDynamicScroll.Checked;

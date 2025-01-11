@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using OpenDental.ReportingComplex;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -55,18 +56,18 @@ namespace OpenDental{
 
 		private void butLeft_Click(object sender,EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month)==dateTo.Day){
 				toLastDay=true;
 			}
 			textDateFrom.Text=dateFrom.AddMonths(-1).ToShortDateString();
 			textDateTo.Text=dateTo.AddMonths(-1).ToShortDateString();
-			dateTo=PIn.Date(textDateTo.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			if(toLastDay){
 				textDateTo.Text=new DateTime(dateTo.Year,dateTo.Month,
 					CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month))
@@ -76,18 +77,18 @@ namespace OpenDental{
 
 		private void butRight_Click(object sender,EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month)==dateTo.Day){
 				toLastDay=true;
 			}
 			textDateFrom.Text=dateFrom.AddMonths(1).ToShortDateString();
 			textDateTo.Text=dateTo.AddMonths(1).ToShortDateString();
-			dateTo=PIn.Date(textDateTo.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			if(toLastDay){
 				textDateTo.Text=new DateTime(dateTo.Year,dateTo.Month,
 					CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month))
@@ -97,7 +98,7 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			if(listProv.SelectedIndices.Count==0) {
@@ -108,8 +109,8 @@ namespace OpenDental{
 				MsgBox.Show(this,"You cannot select 'All' providers as well as specific providers.");
 				return;
 			}
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			if(dateTo<dateFrom) {
 				MsgBox.Show(this,"To date cannot be before From date.");
 				return;

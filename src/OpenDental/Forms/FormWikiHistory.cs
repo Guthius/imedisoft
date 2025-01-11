@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -67,7 +68,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				webBrowserWiki.DocumentText="";
-				MessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed.  Error message:")+" "+ex.Message);
+				ODMessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed.  Error message:")+" "+ex.Message);
 			}
 		}
 
@@ -152,15 +153,15 @@ namespace OpenDental {
 
 		private void butCompare_Click(object sender,EventArgs e) {
 			if(gridMain.SelectedIndices.Count()==0) {
-				MessageBox.Show("Select 2 revisions to compare.  You can select mulitple revisions while holding down (Ctrl).");
+				ODMessageBox.Show("Select 2 revisions to compare.  You can select mulitple revisions while holding down (Ctrl).");
 				return;
 			}
 			else if(gridMain.SelectedIndices.Count()==1) {
-				MessageBox.Show("Select 1 more revision to compare.  You can select another revision while holding down (Ctrl).");
+				ODMessageBox.Show("Select 1 more revision to compare.  You can select another revision while holding down (Ctrl).");
 				return;
 			}
 			else if(gridMain.SelectedIndices.Count()>2) {
-				MessageBox.Show("Only select 2 revisions to compare.  You can unselect mulitple revisions while holding down (Ctrl).");
+				ODMessageBox.Show("Only select 2 revisions to compare.  You can unselect mulitple revisions while holding down (Ctrl).");
 				return;
 			}
 			WikiPageHist wikiPageHistLeft=(WikiPageHist)gridMain.SelectedGridRows[0].Tag;

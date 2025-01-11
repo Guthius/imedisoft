@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -91,7 +92,7 @@ namespace OpenDental {
 					DateTime.Parse(textDate.Text);
 				}
 				catch {
-					MessageBox.Show("Please input a valid date.");
+					ODMessageBox.Show("Please input a valid date.");
 					return;
 				}
 			}

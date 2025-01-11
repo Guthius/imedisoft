@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -50,7 +51,7 @@ namespace OpenDental{
 			if(textTranslation.Text=="" && textComments.Text==""){
 				//If only the translation is "", then the Lan.g routine will simply ignore it and use English.
 				if(!_isNew){
-					if(MessageBox.Show("This translation is blank and will be deleted.  Continue?",""
+					if(ODMessageBox.Show("This translation is blank and will be deleted.  Continue?",""
 						,MessageBoxButtons.OKCancel)!=DialogResult.OK)
 					{
 						return;

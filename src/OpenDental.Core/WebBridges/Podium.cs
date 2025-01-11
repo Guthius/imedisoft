@@ -7,6 +7,7 @@ using System.Text;
 using System.Linq;
 using CodeBase;
 using System.Reflection;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -33,7 +34,7 @@ namespace OpenDentBusiness {
 			if(!Programs.IsEnabledByHq(prog,out string _)
 				|| !Programs.IsEnabled(ProgramName.Podium) 
 				|| !ODEnvironment.IdIsThisComputer(ProgramProperties.GetPropVal(programNum,PropertyDescs.ComputerNameOrIP)) 
-				|| ProgramProperties.GetPropVal(programNum,PropertyDescs.UseService)!=POut.Bool(isService)) 
+				|| ProgramProperties.GetPropVal(programNum,PropertyDescs.UseService)!=SOut.Bool(isService)) 
 			{ 
 				return;
 			}
@@ -42,8 +43,8 @@ namespace OpenDentBusiness {
 			if(Podium.DateTimeLastRan==DateTime.MinValue) {//First time running the thread.
 				Podium.DateTimeLastRan=nowDT.AddMilliseconds(-PodiumThreadIntervalMS);
 			}
-			ReviewInvitationTrigger newPatTrigger=PIn.Enum<ReviewInvitationTrigger>(ProgramProperties.GetPropVal(programNum,PropertyDescs.NewPatientTriggerType));
-			ReviewInvitationTrigger existingPatTrigger=PIn.Enum<ReviewInvitationTrigger>(ProgramProperties.GetPropVal(programNum,PropertyDescs.ExistingPatientTriggerType));
+			ReviewInvitationTrigger newPatTrigger=SIn.Enum<ReviewInvitationTrigger>(ProgramProperties.GetPropVal(programNum,PropertyDescs.NewPatientTriggerType));
+			ReviewInvitationTrigger existingPatTrigger=SIn.Enum<ReviewInvitationTrigger>(ProgramProperties.GetPropVal(programNum,PropertyDescs.ExistingPatientTriggerType));
 			List<Appointment> listNewPatAppts=GetAppointmentsToSendReview(newPatTrigger,programNum,true);
 			foreach(Appointment apptCur in listNewPatAppts) {
 				Podium.SendData(Patients.GetPat(apptCur.PatNum),apptCur.ClinicNum);
@@ -66,23 +67,23 @@ namespace OpenDentBusiness {
 			string command=$@"SELECT appointment.*
 				FROM appointment
 				LEFT JOIN commlog ON commlog.PatNum=appointment.PatNum
-					AND commlog.CommSource={POut.Int((int)CommItemSource.ProgramLink)}
+					AND commlog.CommSource={SOut.Int((int)CommItemSource.ProgramLink)}
 					AND DATE(commlog.DateTimeEnd)={DbHelper.Curdate()}
-					AND commlog.ProgramNum={POut.Long(programNum)}
+					AND commlog.ProgramNum={SOut.Long(programNum)}
 				WHERE ISNULL(commlog.PatNum)
-				AND appointment.IsNewPatient={POut.Bool(isNewPatient)}
+				AND appointment.IsNewPatient={SOut.Bool(isNewPatient)}
 				AND appointment.AptDateTime BETWEEN {DbHelper.Curdate()} AND {DbHelper.Now()} + INTERVAL 1 HOUR";//Hard coded 1 hour to allow for appts that have an early DateTimeArrived
 			if(trigger==ReviewInvitationTrigger.AppointmentCompleted) {
 				command+=$@"
-				AND appointment.AptStatus={POut.Int((int)ApptStatus.Complete)}
+				AND appointment.AptStatus={SOut.Int((int)ApptStatus.Complete)}
 				AND EXISTS (
 					SELECT 1 FROM histappointment
 					WHERE histappointment.AptNum=appointment.AptNum
-					AND histappointment.AptStatus={POut.Int((int)ApptStatus.Complete)}
+					AND histappointment.AptStatus={SOut.Int((int)ApptStatus.Complete)}
 					AND NOT EXISTS (
 						SELECT 1 FROM histappointment h2
 						WHERE h2.AptNum=histappointment.AptNum
-						AND h2.AptStatus!={POut.Int((int)ApptStatus.Complete)}
+						AND h2.AptStatus!={SOut.Int((int)ApptStatus.Complete)}
 						AND h2.HistDateTStamp>histappointment.HistDateTStamp
 					)
 					HAVING MIN(histappointment.HistDateTStamp)<={DbHelper.Now()} - INTERVAL {minsWaitComplete} MINUTE
@@ -90,18 +91,18 @@ namespace OpenDentBusiness {
 			}
 			else {//trigger==AppointmentTimeArrived or AppointmentTimeDismissed
 				command+=$@"
-				AND appointment.AptStatus IN ({POut.Int((int)ApptStatus.Scheduled)},{POut.Int((int)ApptStatus.Complete)})
+				AND appointment.AptStatus IN ({SOut.Int((int)ApptStatus.Scheduled)},{SOut.Int((int)ApptStatus.Complete)})
 				AND (
 					(
-						appointment.AptStatus={POut.Int((int)ApptStatus.Complete)}
+						appointment.AptStatus={SOut.Int((int)ApptStatus.Complete)}
 						AND EXISTS (
 							SELECT 1 FROM histappointment
 							WHERE histappointment.AptNum=appointment.AptNum
-							AND histappointment.AptStatus={POut.Int((int)ApptStatus.Complete)}
+							AND histappointment.AptStatus={SOut.Int((int)ApptStatus.Complete)}
 							AND NOT EXISTS (
 								SELECT 1 FROM histappointment h2
 								WHERE h2.AptNum=histappointment.AptNum
-								AND h2.AptStatus!={POut.Int((int)ApptStatus.Complete)}
+								AND h2.AptStatus!={SOut.Int((int)ApptStatus.Complete)}
 								AND h2.HistDateTStamp>histappointment.HistDateTStamp
 							)
 							HAVING MIN(histappointment.HistDateTStamp)<={DbHelper.Now()} - INTERVAL {(isArriveTrigger?minsWaitComplete:"90")} MINUTE
@@ -193,7 +194,7 @@ namespace OpenDentBusiness {
 					client.Headers[HttpRequestHeader.Accept]="application/json";
 					client.Headers[HttpRequestHeader.ContentType]="application/json";
 					client.Headers[HttpRequestHeader.Authorization]="Token token=\""+apiToken+"\"";
-					client.Encoding=UnicodeEncoding.UTF8;
+					client.Encoding=Encoding.UTF8;
 					string bodyJson=string.Format(@"
 							{{
 								""locationId"": ""{0}"",

@@ -129,7 +129,7 @@ using WpfControls.UI;
 			_heightTotal=0;//instead of	ComputeRows(g);
 			textEdit=new System.Windows.Controls.TextBox();
 			textEdit.Visibility=Visibility.Collapsed;
-			Canvas.SetZIndex(textEdit,5);
+			System.Windows.Controls.Panel.SetZIndex(textEdit,5);
 			textEdit.TextChanged+=textEdit_TextChanged;
 			textEdit.GotFocus+=textEdit_GotFocus;
 			textEdit.LostFocus+=textEdit_LostFocus;
@@ -140,7 +140,7 @@ using WpfControls.UI;
 			comboBox.Width=100;
 			comboBox.Height=30;
 			comboBox.Visible=false;
-			Canvas.SetZIndex(comboBox,10);
+			System.Windows.Controls.Panel.SetZIndex(comboBox,10);
 			comboBox.SelectionChangeCommitted+=new EventHandler(comboBox_SelectionChangeCommitted);
 			comboBox.GotFocus+=new RoutedEventHandler(comboBox_GotFocus);
 			comboBox.LostFocus+=new RoutedEventHandler(comboBox_LostFocus);
@@ -729,7 +729,7 @@ using WpfControls.UI;
 			if(gridRow.CanvasText==null){
 				gridRow.CanvasText=new Canvas();
 				canvasMain.Children.Add(gridRow.CanvasText);
-				Canvas.SetZIndex(gridRow.CanvasText,3);
+				System.Windows.Controls.Panel.SetZIndex(gridRow.CanvasText,3);
 			}
 			else{
 				gridRow.CanvasText.Children.Clear();
@@ -818,7 +818,7 @@ using WpfControls.UI;
 				}
 			}
 			Line lineLower=new Line();
-			Canvas.SetZIndex(lineLower,1);//forward from text
+			System.Windows.Controls.Panel.SetZIndex(lineLower,1);//forward from text
 			lineLower.X1=0;
 			lineLower.Y1=gridRow.State.HeightTotal;
 			lineLower.X2=_widthTotal;
@@ -904,7 +904,7 @@ using WpfControls.UI;
 				rectangle.Height=gridRow.State.HeightTotal;
 				Canvas.SetLeft(rectangle,Columns[i].State.XPos);
 				//Canvas.SetTop(rectangle,0);
-				Canvas.SetZIndex(rectangle,1);//local, so it will show in front of row rect.
+				System.Windows.Controls.Panel.SetZIndex(rectangle,1);//local, so it will show in front of row rect.
 				gridRow.CanvasBackground.Children.Add(rectangle);
 				//}
 				//if(gridRow.Cells[i].IsButton) { 
@@ -940,7 +940,7 @@ using WpfControls.UI;
 			//from here down, we are showing a row
 			if(_rectangleHover is null){
 				_rectangleHover=new Rectangle();
-				Canvas.SetZIndex(_rectangleHover,2);
+				System.Windows.Controls.Panel.SetZIndex(_rectangleHover,2);
 				Color color=Color.FromArgb(70,215,237,243);//50,215,237,245 matches the previous GridOD, but felt too subtle and too blue
 				_rectangleHover.Fill=new SolidColorBrush(color);
 				canvasMain.Children.Add(_rectangleHover);
@@ -995,7 +995,7 @@ using WpfControls.UI;
 				}
 				if(_listRectanglesSelected.Count==0){
 					Rectangle rectangle=new Rectangle();
-					Canvas.SetZIndex(rectangle,2);
+					System.Windows.Controls.Panel.SetZIndex(rectangle,2);
 					rectangle.Fill=new SolidColorBrush(color);
 					canvasMain.Children.Add(rectangle);
 					_listRectanglesSelected.Add(rectangle);
@@ -1029,7 +1029,7 @@ using WpfControls.UI;
 					continue;
 				}
 				Rectangle rectangle=new Rectangle();
-				Canvas.SetZIndex(rectangle,2);
+				System.Windows.Controls.Panel.SetZIndex(rectangle,2);
 				Canvas.SetTop(rectangle,ListGridRows[_listSelectedIndices[i]].State.YPos);
 				//Canvas.SetLeft(0
 				rectangle.Height=ListGridRows[_listSelectedIndices[i]].State.HeightTotal;
@@ -1046,7 +1046,7 @@ using WpfControls.UI;
 			if(_canvasVertLines==null){
 				_canvasVertLines=new Canvas();
 				canvasMain.Children.Add(_canvasVertLines);
-				Canvas.SetZIndex(_canvasVertLines,4);
+				System.Windows.Controls.Panel.SetZIndex(_canvasVertLines,4);
 			}
 			else{
 				_canvasVertLines.Children.Clear();

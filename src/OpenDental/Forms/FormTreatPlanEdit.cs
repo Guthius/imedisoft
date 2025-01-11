@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -195,7 +197,7 @@ namespace OpenDental{
 				TreatPlans.Delete(_treatPlan);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.TreatPlanEdit,_treatPlan.PatNum,"Delete TP: "+_treatPlan.DateTP.ToShortDateString());
@@ -217,7 +219,7 @@ namespace OpenDental{
 				return;
 			}
 			#endregion Validation
-			_treatPlan.DateTP=PIn.Date(textDateTP.Text);
+			_treatPlan.DateTP=SIn.Date(textDateTP.Text);
 			_treatPlan.Heading=textHeading.Text;
 			_treatPlan.Note=textNote.Text;
 			if(_userodPresenter!=null) {

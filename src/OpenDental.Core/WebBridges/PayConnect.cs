@@ -803,7 +803,7 @@ namespace OpenDentBusiness {
 			using(WebClient client=new WebClient()) {
 				client.Headers[HttpRequestHeader.ContentType]="application/json";
 				listHeaders.ForEach(x => client.Headers.Add(x));
-				client.Encoding=UnicodeEncoding.UTF8;
+				client.Encoding=Encoding.UTF8;
 				try {
 					string res="";
 					if(method==HttpMethod.Get) {

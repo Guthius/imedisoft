@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -89,7 +90,7 @@ namespace OpenDental {
 					clinicPref=new ClinicPref(comboClinic.ClinicNumSelected,PrefName.BirthdayPromotionsUseDefaults,isUsingDefaults);
 					_listClinicPrefsDefaultNew.Add(clinicPref);
 				}
-				clinicPref.ValueString=POut.Bool(isUsingDefaults);
+				clinicPref.ValueString=SOut.Bool(isUsingDefaults);
 				_doSetInvalidClinicPrefs=true;
 		}
 
@@ -99,7 +100,7 @@ namespace OpenDental {
 				string errors=ValidateCurrentSelection();
 				if(!string.IsNullOrEmpty(errors)) {//if there were problems, do not change clinics.
 					comboClinic.ClinicNumSelected=clinicNumPrevious;
-					MessageBox.Show(this,errors);
+					ODMessageBox.Show(this,errors);
 					return;
 				}
 				MapUiToRules(_listApptReminderRules.First(x => x.ClinicNum==clinicNumPrevious && x.Language==""));
@@ -113,10 +114,10 @@ namespace OpenDental {
 			if(!checkIsEnabled.Checked) {
 				return "";//no need to validate disabled rules.
 			}
-			if(!textDays.IsValid() || Math.Abs(PIn.Int(textDays.Text,false))>364) {
+			if(!textDays.IsValid() || Math.Abs(SIn.Int(textDays.Text,false))>364) {
 				stringBuilderErrors.AppendLine(Lan.g(this,"Lead time must 364 days or less."));
 			}
-			else if(PIn.Int(textDays.Text,false)==0 && (radioAfterBirthday.Checked || radioBeforeBirthday.Checked)) {
+			else if(SIn.Int(textDays.Text,false)==0 && (radioAfterBirthday.Checked || radioBeforeBirthday.Checked)) {
 				stringBuilderErrors.AppendLine(Lan.g(this,"Days cannot be set to 0 when not sending on the patient's birthday"));
 			}
 			//we also need to make sure the all of the language rules have the same timing information as their leader.If the leader gets updated, they all
@@ -146,7 +147,7 @@ namespace OpenDental {
 			}
 			else {
 				ClinicPref clinicPref=_listClinicPrefsEnabledNew.Find(x => x.ClinicNum==comboClinic.ClinicNumSelected);
-				checkIsEnabled.Checked=clinicPref!=null && PIn.Bool(clinicPref.ValueString);
+				checkIsEnabled.Checked=clinicPref!=null && SIn.Bool(clinicPref.ValueString);
 			}
 			bool allowEdit=Security.IsAuthorized(EnumPermType.EServicesSetup,true);
 			if(comboClinic.ClinicNumSelected>0) {
@@ -177,7 +178,7 @@ namespace OpenDental {
 			textDays.Text=Math.Abs(listApptReminderRules.First().TSPrior.Days).ToString();//Days, not total Days.
 			if(listApptReminderRules.First().TSPrior==TimeSpan.Zero) {
 				radioOnBirthday.Checked=true;
-				textDays.Text=PIn.String("0");
+				textDays.Text=SIn.String("0");
 				textDays.Enabled=false;
 			}
 			else if(listApptReminderRules.First().TSPrior > TimeSpan.Zero) {
@@ -308,7 +309,7 @@ namespace OpenDental {
 		}
 
 		private void radioOnBirthday_Click(object sender,EventArgs e) {
-			textDays.Text=PIn.String("0");
+			textDays.Text=SIn.String("0");
 			textDays.Enabled=false;
 		}
 
@@ -321,7 +322,7 @@ namespace OpenDental {
 				string errors=ValidateCurrentSelection();
 				if(!string.IsNullOrEmpty(errors) || !Security.IsAuthorized(EnumPermType.EServicesSetup,true)) {
 					checkIsEnabled.Checked=false;
-					MessageBox.Show(this,errors);
+					ODMessageBox.Show(this,errors);
 					return;
 				}
 				if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Mass Email is based on usage. " +
@@ -340,7 +341,7 @@ namespace OpenDental {
 				clinicPref=new ClinicPref(comboClinic.ClinicNumSelected,PrefName.BirthdayPromotionsEnabled,checkIsEnabled.Checked);
 				_listClinicPrefsEnabledNew.Add(clinicPref);
 			}
-			clinicPref.ValueString=POut.Bool(checkIsEnabled.Checked);
+			clinicPref.ValueString=SOut.Bool(checkIsEnabled.Checked);
 			_doSetInvalidClinicPrefs=true;
 		}
 
@@ -420,14 +421,14 @@ namespace OpenDental {
 				return;//this may happen in some cases when the defaults are being used, in which case, it is okay to just return. No changes to be saved.
 			}
 			if(radioBeforeBirthday.Checked) {
-				apptReminderRule.TSPrior=new TimeSpan(PIn.Int(textDays.Text,false),0,0,0);
+				apptReminderRule.TSPrior=new TimeSpan(SIn.Int(textDays.Text,false),0,0,0);
 			}
 			else {
-				apptReminderRule.TSPrior=new TimeSpan(-PIn.Int(textDays.Text,false),0,0,0);
+				apptReminderRule.TSPrior=new TimeSpan(-SIn.Int(textDays.Text,false),0,0,0);
 			}
 			//if we do want to send for a minors bithday then the box will NOT be checked
 			apptReminderRule.IsSendForMinorsBirthday=!checkBoxSendGuarantorBirthdayForMinor.Checked;
-			apptReminderRule.MinorAge=PIn.Int(comboMinorAge.SelectedIndex.ToString());//combo box is 1:1 with age from 0 to 21
+			apptReminderRule.MinorAge=SIn.Int(comboMinorAge.SelectedIndex.ToString());//combo box is 1:1 with age from 0 to 21
 			List<ApptReminderRule> listApptReminderRules=_listApptReminderRules.FindAll(x => x.ClinicNum==apptReminderRule.ClinicNum && x.Language!="").ToList();
 			for(int i=0;i<listApptReminderRules.Count;i++){
 				listApptReminderRules[i].TSPrior=apptReminderRule.TSPrior;
@@ -463,7 +464,7 @@ namespace OpenDental {
 		private void butSave_Click(object sender,EventArgs e) {
 			string errors=ValidateCurrentSelection();
 			if(!string.IsNullOrEmpty(errors)) {
-				MessageBox.Show(this,errors);
+				ODMessageBox.Show(this,errors);
 				return;
 			}
 			try {

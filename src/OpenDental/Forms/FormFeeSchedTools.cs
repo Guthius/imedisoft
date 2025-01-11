@@ -492,14 +492,14 @@ namespace OpenDental {
 				if(listFees.Count==0) {//but there aren't any.
 					msgText="There are no overrides for clinic '"+clinicName+"' and provider '"+provName+"' "
 						+"so no fees will be updated. If you want to create overrides, first enter or copy fees into that override fee schedule.";
-					MessageBox.Show(msgText);
+					ODMessageBox.Show(msgText);
 					return false;//don't run increase tool
 				}
 				if(listFees.Count!=countTotalFeesForSched) {//
 					msgText="There are "+listFees.Count+" override fees for clinic '"+clinicName+"' and provider"
 						+" '"+provName+"' and there are "+countTotalFeesForSched+" total fees for fee schedule '"
 						+feeSchedDesc+"'. Only the "+listFees.Count+" fees will be increased.  Cancel if you want to review first.";
-					if(MessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return false;
 					}
 				}
@@ -509,7 +509,7 @@ namespace OpenDental {
 				if(listFees.Count==0) {
 					msgText="There are no overrides for clinic '"+clinicName+"' "
 						+"so no fees will be updated. If you want to create overrides, first enter or copy fees into that override fee schedule.";
-					MessageBox.Show(msgText);
+					ODMessageBox.Show(msgText);
 					return false;
 				}
 				if(listFees.Count!=countTotalFeesForSched) {
@@ -519,7 +519,7 @@ namespace OpenDental {
 						msgText="There are "+listFees.Count+" override fees for group '"+feeSchedGroup.Description+"' and there are"
 							+" "+countTotalFeesForSched+" total fees for fee schedule '"+feeSchedDesc+"'. Only the "
 							+listFees.Count+" fees will be increased. Cancel if you want to review first.";
-						if(MessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+						if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 							return false;
 						}
 					}
@@ -527,7 +527,7 @@ namespace OpenDental {
 						msgText="There are "+listFees.Count+" override fees for clinic '"+clinicName+"' and there are"
 							+" "+countTotalFeesForSched+" total fees for fee schedule '"+feeSchedDesc+"'. Only the "
 							+listFees.Count+" fees will be increased. Cancel if you want to review first.";
-						if(MessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+						if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 							return false;
 						}
 					}
@@ -538,14 +538,14 @@ namespace OpenDental {
 				if(listFees.Count==0) {
 					msgText="There are no overrides for provider '"+provName+"' "
 						+"so no fees will be updated. If you want to create overrides, first enter or copy fees into that override fee schedule.";
-					MessageBox.Show(msgText);
+					ODMessageBox.Show(msgText);
 					return false;
 				}
 				if(listFees.Count!=countTotalFeesForSched) {
 					msgText="There are "+listFees.Count+" override fees for provider '"+provName+"' and there are"
 						+" "+countTotalFeesForSched+" total fees for fee schedule '"+feeSchedDesc+"'. Only the "
 						+listFees.Count+" fees will be increased. Cancel if you want to review first.";
-					if(MessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return false;
 					}
 				}
@@ -753,7 +753,7 @@ namespace OpenDental {
 				catch(Exception ex) {
 					actionCloseFeeSchedImportCanadaProgress?.Invoke();
 					Cursor=Cursors.Default;
-					MessageBox.Show("Error: "+ex.Message);
+					ODMessageBox.Show("Error: "+ex.Message);
 					return;
 				}
 				Cursor=Cursors.Default;
@@ -763,7 +763,7 @@ namespace OpenDental {
 				XmlNode xmlNode=xmlDocument.SelectSingleNode("//Error");
 				if(xmlNode!=null) {
 					actionCloseFeeSchedImportCanadaProgress?.Invoke();
-					MessageBox.Show(xmlNode.InnerText,"Error");
+					ODMessageBox.Show(xmlNode.InnerText,"Error");
 					return;
 				}
 				xmlNode=xmlDocument.SelectSingleNode("//KeyDisabled");
@@ -775,7 +775,7 @@ namespace OpenDental {
 				}
 				else {
 					actionCloseFeeSchedImportCanadaProgress?.Invoke();
-					MessageBox.Show(xmlNode.InnerText);
+					ODMessageBox.Show(xmlNode.InnerText);
 					if(Prefs.UpdateBool(PrefName.RegistrationKeyIsDisabled,true)) {
 						DataValid.SetInvalid(InvalidType.Prefs);
 					}
@@ -796,7 +796,7 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					actionCloseFeeSchedImportCanadaProgress?.Invoke();
-					MessageBox.Show(Lan.g(this,"Failed to download fee schedule file")+": "+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Failed to download fee schedule file")+": "+ex.Message);
 					Cursor=Cursors.Default;
 					return;
 				}
@@ -842,7 +842,7 @@ namespace OpenDental {
 			if(numSkipped>0) {
 				outputMessage+=" Number skipped: "+numSkipped;
 			}
-			MessageBox.Show(outputMessage);
+			ODMessageBox.Show(outputMessage);
 		}
 
 		private void butUpdateFees_Click(object sender,EventArgs e) {
@@ -886,7 +886,7 @@ namespace OpenDental {
 					catch(ApplicationException ex) {
 						Cursor=Cursors.Default;
 						progressExtended.Close();
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;	
 					}
 					if(progressExtended.IsPaused) {
@@ -908,7 +908,7 @@ namespace OpenDental {
 				catch(ApplicationException ex) {
 					Cursor=Cursors.Default;
 					progressExtended.Close();
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;	
 				}
 			}
@@ -959,7 +959,7 @@ namespace OpenDental {
 					+Lan.g(this,"Yes - Run the tool beginning where the previous run left off.")+"\r\n\r\n"
 					+Lan.g(this,"No - Run the tool for all clinics and replace the previous run progress with the progress of this run.")+"\r\n\r\n"
 					+Lan.g(this,"Cancel - Don't run the tool and retain the previous run progress.");
-				DialogResult dialogResult=MessageBox.Show(this,msgText,"",MessageBoxButtons.YesNoCancel);
+				DialogResult dialogResult=ODMessageBox.Show(this,msgText,"",MessageBoxButtons.YesNoCancel);
 				if(dialogResult==DialogResult.Cancel) {
 					return;
 				}
@@ -982,7 +982,7 @@ namespace OpenDental {
 			catch(ApplicationException ex) {
 				Cursor=Cursors.Default;
 				progressExtended.Close();
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			finally {
 				if(progressExtended.IsCanceled) {

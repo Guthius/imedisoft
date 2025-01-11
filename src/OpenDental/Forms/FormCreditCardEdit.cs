@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -186,7 +187,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Expiration format invalid.");
 				return false;
 			}
-			if(textDateStop.Text.Trim()!="" && PIn.Date(textDateStart.Text)>PIn.Date(textDateStop.Text)) {
+			if(textDateStop.Text.Trim()!="" && SIn.Date(textDateStart.Text)>SIn.Date(textDateStop.Text)) {
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"The recurring charge start date is after the stop date.  Continue?")) {
 					return false;
 				}
@@ -207,7 +208,7 @@ namespace OpenDental {
 				}
 				if((textChargeAmt.Text=="" && comboPaymentPlans.SelectedIndex>0)
 					|| (textChargeAmt.Text=="" && textDateStart.Text.Trim()!="")
-					|| (!textChargeAmt.Text.IsNullOrEmpty() && PIn.Double(textChargeAmt.Text)<=0))
+					|| (!textChargeAmt.Text.IsNullOrEmpty() && SIn.Double(textChargeAmt.Text)<=0))
 				{
 					MsgBox.Show(this,"You need a positive charge amount for recurring charges.");
 					return false;
@@ -304,7 +305,7 @@ namespace OpenDental {
 			//Case where charge hasnt been set up previously.
 			if(_creditCard.DateStart.Year<1880 || _creditCard.ChargeFrequency=="") {
 				if(!isValid) {
-					MessageBox.Show(message);
+					ODMessageBox.Show(message);
 				}
 				return isValid;
 			}
@@ -314,7 +315,7 @@ namespace OpenDental {
 				isValid=false;
 			}
 			if(!isValid) {
-				MessageBox.Show(message);
+				ODMessageBox.Show(message);
 			}
 			return isValid;
 		}
@@ -403,7 +404,7 @@ namespace OpenDental {
 			}
 			int selectedDay=inputBox.SelectedIndex+1;
 			List<int> listCurrentDays=textDayOfMonth.Text.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries)
-				.Select(x => PIn.Int(x.Trim())).ToList();
+				.Select(x => SIn.Int(x.Trim())).ToList();
 			if(listCurrentDays.Contains(selectedDay)) {
 				MsgBox.Show(this,"The selected date has already been added.");
 				return;
@@ -457,7 +458,7 @@ namespace OpenDental {
 				textDayOfMonth.Text=_patient.BillingCycleDay.ToString();
 			}
 			else {
-				DateTime dateStart=PIn.Date(textDateStart.Text);
+				DateTime dateStart=SIn.Date(textDateStart.Text);
 				if(dateStart.Year < 1880 || textDayOfMonth.Text!="") {//if invalid date or if they already have something in the day of the month text
 					UpdateTextNextChargeDate();
 					return;
@@ -539,7 +540,7 @@ namespace OpenDental {
 					catch(Exception ex) {
 						try {
 							XWebResponse xWebResponse=EdgeExpress.CNP.DeleteAlias(_patient.PatNum,CreditCardCur.XChargeToken);
-							if(PIn.Enum<XWebResponseCodes>(xWebResponse.ResponseCode)==XWebResponseCodes.Approval) {
+							if(SIn.Enum<XWebResponseCodes>(xWebResponse.ResponseCode)==XWebResponseCodes.Approval) {
 							}
 							else {
 								throw new ODException(ex.Message,ex);
@@ -650,7 +651,7 @@ namespace OpenDental {
 				}
 			}
 			catch(PaySimpleException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				if(ex.ErrorType==PaySimpleError.CustomerDoesNotExist && MsgBox.Show(this,MsgBoxButtons.OKCancel,
 					"Delete the link to the customer id for this patient?"))
 				{
@@ -659,7 +660,7 @@ namespace OpenDental {
 				return false;
 			}
 			catch(Exception ex) {
-				if(MessageBox.Show(Lans.g(this,"Error when deleting from PaySimple:")+"\r\n"+ex.Message+"\r\n\r\n"
+				if(ODMessageBox.Show(Lans.g(this,"Error when deleting from PaySimple:")+"\r\n"+ex.Message+"\r\n\r\n"
 					+Lans.g(this,"Do you still want to delete the card from ")+PrefC.GetString(PrefName.SoftwareName)+"?",
 					"",MessageBoxButtons.YesNo)==DialogResult.No) 
 				{
@@ -688,9 +689,9 @@ namespace OpenDental {
 			CreditCardCur.CanChargeWhenNoBal=checkChrgWithNoBal.Checked;
 			CreditCardCur.IsRecurringActive=checkIsRecurringActive.Checked;
 			if(_isEdgeExpressEnabled || _isXChargeEnabled || _isPayConnectEnabled || _isPaySimpleEnabled) {//Only update recurring if using X-Charge, PayConnect,or PaySimple.
-				CreditCardCur.ChargeAmt=PIn.Double(textChargeAmt.Text);
-				CreditCardCur.DateStart=PIn.Date(textDateStart.Text);
-				CreditCardCur.DateStop=PIn.Date(textDateStop.Text);
+				CreditCardCur.ChargeAmt=SIn.Double(textChargeAmt.Text);
+				CreditCardCur.DateStart=SIn.Date(textDateStart.Text);
+				CreditCardCur.DateStop=SIn.Date(textDateStop.Text);
 				CreditCardCur.Note=textNote.Text;
 				if(comboPaymentPlans.SelectedIndex>0) {
 					CreditCardCur.PayPlanNum=_listPayPlans[comboPaymentPlans.SelectedIndex-1].PayPlanNum;
@@ -725,7 +726,7 @@ namespace OpenDental {
 					catch(Exception ex) {
 						try {
 							XWebResponse xWebResponse=EdgeExpress.CNP.UpdateAlias(_patient.PatNum,CreditCardCur.XChargeToken,CreditCardCur.CCExpiration);
-							if(PIn.Enum<XWebResponseCodes>(xWebResponse.ResponseCode)==XWebResponseCodes.Approval) {
+							if(SIn.Enum<XWebResponseCodes>(xWebResponse.ResponseCode)==XWebResponseCodes.Approval) {
 								//CNP was successful, don't throw error.
 							}
 							else {

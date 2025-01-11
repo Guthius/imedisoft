@@ -14,6 +14,7 @@ using Bridges;
 using OpenDentBusiness.com.dentalxchange.webservices;
 using Newtonsoft.Json.Converters;
 using System.Windows.Controls;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -220,7 +221,7 @@ namespace OpenDentBusiness {
 		///<summary>Returns value of Integration Type program property. 0= normal account, 1= Surcharge account.</summary>
 		public static long GetIntegrationType(long clinicNum) {
 			Program prog=Programs.GetCur(ProgramName.PayConnect);
-			return PIn.Long(ProgramProperties.GetPropVal(prog.ProgramNum,"PayConnect2.0 Integration Type: 0 for normal, 1 for surcharge",clinicNum));
+			return SIn.Long(ProgramProperties.GetPropVal(prog.ProgramNum,"PayConnect2.0 Integration Type: 0 for normal, 1 for surcharge",clinicNum));
 		}
 
 		///<summary>Throws exception if the response from the server returned an http code of 300 or greater.</summary>
@@ -231,7 +232,7 @@ namespace OpenDentBusiness {
 			using(WebClient client=new WebClient()) {
 				client.Headers[HttpRequestHeader.ContentType]="application/json";
 				listHeaders.ForEach(x => client.Headers.Add(x));
-				client.Encoding=UnicodeEncoding.UTF8;
+				client.Encoding=Encoding.UTF8;
 				PayConnect2Response response=new PayConnect2Response();
 				string res="";
 				try {

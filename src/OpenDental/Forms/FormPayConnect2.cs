@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
@@ -72,7 +73,7 @@ namespace OpenDental {
 			}
 			textAmount.Text=_amount.ToString();
 			//Hide it here to override the enable/disable changes between terminal/webservice checked methods.
-			checkSaveToken.Visible=!PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum));
+			checkSaveToken.Visible=!SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum));
 			if(_patient==null) {//Prepaid card
 				radioAuthorization.Enabled=false;
 				radioVoid.Enabled=false;
@@ -83,7 +84,7 @@ namespace OpenDental {
 			else {//Other cards
 				checkSaveToken.Checked=PrefC.GetBool(PrefName.StoreCCtokens);
 			}
-			if(!PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,"TerminalProcessingEnabled",_clinicNum))){
+			if(!SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,"TerminalProcessingEnabled",_clinicNum))){
 				groupProcessMethod.Visible=false;
 				//it is hidden but is still "checked" so the process transaction method knows which service to use.
 				radioWebService.Checked=true;
@@ -167,7 +168,7 @@ namespace OpenDental {
 					}
 					catch(Exception ex){
 						SecurityLogs.MakeLogEntry(EnumPermType.CreditCardTerminal,_patient.PatNum,"No response received.");
-						MessageBox.Show(Lan.g(this,"A payment was initiated but no response was received. The payment may or may not have processed."
+						ODMessageBox.Show(Lan.g(this,"A payment was initiated but no response was received. The payment may or may not have processed."
 							+" Verify payment with your Credit Card merchant."),ex.Message);
 						return false;
 					}

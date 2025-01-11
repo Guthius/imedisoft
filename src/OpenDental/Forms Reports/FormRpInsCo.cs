@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using System.Data;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -24,7 +25,7 @@ namespace OpenDental{
 		}
 
 		private void butOK_Click(object sender, System.EventArgs e) {
-			carrier= PIn.String(textBoxCarrier.Text);
+			carrier= SIn.String(textBoxCarrier.Text);
 			ReportComplex report=new ReportComplex(true,false);
 			DataTable table=RpInsCo.GetInsCoTable(carrier);
 			Font fontMain=new Font("Tahoma",8);

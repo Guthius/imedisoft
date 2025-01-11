@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;
 
@@ -95,7 +96,7 @@ namespace OpenDental{
 			textCommandLine.Text=ProgramCur.CommandLine;
 			textPluginDllName.Text=ProgramCur.PluginDllName;
 			textNote.Text=ProgramCur.Note;
-			pictureBox.Image=PIn.Bitmap(ProgramCur.ButtonImage);
+			pictureBox.Image=SIn.Bitmap(ProgramCur.ButtonImage);
 			List<ToolButItem> listToolButItems=ToolButItems.GetForProgram(ProgramCur.ProgramNum);
 			listToolBars.Items.Clear();
 			listToolBars.Items.AddEnums<EnumToolBar>();
@@ -221,7 +222,7 @@ namespace OpenDental{
 			try {
 				Image imageImported=Image.FromFile(importFilePath);
 				if(imageImported.Size!=new Size(22,22)) {
-					MessageBox.Show(Lan.g(this,"Required image dimensions are 22x22.")
+					ODMessageBox.Show(Lan.g(this,"Required image dimensions are 22x22.")
 						+"\r\n"+Lan.g(this,"Selected image dimensions are")+": "+imageImported.Size.Width+"x"+imageImported.Size.Height);
 					return;
 				}
@@ -292,7 +293,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Not allowed to delete a program link with an internal name.");
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete this program link?"),"",MessageBoxButtons.OKCancel)
+			if(ODMessageBox.Show(Lan.g(this,"Delete this program link?"),"",MessageBoxButtons.OKCancel)
 				!=DialogResult.OK){
 				return;
 			}
@@ -326,7 +327,7 @@ namespace OpenDental{
 			}
 			if(checkEnabled.Checked && textPluginDllName.Text!="") {
 				if(/* ODEnvironment.IsCloudServer */ false) {
-					MessageBox.Show(Lan.g(this,"Plugins are not allowed while using Open Dental Cloud."));
+					ODMessageBox.Show(Lan.g(this,"Plugins are not allowed while using Open Dental Cloud."));
 					return;
 				}
 				string dllPath=ODFileUtils.CombinePaths(Application.StartupPath,textPluginDllName.Text);
@@ -335,7 +336,7 @@ namespace OpenDental{
 					dllPath = dllPath.Replace("[VersionMajMin]","");//now stripped clean
 				}
 				if(!File.Exists(dllPath)) {
-					MessageBox.Show(Lan.g(this,"Dll file not found:")+" "+dllPath);
+					ODMessageBox.Show(Lan.g(this,"Dll file not found:")+" "+dllPath);
 					return;
 				}
 			}
@@ -355,7 +356,7 @@ namespace OpenDental{
 			ProgramCur.CommandLine=textCommandLine.Text;
 			ProgramCur.PluginDllName=textPluginDllName.Text;
 			ProgramCur.Note=textNote.Text;
-			ProgramCur.ButtonImage=POut.Bitmap((Bitmap)pictureBox.Image,System.Drawing.Imaging.ImageFormat.Png);
+			ProgramCur.ButtonImage=SOut.Bitmap((Bitmap)pictureBox.Image,System.Drawing.Imaging.ImageFormat.Png);
 			if(IsNew){
 				Programs.Insert(ProgramCur);
 			}

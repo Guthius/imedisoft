@@ -11,6 +11,7 @@ using CodeBase;
 using System.Collections.Generic;
 using OpenDental.Thinfinity;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -138,7 +139,7 @@ namespace OpenDental{
 				_tableAccounts=Accounts.GetFullList(DateTime.Today,checkInactive.Checked);
 			}
 			else{
-				_tableAccounts=Accounts.GetFullList(PIn.Date(textDate.Text),checkInactive.Checked);
+				_tableAccounts=Accounts.GetFullList(SIn.Date(textDate.Text),checkInactive.Checked);
 			}
 			for(int i=0;i<_tableAccounts.Rows.Count;i++){
 				row=new GridRow();
@@ -152,7 +153,7 @@ namespace OpenDental{
 				{
 					row.ColorLborder=Color.Black;
 				}
-				row.ColorBackG=Color.FromArgb(PIn.Int(_tableAccounts.Rows[i]["color"].ToString()));
+				row.ColorBackG=Color.FromArgb(SIn.Int(_tableAccounts.Rows[i]["color"].ToString()));
 				gridMain.ListGridRows.Add(row);
 			}
 			gridMain.EndUpdate();
@@ -173,7 +174,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please pick an account first.");
 				return;
 			}
-			long accountNum=PIn.Long(_tableAccounts.Rows[gridMain.GetSelectedIndex()]["AccountNum"].ToString());
+			long accountNum=SIn.Long(_tableAccounts.Rows[gridMain.GetSelectedIndex()]["AccountNum"].ToString());
 			if(accountNum==0) {
 				MsgBox.Show(this,"This account is generated automatically, and cannot be edited.");
 				return;
@@ -194,7 +195,7 @@ namespace OpenDental{
 		///<summary>Takes in either a comma or tab delimiter to determine if the export should be .csv or .txt. Passing in a comma is for .csv and passing in a tab is for .txt.</summary>
 		private void Export_Click(string delimiter) {
 			if(gridMain.ListGridRows.Count==0) {
-				MessageBox.Show(Lan.g(this,"Nothing to export"));
+				ODMessageBox.Show(Lan.g(this,"Nothing to export"));
 				return;
 			}
 			string filePath;
@@ -250,7 +251,7 @@ namespace OpenDental{
 				streamWriter=new StreamWriter(filePath,false);
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+				ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
 			String line="";
@@ -270,7 +271,7 @@ namespace OpenDental{
 				streamWriter.WriteLine(line);
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+				ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
 			string cell;
@@ -294,17 +295,17 @@ namespace OpenDental{
 					streamWriter.WriteLine(line);
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+					ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 					return;
 				}
 			}
 			streamWriter.Close();
 			streamWriter.Dispose();
-			MessageBox.Show(Lan.g(this,"File created successfully"));
+			ODMessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			long accountNum=PIn.Long(_tableAccounts.Rows[e.Row]["AccountNum"].ToString());
+			long accountNum=SIn.Long(_tableAccounts.Rows[e.Row]["AccountNum"].ToString());
 			if(accountNum==0) {
 				MsgBox.Show(this,"This account is generated automatically, and there is currently no way to view the detail.  It is the sum of all income minus all expenses for all previous years.");
 				return;
@@ -314,7 +315,7 @@ namespace OpenDental{
 				asofDate=DateTime.Today;
 			}
 			else{
-				asofDate=PIn.Date(textDate.Text);
+				asofDate=SIn.Date(textDate.Text);
 			}
 			Account account=Accounts.GetAccount(accountNum);
 			using FormJournal formJournal=new FormJournal(account);

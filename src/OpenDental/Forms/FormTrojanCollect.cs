@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -128,14 +129,14 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix debt amount.");
 				return;
 			}
-			double amtDebt=PIn.Double(textAmount.Text);
+			double amtDebt=SIn.Double(textAmount.Text);
 			if(!textDate.IsValid()) {
 				MsgBox.Show(this,"Date is not valid.");
 				return;
 			}
-			DateTime dateDelinquency=PIn.Date(textDate.Text);
+			DateTime dateDelinquency=SIn.Date(textDate.Text);
 			if(dateDelinquency.Year<1950) {
-				MessageBox.Show("Date is not valid.");
+				ODMessageBox.Show("Date is not valid.");
 				return;
 			}
 			if(dateDelinquency>DateTime.Today) {
@@ -153,7 +154,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Export folder has not been setup yet.  Please go to Setup at the top of this window.");
 				return;
 			}
-			long billingType=PIn.Long(ProgramProperties.GetPropVal(programNum,"BillingType"));
+			long billingType=SIn.Long(ProgramProperties.GetPropVal(programNum,"BillingType"));
 			if(billingType==0) {
 				MsgBox.Show(this,"Billing type has not been setup yet.  Please go to Setup at the top of this window.");
 				return;
@@ -161,7 +162,7 @@ namespace OpenDental {
 			Cursor=Cursors.WaitCursor;
 			if(!File.Exists(ODFileUtils.CombinePaths(folderPath,"TROBEN.HB"))){
 				Cursor=Cursors.Default;
-				MessageBox.Show(Lan.g(this,"The Trojan Communicator is not installed or is not configured for the folder")+": "
+				ODMessageBox.Show(Lan.g(this,"The Trojan Communicator is not installed or is not configured for the folder")+": "
 					+folderPath+".  "+Lan.g(this,"Please contact Trojan Software Support at 800-451-9723 x1 or x2"));
 				return;
 			}

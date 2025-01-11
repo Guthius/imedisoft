@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -111,7 +113,7 @@ namespace OpenDental{
 			if(formRxNorms.DialogResult!=DialogResult.OK) {
 				return;
 			}
-			MedicationCur.RxCui=PIn.Long(formRxNorms.RxNormSelected.RxCui);
+			MedicationCur.RxCui=SIn.Long(formRxNorms.RxNormSelected.RxCui);
 			textRxNormDesc.Text=RxNorms.GetDescByRxCui(MedicationCur.RxCui.ToString());
 			if(IsNew) {
 				textMedName.Text=RxNorms.GetDescByRxCui(MedicationCur.RxCui.ToString());
@@ -128,7 +130,7 @@ namespace OpenDental{
 				Medications.Delete(MedicationCur);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 				return;
 			}
 			DataValid.SetInvalid(InvalidType.Medications);

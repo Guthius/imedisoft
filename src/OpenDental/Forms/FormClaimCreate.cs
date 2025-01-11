@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -139,7 +140,7 @@ namespace OpenDental{
 
 		private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
 			if(listRelat.SelectedIndex==-1) {
-				MessageBox.Show(Lan.g(this,"Please select a relationship first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a relationship first."));
 				return;
 			}
 			RelatPat=(Relat)listRelat.SelectedIndex;
@@ -150,11 +151,11 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select a plan first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a plan first."));
 				return;
 			}
 			if(listRelat.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select a relationship first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a relationship first."));
 				return;
 			}
 			//if(comboClaimForm.SelectedIndex==-1) {

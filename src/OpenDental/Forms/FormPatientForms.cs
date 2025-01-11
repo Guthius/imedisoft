@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -74,9 +75,9 @@ namespace OpenDental {
 			long docNumSelected=0;
 			if(gridMain.GetSelectedIndex()!=-1) {
 				DataRow dataRow=(DataRow)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-				sheetNumSelected=PIn.Long(dataRow["SheetNum"].ToString());
-				eFormNumSelected=PIn.Long(dataRow["EFormNum"].ToString());
-				docNumSelected=PIn.Long(dataRow["DocNum"].ToString());
+				sheetNumSelected=SIn.Long(dataRow["SheetNum"].ToString());
+				eFormNumSelected=SIn.Long(dataRow["EFormNum"].ToString());
+				docNumSelected=SIn.Long(dataRow["DocNum"].ToString());
 			}
 			//Fill Grid.
 			gridMain.BeginUpdate();
@@ -136,7 +137,7 @@ namespace OpenDental {
 			DataRow dataRow=(DataRow)gridMain.ListGridRows[e.Row].Tag;
 			//Images
 			//Hold onto docNum so Image module refresh persists selection when closing FormPatientForms.
-			DocNum=PIn.Long(dataRow["DocNum"].ToString());//Set to 0 if not a Document, i.e. a Sheet.
+			DocNum=SIn.Long(dataRow["DocNum"].ToString());//Set to 0 if not a Document, i.e. a Sheet.
 			if(DocNum!=0) {
 				if(!Security.IsAuthorized(EnumPermType.ImagingModule)) {
 					return;
@@ -145,14 +146,14 @@ namespace OpenDental {
 				return;
 			}
 			//Sheets
-			long sheetNum=PIn.Long(dataRow["SheetNum"].ToString());
+			long sheetNum=SIn.Long(dataRow["SheetNum"].ToString());
 			if(sheetNum!=0){
 				Sheet sheet=Sheets.GetSheet(sheetNum);
 				FormSheetFillEdit.ShowForm(sheet,FormSheetFillEdit_FormClosing);
 				return;
 			}
 			//EForms
-			long eFormNum=PIn.Long(dataRow["EFormNum"].ToString());
+			long eFormNum=SIn.Long(dataRow["EFormNum"].ToString());
 			if(eFormNum!=0){
 				EForm eForm=EForms.GetEForm(eFormNum);
 				FrmEFormFillEdit frmEFormFillEdit=new FrmEFormFillEdit();
@@ -341,7 +342,7 @@ namespace OpenDental {
 				return;
 			}
 			DataRow dataRow=(DataRow)gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag;
-			long sheetNum=PIn.Long(dataRow["SheetNum"].ToString());
+			long sheetNum=SIn.Long(dataRow["SheetNum"].ToString());
 			if(sheetNum==0) {
 				MsgBox.Show(this,"Must select a sheet.");
 				return;
@@ -397,7 +398,7 @@ namespace OpenDental {
 				return;
 			}
 			DataRow dataRow=(DataRow)gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag;
-			long sheetNum=PIn.Long(dataRow["SheetNum"].ToString());
+			long sheetNum=SIn.Long(dataRow["SheetNum"].ToString());
 			if(sheetNum==0) {
 				MsgBox.Show(this,"Must select a sheet.");
 				return;
@@ -435,7 +436,7 @@ namespace OpenDental {
 				return;
 			}
 			DataRow dataRow=(DataRow)gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag;
-			long docNum=PIn.Long(dataRow["DocNum"].ToString());
+			long docNum=SIn.Long(dataRow["DocNum"].ToString());
 			if(docNum!=0) {
 				//document=Documents.GetByNum(docNum);
 				//Pdf importing broke with dot net 4.0 and was enver reimplemented.
@@ -448,8 +449,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"PDFs cannot be imported into the database.");
 				return;
 			}
-			long sheetNum=PIn.Long(dataRow["SheetNum"].ToString());
-			long eFormNum=PIn.Long(dataRow["EFormNum"].ToString());
+			long sheetNum=SIn.Long(dataRow["SheetNum"].ToString());
+			long eFormNum=SIn.Long(dataRow["EFormNum"].ToString());
 			Sheet sheet=null;
 			if(sheetNum!=0) {
 				sheet=Sheets.GetSheet(sheetNum);

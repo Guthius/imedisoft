@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -33,14 +35,14 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+			if(ODMessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 				return;
 			}
 			try {
 				MedicalOrders.Delete(MedOrderCur.MedicalOrderNum);
 			}
 			catch (Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -48,14 +50,14 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(textDescription.Text=="") {
-				MessageBox.Show(this,"Please enter a description.");
+				ODMessageBox.Show(this,"Please enter a description.");
 				return;
 			} 
 			try {
-				MedOrderCur.DateTimeOrder=PIn.DateTime(textDateTime.Text);
+				MedOrderCur.DateTimeOrder=SIn.DateTime(textDateTime.Text);
 			}
 			catch {
-				MessageBox.Show(this,"Please enter a Date Time with format DD/MM/YYYY HH:mm AM/PM");
+				ODMessageBox.Show(this,"Please enter a Date Time with format DD/MM/YYYY HH:mm AM/PM");
 			}
 			MedOrderCur.Description=textDescription.Text;
 			MedOrderCur.IsDiscontinued=checkIsDiscontinued.Checked;

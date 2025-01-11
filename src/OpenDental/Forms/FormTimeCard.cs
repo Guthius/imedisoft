@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -247,12 +248,12 @@ namespace OpenDental{
 		///<summary>fromDB is set to false when it is refreshing every second so that there will be no extra network traffic.</summary>
 		private void FillMain(bool fromDB){
 			if(fromDB){
-				_listClockEvents=ClockEvents.Refresh(EmployeeCur.EmployeeNum,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text),IsBreaks);
+				_listClockEvents=ClockEvents.Refresh(EmployeeCur.EmployeeNum,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text),IsBreaks);
 				if(IsBreaks){
 					_listTimeAdjusts=new List<TimeAdjust>();
 				}
 				else{
-					_listTimeAdjusts=TimeAdjusts.Refresh(EmployeeCur.EmployeeNum,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+					_listTimeAdjusts=TimeAdjusts.Refresh(EmployeeCur.EmployeeNum,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 				}
 			}
 			_listTimeAdjusts.RemoveAll(x => x.TimeAdjustNum==_timeAdjustNote.TimeAdjustNum);//Do not show the note row in the grid.
@@ -733,8 +734,8 @@ namespace OpenDental{
 			if(true) {
 				adjust.ClinicNum=Clinics.ClinicNum;
 			}
-			DateTime dateStop=PIn.Date(textDateStop.Text);
-			if(DateTime.Today<=dateStop && DateTime.Today>=PIn.Date(textDateStart.Text)) {
+			DateTime dateStop=SIn.Date(textDateStop.Text);
+			if(DateTime.Today<=dateStop && DateTime.Today>=SIn.Date(textDateStart.Text)) {
 				adjust.TimeEntry=DateTime.Now;
 			}
 			else {
@@ -771,7 +772,7 @@ namespace OpenDental{
 				TimeCardRules.CalculateWeeklyOvertime(EmployeeCur,_listPayPeriods[IdxPayPeriodSelected]);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 			}
 			FillMain(true);
 		}
@@ -793,19 +794,19 @@ namespace OpenDental{
 			}
 			string errors=TimeCardRules.ValidateOvertimeRules(new List<long>{EmployeeCur.EmployeeNum});
 			if(errors != "") {
-				MessageBox.Show(this,"Please fix the following timecard rule errors first:\r\n"+errors);
+				ODMessageBox.Show(this,"Please fix the following timecard rule errors first:\r\n"+errors);
 				return;
 			}
-			errors=TimeCardRules.ValidatePayPeriod(EmployeeCur,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+			errors=TimeCardRules.ValidatePayPeriod(EmployeeCur,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 			if(errors != "") {
-				MessageBox.Show(this,errors);
+				ODMessageBox.Show(this,errors);
 				return;
 			}
 			try {
-				TimeCardRules.CalculateDailyOvertime(EmployeeCur,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+				TimeCardRules.CalculateDailyOvertime(EmployeeCur,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 			}
 			FillMain(true);
 		}

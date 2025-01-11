@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using CodeBase;
 using OpenDental.UI;
 
 namespace OpenDental{
@@ -123,7 +124,7 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1) {
-				MessageBox.Show(Lan.g(this,"Please select a payment plan first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a payment plan first."));
 				return;
 			}
 			PayPlanNumSelected=(long)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;

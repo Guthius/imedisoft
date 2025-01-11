@@ -128,7 +128,7 @@ private void MenuItem_Click(object sender,EventArgs e) {
 				if(e.Key.ToString().ToLower()!=listMenuItems[i].Shortcut.ToLower()){
 					continue;
 				}
-				listMenuItems[i].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+				listMenuItems[i].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.MenuItem.ClickEvent));
 			}
 		}
 

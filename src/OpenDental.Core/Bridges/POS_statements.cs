@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Xml;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -62,7 +63,7 @@ namespace OpenDentBusiness.Bridges {
 			if(PrefC.GetBool(PrefName.StatementAccountsUseChartNumber)) {
 				writer.WriteElementString("Account",guar.ChartNumber);
 			} else {
-				writer.WriteElementString("Account",POut.Long(guar.PatNum));
+				writer.WriteElementString("Account",SOut.Long(guar.PatNum));
 			}
 			writer.WriteElementString("Address1",guar.Address);
 			writer.WriteElementString("Address2",guar.Address2);
@@ -90,7 +91,7 @@ namespace OpenDentBusiness.Bridges {
 			double balanceForward=0;
 			for(int r=0;r<dataSet.Tables["misc"].Rows.Count;r++){
 				if(dataSet.Tables["misc"].Rows[r]["descript"].ToString()=="balanceForward"){
-					balanceForward=PIn.Double(dataSet.Tables["misc"].Rows[r]["value"].ToString());
+					balanceForward=SIn.Double(dataSet.Tables["misc"].Rows[r]["value"].ToString());
 				}
 			}
 			writer.WriteElementString("PriorBalance",balanceForward.ToString("F2"));
@@ -102,14 +103,14 @@ namespace OpenDentBusiness.Bridges {
 			}
 			double credits=0;
 			for(int i=0;i<tableAccount.Rows.Count;i++) {
-				credits+=PIn.Double(tableAccount.Rows[i]["creditsDouble"].ToString());
+				credits+=SIn.Double(tableAccount.Rows[i]["creditsDouble"].ToString());
 			}
 			writer.WriteElementString("Credits",credits.ToString("F2"));
 			decimal payPlanDue=0;
 			double amountDue=guar.BalTotal;
 			for(int m=0;m<dataSet.Tables["misc"].Rows.Count;m++) {
 				if(dataSet.Tables["misc"].Rows[m]["descript"].ToString()=="payPlanDue") {
-					payPlanDue+=PIn.Decimal(dataSet.Tables["misc"].Rows[m]["value"].ToString());//This will be an option once more users are using it.
+					payPlanDue+=SIn.Decimal(dataSet.Tables["misc"].Rows[m]["value"].ToString());//This will be an option once more users are using it.
 				}
 			}
 			writer.WriteElementString("PayPlanDue",payPlanDue.ToString("F2"));

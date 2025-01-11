@@ -4,6 +4,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -118,7 +119,7 @@ namespace OpenDental {
 		}
 
 		private void GenerateSemiMonthlyPayPeriods() {
-			int numPeriods=PIn.Int(textPayPeriods.Text);
+			int numPeriods=SIn.Int(textPayPeriods.Text);
 			int numPeriodsGenerated=0;
 			int daysAfterPayPeriod=textDaysAfterPayPeriod.Value;
 			bool hasChosenEndDates=radioEndDate.Checked;
@@ -136,8 +137,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			int period1Day=PIn.Int(textDay1.Text);
-			int period2Day=PIn.Int(textDay2.Text);
+			int period1Day=SIn.Int(textDay1.Text);
+			int period2Day=SIn.Int(textDay2.Text);
 			if(period2Day<=period1Day && !checkLast.Checked) {
 				MsgBox.Show(this,"Period 2 day must be later than period 1 day.");
 				return;
@@ -341,7 +342,7 @@ namespace OpenDental {
 				return;
 			}
 			_listPayPeriods.Clear();
-			int numPeriods=PIn.Int(textPayPeriods.Text);
+			int numPeriods=SIn.Int(textPayPeriods.Text);
 			PayPeriodInterval payPeriodInterval=PayPeriodInterval.Weekly;
 			if(radioBiWeekly.Checked) {
 				payPeriodInterval=PayPeriodInterval.BiWeekly;
@@ -376,7 +377,7 @@ namespace OpenDental {
 					continue;
 				}
 				//# days specified, use "Exclude Weekends" checkbox as well as "Pay Before" and "Pay After" buttons.
-				payPeriod.DatePaycheck=payPeriod.DateStop.AddDays(PIn.Int(textDaysAfterPayPeriod.Text));
+				payPeriod.DatePaycheck=payPeriod.DateStop.AddDays(SIn.Int(textDaysAfterPayPeriod.Text));
 				if(payPeriod.DatePaycheck.DayOfWeek==DayOfWeek.Saturday && checkExcludeWeekends.Checked) {
 					if(radioPayBefore.Checked) {
 						if(payPeriod.DatePaycheck.Subtract(TimeSpan.FromDays(1))<=payPeriod.DateStop) {//Can't move the paycheck date to the same day (or before) than the date end.
@@ -538,7 +539,7 @@ namespace OpenDental {
 				Prefs.UpdateInt(PrefName.PayPeriodIntervalSetting,(int)PayPeriodInterval.SemiMonthly);
 			}
 			Prefs.UpdateInt(PrefName.PayPeriodPayDay,comboDay.SelectedIndex);
-			Prefs.UpdateInt(PrefName.PayPeriodPayAfterNumberOfDays,PIn.Int(textDaysAfterPayPeriod.Text));
+			Prefs.UpdateInt(PrefName.PayPeriodPayAfterNumberOfDays,SIn.Int(textDaysAfterPayPeriod.Text));
 			Prefs.UpdateBool(PrefName.PayPeriodPayDateExcludesWeekends,checkExcludeWeekends.Checked);
 			if(radioPayBefore.Checked) {
 				Prefs.UpdateBool(PrefName.PayPeriodPayDateBeforeWeekend,true);

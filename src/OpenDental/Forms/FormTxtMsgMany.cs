@@ -107,7 +107,7 @@ namespace OpenDental {
 		private bool SendText(PatComm patComm,long clinicNum,string message) {	
 			if(!patComm.IsSmsAnOption)	{
 				Cursor=Cursors.Default;
-				MessageBox.Show(Lan.g(this,"It is not OK to text patient")+" "+patComm.FName+" "+patComm.LName+".");
+				ODMessageBox.Show(Lan.g(this,"It is not OK to text patient")+" "+patComm.FName+" "+patComm.LName+".");
 				Cursor=Cursors.WaitCursor;
 				return false;
 			}
@@ -130,7 +130,7 @@ namespace OpenDental {
 			}
 			if(true && !Clinics.IsTextingEnabled(_clinicNum)) { //Checking for specific clinic.
 				if(_clinicNum!=0) {
-					MessageBox.Show(Lans.g(this,"Integrated Texting has not been enabled for the following clinic")+":\r\n"+Clinics.GetClinic(_clinicNum).Description+".");
+					ODMessageBox.Show(Lans.g(this,"Integrated Texting has not been enabled for the following clinic")+":\r\n"+Clinics.GetClinic(_clinicNum).Description+".");
 					return;
 				}
 				//Should never happen. This message is precautionary.
@@ -154,7 +154,7 @@ namespace OpenDental {
 					string errorMsg=Lan.g(this,"There was an error sending to")+" "+listListsPatComms[i].First().WirelessPhone+". "
 						+odex.Message+" "
 						+Lan.g(this,"Do you want to continue sending messages?");
-					if(MessageBox.Show(errorMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) {
+					if(ODMessageBox.Show(errorMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) {
 						break;
 					}
 					Cursor=Cursors.WaitCursor;
@@ -163,14 +163,14 @@ namespace OpenDental {
 					Cursor=Cursors.Default;
 					string errorMsg=Lan.g(this,"There was an error sending to")+" "+listListsPatComms[i].First().WirelessPhone+". "
 						+Lan.g(this,"Do you want to continue sending messages?");
-					if(MessageBox.Show(errorMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) {
+					if(ODMessageBox.Show(errorMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) {
 						break;
 					}
 					Cursor=Cursors.WaitCursor;
 				}
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show(numTextsSent+" "+Lan.g(this,"texts sent successfully."));
+			ODMessageBox.Show(numTextsSent+" "+Lan.g(this,"texts sent successfully."));
 			DialogResult=DialogResult.OK;
 			Close();
 		}

@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using CodeBase;
 using System.Collections.Generic;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental{
 	///<summary>Form that displays the editable fields of a payplan charge.</summary>
@@ -69,11 +70,11 @@ namespace OpenDental{
 			FillComboProv();
 			if(PayPlanChargeCur.SecDateTEntry==DateTime.MinValue) {
 				//First time form is ever opened and the date isn't saved to the db yet, show the current datetime
-				textDateEntry.Text=POut.DateTime(DateTime.Now,false);
+				textDateEntry.Text=SOut.DateTime(DateTime.Now,false);
 			}
 			else {
 				//Returning to the form, pull the stored datetime
-				textDateEntry.Text=POut.DateTime(PayPlanChargeCur.SecDateTEntry,false);
+				textDateEntry.Text=SOut.DateTime(PayPlanChargeCur.SecDateTEntry,false);
 			}
 			if(PayPlanChargeCur.SecDateTEdit==DateTime.MinValue) {
 				//Until job B15806 is complete, regaurding how MySQL 5.7 handles timestamps, SectDateTEdit will always show as MinValue for the user.
@@ -81,7 +82,7 @@ namespace OpenDental{
 			}
 			else {
 				//Edits exist, show stored datetime
-				textDateEdit.Text=POut.DateTime(PayPlanChargeCur.SecDateTEdit,false);
+				textDateEdit.Text=SOut.DateTime(PayPlanChargeCur.SecDateTEdit,false);
 			}
 			//Do not let the user edit certain fields when APR is present.
 			if(!CompareDouble.IsZero(_payPlan.APR)) {
@@ -127,16 +128,16 @@ namespace OpenDental{
 				|| !textPrincipal.IsValid()
 				|| !textInterest.IsValid())
 			{
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			if(textNote.Text.Contains("Down Payment")) {
-				MessageBox.Show(Lan.g(this,"The phrase 'Down Payment' cannot be used in the notes."));
+				ODMessageBox.Show(Lan.g(this,"The phrase 'Down Payment' cannot be used in the notes."));
 				return;
 			}
-			DateTime chargeDate=PIn.Date(textDate.Text);
-			double principal=PIn.Double(textPrincipal.Text);
-			double interest=PIn.Double(textInterest.Text);
+			DateTime chargeDate=SIn.Date(textDate.Text);
+			double principal=SIn.Double(textPrincipal.Text);
+			double interest=SIn.Double(textInterest.Text);
 			if(_payPlan.IsDynamic) {
 				if(PayPlanChargeCur.IsDebitAdjustment && principal<0) {
 					MsgBox.Show(this,"Payment plan adjustments cannot have negative principal.");

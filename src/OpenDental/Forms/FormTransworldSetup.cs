@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -85,7 +86,7 @@ namespace OpenDental {
 			comboSendFrequencyUnits.Items.AddList(Enum.GetNames(typeof(FrequencyUnit)));
 			string[] stringArraySendFreqs=PrefC.GetString(PrefName.TransworldServiceSendFrequency).Split(new char[] { ' ' },StringSplitOptions.RemoveEmptyEntries);
 			if(stringArraySendFreqs.Length==2) {
-				int sendFreq=PIn.Int(stringArraySendFreqs[0],false);
+				int sendFreq=SIn.Int(stringArraySendFreqs[0],false);
 				FrequencyUnit sendFreqUnit;
 				if(sendFreq>0 && Enum.TryParse(stringArraySendFreqs[1],out sendFreqUnit)) {
 					numericSendFrequency.Value=sendFreq;
@@ -153,7 +154,7 @@ namespace OpenDental {
 						textClientIdCollection.Text=listProgramPropertiesClinic[i].PropertyValue;
 						continue;
 					case "IsThankYouLetterEnabled":
-						checkThankYouLetter.Checked=PIn.Bool(listProgramPropertiesClinic[i].PropertyValue);
+						checkThankYouLetter.Checked=SIn.Bool(listProgramPropertiesClinic[i].PropertyValue);
 						continue;
 					case "SelectedServices":
 						checkAccelService.Checked=listProgramPropertiesClinic[i].PropertyValue.Contains(((int)TsiServiceType.Accelerator).ToString());
@@ -161,10 +162,10 @@ namespace OpenDental {
 						checkCollService.Checked=listProgramPropertiesClinic[i].PropertyValue.Contains(((int)TsiServiceType.ProfessionalCollections).ToString());
 						continue;
 					case "SyncExcludePosAdjType":
-							comboPosAdjType.SetSelectedDefNum(PIn.Long(listProgramPropertiesClinic[i].PropertyValue)); 
+							comboPosAdjType.SetSelectedDefNum(SIn.Long(listProgramPropertiesClinic[i].PropertyValue)); 
 						continue;
 					case "SyncExcludeNegAdjType":
-							comboNegAdjType.SetSelectedDefNum(PIn.Long(listProgramPropertiesClinic[i].PropertyValue));
+							comboNegAdjType.SetSelectedDefNum(SIn.Long(listProgramPropertiesClinic[i].PropertyValue));
 						continue;
 				}
 			}
@@ -222,19 +223,19 @@ namespace OpenDental {
 						listProgramProperties[i].PropertyValue=textClientIdCollection.Text;
 						continue;
 					case "IsThankYouLetterEnabled":
-						listProgramProperties[i].PropertyValue=POut.Bool(checkThankYouLetter.Checked);
+						listProgramProperties[i].PropertyValue=SOut.Bool(checkThankYouLetter.Checked);
 						continue;
 					case "Disable Advertising":
 						_dictionaryClinicListProgProps.Values.SelectMany(x => x.Where(y => y.PropertyDesc=="Disable Advertising")).ToList()
-							.ForEach(y => y.PropertyValue=POut.Bool(checkHideButtons.Checked));
-						listProgramProperties[i].PropertyValue=POut.Bool(checkHideButtons.Checked);//in case list is for a new clinic and not in dict
+							.ForEach(y => y.PropertyValue=SOut.Bool(checkHideButtons.Checked));
+						listProgramProperties[i].PropertyValue=SOut.Bool(checkHideButtons.Checked);//in case list is for a new clinic and not in dict
 						continue;
 					case "Disable Advertising HQ":
 						//false if prop is null or if the value is anything but "1"
 						bool isAdvertDisabledHQ=(listProgramPropertiesHq.FirstOrDefault(x => x.PropertyDesc=="Disable Advertising HQ")?.PropertyValue=="1");
 						_dictionaryClinicListProgProps.Values.SelectMany(x => x.Where(y => y.PropertyDesc=="Disable Advertising HQ")).ToList()
-							.ForEach(x => x.PropertyValue=POut.Bool(isAdvertDisabledHQ));//in case list is for a new clinic and not in dict
-						listProgramProperties[i].PropertyValue=POut.Bool(isAdvertDisabledHQ);
+							.ForEach(x => x.PropertyValue=SOut.Bool(isAdvertDisabledHQ));//in case list is for a new clinic and not in dict
+						listProgramProperties[i].PropertyValue=SOut.Bool(isAdvertDisabledHQ);
 						continue;
 					case "SelectedServices":
 						List<int> listSelectedServices=new List<int>();
@@ -345,7 +346,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(checkEnabled.Checked && !Programs.IsEnabledByHq(ProgramName.Transworld,out string err)) {
-				MessageBox.Show(err);
+				ODMessageBox.Show(err);
 				return;
 			}
 			if(!textSftpPort.IsValid()) {
@@ -382,7 +383,7 @@ namespace OpenDental {
 			DataValid.SetInvalid(InvalidType.Programs);
 			string updateFreq=numericSendFrequency.Value+" "+(FrequencyUnit)comboSendFrequencyUnits.SelectedIndex;
 			bool hasChanged=false;
-			if(Prefs.UpdateString(PrefName.TransworldServiceTimeDue,accountUpdatesRuntime==DateTime.MinValue?"":POut.Time(accountUpdatesRuntime.TimeOfDay,false))
+			if(Prefs.UpdateString(PrefName.TransworldServiceTimeDue,accountUpdatesRuntime==DateTime.MinValue?"":SOut.Time(accountUpdatesRuntime.TimeOfDay,false))
 				| Prefs.UpdateString(PrefName.TransworldServiceSendFrequency,updateFreq))
 			{
 				Prefs.UpdateDateT(PrefName.TransworldDateTimeLastUpdated,DateTime.MinValue);

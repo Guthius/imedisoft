@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDentBusiness.Crud;
 
@@ -52,7 +53,7 @@ namespace OpenDental {
 			FrequencyOptions frequencyOptions=listBoxTimePeriod.GetSelected<FrequencyOptions>();
 			bool isCalendarYr=InsPlans.GetPlan(BenefitCur.PlanNum, null).MonthRenew==0;
 			BenefitCur.SetFrequencyOption(frequencyOptions,isCalendarYr);
-			BenefitCur.Quantity=PIn.Byte(textNumber.Text);
+			BenefitCur.Quantity=SIn.Byte(textNumber.Text);
 			BenefitCur.TreatArea=listBoxTreatArea.GetSelected<TreatmentArea>();
 			BenefitCur.IsNew=false;
 			BenefitCur.PatPlanNum=0;

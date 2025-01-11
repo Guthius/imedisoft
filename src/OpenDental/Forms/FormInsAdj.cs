@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -46,12 +48,12 @@ namespace OpenDental{
 				|| !textInsUsed.IsValid()
 				|| !textDedUsed.IsValid())
 			{
-				MessageBox.Show(Lan.g("All","Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g("All","Please fix data entry errors first."));
 				return;
 			}
-			_claimProcCur.ProcDate=PIn.Date(textDate.Text);
-			_claimProcCur.InsPayAmt=PIn.Double(textInsUsed.Text);
-			_claimProcCur.DedApplied=PIn.Double(textDedUsed.Text);
+			_claimProcCur.ProcDate=SIn.Date(textDate.Text);
+			_claimProcCur.InsPayAmt=SIn.Double(textInsUsed.Text);
+			_claimProcCur.DedApplied=SIn.Double(textDedUsed.Text);
 			if(IsNew){
 				ClaimProcs.Insert(_claimProcCur);
 				InsEditPatLogs.MakeLogEntry(_claimProcCur,null,InsEditPatLogType.Adjustment);

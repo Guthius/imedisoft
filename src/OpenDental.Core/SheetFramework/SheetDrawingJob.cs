@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -258,7 +259,7 @@ namespace OpenDentBusiness {
 				List<Point> points=new List<Point>();
 				string[] pairs=field.FieldValue.Split(new string[] { ";" },StringSplitOptions.RemoveEmptyEntries);
 				foreach(string p in pairs) {
-					points.Add(new Point(PIn.Int(p.Split(',')[0]),PIn.Int(p.Split(',')[1])));
+					points.Add(new Point(SIn.Int(p.Split(',')[0]),SIn.Int(p.Split(',')[1])));
 				}
 				for(int i=1;i<points.Count;i++) {
 					g.DrawLine(pen,points[i-1].X,points[i-1].Y-_yPosPrint,points[i].X,points[i].Y-_yPosPrint);
@@ -271,7 +272,7 @@ namespace OpenDentBusiness {
 				List<Point> points=new List<Point>();
 				string[] pairs=field.FieldValue.Split(new string[] { ";" },StringSplitOptions.RemoveEmptyEntries);
 				foreach(string p2 in pairs) {
-					points.Add(new Point(PIn.Int(p2.Split(',')[0]),PIn.Int(p2.Split(',')[1])));
+					points.Add(new Point(SIn.Int(p2.Split(',')[0]),SIn.Int(p2.Split(',')[1])));
 				}
 				for(int i=1;i<points.Count;i++) {
 					gx.DrawLine(pen,p(points[i-1].X),p(points[i-1].Y-_yPosPrint),p(points[i].X),p(points[i].Y-_yPosPrint));
@@ -388,7 +389,7 @@ namespace OpenDentBusiness {
 				}
 			}
 			if(sheetField.FieldName=="TreatPlanMain") {
-				TreatPlanType tpType=(TreatPlanType)PIn.Int(table.Rows[0]["paramTreatPlanType"].ToString());
+				TreatPlanType tpType=(TreatPlanType)SIn.Int(table.Rows[0]["paramTreatPlanType"].ToString());
 				switch(tpType) {
 					case TreatPlanType.Discount:
 						listDisplayFields.RemoveAll(x => x.InternalName=="Pri Ins" || x.InternalName=="Sec Ins" || x.InternalName=="Allowed");
@@ -507,7 +508,7 @@ namespace OpenDentBusiness {
 				}
 				//Colored Text
 				if(table.Columns.Contains("paramTextColor") && !string.IsNullOrEmpty(rowCur["paramTextColor"].ToString())) {
-					Color cRowText=Color.FromArgb(PIn.Int(rowCur["paramTextColor"].ToString()));
+					Color cRowText=Color.FromArgb(SIn.Int(rowCur["paramTextColor"].ToString()));
 					if(!cRowText.IsEmpty) {
 						row.ColorText=cRowText;
 					}
@@ -544,7 +545,7 @@ namespace OpenDentBusiness {
 					using Font font=new Font("Arial",10,FontStyle.Bold);
 					switch(sheetField.FieldName) {//Draw titles differently for different grids.
 						case "StatementMain":
-							long patNum=PIn.Long(table.Rows[i]["PatNum"].ToString());
+							long patNum=SIn.Long(table.Rows[i]["PatNum"].ToString());
 							Patient patient=(pat==null || pat.PatNum!=patNum ? Patients.GetPat(patNum) : pat);
 							string patName="";
 							if(patient!=null) {//should always be true
@@ -674,7 +675,7 @@ namespace OpenDentBusiness {
 							if(tableMisc==null) {
 								tableMisc=new DataTable();
 							}
-							double payPlanDue=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()==descript).Sum(x => PIn.Double(x["value"].ToString()));
+							double payPlanDue=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()==descript).Sum(x => SIn.Double(x["value"].ToString()));
 							if(gx==null) {
 								RectangleF rf=new RectangleF(sheet.Width-60-sheetField.Width,gridSheetRow.YPos-_yPosPrint+_yAdjCurRow,sheetField.Width,heightGridTitle);
 								g.FillRectangle(Brushes.White,rf);
@@ -695,7 +696,7 @@ namespace OpenDentBusiness {
 							if(table==null) {
 								tableMisc=new DataTable();
 							}
-							double totalPayments=table.Select().Sum(x => PIn.Double(x["amt"].ToString()));
+							double totalPayments=table.Select().Sum(x => SIn.Double(x["amt"].ToString()));
 							if(gx==null) {
 								RectangleF rf=new RectangleF(sheet.Width-60-sheetField.Width,gridSheetRow.YPos-_yPosPrint+_yAdjCurRow,sheetField.Width,heightGridTitle);
 								g.FillRectangle(Brushes.White,rf);
@@ -751,12 +752,12 @@ namespace OpenDentBusiness {
 							break;
 						}
 						if(field.FieldValue.StartsWith("MountNum:")){
-							long mountNum=PIn.Long(field.FieldValue.Substring(9));
+							long mountNum=SIn.Long(field.FieldValue.Substring(9));
 							bmpOriginal=MountHelper.GetBitmapOfMountFromDb(mountNum);
 							bmpOriginalFormat=ImageFormat.Jpeg;
 							break;
 						}
-						patDoc=Documents.GetByNum(PIn.Long(field.FieldValue));
+						patDoc=Documents.GetByNum(SIn.Long(field.FieldValue));
 						List<string> paths=Documents.GetPaths(new List<long> { patDoc.DocNum },ImageStore.GetPreferredAtoZpath());
 						if(paths.Count < 1) {//No path was found so we cannot draw the image.
 							return;
@@ -1385,7 +1386,7 @@ namespace OpenDentBusiness {
 						dateTCollected=sf.FieldValue;
 						continue;
 					case "medlab.DateTimeReported":
-						dateReported=PIn.DateTime(sf.FieldValue).ToShortDateString();
+						dateReported=SIn.DateTime(sf.FieldValue).ToShortDateString();
 						if(dateReported==DateTime.MinValue.ToShortDateString()) {
 							dateReported="";
 						}

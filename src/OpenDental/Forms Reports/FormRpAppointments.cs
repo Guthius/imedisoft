@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Data;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -68,23 +70,23 @@ namespace OpenDental
 		private bool IsValid() {
 			//validate user input
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return false;
 			}
 			if(textDateFrom.Text.Length==0
 				|| textDateTo.Text.Length==0) 
 			{
-				MessageBox.Show(Lan.g(this,"From and To dates are required."));
+				ODMessageBox.Show(Lan.g(this,"From and To dates are required."));
 				return false;
 			}
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			if(dateTo < dateFrom) {
-				MessageBox.Show(Lan.g(this,"To date cannot be before From date."));
+				ODMessageBox.Show(Lan.g(this,"To date cannot be before From date."));
 				return false;
 			}
 			if(!checkAllProvs.Checked && listProvs.SelectedIndices.Count==0) {
-				MessageBox.Show(Lan.g(this,"You must select at least one provider."));
+				ODMessageBox.Show(Lan.g(this,"You must select at least one provider."));
 				return false;
 			}
 			if(_hasClinicsEnabled) {//Not no clinics.
@@ -171,8 +173,8 @@ namespace OpenDental
 				}
 			}
 			ReportComplex report=new ReportComplex(true,true);
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			DataTable table = new DataTable();
 			List<ApptStatus> listStatuses=new List<ApptStatus> { ApptStatus.Planned,ApptStatus.UnschedList };
 			if(!checkShowNoteAppts.Checked) {

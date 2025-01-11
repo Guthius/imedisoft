@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -59,8 +60,8 @@ namespace OpenDental {
 
 		///<summary>Actually creates the GridRows and returns them in a list. Takes care of linking dropdown rows.</summary>
 		private List<GridRow> ConstructGridRows() {
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			if(dateTo==DateTime.MinValue) {
 				dateTo=DateTime.Now;
 			}
@@ -76,7 +77,7 @@ namespace OpenDental {
 				row.Cells.Add(_listInsEditLogs[i].DateTStamp.ToString());
 				Userod userod = listUserods.Find(x=>x.UserNum==_listInsEditLogs[i].UserNum);
 				if(userod==null) {
-					row.Cells.Add(Lan.g(this,"Unknown")+"("+POut.Long(_listInsEditLogs[i].UserNum)+")");//Unable to find the corresponding user.  
+					row.Cells.Add(Lan.g(this,"Unknown")+"("+SOut.Long(_listInsEditLogs[i].UserNum)+")");//Unable to find the corresponding user.  
 				}
 				else {
 					row.Cells.Add(userod.UserName); 
@@ -196,8 +197,8 @@ namespace OpenDental {
 		///<summary>Makes the "Before" and "After" columns human-readable for certain logs.</summary>
 		private void TranslateBeforeAndAfter() {
 			for(int i=0;i<_listInsEditLogs.Count;i++) {
-				long beforeKey = PIn.Long(_listInsEditLogs[i].OldValue,false);
-				long afterKey = PIn.Long(_listInsEditLogs[i].NewValue,false);
+				long beforeKey = SIn.Long(_listInsEditLogs[i].OldValue,false);
+				long afterKey = SIn.Long(_listInsEditLogs[i].NewValue,false);
 				switch(_listInsEditLogs[i].FieldName) {
 					case "CarrierNum":
 						if(_listInsEditLogs[i].LogType == InsEditLogType.Carrier) {

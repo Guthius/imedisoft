@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -104,10 +105,10 @@ namespace OpenDental {
 			AutoCommExcludeDate.AutoCommExcludeDays excludeDays = AutoCommExcludeDate.AutoCommExcludeDays.None;
 			listBoxExclusionDays.GetListSelected<AutoCommExcludeDate.AutoCommExcludeDays>().ForEach(day => excludeDays |= day);
 			if(checkUseHQ.Checked && _clinicNum>0) {//clinic set to use HQ defaults
-				_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum,POut.Bool(true));
+				_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum,SOut.Bool(true));
 			}
 			else if(_clinicNum>0) {//clinic using clinic specific settings
-				_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum,POut.Bool(false));
+				_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum,SOut.Bool(false));
 			}
 			//always save exclusion days. When using HQ defaults, list box is disabled, unable to make changed that will save when set to use HQ defaults
 			_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDays,_clinicNum, ((int)(byte)excludeDays).ToString());

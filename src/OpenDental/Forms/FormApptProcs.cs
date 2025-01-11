@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -177,7 +178,7 @@ namespace OpenDental {
 					Procedures.Delete(ProcCur.ProcNum);//also deletes the claimprocs
 				}
 				catch(Exception ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 			}
 			else{

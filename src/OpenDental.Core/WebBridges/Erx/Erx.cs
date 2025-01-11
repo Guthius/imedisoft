@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -34,7 +35,7 @@ namespace OpenDentBusiness
                 throw new ODException(Lans.g("eRx", "The eRx Option program property is missing from the database."));
             }
 
-            return PIn.Enum<ErxOption>(programProperty.PropertyValue);
+            return SIn.Enum<ErxOption>(programProperty.PropertyValue);
         }
 
         ///<summary>If this value is found in a MedicationPat or RxPat's ErxGuid column, it is a med/rx created in Open Dental, NOT imported from an eRx solution.</summary>
@@ -87,7 +88,7 @@ namespace OpenDentBusiness
                 List<RxNorm> listRxNorms = RxNorms.GetListByCodeOrDesc(strDrugName, true, true); //Exact case insensitive match ignoring numbers.
                 if (listRxNorms.Count > 0)
                 {
-                    rxCui = PIn.Long(listRxNorms[0].RxCui);
+                    rxCui = SIn.Long(listRxNorms[0].RxCui);
                 }
             }
 
@@ -98,7 +99,7 @@ namespace OpenDentBusiness
                 List<RxNorm> listRxNorms = RxNorms.GetListByCodeOrDesc(strGenericName, true, true); //Exact case insensitive match ignoring numbers.
                 if (listRxNorms.Count > 0)
                 {
-                    rxCui = PIn.Long(listRxNorms[0].RxCui);
+                    rxCui = SIn.Long(listRxNorms[0].RxCui);
                 }
             }
 

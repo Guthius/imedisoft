@@ -1166,7 +1166,7 @@ namespace OpenDental {
 				}
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"Printer not available"));
+				ODMessageBox.Show(Lan.g(this,"Printer not available"));
 			}
 		}
 

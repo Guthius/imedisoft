@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -79,7 +80,7 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(gridMain.SelectedIndices.Length==0) {
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			PickedCarrierNum=_listCarriers[gridMain.SelectedIndices[0]].CarrierNum;

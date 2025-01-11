@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 
@@ -45,7 +46,7 @@ namespace OpenDental{
 			if(comboCategory.SelectedIndex==-1){
 				comboCategory.SelectedIndex=0;//we know that there will always be at least one cat. Validated in FormProcButtons
 			}
-			pictureBox.Image=PIn.Bitmap(_procButton.ButtonImage);
+			pictureBox.Image=SIn.Bitmap(_procButton.ButtonImage);
 			checkMultiVisit.Checked=_procButton.IsMultiVisit;
 			long[] longArrayCodeNum=ProcButtonItems.GetCodeNumListForButton(_procButton.ProcButtonNum).ToArray();
 			long[] longArrayAuto=ProcButtonItems.GetAutoListForButton(_procButton.ProcButtonNum).ToArray();
@@ -86,7 +87,7 @@ namespace OpenDental{
 				return;
 			}
 			if(imageImported.Size!=new Size(20,20)) {
-				MessageBox.Show(Lan.g(this,"Image should be 20x20. Image selected was: ")+imageImported.Size.Width+"x"+imageImported.Size.Height);
+				ODMessageBox.Show(Lan.g(this,"Image should be 20x20. Image selected was: ")+imageImported.Size.Width+"x"+imageImported.Size.Height);
 				return;
 			}
 			pictureBox.Image?.Dispose();
@@ -138,7 +139,7 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(listADA.SelectedIndex < 0){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			listADA.Items.RemoveAt(listADA.SelectedIndex);
@@ -146,18 +147,18 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textDescript.Text==""){
-				MessageBox.Show(Lan.g(this,"You must type in a description."));
+				ODMessageBox.Show(Lan.g(this,"You must type in a description."));
 				return; 
 			}
 			if(listADA.Items.Count==0  && listAutoCodes.SelectedIndices.Count==0){
-				MessageBox.Show(Lan.g(this,"You must pick at least one Auto Code or Procedure Code."));
+				ODMessageBox.Show(Lan.g(this,"You must pick at least one Auto Code or Procedure Code."));
 				return;
 			}
 			for(int i=0;i<listAutoCodes.SelectedIndices.Count;i++){
 				AutoCode autoCode=_listAutoCodesShortDeep[listAutoCodes.SelectedIndices[i]];
 				if(AutoCodeItems.GetListForCode(autoCode.AutoCodeNum).Count==0) {
 					//This AutoCode was saved with no AutoCodeItems attached, which is invalid.
-					MessageBox.Show(this,Lan.g(this,"The following AutoCode has no associated Procedure Codes: ")+"\r\n"+autoCode.Description+"\r\n"
+					ODMessageBox.Show(this,Lan.g(this,"The following AutoCode has no associated Procedure Codes: ")+"\r\n"+autoCode.Description+"\r\n"
 						+Lan.g(this,"AutoCode must be setup correctly before it can be used with a Quick Proc Button."));
 					return;
 				}
@@ -170,7 +171,7 @@ namespace OpenDental{
 					=ProcButtons.GetForCat(_listDefsProcButtonCat[comboCategory.SelectedIndex].DefNum).Length;
 			}
 			_procButton.Category=_listDefsProcButtonCat[comboCategory.SelectedIndex].DefNum;
-			_procButton.ButtonImage=POut.Bitmap((Bitmap)pictureBox.Image,System.Drawing.Imaging.ImageFormat.Png);
+			_procButton.ButtonImage=SOut.Bitmap((Bitmap)pictureBox.Image,System.Drawing.Imaging.ImageFormat.Png);
 			_procButton.IsMultiVisit=checkMultiVisit.Checked;
 			if(IsNew){
 				_procButton.ItemOrder=ProcButtons.GetCount();

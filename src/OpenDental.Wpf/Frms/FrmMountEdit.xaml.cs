@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -124,7 +125,7 @@ namespace OpenDental {
 				return;
 			}
 			MountCur.DocCategory=_listDefsImageCats[listCategory.SelectedIndex].DefNum;
-			DateTime dateTimeEntered=PIn.DateTime(textDate.Text+" "+textTime.Text);
+			DateTime dateTimeEntered=SIn.DateTime(textDate.Text+" "+textTime.Text);
 			MountCur.DateCreated=dateTimeEntered;	
 			MountCur.ProvNum=comboProv.GetSelectedProvNum();
 			MountCur.Description=textDescription.Text;

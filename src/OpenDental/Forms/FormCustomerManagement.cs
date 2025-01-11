@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -61,7 +62,7 @@ namespace OpenDental{
 			if(gridMain.GetSelectedIndex()==-1){
 				return;
 			}
-			PatNumSelected=PIn.Long(_tableRegKeys.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
+			PatNumSelected=SIn.Long(_tableRegKeys.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
 			Close();
 		}
 

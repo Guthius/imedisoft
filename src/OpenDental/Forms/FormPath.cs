@@ -172,7 +172,7 @@ namespace OpenDental{
 			string path=FixDirSeparators(folderBrowserDialog.SelectedPath);
 			if(checkMultiplePaths.Checked && textDocPath.Text.Length>0) {
 				string messageText=Lan.g(this,"Replace existing document paths? Click No to add path to existing document paths.");
-				switch(MessageBox.Show(messageText,"",MessageBoxButtons.YesNoCancel)) {
+				switch(ODMessageBox.Show(messageText,"",MessageBoxButtons.YesNoCancel)) {
 					case DialogResult.Yes:
 						textDocPath.Text=path;//Replace existing paths with new path.
 						break;
@@ -416,7 +416,7 @@ namespace OpenDental{
 				}
 				catch(Exception ex) {
 					Cursor=Cursors.Default;
-					MessageBox.Show(Lan.g(this,"Error connecting to SFTP host: ")+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Error connecting to SFTP host: ")+ex.Message);
 					return;
 				}
 				if(!doesFileExist) {

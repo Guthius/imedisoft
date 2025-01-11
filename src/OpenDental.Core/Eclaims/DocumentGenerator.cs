@@ -19,7 +19,7 @@ namespace OpenDentBusiness.Eclaims {
 			public abstract bool HasDims();
 		};
 		private class BlankPrim:RenderPrim {
-			float height;
+			private float height;
 			public BlankPrim(float pHeight) {
 				height=pHeight;
 			}
@@ -50,12 +50,12 @@ namespace OpenDentBusiness.Eclaims {
 			}
 		}
 		private class RenderStr:RenderPrim {
-			Font font;
-			Pen pen;
-			Size layout;
-			string text;
-			float x;
-			float yOffset;
+			private Font font;
+			private Pen pen;
+			private Size layout;
+			private string text;
+			private float x;
+			private float yOffset;
 			public RenderStr(Font pFont,Pen pPen,Size pLayout,string pText,float pX,float pYOffset) {
 				font=pFont;
 				pen=pPen;
@@ -79,10 +79,10 @@ namespace OpenDentBusiness.Eclaims {
 			}
 		};
 		private class RenderHLine:RenderPrim {
-			Pen pen;
-			float x1;
-			float x2;
-			float yOffset;
+			private Pen pen;
+			private float x1;
+			private float x2;
+			private float yOffset;
 			public RenderHLine(Pen pPen,float pX1,float pX2,float pYOffset) {
 				pen=pPen;
 				x1=pX1;

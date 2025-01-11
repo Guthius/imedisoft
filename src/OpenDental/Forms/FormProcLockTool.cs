@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -28,8 +29,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			DateTime date1=PIn.Date(textDate1.Text);
-			DateTime date2=PIn.Date(textDate2.Text);
+			DateTime date1=SIn.Date(textDate1.Text);
+			DateTime date2=SIn.Date(textDate2.Text);
 			if(date1>date2) {
 				MsgBox.Show(this,"Date 1 cannot be greater than Date 2.");
 				return;

@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.Linq;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormBenefitFrequencies:FormODBase {
@@ -146,7 +147,7 @@ namespace OpenDental {
 			List<Benefit> listBenefits=gridMain.ListGridRows.Select(x=>(Benefit)x.Tag).ToList();
 			for(int i=0;i<listBenefits.Count;i++){
 				int indexFrequencySelected=gridMain.ListGridRows[i].Cells[2].ComboSelectedIndex;
-				Byte byteProvided=PIn.Byte(gridMain.ListGridRows[i].Cells[1].Text, throwExceptions:false);
+				Byte byteProvided=SIn.Byte(gridMain.ListGridRows[i].Cells[1].Text, throwExceptions:false);
 				if(byteProvided<1) {
 					ListBenefitsAll.Remove(listBenefits[i]);
 					continue;

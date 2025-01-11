@@ -14,6 +14,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
 using System.Windows.Interop;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -110,7 +111,7 @@ namespace OpenDental {
 							Appointments.Update(appointment,appointmentOld);//Appointments S-Class handles Signalods
 						}
 						catch(ApplicationException ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 						}
 					}
 				}
@@ -162,7 +163,7 @@ namespace OpenDental {
 				DateTime dateTimeAskedToArrive=DateTime.MinValue;
 				if(_patient.AskToArriveEarly > 0) {
 					dateTimeAskedToArrive=e.DateT.AddMinutes(-_patient.AskToArriveEarly);
-					MessageBox.Show(Lan.g(this,"Ask patient to arrive ")+_patient.AskToArriveEarly
+					ODMessageBox.Show(Lan.g(this,"Ask patient to arrive ")+_patient.AskToArriveEarly
 						+Lan.g(this," minutes early at ")+dateTimeAskedToArrive.ToShortTimeString()+".");
 				}
 				appointment=Appointments.CreateNewAppointment(_patient,operatory,e.DateT,dateTimeAskedToArrive,null,contrApptPanel.ListSchedules);
@@ -197,7 +198,7 @@ namespace OpenDental {
 							Appointments.Update(appointment,appointmentOld2);//Appointments S-Class handles Signalods
 						}
 						catch(ApplicationException ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 						}
 						RefreshPeriod();
 						return;//It's ok to skip the rest of the method here. The appointment is now on the pinboard and must be rescheduled
@@ -252,7 +253,7 @@ namespace OpenDental {
 				//Prevents appointments with providers that are past their term end date from being scheduled
 				string message=Providers.CheckApptProvidersTermDates(appointment);
 				if(message!="") {
-					MessageBox.Show(message);//translated in Providers S class method
+					ODMessageBox.Show(message);//translated in Providers S class method
 					return;
 				}
 				#endregion Provider Term Date Check	
@@ -263,7 +264,7 @@ namespace OpenDental {
 						Appointments.Update(appointment,appointmentOld);//Appointments S-Class handles Signalods
 					}
 					catch(ApplicationException ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 					Appointments.TryAddPerVisitProcCodesToAppt(appointment,appointmentOld.AptStatus);
 				}
@@ -477,7 +478,7 @@ namespace OpenDental {
 		}
 
 		private void ContrApptPanel_ApptRightClicked(object sender, UI.ApptRightClickEventArgs e){
-			DataRow dataRowAppointment=contrApptPanel.TableAppointments.Select().FirstOrDefault(x => PIn.Long(x["AptNum"].ToString())==contrApptPanel.SelectedAptNum);
+			DataRow dataRowAppointment=contrApptPanel.TableAppointments.Select().FirstOrDefault(x => SIn.Long(x["AptNum"].ToString())==contrApptPanel.SelectedAptNum);
 			menuApt.Items.RemoveByKey(MenuItemNames.Tasks);
 			menuApt.Items.RemoveByKey(MenuItemNames.TasksSpacer);
 			menuApt.Items.Add(new ToolStripSeparator() { Name=MenuItemNames.TasksSpacer });
@@ -534,11 +535,11 @@ namespace OpenDental {
 			if(!SmsPhones.IsIntegratedTextingEnabled() && !Programs.IsEnabled(ProgramName.CallFire)) {
 				menuItem.Enabled=false;
 			}
-			long clinicNum=(dataRowAppointment is null) ? 0 : PIn.Long(dataRowAppointment["ClinicNum"].ToString()); 
+			long clinicNum=(dataRowAppointment is null) ? 0 : SIn.Long(dataRowAppointment["ClinicNum"].ToString()); 
 			if(OpenDentBusiness.AutoComm.Byod.IsSetup(clinicNum,out string err)) {//Check-In Links feature is enabled.  (handles true)
 				menuItem=new ToolStripMenuItem(Lan.g(this,MenuItemNames.SendEClipboardByod),null,menuApt_Click,MenuItemNames.SendEClipboardByod);
 				menuApt.Items.Add(menuItem);
-				long confirmed=(dataRowAppointment is null) ? 0 : PIn.Long(dataRowAppointment["Confirmed"].ToString()); 
+				long confirmed=(dataRowAppointment is null) ? 0 : SIn.Long(dataRowAppointment["Confirmed"].ToString()); 
 				menuItem.Enabled=OpenDentBusiness.AutoComm.Byod.IsEnabledForConfirmed(confirmed,clinicNum,out err);//(handles true)
 			}
 			//If the appointment is not for today, or the office is not signed up for eclipboard, hide this item. We are using the calendars selected date instead of the appointments date to save us from making a database call.
@@ -804,7 +805,7 @@ namespace OpenDental {
 							OpenDental.Bridges.RapidCall.ShowPage();
 						}
 						catch(Exception ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 						}
 						break;
 				}
@@ -827,9 +828,9 @@ namespace OpenDental {
 			List<long> listOperatoryNums=contrApptPanel.ListOpsVisible.Select(x => x.OperatoryNum).ToList();
 			//Have to order listApptNums sent to FormApptPrintSetup so that routing slips can be printed in chronological order.
 			List<long> listAptNums=contrApptPanel.TableAppointments.Select()
-				.Where(x => listOperatoryNums.Contains(PIn.Long(x["Op"].ToString())))
-				.OrderBy(x => PIn.DateTime(x["AptDateTime"].ToString()))
-				.Select(x => PIn.Long(x["AptNum"].ToString()))
+				.Where(x => listOperatoryNums.Contains(SIn.Long(x["Op"].ToString())))
+				.OrderBy(x => SIn.DateTime(x["AptDateTime"].ToString()))
+				.Select(x => SIn.Long(x["AptNum"].ToString()))
 				.ToList();
 			using FormApptPrintSetup formApptPrintSetup=new FormApptPrintSetup(listAptNums,contrApptPanel.DateSelected,contrApptPanel.IsWeeklyView);
 			formApptPrintSetup.ShowDialog();
@@ -1107,7 +1108,7 @@ namespace OpenDental {
 					return;
 				}
 				if(appointment.Note != "") {
-					if(MessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(appointment.Note,appointment.AptStatus),Lan.g(this,"Question..."),MessageBoxButtons.YesNo) == DialogResult.Yes) {
+					if(ODMessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(appointment.Note,appointment.AptStatus),Lan.g(this,"Question..."),MessageBoxButtons.YesNo) == DialogResult.Yes) {
 						Commlog commlog = new Commlog();
 						commlog.PatNum = appointment.PatNum;
 						commlog.CommDateTime = DateTime.Now;
@@ -1128,7 +1129,7 @@ namespace OpenDental {
 					return;
 				}
 				if(appointment.Note != "") {
-					if(MessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(appointment.Note,appointment.AptStatus),Lan.g(this,"Question..."),MessageBoxButtons.YesNo) == DialogResult.Yes) {
+					if(ODMessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(appointment.Note,appointment.AptStatus),Lan.g(this,"Question..."),MessageBoxButtons.YesNo) == DialogResult.Yes) {
 						Commlog commlog = new Commlog();
 						commlog.PatNum = appointment.PatNum;
 						commlog.CommDateTime = DateTime.Now;
@@ -1166,7 +1167,7 @@ namespace OpenDental {
 						hl7Msg.PatNum=_patient.PatNum;
 						HL7Msgs.Insert(hl7Msg);
 						if(/* ODBuild.IsDebug() */ false) {
-							MessageBox.Show(this,messageHL7.ToString());
+							ODMessageBox.Show(this,messageHL7.ToString());
 						}
 					}
 				}
@@ -1390,9 +1391,9 @@ namespace OpenDental {
 				dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
 				idx=pinBoard.SelectedIndex;
 			}
-			DateTime dateTime=PIn.DateTime(dataRow["AptDateTime"].ToString());
-			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
-			ApptStatus aptStatus=(ApptStatus)PIn.Int(dataRow["AptStatus"].ToString());
+			DateTime dateTime=SIn.DateTime(dataRow["AptDateTime"].ToString());
+			long aptNum=SIn.Long(dataRow["AptNum"].ToString());
+			ApptStatus aptStatus=(ApptStatus)SIn.Int(dataRow["AptStatus"].ToString());
 			if(aptStatus==ApptStatus.UnschedList) {//unscheduled status
 				if(dateTime.Year<1880) {//Indicates that this was a brand new appt
 					Appointment appointment=Appointments.GetOneApt(aptNum);
@@ -1440,8 +1441,8 @@ namespace OpenDental {
 				pinBoard_ApptMovedFromPinboard_Cleanup();
 				return;
 			}
-			ApptStatus apptStatus=(ApptStatus)PIn.Int(e.DataRowAppt["AptStatus"].ToString());
-			long patNum=PIn.Long(e.DataRowAppt["PatNum"].ToString());
+			ApptStatus apptStatus=(ApptStatus)SIn.Int(e.DataRowAppt["AptStatus"].ToString());
+			long patNum=SIn.Long(e.DataRowAppt["PatNum"].ToString());
 			if(apptStatus==ApptStatus.Planned) {//if Planned appt is on pinboard
 				if(!Security.IsAuthorized(EnumPermType.AppointmentCreate)) {//and no permission to create a new appt
 					pinBoard_ApptMovedFromPinboard_Cleanup();
@@ -1455,7 +1456,7 @@ namespace OpenDental {
 			//security prevents moving an appointment by preventing placing it on the pinboard, not here
 			//We do not ask user, "Move Appointment?" because that's just slow.
 			//convert loc to new time
-			Appointment appointment=Appointments.GetOneApt(PIn.Long(e.DataRowAppt["AptNum"].ToString()));
+			Appointment appointment=Appointments.GetOneApt(SIn.Long(e.DataRowAppt["AptNum"].ToString()));
 			if(appointment==null) {
 				MsgBox.Show(this,"This appointment has been deleted since it was moved to the pinboard. It will now be cleared from the pinboard.");
 				pinBoard.ClearAt(pinBoard.SelectedIndex);
@@ -1510,7 +1511,7 @@ namespace OpenDental {
 				#region Update Appt's DateTimeAskedToArrive
 				if(_patient.AskToArriveEarly>0) {
 					appointment.DateTimeAskedToArrive=appointment.AptDateTime.AddMinutes(-_patient.AskToArriveEarly);
-					MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+_patient.AskToArriveEarly
+					ODMessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+_patient.AskToArriveEarly
 						+" "+Lan.g(this,"minutes early at")+" "+appointment.DateTimeAskedToArrive.ToShortTimeString()+".");
 				}
 				else {
@@ -1582,7 +1583,7 @@ namespace OpenDental {
 				//Prevents appointments with providers that are past their term end date from being scheduled
 				string message=Providers.CheckApptProvidersTermDates(appointment);
 				if(message!="") {
-					MessageBox.Show(message);//translated in Providers S class method
+					ODMessageBox.Show(message);//translated in Providers S class method
 					pinBoard_ApptMovedFromPinboard_Cleanup();
 					return;
 				}
@@ -1616,12 +1617,12 @@ namespace OpenDental {
 						frequencyConflicts=Procedures.CheckFrequency(procsForSingleApt,appointment.PatNum,appointment.AptDateTime);
 					}
 					catch(Exception ex) {
-						MessageBox.Show(Lan.g(this,"There was an error checking frequencies.  Disable the Insurance Frequency Checking feature or try to fix the following error:")
+						ODMessageBox.Show(Lan.g(this,"There was an error checking frequencies.  Disable the Insurance Frequency Checking feature or try to fix the following error:")
 							+"\r\n"+ex.Message);
 						pinBoard_ApptMovedFromPinboard_Cleanup();
 						return;
 					}
-					if(frequencyConflicts!="" && MessageBox.Show(
+					if(frequencyConflicts!="" && ODMessageBox.Show(
 						Lan.g(this,"Scheduling this appointment for this date will cause frequency conflicts for the following procedures")
 							+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No) 
 					{
@@ -1637,12 +1638,12 @@ namespace OpenDental {
 					frequencyDiscountConflicts=DiscountPlans.CheckDiscountFrequencyAndValidateDiscountPlanSub(procsForSingleApt,appointment.PatNum,appointment.AptDateTime);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"There was an error checking discount frequencies:")
+					ODMessageBox.Show(Lan.g(this,"There was an error checking discount frequencies:")
 						+"\r\n"+ex.Message);
 					pinBoard_ApptMovedFromPinboard_Cleanup();
 					return;
 				}
-				if(!string.IsNullOrEmpty(frequencyDiscountConflicts) && MessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
+				if(!string.IsNullOrEmpty(frequencyDiscountConflicts) && ODMessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
 					+":\r\n"+frequencyDiscountConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No)
 				{
 					pinBoard_ApptMovedFromPinboard_Cleanup();
@@ -1705,12 +1706,12 @@ namespace OpenDental {
 				DataTable tableApptFields=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].TableApptFields;
 				List<ApptField> listApptFields=new List<ApptField>();
 				for(int i = 0;i<tableApptFields.Rows.Count;i++) {
-					if(appointmentOld.AptNum!=PIn.Long(tableApptFields.Rows[i]["AptNum"].ToString())) {
+					if(appointmentOld.AptNum!=SIn.Long(tableApptFields.Rows[i]["AptNum"].ToString())) {
 						continue;//should never happen
 					}
 					ApptField apptField = new ApptField();
-					apptField.FieldName=PIn.String(tableApptFields.Rows[i]["FieldName"].ToString());
-					apptField.FieldValue=PIn.String(tableApptFields.Rows[i]["FieldValue"].ToString());
+					apptField.FieldName=SIn.String(tableApptFields.Rows[i]["FieldName"].ToString());
+					apptField.FieldValue=SIn.String(tableApptFields.Rows[i]["FieldValue"].ToString());
 					//the other two fields are not important
 					listApptFields.Add(apptField);
 				}
@@ -1784,7 +1785,7 @@ namespace OpenDental {
 						hl7Msg.PatNum=_patient.PatNum;
 						HL7Msgs.Insert(hl7Msg);
 						if(/* ODBuild.IsDebug() */ false) {
-							MessageBox.Show(this,messageHL7.ToString());
+							ODMessageBox.Show(this,messageHL7.ToString());
 						}
 					}
 				}
@@ -1852,7 +1853,7 @@ namespace OpenDental {
 		}
 
 		private void pinBoard_PreparingToDragFromPinboard(object sender,UI.ApptDataRowEventArgs e) {
-			string pattern=PIn.String(e.DataRowAppt["Pattern"].ToString());
+			string pattern=SIn.String(e.DataRowAppt["Pattern"].ToString());
 			string patternShowing=contrApptPanel.GetPatternShowing(pattern);
 			SizeF sizeAppt=contrApptPanel.SetSize(pattern);
 			if(sizeAppt.Width==0){
@@ -1951,7 +1952,7 @@ namespace OpenDental {
 						Tasks.Update(taskReminder,taskOld);
 					}
 					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}//no longer allowed to mark done from here
 					gridReminders.BeginUpdate();
@@ -1981,7 +1982,7 @@ namespace OpenDental {
 				//Revert the changes to the task because something went wrong.
 				task.TaskStatus=oldTask.TaskStatus;
 				task.DateTimeFinished=oldTask.DateTimeFinished;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			TaskUnreads.DeleteForTask(task);
@@ -2501,13 +2502,13 @@ namespace OpenDental {
 			long opNumClicked=contrApptPanel.OpNumClicked;
 			List<long> listPatNums=new List<long>();
 			for(int i=0;i<contrApptPanel.TableAppointments.Rows.Count;i++){
-				if(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString())!=opNumClicked){
+				if(SIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString())!=opNumClicked){
 					continue;
 				}
-				if(PIn.DateTime(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString()).Date!=dateClicked){
+				if(SIn.DateTime(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString()).Date!=dateClicked){
 					continue;
 				}
-				listPatNums.Add(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["PatNum"].ToString()));
+				listPatNums.Add(SIn.Long(contrApptPanel.TableAppointments.Rows[i]["PatNum"].ToString()));
 			}
 			SendTextMessages(listPatNums);
 		}
@@ -2516,14 +2517,14 @@ namespace OpenDental {
 			DateTime dateClicked=contrApptPanel.DateSelected;
 			List<long> listPatNums=new List<long>();
 			for(int i=0;i<contrApptPanel.TableAppointments.Rows.Count;i++){
-				long opNum=PIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString());
+				long opNum=SIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString());
 				if(!contrApptPanel.ListOpsVisible.Any(y => y.OperatoryNum==opNum)){//Make sure the appointments are visible in the current view.
 					continue;
 				}
-				if(PIn.DateTime(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString()).Date!=dateClicked){
+				if(SIn.DateTime(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString()).Date!=dateClicked){
 					continue;
 				}
-				listPatNums.Add(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["PatNum"].ToString()));
+				listPatNums.Add(SIn.Long(contrApptPanel.TableAppointments.Rows[i]["PatNum"].ToString()));
 			}
 			SendTextMessages(listPatNums);
 		}
@@ -2575,7 +2576,7 @@ namespace OpenDental {
 			for(int i=0;i<listProviders.Count;i++) {
 				listProvNumsInBox.Add(listProviders[i].ProvNum);
 			}
-			formApptSearchAdvanced.SetSearchArgs(aptNum,listProvNumsInBox,textBefore.Text,textAfter.Text,PIn.Date(dateSearch.Text));
+			formApptSearchAdvanced.SetSearchArgs(aptNum,listProvNumsInBox,textBefore.Text,textAfter.Text,SIn.Date(dateSearch.Text));
 			formApptSearchAdvanced.ShowDialog();
 		}
 
@@ -2900,9 +2901,9 @@ namespace OpenDental {
 		///<summary>Jumping here from another module and selecting an appointment. Refreshes the module for the patient associated with the appointment.</summary>
 		public void ModuleSelectedGoToAppt(long aptNum,DateTime dateSelected){
 			ModuleSelected(dateSelected);
-			DataRow dataRow=contrApptPanel.TableAppointments.Select().FirstOrDefault(x => PIn.Long(x["AptNum"].ToString())==aptNum);
+			DataRow dataRow=contrApptPanel.TableAppointments.Select().FirstOrDefault(x => SIn.Long(x["AptNum"].ToString())==aptNum);
 			if(dataRow!=null) {
-				long patNum=PIn.Long(dataRow["PatNum"].ToString());
+				long patNum=SIn.Long(dataRow["PatNum"].ToString());
 				RefreshModuleDataPatient(patNum);
 			}
 			contrApptPanel.SelectedAptNum=aptNum;
@@ -3156,14 +3157,14 @@ namespace OpenDental {
 			DataTable table=Appointments.GetPeriodApptsTable(dateStart, dateEnd, aptNum:0, isPlanned:false, listPinApptNums, listOpNums, listProvNums, allowRunQueryOnNoOps:false, includeVerifyIns:includeVerifyIns);
 			if(table.Rows.Count > 0) {
 				//This is an arbitrary but fixed order so that appointments always get drawn in the same order and don't appear to jump
-				table=table.Select().OrderBy(x => PIn.Long(x["AptNum"].ToString())).CopyToDataTable();
+				table=table.Select().OrderBy(x => SIn.Long(x["AptNum"].ToString())).CopyToDataTable();
 			}
 			contrApptPanel.TableAppointments=table;
 			contrApptPanel.TableApptFields=Appointments.GetApptFields(contrApptPanel.TableAppointments);
-			contrApptPanel.TablePatFields=Appointments.GetPatFields(contrApptPanel.TableAppointments.Select().Select(x => PIn.Long(x["PatNum"].ToString())).ToList());
+			contrApptPanel.TablePatFields=Appointments.GetPatFields(contrApptPanel.TableAppointments.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList());
 			OpenDentBusiness.AutoComm.Arrivals arrivals=OpenDentBusiness.AutoComm.Arrivals.LoadArrivals(
-				contrApptPanel.TableAppointments.Select().Select(x => PIn.Long(x["ClinicNum"].ToString())).Distinct().ToList(),
-				contrApptPanel.TableAppointments.Select().Select(x => PIn.Long(x["AptNum"].ToString())).Distinct().ToList()
+				contrApptPanel.TableAppointments.Select().Select(x => SIn.Long(x["ClinicNum"].ToString())).Distinct().ToList(),
+				contrApptPanel.TableAppointments.Select().Select(x => SIn.Long(x["AptNum"].ToString())).Distinct().ToList()
 			);
 			SetArrivalsLoaded(arrivals);
 		}
@@ -3422,7 +3423,7 @@ namespace OpenDental {
 				if(PrefC.GetBool(PrefName.WaitingRoomFilterByView)) {
 					bool isInView=false;
 					for(int j=0;j<listOperatoriesForApptView.Count;j++) {
-						if(listOperatoriesForApptView[j].OperatoryNum==PIn.Long(table.Rows[i]["OpNum"].ToString())) {
+						if(listOperatoriesForApptView[j].OperatoryNum==SIn.Long(table.Rows[i]["OpNum"].ToString())) {
 							isInView=true;
 							break;
 						}
@@ -3435,7 +3436,7 @@ namespace OpenDental {
 				if(true && Clinics.ClinicNum!=0) {
 					bool isInView=false;
 					for(int j=0;j<listOperatoriesForClinic.Count;j++) {
-						if(listOperatoriesForClinic[j].OperatoryNum==PIn.Long(table.Rows[i]["OpNum"].ToString())) {
+						if(listOperatoriesForClinic[j].OperatoryNum==SIn.Long(table.Rows[i]["OpNum"].ToString())) {
 							isInView=true;
 							break;
 						}
@@ -3515,12 +3516,12 @@ namespace OpenDental {
 			}
 			for(int i=0;i<pinBoard.ListPinBoardItems.Count;i++){
 				//I'm a little worried that this could be slow, but there is usually only 0 to 1 appt on pinboard
-				DataRow dataRow=contrApptPanel.TableAppointments.Rows.OfType<DataRow>().FirstOrDefault(x=>PIn.Long(x["AptNum"].ToString())==pinBoard.ListPinBoardItems[i].AptNum);
+				DataRow dataRow=contrApptPanel.TableAppointments.Rows.OfType<DataRow>().FirstOrDefault(x=>SIn.Long(x["AptNum"].ToString())==pinBoard.ListPinBoardItems[i].AptNum);
 				if(dataRow==null){
 					continue;
 				}
 				pinBoard.ListPinBoardItems[i].DataRowAppt=dataRow;
-				string pattern=PIn.String(dataRow["Pattern"].ToString());
+				string pattern=SIn.String(dataRow["Pattern"].ToString());
 				string patternShowing=contrApptPanel.GetPatternShowing(pattern);
 				SizeF sizeAppt=contrApptPanel.SetSize(pattern);
 				Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
@@ -3569,7 +3570,7 @@ namespace OpenDental {
 				toolBarMain.Buttons["Complete"].Enabled=true;
 				toolBarMain.Buttons["Delete"].Enabled=true;
 				string confirmed=dataRow["Confirmed"].ToString();
-				listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,PIn.Long(confirmed));//could be -1
+				listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,SIn.Long(confirmed));//could be -1
 				if(!Security.IsAuthorized(EnumPermType.ApptConfirmStatusEdit,true)) {//Suppress message because it would be very annoying to users.
 					listConfirmed.Enabled=false;
 				}
@@ -3585,7 +3586,7 @@ namespace OpenDental {
 				listConfirmed.Enabled=false;
 				if(pinBoard.SelectedIndex!=-1) {
 					dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
-					listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));//could be -1
+					listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,SIn.Long(dataRow["Confirmed"].ToString()));//could be -1
 				}
 			}
 			toolBarMain.Invalidate();
@@ -3596,7 +3597,7 @@ namespace OpenDental {
 		private void DoSearch(bool isForMakeRecall=false) {
 			Cursor=Cursors.WaitCursor;
 			DateTime dateAfter;
-			dateAfter=PIn.Date(dateSearch.Text);
+			dateAfter=SIn.Date(dateSearch.Text);
 			if(dateAfter.Year<1880) {
 				Cursor=Cursors.Default;
 				MsgBox.Show(this,"Invalid date.");
@@ -3613,8 +3614,8 @@ namespace OpenDental {
 				if(stringArrayHrmin.Length>1) {
 					min=stringArrayHrmin[1];
 				}
-				timeSpanBefore=TimeSpan.FromHours(PIn.Double(hr))
-					+TimeSpan.FromMinutes(PIn.Double(min));
+				timeSpanBefore=TimeSpan.FromHours(SIn.Double(hr))
+					+TimeSpan.FromMinutes(SIn.Double(min));
 				if(radioBeforePM.Checked && timeSpanBefore.Hours<12) {
 						timeSpanBefore=timeSpanBefore+TimeSpan.FromHours(12);
 				}
@@ -3630,8 +3631,8 @@ namespace OpenDental {
 				if(stringArrayHrmin.Length>1) {
 					min=stringArrayHrmin[1];
 				}
-				timeSpanAfter=TimeSpan.FromHours(PIn.Double(hr))
-					+TimeSpan.FromMinutes(PIn.Double(min));
+				timeSpanAfter=TimeSpan.FromHours(SIn.Double(hr))
+					+TimeSpan.FromMinutes(SIn.Double(min));
 				if(radioAfterPM.Checked && timeSpanAfter.Hours<12) {
 					timeSpanAfter=timeSpanAfter+TimeSpan.FromHours(12);
 				}
@@ -3688,7 +3689,7 @@ namespace OpenDental {
 			if(appointmentType!=null && !String.IsNullOrEmpty(appointmentType.BlockoutTypes)) {
 				List<string> listStrings=appointmentType.BlockoutTypes.Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
 				//Convert into a list of longs
-				listDefNumsBlockoutTypes=listStrings.Select(x => PIn.Long(x,throwExceptions:false)).ToList();
+				listDefNumsBlockoutTypes=listStrings.Select(x => SIn.Long(x,throwExceptions:false)).ToList();
 			}
 			_listScheduleOpenings=ApptSearch.GetSearchResults(aptNum,dateAfter,dateAfter.AddDays(731)
 				,listProvNums,listOperatoryNums,listClinicNums,timeSpanBefore,timeSpanAfter,listBlockoutTypes:listDefNumsBlockoutTypes,isForMakeRecall:isForMakeRecall);
@@ -3719,10 +3720,10 @@ namespace OpenDental {
 				return;
 			}
 			DataRow dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
-			bool isHygiene=PIn.Bool(dataRow["IsHygiene"].ToString());
-			long provHyg=PIn.Long(dataRow["ProvHyg"].ToString());
-			long provNum=PIn.Long(dataRow["ProvNum"].ToString());
-			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+			bool isHygiene=SIn.Bool(dataRow["IsHygiene"].ToString());
+			long provHyg=SIn.Long(dataRow["ProvHyg"].ToString());
+			long provNum=SIn.Long(dataRow["ProvNum"].ToString());
+			long aptNum=SIn.Long(dataRow["AptNum"].ToString());
 			for(int i=0;i<listProvidersShort.Count;i++) {
 				if(isHygiene && listProvidersShort[i].ProvNum==provHyg) {
 					//If their appiontment is hygine, the list will start with just their hygine provider
@@ -3918,7 +3919,7 @@ namespace OpenDental {
 				dateRange=AppointmentL.GetAsapRange(opNum,dateTimeSelected,apptNum,contrApptPanel.ListSchedules);
 			}
 			catch(ODException ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 				return;
 			}
 			catch(Exception ex) {
@@ -4085,7 +4086,7 @@ namespace OpenDental {
 				Appointments.Update(appointment,appointmentOld);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -4214,13 +4215,13 @@ namespace OpenDental {
 					#region Update Appt's DateTimeAskedToArrive
 					if(patient.AskToArriveEarly>0) {
 						appointment.DateTimeAskedToArrive=appointment.AptDateTime.AddMinutes(-patient.AskToArriveEarly);
-						MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+patient.AskToArriveEarly
+						ODMessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+patient.AskToArriveEarly
 							+" "+Lan.g(this,"minutes early at")+" "+appointment.DateTimeAskedToArrive.ToShortTimeString()+".");
 					}
 					else {
 						if(appointment.DateTimeAskedToArrive.Year>1880 && (appointmentOld.AptDateTime-appointmentOld.DateTimeAskedToArrive).TotalMinutes>0) {
 							appointment.DateTimeAskedToArrive=appointment.AptDateTime-(appointmentOld.AptDateTime-appointmentOld.DateTimeAskedToArrive);
-							if(MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+(appointmentOld.AptDateTime-appointmentOld.DateTimeAskedToArrive).TotalMinutes
+							if(ODMessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+(appointmentOld.AptDateTime-appointmentOld.DateTimeAskedToArrive).TotalMinutes
 								+" "+Lan.g(this,"minutes early at")+" "+appointment.DateTimeAskedToArrive.ToShortTimeString()+"?","",MessageBoxButtons.YesNo)==DialogResult.No) {
 								appointment.DateTimeAskedToArrive=appointmentOld.DateTimeAskedToArrive;
 							}
@@ -4291,7 +4292,7 @@ namespace OpenDental {
 				//Prevents appointments with providers that are past their term end date from being scheduled
 				string message=Providers.CheckApptProvidersTermDates(appointment);
 				if(message!="") {
-					MessageBox.Show(message);//translated in Providers S class method
+					ODMessageBox.Show(message);//translated in Providers S class method
 					return;
 				}
 				#endregion Provider Term Date Check
@@ -4322,11 +4323,11 @@ namespace OpenDental {
 						frequencyConflicts=Procedures.CheckFrequency(listProceduresForSingleApt,appointment.PatNum,appointment.AptDateTime);
 					}
 					catch(Exception e) {
-						MessageBox.Show(Lan.g(this,"There was an error checking frequencies.  Disable the Insurance Frequency Checking feature or try to fix the following error:")
+						ODMessageBox.Show(Lan.g(this,"There was an error checking frequencies.  Disable the Insurance Frequency Checking feature or try to fix the following error:")
 							+"\r\n"+e.Message);
 						return;
 					}
-					if(frequencyConflicts!="" && MessageBox.Show(Lan.g(this,"Scheduling this appointment for this date will cause frequency conflicts for the following procedures")
+					if(frequencyConflicts!="" && ODMessageBox.Show(Lan.g(this,"Scheduling this appointment for this date will cause frequency conflicts for the following procedures")
 						+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No)
 					{
 						return;
@@ -4340,11 +4341,11 @@ namespace OpenDental {
 					frequencyConflicts=DiscountPlans.CheckDiscountFrequencyAndValidateDiscountPlanSub(listProceduresForSingleApt,appointment.PatNum,appointment.AptDateTime);
 				}
 				catch(Exception e) {
-					MessageBox.Show(Lan.g(this,"There was an error checking discount frequencies:")
+					ODMessageBox.Show(Lan.g(this,"There was an error checking discount frequencies:")
 						+"\r\n"+e.Message);
 					return;
 				}
-				if(!string.IsNullOrEmpty(frequencyConflicts) && MessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
+				if(!string.IsNullOrEmpty(frequencyConflicts) && ODMessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
 					+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No)
 				{
 					return;
@@ -4498,7 +4499,7 @@ namespace OpenDental {
 			Graphics g=ev.Graphics;
 			long apptClinicNum=0;
 			if(contrApptPanel.SelectedAptNum>0){
-				apptClinicNum=PIn.Long(contrApptPanel.GetDataRowForSelected()["ClinicNum"].ToString());
+				apptClinicNum=SIn.Long(contrApptPanel.GetDataRowForSelected()["ClinicNum"].ToString());
 			}		
 			var clinic=Clinics.GetClinic(apptClinicNum);
 			//Return Address--------------------------------------------------------------------------
@@ -4640,14 +4641,14 @@ namespace OpenDental {
 							Appointments.Update(appointment,appointmentOld);//Appointments S-Class handles Signalods
 						}
 						catch(ApplicationException ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 						}
 					}
 					RefreshPeriod();
 					break;
 				case OtherResult.GoTo:
 					contrApptPanel.SelectedAptNum=aptNumArray[0];
-					contrApptPanel.DateSelected=PIn.Date(strDateJumpTo);
+					contrApptPanel.DateSelected=SIn.Date(strDateJumpTo);
 					if(_patient.PatNum!=patNum) {
 						//ModuleSelected->RefreshModuleScreenPeriod, Appt won't be selected if PatCur.PatNum!=Appt.PatNum
 						_patient=Patients.GetPat(patNum);
@@ -4705,7 +4706,7 @@ namespace OpenDental {
 				string msg=listPatsSkipped.Count+Lan.g(this," of the ")+listPatNums.Distinct().Count()+" "
 					+Lan.g(this,"patients cannot receive text messages:")+"\r\n"+string.Join("\r\n",listPatsSkipped);
 				if(listPatsSkipped.Count < 8) {
-					MessageBox.Show(msg);
+					ODMessageBox.Show(msg);
 				}
 				else {
 					using MsgBoxCopyPaste msgBoxCopyPaste=new MsgBoxCopyPaste(msg);
@@ -4770,18 +4771,18 @@ namespace OpenDental {
 						contrApptPanel.TableAppointments.Rows[indexOfAppt].ItemArray=dataRow.ItemArray;
 					}
 				}
-				string pattern=PIn.String(dataRow["Pattern"].ToString());
+				string pattern=SIn.String(dataRow["Pattern"].ToString());
 				string patternShowing=contrApptPanel.GetPatternShowing(pattern);
 				SizeF sizeAppt=contrApptPanel.SetSize(pattern);
 				Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
 				using(Graphics g = Graphics.FromImage(bitmap)){
 					contrApptPanel.GetBitmapForPinboard(g,dataRow,patternShowing,bitmap.Width,bitmap.Height);
 				}
-				long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+				long aptNum=SIn.Long(dataRow["AptNum"].ToString());
 				pinBoard.AddAppointment(bitmap,aptNum,dataRow);
 				bitmap.Dispose();//?
 				if(i==aptNums.Count-1) { //Set the pt to the last appt on the pinboard.
-					patNum=PIn.Long(dataRow["PatNum"].ToString());
+					patNum=SIn.Long(dataRow["PatNum"].ToString());
 				}
 			}
 			if(patNum==0 && _patient!=null) {
@@ -4799,11 +4800,11 @@ namespace OpenDental {
 				MsgBox.Show(this,"Appointments can't be sent to the pinboard when an appointment view or clinic hasn't been selected.");
 				return;
 			}
-			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+			long aptNum=SIn.Long(dataRow["AptNum"].ToString());
 			if(!DoApptBreakRequired(Appointments.GetOneApt(aptNum))) {
 				return;
 			}
-			string pattern=PIn.String(dataRow["Pattern"].ToString());
+			string pattern=SIn.String(dataRow["Pattern"].ToString());
 			string patternShowing=contrApptPanel.GetPatternShowing(pattern);
 			SizeF sizeAppt=contrApptPanel.SetSize(pattern);
 			Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
@@ -4812,7 +4813,7 @@ namespace OpenDental {
 			}
 			pinBoard.AddAppointment(bitmap,aptNum,dataRow);
 			bitmap.Dispose();//?
-			long patNum=PIn.Long(dataRow["PatNum"].ToString());
+			long patNum=SIn.Long(dataRow["PatNum"].ToString());
 			RefreshModuleDataPatient(patNum); 
 			GlobalFormOpenDental.PatientSelected(_patient,true,false);
 		}
@@ -4861,14 +4862,14 @@ namespace OpenDental {
 					//Get the appointment times that are in a visible operatory
 					List<TimeSpan> listVisAptTimes=new List<TimeSpan>();
 					for(int i=0;i<contrApptPanel.TableAppointments.Rows.Count;i++) {
-						long opNum=PIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString());
+						long opNum=SIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString());
 //todo:
 						if(!contrApptPanel.ListOpsVisible.Exists(x => x.OperatoryNum==opNum) //The appointment is in a visible operatory
 							|| !new[] { "1","2","4","5","7","8" }.Contains(contrApptPanel.TableAppointments.Rows[i]["AptStatus"].ToString())) //Scheduled,Complete,ASAP,Broken,PtNote,PtNoteComp
 						{
 							continue;
 						}
-						listVisAptTimes.Add(PIn.Date(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString()).TimeOfDay);
+						listVisAptTimes.Add(SIn.Date(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString()).TimeOfDay);
 					}
 					TimeSpan timeSpanEarliestApt=new TimeSpan();
 					TimeSpan timeSpanEarliestOp=new TimeSpan();

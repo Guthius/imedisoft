@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -144,7 +145,7 @@ namespace OpenDental{
 			if(formRxNorms.DialogResult!=DialogResult.OK) {
 				return;
 			}
-			MedicationPatCur.RxCui=PIn.Long(formRxNorms.RxNormSelected.RxCui);
+			MedicationPatCur.RxCui=SIn.Long(formRxNorms.RxNormSelected.RxCui);
 			textRxNormDesc.Text=RxNorms.GetDescByRxCui(MedicationPatCur.RxCui.ToString());
 			if(IsNew) {
 				textMedName.Text=RxNorms.GetDescByRxCui(MedicationPatCur.RxCui.ToString());
@@ -212,8 +213,8 @@ namespace OpenDental{
 				MedicationPatCur.ProvNum=_listProviders[comboProv.SelectedIndex-1].ProvNum;
 			}
 			MedicationPatCur.PatNote=textPatNote.Text;
-			MedicationPatCur.DateStart=PIn.Date(textDateStart.Text);
-			MedicationPatCur.DateStop=PIn.Date(textDateStop.Text);
+			MedicationPatCur.DateStart=SIn.Date(textDateStart.Text);
+			MedicationPatCur.DateStop=SIn.Date(textDateStop.Text);
 			if(IsNew){
 				MedicationPats.Insert(MedicationPatCur);
 				if(MedicationPatCur.MedicationNum==0) {

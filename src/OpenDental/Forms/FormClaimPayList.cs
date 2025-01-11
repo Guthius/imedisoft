@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
 
@@ -39,8 +40,8 @@ namespace OpenDental {
 		}
 
 		private void FillGrid(){
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			long clinicNum=0;
 			if(!comboClinic.IsAllSelected) {
 				clinicNum=comboClinic.ClinicNumSelected;

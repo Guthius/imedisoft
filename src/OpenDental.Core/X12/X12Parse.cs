@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDentBusiness{
 	public class X12Parse {
@@ -9,12 +10,12 @@ namespace OpenDentBusiness{
 			if(element.Length < 8) {
 				return DateTime.MinValue;
 			}
-			int year=PIn.Int(element.Substring(0,4));
+			int year=SIn.Int(element.Substring(0,4));
 			if(year < 1880 || year>=DateTime.MaxValue.Year) {
 				return DateTime.MinValue;
 			}
-			int month=PIn.Int(element.Substring(4,2));
-			int day=PIn.Int(element.Substring(6,2));
+			int month=SIn.Int(element.Substring(4,2));
+			int day=SIn.Int(element.Substring(6,2));
 			DateTime dt=new DateTime(year,month,day);
 			return dt;
 		}

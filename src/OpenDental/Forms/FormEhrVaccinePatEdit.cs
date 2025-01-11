@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -303,7 +305,7 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+			if(ODMessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 				return;
 			}
 			VaccinePats.Delete(VaccinePatCur.VaccinePatNum);
@@ -312,18 +314,18 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(!textDateExpiration.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			VaccineCompletionStatus vaccineCompletionStatus=listCompletionStatus.GetSelected<VaccineCompletionStatus>();
 			if(comboVaccine.SelectedIndex==-1 && vaccineCompletionStatus!=VaccineCompletionStatus.NotAdministered) {
 				//When the vaccine is not administered, the CVX code is automatically assumed to be 998 and there is no manufacturer.  Therefore, no vaccine def is needed.
-				MessageBox.Show(this,"Please select a vaccine.");
+				ODMessageBox.Show(this,"Please select a vaccine.");
 				return;
 			}
 			if(vaccineCompletionStatus==VaccineCompletionStatus.NotAdministered) {
 				if(textNote.Text=="") {
-					MessageBox.Show(this,"Please enter documentation in the note.");
+					ODMessageBox.Show(this,"Please enter documentation in the note.");
 					return;
 				}
 				VaccinePatCur.VaccineDefNum=0;//Written for clarity
@@ -332,21 +334,21 @@ namespace OpenDental {
 				VaccinePatCur.VaccineDefNum=_listVaccineDefs[comboVaccine.SelectedIndex].VaccineDefNum;
 			}
 			try {
-				VaccinePatCur.DateTimeStart=PIn.DateTime(textDateTimeStart.Text);
-				VaccinePatCur.DateTimeEnd=PIn.DateTime(textDateTimeStop.Text);
+				VaccinePatCur.DateTimeStart=SIn.DateTime(textDateTimeStart.Text);
+				VaccinePatCur.DateTimeEnd=SIn.DateTime(textDateTimeStop.Text);
 			}
 			catch {
-				MessageBox.Show(this,"Please enter start and end times in format DD/MM/YYYY HH:mm AM/PM");
+				ODMessageBox.Show(this,"Please enter start and end times in format DD/MM/YYYY HH:mm AM/PM");
 			}
 			if(textAmount.Text==""){
 				VaccinePatCur.AdministeredAmt=0;
 			}
 			else{
 				try {
-					VaccinePatCur.AdministeredAmt=PIn.Float(textAmount.Text);
+					VaccinePatCur.AdministeredAmt=SIn.Float(textAmount.Text);
 				}
 				catch {
-					MessageBox.Show(this,"Please enter a valid amount.");
+					ODMessageBox.Show(this,"Please enter a valid amount.");
 				}
 			}
 			if(comboUnits.SelectedIndex==0) {//'none'
@@ -356,7 +358,7 @@ namespace OpenDental {
 				VaccinePatCur.DrugUnitNum=_listDrugUnits[comboUnits.SelectedIndex-1].DrugUnitNum;
 			}
 			VaccinePatCur.LotNumber=textLotNum.Text;
-			VaccinePatCur.DateExpire=PIn.Date(textDateExpiration.Text);
+			VaccinePatCur.DateExpire=SIn.Date(textDateExpiration.Text);
 			VaccinePatCur.RefusalReason=listRefusalReason.GetSelected<VaccineRefusalReason>();
 			VaccinePatCur.CompletionStatus=listCompletionStatus.GetSelected<VaccineCompletionStatus>();
 			VaccinePatCur.Note=textNote.Text;

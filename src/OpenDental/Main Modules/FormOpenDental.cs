@@ -433,7 +433,7 @@ namespace OpenDental{
 				}
 				else {//Not a silent update.  Show a warning message.
 							//No MsgBox or Lan.g() here, because we don't want to access the database if there is a version conflict.
-					MessageBox.Show("Mismatched program file versions. Please run the Open Dental setup file again on this computer.");
+					ODMessageBox.Show("Mismatched program file versions. Please run the Open Dental setup file again on this computer.");
 				}
 				Environment.Exit(ExitCode);
 				return;
@@ -449,7 +449,7 @@ namespace OpenDental{
 					ExitCode=104;//Required command line arguments have not been set for silent updating
 				}
 				else {
-					MessageBox.Show(ode.Message);
+					ODMessageBox.Show(ode.Message);
 				}
 				Environment.Exit(ExitCode);
 				return;
@@ -728,7 +728,7 @@ namespace OpenDental{
 				stringBuilder.AppendLine(Lans.g(this,"Database setting: ")+ PrefC.GetString(PrefName.LanguageAndRegion)??"");
 				stringBuilder.AppendLine(Lans.g(this,"Computer setting: ")+CultureInfo.CurrentCulture.Name);
 				stringBuilder.AppendLine(Lans.g(this,"Would you like to view the language and region setup window?"));
-				if(MessageBox.Show(stringBuilder.ToString(),"",MessageBoxButtons.YesNo)==DialogResult.Yes){
+				if(ODMessageBox.Show(stringBuilder.ToString(),"",MessageBoxButtons.YesNo)==DialogResult.Yes){
 					using FormLanguageAndRegion formLanguageAndRegion=new FormLanguageAndRegion();
 					formLanguageAndRegion.ShowDialog();
 				}
@@ -948,7 +948,7 @@ namespace OpenDental{
 				//do nothing
 			}
 			if(Regex.IsMatch(textClip,@"^patnum:\d+$")) { //very restrictive specific match for "PatNum:##"
-				long patNum=PIn.Long(textClip.Substring(7));
+				long patNum=SIn.Long(textClip.Substring(7));
 				if(patNum!=prevPatNum) { // if not same then we are doing a fresh search and should just look for the patnum
 					if (TrySetPatient(patNum)) { //don't show the patient select form and just load the patient we found
 						return;
@@ -1067,7 +1067,7 @@ namespace OpenDental{
 				lbSessionId=CommandLineArgs_.ArrayCommandLineArgs[CommandLineArgs_.ArrayCommandLineArgs.Length-1].Trim('"');
 			}
 			#region eCW bridge
-			Bridges.ECW.AptNum=PIn.Long(aptNum);
+			Bridges.ECW.AptNum=SIn.Long(aptNum);
 			Bridges.ECW.EcwConfigPath=ecwConfigPath;
 			Bridges.ECW.UserId=userId;
 			Bridges.ECW.JSessionId=jSessionId;
@@ -1101,7 +1101,7 @@ namespace OpenDental{
 						userod.UserName=userName;
 						userod.SetPassword(Authentication.GenerateLoginDetailsMD5(passHash,true));
 						//This can fail if duplicate username because of capitalization differences.
-						Userods.Insert(userod,new List<long> { PIn.Long(ProgramProperties.GetPropVal(ProgramName.eClinicalWorks,"DefaultUserGroup")) });
+						Userods.Insert(userod,new List<long> { SIn.Long(ProgramProperties.GetPropVal(ProgramName.eClinicalWorks,"DefaultUserGroup")) });
 						DataValid.SetInvalid(InvalidType.Security);
 					}
 					else {//not using eCW in tight integration mode
@@ -1244,7 +1244,7 @@ namespace OpenDental{
 					Environment.Exit(ExitCode);
 					return false;
 				}
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;//shuts program down.
 			}
 			//The preference cache has been filled from the local database connection at this point.
@@ -1258,7 +1258,7 @@ namespace OpenDental{
 					Environment.Exit(ExitCode);
 					return false;
 				}
-				MessageBox.Show("Unable to set global sql mode.  User probably does not have enough permission.");
+				ODMessageBox.Show("Unable to set global sql mode.  User probably does not have enough permission.");
 				return false;
 			}
 			string updateComputerName=PrefC.GetStringSilent(PrefName.UpdateInProgressOnComputerName);
@@ -2687,7 +2687,7 @@ namespace OpenDental{
 					//listNotifications might still be null if signalSmsCount was not passed in, signal processing had already started, and we didn't find the
 					//sms notification signal in the last signal interval.  We will assume the signal is stale.  We know the count has changed (based on some 
 					//action) if 'increment' is non-zero, so increment according to our known changes.
-					smsUnreadCount=PIn.Int(_toolBarButtonText.NotificationText)+increment;
+					smsUnreadCount=SIn.Int(_toolBarButtonText.NotificationText)+increment;
 				}
 				else if(!true||Clinics.ClinicNum==0) {
 					//No clinics or HQ clinic is active so sum them all.
@@ -2924,7 +2924,7 @@ namespace OpenDental{
 				}
 			}
 			if(hadErrorPainting) {
-				MessageBox.Show("Error painting on program icon.  Probably too many non-ack'd messages.");
+				ODMessageBox.Show("Error painting on program icon.  Probably too many non-ack'd messages.");
 			}
 		}
 
@@ -3086,7 +3086,7 @@ namespace OpenDental{
 					//3. the CorruptedDatabase flag is set
 					if(!/* ODBuild.IsDebug() */ false && !IsDbConnectionSafe(out errorMsg)) {//Running version verses ProgramVersion preference can be different in debug.
 						timerSignals.Stop();
-						MessageBox.Show(this,errorMsg);
+						ODMessageBox.Show(this,errorMsg);
 						ProcessKillCommand();
 						return;
 					}
@@ -3607,7 +3607,7 @@ namespace OpenDental{
 				//Check if application is in kiosk mode. If so, no popups should happen. 
 				if(Application.OpenForms.OfType<FormTerminal>().Count()>0) {
 					string msg=Lan.g(this,"Kiosk mode enabled, popup blocked for TaskNum:");
-					Logger.LogToPath("",LogPath.Signals,LogPhase.Start,msg+" "+POut.Long(taskPopup.TaskNum));
+					Logger.LogToPath("",LogPath.Signals,LogPhase.Start,msg+" "+SOut.Long(taskPopup.TaskNum));
 					return;
 				} 
 				Logger.LogToPath("",LogPath.Signals,LogPhase.Start,"TaskNum: "+taskPopup.TaskNum.ToString());
@@ -3648,7 +3648,7 @@ namespace OpenDental{
 				if(isUserSubscribed) {//User is subscribed to this TaskList, or one of its ancestors.
 					byte[] byteArrayRawData=new byte[Properties.Resources.notify.Length];
 					Properties.Resources.notify.Read(byteArrayRawData,0,byteArrayRawData.Length);
-					if(!listUserOdPrefsBlockedTasks.Any(x => x.Fkey==taskPopup.TaskListNum && PIn.Bool(x.ValueString))){//Subscribed and Unblocked, Show it!
+					if(!listUserOdPrefsBlockedTasks.Any(x => x.Fkey==taskPopup.TaskListNum && SIn.Bool(x.ValueString))){//Subscribed and Unblocked, Show it!
 						SoundHelper.PlaySound(byteArrayRawData);
 						FormTaskEdit formTaskEdit=new FormTaskEdit(taskPopup);
 						formTaskEdit.IsPopup=true;
@@ -3660,7 +3660,7 @@ namespace OpenDental{
 					}
 					else {
 						UserOdPref userOdPrefTaskSound=UserOdPrefs.GetFirstOrNewByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.TaskBlockedMakeSound);
-						if(!userOdPrefTaskSound.IsNew && PIn.Bool(userOdPrefTaskSound.ValueString)) {
+						if(!userOdPrefTaskSound.IsNew && SIn.Bool(userOdPrefTaskSound.ValueString)) {
 							SoundHelper.PlaySound(byteArrayRawData);
 						}
 					}
@@ -5888,7 +5888,7 @@ namespace OpenDental{
 		///<summary>Opens a UserControlDashboardWidget.  The user's permissions should be validated prior to calling this method.</summary>
 		private bool TryLaunchPatientDashboard(SheetDef sheetDefWidget) {
 			if(userControlDashboard.IsInitialized) {
-				if(userControlDashboard.ListOpenWidgets.Any(x => x.Name==POut.Long(sheetDefWidget.SheetDefNum))) {
+				if(userControlDashboard.ListOpenWidgets.Any(x => x.Name==SOut.Long(sheetDefWidget.SheetDefNum))) {
 					//Clicked on the currently open Patient Dashboard.  This means "Close the Patient Dashboard".
 					userControlDashboard.CloseDashboard(false);//Causes userodpref to be deleted.
 					OnResizeEnd(new EventArgs());
@@ -5928,7 +5928,7 @@ namespace OpenDental{
 					InitDashboards(Security.CurUser.UserNum,userOdPrefDashboard);
 				}
 				catch(NotImplementedException niex) {
-					MessageBox.Show(this,"Error loading Patient Dashboard:\r\n"+niex.Message+"\r\nCorrect errors in Dashboard Setup.");
+					ODMessageBox.Show(this,"Error loading Patient Dashboard:\r\n"+niex.Message+"\r\nCorrect errors in Dashboard Setup.");
 				}
 				catch(Exception ex) {
 					throw new Exception("Unexpected error loading Patient Dashboard: "+ex.Message,ex);//So we get bug submission.
@@ -6018,7 +6018,7 @@ namespace OpenDental{
 				//Patient Dashboard for the user.
 				SheetDefs.GetFieldsAndParameters(sheetDefDashboard);
 				//FieldValue corresponds to the Patient Dashboard widget SheetDef.SheetDefNum
-				long firstWidgetSheetDefNum=PIn.Long(sheetDefDashboard.SheetFieldDefs.FirstOrDefault().FieldValue);
+				long firstWidgetSheetDefNum=SIn.Long(sheetDefDashboard.SheetFieldDefs.FirstOrDefault().FieldValue);
 				SheetDefs.DeleteObject(sheetDefDashboard.SheetDefNum);//Delete the layout SheetDef.
 				sheetDefDashboard=SheetDefs.GetFirstOrDefault(x => x.SheetDefNum==firstWidgetSheetDefNum);
 				UserOdPref userOdPref=userOdPrefDashboard.Clone();
@@ -6058,7 +6058,7 @@ namespace OpenDental{
 					Process.Start(site);
 				}
 				catch{
-					MessageBox.Show(Lan.g(this,"Could not find")+" "+site+"\r\n"
+					ODMessageBox.Show(Lan.g(this,"Could not find")+" "+site+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 				}
 				return;
@@ -6264,7 +6264,7 @@ namespace OpenDental{
 				Process.Start(site);
 			}
 			catch(Exception) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+site+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+site+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 			/*
@@ -6348,7 +6348,7 @@ namespace OpenDental{
 			string errorMsg=DocumentMiscs.LaunchShareScreen();
 			Cursor=Cursors.Default;
 			if(errorMsg!=null) {
-				MessageBox.Show(errorMsg);
+				ODMessageBox.Show(errorMsg);
 			}
 		}
 
@@ -6397,7 +6397,7 @@ namespace OpenDental{
 					Security.CurUser=Userods.CheckUserAndPassword(odUser,odPassword,isEcwTightOrFullMode);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					Application.Exit();
 					return;
 				}
@@ -6636,7 +6636,7 @@ namespace OpenDental{
 						Security.CurUser=Userods.GetUserNoCache(Security.CurUser.UserNum);//UpdatePassword() changes multiple fields.  Refresh from db.
 					}
 					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 				}
 			}
@@ -6648,7 +6648,7 @@ namespace OpenDental{
 					Userods.Update(Security.CurUser);//Unfortunately there is no update(new,old) for Userods yet due to comlexity.
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 			}
 			DataValid.SetInvalid(InvalidType.Security);

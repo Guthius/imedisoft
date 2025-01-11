@@ -69,7 +69,7 @@ namespace OpenDental {
 			string msgText="";
 			if(patToHasDiscountPlan && patFromHasDiscountPlan) {
 				msgText="Both patients have discount plans, the patient at the top will keep their original discount plan. Continue?";
-				if(MessageBox.Show(Lan.g(this,msgText),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(Lan.g(this,msgText),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return;//The user chose not to merge
 				}
 			}
@@ -88,7 +88,7 @@ namespace OpenDental {
 					+Lan.g(this,"From patient name")+": "+Patients.GetNameFLnoPref(_patientFrom.LName,_patientFrom.FName,"")+", "//using Patients.GetNameFLnoPref to omit MiddleI
 					+Lan.g(this,"From patient birthdate")+": "+_patientFrom.Birthdate.ToShortDateString()+"\r\n\r\n"
 					+Lan.g(this,"Merge the patient on the bottom into the patient shown on the top?");
-				if(MessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return;//The user chose not to merge
 				}
 			}
@@ -103,7 +103,7 @@ namespace OpenDental {
 					msgText=Lan.g(this,"The patient you have chosen to merge from is a guarantor.  Merging this patient into another account will cause all "
 						+"family members of the patient being merged from to be moved into the same family as the patient account being merged into.")+"\r\n"
 						+Lan.g(this,"Do you wish to continue with the merge?");
-					if(MessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+					if(ODMessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 						return;//The user chose not to merge.
 					}
 				}
@@ -195,7 +195,7 @@ namespace OpenDental {
 							}
 						}
 						if(fileCopyFailures>0) {
-							MessageBox.Show(Lan.g(this,"Some files belonging to the from patient were not copied.")+"\r\n"
+							ODMessageBox.Show(Lan.g(this,"Some files belonging to the from patient were not copied.")+"\r\n"
 								+Lan.g(this,"Number of files not copied")+": "+fileCopyFailures);
 						}
 					}

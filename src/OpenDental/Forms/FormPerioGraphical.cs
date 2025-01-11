@@ -339,7 +339,7 @@ namespace OpenDental {
 				ImageStore.Import(bitmap,defNumCategory,ImageType.Photo,_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Unable to save file: ") + ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to save file: ") + ex.Message);
 				return;
 			}
 			MsgBox.Show(this,"Saved.");

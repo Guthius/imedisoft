@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -91,7 +92,7 @@ namespace OpenDental {
 
 		private void checkPatClone_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ShowFeaturePatientClone);
-			prefValSync.PrefVal=POut.Bool(checkPatClone.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkPatClone.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 		#endregion Methods - Event Handlers
@@ -122,7 +123,7 @@ namespace OpenDental {
 			checkConsolidateInsPayment.Checked=PrefC.GetBool(PrefName.OrthoInsPayConsolidated);
 			string strListOrthoNums = PrefC.GetString(PrefName.OrthoPlacementProcsList);
 			if(strListOrthoNums!="") {
-				_listOrthoPlacementCodeNums.AddRange(strListOrthoNums.Split(new char[] { ',' }).ToList().Select(x => PIn.Long(x)));
+				_listOrthoPlacementCodeNums.AddRange(strListOrthoNums.Split(new char[] { ',' }).ToList().Select(x => SIn.Long(x)));
 			}
 			RefreshListBoxProcs();
 			textBandingCodes.Text=PrefC.GetString(PrefName.OrthoBandingCodes);
@@ -145,22 +146,22 @@ namespace OpenDental {
 			Changed|=Prefs.UpdateBool(PrefName.OrthoClaimMarkAsOrtho,checkOrthoClaimMarkAsOrtho.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.OrthoClaimUseDatePlacement,checkOrthoClaimUseDatePlacement.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.OrthoDebondProcCompletedSetsMonthsTreat,checkDebondOverridesMonthsTreat.Checked);
-			Changed|=Prefs.UpdateByte(PrefName.OrthoDefaultMonthsTreat,PIn.Byte(textOrthoMonthsTreat.Text));
+			Changed|=Prefs.UpdateByte(PrefName.OrthoDefaultMonthsTreat,SIn.Byte(textOrthoMonthsTreat.Text));
 			Changed|=Prefs.UpdateBool(PrefName.ApptModuleShowOrthoChartItem,checkApptModuleShowOrthoChartItem.Checked);
 			//Changed|=Prefs.UpdateBool(PrefName.ShowFeaturePatientClone,checkPatClone.Checked);
 			Changed|=Prefs.UpdateLong(PrefName.OrthoAutoProcCodeNum,_orthoAutoProcCodeNum);
 			Changed|=Prefs.UpdateBool(PrefName.OrthoInsPayConsolidated,checkConsolidateInsPayment.Checked);
 			Changed|=Prefs.UpdateString(PrefName.OrthoPlacementProcsList,string.Join(",",_listOrthoPlacementCodeNums));
-			Changed|=Prefs.UpdateString(PrefName.OrthoBandingCodes,PIn.String(textBandingCodes.Text));
-			Changed|=Prefs.UpdateString(PrefName.OrthoVisitCodes,PIn.String(textVisitCodes.Text));
-			Changed|=Prefs.UpdateString(PrefName.OrthoDebondCodes,PIn.String(textDebondCodes.Text));
+			Changed|=Prefs.UpdateString(PrefName.OrthoBandingCodes,SIn.String(textBandingCodes.Text));
+			Changed|=Prefs.UpdateString(PrefName.OrthoVisitCodes,SIn.String(textVisitCodes.Text));
+			Changed|=Prefs.UpdateString(PrefName.OrthoDebondCodes,SIn.String(textDebondCodes.Text));
 			Changed|=Prefs.UpdateBool(PrefName.OrthoChartLoggingOn,checkOrthoChartLoggingOn.Checked);
 			return true;
 		}
 
 		public void FillSynced(){
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ShowFeaturePatientClone);
-			checkPatClone.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkPatClone.Checked=SIn.Bool(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

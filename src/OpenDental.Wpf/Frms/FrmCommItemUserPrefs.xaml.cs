@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -42,13 +43,13 @@ namespace OpenDental {
 			checkCommlogPersistClearEndDate.Checked=true;
 			checkCommlogPersistUpdateDateTimeWithNewPatient.Checked=true;
 			if(_userOdPrefClearNote!=null) {
-				checkCommlogPersistClearNote.Checked=PIn.Bool(_userOdPrefClearNote.ValueString);
+				checkCommlogPersistClearNote.Checked=SIn.Bool(_userOdPrefClearNote.ValueString);
 			}
 			if(_userOdPrefEndDate!=null) {
-				checkCommlogPersistClearEndDate.Checked=PIn.Bool(_userOdPrefEndDate.ValueString);
+				checkCommlogPersistClearEndDate.Checked=SIn.Bool(_userOdPrefEndDate.ValueString);
 			}
 			if(_userOdPrefUpdateDateTimeNewPat!=null) {
-				checkCommlogPersistUpdateDateTimeWithNewPatient.Checked=PIn.Bool(_userOdPrefUpdateDateTimeNewPat.ValueString);
+				checkCommlogPersistUpdateDateTimeWithNewPatient.Checked=SIn.Bool(_userOdPrefUpdateDateTimeNewPat.ValueString);
 			}
 		}
 
@@ -84,13 +85,13 @@ namespace OpenDental {
 		private void butSave_Click(object sender,EventArgs e) {
 			UpsertUserOdPref(_userOdPrefClearNote
 				,UserOdFkeyType.CommlogPersistClearNote
-				,POut.Bool(checkCommlogPersistClearNote.Checked==true));
+				,SOut.Bool(checkCommlogPersistClearNote.Checked==true));
 			UpsertUserOdPref(_userOdPrefEndDate
 				,UserOdFkeyType.CommlogPersistClearEndDate
-				,POut.Bool(checkCommlogPersistClearEndDate.Checked==true));
+				,SOut.Bool(checkCommlogPersistClearEndDate.Checked==true));
 			UpsertUserOdPref(_userOdPrefUpdateDateTimeNewPat
 				,UserOdFkeyType.CommlogPersistUpdateDateTimeWithNewPatient
-				,POut.Bool(checkCommlogPersistUpdateDateTimeWithNewPatient.Checked==true));
+				,SOut.Bool(checkCommlogPersistUpdateDateTimeWithNewPatient.Checked==true));
 			IsDialogOK=true;
 		}
 

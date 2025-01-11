@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.ReportingComplex;
 using OpenDental.UI;
@@ -79,16 +80,16 @@ namespace OpenDental {
 					DataRow rowCur=queryObj.ReportTable.Rows[j];
 					row=new GridRow();
 					row.Cells.Add(rowCur["patientName"].ToString());
-					row.Cells.Add(PIn.Date(rowCur["ProcDate"].ToString()).ToShortDateString());
-					row.Cells.Add(PIn.String(rowCur["ProcCode"].ToString()));
-					row.Cells.Add(PIn.String(rowCur["ToothNum"].ToString()));
-					row.Cells.Add(PIn.String(rowCur["Abbr"].ToString()));
-					row.Cells.Add(PIn.Double(rowCur["fee"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["insPaid"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["wo"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["ptPaid"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["adjAmt"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["overpay"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Date(rowCur["ProcDate"].ToString()).ToShortDateString());
+					row.Cells.Add(SIn.String(rowCur["ProcCode"].ToString()));
+					row.Cells.Add(SIn.String(rowCur["ToothNum"].ToString()));
+					row.Cells.Add(SIn.String(rowCur["Abbr"].ToString()));
+					row.Cells.Add(SIn.Double(rowCur["fee"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["insPaid"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["wo"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["ptPaid"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["adjAmt"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["overpay"].ToString()).ToString("c"));
 					row.Tag=rowCur;
 					gridMain.ListGridRows.Add(row);
 				}
@@ -205,7 +206,7 @@ namespace OpenDental {
 				return;
 			}
 			DataRow row=(DataRow)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-			long patNum=PIn.Long(row["PatNum"].ToString());
+			long patNum=SIn.Long(row["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 			SendToBack();
 		}

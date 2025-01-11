@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -118,9 +119,9 @@ namespace OpenDental {
 
 		///<summary>Sets the foreground text to red if any row has a DOS between textDOSFrom and textDOSTo and matches textClaimFee </summary>
 		private void HighlightRows() {
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
-			double fee=PIn.Double(textClaimFee.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
+			double fee=SIn.Double(textClaimFee.Text);
 			int countRowsHighlighted=0;
 			int idxLastRowSelected=0;
 			gridClaims.BeginUpdate();
@@ -246,7 +247,7 @@ namespace OpenDental {
 				row.Cells.Add("");
 				row.Cells.Add("N");
 				row.Cells.Add(listHx835_ProcsUnmatched[i].ProcCodeBilled);
-				row.Cells.Add(POut.Decimal(listHx835_ProcsUnmatched[i].ProcFee));
+				row.Cells.Add(SOut.Decimal(listHx835_ProcsUnmatched[i].ProcFee));
 				row.ColorText=Color.Red;
 				row.Bold=true;
 				gridClaimDetails.ListGridRows.Add(row);
@@ -258,7 +259,7 @@ namespace OpenDental {
 				ClaimProc claimProc=listHx835_ProcsClaimProcsMatched[i].Item2;
 				UI.GridRow row=new UI.GridRow();
 				row.Cells.Add(claimProc.CodeSent);
-				row.Cells.Add(POut.Double(claimProc.FeeBilled));
+				row.Cells.Add(SOut.Double(claimProc.FeeBilled));
 				#region Status column
 				switch(claimProc.Status) {
 					case ClaimProcStatus.Received:
@@ -271,7 +272,7 @@ namespace OpenDental {
 				#endregion
 				row.Cells.Add("Y");
 				row.Cells.Add(hx835_Proc.ProcCodeBilled);
-				row.Cells.Add(POut.Decimal(hx835_Proc.ProcFee));
+				row.Cells.Add(SOut.Decimal(hx835_Proc.ProcFee));
 				row.ColorText=Color.Green;
 				row.Bold=true;
 				gridClaimDetails.ListGridRows.Add(row);
@@ -284,7 +285,7 @@ namespace OpenDental {
 				}
 				UI.GridRow row=new UI.GridRow();
 				row.Cells.Add(_listClaimProcs[i].CodeSent);
-				row.Cells.Add(POut.Double(_listClaimProcs[i].FeeBilled));
+				row.Cells.Add(SOut.Double(_listClaimProcs[i].FeeBilled));
 				switch(_listClaimProcs[i].Status) {
 				#region Status column
 					case ClaimProcStatus.Received:
@@ -392,7 +393,7 @@ namespace OpenDental {
 				isValidClaimFee=CompareDouble.IsEqual(claimSelected.ClaimFee,fee);
 			}
 			if(!isValidClaimFee) {
-				MessageBox.Show(Lan.g(this,"Claim fee on claim does not match ERA.")+"  "+Lan.g(this,"Expected")+" "+fee.ToString("f"));
+				ODMessageBox.Show(Lan.g(this,"Claim fee on claim does not match ERA.")+"  "+Lan.g(this,"Expected")+" "+fee.ToString("f"));
 				return;
 			}
 			if(claimSelected.ClaimType=="PreAuth" && _hx835_Claim.DateServiceStart.Date.Year<=1900) {
@@ -401,7 +402,7 @@ namespace OpenDental {
 			else if((claimSelected.DateService.Date.CompareTo(_hx835_Claim.DateServiceStart.Date) < 0)
 				|| (claimSelected.DateService.Date.CompareTo(_hx835_Claim.DateServiceEnd.Date) > 0))
 			{
-				MessageBox.Show(Lan.g(this,"Date of service on claim does not match service date range on ERA.")+"\r\n"+Lan.g(this,"Expected")+" "
+				ODMessageBox.Show(Lan.g(this,"Date of service on claim does not match service date range on ERA.")+"\r\n"+Lan.g(this,"Expected")+" "
 					+_hx835_Claim.DateServiceStart.ToShortDateString()+" - "+_hx835_Claim.DateServiceEnd.ToShortDateString());
 				return;
 			}

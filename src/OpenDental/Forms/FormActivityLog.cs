@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -47,7 +48,7 @@ namespace OpenDental {
 
 		private void FillGrid() {
 			List<EServiceLog> listEServiceLogs=_listEServiceLogs;
-			if(textPatNum.Text!="" && PIn.Long(textPatNum.Text)>-1) {
+			if(textPatNum.Text!="" && SIn.Long(textPatNum.Text)>-1) {
 				listEServiceLogs=listEServiceLogs.Where(x => x.PatNum.ToString()==textPatNum.Text).ToList();
 			}
 			if(comboBoxTypes.SelectedIndex!=-1 && comboBoxTypes.GetSelected<eServiceType>()!=eServiceType.Unknown) {

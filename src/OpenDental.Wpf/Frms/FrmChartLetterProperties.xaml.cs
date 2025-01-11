@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Word=Microsoft.Office.Interop.Word;
 using WpfControls;
@@ -288,7 +289,7 @@ namespace OpenDental {
 			}
 			//We had a security bug where users could change the date to a more recent date, and then subsequently delete.
 			//The code below is for that specific scenario.
-			DateTime dateTimeEntered=PIn.DateTime(textDate.Text+" "+textTime.Text);
+			DateTime dateTimeEntered=SIn.DateTime(textDate.Text+" "+textTime.Text);
 			if(dateTimeEntered>DocumentCur.DateCreated) {
 				//user is trying to change the date to some date after the previously linked date
 				//is the new doc date allowed?

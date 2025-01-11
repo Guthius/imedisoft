@@ -7,23 +7,18 @@ namespace OpenDental
     {
         public static string NumberToOrdinal(int number)
         {
-            if (number == 11)
+            switch (number)
             {
-                return "11th";
+                case 11:
+                    return "11th";
+                case 12:
+                    return "12th";
+                case 13:
+                    return "13th";
             }
 
-            if (number == 12)
-            {
-                return "12th";
-            }
-
-            if (number == 13)
-            {
-                return "13th";
-            }
-
-            string str = number.ToString();
-            string last = str.Substring(str.Length - 1);
+            var str = number.ToString();
+            var last = str.Substring(str.Length - 1);
             switch (last)
             {
                 case "0":
@@ -42,7 +37,7 @@ namespace OpenDental
                     return str + "rd";
             }
 
-            return ""; //will never happen
+            return "";
         }
     }
     

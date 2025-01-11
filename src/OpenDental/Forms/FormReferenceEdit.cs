@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -70,7 +71,7 @@ namespace OpenDental {
 			if(!textRecentDate.IsValid()) {
 				MsgBox.Show(this,"Please enter a valid date.");
 			}
-			_custReference.DateMostRecent=PIn.Date(textRecentDate.Text);
+			_custReference.DateMostRecent=SIn.Date(textRecentDate.Text);
 			_custReference.IsBadRef=checkBadRef.Checked;
 			_custReference.Note=textNote.Text;
 			CustReferences.Update(_custReference);

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 
@@ -93,7 +94,7 @@ namespace OpenDental{
 				if(true) {
 					row.Cells.Add(table.Rows[i]["Clinic"].ToString());
 				}
-				DateTime dateService=PIn.Date(table.Rows[i]["DateService"].ToString());
+				DateTime dateService=SIn.Date(table.Rows[i]["DateService"].ToString());
 				row.Cells.Add(dateService.ToShortDateString());
 				string type=table.Rows[i]["ClaimType"].ToString();
 				switch(type) {
@@ -123,11 +124,11 @@ namespace OpenDental{
 				row.Cells.Add(table.Rows[i]["ClaimStatus"].ToString());
 				row.Cells.Add(table.Rows[i]["Patient Name"].ToString());
 				row.Cells.Add(table.Rows[i]["CarrierName"].ToString());
-				row.Cells.Add(PIn.Double(table.Rows[i]["ClaimFee"].ToString()).ToString("c"));
+				row.Cells.Add(SIn.Double(table.Rows[i]["ClaimFee"].ToString()).ToString("c"));
 				row.Cells.Add(table.Rows[i]["ProcCodes"].ToString());
 				UnsentInsClaim unsentClaim=new UnsentInsClaim();
-				unsentClaim.ClaimNum=PIn.Long(table.Rows[i]["ClaimNum"].ToString());
-				unsentClaim.PatNum=PIn.Long(table.Rows[i]["PatNum"].ToString());
+				unsentClaim.ClaimNum=SIn.Long(table.Rows[i]["ClaimNum"].ToString());
+				unsentClaim.PatNum=SIn.Long(table.Rows[i]["PatNum"].ToString());
 				ClaimTracking claimTrackingCur=_listNewClaimTrackings.FirstOrDefault(x => x.ClaimNum==unsentClaim.ClaimNum);
 				if(claimTrackingCur!=null) {
 					unsentClaim.ClaimTrackingNum=claimTrackingCur.ClaimTrackingNum;

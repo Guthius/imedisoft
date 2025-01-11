@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Reflection;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class TrojanQueries {
@@ -12,22 +13,22 @@ namespace OpenDentBusiness {
 		public static DateTime GetMaxProcedureDate(long PatNum) {
 			string command=$@"SELECT MAX(ProcDate) FROM procedurelog,patient
 				WHERE patient.PatNum=procedurelog.PatNum
-				AND procedurelog.ProcStatus={POut.Int((int)ProcStat.C)}
-				AND patient.Guarantor={POut.Long(PatNum)}";
-			return PIn.Date(DataCore.GetScalar(command));
+				AND procedurelog.ProcStatus={SOut.Int((int)ProcStat.C)}
+				AND patient.Guarantor={SOut.Long(PatNum)}";
+			return SIn.Date(DataCore.GetScalar(command));
 		}
 
 		public static DateTime GetMaxPaymentDate(long PatNum) {
 			string command=$@"SELECT MAX(DatePay) FROM paysplit,patient
 				WHERE patient.PatNum=paysplit.PatNum
-				AND patient.Guarantor={POut.Long(PatNum)}";
-			return PIn.Date(DataCore.GetScalar(command));
+				AND patient.Guarantor={SOut.Long(PatNum)}";
+			return SIn.Date(DataCore.GetScalar(command));
 		}
 
 		///<summary>Increments the PreviousFileNumber program property to the next available int and returns that new file number.</summary>
 		public static int GetUniqueFileNum(){
 			long progNum=Programs.GetProgramNum(ProgramName.TrojanExpressCollect);
-			int fileNum=PIn.Int(ProgramProperties.GetValFromDb(progNum,"PreviousFileNumber"),false)+1;
+			int fileNum=SIn.Int(ProgramProperties.GetValFromDb(progNum,"PreviousFileNumber"),false)+1;
 			while(ProgramProperties.SetProperty(progNum,"PreviousFileNumber",fileNum.ToString())<1) {
 				fileNum++;
 			}
@@ -103,7 +104,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static InsPlan GetPlanWithTrojanID(string trojanID){
-			string command="SELECT * FROM insplan WHERE TrojanID = '"+POut.String(trojanID)+"'";
+			string command="SELECT * FROM insplan WHERE TrojanID = '"+SOut.String(trojanID)+"'";
 			return Crud.InsPlanCrud.SelectOne(command);
 		}
 
@@ -113,24 +114,24 @@ namespace OpenDentBusiness {
 			string command;
 			//for(int i=0;i<planNums.Count;i++) {
 			command="UPDATE insplan SET "
-				+"EmployerNum="  +POut.Long  (employerNum)+", "
-				+"GroupName='"   +POut.String(troj.PLANDESC)+"', "
-				+"GroupNum='"    +POut.String(troj.POLICYNO)+"', "
-				+"CarrierNum= "  +POut.Long  (troj.CarrierNum)+" "
-				+"WHERE PlanNum="+POut.Long  (planNum);
+				+"EmployerNum="  +SOut.Long  (employerNum)+", "
+				+"GroupName='"   +SOut.String(troj.PLANDESC)+"', "
+				+"GroupNum='"    +SOut.String(troj.POLICYNO)+"', "
+				+"CarrierNum= "  +SOut.Long  (troj.CarrierNum)+" "
+				+"WHERE PlanNum="+SOut.Long  (planNum);
 			Db.NonQ(command);
 			command=$@"UPDATE insbluebook SET
-				insbluebook.GroupNum='{POut.String(troj.POLICYNO)}',
-				insbluebook.CarrierNum={POut.Long(troj.CarrierNum)}
-				WHERE insbluebook.PlanNum={POut.Long(planNum)}";
+				insbluebook.GroupNum='{SOut.String(troj.POLICYNO)}',
+				insbluebook.CarrierNum={SOut.Long(troj.CarrierNum)}
+				WHERE insbluebook.PlanNum={SOut.Long(planNum)}";
 			Db.NonQ(command);
 			command="UPDATE inssub SET "
-				+"BenefitNotes='"+POut.String(troj.BenefitNotes)+"' "
-				+"WHERE PlanNum="+POut.Long(planNum);
+				+"BenefitNotes='"+SOut.String(troj.BenefitNotes)+"' "
+				+"WHERE PlanNum="+SOut.Long(planNum);
 			Db.NonQ(command);
 			if(updateBenefits) {
 				//clear benefits
-				command="DELETE FROM benefit WHERE PlanNum="+POut.Long(planNum);
+				command="DELETE FROM benefit WHERE PlanNum="+SOut.Long(planNum);
 				Db.NonQ(command);
 				//benefitList
 				for(int j=0;j<troj.BenefitList.Count;j++) {

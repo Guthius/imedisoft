@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -53,7 +55,7 @@ namespace OpenDental {
 				Equipments.Delete(EquipmentCur);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -81,7 +83,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter date purchased.");
 				return;
 			}
-			if(PIn.Date(textDatePurchased.Text) > DateTime.Today) {
+			if(SIn.Date(textDatePurchased.Text) > DateTime.Today) {
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Date is in the future.  Continue anyway?")) {
 					return;
 				}
@@ -89,10 +91,10 @@ namespace OpenDental {
 			EquipmentCur.Description=textDescription.Text;
 			EquipmentCur.SerialNumber=textSerialNumber.Text;
 			EquipmentCur.ModelYear=textModelYear.Text;
-			EquipmentCur.DatePurchased=PIn.Date(textDatePurchased.Text);
-			EquipmentCur.DateSold=PIn.Date(textDateSold.Text);
-			EquipmentCur.PurchaseCost=PIn.Double(textPurchaseCost.Text);
-			EquipmentCur.MarketValue=PIn.Double(textMarketValue.Text);
+			EquipmentCur.DatePurchased=SIn.Date(textDatePurchased.Text);
+			EquipmentCur.DateSold=SIn.Date(textDateSold.Text);
+			EquipmentCur.PurchaseCost=SIn.Double(textPurchaseCost.Text);
+			EquipmentCur.MarketValue=SIn.Double(textMarketValue.Text);
 			EquipmentCur.Location=textLocation.Text;
 			EquipmentCur.Status=textStatus.Text;
 			if(!string.IsNullOrEmpty(textSerialNumber.Text) && Equipments.HasExisting(EquipmentCur)) {

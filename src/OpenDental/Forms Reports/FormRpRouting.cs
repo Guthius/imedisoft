@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -140,7 +142,7 @@ namespace OpenDental {
 				SheetPrinting.PrintBatch(sheetBatch);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -164,10 +166,10 @@ namespace OpenDental {
 				return;
 			}
 			if(textDate.Text.Length==0){
-				MessageBox.Show(Lan.g(this,"Date is required."));
+				ODMessageBox.Show(Lan.g(this,"Date is required."));
 				return;
 			}
-			date=PIn.Date(textDate.Text);
+			date=SIn.Date(textDate.Text);
 			if(listProv.SelectedIndices.Count==0 && !checkProvAll.Checked){
 				MsgBox.Show(this,"You must select at least one provider.");
 				return;

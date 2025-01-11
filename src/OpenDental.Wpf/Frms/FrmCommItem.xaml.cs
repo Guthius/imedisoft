@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls.UI;
@@ -143,8 +144,8 @@ namespace OpenDental {
 			if(!IsValid(showMsg)) {
 				return false;
 			}
-			_commlog.DateTimeEnd=PIn.DateTime(textDateTimeEnd.Text);
-			_commlog.CommDateTime=PIn.DateTime(textDateTime.Text);
+			_commlog.DateTimeEnd=SIn.DateTime(textDateTimeEnd.Text);
+			_commlog.CommDateTime=SIn.DateTime(textDateTime.Text);
 			//there may not be a commtype selected.
 			if(listType.SelectedIndex==-1) {
 				_commlog.CommType=0;
@@ -291,10 +292,10 @@ namespace OpenDental {
 				if(!IsPersistent) {
 					return true;
 				}
-				if(_userOdPrefClearNote==null || PIn.Bool(_userOdPrefClearNote.ValueString)) {
+				if(_userOdPrefClearNote==null || SIn.Bool(_userOdPrefClearNote.ValueString)) {
 					ClearNote();
 				}
-				if(_userOdPrefEndDate==null || PIn.Bool(_userOdPrefEndDate.ValueString)) {
+				if(_userOdPrefEndDate==null || SIn.Bool(_userOdPrefEndDate.ValueString)) {
 					ClearDateTimeEnd();
 				}
 				ODException.SwallowAnyException(() => {
@@ -417,7 +418,7 @@ namespace OpenDental {
 			long patNum=(long)e.Tag;
 			_commlog.PatNum=patNum;
 			textPatientName.Text=Patients.GetLim(patNum).GetNameFL();
-			if(IsPersistent && (_userOdPrefUpdateDateTimeNewPat==null || PIn.Bool(_userOdPrefUpdateDateTimeNewPat.ValueString))) {
+			if(IsPersistent && (_userOdPrefUpdateDateTimeNewPat==null || SIn.Bool(_userOdPrefUpdateDateTimeNewPat.ValueString))) {
 				UpdateButNow();
 			}
 		}

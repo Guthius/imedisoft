@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 
@@ -35,7 +37,7 @@ namespace OpenDental{
 				return;
 			}
 			if(listAdjType.SelectedIndices.Count==0){
-				MessageBox.Show("At least one adjustment type must be selected.");
+				ODMessageBox.Show("At least one adjustment type must be selected.");
 				return;
 			}
 			ReportSimpleGrid report=new ReportSimpleGrid();
@@ -68,13 +70,13 @@ namespace OpenDental{
 				LEFT JOIN (
 						SELECT PatNum,COUNT(*) NumberBroken
 						FROM adjustment WHERE "+types
-						+"AND adjustment.AdjDate >= "+POut.Date(date1.SelectionStart)+" "
-						+"AND adjustment.AdjDate <= " +POut.Date(date2.SelectionStart)+" "
+						+"AND adjustment.AdjDate >= "+SOut.Date(date1.SelectionStart)+" "
+						+"AND adjustment.AdjDate <= " +SOut.Date(date2.SelectionStart)+" "
 						+@"GROUP BY adjustment.PatNum
 				) broken ON broken.PatNum=patient.PatNum
 				WHERE	(procedurelog.ProcStatus='2'
-				AND procedurelog.ProcDate >= "+POut.Date(date1.SelectionStart)+" "
-				+"AND procedurelog.ProcDate <= " +POut.Date(date2.SelectionStart)+" )"
+				AND procedurelog.ProcDate >= "+SOut.Date(date1.SelectionStart)+" "
+				+"AND procedurelog.ProcDate <= " +SOut.Date(date2.SelectionStart)+" )"
 				+"OR broken.NumberBroken>0 "
 				+@"GROUP BY patient.PatNum
 				ORDER By procedurelog.ProcDate;";

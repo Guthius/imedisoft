@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Windows.Forms.DataVisualization.Charting;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -296,13 +297,13 @@ namespace OpenDental {
 				return;
 			}
 			//We only want to do this part when the user manually checked this, not when the check-defaults forced it to change
-			UpdateClinicPref(_prefNameType,POut.Int((int)webSchedVerifyType));
+			UpdateClinicPref(_prefNameType,SOut.Int((int)webSchedVerifyType));
 		}
 		#endregion Methods - Event Handlers
 
 		#region Helpers
 		private int GetInt(PrefName prefName) {
-			return PIn.Int(GetTemplateVal(prefName));
+			return SIn.Int(GetTemplateVal(prefName));
 		}
 
 		///<summary>Returns the clinic pref value for the currently selected clinic and provided PrefName, or the default pref if there is none.</summary>
@@ -319,7 +320,7 @@ namespace OpenDental {
 
 		///<summary>Checks the currently selected radio button for the given PrefName and groupBox, based on the radio button tags.</summary>
 		private void SetRadioButtonVal(PrefName prefName) {
-			WebSchedVerifyType webSchedVerifyType=(WebSchedVerifyType)PIn.Int(GetTemplateVal(prefName));
+			WebSchedVerifyType webSchedVerifyType=(WebSchedVerifyType)SIn.Int(GetTemplateVal(prefName));
 			RadioButton radioMatch=groupBoxRadio.Controls.OfType<RadioButton>().FirstOrDefault(x => (WebSchedVerifyType)x.Tag==webSchedVerifyType);
 			radioMatch.Checked=true;
 		}

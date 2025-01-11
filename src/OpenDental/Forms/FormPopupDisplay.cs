@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -25,7 +26,7 @@ namespace OpenDental{
 			textDescription.Text=PopupCur.Description.Replace("\r\n","\n").Replace("\n","\r\n");
 			if(PopupCur.UserNum!=0) {
 				//Display last user to edit PopupCur, or "Unknown(5)" if user not found.
-				textUser.Text=Userods.GetUser(PopupCur.UserNum)?.UserName??(Lan.g(this,"Unknown")+$"({POut.Long(PopupCur.UserNum)})");
+				textUser.Text=Userods.GetUser(PopupCur.UserNum)?.UserName??(Lan.g(this,"Unknown")+$"({SOut.Long(PopupCur.UserNum)})");
 			}
 			textCreateDate.Text="";
 			if(PopupCur.DateTimeEntry.Year>1880) {

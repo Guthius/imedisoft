@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 
@@ -75,7 +76,7 @@ namespace OpenDental {
 			if(_eclaimsCommBridge==EclaimsCommBridge.ClaimConnect) {
 				ImageAttachmentDXC=ClaimConnect.ImageAttachment.Create(
 					fileName:textFileName.Text,
-					createdDate:PIn.Date(textDateCreated.Text),
+					createdDate:SIn.Date(textDateCreated.Text),
 					typeCodeImage:listBoxImageType.GetSelected<ClaimConnect.ImageTypeCode>(),
 					imageClaim:_imageForClaim,
 					rightOrientation:!checkIsXrayMirrored.Checked);
@@ -83,7 +84,7 @@ namespace OpenDental {
 			else if(_eclaimsCommBridge==EclaimsCommBridge.EDS) {
 				ImageAttachmentEDS=EDS.ImageAttachment.Create(
 					fileName:textFileName.Text,
-					dateTimeCreated:PIn.Date(textDateCreated.Text),
+					dateTimeCreated:SIn.Date(textDateCreated.Text),
 					documentTypeCode:listBoxImageType.GetSelected<EDS.EnumDocumentTypeCode>(),
 					imageClaim:_imageForClaim,
 					isRightOriented:!checkIsXrayMirrored.Checked,

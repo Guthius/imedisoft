@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataConnectionBase;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness {
@@ -142,7 +143,7 @@ namespace OpenDentBusiness {
 					}
 				}
 				if(eForm.ListEFormFields[i].DbLink=="Birthdate") {
-					patient.Birthdate=PIn.Date(eForm.ListEFormFields[i].ValueString);
+					patient.Birthdate=SIn.Date(eForm.ListEFormFields[i].ValueString);
 				}
 				if(eForm.ListEFormFields[i].DbLink=="City") {
 					patient.City=eForm.ListEFormFields[i].ValueString;

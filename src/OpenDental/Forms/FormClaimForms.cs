@@ -96,7 +96,7 @@ namespace OpenDental{
 		///<summary>Copy an internal form over to a new custom form.</summary>
 		private void butCopy_Click(object sender,EventArgs e) {
 			if(gridInternal.GetSelectedIndex()==-1) {
-				MessageBox.Show(Lan.g(this,"Please select an item from the internal grid to copy over to the custom grid."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item from the internal grid to copy over to the custom grid."));
 				return;
 			}
 			//just insert it into the db.
@@ -146,7 +146,7 @@ namespace OpenDental{
 		///<summary>Delete an unusued custom claim form.</summary>
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(gridCustom.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select a Custom Claim Form first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a Custom Claim Form first."));
 				return;
 			}
 			ClaimForm claimForm=(ClaimForm)gridCustom.ListGridRows[gridCustom.GetSelectedIndex()].Tag;
@@ -215,7 +215,7 @@ namespace OpenDental{
 				claimForm=ClaimForms.DeserializeClaimForm(importFilePath,"");
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			ClaimForms.Insert(claimForm,includeClaimFormItems:true);//now we have a primary key.
@@ -250,7 +250,7 @@ namespace OpenDental{
 			ClaimForm claimFormCur = (ClaimForm)gridCustom.ListGridRows[gridCustom.GetSelectedIndex()].Tag;
 			ClaimForm claimFormNew = comboReassign.GetSelected<ClaimForm>();
 			long result=ClaimForms.Reassign(claimFormCur.ClaimFormNum,claimFormNew.ClaimFormNum);
-			MessageBox.Show(result.ToString()+Lan.g(this," plans changed."));
+			ODMessageBox.Show(result.ToString()+Lan.g(this," plans changed."));
 		}
 
 		private void FormClaimForms_Closing(object sender, System.ComponentModel.CancelEventArgs e) {

@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental.Bridges {
@@ -259,7 +260,7 @@ namespace OpenDental.Bridges {
 			}
 			Patient patCur;
 			if(!useChartNum) {//Use PatNum
-				patCur=Patients.GetPat(PIn.Long(identifier));
+				patCur=Patients.GetPat(SIn.Long(identifier));
 			}
 			else {//Use ChartNum
 				patCur=Patients.GetPatByChartNumber(identifier);

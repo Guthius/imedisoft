@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -80,7 +81,7 @@ namespace OpenDental {
 				&& listMedicationsMatches.Count==0)
 			{
 				for(int i=0;i<listCustomMessages.Count;i++){
-					if(MessageBox.Show(listCustomMessages[i]+"\r\n"+Lan.g("RxAlertL","Continue anyway?"),"Alert",MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation)!=DialogResult.OK){
+					if(ODMessageBox.Show(listCustomMessages[i]+"\r\n"+Lan.g("RxAlertL","Continue anyway?"),"Alert",MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation)!=DialogResult.OK){
 						return false;
 					}
 				}
@@ -130,11 +131,11 @@ namespace OpenDental {
 				}
 			}
 			alertStr+="\r\n"+Lan.g("RxAlertL","Continue anyway?");
-			if(MessageBox.Show(alertStr,"Alert",MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation)!=DialogResult.OK) {
+			if(ODMessageBox.Show(alertStr,"Alert",MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation)!=DialogResult.OK) {
 				return false;
 			}
 			for(int i=0;i<listCustomMessages.Count;i++){
-				if(MessageBox.Show(listCustomMessages[i]+"\r\n"+Lan.g("RxAlertL","Continue anyway?"),"Alert",MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation)!=DialogResult.OK){
+				if(ODMessageBox.Show(listCustomMessages[i]+"\r\n"+Lan.g("RxAlertL","Continue anyway?"),"Alert",MessageBoxButtons.OKCancel,MessageBoxIcon.Exclamation)!=DialogResult.OK){
 					return false;
 				}
 			}

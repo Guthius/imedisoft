@@ -1,6 +1,8 @@
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	
@@ -21,7 +23,7 @@ namespace OpenDental {
 
 		private void FormBenefitEdit_Load(object sender, System.EventArgs e) {
 			if(BenefitCur==null) {
-				MessageBox.Show("Benefit cannot be null.");
+				ODMessageBox.Show("Benefit cannot be null.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
@@ -79,10 +81,10 @@ namespace OpenDental {
 		}
 
 		private void butSave_Click(object sender, System.EventArgs e) {
-			if(BenefitCur.QuantityQualifier==BenefitQuantity.AgeLimit && PIn.Int(textQuantity.Text,false)==0)  {
+			if(BenefitCur.QuantityQualifier==BenefitQuantity.AgeLimit && SIn.Int(textQuantity.Text,false)==0)  {
 				string messageText=Lan.g(this,"field is invalid.\r\n"
 					+"Enter an age greater than 0 to denote coverage through that year, or click delete to remove this benefit.");
-				MessageBox.Show(this,groupQuantity.Text+" "+messageText);
+				ODMessageBox.Show(this,groupQuantity.Text+" "+messageText);
 				return;
 			}
 			if(!textPercent.IsValid() || !textAmount.IsValid() || !textQuantity.IsValid()) {
@@ -100,16 +102,16 @@ namespace OpenDental {
 				percent=-1;
 			}
 			else {
-				percent=PIn.Int(textPercent.Text);
+				percent=SIn.Int(textPercent.Text);
 			}
 			double monetaryAmt;
 			if(textAmount.Text=="") {
 				monetaryAmt=-1;
 			}
 			else {
-				monetaryAmt=PIn.Double(textAmount.Text);
+				monetaryAmt=SIn.Double(textAmount.Text);
 			}
-			byte quantity=PIn.Byte(textQuantity.Text);
+			byte quantity=SIn.Byte(textQuantity.Text);
 			BenefitTimePeriod timePeriod=listTimePeriod.GetSelected<BenefitTimePeriod>();
 			BenefitCoverageLevel coverageLevel=listCoverageLevel.GetSelected<BenefitCoverageLevel>();
 			TreatmentArea treatArea=(TreatmentArea)listTreatArea.SelectedIndex;

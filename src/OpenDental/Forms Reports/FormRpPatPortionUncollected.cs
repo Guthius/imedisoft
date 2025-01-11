@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -57,14 +58,14 @@ namespace OpenDental{
 			UI.GridRow row;
 			foreach(DataRow rowCur in _table.Rows) {
 				row=new UI.GridRow() { Tag=rowCur };
-				row.Cells.Add(PIn.Date(rowCur["ProcDate"].ToString()).ToShortDateString());
-				row.Cells.Add(PIn.String(rowCur["Patient"].ToString()).ToString());
-				row.Cells.Add(PIn.String(rowCur["AbbrDesc"].ToString()).ToString());
-				row.Cells.Add(PIn.Double(rowCur["Fee"].ToString()).ToString("c"));
-				row.Cells.Add(PIn.Double(rowCur["PatPortion"].ToString()).ToString("c"));
-				row.Cells.Add(PIn.Double(rowCur["Adjustment"].ToString()).ToString("c"));
-				row.Cells.Add(PIn.Double(rowCur["Payment"].ToString()).ToString("c"));
-				row.Cells.Add(PIn.Double(rowCur["Uncollected"].ToString()).ToString("c"));
+				row.Cells.Add(SIn.Date(rowCur["ProcDate"].ToString()).ToShortDateString());
+				row.Cells.Add(SIn.String(rowCur["Patient"].ToString()).ToString());
+				row.Cells.Add(SIn.String(rowCur["AbbrDesc"].ToString()).ToString());
+				row.Cells.Add(SIn.Double(rowCur["Fee"].ToString()).ToString("c"));
+				row.Cells.Add(SIn.Double(rowCur["PatPortion"].ToString()).ToString("c"));
+				row.Cells.Add(SIn.Double(rowCur["Adjustment"].ToString()).ToString("c"));
+				row.Cells.Add(SIn.Double(rowCur["Payment"].ToString()).ToString("c"));
+				row.Cells.Add(SIn.Double(rowCur["Uncollected"].ToString()).ToString("c"));
 				gridOD.ListGridRows.Add(row);
 			}
 			gridOD.EndUpdate();
@@ -146,7 +147,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please select a patient first.");
 				return;
 			}
-			long patNum=PIn.Long(gridOD.SelectedTag<DataRow>()["PatNum"].ToString());
+			long patNum=SIn.Long(gridOD.SelectedTag<DataRow>()["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 		}
 

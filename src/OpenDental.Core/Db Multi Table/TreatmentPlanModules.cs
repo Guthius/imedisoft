@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -499,8 +500,8 @@ namespace OpenDentBusiness {
 						row.Description+=" - "+Lans.g(_translationString,"Over Annual Max");
 					}
 				}
-				row.Prognosis=Defs.GetName(DefCat.Prognosis,PIn.Long(listProceduresForTPs[i].Prognosis.ToString()));
-				row.Dx=Defs.GetValue(DefCat.Diagnosis,PIn.Long(listProceduresForTPs[i].Dx.ToString()));
+				row.Prognosis=Defs.GetName(DefCat.Prognosis,SIn.Long(listProceduresForTPs[i].Prognosis.ToString()));
+				row.Dx=Defs.GetValue(DefCat.Diagnosis,SIn.Long(listProceduresForTPs[i].Dx.ToString()));
 				row.Fee=fee;
 				row.PriIns=priIns;
 				row.SecIns=secIns;

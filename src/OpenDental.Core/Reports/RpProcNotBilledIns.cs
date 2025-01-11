@@ -5,6 +5,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -32,8 +33,8 @@ namespace OpenDentBusiness {
 				INNER JOIN patplan ON patplan.PatNum=patient.PatNum
 				INNER JOIN procedurelog ON procedurelog.PatNum=patient.PatNum
 					AND procedurelog.ProcFee>0
-					AND procedurelog.procstatus="+POut.Enum(ProcStat.C)+@" 
-					AND procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+@" 
+					AND procedurelog.procstatus="+SOut.Enum(ProcStat.C)+@" 
+					AND procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+@" 
 				INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum
 				INNER JOIN inssub ON inssub.InsSubNum=patplan.InsSubNum ";
 			if(showProcsBeforeIns==EnumShowProcsBeforeIns.Effectve) {
@@ -54,7 +55,7 @@ namespace OpenDentBusiness {
 				LEFT JOIN procmultivisit ON procmultivisit.ProcNum=procedurelog.ProcNum
 					AND procmultivisit.IsInProcess=1
 				WHERE (";
-			query+="(claimproc.NoBillIns=0 AND claimproc.Status="+POut.Enum(ClaimProcStatus.Estimate)+") ";//after ins was added
+			query+="(claimproc.NoBillIns=0 AND claimproc.Status="+SOut.Enum(ClaimProcStatus.Estimate)+") ";//after ins was added
 			if(showProcsBeforeIns!=EnumShowProcsBeforeIns.None) {
 				query+=" OR (procedurecode.NoBillIns=0 AND claimproc.ClaimProcNum IS NULL)";//before ins was added
 			}
@@ -71,7 +72,7 @@ namespace OpenDentBusiness {
 			List<DataRow> listDataRows=table.Select().ToList();
 			for(int i=0;i<listDataRows.Count;i++) {
 				DataRow dataRow = listDataRows[i];
-				ProcedureCode procedureCode=ProcedureCodes.GetFirstOrDefault(x=>x.CodeNum==PIn.Long(dataRow["CodeNum"].ToString()));//guaranteed to always work
+				ProcedureCode procedureCode=ProcedureCodes.GetFirstOrDefault(x=>x.CodeNum==SIn.Long(dataRow["CodeNum"].ToString()));//guaranteed to always work
 				if(CultureInfo.CurrentCulture.Name.EndsWith("CA") && procedureCode.IsCanadianLab) {//ignore Canadian labs
 					table.Rows.Remove(dataRow);
 					continue;

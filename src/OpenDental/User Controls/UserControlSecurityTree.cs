@@ -705,7 +705,7 @@ namespace OpenDental {
 						GroupPermissions.Insert(perm);
 					}
 					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 				}
 			}
@@ -834,7 +834,7 @@ namespace OpenDental {
 							+UserGroups.GetGroup(perm.UserGroupNum).Description+"'");
 					}
 					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}
 				}
@@ -861,7 +861,7 @@ namespace OpenDental {
 								+Lans.g(this,"granted to")+" '"+UserGroups.GetGroup(perm.UserGroupNum).Description+"'");
 						}
 						catch(Exception ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 							return;
 						}
 					}
@@ -877,7 +877,7 @@ namespace OpenDental {
 							+Lans.g(this,"granted to")+" '"+UserGroups.GetGroup(permFeeSchedLimited.UserGroupNum).Description+"'");
 					}
 					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}
 				}
@@ -897,7 +897,7 @@ namespace OpenDental {
 						+UserGroups.GetGroup(_listUserGroupNums.First()).Description+"'");
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				if(listLimitedPermissions.Contains(((EnumPermType)_clickedPermNode.Tag))) {
@@ -909,7 +909,7 @@ namespace OpenDental {
 								+Lans.g(this,"revoked from")+" '"+UserGroups.GetGroup(_listUserGroupNums.First()).Description+"'");
 						}
 						catch(Exception ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 							return;
 						}
 					}
@@ -922,7 +922,7 @@ namespace OpenDental {
 						+UserGroups.GetGroup(_listUserGroupNums.First()).Description+"'");
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}

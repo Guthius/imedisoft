@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Ionic.Zip;
@@ -112,8 +113,8 @@ namespace OpenDental{
 			textPassword.Text=CDT.Class1.TryDecrypt(ProgramProperties.GetPropValFromList(_listProgramProperties,"Password",clinicNum));
 			string payTypeDefNum=ProgramProperties.GetPropValFromList(_listProgramProperties,"PaymentType",clinicNum);
 			string processingMethod=ProgramProperties.GetPropValFromList(_listProgramProperties,PayConnect.ProgramProperties.DefaultProcessingMethod,clinicNum);
-			checkTerminal.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"TerminalProcessingEnabled",clinicNum));
-			int programVersion=PIn.Int(ProgramProperties.GetPropValFromList(_listProgramProperties,"Program Version",clinicNum));
+			checkTerminal.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"TerminalProcessingEnabled",clinicNum));
+			int programVersion=SIn.Int(ProgramProperties.GetPropValFromList(_listProgramProperties,"Program Version",clinicNum));
 			textAPISecret.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,"API Secret",clinicNum);
 			if(programVersion==1) {
 				radioVersion1.Checked=true;
@@ -122,12 +123,12 @@ namespace OpenDental{
 				radioVersion2.Checked=true;
 			}
 			ResetUIForVersion();
-			checkForceRecurring.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkForceRecurring.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				PayConnect.ProgramProperties.PayConnectForceRecurringCharge,clinicNum));
-			checkPreventSavingNewCC.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkPreventSavingNewCC.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,clinicNum));
-			checkPatientPortalPayEnabled.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,PayConnect.ProgramProperties.PatientPortalPaymentsEnabled,clinicNum));
-			textToken.Text=PIn.String(ProgramProperties.GetPropValFromList(_listProgramProperties,PayConnect.ProgramProperties.PatientPortalPaymentsToken,clinicNum));
+			checkPatientPortalPayEnabled.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,PayConnect.ProgramProperties.PatientPortalPaymentsEnabled,clinicNum));
+			textToken.Text=SIn.String(ProgramProperties.GetPropValFromList(_listProgramProperties,PayConnect.ProgramProperties.PatientPortalPaymentsToken,clinicNum));
 			comboPaymentType.Items.Clear();
 			_listDefsPaymentType=Defs.GetDefsForCategory(DefCat.PaymentTypes,true);
 			for(int i=0;i<_listDefsPaymentType.Count;i++) {
@@ -140,9 +141,9 @@ namespace OpenDental{
 			comboDefaultProcessing.Items.Add(Lan.g(this,PayConnectProcessingMethod.WebService.GetDescription()));
 			comboDefaultProcessing.Items.Add(Lan.g(this,PayConnectProcessingMethod.Terminal.GetDescription()));
 			if(processingMethod=="0" || processingMethod=="1") {
-				comboDefaultProcessing.SelectedIndex=PIn.Int(ProgramProperties.GetPropValFromList(_listProgramProperties,"DefaultProcessingMethod",clinicNum));
+				comboDefaultProcessing.SelectedIndex=SIn.Int(ProgramProperties.GetPropValFromList(_listProgramProperties,"DefaultProcessingMethod",clinicNum));
 			}
-			int accountType=PIn.Int(ProgramProperties.GetPropValFromList(_listProgramProperties,"PayConnect2.0 Integration Type: 0 for normal, 1 for surcharge",clinicNum));
+			int accountType=SIn.Int(ProgramProperties.GetPropValFromList(_listProgramProperties,"PayConnect2.0 Integration Type: 0 for normal, 1 for surcharge",clinicNum));
 			if(accountType==1) {
 				checkSurcharge.Checked=true;
 			}
@@ -287,13 +288,13 @@ namespace OpenDental{
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PayConnect.ProgramProperties.DefaultProcessingMethod)
 				.ForEach(x => x.PropertyValue=processingMethodSelected);
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="TerminalProcessingEnabled")
-				.ForEach(x => x.PropertyValue=POut.Bool(checkTerminal.Checked));//always 1 item; null safe
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkTerminal.Checked));//always 1 item; null safe
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PayConnect.ProgramProperties.PayConnectForceRecurringCharge)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkForceRecurring.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkForceRecurring.Checked));
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PayConnect.ProgramProperties.PayConnectPreventSavingNewCC)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkPreventSavingNewCC.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkPreventSavingNewCC.Checked));
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PayConnect.ProgramProperties.PatientPortalPaymentsEnabled)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkPatientPortalPayEnabled.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkPatientPortalPayEnabled.Checked));
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PayConnect.ProgramProperties.PatientPortalPaymentsToken)
 				.ForEach(x => x.PropertyValue=textToken.Text);
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="API Secret")
@@ -303,13 +304,13 @@ namespace OpenDental{
 				progVersion=2;
 			}
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="Program Version")
-				.ForEach(x => x.PropertyValue=POut.Int(progVersion));//always 1 item; null safe
+				.ForEach(x => x.PropertyValue=SOut.Int(progVersion));//always 1 item; null safe
 			int accountType=0;
 			if(checkSurcharge.Checked) {
 				accountType=1;
 			}
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="PayConnect2.0 Integration Type: 0 for normal, 1 for surcharge")
-				.ForEach(x => x.PropertyValue=POut.Int(accountType));//always 1 item; null safe
+				.ForEach(x => x.PropertyValue=SOut.Int(accountType));//always 1 item; null safe
 		}
 
 		private void checkPatientPortalPayEnabled_Click(object sender,EventArgs e) {
@@ -324,7 +325,7 @@ namespace OpenDental{
 			string msg=Lan.g(this,"Online payments are already enabled for another processor and must be disabled in order to use PayConnect online payments. "
 				+"Would you like to disable the other processor for online payments?");
 			if(programPropertyWebPayEnabled!=null) {
-				if(MessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+				if(ODMessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 					checkPatientPortalPayEnabled.Checked=false;
 					return;
 				}
@@ -343,24 +344,24 @@ namespace OpenDental{
 
 		private void butGenerateToken_Click(object sender,EventArgs e) {
 			if(string.IsNullOrWhiteSpace(textUsername.Text)) {
-				MessageBox.Show("Username cannot be empty.");
+				ODMessageBox.Show("Username cannot be empty.");
 				return;
 			}
 			if(string.IsNullOrWhiteSpace(textPassword.Text)) {
-				MessageBox.Show("Password cannot be empty.");
+				ODMessageBox.Show("Password cannot be empty.");
 				return;
 			}
-			if(!string.IsNullOrWhiteSpace(textToken.Text) && MessageBox.Show("A token already exists.  Do you want to create a new one?")!=DialogResult.OK) {
+			if(!string.IsNullOrWhiteSpace(textToken.Text) && ODMessageBox.Show("A token already exists.  Do you want to create a new one?")!=DialogResult.OK) {
 				return;
 			}
 			try {
 				textToken.Text=PayConnectREST.GetAccountToken(textUsername.Text,textPassword.Text);
 			}
 			catch(ODException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			catch(Exception ex) {
-				MessageBox.Show("Error:\r\n"+ex.Message);
+				ODMessageBox.Show("Error:\r\n"+ex.Message);
 			}
 		}
 
@@ -396,7 +397,7 @@ namespace OpenDental{
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(Lan.g(this,"Unable to download driver. Error message")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to download driver. Error message")+": "+ex.Message);
 				return;
 			}
 			MemoryStream memoryStream=new MemoryStream();
@@ -417,7 +418,7 @@ namespace OpenDental{
 			}
 			//Run the setup.exe file
 			Process.Start(ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(),setupFileName));
-			MessageBox.Show(Lans.g(this,"Download complete. Run the Setup.exe file in")+" "+PrefC.GetTempFolderPath()+" "
+			ODMessageBox.Show(Lans.g(this,"Download complete. Run the Setup.exe file in")+" "+PrefC.GetTempFolderPath()+" "
 				+Lans.g(this,"if it does not start automatically."));
 		}
 
@@ -536,14 +537,14 @@ namespace OpenDental{
 			//Find all clinics that have PayConnect online payments enabled
 			string strPayConnectOnlinePaymentsEnabled=PayConnect.ProgramProperties.PatientPortalPaymentsEnabled;
 			List<ProgramProperty> listProgramPropertiesPayConnectOnlinePayments=_listProgramProperties.FindAll(x => x.PropertyDesc==strPayConnectOnlinePaymentsEnabled &&
-				PIn.Bool(x.PropertyValue));
+				SIn.Bool(x.PropertyValue));
 			for(int i=0;i < listProgramPropertiesPayConnectOnlinePayments.Count;i++) {
 				//Find all online payment enabled program properties that we saved in this session. Only clinics that have changes will have an 
 				//IsOnlinePaymentsEnabled property in memory. This is needed to ensure that we don't disable other processors if someone
 				//checks to use PayConnect online payments and then decides to keep it disabled during the same session.
 				ProgramProperty programPropertyWebOnlinePayments=_listProgramPropertiesXWebWebPay.FirstOrDefault(y => y.ClinicNum==listProgramPropertiesPayConnectOnlinePayments[i].ClinicNum);
 				if(programPropertyWebOnlinePayments!=null) {
-					ProgramProperties.UpdateProgramPropertyWithValue(programPropertyWebOnlinePayments,POut.Bool(false));
+					ProgramProperties.UpdateProgramPropertyWithValue(programPropertyWebOnlinePayments,SOut.Bool(false));
 				}
 			}
 			#endregion Save

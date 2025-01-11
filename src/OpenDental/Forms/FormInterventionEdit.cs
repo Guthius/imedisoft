@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -196,12 +197,12 @@ namespace OpenDental {
 			//Intervention grid may contain medications, have to insert a new med if necessary and load FormMedPat for user to input data
 			if(codeSys=="RXNORM" && !checkPatientDeclined.Checked) {
 				//codeVal will be RxCui of medication, see if it already exists in Medication table
-				Medication medication=Medications.GetMedicationFromDbByRxCui(PIn.Long(codeVal));
+				Medication medication=Medications.GetMedicationFromDbByRxCui(SIn.Long(codeVal));
 				if(medication==null) {//no med with this RxCui, create one
 					medication=new Medication();
 					Medications.Insert(medication);//so that we will have the primary key
 					medication.GenericNum=medication.MedicationNum;
-					medication.RxCui=PIn.Long(codeVal);
+					medication.RxCui=SIn.Long(codeVal);
 					medication.MedName=RxNorms.GetDescByRxCui(codeVal);
 					Medications.Update(medication);
 					Medications.RefreshCache();//refresh cache to include new medication

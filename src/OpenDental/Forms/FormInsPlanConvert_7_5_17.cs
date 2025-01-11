@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -28,7 +29,7 @@ namespace OpenDental {
 
 		private void butOK_Click(object sender,EventArgs e) {
 			if(!radioMergeY.Checked && !radioMergeN.Checked) {
-				MessageBox.Show("One of the options must be selected before clicking OK.");
+				ODMessageBox.Show("One of the options must be selected before clicking OK.");
 				return;
 			}
 			if(radioMergeY.Checked){

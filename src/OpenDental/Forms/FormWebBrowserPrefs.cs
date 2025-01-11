@@ -74,7 +74,7 @@ namespace OpenDental {
 				Process.Start(e.Uri);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+e.Uri+"\r\n"+Lan.g(this,"Please set up a default web browser."));
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+e.Uri+"\r\n"+Lan.g(this,"Please set up a default web browser."));
 			}
 		}
 	}

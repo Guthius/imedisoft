@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using SparksToothChart;
 
@@ -57,8 +58,8 @@ namespace OpenDental {
 
 		private void SheetFilterChanged() {
 			if(EnumTools.GetAttributeOrDefault<SheetLayoutAttribute>(SheetDefCur.SheetType).IsChartModule && SheetFieldDefCur.FieldName=="toothChart") {
-				int height=(int)Math.Round(PIn.Double(textWidth.Text)*ToothChartData.SizeOriginalDrawing.Height)/ToothChartData.SizeOriginalDrawing.Width;
-				textHeight.Text=POut.Int(height);
+				int height=(int)Math.Round(SIn.Double(textWidth.Text)*ToothChartData.SizeOriginalDrawing.Height)/ToothChartData.SizeOriginalDrawing.Width;
+				textHeight.Text=SOut.Int(height);
 			}
 		}
 
@@ -91,8 +92,8 @@ namespace OpenDental {
 					break;
 				case "toothChartLegend":
 					labelSpecialInfo.Text=Lan.g(this,"The tooth chart legend shows what the colors on the tooth chart mean.");
-					textWidth.Text=POut.Int(DashToothChartLegend.DefaultWidth);
-					textHeight.Text=POut.Int(DashToothChartLegend.DefaultHeight);
+					textWidth.Text=SOut.Int(DashToothChartLegend.DefaultWidth);
+					textHeight.Text=SOut.Int(DashToothChartLegend.DefaultHeight);
 					if(!SheetDefs.IsDashboardType(SheetDefCur)) {
 						textWidth.Enabled=false;
 						textHeight.Enabled=false;
@@ -141,10 +142,10 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			SheetFieldDefCur.GrowthBehavior=comboGrowthBehavior.GetSelected<GrowthBehaviorEnum>();
 			//don't save to database here.
 			SheetFieldDefCur.IsNew=false;

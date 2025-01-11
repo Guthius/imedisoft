@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -17,21 +18,21 @@ namespace OpenDental {
 		}
 
 		private void FormInsVerificationSetup_Load(object sender,EventArgs e) {
-			textInsBenefitEligibilityDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDays));
-			textPatientEnrollmentDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDays));
-			textScheduledAppointmentDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDays));
-			textPastDueDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyDaysFromPastDueAppt));
-			textInsBenefitEligibilityDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDaysMedicaid));
-			textPatientEnrollmentDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDaysMedicaid));
-			textScheduledAppointmentDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDaysMedicaid));
-			textPastDueDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyDaysFromPastDueApptMedicaid));
+			textInsBenefitEligibilityDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDays));
+			textPatientEnrollmentDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDays));
+			textScheduledAppointmentDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDays));
+			textPastDueDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyDaysFromPastDueAppt));
+			textInsBenefitEligibilityDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDaysMedicaid));
+			textPatientEnrollmentDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDaysMedicaid));
+			textScheduledAppointmentDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDaysMedicaid));
+			textPastDueDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyDaysFromPastDueApptMedicaid));
 			checkInsVerifyUseCurrentUser.Checked=PrefC.GetBool(PrefName.InsVerifyDefaultToCurrentUser);
 			checkInsVerifyExcludePatVerify.Checked=PrefC.GetBool(PrefName.InsVerifyExcludePatVerify);
 			checkFutureDateBenefitYear.Checked=PrefC.GetBool(PrefName.InsVerifyFutureDateBenefitYear);
 			checkFutureDatePatEnrollmentYear.Checked=PrefC.GetBool(PrefName.InsVerifyFutureDatePatEnrollmentYear);
 			List<string> listInsVerifyMedicaidFilingCodes=PrefC.GetString(PrefName.InsVerifyMedicaidFilingCodes).Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
 			//Convert InsVerifyMedicaidFilingCodes pref into a list of longs
-			List<long> listInsVerifyMedicaidFilingCodeNums=listInsVerifyMedicaidFilingCodes.Select(x => PIn.Long(x,throwExceptions:false)).ToList();
+			List<long> listInsVerifyMedicaidFilingCodeNums=listInsVerifyMedicaidFilingCodes.Select(x => SIn.Long(x,throwExceptions:false)).ToList();
 			//Add each filing code from the DB to our listBox
 			List<InsFilingCode> listInsFilingCodes=InsFilingCodes.GetAll();
 			listBoxInsFilingCodes.Items.AddList(listInsFilingCodes,x=>x.Descript);
@@ -83,14 +84,14 @@ namespace OpenDental {
 				MsgBox.Show(this,"The number entered for medicaid appointment days past due was not a valid number.  Please enter a valid number to continue.");
 				return;
 			}
-			int insBenefitEligibilityDaysStandard=PIn.Int(textInsBenefitEligibilityDaysStandard.Text);
-			int patientEnrollmentDaysStandard=PIn.Int(textPatientEnrollmentDaysStandard.Text);
-			int scheduledAppointmentDaysStandard=PIn.Int(textScheduledAppointmentDaysStandard.Text);
-			int pastDueDaysStandard=PIn.Int(textPastDueDaysStandard.Text);
-			int insBenefitEligibilityDaysMedicaid=PIn.Int(textInsBenefitEligibilityDaysMedicaid.Text);
-			int patientEnrollmentDaysMedicaid=PIn.Int(textPatientEnrollmentDaysMedicaid.Text);
-			int scheduledAppointmentDaysMedicaid=PIn.Int(textScheduledAppointmentDaysMedicaid.Text);
-			int pastDueDaysMedicaid=PIn.Int(textPastDueDaysMedicaid.Text);
+			int insBenefitEligibilityDaysStandard=SIn.Int(textInsBenefitEligibilityDaysStandard.Text);
+			int patientEnrollmentDaysStandard=SIn.Int(textPatientEnrollmentDaysStandard.Text);
+			int scheduledAppointmentDaysStandard=SIn.Int(textScheduledAppointmentDaysStandard.Text);
+			int pastDueDaysStandard=SIn.Int(textPastDueDaysStandard.Text);
+			int insBenefitEligibilityDaysMedicaid=SIn.Int(textInsBenefitEligibilityDaysMedicaid.Text);
+			int patientEnrollmentDaysMedicaid=SIn.Int(textPatientEnrollmentDaysMedicaid.Text);
+			int scheduledAppointmentDaysMedicaid=SIn.Int(textScheduledAppointmentDaysMedicaid.Text);
+			int pastDueDaysMedicaid=SIn.Int(textPastDueDaysMedicaid.Text);
 			List<long> listInsFilingCodeNums=listBoxInsFilingCodes.GetListSelected<InsFilingCode>().Select(x=>x.InsFilingCodeNum).ToList();
 			string insVerifyMedicaidFilingCodes=String.Join(",",listInsFilingCodeNums);
 			if(Prefs.UpdateInt(PrefName.InsVerifyBenefitEligibilityDays,insBenefitEligibilityDaysStandard)

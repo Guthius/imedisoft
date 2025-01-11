@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Globalization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Crud;
@@ -754,43 +755,43 @@ namespace OpenDental {
 				_claimProc.AllowedOverride=-1;
 			}
 			else {
-				_claimProc.AllowedOverride=PIn.Double(textAllowedOverride.Text);
+				_claimProc.AllowedOverride=SIn.Double(textAllowedOverride.Text);
 			}
 			if(textCopayOverride.Text=="") {
 				_claimProc.CopayOverride=-1;
 			}
 			else {
-				_claimProc.CopayOverride=PIn.Double(textCopayOverride.Text);
+				_claimProc.CopayOverride=SIn.Double(textCopayOverride.Text);
 			}
 			if(textDedEstOverride.Text=="") {
 				_claimProc.DedEstOverride=-1;
 			}
 			else {
-				_claimProc.DedEstOverride=PIn.Double(textDedEstOverride.Text);
+				_claimProc.DedEstOverride=SIn.Double(textDedEstOverride.Text);
 			}
 			if(textPercentOverride.Text=="") {
 				_claimProc.PercentOverride=-1;
 			}
 			else {
-				_claimProc.PercentOverride=PIn.Int(textPercentOverride.Text);
+				_claimProc.PercentOverride=SIn.Int(textPercentOverride.Text);
 			}
 			if(textPaidOtherInsOverride.Text=="") {
 				_claimProc.PaidOtherInsOverride=-1;
 			}
 			else {
-				_claimProc.PaidOtherInsOverride=PIn.Double(textPaidOtherInsOverride.Text);
+				_claimProc.PaidOtherInsOverride=SIn.Double(textPaidOtherInsOverride.Text);
 			}
 			if(textInsEstTotalOverride.Text=="") {
 				_claimProc.InsEstTotalOverride=-1;
 			}
 			else {
-				_claimProc.InsEstTotalOverride=PIn.Double(textInsEstTotalOverride.Text);
+				_claimProc.InsEstTotalOverride=SIn.Double(textInsEstTotalOverride.Text);
 			}
 			if(textWriteOffEstOverride.Text=="") {
 				_claimProc.WriteOffEstOverride=-1;
 			}
 			else {
-				_claimProc.WriteOffEstOverride=PIn.Double(textWriteOffEstOverride.Text);
+				_claimProc.WriteOffEstOverride=SIn.Double(textWriteOffEstOverride.Text);
 			}
 			if(IsProc && _procedure.ProcNumLab == 0) {
 				//doCheckCanadianLabs is false because we are simply making in memory changs to ClaimProcCur.
@@ -844,10 +845,10 @@ namespace OpenDental {
 			textEstimateNote.Text=_claimProc.EstimateNote;
 			//insurance box---------------------------------------------------------------
 			if(groupClaimInfo.Visible){
-				_claimProc.DedApplied=PIn.Double(textDedApplied.Text);
-				_claimProc.InsPayEst=PIn.Double(textInsPayEst.Text);
-				_claimProc.InsPayAmt=PIn.Double(textInsPayAmt.Text);
-				_claimProc.WriteOff=PIn.Double(textWriteOff.Text);
+				_claimProc.DedApplied=SIn.Double(textDedApplied.Text);
+				_claimProc.InsPayEst=SIn.Double(textInsPayEst.Text);
+				_claimProc.InsPayAmt=SIn.Double(textInsPayAmt.Text);
+				_claimProc.WriteOff=SIn.Double(textWriteOff.Text);
 				if(IsProc) {
 					//Compute the patient portion ignorant of other claimprocs and adjustments to preserve old behavior.
 					textPatPortion2.Text=ClaimProcs.GetPatPortion(_procedure,new List<ClaimProc>() { _claimProc }).ToString("f");
@@ -1053,9 +1054,9 @@ namespace OpenDental {
 			if(!textCopayOverride.IsValid()) {
 				return;
 			}
-			double copay=PIn.Double(textCopayAmt.Text);//Default to the default copay amount
+			double copay=SIn.Double(textCopayAmt.Text);//Default to the default copay amount
 			if(textCopayOverride.Text!="") {//If override is specified, use that amount instead
-				copay=PIn.Double(textCopayOverride.Text);
+				copay=SIn.Double(textCopayOverride.Text);
 			}
 			//always a procedure
 			double writeoff=_procedure.ProcFee-copay;
@@ -1173,7 +1174,7 @@ namespace OpenDental {
 		///except certain specific scenarios where the user does not have permission (multiple different permissions are considered).</summary>
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(_claimProc.IsTransfer) {
-				if(MessageBox.Show(Lan.g(this,"This Claim Procedure is part of an income transfer."+"\r\n"
+				if(ODMessageBox.Show(Lan.g(this,"This Claim Procedure is part of an income transfer."+"\r\n"
 					+"Deleting this claim procedure will delete all of the income transfers for this claim.  Continue?"),""
 					,MessageBoxButtons.OKCancel)!=DialogResult.OK)	
 				{
@@ -1184,14 +1185,14 @@ namespace OpenDental {
 				&& _claimProc.ProcNum!=0//not a 'Total Payment' row
 				&& _claimProc.ProcNum==_procedure.ProcNum && _procedure.ProcNumLab==0)//not a lab
 			{
-				if(MessageBox.Show(Lan.g(this,
+				if(ODMessageBox.Show(Lan.g(this,
 					"Deleting this insurance payment will also delete the insurance payment for any attached labs. Continue?"),
 					"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}
 			else {
-				if(MessageBox.Show(Lan.g(this,"Delete this estimate?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+				if(ODMessageBox.Show(Lan.g(this,"Delete this estimate?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 					return;
 				}
 			}
@@ -1199,7 +1200,7 @@ namespace OpenDental {
 				ClaimProcs.DeleteAfterValidating(_claimProc);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			ClaimProcs.RemoveSupplementalTransfersForClaims(_claimProc.ClaimNum);
@@ -1211,8 +1212,8 @@ namespace OpenDental {
 		private List<ClaimProc> GetListClaimProcHypothetical() {
 			List<ClaimProc> listClaimProcHypothetical=new List<ClaimProc>();
 			ClaimProc claimProcHypothetical=_claimProc.Copy();
-			claimProcHypothetical.InsPayAmt=PIn.Double(textInsPayAmt.Text);
-			claimProcHypothetical.WriteOff=PIn.Double(textWriteOff.Text);
+			claimProcHypothetical.InsPayAmt=SIn.Double(textInsPayAmt.Text);
+			claimProcHypothetical.WriteOff=SIn.Double(textWriteOff.Text);
 			listClaimProcHypothetical.Add(claimProcHypothetical);
 			return listClaimProcHypothetical;
 		}
@@ -1257,10 +1258,10 @@ namespace OpenDental {
 		private void butSave_Click(object sender, System.EventArgs e) {
 			//no security check here because if attached to a payment, nobody is allowed to change the date or amount anyway.
 			if(!AllAreValid()){
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			if(PIn.Date(textDateCP.Text).Date > DateTime.Today.Date
+			if(SIn.Date(textDateCP.Text).Date > DateTime.Today.Date
 				&& !PrefC.GetBool(PrefName.FutureTransDatesAllowed) 
 				&& !PrefC.GetBool(PrefName.AllowFutureInsPayments)
 				&& _claimProc.Status.In(ClaimProcStatus.Received,ClaimProcStatus.Supplemental,ClaimProcStatus.CapClaim,ClaimProcStatus.CapComplete)) 
@@ -1281,18 +1282,18 @@ namespace OpenDental {
 				return;
 			}
 			if(_claimProc.Status.In(ClaimProcStatus.Received,ClaimProcStatus.Supplemental)
-				&& !Security.IsAuthorized(EnumPermType.InsPayEdit,PIn.Date(textDateCP.Text))) {
+				&& !Security.IsAuthorized(EnumPermType.InsPayEdit,SIn.Date(textDateCP.Text))) {
 				return;
 			}
 			if(OrthoProcLinks.IsProcLinked(_claimProc.ProcNum) && 
-				(_claimProcOld.AllowedOverride!=PIn.Double(textAllowedOverride.Text)
-				|| !_claimProcOld.CopayOverride.Equals(PIn.Double(textCopayOverride.Text))
-				|| !_claimProcOld.DedEstOverride.Equals(PIn.Double(textDedEstOverride.Text))
-				|| !_claimProcOld.PercentOverride.Equals(PIn.Int(textPercentOverride.Text))
-				|| !_claimProcOld.PaidOtherInsOverride.Equals(PIn.Double(textPaidOtherInsOverride.Text))
-				|| !_claimProcOld.InsEstTotalOverride.Equals(PIn.Double(textInsEstTotalOverride.Text))
-				|| !_claimProcOld.WriteOffEstOverride.Equals(PIn.Double(textWriteOffEstOverride.Text))
-				|| !_claimProcOld.InsPayEst.Equals(PIn.Double(textInsPayEst.Text))
+				(_claimProcOld.AllowedOverride!=SIn.Double(textAllowedOverride.Text)
+				|| !_claimProcOld.CopayOverride.Equals(SIn.Double(textCopayOverride.Text))
+				|| !_claimProcOld.DedEstOverride.Equals(SIn.Double(textDedEstOverride.Text))
+				|| !_claimProcOld.PercentOverride.Equals(SIn.Int(textPercentOverride.Text))
+				|| !_claimProcOld.PaidOtherInsOverride.Equals(SIn.Double(textPaidOtherInsOverride.Text))
+				|| !_claimProcOld.InsEstTotalOverride.Equals(SIn.Double(textInsEstTotalOverride.Text))
+				|| !_claimProcOld.WriteOffEstOverride.Equals(SIn.Double(textWriteOffEstOverride.Text))
+				|| !_claimProcOld.InsPayEst.Equals(SIn.Double(textInsPayEst.Text))
 				)) 
 			{
 				MsgBox.Show(this,"Cannot edit estimate information for procedures attached to ortho cases.");
@@ -1304,13 +1305,13 @@ namespace OpenDental {
 				//So, in this case, don't change.
 				_claimProc.ProvNum=_listProviders[comboProvider.SelectedIndex].ProvNum;
 			}
-			_claimProc.ProcDate=PIn.Date(textProcDate.Text);
+			_claimProc.ProcDate=SIn.Date(textProcDate.Text);
 			if(!textDateCP.ReadOnly){
-				_claimProc.DateCP=PIn.Date(textDateCP.Text);
+				_claimProc.DateCP=SIn.Date(textDateCP.Text);
 			}
 			_claimProc.CodeSent=textCodeSent.Text;
 			if(Security.IsAuthorized(EnumPermType.ClaimProcFeeBilledToInsEdit,true)) {
-				_claimProc.FeeBilled=PIn.Double(textFeeBilled.Text);
+				_claimProc.FeeBilled=SIn.Double(textFeeBilled.Text);
 			}
 			_claimProc.Remarks=textRemarks.Text;
 			//if status was changed to received, then set DateEntry

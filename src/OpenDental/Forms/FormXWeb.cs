@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
 
@@ -79,12 +80,12 @@ namespace OpenDental {
 			}
 			try {//PIn.Int will throw an exception if not a valid format
 				if(Regex.IsMatch(textExpDate.Text,@"^\d\d[/\- ]\d\d$")) {//08/07 or 08-07 or 08 07
-					expYear=PIn.Int("20"+textExpDate.Text.Substring(3,2));
-					expMonth=PIn.Int(textExpDate.Text.Substring(0,2));
+					expYear=SIn.Int("20"+textExpDate.Text.Substring(3,2));
+					expMonth=SIn.Int(textExpDate.Text.Substring(0,2));
 				}
 				else if(Regex.IsMatch(textExpDate.Text,@"^\d{4}$")) {//0807
-					expYear=PIn.Int("20"+textExpDate.Text.Substring(2,2));
-					expMonth=PIn.Int(textExpDate.Text.Substring(0,2));
+					expYear=SIn.Int("20"+textExpDate.Text.Substring(2,2));
+					expMonth=SIn.Int(textExpDate.Text.Substring(0,2));
 				}
 				else {
 					MsgBox.Show(this,"Expiration format invalid.");
@@ -118,7 +119,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Payment note required.");
 				return false;
 			}
-			if(_payAmtOriginal!=0 && CompareDouble.IsGreaterThan(Math.Abs(PIn.Double(textAmount.Text)),Math.Abs(_payAmtOriginal))) {
+			if(_payAmtOriginal!=0 && CompareDouble.IsGreaterThan(Math.Abs(SIn.Double(textAmount.Text)),Math.Abs(_payAmtOriginal))) {
 				MsgBox.Show(this,"Amount cannot be greater than the original payment amount.");
 				return false;
 			}
@@ -127,7 +128,7 @@ namespace OpenDental {
 
 		///<summary>Processes the selected XWeb transaction. Returns true if the payment was successful, false otherwise.</summary>
 		private bool ProcessSelectedTransaction() {			
-			double amount=PIn.Double(textAmount.Text);
+			double amount=SIn.Double(textAmount.Text);
 			Cursor=Cursors.WaitCursor;
 			if(_xWebTransactionType==XWebTransactionType.CreditReturnTransaction) {
 				try {
@@ -135,7 +136,7 @@ namespace OpenDental {
 				}
 				catch(ODException ex) {
 					Cursor=Cursors.Default;
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return false;
 				}
 			}

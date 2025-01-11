@@ -830,7 +830,7 @@ namespace OpenDental
         {
             if (gridDefs.GetSelectedIndex() == -1)
             {
-                MessageBox.Show(Lan.g("Defs", "Please select an item first."));
+                ODMessageBox.Show(Lan.g("Defs", "Please select an item first."));
                 return false;
             }
 
@@ -853,7 +853,7 @@ namespace OpenDental
         {
             if (gridDefs.GetSelectedIndex() == -1)
             {
-                MessageBox.Show(Lan.g("Defs", "Please select an item first."));
+                ODMessageBox.Show(Lan.g("Defs", "Please select an item first."));
                 return false;
             }
 

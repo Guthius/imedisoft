@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -87,7 +88,7 @@ namespace OpenDental{
 				string warningMessage=Lan.g(this,"WARNING!")+" "+Lan.g(this,"Mismatched data has been detected between selected prescriptions")+":\r\n\r\n"
 					+string.Join("\r\n",listWarnings)+"\r\n\r\n"
 					+Lan.g(this,"Would you like to continue combining prescriptions anyway?");
-				if(MessageBox.Show(warningMessage,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(warningMessage,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return false;
 				}
 			}
@@ -166,7 +167,7 @@ namespace OpenDental{
 				RxDefs.Combine(listRxDefs.Select(x => x.RxDefNum).ToList(),rxDef.RxDefNum);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//Prescriptions were combined successfully. Loop through and make a securitylog entry for each one that was changed.

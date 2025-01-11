@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Google.Apis.Util;
 using Health.Direct.Common.Extensions;
 using Imedisoft.Core.Caching;
@@ -49,7 +50,7 @@ namespace OpenDentBusiness{
 								isMount=true;
 							}
 							else{
-								Document document=Documents.GetByNum(PIn.Long(field.FieldValue));
+								Document document=Documents.GetByNum(SIn.Long(field.FieldValue));
 								List<string> paths=Documents.GetPaths(new List<long> { document.DocNum },ImageStore.GetPreferredAtoZpath());
 								if(paths.Count < 1) {//No path was found so we cannot draw the image.
 									continue;
@@ -605,7 +606,7 @@ namespace OpenDentBusiness{
 			if(prefStatement.ValueString=="0") {
 				return SheetsInternal.GetSheetDef(SheetInternalType.Statement);
 			}
-			return SheetDefs.GetSheetDef(PIn.Long(prefStatement.ValueString));
+			return SheetDefs.GetSheetDef(SIn.Long(prefStatement.ValueString));
 		}
 
 		///<summary>Uses the SheetField, DisplayField, and DataRow to determine the appropriate value for these parameters.  Some DisplayFields for various SheetFields or SheetTypes require additional formatting or logic to display data as expected to the user, and this logic is executed in this method.  Ex: a date earlier than 1880 should not be displayed.</summary>
@@ -617,7 +618,7 @@ namespace OpenDentBusiness{
 			}
 			else if(field.FieldName=="TreatPlanMain" && displayFieldColumn.InternalName.In("Prov","DateTP","Clinic")) {
 				if(displayFieldColumn.InternalName=="Prov") {
-					long provNum=PIn.Long(row["ProvNum"].ToString());
+					long provNum=SIn.Long(row["ProvNum"].ToString());
 					if(provNum>0) {
 						retVal=Providers.GetAbbr(provNum);
 					}
@@ -626,7 +627,7 @@ namespace OpenDentBusiness{
 					}
 				}
 				else if(displayFieldColumn.InternalName=="DateTP") {
-					DateTime dateTP=PIn.Date(row["DateTP"].ToString());
+					DateTime dateTP=SIn.Date(row["DateTP"].ToString());
 					if(dateTP.Year>=1880) {
 						retVal=dateTP.ToShortDateString();
 					}
@@ -635,7 +636,7 @@ namespace OpenDentBusiness{
 					}
 				}
 				else if(displayFieldColumn.InternalName=="Clinic") {
-					long clinicNum=PIn.Long(row["ClinicNum"].ToString());
+					long clinicNum=SIn.Long(row["ClinicNum"].ToString());
 					retVal=Clinics.GetAbbr(clinicNum);//Will be blank if ClinicNum not found, i.e. the 0 clinic.
 				}
 			}
@@ -938,7 +939,7 @@ namespace OpenDentBusiness{
 			}
 			GridRow row;
 			for(int i=0;i<table.Rows.Count;i++) {
-				if(eraClaimSegmentIdx!=-1 && table.Rows[i]["ClpSegmentIndex"].ToString()!=POut.Long(eraClaimSegmentIdx)) {
+				if(eraClaimSegmentIdx!=-1 && table.Rows[i]["ClpSegmentIndex"].ToString()!=SOut.Long(eraClaimSegmentIdx)) {
 					continue;
 				}
 				row=new GridRow();

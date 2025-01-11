@@ -8,6 +8,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -224,7 +225,7 @@ namespace OpenDental {
 				||comboWebSchedProviders.SelectedIndex<0) {
 				return;
 			}
-			DateTime dateStart=PIn.Date(textWebSchedDateStart.Text);
+			DateTime dateStart=SIn.Date(textWebSchedDateStart.Text);
 			RecallType recallType=_listRecallTypes[comboWebSchedRecallTypes.SelectedIndex];
 			var clinic=_listClinicsAll.Find(x => x.Id==_clinicNum);//null clinic is treated as unassigned.
 			List<Provider> listProviders=new List<Provider>(_listProvidersAll);//Use all providers by default.
@@ -302,7 +303,7 @@ namespace OpenDental {
 				listBoxWebSchedProviderPref.SelectedIndex=PrefC.GetInt(PrefName.WebSchedProviderRule);
 			}
 			else {
-				listBoxWebSchedProviderPref.SelectedIndex=PIn.Int(clinicPref.ValueString);
+				listBoxWebSchedProviderPref.SelectedIndex=SIn.Int(clinicPref.ValueString);
 			}
 		}
 
@@ -392,7 +393,7 @@ namespace OpenDental {
 			string[] stringArrayDefNums=PrefC.GetString(PrefName.WebSchedRecallIgnoreBlockoutTypes).Split(new char[] {','}); //comma-delimited list.
 			List<long> listBlockoutTypes=new List<long>();
 			for(int i=0;i<stringArrayDefNums.Length;i++) {
-				listBlockoutTypes.Add(PIn.Long(stringArrayDefNums[i]));
+				listBlockoutTypes.Add(SIn.Long(stringArrayDefNums[i]));
 			}
 			List<Def> listDefsBlockoutTypes=Defs.GetDefs(DefCat.BlockoutTypes,listBlockoutTypes);
 			using FormDefinitionPicker formDefinitionPicker=new FormDefinitionPicker(DefCat.BlockoutTypes,listDefsBlockoutTypes);
@@ -442,7 +443,7 @@ namespace OpenDental {
 					ClinicPrefs.DeletePrefs(comboClinicProvRule.ClinicNumSelected,new List<PrefName>() { PrefName.WebSchedProviderRule });
 				}
 				ClinicPrefs.InsertPref(PrefName.WebSchedProviderRule,comboClinicProvRule.ClinicNumSelected
-					,POut.Int(PrefC.GetInt(PrefName.WebSchedProviderRule)));
+					,SOut.Int(PrefC.GetInt(PrefName.WebSchedProviderRule)));
 				DataValid.SetInvalid(InvalidType.ClinicPrefs);
 			}
 			clinicPrefProviderRule=ClinicPrefs.GetPref(PrefName.WebSchedProviderRule,comboClinicProvRule.ClinicNumSelected,isDefaultIncluded: true);
@@ -473,7 +474,7 @@ namespace OpenDental {
 				DataValid.SetInvalid(InvalidType.Prefs);
 			}
 			else if(!comboClinicProvRule.IsUnassignedSelected && !checkUseDefaultProvRule.Checked
-				&& ClinicPrefs.Upsert(PrefName.WebSchedProviderRule,comboClinicProvRule.ClinicNumSelected,POut.Int(listBoxWebSchedProviderPref.SelectedIndex))) 
+				&& ClinicPrefs.Upsert(PrefName.WebSchedProviderRule,comboClinicProvRule.ClinicNumSelected,SOut.Int(listBoxWebSchedProviderPref.SelectedIndex))) 
 			{//Clinic not set to use defaults.
 				DataValid.SetInvalid(InvalidType.ClinicPrefs);
 			}
@@ -520,7 +521,7 @@ namespace OpenDental {
 			}
 			textWebSchedPerBatch.Enabled=!radioDoNotSendText.Checked;
 			if(listSetupErrors.Count>0) {
-				MessageBox.Show(Lan.g(this,"Recall Setup settings are not correctly set in order to Send Messages Automatically to patients:")
+				ODMessageBox.Show(Lan.g(this,"Recall Setup settings are not correctly set in order to Send Messages Automatically to patients:")
 						+"\r\n"+string.Join("\r\n",listSetupErrors)
 					,Lan.g(this,"Web Sched - Recall Setup Error"));
 			}
@@ -547,7 +548,7 @@ namespace OpenDental {
 				}
 			}
 			if(listSetupErrors.Count>0) {
-				MessageBox.Show(Lan.g(this,"Recall Setup settings are not correctly set in order to Send Messages Automatically to patients:")
+				ODMessageBox.Show(Lan.g(this,"Recall Setup settings are not correctly set in order to Send Messages Automatically to patients:")
 						+"\r\n"+string.Join("\r\n",listSetupErrors)
 					,Lan.g(this,"Web Sched - Recall Setup Error"));
 				return false;
@@ -579,11 +580,11 @@ namespace OpenDental {
 				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"WebSched automated text preference changed from "+webSchedAutomaticSendTextOld.ToString()+" to "+webSchedAutomaticSendTextNew.ToString()+".");
 			}
 			int textsPerBatchOld=PrefC.GetInt(PrefName.WebSchedTextsPerBatch);
-			int textsPerBatchNew=PIn.Int(textWebSchedPerBatch.Text,false);
+			int textsPerBatchNew=SIn.Int(textWebSchedPerBatch.Text,false);
 			if(Prefs.UpdateInt(PrefName.WebSchedTextsPerBatch,textsPerBatchNew)) {
 				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"WebSched batch size preference changed from "+textsPerBatchOld.ToString()+" to "+textsPerBatchNew.ToString()+".");
 			}
-			int recallApptDays=PIn.Int(textWebSchedRecallApptSearchDays.Text);
+			int recallApptDays=SIn.Int(textWebSchedRecallApptSearchDays.Text);
 			Prefs.UpdateInt(PrefName.WebSchedRecallApptSearchAfterDays,recallApptDays);
 			Prefs.UpdateBool(PrefName.WebSchedRecallAllowProvSelection,checkRecallAllowProvSelection.Checked);
 			if(comboWSRConfirmStatus.SelectedIndex!=-1) {
@@ -591,7 +592,7 @@ namespace OpenDental {
 			}
 			int valueWebSchedRecallDoubleBooking=checkWSRDoubleBooking.Checked ? 1 : 0;
 			Prefs.UpdateInt(PrefName.WebSchedRecallDoubleBooking,valueWebSchedRecallDoubleBooking);
-			Prefs.UpdateInt(PrefName.WebSchedRecallApptSearchMaximumMonths,PIn.Int(textNumMonthsCheck.Text,false));
+			Prefs.UpdateInt(PrefName.WebSchedRecallApptSearchMaximumMonths,SIn.Int(textNumMonthsCheck.Text,false));
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {

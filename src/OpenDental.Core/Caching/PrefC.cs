@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Caching;
@@ -208,43 +209,43 @@ public class PrefC
     ///<summary>Gets a pref of type long.</summary>
     public static long GetLong(PrefName prefName)
     {
-        return PIn.Long(Prefs.GetOne(prefName).ValueString);
+        return SIn.Long(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets a pref of type int32.  Used when the pref is an enumeration, itemorder, etc.  Also used for historical queries in ConvertDatabase.</summary>
     public static int GetInt(PrefName prefName)
     {
-        return PIn.Int(Prefs.GetOne(prefName).ValueString);
+        return SIn.Int(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets a pref of type byte.  Used when the pref is a very small integer (0-255).</summary>
     public static byte GetByte(PrefName prefName)
     {
-        return PIn.Byte(Prefs.GetOne(prefName).ValueString);
+        return SIn.Byte(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets a pref of type double.</summary>
     public static double GetDouble(PrefName prefName)
     {
-        return PIn.Double(Prefs.GetOne(prefName).ValueString);
+        return SIn.Double(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets a pref of type double.</summary>
     public static double GetDouble(PrefName prefName, bool doUseEnUSFormat)
     {
-        return PIn.Double(Prefs.GetOne(prefName).ValueString, doUseEnUSFormat);
+        return SIn.Double(Prefs.GetOne(prefName).ValueString, doUseEnUSFormat);
     }
 
     ///<summary>Gets a pref of type bool.</summary>
     public static bool GetBool(PrefName prefName)
     {
-        return PIn.Bool(Prefs.GetOne(prefName).ValueString);
+        return SIn.Bool(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets the bool value for a YN pref.  If Unknown, then returns the default.  If you want the 3 state version, then use PrefC.GetEnum&lt;YN&gt; or PrefC.GetCheckState.</summary>
     public static bool GetYN(PrefName prefName)
     {
-        var yn = (YN) PIn.Int(Prefs.GetOne(prefName).ValueString);
+        var yn = (YN) SIn.Int(Prefs.GetOne(prefName).ValueString);
         if (yn == YN.Yes)
         {
             return true;
@@ -273,7 +274,7 @@ public class PrefC
     ///<summary>Gets YN value for use in pref setup windows with a 3 state checkbox.</summary>
     public static CheckState GetYNCheckState(PrefName prefName)
     {
-        var yn = (YN) PIn.Int(Prefs.GetOne(prefName).ValueString);
+        var yn = (YN) SIn.Int(Prefs.GetOne(prefName).ValueString);
         if (yn == YN.Yes)
         {
             return CheckState.Checked;
@@ -290,7 +291,7 @@ public class PrefC
     ///<summary>Gets a pref of the specified enum type.</summary>
     public static T GetEnum<T>(PrefName prefName) where T : struct, Enum
     {
-        return PIn.Enum<T>(GetInt(prefName));
+        return SIn.Enum<T>(GetInt(prefName));
     }
 
     ///<Summary>Gets a pref of type bool, but will not throw an exception if null or not found.  Indicate whether the silent default is true or false.</Summary>
@@ -303,7 +304,7 @@ public class PrefC
 
         Pref pref = null;
         ODException.SwallowAnyException(() => { pref = Prefs.GetOne(prefName); });
-        return (pref == null ? silentDefault : PIn.Bool(pref.ValueString));
+        return (pref == null ? silentDefault : SIn.Bool(pref.ValueString));
     }
 
     ///<summary>Gets a pref of type string.</summary>
@@ -315,7 +316,7 @@ public class PrefC
     ///<summary>Gets a pref of type string without using the cache.</summary>
     public static string GetStringNoCache(PrefName prefName)
     {
-        var command = "SELECT ValueString FROM preference WHERE PrefName='" + POut.String(prefName.ToString()) + "'";
+        var command = "SELECT ValueString FROM preference WHERE PrefName='" + SOut.String(prefName.ToString()) + "'";
         return DataCore.GetScalar(command);
     }
 
@@ -335,19 +336,19 @@ public class PrefC
     ///<summary>Gets a pref of type date.</summary>
     public static DateTime GetDate(PrefName prefName)
     {
-        return PIn.Date(Prefs.GetOne(prefName).ValueString);
+        return SIn.Date(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets a pref of type datetime.</summary>
     public static DateTime GetDateT(PrefName prefName)
     {
-        return PIn.DateTime(Prefs.GetOne(prefName).ValueString);
+        return SIn.DateTime(Prefs.GetOne(prefName).ValueString);
     }
 
     ///<summary>Gets a color from an int32 pref.</summary>
     public static Color GetColor(PrefName prefName)
     {
-        return Color.FromArgb(PIn.Int(Prefs.GetOne(prefName).ValueString));
+        return Color.FromArgb(SIn.Int(Prefs.GetOne(prefName).ValueString));
     }
 
     ///<summary>Used sometimes for prefs that are not part of the enum, especially for outside developers.</summary>

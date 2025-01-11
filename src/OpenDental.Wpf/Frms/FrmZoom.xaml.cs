@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -85,7 +86,7 @@ namespace OpenDental {
 			_fits=false;
 			int zoom=100;
 			try{
-				zoom=PIn.Int(textZoom.Text);//blank=0
+				zoom=SIn.Int(textZoom.Text);//blank=0
 			}
 			catch{}
 			if(zoom<=0 || zoom>=300){
@@ -181,7 +182,7 @@ namespace OpenDental {
 		private void butSave_Click(object sender,EventArgs e) {
 			int zoom=0;
 			try{
-				zoom=PIn.Int(textZoom.Text);//blank=0
+				zoom=SIn.Int(textZoom.Text);//blank=0
 			}
 			catch{
 				MsgBox.Show(this,"Please fix zoom, first.");

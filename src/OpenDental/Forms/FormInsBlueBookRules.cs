@@ -6,6 +6,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 
@@ -181,7 +182,7 @@ namespace OpenDental {
 			changed|=Prefs.UpdateBool(PrefName.InsBlueBookUsePlanNumOverride,checkUsePlanNumInHierarchy.Checked);
 			changed|=Prefs.UpdateInt(PrefName.InsBlueBookAllowedFeeMethod,listAllowedFeeMethod.SelectedIndex);
 			changed|=Prefs.UpdateInt(PrefName.AllowedFeeSchedsAutomate,listBlueBookFeature.SelectedIndex);
-			changed|=Prefs.UpdateInt(PrefName.InsBlueBookUcrFeePercent,PIn.Int(textUcrFeePercent.Text,false));
+			changed|=Prefs.UpdateInt(PrefName.InsBlueBookUcrFeePercent,SIn.Int(textUcrFeePercent.Text,false));
 			if(changed) {
 				DataValid.SetInvalid(InvalidType.Prefs);
 			}
@@ -208,7 +209,7 @@ namespace OpenDental {
 			Cursor=Cursors.WaitCursor;
 			long schedsAdded=InsPlans.GenerateAllowedFeeSchedules();
 			Cursor=Cursors.Default;
-			MessageBox.Show(Lan.g(this,"Done.  Allowed fee schedules added: ")+schedsAdded.ToString());
+			ODMessageBox.Show(Lan.g(this,"Done.  Allowed fee schedules added: ")+schedsAdded.ToString());
 			DataValid.SetInvalid(InvalidType.FeeScheds);
 		}
 

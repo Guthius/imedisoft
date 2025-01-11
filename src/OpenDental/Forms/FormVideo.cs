@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -162,10 +163,10 @@ namespace OpenDental {
 			}
 			catch (Exception ex){
 				if (ex.InnerException != null){
-					MessageBox.Show(ex.Message + "\n" + ex.InnerException.Message);
+					ODMessageBox.Show(ex.Message + "\n" + ex.InnerException.Message);
 				}
 				else{
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 				return;
 			}
@@ -189,7 +190,7 @@ namespace OpenDental {
 				_cameraFrameSource.StartFrameCapture();
 			}
 			catch (Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 

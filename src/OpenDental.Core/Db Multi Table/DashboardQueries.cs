@@ -5,6 +5,7 @@ using System.Data;
 using System.Text;
 using System.Reflection;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class DashboardQueries {
@@ -61,8 +62,8 @@ namespace OpenDentBusiness {
 				#endif
 				dash=new DashboardAR();
 				dash.DateCalc=dateLastOfMonth;
-				dash.BalTotal=PIn.Double(table.Rows[0][0].ToString());
-				dash.InsEst=PIn.Double(table.Rows[0][1].ToString());
+				dash.BalTotal=SIn.Double(table.Rows[0][0].ToString());
+				dash.InsEst=SIn.Double(table.Rows[0][1].ToString());
 				DashboardARs.Insert(dash);//save it to the db for later. 
 				listRet.Add(dash); //and also use it now.
 			}

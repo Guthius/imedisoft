@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -120,7 +121,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(!validNumX.IsValid() | !validNumY.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			if(FormOpenDental.IsDashboardVisible && checkTaskListAlwaysShow.Checked && !checkBoxTaskKeepListHidden.Checked && radioRight.Checked) {
@@ -148,12 +149,12 @@ namespace OpenDental {
 				ComputerPrefs.LocalComputer.TaskDock=1;
 				isChanged=true;
 			}
-			if(ComputerPrefs.LocalComputer.TaskX!=PIn.Int(validNumX.Text)) {
-				ComputerPrefs.LocalComputer.TaskX=PIn.Int(validNumX.Text);
+			if(ComputerPrefs.LocalComputer.TaskX!=SIn.Int(validNumX.Text)) {
+				ComputerPrefs.LocalComputer.TaskX=SIn.Int(validNumX.Text);
 				isChanged=true;
 			}
-			if(ComputerPrefs.LocalComputer.TaskY!=PIn.Int(validNumY.Text)) {
-				ComputerPrefs.LocalComputer.TaskY=PIn.Int(validNumY.Text);
+			if(ComputerPrefs.LocalComputer.TaskY!=SIn.Int(validNumY.Text)) {
+				ComputerPrefs.LocalComputer.TaskY=SIn.Int(validNumY.Text);
 				isChanged=true;
 			}
 			if(isChanged) {

@@ -14,6 +14,7 @@ using OpenDentBusiness.FileIO;
 using static OpenDentBusiness.Eclaims.Canadian;
 using System.Transactions;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -192,7 +193,7 @@ namespace OpenDentBusiness.Eclaims {
 					CCDField fieldG06=fieldInputter.GetFieldById("G06");
 					if(fieldG06?.valuestr!="00") {
 						errorMsg=string.Join("\r\n",fieldInputter.GetFieldsById("G08")
-							.Select(x => CCDerror.message(PIn.Int(x.valuestr),IsDentalOfficeFrench())));
+							.Select(x => CCDerror.Message(SIn.Int(x.valuestr),IsDentalOfficeFrench())));
 					}
 					etransAck.Etype=fieldInputter.GetEtransType();
 				}
@@ -544,7 +545,7 @@ namespace OpenDentBusiness.Eclaims {
 					}
 				}
 				if(transRefNum==claim.CanadaTransRefNum && listEtrans[i].DateTimeTrans>originalEtransDateTime) {
-					officeSequenceNumber=PIn.Int(messageData.GetFieldById("A02").valuestr);
+					officeSequenceNumber=SIn.Int(messageData.GetFieldById("A02").valuestr);
 					originalEtransDateTime=listEtrans[i].DateTimeTrans;
 				}
 			}
@@ -880,7 +881,7 @@ namespace OpenDentBusiness.Eclaims {
 					throw new ApplicationException(errorMsg);
 				}
 				CCDField fieldG62=fieldInputter.GetFieldById("G62");//Last reconciliation page number.
-				totalPages=PIn.Int(fieldG62.valuestr);
+				totalPages=SIn.Int(fieldG62.valuestr);
 				if(!isAutomatic && printCCD != null) {
 					printCCD(etrans,result,true);//Physically print the form.
 				}
@@ -1199,7 +1200,7 @@ namespace OpenDentBusiness.Eclaims {
 							CCDField fieldG08=fieldInputter.GetFieldById("G08");//error code
 							if(!isAutomatic) {
 								MessageBox.Show(Lans.g("","Failed to receive outstanding transactions. Messages from CDANet")+": "+Environment.NewLine+
-									fieldG07.valuestr.Trim()+Environment.NewLine+((fieldG08!=null) ? CCDerror.message(PIn.Int(fieldG08.valuestr),IsDentalOfficeFrench()) : ""));
+									fieldG07.valuestr.Trim()+Environment.NewLine+((fieldG08!=null) ? CCDerror.Message(SIn.Int(fieldG08.valuestr),IsDentalOfficeFrench()) : ""));
 							}
 						}
 						etransAck.Etype=EtransType.OutstandingAck_CA;
@@ -1295,7 +1296,7 @@ namespace OpenDentBusiness.Eclaims {
 								//}
 								Canadian.EOBImportHelper(fieldInputter,listClaimProcsForClaim,listAllProcs,listAllClaimProcs,claim,true,null,clearinghouseClin.IsEraDownloadAllowed,pat);
 								SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate,claim.PatNum
-									,"Claim for service date "+POut.Date(claim.DateService)+" amounts overwritten using received EOB amounts."
+									,"Claim for service date "+SOut.Date(claim.DateService)+" amounts overwritten using received EOB amounts."
 									,LogSources.CanadaEobAutoImport);
 							}
 							#endregion

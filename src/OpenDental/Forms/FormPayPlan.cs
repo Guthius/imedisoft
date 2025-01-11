@@ -14,6 +14,7 @@ using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using PdfSharp.Pdf;
@@ -157,7 +158,7 @@ namespace OpenDental{
 			_defArrayAccountColors=Defs.GetDefsForCategory(DefCat.AccountColors,true).ToArray();
 			//If the amort schedule has been created and the first payment date has passed, don't allow user to change the first payment date or downpayment
 			//until the schedule is cleared.
-			if(!IsNew && PIn.Date(textDateFirstPay.Text)<DateTime.Today) {
+			if(!IsNew && SIn.Date(textDateFirstPay.Text)<DateTime.Today) {
 				textDateFirstPay.ReadOnly=true;
 				textDateInterestStart.ReadOnly=true;
 				textInterestDelay.ReadOnly=true;
@@ -303,20 +304,20 @@ namespace OpenDental{
 					gridCharges.ListGridRows.Add(listGridRowsPayPlan[i]);
 				}
 				if(listGridRowsPayPlan[i].Cells[3].Text!="") {//Principal
-					_totPrinc+=PIn.Double(listGridRowsPayPlan[i].Cells[3].Text);
-					balanceAmt+=PIn.Double(listGridRowsPayPlan[i].Cells[3].Text);
+					_totPrinc+=SIn.Double(listGridRowsPayPlan[i].Cells[3].Text);
+					balanceAmt+=SIn.Double(listGridRowsPayPlan[i].Cells[3].Text);
 				}
 				if(listGridRowsPayPlan[i].Cells[4].Text!="") {//Interest
-					_totInt+=PIn.Double(listGridRowsPayPlan[i].Cells[4].Text);
-					balanceAmt+=PIn.Double(listGridRowsPayPlan[i].Cells[4].Text);
+					_totInt+=SIn.Double(listGridRowsPayPlan[i].Cells[4].Text);
+					balanceAmt+=SIn.Double(listGridRowsPayPlan[i].Cells[4].Text);
 				}
 				else if(listGridRowsPayPlan[i].Cells[6].Text!="") {//Payment
-					totPay+=PIn.Double(listGridRowsPayPlan[i].Cells[6].Text);
-					balanceAmt-=PIn.Double(listGridRowsPayPlan[i].Cells[6].Text);
+					totPay+=SIn.Double(listGridRowsPayPlan[i].Cells[6].Text);
+					balanceAmt-=SIn.Double(listGridRowsPayPlan[i].Cells[6].Text);
 				}
 				if(listGridRowsPayPlan[i].Cells[7].Text!="") { //adjustment
-					balanceAmt+=PIn.Double(listGridRowsPayPlan[i].Cells[7].Text);//+ because adjustments are negatvie, decrement
-					negAdjAmt-=PIn.Double(listGridRowsPayPlan[i].Cells[7].Text);//+ because adjustments are negatvie, increment
+					balanceAmt+=SIn.Double(listGridRowsPayPlan[i].Cells[7].Text);//+ because adjustments are negatvie, decrement
+					negAdjAmt-=SIn.Double(listGridRowsPayPlan[i].Cells[7].Text);//+ because adjustments are negatvie, increment
 				}
 				if(!checkExcludePast.Checked || DateTime.Parse(listGridRowsPayPlan[i].Cells[0].Text)>DateTime.Today) {
 					gridCharges.ListGridRows[gridCharges.ListGridRows.Count-1].Cells[8].Text=balanceAmt.ToString("f");
@@ -414,7 +415,7 @@ namespace OpenDental{
 			if(textCompletedAmt.Text=="") {
 				return;
 			}
-			if(PIn.Double(textCompletedAmt.Text)==PIn.Double(textAmount.Text)) {
+			if(SIn.Double(textCompletedAmt.Text)==SIn.Double(textAmount.Text)) {
 				return;
 			}
 		}
@@ -452,7 +453,7 @@ namespace OpenDental{
 
 		private void ToggleInterestDelayFieldsHelper() {
 			bool areVisible=true;
-			if(CompareDouble.IsZero(PIn.Double(textAPR.Text))) {
+			if(CompareDouble.IsZero(SIn.Double(textAPR.Text))) {
 				textDateInterestStart.Text="";
 				textInterestDelay.Text="";
 				areVisible=false;
@@ -482,10 +483,10 @@ namespace OpenDental{
 				|| !textPeriodPayment.IsValid()
 				|| !textCompletedAmt.IsValid()) 
 			{
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			if(textAmount.Text=="" || PIn.Double(textAmount.Text)==0) {
+			if(textAmount.Text=="" || SIn.Double(textAmount.Text)==0) {
 				MsgBox.Show(this,"Please enter an amount first.");
 				return;
 			}
@@ -504,7 +505,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please enter a term or payment amount first.");
 				return;
 			}
-			if(textPaymentCount.Text=="" && PIn.Double(textPeriodPayment.Text)==0) {
+			if(textPaymentCount.Text=="" && SIn.Double(textPeriodPayment.Text)==0) {
 				MsgBox.Show(this,"Payment cannot be 0.");
 				return;
 			}
@@ -512,11 +513,11 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please choose either Number of Payments or Payment Amt.");
 				return;
 			}
-			if(textPeriodPayment.Text=="" && PIn.Long(textPaymentCount.Text)<1) {
+			if(textPeriodPayment.Text=="" && SIn.Long(textPaymentCount.Text)<1) {
 				MsgBox.Show(this,"Term cannot be less than 1.");
 				return;
 			}
-			if(PIn.Double(textAmount.Text)-PIn.Double(textDownPayment.Text)<0) {
+			if(SIn.Double(textAmount.Text)-SIn.Double(textDownPayment.Text)<0) {
 				MsgBox.Show(this,"Down payment must be less than or equal to total amount.");
 				return;
 			}
@@ -533,8 +534,8 @@ namespace OpenDental{
 		}
 
 		private void CalculateDateInterestStartFromInterestDelay() {
-			if(PIn.Int(textInterestDelay.Text,false)!=0) {
-				textDateInterestStart.Text=PayPlanEdit.CalcNextPeriodDate(PIn.Date(textDateFirstPay.Text),PIn.Int(textInterestDelay.Text,false)
+			if(SIn.Int(textInterestDelay.Text,false)!=0) {
+				textDateInterestStart.Text=PayPlanEdit.CalcNextPeriodDate(SIn.Date(textDateFirstPay.Text),SIn.Int(textInterestDelay.Text,false)
 					,GetFrequencyForFormPaymentPlanOptions(_formPayPlanOptions)).ToShortDateString();
 				textInterestDelay.Text="";
 			}
@@ -568,7 +569,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please enter a term or payment amount first.");
 				return;
 			}
-			if(PIn.Double(textTotalCost.Text)<=PIn.Double(textAmtPaid.Text)) {
+			if(SIn.Double(textTotalCost.Text)<=SIn.Double(textAmtPaid.Text)) {
 				MsgBox.Show(this,"The payment plan has been completely paid and can't be recalculated.");
 				return;
 			}
@@ -596,7 +597,7 @@ namespace OpenDental{
 					_listPayPlanCharges.Remove(payPlanCharge);//We know the payPlanCharge object is inside _listPayPlanCharges.
 					_listLogs.Add("Deleted.");
 					if(payPlanCharge.Principal<0) {//adjustment
-						textAmount.Text=(PIn.Double(textAmount.Text)-(payPlanChargeOldAmt)).ToString("f");//charge will be negative, - to add the amount back
+						textAmount.Text=(SIn.Double(textAmount.Text)-(payPlanChargeOldAmt)).ToString("f");//charge will be negative, - to add the amount back
 					}
 					FillCharges();
 					return;
@@ -612,7 +613,7 @@ namespace OpenDental{
 						//We increased the adjustment. Total Amount needs to shrink. 
 						amtChanged=payPlanCharge.Principal-payPlanChargeOldAmt;//amt should be -
 					}
-					textAmount.Text=(PIn.Double(textAmount.Text)+(amtChanged)).ToString("f");
+					textAmount.Text=(SIn.Double(textAmount.Text)+(amtChanged)).ToString("f");
 				}
 				if(!formPayPlanChargeEdit.ListChangeLog.IsNullOrEmpty()) {
 					string log=PayPlans.GetChangeLog(formPayPlanChargeEdit.ListChangeLog);
@@ -623,7 +624,7 @@ namespace OpenDental{
 				PaySplit paySplit=(PaySplit)gridCharges.ListGridRows[e.Row].Tag;
 				Payment payment=Payments.GetPayment(paySplit.PayNum);
 				if(payment==null) {
-					MessageBox.Show(Lans.g(this,"No payment exists.  Please run database maintenance method")+" "+nameof(DatabaseMaintenances.PaySplitWithInvalidPayNum));
+					ODMessageBox.Show(Lans.g(this,"No payment exists.  Please run database maintenance method")+" "+nameof(DatabaseMaintenances.PaySplitWithInvalidPayNum));
 					return;
 				}
 				using FormPayment formPayment2=new FormPayment(_patient,_family,payment,false);//FormPayment may inserts and/or update the paysplits. 
@@ -635,7 +636,7 @@ namespace OpenDental{
 			}
 			else if(gridCharges.ListGridRows[e.Row].Tag.GetType()==typeof(DataRow)) {//Claim payment or bundle.
 				DataRow rowClaimProcBundled=(DataRow)gridCharges.ListGridRows[e.Row].Tag;
-				Claim claim=Claims.GetClaim(PIn.Long(rowClaimProcBundled["ClaimNum"].ToString()));
+				Claim claim=Claims.GetClaim(SIn.Long(rowClaimProcBundled["ClaimNum"].ToString()));
 				if(claim==null) {
 					MsgBox.Show(this,"The claim has been deleted.");
 				}
@@ -841,7 +842,7 @@ namespace OpenDental{
 			UpdateTxPaymentPlanChargeSummary(formPayPlanCredits.ListPayPlanChargesCredit);
 			//only attempt to change the total amt of the payment plan if an amortization schedule doesn't already exist.
 			if(_listPayPlanCharges.Count(x => x.ChargeType==PayPlanChargeType.Debit)==0//amortization schedule does not exist
-				&& PIn.Double(textTotalTxAmt.Text)!=PIn.Double(textAmount.Text)//Total treatment amount does not match term amount.
+				&& SIn.Double(textTotalTxAmt.Text)!=SIn.Double(textAmount.Text)//Total treatment amount does not match term amount.
 				&& MsgBox.Show(this,MsgBoxButtons.YesNo,"Change term Total Amount to match Total Tx Amount?")) {
 				textAmount.Text=textTotalTxAmt.Text;
 			}
@@ -886,7 +887,7 @@ namespace OpenDental{
 			}
 			double insPaidTotal=0;
 			for(int i=0;i < _tableClaimProcsBundled.Rows.Count;i++) {
-				insPaidTotal+=PIn.Double(_tableClaimProcsBundled.Rows[i]["InsPayAmt"].ToString());
+				insPaidTotal+=SIn.Double(_tableClaimProcsBundled.Rows[i]["InsPayAmt"].ToString());
 			}
 			textCompletedAmt.Text=insPaidTotal.ToString("f");
 			return true;
@@ -914,7 +915,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"A provider must be selected first.");
 				return true;
 			}
-			if(PIn.Date(textDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
+			if(SIn.Date(textDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
 				MsgBox.Show(this,"Payment plan date cannot be set for the future.");
 				return true;
 			}
@@ -957,18 +958,18 @@ namespace OpenDental{
 		///<summary>Creates helper object to store pay plan terms.</summary>
 		private PayPlanTerms GetTermsFromUI() {
 		PayPlanTerms payPlanTerms=new PayPlanTerms();
-			payPlanTerms.APR=PIn.Double(textAPR.Text);
-			payPlanTerms.DateFirstPayment=PIn.Date(textDateFirstPay.Text);
-			payPlanTerms.DateInterestStart=PIn.Date(textDateInterestStart.Text);//Will be DateTime.MinValue if text is blank.
+			payPlanTerms.APR=SIn.Double(textAPR.Text);
+			payPlanTerms.DateFirstPayment=SIn.Date(textDateFirstPay.Text);
+			payPlanTerms.DateInterestStart=SIn.Date(textDateInterestStart.Text);//Will be DateTime.MinValue if text is blank.
 			payPlanTerms.Frequency=GetFrequencyForFormPaymentPlanOptions(_formPayPlanOptions);
-			payPlanTerms.PayCount=PIn.Int(textPaymentCount.Text,false);
-			payPlanTerms.PrincipalAmount=PIn.Double(textAmount.Text);
+			payPlanTerms.PayCount=SIn.Int(textPaymentCount.Text,false);
+			payPlanTerms.PrincipalAmount=SIn.Double(textAmount.Text);
 			payPlanTerms.RoundDec=_roundDec;
-			payPlanTerms.DateAgreement=PIn.Date(textDate.Text);
-			payPlanTerms.DownPayment=PIn.Double(textDownPayment.Text);
+			payPlanTerms.DateAgreement=SIn.Date(textDate.Text);
+			payPlanTerms.DownPayment=SIn.Double(textDownPayment.Text);
 			payPlanTerms.PaySchedule=PayPlanEdit.GetPayScheduleFromFrequency(payPlanTerms.Frequency);
 			//PeriodPayment either 
-			payPlanTerms.PeriodPayment=PayPlanEdit.CalculatePeriodPayment(payPlanTerms.APR,payPlanTerms.Frequency,PIn.Decimal(textPeriodPayment.Text),payPlanTerms.PayCount,
+			payPlanTerms.PeriodPayment=PayPlanEdit.CalculatePeriodPayment(payPlanTerms.APR,payPlanTerms.Frequency,SIn.Decimal(textPeriodPayment.Text),payPlanTerms.PayCount,
 				payPlanTerms.RoundDec,payPlanTerms.PrincipalAmount,payPlanTerms.DownPayment);
 			//Set some properties of object to be saved here because text fields can be changed after schedule is created.
 			_payPlan.DownPayment=payPlanTerms.DownPayment;
@@ -986,7 +987,7 @@ namespace OpenDental{
 		private void AreTermsValid(bool areTermsValid) {
 			if(!areTermsValid) {
 				//The principal is actually increasing or staying the same with each payment.
-				MessageBox.Show(Lan.g(this,"This payment plan will never be paid off. The interest being charged on each payment is greater than the"+
+				ODMessageBox.Show(Lan.g(this,"This payment plan will never be paid off. The interest being charged on each payment is greater than the"+
 					" payment amount. Choose a lower interest rate or a higher payment amount."));
 			}
 		}
@@ -1042,7 +1043,7 @@ namespace OpenDental{
 			listInputBoxParams.Add(inputBoxParam);
 			InputBox inputBox=new InputBox(listInputBoxParams);
 			inputBox.FuncOkClick=new Func<string,bool>((text) => {
-				double amount=PIn.Double(text);
+				double amount=SIn.Double(text);
 				if(amount==0) {
 					MsgBox.Show(this,"Please enter a valid value");
 					return false;
@@ -1059,7 +1060,7 @@ namespace OpenDental{
 			if(inputBox.IsDialogCancel) {
 				return;
 			}
-			double negAdjAmt=-(PIn.Double(inputBox.StringResult));
+			double negAdjAmt=-(SIn.Double(inputBox.StringResult));
 			double totalRemainingBal=PayPlans.GetBalance(_payPlan.PayPlanNum,_listPayPlanCharges,_listPaySplits);
 			if(CompareDouble.IsGreaterThan(Math.Abs(negAdjAmt),totalRemainingBal)) {
 				MsgBox.Show(this,"Cannot add an adjustment totaling more than remaining balance due");
@@ -1085,7 +1086,7 @@ namespace OpenDental{
 				_listAdjustments.Add(adjustment);
 			}
 			//add negative production offset to tx credits if there is a completed amount
-			if(PIn.Double(textCompletedAmt.Text)>0) {
+			if(SIn.Double(textCompletedAmt.Text)>0) {
 				PayPlanCharge payPlanChargeTxOffset=new PayPlanCharge() {
 					ChargeDate=DateTime.Now.Date,
 					ChargeType=PayPlanChargeType.Credit,//needs to be saved as production to show in Tx Form
@@ -1242,7 +1243,7 @@ namespace OpenDental{
 			}
 			if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully) {
 				//If there are tx credits, and it's a patient pay plan with no procs attached, and not an adjustment with a negative amount
-				if(!CompareDouble.IsZero(PIn.Double(textTotalTxAmt.Text)) && _payPlan.PlanNum==0
+				if(!CompareDouble.IsZero(SIn.Double(textTotalTxAmt.Text)) && _payPlan.PlanNum==0
 					&& _listPayPlanCharges.Where(x=> x.ChargeType==PayPlanChargeType.Credit).Any(x => x.ProcNum==0 && !x.IsCreditAdjustment)) 
 				{
 					MsgBox.Show(this,"All treatment credits (excluding adjustments) must have a procedure.");
@@ -1250,12 +1251,12 @@ namespace OpenDental{
 				}
 			}
 			//insurance payment plans use the CompletedAmt text box, regular payment plans use totalTxAmt text box for validation.
-			if(IsInsPayPlan && PIn.Double(textCompletedAmt.Text)!=PIn.Double(textAmount.Text)) {
+			if(IsInsPayPlan && SIn.Double(textCompletedAmt.Text)!=SIn.Double(textAmount.Text)) {
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Tx Completed Amt and Total Amount do not match, continue?")) {
 					return false;
 				}
 			}
-			else if(!IsInsPayPlan && PIn.Double(textTotalTxAmt.Text)!=PIn.Double(textAmount.Text) 
+			else if(!IsInsPayPlan && SIn.Double(textTotalTxAmt.Text)!=SIn.Double(textAmount.Text) 
 				&& PrefC.GetInt(PrefName.PayPlansVersion)!=(int)PayPlanVersions.NoCharges) //Credits do not matter in ppv4
 			{
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Total Tx Amt and Total Amount do not match, continue?")) {
@@ -1273,7 +1274,7 @@ namespace OpenDental{
 			}
 			//PatNum not editable.
 			//Guarantor set already
-			_payPlan.PayPlanDate=PIn.Date(textDate.Text);
+			_payPlan.PayPlanDate=SIn.Date(textDate.Text);
 			//The following variables were handled when the amortization schedule was created.
 			//PayPlanCur.APR
 			//PayPlanCur.PaySchedule
@@ -1282,20 +1283,20 @@ namespace OpenDental{
 			//PayPlanCur.DownPayment
 			//PayPlanCur.DateInterestStart
 			_payPlan.Note=textNote.Text;
-			_payPlan.CompletedAmt=PIn.Double(textCompletedAmt.Text);
+			_payPlan.CompletedAmt=SIn.Double(textCompletedAmt.Text);
 			_payPlan.PlanCategory=comboCategory.GetSelectedDefNum();
 			//PlanNum set already
 			if(IsInsPayPlan) { //if insurance payment plan, remove all other credits and create one credit for the completed amt.
 				_listPayPlanCharges.RemoveAll(x => x.ChargeType==PayPlanChargeType.Credit);//remove all production
 				PayPlanCharge payPlanChargeAdd=new PayPlanCharge();
-				payPlanChargeAdd.ChargeDate=PIn.Date(textDate.Text);
+				payPlanChargeAdd.ChargeDate=SIn.Date(textDate.Text);
 				payPlanChargeAdd.ChargeType=PayPlanChargeType.Credit;
 				payPlanChargeAdd.Guarantor=_payPlan.Guarantor; //production always show in the account of the patient that the payplan was for.
 				payPlanChargeAdd.Interest=0;
 				payPlanChargeAdd.Note=Lan.g(this,"Expected Payments from")+" "+textInsPlan.Text;
 				payPlanChargeAdd.PatNum=_payPlan.PatNum;
 				payPlanChargeAdd.PayPlanNum=_payPlan.PayPlanNum;
-				payPlanChargeAdd.Principal=PIn.Double(textCompletedAmt.Text);
+				payPlanChargeAdd.Principal=SIn.Double(textCompletedAmt.Text);
 				payPlanChargeAdd.ProcNum=0;
 				//addCharge.ProvNum=0; //handled below
 				//addCharge.ClinicNum=0; //handled below
@@ -1338,7 +1339,7 @@ namespace OpenDental{
 				//Delete log here since this button doesn't call SaveData().
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.PayPlanEdit,_patient.PatNum,
@@ -1367,7 +1368,7 @@ namespace OpenDental{
 				PayPlans.Delete(_payPlan);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				e.Cancel=true;
 				return;
 			}

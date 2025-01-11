@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -139,7 +140,7 @@ namespace OpenDental {
 		private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
 			using FormWikiListItemEdit formWikiListItemEdit=new FormWikiListItemEdit(); 
 			formWikiListItemEdit.WikiListName=WikiListCurName;
-			formWikiListItemEdit.ItemNum=PIn.Long(_table.Rows[(int)gridMain.ListGridRows[e.Row].Tag][0].ToString());
+			formWikiListItemEdit.ItemNum=SIn.Long(_table.Rows[(int)gridMain.ListGridRows[e.Row].Tag][0].ToString());
 			formWikiListItemEdit.ListWikiListHeaderWidths=_listWikiListHeaderWidths;
 			formWikiListItemEdit.ShowHidden=checkBoxIncludeHiddenColumns.Checked;
 			//saving occurs from within the form.
@@ -298,7 +299,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;

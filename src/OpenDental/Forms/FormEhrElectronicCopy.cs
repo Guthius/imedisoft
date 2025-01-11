@@ -98,13 +98,13 @@ namespace OpenDental {
 			try {
 				ccd=EhrCCD.GenerateElectronicCopy(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FolderBrowserDialog dlg=new FolderBrowserDialog();
@@ -114,14 +114,14 @@ namespace OpenDental {
 				return;
 			}
 			if(File.Exists(Path.Combine(dlg.SelectedPath,"ccd.xml"))) {
-				if(MessageBox.Show("Overwrite existing ccd.xml?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show("Overwrite existing ccd.xml?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}
 			File.WriteAllText(Path.Combine(dlg.SelectedPath,"ccd.xml"),ccd);
 			File.WriteAllText(Path.Combine(dlg.SelectedPath,"ccd.xsl"),EhrSummaryCcds.GetEhrResource("CCD"));
 			RecordRequestAndProvide();
-			MessageBox.Show("Exported");
+			ODMessageBox.Show("Exported");
 		}
 
 		private void butSendEmail_Click(object sender,EventArgs e) {
@@ -136,13 +136,13 @@ namespace OpenDental {
 			try {
 				ccd=EhrCCD.GenerateElectronicCopy(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FormEhrSummaryOfCare.DisplayCCD(ccd);
@@ -153,13 +153,13 @@ namespace OpenDental {
 			try {
 				ccd=EhrCCD.GenerateElectronicCopy(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			using MsgBoxCopyPaste msgbox=new MsgBoxCopyPaste(ccd);
@@ -168,7 +168,7 @@ namespace OpenDental {
 
 		private void butDelete_Click(object sender,EventArgs e) {
 			if(gridMain.SelectedIndices.Length < 1) {
-				MessageBox.Show("Please select at least one record to delete.");
+				ODMessageBox.Show("Please select at least one record to delete.");
 				return;
 			}
 			for(int i=0;i<gridMain.SelectedIndices.Length;i++) {

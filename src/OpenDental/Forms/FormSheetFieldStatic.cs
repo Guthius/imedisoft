@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDentBusiness.Remoting;
 using PdfSharp.Drawing;
@@ -201,7 +202,7 @@ namespace OpenDental {
 			using Graphics g=CreateGraphics();
 			using Font font=new Font(comboFontName.GetSelected<string>(),float.Parse(textFontSize.Text),fontStyle);
 			using StringFormat stringFormat=new StringFormat(StringFormatFlags.NoClip) {Trimming=StringTrimming.None};
-			int heightEntered=PIn.Int(textHeight.Text);
+			int heightEntered=SIn.Int(textHeight.Text);
 			int initialTextWidth=(int)Math.Ceiling(g.MeasureString(textFieldValue.Text,font).Width);
 			// If heightEntered is smaller than 2 lines of text, just return the string width
 			if(heightEntered<(int)Math.Floor(font.GetHeight()*2)) {
@@ -232,7 +233,7 @@ namespace OpenDental {
 			using Graphics g=CreateGraphics();
 			using Font font=new Font(comboFontName.GetSelected<string>(),float.Parse(textFontSize.Text),fontStyle);
 			using StringFormat stringFormat=new StringFormat(StringFormatFlags.NoClip) {Trimming=StringTrimming.None};
-			SizeF sizeFNew=g.MeasureString(textFieldValue.Text,font,PIn.Int(textWidth.Text),stringFormat);
+			SizeF sizeFNew=g.MeasureString(textFieldValue.Text,font,SIn.Int(textWidth.Text),stringFormat);
 			textHeight.Text=Math.Min(Math.Ceiling(sizeFNew.Height),textHeight.MaxVal).ToString();
 		}
 
@@ -293,10 +294,10 @@ namespace OpenDental {
 			SheetFieldDefCur.FontName=comboFontName.GetSelected<string>();
 			SheetFieldDefCur.FontSize=fontSize;
 			SheetFieldDefCur.FontIsBold=checkFontIsBold.Checked;
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			SheetFieldDefCur.GrowthBehavior=comboGrowthBehavior.GetSelected<GrowthBehaviorEnum>();
 			SheetFieldDefCur.TextAlign=(System.Windows.Forms.HorizontalAlignment)comboTextAlign.SelectedIndex;
 			SheetFieldDefCur.IsPaymentOption=checkPmtOpt.Checked;

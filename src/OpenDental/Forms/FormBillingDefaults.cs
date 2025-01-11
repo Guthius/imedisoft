@@ -9,6 +9,7 @@ using System.Linq;
 using OpenDentBusiness;
 using System.IO;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -138,7 +139,7 @@ namespace OpenDental {
 			foreach(string modeIdx in PrefC.GetString(PrefName.BillingDefaultsModesToText)
 				.Split(new string[] { "," },StringSplitOptions.RemoveEmptyEntries)) 
 			{ 
-				listModesToText.SetSelected(PIn.Int(modeIdx),true);
+				listModesToText.SetSelected(SIn.Int(modeIdx),true);
 			}
 			textSmsTemplate.Text=PrefC.GetString(PrefName.BillingDefaultsSmsTemplate);
 			//Load _eBillCur's fields into the UI.
@@ -374,8 +375,8 @@ namespace OpenDental {
 			if(listElectBilling.SelectedIndex==1 && string.IsNullOrEmpty(textStatementURL.Text)) {
 				textStatementURL.Text=@"https://claimconnect.dentalxchange.com/dci/upload.svl";//default value from before 16.2.19
 			}
-			string modesToText=string.Join(",",listModesToText.GetListSelected<StatementMode>().Select(x => POut.Int((int)x)));
-			if(Prefs.UpdateLong(PrefName.BillingDefaultsLastDays,PIn.Long(textDays.Text))
+			string modesToText=string.Join(",",listModesToText.GetListSelected<StatementMode>().Select(x => SOut.Int((int)x)));
+			if(Prefs.UpdateLong(PrefName.BillingDefaultsLastDays,SIn.Long(textDays.Text))
 				| Prefs.UpdateBool(PrefName.BillingDefaultsIntermingle,checkIntermingled.Checked)
 				| Prefs.UpdateString(PrefName.BillingDefaultsNote,textNote.Text)
 				| Prefs.UpdateString(PrefName.BillingUseElectronic,billingUseElectronic)

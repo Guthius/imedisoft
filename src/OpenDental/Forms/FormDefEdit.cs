@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -48,16 +49,16 @@ namespace OpenDental {
 
 		private void FormDefEdit_Load(object sender, System.EventArgs e) {
 			if(_def.Category==DefCat.ApptConfirmed) {
-				_listExcludeSendNums=PrefC.GetString(PrefName.ApptConfirmExcludeESend).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeConfirmNums=PrefC.GetString(PrefName.ApptConfirmExcludeEConfirm).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeRemindNums=PrefC.GetString(PrefName.ApptConfirmExcludeERemind).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeThanksNums=PrefC.GetString(PrefName.ApptConfirmExcludeEThankYou).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeArrivalSendNums=PrefC.GetString(PrefName.ApptConfirmExcludeArrivalSend).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeArrivalResponseNums=PrefC.GetString(PrefName.ApptConfirmExcludeArrivalResponse).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeEClipboardNums=PrefC.GetString(PrefName.ApptConfirmExcludeEclipboard).Split(',').ToList().Select(x => PIn.Long(x)).ToList();
-				_listByodEnabled=PrefC.GetString(PrefName.ApptConfirmByodEnabled).Split(',').ToList().Select(x => PIn.Long(x)).ToList();
-				_listExcludeNewPatEThanksNums=PrefC.GetString(PrefName.ApptConfirmExcludeNewPatThankYou).Split(',').Select(x => PIn.Long(x)).ToList();
-				_listExcludeGeneralMessageSendNums=PrefC.GetString(PrefName.ApptConfirmExcludeGeneralMessage).Split(',').ToList().Select(x => PIn.Long(x)).ToList();
+				_listExcludeSendNums=PrefC.GetString(PrefName.ApptConfirmExcludeESend).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeConfirmNums=PrefC.GetString(PrefName.ApptConfirmExcludeEConfirm).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeRemindNums=PrefC.GetString(PrefName.ApptConfirmExcludeERemind).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeThanksNums=PrefC.GetString(PrefName.ApptConfirmExcludeEThankYou).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeArrivalSendNums=PrefC.GetString(PrefName.ApptConfirmExcludeArrivalSend).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeArrivalResponseNums=PrefC.GetString(PrefName.ApptConfirmExcludeArrivalResponse).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeEClipboardNums=PrefC.GetString(PrefName.ApptConfirmExcludeEclipboard).Split(',').ToList().Select(x => SIn.Long(x)).ToList();
+				_listByodEnabled=PrefC.GetString(PrefName.ApptConfirmByodEnabled).Split(',').ToList().Select(x => SIn.Long(x)).ToList();
+				_listExcludeNewPatEThanksNums=PrefC.GetString(PrefName.ApptConfirmExcludeNewPatThankYou).Split(',').Select(x => SIn.Long(x)).ToList();
+				_listExcludeGeneralMessageSendNums=PrefC.GetString(PrefName.ApptConfirmExcludeGeneralMessage).Split(',').ToList().Select(x => SIn.Long(x)).ToList();
 				//0 will get automatically added to the list when this is the first of its kind.  We never want 0 inserted.
 				_listExcludeSendNums.Remove(0);
 				_listExcludeConfirmNums.Remove(0);
@@ -157,7 +158,7 @@ namespace OpenDental {
 				textValue.ReadOnly=true;
 				textValue.BackColor=SystemColors.Control;
 				labelValue.Text=Lan.g("FormDefinitions","Parent Category: use the ... button to choose a parent.");
-				long defNumCur=PIn.Long(_def.ItemValue??"");
+				long defNumCur=SIn.Long(_def.ItemValue??"");
 				if(defNumCur>0) {
 					textValue.Text=_listDefs.FirstOrDefault(x => defNumCur==x.DefNum)?.ItemName??"";
 				}
@@ -195,7 +196,7 @@ namespace OpenDental {
 		}
 
 		private void butSelect_Click(object sender,EventArgs e) {
-			long defNumParent=PIn.Long(_def.ItemValue);//ItemValue could be blank, in which case defNumCur will be 0
+			long defNumParent=SIn.Long(_def.ItemValue);//ItemValue could be blank, in which case defNumCur will be 0
 			List<Def> listDefsMatchingParent=_listDefs.FindAll(x => x.DefNum==defNumParent);
 			using FormDefinitionPicker formDefinitionPicker=new FormDefinitionPicker(_def.Category,listDefsMatchingParent,_def.DefNum);
 			formDefinitionPicker.IsMultiSelectionMode=false;
@@ -244,7 +245,7 @@ namespace OpenDental {
 				Defs.Delete(_def);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			IsDeleted=true;
 			if(isAutoNoteRefresh) {//deleting an auto note category currently in use will uncategorize those auto notes, refresh cache
@@ -270,7 +271,7 @@ namespace OpenDental {
 						ProcedureCodes.ValidateProcedureCodeEntry(stringArrayProcCodesAccountQuickCharge);
 					}
 					catch(Exception ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 							return;
 					}
 					break;
@@ -280,13 +281,13 @@ namespace OpenDental {
 						ProcedureCodes.ValidateProcedureCodeEntry(stringArrayProcCodesApptProcsQuickAdd,doAllowToothNum:true);
 					}
 					catch(Exception ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 							return;
 					}
 					break;
 				case DefCat.AdjTypes:
 					if(textValue.Text!="+" && textValue.Text!="-" && textValue.Text!="dp"){
-						MessageBox.Show(Lan.g(this,"Valid values are +, -, or dp."));
+						ODMessageBox.Show(Lan.g(this,"Valid values are +, -, or dp."));
 						return;
 					}
 					break;
@@ -307,7 +308,7 @@ namespace OpenDental {
 				case DefCat.CommLogTypes:
 					List<string> listCommItemTypes=Commlogs.GetCommItemTypes().Select(x => x.GetDescription(useShortVersionIfAvailable:true)).ToList();
 					if(textValue.Text!="" && !listCommItemTypes.Any(x => x==textValue.Text)) {
-						MessageBox.Show(Lan.g(this,"Valid values are:")+" "+string.Join(", ",listCommItemTypes));
+						ODMessageBox.Show(Lan.g(this,"Valid values are:")+" "+string.Join(", ",listCommItemTypes));
 						return;
 					}
 					break;
@@ -318,11 +319,11 @@ namespace OpenDental {
 						discountValue=System.Convert.ToInt32(textValue.Text);
 					}
 					catch {
-						MessageBox.Show(Lan.g(this,"Not a valid number"));
+						ODMessageBox.Show(Lan.g(this,"Not a valid number"));
 						return;
 					}
 					if(discountValue < 0 || discountValue > 100) {
-						MessageBox.Show(Lan.g(this,"Valid values are between 0 and 100"));
+						ODMessageBox.Show(Lan.g(this,"Valid values are between 0 and 100"));
 						return;
 					}
 					textValue.Text=discountValue.ToString();
@@ -350,7 +351,7 @@ namespace OpenDental {
 					break;
 				case DefCat.OperatoriesOld:
 					if(textValue.Text.Length > 5){
-						MessageBox.Show(Lan.g(this,"Maximum length of abbreviation is 5."));
+						ODMessageBox.Show(Lan.g(this,"Maximum length of abbreviation is 5."));
 						return;
 					}
 					break;
@@ -373,13 +374,13 @@ namespace OpenDental {
 					break;
 				case DefCat.RecallUnschedStatus:
 					if(textValue.Text.Length > 7){
-						MessageBox.Show(Lan.g(this,"Maximum length is 7."));
+						ODMessageBox.Show(Lan.g(this,"Maximum length is 7."));
 						return;
 					}
 					break;
 				case DefCat.TxPriorities:
 					if(textValue.Text.Length > 7){
-						MessageBox.Show(Lan.g(this,"Maximum length of abbreviation is 7."));
+						ODMessageBox.Show(Lan.g(this,"Maximum length of abbreviation is 7."));
 						return;
 					}
 					break;

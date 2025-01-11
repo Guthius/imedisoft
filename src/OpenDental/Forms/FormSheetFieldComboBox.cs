@@ -7,6 +7,7 @@ using System.Drawing.Text;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -164,12 +165,12 @@ namespace OpenDental {
 			if(listComboType.SelectedIndex!=-1) {
 				SheetFieldDefCur.FieldName=listComboType.SelectedItem.ToString();
 			}
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
-			SheetFieldDefCur.TabOrder=PIn.Int(textTabOrder.Text);
-			SheetFieldDefCur.ReportableName=PIn.String(textReportable.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
+			SheetFieldDefCur.TabOrder=SIn.Int(textTabOrder.Text);
+			SheetFieldDefCur.ReportableName=SIn.String(textReportable.Text);
 			SheetFieldDefCur.UiLabelMobile=textUiLabelMobile.Text;
 			//ComboBox FieldValue will be:  selectedItem;all|possible|options|here|with|selectedItem|also
 			//This is so we don't have to change the database schema for combo boxes.

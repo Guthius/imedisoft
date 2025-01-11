@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpBrokenAppointments {
@@ -56,7 +57,7 @@ namespace OpenDentBusiness {
 				queryBrokenApts+=DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient, "
 				+"procedurelog.ProcFee ProcFee ";
 				if(hasClinicsEnabled) {
-					queryBrokenApts+=",COALESCE(clinic.Description,'"+POut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";
+					queryBrokenApts+=",COALESCE(clinic.Description,'"+SOut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";
 				}
 				queryBrokenApts+=
 					"FROM procedurelog ";
@@ -78,8 +79,8 @@ namespace OpenDentBusiness {
 				if(hasClinicsEnabled) {
 					queryBrokenApts+="LEFT JOIN clinic ON clinic.ClinicNum=procedurelog.ClinicNum ";
 				}
-				queryBrokenApts+="WHERE procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" "
-					+"AND procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+" ";
+				queryBrokenApts+="WHERE procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" "
+					+"AND procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+" ";
 				if(hasClinicsEnabled) {
 					queryBrokenApts+=whereClin+" "
 						+"ORDER BY clinic.Description,procedurelog.ProcDate,patient.LName,patient.FName";
@@ -94,7 +95,7 @@ namespace OpenDentBusiness {
 			string queryBrokenApts="SELECT adjustment.AdjDate AdjDate,provider.Abbr Provider,"+DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient,"
 					+"adjustment.AdjAmt AdjAmt,adjustment.AdjNote AdjNote ";
 				if(hasClinicsEnabled) {
-					queryBrokenApts+=",COALESCE(clinic.Description,'"+POut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";
+					queryBrokenApts+=",COALESCE(clinic.Description,'"+SOut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";
 				}
 				queryBrokenApts+=
 					"FROM adjustment "
@@ -104,7 +105,7 @@ namespace OpenDentBusiness {
 				if(hasClinicsEnabled) {
 					queryBrokenApts+="LEFT JOIN clinic ON clinic.ClinicNum=adjustment.ClinicNum ";
 				}
-				queryBrokenApts+="WHERE adjustment.AdjDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+				queryBrokenApts+="WHERE adjustment.AdjDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 				if(listAdj.Count > 0) {
 					queryBrokenApts+="AND adjustment.AdjType IN("+string.Join(",",listAdj)+") ";
 				}
@@ -123,7 +124,7 @@ namespace OpenDentBusiness {
 					+""+DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient,doctor.Abbr Doctor,hygienist.Abbr Hygienist, "
 					+"appointment.IsHygiene IsHygieneApt ";
 				if(hasClinicsEnabled) {
-					queryBrokenApts+=",COALESCE(clinic.Description,'"+POut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";//Coalesce is Oracle compatible
+					queryBrokenApts+=",COALESCE(clinic.Description,'"+SOut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";//Coalesce is Oracle compatible
 				}
 				queryBrokenApts+=
 					"FROM appointment "
@@ -134,9 +135,9 @@ namespace OpenDentBusiness {
 					queryBrokenApts+="LEFT JOIN clinic ON clinic.ClinicNum=appointment.ClinicNum ";
 				}
 				queryBrokenApts+=
-					"WHERE "+DbHelper.DtimeToDate("appointment.AptDateTime")+" BETWEEN "+POut.Date(dateStart)
-					+" AND "+POut.Date(dateEnd)+" "
-					+"AND appointment.AptStatus="+POut.Int((int)ApptStatus.Broken)+" "
+					"WHERE "+DbHelper.DtimeToDate("appointment.AptDateTime")+" BETWEEN "+SOut.Date(dateStart)
+					+" AND "+SOut.Date(dateEnd)+" "
+					+"AND appointment.AptStatus="+SOut.Int((int)ApptStatus.Broken)+" "
 					+whereProv;
 				if(hasClinicsEnabled) {
 					queryBrokenApts+=whereClin+" "

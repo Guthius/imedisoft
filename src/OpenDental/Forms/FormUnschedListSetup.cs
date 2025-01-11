@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -36,10 +37,10 @@ namespace OpenDental {
 			int unschedDaysPastValue=-1;
 			int unschedDaysFutureValue=-1;
 			if(!string.IsNullOrWhiteSpace(textDaysPast.Text)) {
-				unschedDaysPastValue=PIn.Int(textDaysPast.Text,false);
+				unschedDaysPastValue=SIn.Int(textDaysPast.Text,false);
 			}
 			if(!string.IsNullOrWhiteSpace(textDaysFuture.Text)) {
-				unschedDaysFutureValue=PIn.Int(textDaysFuture.Text,false);
+				unschedDaysFutureValue=SIn.Int(textDaysFuture.Text,false);
 			}
 			isPrefsInvalid=Prefs.UpdateInt(PrefName.UnschedDaysPast,unschedDaysPastValue) 
 				| Prefs.UpdateInt(PrefName.UnschedDaysFuture,unschedDaysFutureValue);

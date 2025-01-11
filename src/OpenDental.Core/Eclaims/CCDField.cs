@@ -16,7 +16,7 @@ namespace OpenDentBusiness.Eclaims {
 		};
 
 		private class ConstLengthRequirement:LengthRequirement{
-			int len;
+			private int len;
 			public ConstLengthRequirement(int length){
 				len=length;
 			}
@@ -26,7 +26,7 @@ namespace OpenDentBusiness.Eclaims {
 		};
 
 		private class LengthFromAnotherField:LengthRequirement{
-			string otherFieldId;
+			private string otherFieldId;
 			public LengthFromAnotherField(string pOtherFieldId) {
 				otherFieldId=pOtherFieldId;
 			}
@@ -47,8 +47,8 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>This field does not exist when the other specified field does not exist. If this field does not exist, the returned length is 0, so that no error occurs, but also to avoid input.</summary>
 		private class ConstLengthWhenOtherFieldExists:LengthRequirement{
-			string otherFieldId;
-			int valueWhenExists;
+			private string otherFieldId;
+			private int valueWhenExists;
 			public ConstLengthWhenOtherFieldExists(string pOtherFieldId,int pValueWhenExists) {
 				otherFieldId=pOtherFieldId;
 				valueWhenExists=pValueWhenExists;
@@ -63,9 +63,9 @@ namespace OpenDentBusiness.Eclaims {
 		};
 
 		private class ConstLengthWhenOtherFieldHasValue:LengthRequirement{
-			string otherFieldId;
-			string otherFieldValue;
-			int valueWhenExists;
+			private string otherFieldId;
+			private string otherFieldValue;
+			private int valueWhenExists;
 			public ConstLengthWhenOtherFieldHasValue(string pOtherFieldId,string pOtherFieldValue,int pValueWhenExists) {
 				otherFieldId=pOtherFieldId;
 				otherFieldValue=pOtherFieldValue;
@@ -119,8 +119,8 @@ namespace OpenDentBusiness.Eclaims {
 		};
 
 		private class RangeValueRequirement:ValueRequirement {
-			int minVal;
-			int maxVal;
+			private int minVal;
+			private int maxVal;
 			public RangeValueRequirement(int pMinVal,int pMaxVal) {
 				minVal=pMinVal;
 				maxVal=pMaxVal;
@@ -137,7 +137,7 @@ namespace OpenDentBusiness.Eclaims {
 		};
 
 		private class RegexValueRequirement:ValueRequirement{
-			string pattern;
+			private string pattern;
 			public RegexValueRequirement(string pPattern) {
 				pattern=pPattern;
 			}
@@ -157,8 +157,8 @@ namespace OpenDentBusiness.Eclaims {
 			};
 
 		private class DiscreteValuesBasedOnOtherField:ValueRequirement{
-			string otherFieldId;
-			ValueMap[] valueMaps;
+			private string otherFieldId;
+			private ValueMap[] valueMaps;
 			public DiscreteValuesBasedOnOtherField(string pOtherFieldId,ValueMap[] pValueMaps) {
 				otherFieldId=pOtherFieldId;
 				valueMaps=pValueMaps;
@@ -349,7 +349,7 @@ namespace OpenDentBusiness.Eclaims {
 			{
 				case "A01":
 					fieldName="Transaction Prefix";
-					frenchFieldName="Préfixe de transaction";
+					frenchFieldName="Prï¿½fixe de transaction";
 					format="A/N"; 
 					lengthRequirement=new ConstLengthRequirement(12);
 					break;
@@ -376,13 +376,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "A05":
 					fieldName="Carrier Identification Number";
-					frenchFieldName="Numéro d'identification de porteur";
+					frenchFieldName="Numï¿½ro d'identification de porteur";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "A06":
 					fieldName="Software System ID";
-					frenchFieldName="Système logiciel identification";
+					frenchFieldName="Systï¿½me logiciel identification";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					break;
@@ -455,7 +455,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "C07":
 					fieldName="Patient's First Name";
-					frenchFieldName="Le prénom du patient";
+					frenchFieldName="Le prï¿½nom du patient";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(15);
 					break;
@@ -467,14 +467,14 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "C09":
 					fieldName="Eligibility Exception Code";
-					frenchFieldName="Code d'exception d'acceptabilité";
+					frenchFieldName="Code d'exception d'acceptabilitï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,3));
 					break;
 				case "C10":
 					fieldName="Name of School";
-					frenchFieldName="Nom d'école";
+					frenchFieldName="Nom d'ï¿½cole";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(25);
 					break;
@@ -486,49 +486,49 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "D01":
 					fieldName="Subscriber's Birthday";
-					frenchFieldName="L'anniversaire de l'abonné";
+					frenchFieldName="L'anniversaire de l'abonnï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
 				case "D02":
 					fieldName="Subscriber's Last Name";
-					frenchFieldName="Le dernier nom de l'abonné";
+					frenchFieldName="Le dernier nom de l'abonnï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(25);
 					break;
 				case "D03":
 					fieldName="Subscriber's First Name";
-					frenchFieldName="Le prénom de l'abonné";
+					frenchFieldName="Le prï¿½nom de l'abonnï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(15);
 					break;
 				case "D04":
 					fieldName="Subscriber's Middle Initial";
-					frenchFieldName="L'initiale moyenne de l'abonné";
+					frenchFieldName="L'initiale moyenne de l'abonnï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1); 
 					break;
 				case "D05":
 					fieldName="Subscriber's Address Line 1";
-					frenchFieldName="Ligne 1 de l'adresse de l'abonné";
+					frenchFieldName="Ligne 1 de l'adresse de l'abonnï¿½";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(30);
 					break;
 				case "D06":
 					fieldName="Subscriber's Address Line 2";
-					frenchFieldName="Ligne 2 de l'adresse de l'abonné";
+					frenchFieldName="Ligne 2 de l'adresse de l'abonnï¿½";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(30);
 					break;
 				case "D07":
 					fieldName="Subscriber's City";
-					frenchFieldName="La ville de l'abonné";
+					frenchFieldName="La ville de l'abonnï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(20);
 					break;
 				case "D08":
 					fieldName="Subscriber's Province/State Code";
-					frenchFieldName="Code de la province/état de l'abonné";
+					frenchFieldName="Code de la province/ï¿½tat de l'abonnï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(2);
 					//Includes US states and Canadian provinces.
@@ -551,7 +551,7 @@ namespace OpenDentBusiness.Eclaims {
 						//Traditional Canadian province codes which somehow made it into our application, but we are going to leave them because they are probably harmless.
 						"LB",//Newfoundland and Labrador - This appeared in Canada Post publications (e.g., The Canadian Postal Code Directory) for the mainland section of the province of Newfoundland and Labrador.
 						"NF",//Newfoundland and Labrador - Nfld. and later NF (the two-letter abbreviation used before the province's name changed to Newfoundland and Labrador) and T.-N. (French version, for Terre-Neuve)
-						"PQ",//Quebec	- Que. and P.Q. (French version, for Province du Québec); later, PQ evolved from P.Q. as the first two-letter non-punctuated abbreviation.
+						"PQ",//Quebec	- Que. and P.Q. (French version, for Province du Quï¿½bec); later, PQ evolved from P.Q. as the first two-letter non-punctuated abbreviation.
 						//US state codes.
 						"AK","AL","AR","AZ","CA","CO","CT","DC","DE","FL",
 						"GA","HI","IA","ID","IL","IN","KS","KY","LA","MA",
@@ -561,13 +561,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "D09":
 					fieldName="Subscriber's Postal/ZIP Code";
-					frenchFieldName="Code du Postal/ZIP de l'abonné";
+					frenchFieldName="Code du Postal/ZIP de l'abonnï¿½";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "D10":
 					fieldName="Language of the Insured";
-					frenchFieldName="Langue des assurés";
+					frenchFieldName="Langue des assurï¿½s";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {"E","F"}));
@@ -586,14 +586,14 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "E03":
 					fieldName="Secondary Plan Subscriber ID";
-					frenchFieldName="Identification secondaire d'abonné de plan";
+					frenchFieldName="Identification secondaire d'abonnï¿½ de plan";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(11);
 					break;
 				case "E04":
 					//Spouse/Significant Other Birtday
 					fieldName="Secondary Subscriber's Birthday";
-					frenchFieldName="L'anniversaire de l'abonné secondaire";
+					frenchFieldName="L'anniversaire de l'abonnï¿½ secondaire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
@@ -612,7 +612,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F01":
 					fieldName="Payee Code";
-					frenchFieldName="Code de bénéficiaire";
+					frenchFieldName="Code de bï¿½nï¿½ficiaire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,2));
@@ -625,7 +625,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F03":
 					fieldName="Predetermination Number";
-					frenchFieldName="Nombre de prédétermination";
+					frenchFieldName="Nombre de prï¿½dï¿½termination";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(14);
 					break;
@@ -644,21 +644,21 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F06":
 					fieldName="Number of Procedures Performed";
-					frenchFieldName="Nombre de procédures exécutées";
+					frenchFieldName="Nombre de procï¿½dures exï¿½cutï¿½es";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,7));
 					break;
 				case "F07":
 					fieldName="Procedure Line Number";
-					frenchFieldName="Ligne nombre de procédé";
+					frenchFieldName="Ligne nombre de procï¿½dï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,7));
 					break;
 				case "F08":
 					fieldName="Procedure Code";
-					frenchFieldName="Code de procédé";
+					frenchFieldName="Code de procï¿½dï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
@@ -670,7 +670,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F10":
 					fieldName="International Tooth,Sextant, Quad or Arch";
-					frenchFieldName="Dent, sextant, quadruple ou voûte international";
+					frenchFieldName="Dent, sextant, quadruple ou voï¿½te international";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
@@ -683,19 +683,19 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F12":
 					fieldName="Dentist's Fee Claimed";
-					frenchFieldName="Les honoraires du dentiste réclamés";
+					frenchFieldName="Les honoraires du dentiste rï¿½clamï¿½s";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "F13":
 					fieldName="Lab Procedure Fee # 1";
-					frenchFieldName="Honoraires # 1 de procédé de laboratoire";
+					frenchFieldName="Honoraires # 1 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "F14":
 					fieldName="Unit of Time";
-					frenchFieldName="Unité de temps";
+					frenchFieldName="Unitï¿½ de temps";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(4);
 					break;
@@ -709,7 +709,7 @@ namespace OpenDentBusiness.Eclaims {
 				case "G01":
 					//Transaction Reference Number
 					fieldName="CARRIER CLAIM NO";
-					frenchFieldName="NO DE RÉFÉRENCE DE TRANSACTION";
+					frenchFieldName="NO DE Rï¿½Fï¿½RENCE DE TRANSACTION";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(14);
 					break;
@@ -722,7 +722,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G03":
 					fieldName="Expected Payment Date";
-					frenchFieldName="Date prévue de paiement";
+					frenchFieldName="Date prï¿½vue de paiement";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
@@ -734,7 +734,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G05":
 					fieldName="Response Status";
-					frenchFieldName="Statut de réponse";
+					frenchFieldName="Statut de rï¿½ponse";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {"A","E","R","H","B","C","N","M","X"}));
@@ -749,7 +749,7 @@ namespace OpenDentBusiness.Eclaims {
 				case "G07":
 					//Disposition message
 					fieldName="DISPOSITION";
-					frenchFieldName="SPÉCIFICATIONS";
+					frenchFieldName="SPï¿½CIFICATIONS";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(75);
 					break;
@@ -768,7 +768,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G10":
 					fieldName="Number of Carrier Issued Procedure Codes";
-					frenchFieldName="Le nombre de porteur a publié des codes de procédé";
+					frenchFieldName="Le nombre de porteur a publiï¿½ des codes de procï¿½dï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,6));
@@ -782,57 +782,57 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G12":
 					fieldName="Eligible Amount";
-					frenchFieldName="Quantité éligible";
+					frenchFieldName="Quantitï¿½ ï¿½ligible";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G13":
 					fieldName="Deductible Amount";
-					frenchFieldName="Quantité déductible";
+					frenchFieldName="Quantitï¿½ dï¿½ductible";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "G14":
 					fieldName="Eligible Percentage";
-					frenchFieldName="Pourcentage éligible";
+					frenchFieldName="Pourcentage ï¿½ligible";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					valueRequirements.Add(new RangeValueRequirement(0,100));
 					break;
 				case "G15":
 					fieldName="Benefit Amount for the Procedure";
-					frenchFieldName="Quantité d'avantage pour le procédé";
+					frenchFieldName="Quantitï¿½ d'avantage pour le procï¿½dï¿½";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G16":
 					fieldName="Explanation Note Number 1";
-					frenchFieldName="Note numéro 1 d'explication";
+					frenchFieldName="Note numï¿½ro 1 d'explication";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
 				case "G17":
 					fieldName="Explanation Note Number 2";
-					frenchFieldName="Note numéro 2 d'explication";
+					frenchFieldName="Note numï¿½ro 2 d'explication";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
 				case "G18":
 					fieldName="Reference to Line Number of the Submitted Procedure";
-					frenchFieldName="Référence à la ligne nombre du procédé soumis";
+					frenchFieldName="Rï¿½fï¿½rence ï¿½ la ligne nombre du procï¿½dï¿½ soumis";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(7);
 					valueRequirements.Add(new RegexValueRequirement("^[0-7]+$"));
 					break;
 				case "G19":
 					fieldName="Additional Procedure Code";
-					frenchFieldName="Code additionnel de procédé";
+					frenchFieldName="Code additionnel de procï¿½dï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "G20":
 					fieldName="Eligible Amount for the Additional Procedure";
-					frenchFieldName="Quantité éligible pour le procédé additionnel";
+					frenchFieldName="Quantitï¿½ ï¿½ligible pour le procï¿½dï¿½ additionnel";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -844,26 +844,26 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G22":
 					fieldName="Eligible Percentage";
-					frenchFieldName="Pourcentage éligible";
+					frenchFieldName="Pourcentage ï¿½ligible";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					valueRequirements.Add(new RangeValueRequirement(0,100));
 					break;
 				case "G23":
 					fieldName="Benefit Amount for the Additional Procedure";
-					frenchFieldName="Quantité d'avantage pour le procédé additionnel";
+					frenchFieldName="Quantitï¿½ d'avantage pour le procï¿½dï¿½ additionnel";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G24":
 					fieldName="Explanation Note Number 1 for the Additional Procedure";
-					frenchFieldName="Note d'explication numéro 1 pour le procédé additionnel";
+					frenchFieldName="Note d'explication numï¿½ro 1 pour le procï¿½dï¿½ additionnel";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
 				case "G25":
 					fieldName="Explanation Note Number 2 for the Additional Procedure";
-					frenchFieldName="Note d'explication numéro 2 pour le procédé additionnel";
+					frenchFieldName="Note d'explication numï¿½ro 2 pour le procï¿½dï¿½ additionnel";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
@@ -875,20 +875,20 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G27":
 					fieldName="Language of the Insured";
-					frenchFieldName="Langue des assurés";
+					frenchFieldName="Langue des assurï¿½s";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {"E","F"}));
 					break;
 				case "G28":
 					fieldName="Total Benefit Amount";
-					frenchFieldName="Quantité totale d'avantage";
+					frenchFieldName="Quantitï¿½ totale d'avantage";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(7);
 					break;
 				case "G29":
 					fieldName="Deductible amount unallocated";
-					frenchFieldName="La quantité déductible a désassigné";
+					frenchFieldName="La quantitï¿½ dï¿½ductible a dï¿½sassignï¿½";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -925,7 +925,7 @@ namespace OpenDentBusiness.Eclaims {
 				//Traditional Canadian province codes which somehow made it into our application, but we are going to leave them because they are probably harmless.
 				"LB",//Newfoundland and Labrador - This appeared in Canada Post publications (e.g., The Canadian Postal Code Directory) for the mainland section of the province of Newfoundland and Labrador.
 				"NF",//Newfoundland and Labrador - Nfld. and later NF (the two-letter abbreviation used before the province's name changed to Newfoundland and Labrador) and T.-N. (French version, for Terre-Neuve)
-				"PQ",//Quebec	- Que. and P.Q. (French version, for Province du Québec); later, PQ evolved from P.Q. as the first two-letter non-punctuated abbreviation.
+				"PQ",//Quebec	- Que. and P.Q. (French version, for Province du Quï¿½bec); later, PQ evolved from P.Q. as the first two-letter non-punctuated abbreviation.
 				//US state codes.
 				"AK","AL","AR","AZ","CA","CO","CT","DC","DE","FL",
 				"GA","HI","IA","ID","IL","IN","KS","KY","LA","MA",
@@ -939,7 +939,7 @@ namespace OpenDentBusiness.Eclaims {
 			{
 				case "A01":
 					fieldName="Transaction Prefix";
-					frenchFieldName="Préfixe de transaction";
+					frenchFieldName="Prï¿½fixe de transaction";
 					format="A/N"; 
 					lengthRequirement=new ConstLengthRequirement(12);
 					break;
@@ -967,13 +967,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "A05":
 					fieldName="Carrier Identification Number";
-					frenchFieldName="Numéro d'identification de porteur";
+					frenchFieldName="Numï¿½ro d'identification de porteur";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "A06":
 					fieldName="Software System ID";
-					frenchFieldName="Système logiciel identification";
+					frenchFieldName="Systï¿½me logiciel identification";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					break;
@@ -992,7 +992,7 @@ namespace OpenDentBusiness.Eclaims {
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					fieldName="Materials Forwarded";
-					frenchFieldName="Les matériaux ont expédié";
+					frenchFieldName="Les matï¿½riaux ont expï¿½diï¿½";
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {" ","E","C","M","X","I","A","B","D","F","G",
 						"H","J","K","L","N","O","P","Q","R","T","U"}));
 					break;
@@ -1004,14 +1004,14 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "A10"://Not in version 2.
 					fieldName="Encryption Method";
-					frenchFieldName="Méthode de chiffrage";
+					frenchFieldName="Mï¿½thode de chiffrage";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,3));
 					break;
 				case "A11"://Not in version 2.
 					fieldName="Mailbox Indicator";
-					frenchFieldName="Indicateur de boîte aux lettres";
+					frenchFieldName="Indicateur de boï¿½te aux lettres";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {"Y","O","N"}));
@@ -1044,26 +1044,26 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "B05"://Not in version 2.
 					fieldName="Referring Provider Number";
-					frenchFieldName="Référence du nombre de fournisseur";
+					frenchFieldName="Rï¿½fï¿½rence du nombre de fournisseur";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(10);
 					break;
 				case "B06"://Not in version 2.
 					fieldName="Referral Reason Code";
-					frenchFieldName="Code complémentaire de référence";
+					frenchFieldName="Code complï¿½mentaire de rï¿½fï¿½rence";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					valueRequirements.Add(new RangeValueRequirement(0,13));
 					break;
 				case "B07"://Not in version 2.
 					fieldName="Receiving Provider Number";
-					frenchFieldName="Réception du nombre de fournisseur";
+					frenchFieldName="Rï¿½ception du nombre de fournisseur";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(9);
 					break;
 				case "B08"://Not in version 2.
 					fieldName="Receiving Office Number";
-					frenchFieldName="Réception du nombre d'Office";
+					frenchFieldName="Rï¿½ception du nombre d'Office";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(4);
 					break;
@@ -1109,7 +1109,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "C07":
 					fieldName="Patient's First Name";
-					frenchFieldName="Le prénom du patient";
+					frenchFieldName="Le prï¿½nom du patient";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(15);
 					break;
@@ -1121,14 +1121,14 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "C09":
 					fieldName="Eligibility Exception Code";
-					frenchFieldName="Code d'exception d'acceptabilité";
+					frenchFieldName="Code d'exception d'acceptabilitï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,4));
 					break;
 				case "C10":
 					fieldName="Name of School";
-					frenchFieldName="Nom d'école";
+					frenchFieldName="Nom d'ï¿½cole";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(25);
 					break;
@@ -1165,13 +1165,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "C16"://Not in version 2.
 					fieldName="Eligibility Date";
-					frenchFieldName="Date d'acceptabilité";
+					frenchFieldName="Date d'acceptabilitï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
 				case "C17"://Not in version 2.
 					fieldName="Primary Dependant Code";
-					frenchFieldName="Code dépendant primaire";
+					frenchFieldName="Code dï¿½pendant primaire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
@@ -1192,62 +1192,62 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "D01":
 					fieldName="Subscriber's Birthday";
-					frenchFieldName="L'anniversaire de l'abonné";
+					frenchFieldName="L'anniversaire de l'abonnï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
 				case "D02":
 					fieldName="Subscriber's Last Name";
-					frenchFieldName="Le dernier nom de l'abonné";
+					frenchFieldName="Le dernier nom de l'abonnï¿½";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(25);
 					break;
 				case "D03":
 					fieldName="Subscriber's First Name";
-					frenchFieldName="Le prénom de l'abonné";
+					frenchFieldName="Le prï¿½nom de l'abonnï¿½";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(15);
 					break;
 				case "D04":
 					fieldName="Subscriber's Middle Initial";
-					frenchFieldName="L'initiale moyenne de l'abonné";
+					frenchFieldName="L'initiale moyenne de l'abonnï¿½";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(1); 
 					break;
 				case "D05":
 					fieldName="Subscriber's Address Line 1";
-					frenchFieldName="Ligne 1 de l'adresse de l'abonné";
+					frenchFieldName="Ligne 1 de l'adresse de l'abonnï¿½";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(30);
 					break;
 				case "D06":
 					fieldName="Subscriber's Address Line 2";
-					frenchFieldName="Ligne 2 de l'adresse de l'abonné";
+					frenchFieldName="Ligne 2 de l'adresse de l'abonnï¿½";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(30);
 					break;
 				case "D07":
 					fieldName="Subscriber's City";
-					frenchFieldName="La ville de l'abonné";
+					frenchFieldName="La ville de l'abonnï¿½";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(20);
 					break;
 				case "D08":
 					fieldName="Subscriber's Province/State Code";
-					frenchFieldName="Code de la province/état de l'abonné";
+					frenchFieldName="Code de la province/ï¿½tat de l'abonnï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(2);
 					valueRequirements.Add(new DiscreteValueRequirement(stateCodes));
 					break;
 				case "D09":
 					fieldName="Subscriber's Postal/ZIP Code";
-					frenchFieldName="Code du Postal/ZIP de l'abonné";
+					frenchFieldName="Code du Postal/ZIP de l'abonnï¿½";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(9);
 					break;
 				case "D10":
 					fieldName="Language of the Insured";
-					frenchFieldName="Langue des assurés";
+					frenchFieldName="Langue des assurï¿½s";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(languageCodes));
@@ -1273,13 +1273,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "E03":
 					fieldName="Secondary Plan Subscriber ID";
-					frenchFieldName="Identification secondaire d'abonné de plan";
+					frenchFieldName="Identification secondaire d'abonnï¿½ de plan";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(12);
 					break;
 				case "E04":
 					fieldName="Secondary Subscriber's Birthday";
-					frenchFieldName="L'anniversaire de l'abonné secondaire";
+					frenchFieldName="L'anniversaire de l'abonnï¿½ secondaire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
@@ -1304,50 +1304,50 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "E08"://Not in version 2.
 					fieldName="Secondary Subscriber's Last Name";
-					frenchFieldName="Le dernier nom de l'abonné secondaire";
+					frenchFieldName="Le dernier nom de l'abonnï¿½ secondaire";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(25);
 					break;
 				case "E09"://Not in version 2.
 					fieldName="Secondary Subscriber's First Name";
-					frenchFieldName="Le prénom de l'abonné secondaire";
+					frenchFieldName="Le prï¿½nom de l'abonnï¿½ secondaire";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(15);
 					break;
 				case "E10"://Not in version 2.
 					fieldName="Secondary Subscriber's Middle Initial";
-					frenchFieldName="L'initiale moyenne de l'abonné secondaire";
+					frenchFieldName="L'initiale moyenne de l'abonnï¿½ secondaire";
 					format="AE";
 					lengthRequirement=new ConstLengthRequirement(1);
 					break;
 				case "E11"://Not in version 2.
 					fieldName="Secondary Subscriber's Address Line 1";
-					frenchFieldName="Ligne 1 de l'adresse de l'abonné secondaire";
+					frenchFieldName="Ligne 1 de l'adresse de l'abonnï¿½ secondaire";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(30);
 					break;
 				case "E12"://Not in version 2.
 					fieldName="Secondary Subscriber's Address Line 2";
-					frenchFieldName="Ligne 2 de l'adresse de l'abonné secondaire";
+					frenchFieldName="Ligne 2 de l'adresse de l'abonnï¿½ secondaire";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(30);
 					break;
 				case "E13"://Not in version 2.
 					fieldName="Secondary Subscriber's City";
-					frenchFieldName="La ville de l'abonné secondaire";
+					frenchFieldName="La ville de l'abonnï¿½ secondaire";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(20);
 					break;
 				case "E14"://Not in version 2.
 					fieldName="Secondary Subscriber's Province/State Code";
-					frenchFieldName="Code de la province/état de l'abonné secondaire";
+					frenchFieldName="Code de la province/ï¿½tat de l'abonnï¿½ secondaire";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(2);
 					valueRequirements.Add(new DiscreteValueRequirement(stateCodes));
 					break;
 				case "E15"://Not in version 2.
 					fieldName="Secondary Subscriber's Postal/ZIP Code";
-					frenchFieldName="Code du Postal/ZIP de l'abonné secondaire";
+					frenchFieldName="Code du Postal/ZIP de l'abonnï¿½ secondaire";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(9);
 					break;
@@ -1360,7 +1360,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "E17"://Not in version 2.
 					fieldName="Secondary Dependant Code";
-					frenchFieldName="Code dépendant secondaire";
+					frenchFieldName="Code dï¿½pendant secondaire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2); 
 					break;
@@ -1388,7 +1388,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F01":
 					fieldName="Payee Code";
-					frenchFieldName="Code de bénéficiaire";
+					frenchFieldName="Code de bï¿½nï¿½ficiaire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,4));
@@ -1401,7 +1401,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F03":
 					fieldName="Predetermination Number";
-					frenchFieldName="Nombre de prédétermination";
+					frenchFieldName="Nombre de prï¿½dï¿½termination";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(14);
 					break;
@@ -1420,21 +1420,21 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F06":
 					fieldName="Number of Procedures Performed";
-					frenchFieldName="Nombre de procédures exécutées";
+					frenchFieldName="Nombre de procï¿½dures exï¿½cutï¿½es";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,7));
 					break;
 				case "F07":
 					fieldName="Procedure Line Number";
-					frenchFieldName="Ligne nombre de procédé";
+					frenchFieldName="Ligne nombre de procï¿½dï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,7));
 					break;
 				case "F08":
 					fieldName="Procedure Code";
-					frenchFieldName="Code de procédé";
+					frenchFieldName="Code de procï¿½dï¿½";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
@@ -1446,7 +1446,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F10":
 					fieldName="International Tooth,Sextant, Quad or Arch";
-					frenchFieldName="Dent, sextant, quadruple ou voûte international";
+					frenchFieldName="Dent, sextant, quadruple ou voï¿½te international";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
@@ -1459,13 +1459,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F12":
 					fieldName="Dentist's Fee Claimed";
-					frenchFieldName="Les honoraires du dentiste réclamés";
+					frenchFieldName="Les honoraires du dentiste rï¿½clamï¿½s";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "F13":
 					fieldName="Lab Procedure Fee # 1";
-					frenchFieldName="Honoraires # 1 de procédé de laboratoire";
+					frenchFieldName="Honoraires # 1 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -1480,7 +1480,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F16"://Not in version 2.
 					fieldName="Procedure Type Codes";
-					frenchFieldName="Type codes de procédé";
+					frenchFieldName="Type codes de procï¿½dï¿½";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(5);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {"A    ","B    ","C    ","E    ","L    ","S    ","X    "}));
@@ -1493,7 +1493,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F18"://Not in version 2.
 					fieldName="Is this an Initial Placement Lower";
-					frenchFieldName="Est c'un premier placement inférieur";
+					frenchFieldName="Est c'un premier placement infï¿½rieur";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] { "Y","O","N","X" }));
@@ -1506,14 +1506,14 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F20"://Not in version 2.
 					fieldName="Maxillary Prosthesis Material";
-					frenchFieldName="Matériel maxillaire de prothèse";
+					frenchFieldName="Matï¿½riel maxillaire de prothï¿½se";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,6));//This field is optional.  Is set to 0 when not used.
 					break;
 				case "F21"://Not in version 2.
 					fieldName="Mandibular Prosthesis Material";
-					frenchFieldName="Matériel mandibulaire de prothèse";
+					frenchFieldName="Matï¿½riel mandibulaire de prothï¿½se";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,6));//This field is optional.  Is set to 0 when not used.
@@ -1571,55 +1571,55 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F30"://Not in version 2.
 					fieldName="Treatment Duration";
-					frenchFieldName="Durée de traitement";
+					frenchFieldName="Durï¿½e de traitement";
 					format="N";
 					lengthRequirement=new ConstLengthWhenOtherFieldHasValue("F25","1",2);
 					break;
 				case "F31"://Not in version 2.
 					fieldName="Number of Anticipated Payments";
-					frenchFieldName="Nombre de paiements prévus";
+					frenchFieldName="Nombre de paiements prï¿½vus";
 					format="N";
 					lengthRequirement=new ConstLengthWhenOtherFieldHasValue("F25","1",2);
 					break;
 				case "F32"://Not in version 2.
 					fieldName="Anticipated Payment Amount";
-					frenchFieldName="Quantité prévue de paiement";
+					frenchFieldName="Quantitï¿½ prï¿½vue de paiement";
 					format="D";
 					lengthRequirement=new ConstLengthWhenOtherFieldHasValue("F25","1",6);
 					break;
 				case "F33"://Not in version 2.
 					fieldName="Reconciliation Date";
-					frenchFieldName="Date de réconciliation";
+					frenchFieldName="Date de rï¿½conciliation";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
 				case "F34"://Not in version 2.
 					fieldName="Lab Procedure Code # 1";
-					frenchFieldName="Code # 1 de procédé de laboratoire";
+					frenchFieldName="Code # 1 de procï¿½dï¿½ de laboratoire";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "F35"://Not in version 2.
 					fieldName="Lab Procedure Code # 2";
-					frenchFieldName="Code # 2 de procédé de laboratoire";
+					frenchFieldName="Code # 2 de procï¿½dï¿½ de laboratoire";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "F36"://Not in version 2.
 					fieldName="Lab Procedure Fee # 2";
-					frenchFieldName="Honoraires # 2 de procédé de laboratoire";
+					frenchFieldName="Honoraires # 2 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "F37"://Not in version 2.
 					fieldName="Estimated Treatment Start Date";
-					frenchFieldName="Date estimée de début de traitement";
+					frenchFieldName="Date estimï¿½e de dï¿½but de traitement";
 					format="N";
 					lengthRequirement=new ConstLengthWhenOtherFieldHasValue("F25","1",8);
 					break;
 				case "F38"://Not in version 2.
 					fieldName="Current Reconciliation Page Number";
-					frenchFieldName="Numéro de page courant de réconciliation";
+					frenchFieldName="Numï¿½ro de page courant de rï¿½conciliation";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,9));
@@ -1632,7 +1632,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F40"://Not in version 2.
 					fieldName="Institution Code";
-					frenchFieldName="Code d'établissement";
+					frenchFieldName="Code d'ï¿½tablissement";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -1644,7 +1644,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "F42"://Not in version 2.
 					fieldName="Original Transaction Reference Number";
-					frenchFieldName="Numéro de référence original de transaction";
+					frenchFieldName="Numï¿½ro de rï¿½fï¿½rence original de transaction";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(14);
 					break;
@@ -1696,19 +1696,19 @@ namespace OpenDentBusiness.Eclaims {
 				case "G01":
 					//Transaction Reference Number
 					fieldName="CARRIER CLAIM NO";
-					frenchFieldName="NO DE RÉFÉRENCE DE TRANSACTION";
+					frenchFieldName="NO DE Rï¿½Fï¿½RENCE DE TRANSACTION";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(14);
 					break;
 				case "G02":
 					fieldName="Eligible Amount for Lab Procedure Code #2";
-					frenchFieldName="Quantité éligible pour le code #2 de procédé de laboratoire";
+					frenchFieldName="Quantitï¿½ ï¿½ligible pour le code #2 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G03":
 					fieldName="Expected Payment Date";
-					frenchFieldName="Date prévue de paiement";
+					frenchFieldName="Date prï¿½vue de paiement";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(8);
 					break;
@@ -1720,7 +1720,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G05":
 					fieldName="Response Status";
-					frenchFieldName="Statut de réponse";
+					frenchFieldName="Statut de rï¿½ponse";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string[] {"A","E","R","H","B","C","N","M","X"}));
@@ -1735,7 +1735,7 @@ namespace OpenDentBusiness.Eclaims {
 				case "G07":
 					//Disposition message
 					fieldName="DISPOSITION";
-					frenchFieldName="SPÉCIFICATIONS";
+					frenchFieldName="SPï¿½CIFICATIONS";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(75);
 					break;
@@ -1749,7 +1749,7 @@ namespace OpenDentBusiness.Eclaims {
 					//break;
 				case "G10":
 					fieldName="Number of Carrier Issued Procedure Codes";
-					frenchFieldName="Le nombre de porteur a publié des codes de procédé";
+					frenchFieldName="Le nombre de porteur a publiï¿½ des codes de procï¿½dï¿½";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(0,6));
@@ -1763,57 +1763,57 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G12":
 					fieldName="Eligible Amount";
-					frenchFieldName="Quantité éligible";
+					frenchFieldName="Quantitï¿½ ï¿½ligible";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G13":
 					fieldName="Deductible Amount";
-					frenchFieldName="Quantité déductible";
+					frenchFieldName="Quantitï¿½ dï¿½ductible";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "G14":
 					fieldName="Eligible Percentage";
-					frenchFieldName="Pourcentage éligible";
+					frenchFieldName="Pourcentage ï¿½ligible";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					valueRequirements.Add(new RangeValueRequirement(0,100));
 					break;
 				case "G15":
 					fieldName="Benefit Amount for the Procedure";
-					frenchFieldName="Quantité d'avantage pour le procédé";
+					frenchFieldName="Quantitï¿½ d'avantage pour le procï¿½dï¿½";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G16":
 					fieldName="Explanation Note Number 1";
-					frenchFieldName="Note numéro 1 d'explication";
+					frenchFieldName="Note numï¿½ro 1 d'explication";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
 				case "G17":
 					fieldName="Explanation Note Number 2";
-					frenchFieldName="Note numéro 2 d'explication";
+					frenchFieldName="Note numï¿½ro 2 d'explication";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
 				case "G18":
 					fieldName="Reference to Line Number of the Submitted Procedure";
-					frenchFieldName="Référence à la ligne nombre du procédé soumis";
+					frenchFieldName="Rï¿½fï¿½rence ï¿½ la ligne nombre du procï¿½dï¿½ soumis";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(7);
 					valueRequirements.Add(new RegexValueRequirement("^[0-7]+$"));
 					break;
 				case "G19":
 					fieldName="Additional Procedure Code";
-					frenchFieldName="Code additionnel de procédé";
+					frenchFieldName="Code additionnel de procï¿½dï¿½";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "G20":
 					fieldName="Eligible Amount for the Additional Procedure";
-					frenchFieldName="Quantité éligible pour le procédé additionnel";
+					frenchFieldName="Quantitï¿½ ï¿½ligible pour le procï¿½dï¿½ additionnel";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -1825,26 +1825,26 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G22":
 					fieldName="Eligible Percentage";
-					frenchFieldName="Pourcentage éligible";
+					frenchFieldName="Pourcentage ï¿½ligible";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					valueRequirements.Add(new RangeValueRequirement(0,100));
 					break;
 				case "G23":
 					fieldName="Benefit Amount for the Additional Procedure";
-					frenchFieldName="Quantité d'avantage pour le procédé additionnel";
+					frenchFieldName="Quantitï¿½ d'avantage pour le procï¿½dï¿½ additionnel";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G24":
 					fieldName="Explanation Note Number 1 for the Additional Procedure";
-					frenchFieldName="Note d'explication numéro 1 pour le procédé additionnel";
+					frenchFieldName="Note d'explication numï¿½ro 1 pour le procï¿½dï¿½ additionnel";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
 				case "G25":
 					fieldName="Explanation Note Number 2 for the Additional Procedure";
-					frenchFieldName="Note d'explication numéro 2 pour le procédé additionnel";
+					frenchFieldName="Note d'explication numï¿½ro 2 pour le procï¿½dï¿½ additionnel";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(2);
 					break;
@@ -1856,20 +1856,20 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G27":
 					fieldName="Language of the Insured";
-					frenchFieldName="Langue des assurés";
+					frenchFieldName="Langue des assurï¿½s";
 					format="A";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new DiscreteValueRequirement(new string [3] {"A","E","F"}));
 					break;
 				case "G28":
 					fieldName="Total Benefit Amount";
-					frenchFieldName="Quantité totale d'avantage";
+					frenchFieldName="Quantitï¿½ totale d'avantage";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(7);
 					break;
 				case "G29":
 					fieldName="Deductible amount unallocated";
-					frenchFieldName="La quantité déductible a désassigné";
+					frenchFieldName="La quantitï¿½ dï¿½ductible a dï¿½sassignï¿½";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -1900,7 +1900,7 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G34"://Not in version 2.
 					fieldName="PAYMENT REFERENCE";
-					frenchFieldName="RÉFÉRENCE DE PAIEMENT";
+					frenchFieldName="Rï¿½Fï¿½RENCE DE PAIEMENT";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(10);
 					break;
@@ -1912,13 +1912,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G36"://Not in version 2.
 					fieldName="PAYMENT AMOUNT";
-					frenchFieldName="QUANTITÉ DE PAIEMENT";
+					frenchFieldName="QUANTITï¿½ DE PAIEMENT";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(7);
 					break;
 				case "G37"://Not in version 2.
 					fieldName="Payment Detail Count";
-					frenchFieldName="Compte de détail de paiement";
+					frenchFieldName="Compte de dï¿½tail de paiement";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					valueRequirements.Add(new RangeValueRequirement(0,250));
@@ -1957,13 +1957,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G43"://Not in version 2.
 					fieldName="Eligible Amount for Lab Procedure Code # 1";
-					frenchFieldName="Quantité éligible pour le code # 1 de procédé de laboratoire";
+					frenchFieldName="Quantitï¿½ ï¿½ligible pour le code # 1 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G44"://Not in version 2.
 					fieldName="Eligible Lab Amount for the Additional Procedure";
-					frenchFieldName="Quantité éligible de laboratoire pour le procédé additionnel";
+					frenchFieldName="Quantitï¿½ ï¿½ligible de laboratoire pour le procï¿½dï¿½ additionnel";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
@@ -1975,13 +1975,13 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G46"://Not in version 2.
 					fieldName="Current Predetermination Page Number";
-					frenchFieldName="Numéro de page courant de prédétermination";
+					frenchFieldName="Numï¿½ro de page courant de prï¿½dï¿½termination";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					break;
 				case "G47"://Not in version 2.
 					fieldName="Last Predetermination Page Number";
-					frenchFieldName="Numéro de page courant de prédétermination";
+					frenchFieldName="Numï¿½ro de page courant de prï¿½dï¿½termination";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					break;
@@ -2001,7 +2001,7 @@ namespace OpenDentBusiness.Eclaims {
 				case "G50"://Not in version 2.
 					//E-mail from
 					fieldName="FROM";
-					frenchFieldName="EXPÉDITEUR";
+					frenchFieldName="EXPï¿½DITEUR";
 					format="AE/N";
 					lengthRequirement=new ConstLengthRequirement(60);
 					break;
@@ -2027,7 +2027,7 @@ namespace OpenDentBusiness.Eclaims {
 				case "G54"://Not in version 2.
 					//Email reference number
 					fieldName="REFERENCE";
-					frenchFieldName="RÉFÉRENCE";
+					frenchFieldName="Rï¿½Fï¿½RENCE";
 					format="A/N";
 					lengthRequirement=new ConstLengthRequirement(10);
 					break;
@@ -2039,43 +2039,43 @@ namespace OpenDentBusiness.Eclaims {
 					break;
 				case "G56"://Not in version 2.
 					fieldName="Deductible Amount for Lab Procedure Code # 1";
-					frenchFieldName="Quantité déductible pour le code # 1 de procédé de laboratoire";
+					frenchFieldName="Quantitï¿½ dï¿½ductible pour le code # 1 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "G57"://Not in version 2.
 					fieldName="Eligible Percentage for Lab Procedure # 1";
-					frenchFieldName="Pourcentage éligible pour le procédé # 1 de laboratoire";
+					frenchFieldName="Pourcentage ï¿½ligible pour le procï¿½dï¿½ # 1 de laboratoire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					break;
 				case "G58"://Not in version 2.
 					fieldName="Benefit Amount for Lab Procedure Code #1";
-					frenchFieldName="Quantité d'avantage pour le code #1 de procédé de laboratoire";
+					frenchFieldName="Quantitï¿½ d'avantage pour le code #1 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G59"://Not in version 2.
 					fieldName="Deductible Amount for Lab Procedure Code # 2";
-					frenchFieldName="Quantité déductible pour le code # 2 de procédé de laboratoire";
+					frenchFieldName="Quantitï¿½ dï¿½ductible pour le code # 2 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(5);
 					break;
 				case "G60"://Not in version 2.
 					fieldName="Eligible Percentage for Lab Procedure Code # 2";
-					frenchFieldName="Pourcentage éligible pour le code # 2 de procédé de laboratoire";
+					frenchFieldName="Pourcentage ï¿½ligible pour le code # 2 de procï¿½dï¿½ de laboratoire";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(3);
 					break;
 				case "G61"://Not in version 2.
 					fieldName="Benefit Amount for Lab Procedure Code # 2";
-					frenchFieldName="Bénéficier la quantité pour le code # 2 de procédé de laboratoire";
+					frenchFieldName="Bï¿½nï¿½ficier la quantitï¿½ pour le code # 2 de procï¿½dï¿½ de laboratoire";
 					format="D";
 					lengthRequirement=new ConstLengthRequirement(6);
 					break;
 				case "G62"://Not in version 2.
 					fieldName="Last Reconciliation Page Number";
-					frenchFieldName="Dernier numéro de page de réconciliation";
+					frenchFieldName="Dernier numï¿½ro de page de rï¿½conciliation";
 					format="N";
 					lengthRequirement=new ConstLengthRequirement(1);
 					valueRequirements.Add(new RangeValueRequirement(1,9));

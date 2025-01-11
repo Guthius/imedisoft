@@ -657,7 +657,7 @@ namespace OpenDental.Graph.Concrete
             {
                 if (/* ODBuild.IsDebug() */ false)
                 {
-                    MessageBox.Show(e.Message);
+                    ODMessageBox.Show(e.Message);
                 }
             }
         }

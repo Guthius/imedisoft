@@ -30,6 +30,7 @@ using OpenDental.Bridges;
 using OpenDental.Thinfinity;
 using ImagingDeviceManager;
 using CodeBase.Controls;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 #endregion using
@@ -262,7 +263,7 @@ namespace OpenDental {
 			}
 			FillTree(true);
 			if(errorMessage!="") {
-				MessageBox.Show(Lan.g(this,"The following items are directories and were not copied into the images folder for this patient.")+errorMessage);
+				ODMessageBox.Show(Lan.g(this,"The following items are directories and were not copied into the images folder for this patient.")+errorMessage);
 			}
 		}
 
@@ -321,7 +322,7 @@ namespace OpenDental {
 							Process.Start(fullFilePath);
 						} 
 						catch(Exception ex) {
-							MessageBox.Show(ex.Message);
+							ODMessageBox.Show(ex.Message);
 						}
 					}
 				}
@@ -591,7 +592,7 @@ namespace OpenDental {
 				doc=ImageStore.ImportForm(formName,GetCurrentCategory(),_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FillTree(false);
@@ -1111,15 +1112,15 @@ namespace OpenDental {
 			DataSet dataSet=Documents.RefreshForPatient(_patient.PatNum);
 			DataRowCollection rows=dataSet.Tables["DocumentList"].Rows;
 			for(int i=0;i<rows.Count;i++) {
-				TreeNode treeNode=new TreeNode(PIn.Date(rows[i]["DateCreated"].ToString()).ToString("d")+": "+rows[i]["description"].ToString());
-				int idxParentFolder=PIn.Int(rows[i]["idxCategory"].ToString());
+				TreeNode treeNode=new TreeNode(SIn.Date(rows[i]["DateCreated"].ToString()).ToString("d")+": "+rows[i]["description"].ToString());
+				int idxParentFolder=SIn.Int(rows[i]["idxCategory"].ToString());
 				treeMain.Nodes[idxParentFolder].Nodes.Add(treeNode);
 				if(rows[i]["DocNum"].ToString()=="0") {//must be a mount
-					treeNode.Tag=MakeIdMount(PIn.Long(rows[i]["MountNum"].ToString()));
+					treeNode.Tag=MakeIdMount(SIn.Long(rows[i]["MountNum"].ToString()));
 					treeNode.ImageIndex=6;
 				}
 				else {//doc
-					treeNode.Tag=MakeIdDoc(PIn.Long(rows[i]["DocNum"].ToString()));
+					treeNode.Tag=MakeIdDoc(SIn.Long(rows[i]["DocNum"].ToString()));
 					treeNode.ImageIndex=2+Convert.ToInt32(rows[i]["ImgType"].ToString());
 				}
 				treeNode.SelectedImageIndex=treeNode.ImageIndex;
@@ -1586,10 +1587,10 @@ namespace OpenDental {
 					if(ImageHelper.HasImageExtension(_documentShowing.FileName)) {
 						string srcFileName = ODFileUtils.CombinePaths(_patFolder,_documentShowing.FileName);
 						if(File.Exists(srcFileName)) {
-							MessageBox.Show(Lan.g(this,"File found but cannot be opened")+": " + _documentShowing.FileName);
+							ODMessageBox.Show(Lan.g(this,"File found but cannot be opened")+": " + _documentShowing.FileName);
 						}
 						else {
-							MessageBox.Show(Lan.g(this,"File not found")+": " + _documentShowing.FileName);
+							ODMessageBox.Show(Lan.g(this,"File not found")+": " + _documentShowing.FileName);
 						}
 					}
 					else if(Path.GetExtension(_documentShowing.FileName).ToLower()==".pdf") {//Adobe acrobat file.
@@ -1835,7 +1836,7 @@ namespace OpenDental {
 					ImageStore.Export(fileName,doc,_patient);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message + ": " + fileName);
+					ODMessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message + ": " + fileName);
 					return;
 				}
 			}
@@ -1855,7 +1856,7 @@ namespace OpenDental {
 					ImageStore.ExportEobAttach(fileName,eob);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message + ": " + fileName);
+					ODMessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message + ": " + fileName);
 					return;
 				}
 			}
@@ -1875,11 +1876,11 @@ namespace OpenDental {
 					ImageStore.ExportAmdAttach(fileName,amd);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message + ": " + fileName);
+					ODMessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message + ": " + fileName);
 					return;
 				}
 			}
-			MessageBox.Show(Lan.g(this,"Successfully exported to ")+fileName);
+			ODMessageBox.Show(Lan.g(this,"Successfully exported to ")+fileName);
 			if(nodeIdTag.NodeType==EnumNodeType.ApteryxImage && apteryxDoc!=null) {
 				try {
 					ImageStore.DeleteDocuments(new List<Document> { apteryxDoc },_patFolder);
@@ -1962,7 +1963,7 @@ namespace OpenDental {
 					}
 					catch(Exception ex) {
 						actionCloseUploadProgress?.Invoke();
-						MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+fileNames[i]);
+						ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+fileNames[i]);
 						copied = false;
 					}
 				}
@@ -1988,7 +1989,7 @@ namespace OpenDental {
 					}
 					catch(Exception ex) {
 						actionCloseUploadProgress?.Invoke();
-						MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+fileNames[i]);
+						ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+fileNames[i]);
 						copied = false;
 					}
 				}
@@ -2012,7 +2013,7 @@ namespace OpenDental {
 					}
 					catch(Exception ex) {
 						actionCloseUploadProgress?.Invoke();
-						MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+fileNames[i]);
+						ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+fileNames[i]);
 						copied = false;
 					}
 					if(copied) {
@@ -2132,7 +2133,7 @@ namespace OpenDental {
 					eob=ImageStore.ImportEobAttach(bitmapPaste,_claimPaymentNum);
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"Error saving eob."));
+					ODMessageBox.Show(Lan.g(this,"Error saving eob."));
 					Cursor=Cursors.Default;
 					return;
 				}
@@ -2145,7 +2146,7 @@ namespace OpenDental {
 					amd=ImageStore.ImportAmdAttach(bitmapPaste,_ehrAmendment);
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"Error saving amendment."));
+					ODMessageBox.Show(Lan.g(this,"Error saving amendment."));
 					Cursor=Cursors.Default;
 					return;
 				}
@@ -2167,7 +2168,7 @@ namespace OpenDental {
 					Documents.Update(doc);
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"Error saving document."));
+					ODMessageBox.Show(Lan.g(this,"Error saving document."));
 					Cursor=Cursors.Default;
 					return;
 				}
@@ -2179,7 +2180,7 @@ namespace OpenDental {
 					doc=ImageStore.Import(bitmapPaste,GetCurrentCategory(),ImageType.Photo,_patient);//Makes log entry
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"Error saving document."));
+					ODMessageBox.Show(Lan.g(this,"Error saving document."));
 					Cursor=Cursors.Default;
 					return;
 				}
@@ -2273,7 +2274,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"An error occurred while printing")+"\r\n"+ex.ToString());
+				ODMessageBox.Show(Lan.g(this,"An error occurred while printing")+"\r\n"+ex.ToString());
 			}
 		}
 
@@ -2371,7 +2372,7 @@ namespace OpenDental {
 				else {
 					message=errorCode+" "+((EZTwainErrorCode)errorCode).ToString();
 				}
-				MessageBox.Show(Lan.g(this,"Unable to scan. Please make sure you can scan using other software. Error: "+message));
+				ODMessageBox.Show(Lan.g(this,"Unable to scan. Please make sure you can scan using other software. Error: "+message));
 				return;
 			}
 			if(hdib==(IntPtr)0) {//This is down here because there might also be an informative error code that we would like to use above.
@@ -2381,7 +2382,7 @@ namespace OpenDental {
 			double ydpi=EZTwain.DIB_XResolution(hdib);
 			IntPtr hbitmap=EZTwain.DIB_ToDibSection(hdib);
 			try {
-				bitmapScanned=Bitmap.FromHbitmap(hbitmap);//Sometimes throws 'A generic error occurred in GDI+.'
+				bitmapScanned=Image.FromHbitmap(hbitmap);//Sometimes throws 'A generic error occurred in GDI+.'
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(Lan.g(this,"Error importing eob")+": "+ex.Message,ex);
@@ -2413,7 +2414,7 @@ namespace OpenDental {
 				catch(Exception ex) {
 					saved=false;
 					Cursor=Cursors.Default;
-					MessageBox.Show(Lan.g(this,"Error saving eob")+": "+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Error saving eob")+": "+ex.Message);
 				}
 				if(bitmapScanned!=null) {
 					bitmapScanned.Dispose();
@@ -2439,7 +2440,7 @@ namespace OpenDental {
 				catch(Exception ex) {
 					saved=false;
 					Cursor=Cursors.Default;
-					MessageBox.Show(Lan.g(this,"Error saving amendment")+": "+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Error saving amendment")+": "+ex.Message);
 				}
 				if(bitmapScanned!=null) {
 					bitmapScanned.Dispose();
@@ -2466,7 +2467,7 @@ namespace OpenDental {
 				catch(Exception ex) {
 					saved=false;
 					Cursor=Cursors.Default;
-					MessageBox.Show(Lan.g(this,"Unable to save document")+": "+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Unable to save document")+": "+ex.Message);
 				}
 				if(bitmapScanned!=null) {
 					bitmapScanned.Dispose();
@@ -2560,7 +2561,7 @@ namespace OpenDental {
 				else {
 					message=errorCode+" "+((EZTwainErrorCode)errorCode).ToString();
 				}
-				MessageBox.Show(Lan.g(this,"Unable to scan. Please make sure you can scan using other software. Error: "+message));
+				ODMessageBox.Show(Lan.g(this,"Unable to scan. Please make sure you can scan using other software. Error: "+message));
 				return;
 			}
 			NodeIdTag nodeIdTag=new NodeIdTag();
@@ -2571,7 +2572,7 @@ namespace OpenDental {
 					eob=ImageStore.ImportEobAttach(tempFile,_claimPaymentNum);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
+					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
 					copied = false;
 				}
 				if(copied) {
@@ -2590,7 +2591,7 @@ namespace OpenDental {
 					ImageStore.CleanAmdAttach(fileNameOld);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
+					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
 					copied = false;
 				}
 				if(copied) {
@@ -2607,7 +2608,7 @@ namespace OpenDental {
 					doc=ImageStore.Import(tempFile,GetCurrentCategory(),_patient);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
+					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
 					copied = false;
 				}
 				if(copied) {
@@ -3004,7 +3005,7 @@ namespace OpenDental {
 					File.WriteAllBytes(pdfFilePath,Convert.FromBase64String(_documentShowing.RawBase64));
 				}
 				if(!File.Exists(pdfFilePath)) {
-					MessageBox.Show(Lan.g(this,"File not found")+": " + atoZFileName);
+					ODMessageBox.Show(Lan.g(this,"File not found")+": " + atoZFileName);
 				}
 				else {
 					_odWebView2FilePath=pdfFilePath;
@@ -3556,14 +3557,14 @@ namespace OpenDental {
 				}
 				TaskAttachment taskAttachment=TaskAttachments.GetOneByDocNum(doc.DocNum);
 				if(taskAttachment!=null) {
-					MessageBox.Show(Lan.g(this,"This document is attached to task ")+taskAttachment.TaskNum+". "+Lan.g(this,"Detach document from this task before deleting the document."));
+					ODMessageBox.Show(Lan.g(this,"This document is attached to task ")+taskAttachment.TaskNum+". "+Lan.g(this,"Detach document from this task before deleting the document."));
 					return;
 				}
 				EhrLab lab=EhrLabImages.GetFirstLabForDocNum(doc.DocNum);
 				if(lab!=null) {
 					string dateSt=lab.ObservationDateTimeStart.PadRight(8,'0').Substring(0,8);//stored in DB as yyyyMMddhhmmss-zzzz
-					DateTime dateT=PIn.Date(dateSt.Substring(4,2)+"/"+dateSt.Substring(6,2)+"/"+dateSt.Substring(0,4));
-					MessageBox.Show(Lan.g(this,"This image is attached to a lab order for this patient on "+dateT.ToShortDateString()+". "+Lan.g(this,"Detach image from this lab order before deleting the image.")));
+					DateTime dateT=SIn.Date(dateSt.Substring(4,2)+"/"+dateSt.Substring(6,2)+"/"+dateSt.Substring(0,4));
+					ODMessageBox.Show(Lan.g(this,"This image is attached to a lab order for this patient on "+dateT.ToShortDateString()+". "+Lan.g(this,"Detach image from this lab order before deleting the image.")));
 					return;
 				}
 			}
@@ -3655,7 +3656,7 @@ namespace OpenDental {
 					ImageStore.DeleteDocuments(docs,_patFolder);
 				}
 				catch(Exception ex) {  //Image could not be deleted, in use.
-					MessageBox.Show(this,ex.Message);
+					ODMessageBox.Show(this,ex.Message);
 				}
 			}
 			if(refreshTree) {

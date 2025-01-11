@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using CodeBase;
 
 namespace OpenDental{
 	/// <summary>
@@ -43,7 +44,7 @@ namespace OpenDental{
 		}
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
-			if(MessageBox.Show(Lan.g(this,"Delete contact"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+			if(ODMessageBox.Show(Lan.g(this,"Delete contact"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 				return;
 			}
 			if(IsNew){
@@ -71,7 +72,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textLName.Text==""){
-				MessageBox.Show(Lan.g(this,"Last Name cannot be blank."));
+				ODMessageBox.Show(Lan.g(this,"Last Name cannot be blank."));
 				return;
 			}
 			//a category will always be selected because of the manner in which Contact is accessed

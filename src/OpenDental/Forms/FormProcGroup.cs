@@ -288,7 +288,7 @@ namespace OpenDental{
 				}
 				return;
 			}
-			MessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
+			ODMessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
 		}
 
 		private bool HasAutoNotePrompt() {
@@ -383,7 +383,7 @@ namespace OpenDental{
 				Procedures.Delete(ProcedureGroup.ProcNum);//also deletes any claimprocs (other than ins payments of course).
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//Log entry does not show procstatus because group notes don't technically have a status, always EC.
@@ -411,7 +411,7 @@ namespace OpenDental{
 			bool hasAutoNotePrompt=Regex.IsMatch(textNotes.Text,_autoNotePromptRegex);
 			//If ProcNoteSigsBlockedAutoNoteIncomplete is true, do not allow the user to save a changed signature if there are still autonote prompts.
 			if(_hasSigChanged && !signatureBoxWrapper.SigIsBlank && hasAutoNotePrompt && PrefC.GetBool(PrefName.ProcNoteSigsBlockedAutoNoteIncomplete)) {
-				MessageBox.Show(Lan.g(this,"Remaining auto note prompts must be completed to sign this note. Use Edit Auto Note to resume."));
+				ODMessageBox.Show(Lan.g(this,"Remaining auto note prompts must be completed to sign this note. Use Edit Auto Note to resume."));
 				return false;
 			}
 			if(!signatureBoxWrapper.IsValid) {
@@ -427,7 +427,7 @@ namespace OpenDental{
 				SaveSignature();
 			}
 			catch(Exception ex){
-				MessageBox.Show(Lan.g(this,"Error saving signature.")+"\r\n"+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error saving signature.")+"\r\n"+ex.Message);
 			}
 			Procedures.Update(ProcedureGroup,_procedureGroupOld);
 			DialogResult=DialogResult.OK;
@@ -442,7 +442,7 @@ namespace OpenDental{
 				Procedures.Delete(ProcedureGroup.ProcNum);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message+"\r\n"+Lan.g(this,"Please call support."));//GroupNotes should never fail deletion.
+				ODMessageBox.Show(ex.Message+"\r\n"+Lan.g(this,"Please call support."));//GroupNotes should never fail deletion.
 				return;
 			}
 			for(int i=0;i<ListProcGroupItems.Count;i++){

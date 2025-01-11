@@ -7,6 +7,7 @@ using System.Drawing.Printing;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -39,8 +40,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter valid To and From dates.");
 				return;
 			}
-			_dateFrom=PIn.Date(textDateFrom.Text);
-			_dateTo=PIn.Date(textDateTo.Text);
+			_dateFrom=SIn.Date(textDateFrom.Text);
+			_dateTo=SIn.Date(textDateTo.Text);
 			if(_dateTo<_dateFrom) {
 				MsgBox.Show(this,"Date To cannot be before Date From.");
 				return;
@@ -70,25 +71,25 @@ namespace OpenDental {
 			DateTime date;
 			for(int i=0;i<_tableReferrals.Rows.Count;i++) {
 				row=new GridRow();
-				row.Cells.Add(Patients.GetPat(PIn.Long(_tableReferrals.Rows[i]["PatNum"].ToString())).GetNameLF());
+				row.Cells.Add(Patients.GetPat(SIn.Long(_tableReferrals.Rows[i]["PatNum"].ToString())).GetNameLF());
 				row.Cells.Add(_tableReferrals.Rows[i]["LName"].ToString()+", "+_tableReferrals.Rows[i]["FName"].ToString()+" "+_tableReferrals.Rows[i]["MName"].ToString());
-				row.Cells.Add(ProcedureCodes.GetLaymanTerm(PIn.Long(_tableReferrals.Rows[i]["CodeNum"].ToString())));
+				row.Cells.Add(ProcedureCodes.GetLaymanTerm(SIn.Long(_tableReferrals.Rows[i]["CodeNum"].ToString())));
 				row.Cells.Add(_tableReferrals.Rows[i]["Note"].ToString());
-				date=PIn.Date(_tableReferrals.Rows[i]["RefDate"].ToString());
+				date=SIn.Date(_tableReferrals.Rows[i]["RefDate"].ToString());
 				if(date.Year<1880) {
 					row.Cells.Add("");
 				}
 				else {
 					row.Cells.Add(date.ToShortDateString());
 				}
-				date=PIn.Date(_tableReferrals.Rows[i]["DateProcComplete"].ToString());
+				date=SIn.Date(_tableReferrals.Rows[i]["DateProcComplete"].ToString());
 				if(date.Year<1880) {
 					row.Cells.Add("");
 				}
 				else {
 					row.Cells.Add(date.ToShortDateString());
 				}
-				ReferralToStatus referalToStatus=(ReferralToStatus)PIn.Int(_tableReferrals.Rows[i]["RefToStatus"].ToString());
+				ReferralToStatus referalToStatus=(ReferralToStatus)SIn.Int(_tableReferrals.Rows[i]["RefToStatus"].ToString());
 				if(referalToStatus==ReferralToStatus.None){
 					row.Cells.Add("");
 				}

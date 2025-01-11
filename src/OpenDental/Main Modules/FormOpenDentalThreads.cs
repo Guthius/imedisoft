@@ -941,7 +941,7 @@ namespace OpenDental
                     {
                         this.Invoke(() =>
                         {
-                            MessageBox.Show(
+                            ODMessageBox.Show(
                                 "Registration key has been disabled.  You are using an unauthorized version of this program.",
                                 "Warning",
                                 MessageBoxButtons.OK,

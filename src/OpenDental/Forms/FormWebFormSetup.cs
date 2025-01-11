@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -83,10 +84,10 @@ namespace OpenDental {
 					Uri uRIUnparsed=new Uri(decodeURL);
 					NameValueCollection nameValueCollection=HttpUtility.ParseQueryString(uRIUnparsed.Query);
 					if(!string.IsNullOrEmpty(nameValueCollection["WSDID"])) {
-						_webSheetDefIDSelected=PIn.Long(nameValueCollection.Get("WSDID"),false);
+						_webSheetDefIDSelected=SIn.Long(nameValueCollection.Get("WSDID"),false);
 					}
 					if(!string.IsNullOrEmpty(nameValueCollection["NFID"])) {
-						_listNextFormIdsSelected=nameValueCollection.Get("NFID").Split(',').Select(x => PIn.Long(x,false)).ToList();
+						_listNextFormIdsSelected=nameValueCollection.Get("NFID").Split(',').Select(x => SIn.Long(x,false)).ToList();
 					}
 					if(!string.IsNullOrEmpty(nameValueCollection["ReturnURL"])) {
 						_redirectURL=nameValueCollection.Get("ReturnURL");
@@ -490,7 +491,7 @@ namespace OpenDental {
 			if(listWebForms_SheetDefsNextForms.Count>0) {//If a sheet that is to be deleted is currently in the 'Next Forms' field.
 				string sheetDescriptions=string.Join(",\n",listWebForms_SheetDefsNextForms.Select(x => x.Description));
 				//Prompt user if they want to continue with delete. If no, simply return.
-				if(MessageBox.Show(this,Lan.g(this,"The following sheet(s) will also be deleted from the 'Next Forms' field:")+"\n"+sheetDescriptions+"\n"+Lan.g(this,"Do you want to continue?")
+				if(ODMessageBox.Show(this,Lan.g(this,"The following sheet(s) will also be deleted from the 'Next Forms' field:")+"\n"+sheetDescriptions+"\n"+Lan.g(this,"Do you want to continue?")
 					,Lan.g(this,"Warning"),MessageBoxButtons.YesNo)==DialogResult.No)
 				{ 
 					return;
@@ -503,7 +504,7 @@ namespace OpenDental {
 				listClinicPrefs.RemoveAll(x => string.IsNullOrWhiteSpace(x.ValueString) || x.ValueString=="0"); //remove any clinics where the pref is not set
 				List<ClinicPref> listClinicPrefMatches=listClinicPrefs
 					//check if any of the web form IDs in clinicprefs match the web form IDs to be deleted
-					.Where(x => listWebForms_SheetDefs.Any(y => POut.Long(y.WebSheetDefID)==x.ValueString))
+					.Where(x => listWebForms_SheetDefs.Any(y => SOut.Long(y.WebSheetDefID)==x.ValueString))
 					//Don't bother blocking if webform is linked to a hidden clinic.
 					.Where(x => !(Clinics.GetClinic(x.ClinicNum)??new ClinicDto(){IsHidden=true}).IsHidden)
 					.ToList();
@@ -511,7 +512,7 @@ namespace OpenDental {
 					List<string> listDescriptions=new List<string>();
 					for(int i = 0;i<listWebForms_SheetDefs.Count;i++) {
 						//only add the sheet ids that are also in clinic prefs
-						if(listClinicPrefMatches.Any(x => PIn.Long(x.ValueString)==listWebForms_SheetDefs[i].WebSheetDefID)) {
+						if(listClinicPrefMatches.Any(x => SIn.Long(x.ValueString)==listWebForms_SheetDefs[i].WebSheetDefID)) {
 							//store the descriptions for each web form to access in error msgs
 							listDescriptions.Add(listWebForms_SheetDefs[i].Description);
 						}
@@ -542,7 +543,7 @@ namespace OpenDental {
 			//check if any web form to be deleted is linked to ApptNewPatientThankYouWebSheetDefID Pref by WebSheetDefID
 			List<long> listApptNewPatientThankYouWebSheetDefIDs=PrefC.GetString(PrefName.ApptNewPatientThankYouWebSheetDefID)
 				.Split(",",StringSplitOptions.RemoveEmptyEntries)
-				.Select(x => PIn.Long(x))
+				.Select(x => SIn.Long(x))
 				.ToList();
 			//Find the WebSheetDefIDs that are not okay to delete.
 			List<long> listWebSheetDefIDsInUse=listWebForms_SheetDefs
@@ -568,7 +569,7 @@ namespace OpenDental {
 			}
 			if(failures>0) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(this,Lan.g(this,"Error deleting")+" "+POut.Int(failures)+" "+Lan.g(this,"web form(s). Either the web service is not available or "
+				ODMessageBox.Show(this,Lan.g(this,"Error deleting")+" "+SOut.Int(failures)+" "+Lan.g(this,"web form(s). Either the web service is not available or "
 					+"the Host Server Address cannot be found."));
 			}
 			FillGrid();

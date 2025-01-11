@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 
@@ -91,13 +93,13 @@ namespace OpenDental {
 				return directorySearcher.FindAll();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"An error occurred fetching domain users: ")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"An error occurred fetching domain users: ")+" "+ex.Message);
 				return null;
 			}
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			SelectedDomainName=PIn.String(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
+			SelectedDomainName=SIn.String(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
 			DialogResult=DialogResult.OK;
 		}
 		
@@ -108,7 +110,7 @@ namespace OpenDental {
 
 		private void butOK_Click(object sender,EventArgs e) {
 			if(gridMain.GetSelectedIndex()!=-1) {
-				SelectedDomainName=PIn.String(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
+				SelectedDomainName=SIn.String(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
 			}
 			else {
 				SelectedDomainName="";

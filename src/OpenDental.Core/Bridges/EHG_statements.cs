@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -176,23 +177,23 @@ namespace OpenDentBusiness.Bridges {
 			writer.WriteElementString("DueDate",dueDate.ToString("MM/dd/yyyy"));
 			writer.WriteElementString("StatementDate",stmt.DateSent.ToString("MM/dd/yyyy"));
 			double balanceForward=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()=="balanceForward")
-				.Select(x => PIn.Double(x["value"].ToString())).FirstOrDefault();//defaults to 0
+				.Select(x => SIn.Double(x["value"].ToString())).FirstOrDefault();//defaults to 0
 			writer.WriteElementString("PriorBalance",balanceForward.ToString("F2"));
 			writer.WriteElementString("RunningBalance","");//for future use
 			writer.WriteElementString("PerPayAdj","");//optional
 			writer.WriteElementString("InsPayAdj","");//optional
 			writer.WriteElementString("Adjustments","");//for future use
-			double charges=tableAccount.Rows.OfType<DataRow>().Sum(x => PIn.Double(x["chargesDouble"].ToString()));
+			double charges=tableAccount.Rows.OfType<DataRow>().Sum(x => SIn.Double(x["chargesDouble"].ToString()));
 			writer.WriteElementString("NewCharges",charges.ToString("F2"));//optional
 			writer.WriteElementString("FinanceCharges","");//for future use
-			double credits=tableAccount.Rows.OfType<DataRow>().Sum(x => PIn.Double(x["creditsDouble"].ToString()));
+			double credits=tableAccount.Rows.OfType<DataRow>().Sum(x => SIn.Double(x["creditsDouble"].ToString()));
 			writer.WriteElementString("Credits",credits.ToString("F2"));
 			//On a regular printed statement, the amount due at the top might be different from the balance at the middle right due to payplan balances.
 			//But in e-bills, there is only one amount due.  Insurance estimate is already subtracted, and payment plan balance is already added.
 			double amountDue=guar.BalTotal;
 			if(PrefC.GetInt(PrefName.PayPlansVersion)==1) {//with version 2, payplan debits/credits are aged individually and are included in guar.BalTotal
 				amountDue+=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()=="payPlanDue")
-					.Select(x => PIn.Double(x["value"].ToString())).DefaultIfEmpty(0).Sum();//add payplan(s) due amt
+					.Select(x => SIn.Double(x["value"].ToString())).DefaultIfEmpty(0).Sum();//add payplan(s) due amt
 			}
 			double insEst=0;
 			if(!PrefC.GetBool(PrefName.BalancesDontSubtractIns)) {//this is typical
@@ -272,7 +273,7 @@ namespace OpenDentBusiness.Bridges {
 					writer.WriteStartElement("DetailItem");//has a child item. We won't add optional child note
 					writer.WriteAttributeString("sequence",seq.ToString());
 					writer.WriteStartElement("Item");
-					writer.WriteElementString("Date",li==0?PIn.Date(rowCur["DateTime"].ToString()).ToString("MM/dd/yyyy"):"");
+					writer.WriteElementString("Date",li==0?SIn.Date(rowCur["DateTime"].ToString()).ToString("MM/dd/yyyy"):"");
 					writer.WriteElementString("PatientName",li==0?rowCur["patient"].ToString():"");
 					if(lineCur.Length>lineMaxLen) {
 						firstIndexNewLine=lineMaxLen;

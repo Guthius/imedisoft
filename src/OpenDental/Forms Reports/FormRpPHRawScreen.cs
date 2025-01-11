@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -42,8 +43,8 @@ namespace OpenDental{
 				LEFT JOIN screengroup ON screengroup.ScreenGroupNum=screen.ScreenGroupNum
 				LEFT JOIN site ON screengroup.GradeSchool=site.Description
 				LEFT JOIN county ON screengroup.County=county.CountyName
-				WHERE SGDate >= "+POut.Date(date1.SelectionStart)+" "
-				+"AND SGDate <= " +POut.Date(date2.SelectionStart);
+				WHERE SGDate >= "+SOut.Date(date1.SelectionStart)+" "
+				+"AND SGDate <= " +SOut.Date(date2.SelectionStart);
 			FormQuery2=new FormQuery(report);
 			FormQuery2.textTitle.Text="RawScreeningData"+DateTime.Today.ToString("MMddyyyy");
 			FormQuery2.SubmitQuery();

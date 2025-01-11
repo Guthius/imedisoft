@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using CodeBase;
 using OpenDental.Graph.Base;
 using OpenDental.Graph.Concrete;
 using OpenDentBusiness;
@@ -465,13 +466,13 @@ namespace OpenDental.Graph.Dashboard
                 var rowIndex = GetRowIndex(sender);
                 if (RowHasItems(rowIndex))
                 {
-                    MessageBox.Show("Row " + rowIndex + " has items. Remove all items from row before continuing.");
+                    ODMessageBox.Show("Row " + rowIndex + " has items. Remove all items from row before continuing.");
                     return;
                 }
 
                 if (tableLayoutPanel.RowCount == 1)
                 {
-                    MessageBox.Show("Dashboard must contain a minimum of 1 row.");
+                    ODMessageBox.Show("Dashboard must contain a minimum of 1 row.");
                     return;
                 }
 
@@ -508,13 +509,13 @@ namespace OpenDental.Graph.Dashboard
                 var columnIndex = GetColumnIndex(sender);
                 if (ColumnHasItems(columnIndex))
                 {
-                    MessageBox.Show("Column " + columnIndex + " has items. Remove all items from column before continuing.");
+                    ODMessageBox.Show("Column " + columnIndex + " has items. Remove all items from column before continuing.");
                     return;
                 }
 
                 if (tableLayoutPanel.ColumnCount == 1)
                 {
-                    MessageBox.Show("Dashboard must contain a minimum of 1 column.");
+                    ODMessageBox.Show("Dashboard must contain a minimum of 1 column.");
                     return;
                 }
 

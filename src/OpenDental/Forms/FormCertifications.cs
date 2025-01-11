@@ -6,6 +6,7 @@ using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -332,7 +333,7 @@ namespace OpenDental {
 
 		private void textEmpSearch_KeyUp(object sender,KeyEventArgs e) {
 			comboSupervisor.SetSelected(0);
-			string empNameSearch=PIn.String(textEmpSearch.Text).ToLower();
+			string empNameSearch=SIn.String(textEmpSearch.Text).ToLower();
 			List<Employee> listEmployeesFiltered=_listEmployees.FindAll(x => x.FName.ToLower().StartsWith(empNameSearch));
 			listBoxEmployee.Items.Clear();
 			listEmployeesFiltered=listEmployeesFiltered.FindAll(x => x.IsHidden==false);

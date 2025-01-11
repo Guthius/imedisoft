@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Xml;
+using CodeBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -114,7 +115,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show("Error: "+ex.Message);
+				ODMessageBox.Show("Error: "+ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
@@ -123,7 +124,7 @@ namespace OpenDental {
 			//Process errors------------------------------------------------------------------------------------------------------------
 			XmlNode xmlNode=xmlDocument.SelectSingleNode("//Error");
 			if(xmlNode!=null) {
-				MessageBox.Show(xmlNode.InnerText,"Error");
+				ODMessageBox.Show(xmlNode.InnerText,"Error");
 				return;
 			}
 			//Process a valid return value------------------------------------------------------------------------------------------------

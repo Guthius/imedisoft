@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -482,10 +483,10 @@ namespace OpenDentBusiness
             {
                 //Get the clinicpref or 0 for this signup
                 var statusMass = listClinicPrefsMassEmail.FirstOrDefault(x => x.ClinicNum == clinicNum)?.ValueString ?? HostedEmailStatus.NotActivated.ToString();
-                var hostedEmailStatusMass = PIn.Enum<HostedEmailStatus>(statusMass);
+                var hostedEmailStatusMass = SIn.Enum<HostedEmailStatus>(statusMass);
                 var doMass = hostedEmailStatusMass.HasFlag(HostedEmailStatus.SignedUp);
                 var statusSecure = listClinicPrefsSecureEmail.FirstOrDefault(x => x.ClinicNum == clinicNum)?.ValueString ?? HostedEmailStatus.NotActivated.ToString();
-                var hostedEmailStatusSecure = PIn.Enum<HostedEmailStatus>(statusSecure);
+                var hostedEmailStatusSecure = SIn.Enum<HostedEmailStatus>(statusSecure);
                 var doSecure = hostedEmailStatusSecure.HasFlag(HostedEmailStatus.SignedUp);
                 ODException.SwallowAndLogAnyException("HostedEmail", () => isCacheInvalid |= CreateHostedEmailCredentials(clinicNum, doSignupMassEmail: doMass,
                     doSignupSecureEmail: doSecure, webServiceMainHq));
@@ -515,7 +516,7 @@ namespace OpenDentBusiness
                 }
                 else
                 {
-                    fromPref = PIn.Int(prefHostedEmail.ValueString, false);
+                    fromPref = SIn.Int(prefHostedEmail.ValueString, false);
                 }
 
                 var existingFlags = (HostedEmailStatus) fromPref;
@@ -879,7 +880,7 @@ namespace OpenDentBusiness
             }
 
             //Upsert clinicpref to match HQ.
-            return ClinicPrefs.Upsert(PrefName.ShortCodeApptReminderTypes, clinicSignup.ClinicNum, POut.Int((int) clinicSignup.ShortCodeTypeFlags));
+            return ClinicPrefs.Upsert(PrefName.ShortCodeApptReminderTypes, clinicSignup.ClinicNum, SOut.Int((int) clinicSignup.ShortCodeTypeFlags));
         }
 
         ///<summary>Called by local practice db to query HQ for EService setup info. Must remain very lite and versionless. Will be used by signup portal.

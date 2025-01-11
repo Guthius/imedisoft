@@ -42,7 +42,7 @@ namespace OpenDentBusiness {
 				client.Headers[HttpRequestHeader.Accept]="application/xml";
 				client.Headers[HttpRequestHeader.ContentType]="application/xml";
 				client.Headers[HttpRequestHeader.Authorization]=authHeader;
-				client.Encoding=UnicodeEncoding.UTF8;
+				client.Encoding=Encoding.UTF8;
 				try {
 					string res="";
 					if(method==HttpMethod.Get) {

@@ -10,6 +10,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -99,7 +100,7 @@ namespace OpenDental {
 			if(GetListLanguageRules().Count==0) {
 				butRemove.Visible=false;
 			}
-			_listCommTypesSendOrder=ApptReminderRuleCur.SendOrder.Split(',').Select(x => (CommType)PIn.Int(x)).ToList();
+			_listCommTypesSendOrder=ApptReminderRuleCur.SendOrder.Split(',').Select(x => (CommType)SIn.Int(x)).ToList();
 			if(Clinics.IsSecureEmailEnabled(ApptReminderRuleCur.ClinicNum)) { 
 				checkSendSecureEmail.Enabled=true;
 				checkSendSecureEmail.Checked=_listCommTypesSendOrder.Contains(CommType.SecureEmail);
@@ -258,8 +259,8 @@ namespace OpenDental {
 
 		private void UpdateDoNotSendWithinLabel() {
 			string daysHoursTxt="";
-			int daysWithin=PIn.Int(textDaysWithin.Text,false);
-			int hoursWithin=PIn.Int(textHoursWithin.Text,false);
+			int daysWithin=SIn.Int(textDaysWithin.Text,false);
+			int hoursWithin=SIn.Int(textHoursWithin.Text,false);
 			if(!textDaysWithin.IsValid() || !textHoursWithin.IsValid()
 				|| (daysWithin==0 && hoursWithin==0)) 
 			{
@@ -331,7 +332,7 @@ namespace OpenDental {
 				//And the confirmed status for 'eConfirm Sent' is marked 'Do not send eConfirmations'
 				&& listExclude.Contains(PrefC.GetString(PrefName.ApptEConfirmStatusSent))
 				//Ask them to fix their exclude send statuses
-				&& MessageBox.Show(Lans.g(this,"Appointments will not receive multiple eConfirmations if the '")+confStatusEConfirmSent+"' "+
+				&& ODMessageBox.Show(Lans.g(this,"Appointments will not receive multiple eConfirmations if the '")+confStatusEConfirmSent+"' "+
 						Lans.g(this,"status is set as 'Don't Send'. Would you like to remove 'Don't Send' from that status?"),
 					"",MessageBoxButtons.YesNo)==DialogResult.Yes) 
 			{
@@ -439,7 +440,7 @@ namespace OpenDental {
 			if(ContainsShortURLs()) {
 				return;
 			}
-			TimeSpan timeSpanPrior=new TimeSpan(PIn.Int(textDays.Text,false),PIn.Int(textHours.Text,false),0,0);
+			TimeSpan timeSpanPrior=new TimeSpan(SIn.Int(textDays.Text,false),SIn.Int(textHours.Text,false),0,0);
 			if(ApptReminderRuleCur.TypeCur==ApptReminderType.PatientPortalInvite && !radioBeforeAppt.Checked) {
 				timeSpanPrior=timeSpanPrior.Negate();
 			}
@@ -472,11 +473,11 @@ namespace OpenDental {
 			ApptReminderRuleCur.IsSendAll=checkSendAll.Checked;
 			ApptReminderRuleCur.TSPrior=timeSpanPrior;
 			if(radioBeforeAppt.Checked || ApptReminderRules.IsReminderTypeAlwaysSendBefore(ApptReminderRuleCur.TypeCur)) {
-				ApptReminderRuleCur.DoNotSendWithin=new TimeSpan(PIn.Int(textDaysWithin.Text,false),PIn.Int(textHoursWithin.Text,false),0,0);
+				ApptReminderRuleCur.DoNotSendWithin=new TimeSpan(SIn.Int(textDaysWithin.Text,false),SIn.Int(textHoursWithin.Text,false),0,0);
 			}
 			ApptReminderRuleCur.IsEnabled=checkEnabled.Checked;
 			ApptReminderRuleCur.IsAutoReplyEnabled=checkEConfirmationAutoReplies.Checked;
-			ApptReminderRuleCur.TimeSpanMultipleInvites=TimeSpan.FromDays(PIn.Int(textPatientPortalLastVisit.Text,false));
+			ApptReminderRuleCur.TimeSpanMultipleInvites=TimeSpan.FromDays(SIn.Int(textPatientPortalLastVisit.Text,false));
 			if(radioSendPatientPortalInviteOnce.Checked) {
 				ApptReminderRuleCur.SendMultipleInvites=SendMultipleInvites.UntilPatientVisitsPortal;
 			}
@@ -523,24 +524,24 @@ namespace OpenDental {
 					errors.AddRange(((UserControlReminderMessage)tabControl.TabPages[i].Controls[0]).ValidateTemplates());
 				}
 			}
-			if(PIn.Int(textDays.Text,false)>=366) {
+			if(SIn.Int(textDays.Text,false)>=366) {
 				errors.Add(Lan.g(this,"Lead time must 365 days or less."));
 			}
 			//ScheduleThankYou, NewPatientThankYou, and GeneralMessage can be 0, meaning send immediately. ConfirmationFutureDay has a separate check so exclude it here.
-			if(checkEnabled.Checked && PIn.Int(textHours.Text,false)==0 
-				&& PIn.Int(textDays.Text,false)==0 
+			if(checkEnabled.Checked && SIn.Int(textHours.Text,false)==0 
+				&& SIn.Int(textDays.Text,false)==0 
 				&& !ApptReminderRuleCur.TypeCur.In(ApptReminderType.ScheduleThankYou,ApptReminderType.PatientPortalInvite,ApptReminderType.NewPatientThankYou,ApptReminderType.GeneralMessage,ApptReminderType.ConfirmationFutureDay))
 			{
 				errors.Add(Lan.g(this,"Lead time must be greater than 0 hours."));
 			}
 			if(ApptReminderRuleCur.TypeCur==ApptReminderType.ConfirmationFutureDay) {
-				if(PIn.Int(textDays.Text,false)==0) {
+				if(SIn.Int(textDays.Text,false)==0) {
 					errors.Add(Lan.g(this,"Lead time must be greater than or equal to 1 day for confirmations."));
 				}
 			}
 			if(radioBeforeAppt.Checked || ApptReminderRules.IsReminderTypeAlwaysSendBefore(ApptReminderRuleCur.TypeCur)) {
-				TimeSpan timeSpanPrior=new TimeSpan(PIn.Int(textDays.Text,false),PIn.Int(textHours.Text,false),0,0);
-				TimeSpan timeSpanDoNotSendWithin=new TimeSpan(PIn.Int(textDaysWithin.Text,false),PIn.Int(textHoursWithin.Text,false),0,0);
+				TimeSpan timeSpanPrior=new TimeSpan(SIn.Int(textDays.Text,false),SIn.Int(textHours.Text,false),0,0);
+				TimeSpan timeSpanDoNotSendWithin=new TimeSpan(SIn.Int(textDaysWithin.Text,false),SIn.Int(textHoursWithin.Text,false),0,0);
 				//If we set the autocomm to be sent 1 hour prior to the appointment but DoNotSend to 2 hours prior, that wouldn't make a whole lot of sense, now would it?
 				//That being said, this doesn't apply for Thank Yous because you send depending on when the patient scheduled not the scheduled time of the appointment
 				if(timeSpanDoNotSendWithin >= timeSpanPrior && !ApptReminderRuleCur.TypeCur.In(ApptReminderType.ScheduleThankYou,ApptReminderType.NewPatientThankYou)) {
@@ -548,7 +549,7 @@ namespace OpenDental {
 				}
 			}
 			if(errors.Count>0) {
-				MessageBox.Show(Lan.g(this,"You must fix the following errors before continuing.")+"\r\n\r\n-"+string.Join("\r\n-",errors));
+				ODMessageBox.Show(Lan.g(this,"You must fix the following errors before continuing.")+"\r\n\r\n-"+string.Join("\r\n-",errors));
 				return false;
 			}
 			return true;
@@ -563,7 +564,7 @@ namespace OpenDental {
 				return false;
 			}
 			string errorMessage=Lan.g(this,"Message cannot contain the URL")+$" {firstShortURL} "+Lan.g(this,"as these are only allowed for eServices.");
-			MessageBox.Show(errorMessage);
+			ODMessageBox.Show(errorMessage);
 			return true;
 		}
 

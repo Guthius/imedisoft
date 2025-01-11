@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -378,22 +379,22 @@ namespace OpenDental {
 			_dynamicPaymentPlanData.TotalInterest=0;
 			double totalPay=0;
 			for(int i=0;i<listRows.Count;i++) {
-				bool isFutureCharge=PIn.Date(listRows[i].Cells[0].Text)>DateTime.Today;
+				bool isFutureCharge=SIn.Date(listRows[i].Cells[0].Text)>DateTime.Today;
 				if(!checkExcludePast.Checked || isFutureCharge) {
 					//Add the row if we aren't excluding past activity or the activity is in the future.
 					gridCharges.ListGridRows.Add(listRows[i]);
 				}
 				if(listRows[i].Cells[2].Text!="") {//Principal
-					principalDue+=PIn.Double(listRows[i].Cells[2].Text);
-					balanceAmt+=PIn.Double(listRows[i].Cells[2].Text);
+					principalDue+=SIn.Double(listRows[i].Cells[2].Text);
+					balanceAmt+=SIn.Double(listRows[i].Cells[2].Text);
 				}
 				if(listRows[i].Cells[3].Text!="") {//Interest
-					_dynamicPaymentPlanData.TotalInterest+=PIn.Double(listRows[i].Cells[3].Text);
-					balanceAmt+=PIn.Double(listRows[i].Cells[3].Text);
+					_dynamicPaymentPlanData.TotalInterest+=SIn.Double(listRows[i].Cells[3].Text);
+					balanceAmt+=SIn.Double(listRows[i].Cells[3].Text);
 				}
 				else if(listRows[i].Cells[5].Text!="") {//Payment
-					totalPay+=PIn.Double(listRows[i].Cells[5].Text);
-					balanceAmt-=PIn.Double(listRows[i].Cells[5].Text);
+					totalPay+=SIn.Double(listRows[i].Cells[5].Text);
+					balanceAmt-=SIn.Double(listRows[i].Cells[5].Text);
 				}
 				if(!checkExcludePast.Checked || isFutureCharge) {
 					gridCharges.ListGridRows[gridCharges.ListGridRows.Count-1].Cells[6].Text=balanceAmt.ToString("f");
@@ -433,17 +434,17 @@ namespace OpenDental {
 			if(doValidateTerms && !ValidateTerms(isSilent)) {//saveData relies on this, if removed from this method, needs to be addded to SaveData()
 				return false;
 			}
-			payPlanTerms.APR=PIn.Double(textAPR.Text);
-			payPlanTerms.DateFirstPayment=PIn.Date(textDateFirstPay.Text);
+			payPlanTerms.APR=SIn.Double(textAPR.Text);
+			payPlanTerms.DateFirstPayment=SIn.Date(textDateFirstPay.Text);
 			payPlanTerms.Frequency=GetChargeFrequency();//verify this is just based on the ui, not the db.
 			payPlanTerms.DynamicPayPlanTPOption=GetSelectedTreatmentPlannedOption();
-			payPlanTerms.DateInterestStart=PIn.Date(textDateInterestStart.Text);//Will be DateTime.MinDate if field is blank.
-			payPlanTerms.PayCount=PIn.Int(textPaymentCount.Text, throwExceptions:false); //The world will not end if PayCount is interpreted as zero.
-			payPlanTerms.PeriodPayment=PIn.Decimal(textPeriodPayment.Text);
-			payPlanTerms.PrincipalAmount=PIn.Double(textTotalPrincipal.Text);
+			payPlanTerms.DateInterestStart=SIn.Date(textDateInterestStart.Text);//Will be DateTime.MinDate if field is blank.
+			payPlanTerms.PayCount=SIn.Int(textPaymentCount.Text, throwExceptions:false); //The world will not end if PayCount is interpreted as zero.
+			payPlanTerms.PeriodPayment=SIn.Decimal(textPeriodPayment.Text);
+			payPlanTerms.PrincipalAmount=SIn.Double(textTotalPrincipal.Text);
 			payPlanTerms.RoundDec=CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
-			payPlanTerms.DateAgreement=PIn.Date(textDate.Text);
-			payPlanTerms.DownPayment=PIn.Double(textDownPayment.Text);
+			payPlanTerms.DateAgreement=SIn.Date(textDate.Text);
+			payPlanTerms.DownPayment=SIn.Double(textDownPayment.Text);
 			payPlanTerms.PaySchedule=PayPlanEdit.GetPayScheduleFromFrequency(payPlanTerms.Frequency);
 			//now that terms are set, we need to potentially calculate the periodpayment amount since we only store that and not the payCount
 			if(payPlanTerms.PayCount!=0) {
@@ -520,7 +521,7 @@ namespace OpenDental {
 
 		private void ToggleInterestDelayFieldsHelper() {
 			bool areVisible=true;
-			if(CompareDouble.IsZero(PIn.Double(textAPR.Text))) {
+			if(CompareDouble.IsZero(SIn.Double(textAPR.Text))) {
 				textDateInterestStart.Text="";
 				textInterestDelay.Text="";
 				areVisible=false;
@@ -556,7 +557,7 @@ namespace OpenDental {
 			}
 			//Apply template to plan terms
 			PayPlanTemplate payPlanTemplate=formPayPlanTemplates.PayPlanTemplateCur;
-			if(PIn.Double(textDownPayment.Text)!=payPlanTemplate.DownPayment && textDownPayment.ReadOnly) { 
+			if(SIn.Double(textDownPayment.Text)!=payPlanTemplate.DownPayment && textDownPayment.ReadOnly) { 
 				if(!MsgBox.Show(MsgBoxButtons.YesNo,"You cannot change the downpayment. Would you like to apply everything else from the template?")) {
 					return;
 				}
@@ -566,7 +567,7 @@ namespace OpenDental {
 			}
 			textAPR.Text=payPlanTemplate.APR.ToString();
 			if(payPlanTemplate.APR>0) {
-				textDateInterestStart.Text=PayPlanEdit.CalcNextPeriodDate(PIn.Date(textDateFirstPay.Text),
+				textDateInterestStart.Text=PayPlanEdit.CalcNextPeriodDate(SIn.Date(textDateFirstPay.Text),
 					payPlanTemplate.InterestDelay,GetChargeFrequency()).ToShortDateString();
 			}
 			if(payPlanTemplate.NumberOfPayments>0) {
@@ -762,7 +763,7 @@ namespace OpenDental {
 			if(textCompletedAmt.Text=="") {
 				return;
 			}
-			if(PIn.Double(textCompletedAmt.Text)==PIn.Double(textTotalPrincipal.Text)) {
+			if(SIn.Double(textCompletedAmt.Text)==SIn.Double(textTotalPrincipal.Text)) {
 				return;
 			}
 		}
@@ -795,7 +796,7 @@ namespace OpenDental {
 		///<summary>Goes through the logic to create a new schedule. Returns true if a terms were successfully validated and correct.</summary>
 		private bool CreateSchedule() {
 			if(ValidateTerms(doCheckAPR:false)) {//Don't need to validate APR and full lock because we will auto-lock when APR is set (only for creating schedule).
-				if(textAPR.IsValid() && !CompareDouble.IsZero(PIn.Double(textAPR.Text)) && checkProductionLock.Checked==false
+				if(textAPR.IsValid() && !CompareDouble.IsZero(SIn.Double(textAPR.Text)) && checkProductionLock.Checked==false
 				&& PrefC.GetBool(PrefName.PayPlanRequireLockForAPR)) {
 					checkProductionLock.Checked=true;
 					return true;
@@ -825,7 +826,7 @@ namespace OpenDental {
 			//Check for any errors.
 			if(!String.IsNullOrWhiteSpace(stringBuilderErrors.ToString())) {
 				if(!isSilent){
-					MessageBox.Show(stringBuilderErrors.ToString());
+					ODMessageBox.Show(stringBuilderErrors.ToString());
 				}
 				return false;
 			}
@@ -855,8 +856,8 @@ namespace OpenDental {
 
 		///<summary>Calculates the interest start date and assigns it to the UI field, then returns the interest start date.</summary>
 		private void CalculateDateInterestStartFromInterestDelay() {
-			if(PIn.Int(textInterestDelay.Text,false)!=0) {
-				textDateInterestStart.Text=PayPlanEdit.CalcNextPeriodDate(PIn.Date(textDateFirstPay.Text),PIn.Int(textInterestDelay.Text,false),
+			if(SIn.Int(textInterestDelay.Text,false)!=0) {
+				textDateInterestStart.Text=PayPlanEdit.CalcNextPeriodDate(SIn.Date(textDateFirstPay.Text),SIn.Int(textInterestDelay.Text,false),
 					GetChargeFrequency()).ToShortDateString();
 				textInterestDelay.Text="";
 			}
@@ -924,7 +925,7 @@ namespace OpenDental {
 			else if(rowData.IsPaymentRow()) {
 				Payment payment = Payments.GetPayment(rowData.PayNum);
 				if(payment==null) {
-					MessageBox.Show(Lans.g(this,"No payment exists.  Please run database maintenance method")+" "+nameof(DatabaseMaintenances.PaySplitWithInvalidPayNum));
+					ODMessageBox.Show(Lans.g(this,"No payment exists.  Please run database maintenance method")+" "+nameof(DatabaseMaintenances.PaySplitWithInvalidPayNum));
 					return;
 				}
 				using FormPayment formPayment=new FormPayment(_dynamicPaymentPlanData.Patient,_dynamicPaymentPlanData.Family,payment,false);//FormPayment may insert and/or update the paysplits. 
@@ -939,7 +940,7 @@ namespace OpenDental {
 			}
 			else if(gridCharges.ListGridRows[e.Row].Tag.GetType()==typeof(DataRow)) {//Claim payment or bundle.
 				DataRow rowBundledClaimProc=(DataRow)gridCharges.ListGridRows[e.Row].Tag;
-				Claim claim=Claims.GetClaim(PIn.Long(rowBundledClaimProc["ClaimNum"].ToString()));
+				Claim claim=Claims.GetClaim(SIn.Long(rowBundledClaimProc["ClaimNum"].ToString()));
 				if(claim==null) {
 					MsgBox.Show(this,"The claim has been deleted.");
 				}
@@ -968,7 +969,7 @@ namespace OpenDental {
 				return;
 			}
 			PayPlanProductionEntry payPlanProductionEntry=(PayPlanProductionEntry)gridLinkedProduction.ListGridRows[e.Row].Tag;
-			decimal overrideVal=PIn.Decimal(gridLinkedProduction.ListGridRows[e.Row].Cells[e.Col].Text);//if zero, attempting to remove override if set.
+			decimal overrideVal=SIn.Decimal(gridLinkedProduction.ListGridRows[e.Row].Cells[e.Col].Text);//if zero, attempting to remove override if set.
 			SetOverride(payPlanProductionEntry,overrideVal);
 		}
 
@@ -1476,7 +1477,7 @@ namespace OpenDental {
 				//Delete log here since this button doesn't call SaveData().
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.PayPlanEdit,_dynamicPaymentPlanData.Patient.PatNum,"Payment Plan deleted.",_payPlanOld.PayPlanNum,DateTime.MinValue);
@@ -1514,7 +1515,7 @@ namespace OpenDental {
 				PayPlans.Delete(_dynamicPaymentPlanData.PayPlan);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				e.Cancel=true;
 				return;
 			}

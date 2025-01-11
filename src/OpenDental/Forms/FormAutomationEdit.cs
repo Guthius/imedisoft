@@ -241,7 +241,7 @@ namespace OpenDental{
 				}
 				string strInvalidCodes=string.Join(", ",textProcCodes.Text.Split(',').Where(x => !ProcedureCodes.IsValidCode(x)));
 				if(!string.IsNullOrEmpty(strInvalidCodes)) {
-					MessageBox.Show(Lan.g(this,"The following procedure code(s) are not valid")+": "+strInvalidCodes);
+					ODMessageBox.Show(Lan.g(this,"The following procedure code(s) are not valid")+": "+strInvalidCodes);
 					return;
 				}
 				_automation.ProcCodes=textProcCodes.Text;

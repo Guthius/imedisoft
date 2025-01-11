@@ -102,7 +102,7 @@ namespace OpenDental {
 				xmlDocument.LoadXml(result);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g("CodeSystemImporter","Error"+": "+ex.Message));
+				ODMessageBox.Show(Lan.g("CodeSystemImporter","Error"+": "+ex.Message));
 				Cursor=Cursors.Default;
 				return;
 			}
@@ -331,7 +331,7 @@ namespace OpenDental {
 								}
 								//The user will have to click OK on this message in order to continue downloading any additional code systems.
 								//In the future we might turn this into calling a delegate in order to update the affected SNOMED row's text instead of stopping the main thread.
-								MessageBox.Show(errorMessage);
+								ODMessageBox.Show(errorMessage);
 								continue;
 							}
 						}

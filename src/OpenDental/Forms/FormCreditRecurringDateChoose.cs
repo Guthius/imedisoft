@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -57,7 +58,7 @@ namespace OpenDental {
 		private bool FillComboBoxMonthSelect() {
 			if(CreditCards.GetFrequencyType(_creditCard.ChargeFrequency)==ChargeFrequencyType.FixedDayOfMonth) {
 				//EX: 2nd and 15th of each Month, instance of a singular day being charged is in GetValidPayDate(...)
-				List<int> listDaysOfMonth=CreditCards.GetDaysOfMonthForChargeFrequency(_creditCard.ChargeFrequency).Split(',').Select(x => PIn.Int(x))
+				List<int> listDaysOfMonth=CreditCards.GetDaysOfMonthForChargeFrequency(_creditCard.ChargeFrequency).Split(',').Select(x => SIn.Int(x))
 					.OrderByDescending(x => x).ToList();
 				if(listDaysOfMonth.Count>1) {
 					comboBoxMonthSelect.Items.Clear();
@@ -110,7 +111,7 @@ namespace OpenDental {
 			}
 			if(CreditCards.GetFrequencyType(_creditCard.ChargeFrequency)==ChargeFrequencyType.FixedDayOfMonth) {
 				//EX: 1st of Each Month (This check only accounts for a singular day of the month being run)
-				List<int> listDaysOfMonth=CreditCards.GetDaysOfMonthForChargeFrequency(_creditCard.ChargeFrequency).Split(',').Select(x => PIn.Int(x))
+				List<int> listDaysOfMonth=CreditCards.GetDaysOfMonthForChargeFrequency(_creditCard.ChargeFrequency).Split(',').Select(x => SIn.Int(x))
 					.OrderByDescending(x => x).ToList();
 				if(listDaysOfMonth.Count==1) {//There is only 1 day being charged in a month
 					dayOfMonth=listDaysOfMonth.First();

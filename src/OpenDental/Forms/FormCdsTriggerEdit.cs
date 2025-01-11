@@ -13,6 +13,7 @@ using System.Xml.XPath;
 using System.IO;
 using OpenDental.UI;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -90,7 +91,7 @@ namespace OpenDental {
 				row.Cells.Add("Problem");
 				row.Cells.Add(arrayString[i]);
 				row.Cells.Add("Problem Def");
-				row.Cells.Add(DiseaseDefs.GetItem(PIn.Long(arrayString[i])).DiseaseName);
+				row.Cells.Add(DiseaseDefs.GetItem(SIn.Long(arrayString[i])).DiseaseName);
 				gridMain.ListGridRows.Add(row);
 			}
 			//EhrTriggerCur.ProblemIcd9List---------------------------------------------------------------------------------------------------------------------------
@@ -130,7 +131,7 @@ namespace OpenDental {
 				row.Cells.Add("Medication");
 				row.Cells.Add(arrayString[i]);
 				row.Cells.Add("Medication Def");
-				row.Cells.Add(Medications.GetDescription(PIn.Long(arrayString[i])));
+				row.Cells.Add(Medications.GetDescription(SIn.Long(arrayString[i])));
 				gridMain.ListGridRows.Add(row);
 			}
 			//EhrTriggerCur.RxCuiList
@@ -160,7 +161,7 @@ namespace OpenDental {
 				row.Cells.Add("Allergy");
 				row.Cells.Add(arrayString[i]);
 				row.Cells.Add("Allergy Def");
-				row.Cells.Add(AllergyDefs.GetOne(PIn.Long(arrayString[i])).Description);
+				row.Cells.Add(AllergyDefs.GetOne(SIn.Long(arrayString[i])).Description);
 				gridMain.ListGridRows.Add(row);
 			}
 			//EhrTriggerCur.DemographicsList

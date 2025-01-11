@@ -22,6 +22,7 @@ using MigraDoc.DocumentObjectModel.Shapes;
 using MigraDoc.DocumentObjectModel.Tables;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -123,7 +124,7 @@ namespace OpenDental{
 					printdoc.Print();
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"Printer not available"));
+					ODMessageBox.Show(Lan.g(this,"Printer not available"));
 				}
 			}
 		}
@@ -149,7 +150,7 @@ namespace OpenDental{
 			double statementTotal=0;
 			//LimitedStatements have Total and InsEst for only those transactions selected for the statement
 			if(Stmt.StatementType==StmtType.LimitedStatement) {
-				patInsEstLimited=PIn.Double(tableMisc.Rows.OfType<DataRow>()
+				patInsEstLimited=SIn.Double(tableMisc.Rows.OfType<DataRow>()
 					.Where(x => x["descript"].ToString()=="patInsEst")
 					.Select(x => x["value"].ToString()).FirstOrDefault());//safe, if string is blank or null PIn.Double will return 0
 				statementTotal=dataSet.Tables.OfType<DataTable>().Where(x => x.TableName.StartsWith("account"))
@@ -158,7 +159,7 @@ namespace OpenDental{
 						|| x["ProcNum"].ToString()!="0"//procs, will be charges with credits==0
 						|| x["PayNum"].ToString()!="0"//patient payments, will be credits with charges==0
 						|| x["ClaimPaymentNum"].ToString()!="0").ToList()//claimproc payments+writeoffs, will be credits with charges==0
-					.Sum(x => PIn.Double(x["chargesDouble"].ToString())-PIn.Double(x["creditsDouble"].ToString()));//add charges-credits
+					.Sum(x => SIn.Double(x["chargesDouble"].ToString())-SIn.Double(x["creditsDouble"].ToString()));//add charges-credits
 			}
 			//HEADING-----------------------------------------------------------------------------------------------------------
 			#region Heading
@@ -365,7 +366,7 @@ namespace OpenDental{
 					for(int m = 0;m<tableMisc.Rows.Count;m++) {
 						//only add the payplandue value for version 1. (version 2+ already account for it when calculating aging)
 						if(tableMisc.Rows[m]["descript"].ToString()=="payPlanDue" && PrefC.GetInt(PrefName.PayPlansVersion)==1) {
-							balTotal+=PIn.Double(tableMisc.Rows[m]["value"].ToString());
+							balTotal+=SIn.Double(tableMisc.Rows[m]["value"].ToString());
 							//payPlanDue;//PatGuar.PayPlanDue;
 						}
 					}
@@ -706,14 +707,14 @@ namespace OpenDental{
 					}
 					for(int p=0;p<tableAcct.Rows.Count;p++) {
 						if(tableAcct.Rows[p]["AdjNum"].ToString()!="0") {
-							adjAmt-=PIn.Double(tableAcct.Rows[p]["creditsDouble"].ToString());
-							adjAmt+=PIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
+							adjAmt-=SIn.Double(tableAcct.Rows[p]["creditsDouble"].ToString());
+							adjAmt+=SIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
 						}
 						else if(tableAcct.Rows[p]["PayPlanChargeNum"].ToString()!="0") {
-							payplanAmt+=PIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
+							payplanAmt+=SIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
 						}
 						else {//must be a procedure
-							procAmt+=PIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
+							procAmt+=SIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
 						}
 					}
 				}
@@ -762,7 +763,7 @@ namespace OpenDental{
 					double patInsEst=0;
 					for(int m=0;m<tableMisc.Rows.Count;m++) {
 						if(tableMisc.Rows[m]["descript"].ToString()=="patInsEst") {
-							patInsEst=PIn.Double(tableMisc.Rows[m]["value"].ToString());
+							patInsEst=SIn.Double(tableMisc.Rows[m]["value"].ToString());
 						}
 					}
 					double patBal=pat.EstBalance-patInsEst;
@@ -864,7 +865,7 @@ namespace OpenDental{
 				double payPlanDue=0;
 				for(int m=0;m<tableMisc.Rows.Count;m++){
 					if(tableMisc.Rows[m]["descript"].ToString()=="payPlanDue"){
-						payPlanDue=PIn.Double(tableMisc.Rows[m]["value"].ToString());
+						payPlanDue=SIn.Double(tableMisc.Rows[m]["value"].ToString());
 					}
 				}
 				par.AddText(Lan.g(this,"Payment Plan Amount Due: ")+payPlanDue.ToString("c"));//PatGuar.PayPlanDue.ToString("c"));
@@ -927,7 +928,7 @@ namespace OpenDental{
 				par.Format.SpaceAfter=Unit.FromInch(.05);
 				patnum=0;
 				if(tablename!="account"){//account123 etc.
-					patnum=PIn.Long(tablename.Substring(7));
+					patnum=SIn.Long(tablename.Substring(7));
 				}
 				if(patnum!=0){
 					par.AddText(fam.GetNameInFamFLnoPref(patnum));
@@ -990,7 +991,7 @@ namespace OpenDental{
 					}
 					else if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 						if(Stmt.IsReceipt) {
-							if(PIn.Long(rowCur["ProcNum"].ToString())==0) {
+							if(SIn.Long(rowCur["ProcNum"].ToString())==0) {
 								grow.Cells.Add(rowCur["description"].ToString());
 							}
 							else {//Only clear description for procedures.

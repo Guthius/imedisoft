@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Globalization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.SheetFramework {
@@ -97,7 +98,7 @@ namespace OpenDentBusiness.SheetFramework {
 						if(r["ClaimNum"].ToString()!="0") {//Hide claim rows and claim payment rows for Canadian receipts.
 							continue;
 						}
-						if(PIn.Long(r["ProcNum"].ToString())!=0) {
+						if(SIn.Long(r["ProcNum"].ToString())!=0) {
 							r["description"]="";//Description: blank in Canada normally because this information is used on taxes and is considered a security concern.
 						}
 						r["ProcCode"]="";//Code: blank in Canada normally because this information is used on taxes and is considered a security concern.
@@ -113,23 +114,23 @@ namespace OpenDentBusiness.SheetFramework {
 						&& !CultureInfo.CurrentCulture.Name.EndsWith("CA")
 						&& stmt.IsReceipt
 						&& stmt.SinglePatient) {
-						long patNumCur=PIn.Long(r["PatNum"].ToString());
+						long patNumCur=SIn.Long(r["PatNum"].ToString());
 						//If the PatNum column is valid and is for a different patient then force it to be for this patient so that it shows up in the same grid.
 						if(patNumCur > 0 && patNumCur!=stmt.PatNum) {
-							r["PatNum"]=POut.Long(stmt.PatNum);
+							r["PatNum"]=SOut.Long(stmt.PatNum);
 						}
 					}
 					//GetTable_StatementMain() gets called every time FormSheetFillEdit needs to redraw. That happens when we preview or click on the statement
 					//Thus, we would be prepending the provider into the description every call. This bool prevents that from happening if we manually added the provider in the description.
 					//This only concerns English (Australia).
-					bool hasProvInDescription=PIn.String(r["Description"].ToString()).StartsWith(PIn.String(r["prov"].ToString())+" - ");
+					bool hasProvInDescription=SIn.String(r["Description"].ToString()).StartsWith(SIn.String(r["prov"].ToString())+" - ");
 					if(CultureInfo.CurrentCulture.Name=="en-AU" && r["prov"].ToString().Trim()!="" && !hasProvInDescription) {
 						r["description"]=r["prov"]+" - "+r["description"];
 					}
 					retVal.ImportRow(r);
 				}
 				if(t.Rows.Count==0) {
-					Patient p=Patients.GetPat(PIn.Long(t.TableName.Replace("account","")))??Patients.GetPat(stmt.PatNum);
+					Patient p=Patients.GetPat(SIn.Long(t.TableName.Replace("account","")))??Patients.GetPat(stmt.PatNum);
 					retVal.Rows.Add(
 						0,//"AdjNum"
 						"",//"AbbrDesc"
@@ -345,13 +346,13 @@ namespace OpenDentBusiness.SheetFramework {
 			DataRow row;
 			for(int i = 0;i < tablePaySplits.Rows.Count;i++) {
 				row=table.NewRow();
-				row["date"] = PIn.Date(tablePaySplits.Rows[i]["Date"].ToString()).ToShortDateString();
+				row["date"] = SIn.Date(tablePaySplits.Rows[i]["Date"].ToString()).ToShortDateString();
 				row["prov"] = tablePaySplits.Rows[i]["Provider"].ToString();
 				row["patient"] = tablePaySplits.Rows[i]["FName"].ToString();
 				row["type"] = tablePaySplits.Rows[i]["TranType"].ToString();
 				row["ProcCode"] = tablePaySplits.Rows[i]["ProcCode"].ToString();
 				row["description"] = tablePaySplits.Rows[i]["Descript"].ToString();
-				row["amt"] = PIn.Double(tablePaySplits.Rows[i]["Amt"].ToString()).ToString("f");
+				row["amt"] = SIn.Double(tablePaySplits.Rows[i]["Amt"].ToString()).ToString("f");
 				table.Rows.Add(row);
 			}
 			return table;
@@ -491,7 +492,7 @@ namespace OpenDentBusiness.SheetFramework {
 			//Fill sorted data rows to sortRetVal DataTable ===============================================================================
 			DataTable sortRetVal=retVal.Clone();
 			for(int i = 0;i<payPlanList.Count;i++) {
-				if(PIn.Double(payPlanList[i][6].ToString()) > 0) {//payment
+				if(SIn.Double(payPlanList[i][6].ToString()) > 0) {//payment
 					count++;
 				}
         sortRetVal.Rows.Add(PayPlanEdit.CreateRowForPayPlanListDT(sortRetVal,payPlanList[i],i-count,payPlan.IsDynamic));
@@ -505,12 +506,12 @@ namespace OpenDentBusiness.SheetFramework {
 			double totAdjustment=0;
 			for(int i = 0;i<sortRetVal.Rows.Count;i++) {
 				DataRow rowTemp=sortRetVal.Rows[i];
-				double rowPrincipal=PIn.Double(rowTemp["Principal"].ToString());
-				double rowInterest=PIn.Double(rowTemp["Interest"].ToString());
-				double rowDue=PIn.Double(rowTemp["Due"].ToString());
-				double rowPayment=PIn.Double(rowTemp["Payment"].ToString());
+				double rowPrincipal=SIn.Double(rowTemp["Principal"].ToString());
+				double rowInterest=SIn.Double(rowTemp["Interest"].ToString());
+				double rowDue=SIn.Double(rowTemp["Due"].ToString());
+				double rowPayment=SIn.Double(rowTemp["Payment"].ToString());
 				double rowAdjustment=0;
-				rowAdjustment=PIn.Double(rowTemp["Adjustment"].ToString());
+				rowAdjustment=SIn.Double(rowTemp["Adjustment"].ToString());
 				totPrincipal+=rowPrincipal;
 				totInterest+=rowInterest;
 				totDue+=rowDue;
@@ -593,10 +594,10 @@ namespace OpenDentBusiness.SheetFramework {
 			double runningBalance=0;
 			for(int i=0;i<dataTablePayPlan.Rows.Count;i++) {
 				DataRow rowTemp=dataTablePayPlan.Rows[i];
-				double rowPrincipal=PIn.Double(rowTemp["Principal"].ToString());
-				double rowInterest=PIn.Double(rowTemp["Interest"].ToString());
-				double rowDue=PIn.Double(rowTemp["Due"].ToString());
-				double rowPayment=PIn.Double(rowTemp["Payment"].ToString());
+				double rowPrincipal=SIn.Double(rowTemp["Principal"].ToString());
+				double rowInterest=SIn.Double(rowTemp["Interest"].ToString());
+				double rowDue=SIn.Double(rowTemp["Due"].ToString());
+				double rowPayment=SIn.Double(rowTemp["Payment"].ToString());
 				totPrincipal+=rowPrincipal;
 				totInterest+=rowInterest;
 				totDue+=rowDue;
@@ -1084,7 +1085,7 @@ namespace OpenDentBusiness.SheetFramework {
 			//When loading sheet data from the database, this param is stored as a comma delimited string of procNums
 			object paramValue=sheetParameter.ParamValue;
 			if(paramValue is string) {
-				listProcNums=paramValue.ToString().Split(',').Select(x => PIn.Long(x)).ToList();
+				listProcNums=paramValue.ToString().Split(',').Select(x => SIn.Long(x)).ToList();
 			}
 			else {//When loading the initial sheetdef, this is stored as a list of objects
 				listProcNums=(List<long>)paramValue;
@@ -1121,7 +1122,7 @@ namespace OpenDentBusiness.SheetFramework {
 			//When loading sheet data from the database, this param is stored as one long string
 			object paramValue=sheetParameter.ParamValue;
 			if(paramValue is string) {
-				listProcNums=paramValue.ToString().Split(',').Select(x => PIn.Long(x)).ToList();
+				listProcNums=paramValue.ToString().Split(',').Select(x => SIn.Long(x)).ToList();
 			}
 			else {//When loading the initial sheetdef, this is stored as a list of objects
 				listProcNums=(List<long>)paramValue;

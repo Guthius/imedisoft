@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -83,7 +84,7 @@ namespace OpenDental{
 		///<summary>Sets parameters/fills lists based on form controls.</summary>
 		private RpAgingParamObject GetParamsFromForm() {
 			RpAgingParamObject rpo=new RpAgingParamObject();
-			rpo.AsOfDate=PIn.Date(textDate.Text);
+			rpo.AsOfDate=SIn.Date(textDate.Text);
 			if(rpo.AsOfDate.Year<1880) {
 				rpo.AsOfDate=DateTime.Today;
 			}

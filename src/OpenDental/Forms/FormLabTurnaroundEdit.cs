@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -34,7 +35,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			if(PIn.Long(textDaysActual.Text)==0){
+			if(SIn.Long(textDaysActual.Text)==0){
 				MsgBox.Show(this,"Actual Days cannot be zero.");
 				return;
 			}
@@ -43,8 +44,8 @@ namespace OpenDental{
 				return;
 			}
 			LabTurnaroundCur.Description=textDescription.Text;
-			LabTurnaroundCur.DaysPublished=PIn.Int(textDaysPublished.Text);
-			LabTurnaroundCur.DaysActual=PIn.Int(textDaysActual.Text);
+			LabTurnaroundCur.DaysPublished=SIn.Int(textDaysPublished.Text);
+			LabTurnaroundCur.DaysActual=SIn.Int(textDaysActual.Text);
 			DialogResult=DialogResult.OK;
 		}
 

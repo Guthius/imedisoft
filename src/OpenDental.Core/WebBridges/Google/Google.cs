@@ -44,7 +44,7 @@ namespace OpenDentBusiness {
 			using(WebClient client=new WebClient()) {
 				client.Headers[HttpRequestHeader.Accept]=acceptType;
 				client.Headers[HttpRequestHeader.ContentType]=acceptType;
-				client.Encoding=UnicodeEncoding.UTF8;
+				client.Encoding=Encoding.UTF8;
 				//Post with Authorization headers and a body comprised of a JSON serialized anonymous type.
 				try {
 					string res="";

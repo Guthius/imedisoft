@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Ionic.Zip;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -528,10 +529,10 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "//because we want to restrict to only results with procedurelog
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate > '1880-01-01' AND Birthdate <= "+POut.Date(DateTime.Today.AddYears(-65))+" "//65 or older
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate > '1880-01-01' AND Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-65))+" "//65 or older
 						+"GROUP BY patient.PatNum";//there will frequently be multiple procedurelog events
 					Db.NonQ(command);
 					//now, find BMIs within 6 months of each visit date. No logic for picking one of multiple BMIs.
@@ -574,11 +575,11 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "//because we want to restrict to only results with procedurelog
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-18))+" "//18+
-						+"AND Birthdate > "+POut.Date(DateTime.Today.AddYears(-65))+" "//less than 65
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-18))+" "//18+
+						+"AND Birthdate > "+SOut.Date(DateTime.Today.AddYears(-65))+" "//less than 65
 						+"GROUP BY patient.PatNum";//there will frequently be multiple procedurelog events
 					Db.NonQ(command);
 					//now, find BMIs within 6 months of each visit date. No logic for picking one of multiple BMIs.
@@ -621,13 +622,13 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
 						+"LEFT JOIN disease ON disease.PatNum=patient.PatNum "
 						+"AND disease.DiseaseDefNum IN (SELECT DiseaseDefNum FROM diseasedef WHERE ICD9Code REGEXP '^40[1-4]') "//starts with 401 through 404
 						//+"LEFT JOIN icd9 ON icd9.ICD9Num=disease.ICD9Num "
 						+"LEFT JOIN diseasedef ON diseasedef.DiseaseDefNum=disease.DiseaseDefNum "
 						//+"AND icd9.ICD9Code REGEXP '^40[1-4]' "//starts with 401 through 404
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-18))+" "//18+
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-18))+" "//18+
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//now, find BMIs in measurement period.
@@ -636,8 +637,8 @@ namespace OpenDentBusiness {
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
 						+"AND vitalsign.BpSystolic != 0 "
 						+"AND vitalsign.BpDiastolic != 0 "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd);
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd);
 					Db.NonQ(command);
 					command="SELECT * FROM tempehrquality"+rndStr+@"";
 					tableRaw=DataCore.GetTable(command);
@@ -667,8 +668,8 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-18))+" "//18+
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-18))+" "//18+
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//now, find most recent tobacco assessment date.  We will check later that it is within 2 years of last exam.
@@ -676,7 +677,7 @@ namespace OpenDentBusiness {
 						+"SET tempehrquality"+rndStr+@".DateAssessment=(SELECT MAX(DATE(ehrmeasureevent.DateTEvent)) "
 						+"FROM ehrmeasureevent "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=ehrmeasureevent.PatNum "
-						+"AND ehrmeasureevent.EventType="+POut.Int((int)EhrMeasureEventType.TobaccoUseAssessed)+")";
+						+"AND ehrmeasureevent.EventType="+SOut.Int((int)EhrMeasureEventType.TobaccoUseAssessed)+")";
 					Db.NonQ(command);
 					command="UPDATE tempehrquality"+rndStr+@" SET DateAssessment='0001-01-01' WHERE DateAssessment='0000-00-00'";
 					Db.NonQ(command);
@@ -708,12 +709,12 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-18))+" "//18+
-						+"AND patient.SmokingSnoMed IN('"+POut.String(SmokingSnoMed._449868002.ToString().Substring(1))+"','"
-						+POut.String(SmokingSnoMed._428041000124106.ToString().Substring(1))+"','"
-						+POut.String(SmokingSnoMed._428061000124105.ToString().Substring(1))+"','"
-						+POut.String(SmokingSnoMed._428071000124103.ToString().Substring(1))+"') "//CurrentEveryDay,CurrentSomeDay,LightSmoker,HeavySmoker
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-18))+" "//18+
+						+"AND patient.SmokingSnoMed IN('"+SOut.String(SmokingSnoMed._449868002.ToString().Substring(1))+"','"
+						+SOut.String(SmokingSnoMed._428041000124106.ToString().Substring(1))+"','"
+						+SOut.String(SmokingSnoMed._428061000124105.ToString().Substring(1))+"','"
+						+SOut.String(SmokingSnoMed._428071000124103.ToString().Substring(1))+"') "//CurrentEveryDay,CurrentSomeDay,LightSmoker,HeavySmoker
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//find most recent tobacco assessment date.
@@ -721,7 +722,7 @@ namespace OpenDentBusiness {
 						+"SET tempehrquality"+rndStr+@".DateAssessment=(SELECT MAX(DATE(ehrmeasureevent.DateTEvent)) "
 						+"FROM ehrmeasureevent "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=ehrmeasureevent.PatNum "
-						+"AND ehrmeasureevent.EventType="+POut.Int((int)EhrMeasureEventType.TobaccoUseAssessed)+")";
+						+"AND ehrmeasureevent.EventType="+SOut.Int((int)EhrMeasureEventType.TobaccoUseAssessed)+")";
 					Db.NonQ(command);
 					command="UPDATE tempehrquality"+rndStr+@" SET DateAssessment='0001-01-01' WHERE DateAssessment='0000-00-00'";
 					Db.NonQ(command);
@@ -730,7 +731,7 @@ namespace OpenDentBusiness {
 						+"SET tempehrquality"+rndStr+@".DateCessation=(SELECT MAX(DATE(ehrmeasureevent.DateTEvent)) "
 						+"FROM ehrmeasureevent "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=ehrmeasureevent.PatNum "
-						+"AND ehrmeasureevent.EventType="+POut.Int((int)EhrMeasureEventType.TobaccoCessation)+")";
+						+"AND ehrmeasureevent.EventType="+SOut.Int((int)EhrMeasureEventType.TobaccoCessation)+")";
 					Db.NonQ(command);
 					command="UPDATE tempehrquality"+rndStr+@" SET DateCessation='0001-01-01' WHERE DateCessation='0000-00-00'";
 					Db.NonQ(command);
@@ -739,7 +740,7 @@ namespace OpenDentBusiness {
 						+"SET Documentation=(SELECT ehrmeasureevent.MoreInfo "
 						+"FROM ehrmeasureevent "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=ehrmeasureevent.PatNum "
-						+"AND ehrmeasureevent.EventType="+POut.Int((int)EhrMeasureEventType.TobaccoCessation)+" "
+						+"AND ehrmeasureevent.EventType="+SOut.Int((int)EhrMeasureEventType.TobaccoCessation)+" "
 						+"AND DATE(ehrmeasureevent.DateTEvent)=tempehrquality"+rndStr+@".DateCessation) "
 						+"WHERE DateCessation > '1880-01-01'";
 					Db.NonQ(command);
@@ -768,10 +769,10 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate > '1880-01-01' AND Birthdate <= "+POut.Date(DateTime.Today.AddYears(-50))+" "//50 or older
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate > '1880-01-01' AND Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-50))+" "//50 or older
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//find most recent vaccine date
@@ -821,27 +822,27 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-2))+" "//2+
-						+"AND Birthdate > "+POut.Date(DateTime.Today.AddYears(-17))+" "//less than 17
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-2))+" "//2+
+						+"AND Birthdate > "+SOut.Date(DateTime.Today.AddYears(-17))+" "//less than 17
 						+"GROUP BY patient.PatNum";//there will frequently be multiple procedurelog events
 					Db.NonQ(command);
 					//find any BMIs within the period that indicate pregnancy
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".IsPregnant=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.IsIneligible=1";
 					Db.NonQ(command);
 					//find any BMIs within the period with a valid BMI
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".HasBMI=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.Height > 0 "
 						+"AND vitalsign.Weight > 0";
 					Db.NonQ(command);
@@ -849,16 +850,16 @@ namespace OpenDentBusiness {
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".ChildGotNutrition=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.ChildGotNutrition=1";
 					Db.NonQ(command);
 					//find any BMIs within the period that indicate ChildGotPhysCouns
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".ChildGotPhysCouns=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.ChildGotPhysCouns=1";
 					Db.NonQ(command);
 					command="SELECT * FROM tempehrquality"+rndStr+@"";
@@ -889,27 +890,27 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-2))+" "//2+
-						+"AND Birthdate > "+POut.Date(DateTime.Today.AddYears(-11))+" "//less than 11
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-2))+" "//2+
+						+"AND Birthdate > "+SOut.Date(DateTime.Today.AddYears(-11))+" "//less than 11
 						+"GROUP BY patient.PatNum";//there will frequently be multiple procedurelog events
 					Db.NonQ(command);
 					//find any BMIs within the period that indicate pregnancy
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".IsPregnant=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.IsIneligible=1";
 					Db.NonQ(command);
 					//find any BMIs within the period with a valid BMI
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".HasBMI=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.Height > 0 "
 						+"AND vitalsign.Weight > 0";
 					Db.NonQ(command);
@@ -917,16 +918,16 @@ namespace OpenDentBusiness {
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".ChildGotNutrition=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.ChildGotNutrition=1";
 					Db.NonQ(command);
 					//find any BMIs within the period that indicate ChildGotPhysCouns
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".ChildGotPhysCouns=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.ChildGotPhysCouns=1";
 					Db.NonQ(command);
 					command="SELECT * FROM tempehrquality"+rndStr+@"";
@@ -957,27 +958,27 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate <= "+POut.Date(DateTime.Today.AddYears(-11))+" "//11+
-						+"AND Birthdate > "+POut.Date(DateTime.Today.AddYears(-17))+" "//less than 17
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate <= "+SOut.Date(DateTime.Today.AddYears(-11))+" "//11+
+						+"AND Birthdate > "+SOut.Date(DateTime.Today.AddYears(-17))+" "//less than 17
 						+"GROUP BY patient.PatNum";//there will frequently be multiple procedurelog events
 					Db.NonQ(command);
 					//find any BMIs within the period that indicate pregnancy
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".IsPregnant=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.IsIneligible=1";
 					Db.NonQ(command);
 					//find any BMIs within the period with a valid BMI
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".HasBMI=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.Height > 0 "
 						+"AND vitalsign.Weight > 0";
 					Db.NonQ(command);
@@ -985,16 +986,16 @@ namespace OpenDentBusiness {
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".ChildGotNutrition=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.ChildGotNutrition=1";
 					Db.NonQ(command);
 					//find any BMIs within the period that indicate ChildGotPhysCouns
 					command="UPDATE tempehrquality"+rndStr+@",vitalsign "
 						+"SET tempehrquality"+rndStr+@".ChildGotPhysCouns=1 "
 						+"WHERE tempehrquality"+rndStr+@".PatNum=vitalsign.PatNum "
-						+"AND vitalsign.DateTaken >= "+POut.Date(dateStart)+" "
-						+"AND vitalsign.DateTaken <= "+POut.Date(dateEnd)+" "
+						+"AND vitalsign.DateTaken >= "+SOut.Date(dateStart)+" "
+						+"AND vitalsign.DateTaken <= "+SOut.Date(dateEnd)+" "
 						+"AND vitalsign.ChildGotPhysCouns=1";
 					Db.NonQ(command);
 					command="SELECT * FROM tempehrquality"+rndStr+@"";
@@ -1070,11 +1071,11 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE DATE_ADD(Birthdate,INTERVAL 2 YEAR) >= "+POut.Date(dateStart)+" "//second birthdate is in meas period
-						+"AND DATE_ADD(Birthdate,INTERVAL 2 YEAR) <= "+POut.Date(dateEnd)+" "
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE DATE_ADD(Birthdate,INTERVAL 2 YEAR) >= "+SOut.Date(dateStart)+" "//second birthdate is in meas period
+						+"AND DATE_ADD(Birthdate,INTERVAL 2 YEAR) <= "+SOut.Date(dateEnd)+" "
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					#region DTaP
@@ -1340,10 +1341,10 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateEnd.AddYears(-1))+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate > '1880-01-01' AND Birthdate <= "+POut.Date(dateStart.AddYears(-65))+" "//65 or older as of dateEnd
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateEnd.AddYears(-1))+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate > '1880-01-01' AND Birthdate <= "+SOut.Date(dateStart.AddYears(-65))+" "//65 or older as of dateEnd
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//find most recent vaccine date
@@ -1386,11 +1387,11 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate <= "+POut.Date(dateStart.AddYears(-17))+" "
-						+"AND Birthdate >= "+POut.Date(dateStart.AddYears(-74))+" "//17-74 before dateStart
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate <= "+SOut.Date(dateStart.AddYears(-17))+" "
+						+"AND Birthdate >= "+SOut.Date(dateStart.AddYears(-74))+" "//17-74 before dateStart
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//Medication
@@ -1408,7 +1409,7 @@ namespace OpenDentBusiness {
 						+"200256, 200257, 200258, 311919, 314142, 389139,"//meglitinides
 						+"105374, 153842, 197306, 197307, 197495, 197496, 197737, 198291, 198292, 198293, 198294, 199245, 199246, 199247, 199825, 199984, 199985, 200065, 252960, 310488, 310489, 310490, 310534, 310536, 310537, 310539, 312440, 312441, 312859, 312860, 312861, 313418, 313419, 314000, 314006, 315107, 315239, 317573, 379804, 389137, 602544, 602549, 602550, 647237, 647239, 706895, 706896, 757710, 757712, 844809, 844824, 844827, 861731, 861736, 861740, 861743, 861748, 861753, 861760, 861763, 861783, 861795, 861806, 861816, 861822,"//Sulfonylureas
 						+"312440, 312441, 312859, 312860, 312861, 317573) "//Thiazolidinediones
-						+"AND (DateStop >= "+POut.Date(dateEnd.AddYears(-2))+" "//med active <= 2 years before or simultaneous to end date
+						+"AND (DateStop >= "+SOut.Date(dateEnd.AddYears(-2))+" "//med active <= 2 years before or simultaneous to end date
 						+"OR DateStop < '1880-01-01') "//or still active
 						+") > 0";
 					Db.NonQ(command);
@@ -1424,9 +1425,9 @@ namespace OpenDentBusiness {
 						+"OR diseasedef.ICD9Code LIKE '362.0%' "
 						+"OR diseasedef.ICD9Code LIKE '366.41' "
 						+"OR diseasedef.ICD9Code LIKE '648.0%') "
-						+"AND (disease.DateStart <= "+POut.Date(dateEnd)+" "//if there is a start date, it can't be after the period end.
+						+"AND (disease.DateStart <= "+SOut.Date(dateEnd)+" "//if there is a start date, it can't be after the period end.
 						+"OR disease.DateStart < '1880-01-01') "//no startdate
-						+"AND (disease.DateStop >= "+POut.Date(dateEnd.AddYears(-2))+" "//if there's a datestop, it can't have stopped more than 2 years ago.
+						+"AND (disease.DateStop >= "+SOut.Date(dateEnd.AddYears(-2))+" "//if there's a datestop, it can't have stopped more than 2 years ago.
 							//Specs say: diagnosis active <= 2 years before or simultaneous to end date
 						+"OR disease.DateStop < '1880-01-01') "//or still active
 						+") > 0";
@@ -1457,7 +1458,7 @@ namespace OpenDentBusiness {
 						+"WHERE disease.DiseaseDefNum=diseasedef.DiseaseDefNum "
 						+"AND disease.PatNum=tempehrquality"+rndStr+@".PatNum "
 						+"AND diseasedef.ICD9Code = '256.4' "
-						+"AND (disease.DateStart <= "+POut.Date(dateEnd)+" "//if there's a datestart, it can't be after period end
+						+"AND (disease.DateStart <= "+SOut.Date(dateEnd)+" "//if there's a datestart, it can't be after period end
 						+"OR disease.DateStart < '1880-01-01') "
 						//no restrictions on datestop.  It could still be active or could have stopped before or after the period end.
 						+") > 0";
@@ -1471,7 +1472,7 @@ namespace OpenDentBusiness {
 						+"AND disease.PatNum=tempehrquality"+rndStr+@".PatNum "
 						+"AND (diseasedef.ICD9Code LIKE '249%' OR diseasedef.ICD9Code='251.8' OR diseasedef.ICD9Code='962.0' "//steroid induced
 						+"OR diseasedef.ICD9Code LIKE '648.8%') "//gestational
-						+"AND (disease.DateStart <= "+POut.Date(dateEnd)+" "//if there's a datestart, it can't be after period end
+						+"AND (disease.DateStart <= "+SOut.Date(dateEnd)+" "//if there's a datestart, it can't be after period end
 						+"OR disease.DateStart < '1880-01-01') "
 						//no restrictions on datestop.  It could still be active or could have stopped before or after the period end.
 						+") > 0";
@@ -1505,11 +1506,11 @@ namespace OpenDentBusiness {
 						+"INNER JOIN procedurelog "
 						+"ON Patient.PatNum=procedurelog.PatNum "
 						+"AND procedurelog.ProcStatus=2 "//complete
-						+"AND procedurelog.ProvNum="+POut.Long(provNum)+" "
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
-						+"WHERE Birthdate <= "+POut.Date(dateStart.AddYears(-17))+" "
-						+"AND Birthdate >= "+POut.Date(dateStart.AddYears(-74))+" "//17-74 before dateStart
+						+"AND procedurelog.ProvNum="+SOut.Long(provNum)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
+						+"WHERE Birthdate <= "+SOut.Date(dateStart.AddYears(-17))+" "
+						+"AND Birthdate >= "+SOut.Date(dateStart.AddYears(-74))+" "//17-74 before dateStart
 						+"GROUP BY patient.PatNum";
 					Db.NonQ(command);
 					//HasDiagnosisHypertension
@@ -1520,7 +1521,7 @@ namespace OpenDentBusiness {
 						+"WHERE disease.DiseaseDefNum=diseasedef.DiseaseDefNum "
 						+"AND disease.PatNum=tempehrquality"+rndStr+@".PatNum "
 						+"AND diseasedef.ICD9Code LIKE '401%' "
-						+"AND (disease.DateStart <= "+POut.Date(dateStart.AddMonths(6))+" "//if there is a start date, it can't be after this point
+						+"AND (disease.DateStart <= "+SOut.Date(dateStart.AddMonths(6))+" "//if there is a start date, it can't be after this point
 						+"OR disease.DateStart < '1880-01-01') "//no startdate
 						//no restrictions on datestop.  It could still be active or could have stopped before or after the period end.
 						+") > 0";
@@ -1535,8 +1536,8 @@ namespace OpenDentBusiness {
 						+"WHERE procedurelog.CodeNum=procedurecode.CodeNum "
 						+"AND procedurelog.PatNum=tempehrquality"+rndStr+@".PatNum "
 						+"AND procedurecode.ProcCode IN ('36145','36147','36148','36800', '36810','36815','36818','36819','36820', '36821','36831', '36832', '36833', '50300', '50320','50340','50360','50365','50370', '50380','90920','90921','90924','90925', '90935','90937', '90940','90945', '90947', '90957', '90958','90959','90960','90961','90962','90965','90966','90969','90970','90989','90993','90997','90999','99512') "//ESRD
-						+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-						+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
+						+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+						+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
 						+") > 0";
 					Db.NonQ(command);
 					//HasDiagnosisPregnancy
@@ -1555,9 +1556,9 @@ namespace OpenDentBusiness {
 						+"OR diseasedef.ICD9Code LIKE 'V23%' "
 						+"OR diseasedef.ICD9Code LIKE 'V28%') "
 						//active during the period
-						+"AND (disease.DateStart <= "+POut.Date(dateEnd)+" "//if there is a start date, it can't be after the period end.
+						+"AND (disease.DateStart <= "+SOut.Date(dateEnd)+" "//if there is a start date, it can't be after the period end.
 						+"OR disease.DateStart < '1880-01-01') "//no startdate
-						+"AND (disease.DateStop >= "+POut.Date(dateStart)+" "//if there's a datestop, it can't have stopped before the period.
+						+"AND (disease.DateStop >= "+SOut.Date(dateStart)+" "//if there's a datestop, it can't have stopped before the period.
 						+"OR disease.DateStop < '1880-01-01') "//or still active
 						+") > 0";
 					Db.NonQ(command);
@@ -1577,9 +1578,9 @@ namespace OpenDentBusiness {
 						+"OR diseasedef.ICD9Code LIKE 'V45.1%' "
 						+"OR diseasedef.ICD9Code LIKE 'V56%') "
 						//active during the period
-						+"AND (disease.DateStart <= "+POut.Date(dateEnd)+" "
+						+"AND (disease.DateStart <= "+SOut.Date(dateEnd)+" "
 						+"OR disease.DateStart < '1880-01-01') "
-						+"AND (disease.DateStop >= "+POut.Date(dateStart)+" "
+						+"AND (disease.DateStop >= "+SOut.Date(dateStart)+" "
 						+"OR disease.DateStop < '1880-01-01') "
 						+") > 0";
 					Db.NonQ(command);
@@ -1641,11 +1642,11 @@ namespace OpenDentBusiness {
 					#region WeightOver65
 					case QualityType.WeightOver65:
 						//WeightOver65-----------------------------------------------------------------------------------------------------------------
-						weight=PIn.Float(tableRaw.Rows[i]["Weight"].ToString());
-						height=PIn.Float(tableRaw.Rows[i]["Height"].ToString());
+						weight=SIn.Float(tableRaw.Rows[i]["Weight"].ToString());
+						height=SIn.Float(tableRaw.Rows[i]["Height"].ToString());
 						bmi=Vitalsigns.CalcBMI(weight,height);
-						bool hasFollowupPlan=PIn.Bool(tableRaw.Rows[i]["HasFollowupPlan"].ToString());
-						bool isIneligible=PIn.Bool(tableRaw.Rows[i]["IsIneligible"].ToString());
+						bool hasFollowupPlan=SIn.Bool(tableRaw.Rows[i]["HasFollowupPlan"].ToString());
+						bool isIneligible=SIn.Bool(tableRaw.Rows[i]["IsIneligible"].ToString());
 						string documentation=tableRaw.Rows[i]["Documentation"].ToString();
 						if(bmi==0){
 							row["explanation"]="No BMI";
@@ -1677,11 +1678,11 @@ namespace OpenDentBusiness {
 					#region WeightAdult
 					case QualityType.WeightAdult:
 						//WeightAdult-----------------------------------------------------------------------------------------------------------------
-						weight=PIn.Float(tableRaw.Rows[i]["Weight"].ToString());
-						height=PIn.Float(tableRaw.Rows[i]["Height"].ToString());
+						weight=SIn.Float(tableRaw.Rows[i]["Weight"].ToString());
+						height=SIn.Float(tableRaw.Rows[i]["Height"].ToString());
 						bmi=Vitalsigns.CalcBMI(weight,height);
-						hasFollowupPlan=PIn.Bool(tableRaw.Rows[i]["HasFollowupPlan"].ToString());
-						isIneligible=PIn.Bool(tableRaw.Rows[i]["IsIneligible"].ToString());
+						hasFollowupPlan=SIn.Bool(tableRaw.Rows[i]["HasFollowupPlan"].ToString());
+						isIneligible=SIn.Bool(tableRaw.Rows[i]["IsIneligible"].ToString());
 						documentation=tableRaw.Rows[i]["Documentation"].ToString();
 						if(bmi==0){
 							row["explanation"]="No BMI";
@@ -1713,10 +1714,10 @@ namespace OpenDentBusiness {
 					#region Hypertension
 					case QualityType.Hypertension:
 						//Hypertension---------------------------------------------------------------------------------------------------------------------
-						dateVisit=PIn.Date(tableRaw.Rows[i]["DateVisit"].ToString());
-						visitCount=PIn.Int(tableRaw.Rows[i]["VisitCount"].ToString());
+						dateVisit=SIn.Date(tableRaw.Rows[i]["DateVisit"].ToString());
+						visitCount=SIn.Int(tableRaw.Rows[i]["VisitCount"].ToString());
 						string icd9code=tableRaw.Rows[i]["Icd9Code"].ToString();
-						DateTime datePbEntered=PIn.Date(tableRaw.Rows[i]["DateBpEntered"].ToString());
+						DateTime datePbEntered=SIn.Date(tableRaw.Rows[i]["DateBpEntered"].ToString());
 						if(dateVisit<dateStart || dateVisit>dateEnd) {//no visits in the measurement period
 							continue;//don't add this row.  Not part of denominator.
 						}
@@ -1738,9 +1739,9 @@ namespace OpenDentBusiness {
 					#region TobaccoUse
 					case QualityType.TobaccoUse:
 						//TobaccoUse---------------------------------------------------------------------------------------------------------------------
-						dateVisit=PIn.Date(tableRaw.Rows[i]["DateVisit"].ToString());
+						dateVisit=SIn.Date(tableRaw.Rows[i]["DateVisit"].ToString());
 						//visitCount=PIn.Int(tableRaw.Rows[i]["VisitCount"].ToString());
-						DateTime dateAssessment=PIn.Date(tableRaw.Rows[i]["DateAssessment"].ToString());
+						DateTime dateAssessment=SIn.Date(tableRaw.Rows[i]["DateAssessment"].ToString());
 						if(dateVisit<dateStart || dateVisit>dateEnd) {//no visits in the measurement period
 							continue;//don't add this row.  Not part of denominator.
 						}
@@ -1762,9 +1763,9 @@ namespace OpenDentBusiness {
 					#region TobaccoCessation
 					case QualityType.TobaccoCessation:
 						//TobaccoCessation----------------------------------------------------------------------------------------------------------------
-						dateVisit=PIn.Date(tableRaw.Rows[i]["DateVisit"].ToString());
-						dateAssessment=PIn.Date(tableRaw.Rows[i]["DateAssessment"].ToString());
-						DateTime DateCessation=PIn.Date(tableRaw.Rows[i]["DateCessation"].ToString());
+						dateVisit=SIn.Date(tableRaw.Rows[i]["DateVisit"].ToString());
+						dateAssessment=SIn.Date(tableRaw.Rows[i]["DateAssessment"].ToString());
+						DateTime DateCessation=SIn.Date(tableRaw.Rows[i]["DateCessation"].ToString());
 						documentation=tableRaw.Rows[i]["Documentation"].ToString();
 						if(dateVisit<dateStart || dateVisit>dateEnd) {//no visits in the measurement period
 							continue;//don't add this row.  Not part of denominator.
@@ -1787,8 +1788,8 @@ namespace OpenDentBusiness {
 					#region InfluenzaAdult
 					case QualityType.InfluenzaAdult:
 						//InfluenzaAdult----------------------------------------------------------------------------------------------------------------
-						DateTime DateVaccine=PIn.Date(tableRaw.Rows[i]["DateVaccine"].ToString());
-						bool notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven"].ToString());
+						DateTime DateVaccine=SIn.Date(tableRaw.Rows[i]["DateVaccine"].ToString());
+						bool notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven"].ToString());
 						documentation=tableRaw.Rows[i]["Documentation"].ToString();
 						if(DateVaccine.Year<1880) {
 							row["explanation"]="No influenza vaccine given";
@@ -1806,8 +1807,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_1_1
 					case QualityType.WeightChild_1_1:
 						//WeightChild_1_1----------------------------------------------------------------------------------------------------------------
-						bool isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						bool hasBMI=PIn.Bool(tableRaw.Rows[i]["HasBMI"].ToString());
+						bool isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						bool hasBMI=SIn.Bool(tableRaw.Rows[i]["HasBMI"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1823,8 +1824,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_1_2
 					case QualityType.WeightChild_1_2:
 						//WeightChild_1_2----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						bool ChildGotNutrition=PIn.Bool(tableRaw.Rows[i]["ChildGotNutrition"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						bool ChildGotNutrition=SIn.Bool(tableRaw.Rows[i]["ChildGotNutrition"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1840,8 +1841,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_1_3
 					case QualityType.WeightChild_1_3:
 						//WeightChild_1_3----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						bool ChildGotPhysCouns=PIn.Bool(tableRaw.Rows[i]["ChildGotPhysCouns"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						bool ChildGotPhysCouns=SIn.Bool(tableRaw.Rows[i]["ChildGotPhysCouns"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1857,8 +1858,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_2_1
 					case QualityType.WeightChild_2_1:
 						//WeightChild_2_1----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						hasBMI=PIn.Bool(tableRaw.Rows[i]["HasBMI"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						hasBMI=SIn.Bool(tableRaw.Rows[i]["HasBMI"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1874,8 +1875,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_2_2
 					case QualityType.WeightChild_2_2:
 						//WeightChild_2_2----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						ChildGotNutrition=PIn.Bool(tableRaw.Rows[i]["ChildGotNutrition"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						ChildGotNutrition=SIn.Bool(tableRaw.Rows[i]["ChildGotNutrition"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1891,8 +1892,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_2_3
 					case QualityType.WeightChild_2_3:
 						//WeightChild_2_3----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						ChildGotPhysCouns=PIn.Bool(tableRaw.Rows[i]["ChildGotPhysCouns"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						ChildGotPhysCouns=SIn.Bool(tableRaw.Rows[i]["ChildGotPhysCouns"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1908,8 +1909,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_3_1
 					case QualityType.WeightChild_3_1:
 						//WeightChild_3_1----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						hasBMI=PIn.Bool(tableRaw.Rows[i]["HasBMI"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						hasBMI=SIn.Bool(tableRaw.Rows[i]["HasBMI"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1925,8 +1926,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_3_2
 					case QualityType.WeightChild_3_2:
 						//WeightChild_3_2----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						ChildGotNutrition=PIn.Bool(tableRaw.Rows[i]["ChildGotNutrition"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						ChildGotNutrition=SIn.Bool(tableRaw.Rows[i]["ChildGotNutrition"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1942,8 +1943,8 @@ namespace OpenDentBusiness {
 					#region WeightChild_3_3
 					case QualityType.WeightChild_3_3:
 						//WeightChild_3_3----------------------------------------------------------------------------------------------------------------
-						isPregnant=PIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
-						ChildGotPhysCouns=PIn.Bool(tableRaw.Rows[i]["ChildGotPhysCouns"].ToString());
+						isPregnant=SIn.Bool(tableRaw.Rows[i]["IsPregnant"].ToString());
+						ChildGotPhysCouns=SIn.Bool(tableRaw.Rows[i]["ChildGotPhysCouns"].ToString());
 						if(isPregnant) {
 							continue;
 						}
@@ -1959,9 +1960,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_1
 					case QualityType.ImmunizeChild_1:
 						//ImmunizeChild_1--------------------------------------------------------------------------------------------------------------
-						int count=PIn.Int(tableRaw.Rows[i]["Count1"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven1"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation1"].ToString());
+						int count=SIn.Int(tableRaw.Rows[i]["Count1"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven1"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation1"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No DTaP vaccine given, "+documentation;
@@ -1978,9 +1979,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_2
 					case QualityType.ImmunizeChild_2:
 						//ImmunizeChild_2--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count2"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven2"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation2"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count2"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven2"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation2"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No IPV vaccine given, "+documentation;
@@ -1997,18 +1998,18 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_3
 					case QualityType.ImmunizeChild_3:
 						//ImmunizeChild_3--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count3"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven3"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation3"].ToString());
-						int count3a=PIn.Int(tableRaw.Rows[i]["Count3a"].ToString());
-						bool notGiven3a=PIn.Bool(tableRaw.Rows[i]["NotGiven3a"].ToString());
-						string documentation3a=PIn.String(tableRaw.Rows[i]["Documentation3a"].ToString());
-						int count3b=PIn.Int(tableRaw.Rows[i]["Count3b"].ToString());
-						bool notGiven3b=PIn.Bool(tableRaw.Rows[i]["NotGiven3b"].ToString());
-						string documentation3b=PIn.String(tableRaw.Rows[i]["Documentation3b"].ToString());
-						int count3c=PIn.Int(tableRaw.Rows[i]["Count3c"].ToString());
-						bool notGiven3c=PIn.Bool(tableRaw.Rows[i]["NotGiven3c"].ToString());
-						string documentation3c=PIn.String(tableRaw.Rows[i]["Documentation3c"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count3"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven3"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation3"].ToString());
+						int count3a=SIn.Int(tableRaw.Rows[i]["Count3a"].ToString());
+						bool notGiven3a=SIn.Bool(tableRaw.Rows[i]["NotGiven3a"].ToString());
+						string documentation3a=SIn.String(tableRaw.Rows[i]["Documentation3a"].ToString());
+						int count3b=SIn.Int(tableRaw.Rows[i]["Count3b"].ToString());
+						bool notGiven3b=SIn.Bool(tableRaw.Rows[i]["NotGiven3b"].ToString());
+						string documentation3b=SIn.String(tableRaw.Rows[i]["Documentation3b"].ToString());
+						int count3c=SIn.Int(tableRaw.Rows[i]["Count3c"].ToString());
+						bool notGiven3c=SIn.Bool(tableRaw.Rows[i]["NotGiven3c"].ToString());
+						string documentation3c=SIn.String(tableRaw.Rows[i]["Documentation3c"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No MMR vaccine given, "+documentation;
@@ -2041,9 +2042,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_4
 					case QualityType.ImmunizeChild_4:
 						//ImmunizeChild_4--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count4"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven4"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation4"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count4"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven4"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation4"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No HiB vaccine given, "+documentation;
@@ -2060,9 +2061,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_5
 					case QualityType.ImmunizeChild_5:
 						//ImmunizeChild_5--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count5"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven5"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation5"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count5"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven5"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation5"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No hepatitis B vaccine given, "+documentation;
@@ -2079,9 +2080,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_6
 					case QualityType.ImmunizeChild_6:
 						//ImmunizeChild_6--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count6"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven6"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation6"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count6"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven6"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation6"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No VZV vaccine given, "+documentation;
@@ -2098,9 +2099,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_7
 					case QualityType.ImmunizeChild_7:
 						//ImmunizeChild_7--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count7"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven7"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation7"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count7"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven7"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation7"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No pneumococcal vaccine given, "+documentation;
@@ -2117,9 +2118,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_8
 					case QualityType.ImmunizeChild_8:
 						//ImmunizeChild_8--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count8"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven8"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation8"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count8"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven8"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation8"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No hepatitis A vaccine given, "+documentation;
@@ -2136,9 +2137,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_9
 					case QualityType.ImmunizeChild_9:
 						//ImmunizeChild_9--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count9"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven9"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation9"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count9"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven9"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation9"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No rotavirus vaccine given, "+documentation;
@@ -2155,9 +2156,9 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_10
 					case QualityType.ImmunizeChild_10:
 						//ImmunizeChild_10--------------------------------------------------------------------------------------------------------------
-						count=PIn.Int(tableRaw.Rows[i]["Count10"].ToString());
-						notGiven=PIn.Bool(tableRaw.Rows[i]["NotGiven10"].ToString());
-						documentation=PIn.String(tableRaw.Rows[i]["Documentation10"].ToString());
+						count=SIn.Int(tableRaw.Rows[i]["Count10"].ToString());
+						notGiven=SIn.Bool(tableRaw.Rows[i]["NotGiven10"].ToString());
+						documentation=SIn.String(tableRaw.Rows[i]["Documentation10"].ToString());
 						if(notGiven) {
 							row["exclusion"]="X";
 							row["explanation"]+="No influenza vaccine given, "+documentation;
@@ -2173,24 +2174,24 @@ namespace OpenDentBusiness {
 					#endregion
 					#region ImmunizeChild_11
 					case QualityType.ImmunizeChild_11:
-						int count1=PIn.Int(tableRaw.Rows[i]["Count1"].ToString());
-						int count2=PIn.Int(tableRaw.Rows[i]["Count2"].ToString());
-						int count3=PIn.Int(tableRaw.Rows[i]["Count3"].ToString());
-						count3a=PIn.Int(tableRaw.Rows[i]["Count3a"].ToString());
-						count3b=PIn.Int(tableRaw.Rows[i]["Count3b"].ToString());
-						count3c=PIn.Int(tableRaw.Rows[i]["Count3c"].ToString());
-						int count4=PIn.Int(tableRaw.Rows[i]["Count4"].ToString());
-						int count5=PIn.Int(tableRaw.Rows[i]["Count5"].ToString());
-						int count6=PIn.Int(tableRaw.Rows[i]["Count6"].ToString());
-						bool notGiven1=PIn.Bool(tableRaw.Rows[i]["NotGiven1"].ToString());
-						bool notGiven2=PIn.Bool(tableRaw.Rows[i]["NotGiven2"].ToString());
-						bool notGiven3=PIn.Bool(tableRaw.Rows[i]["NotGiven3"].ToString());
-						notGiven3a=PIn.Bool(tableRaw.Rows[i]["NotGiven3a"].ToString());
-						notGiven3b=PIn.Bool(tableRaw.Rows[i]["NotGiven3b"].ToString());
-						notGiven3c=PIn.Bool(tableRaw.Rows[i]["NotGiven3c"].ToString());
-						bool notGiven4=PIn.Bool(tableRaw.Rows[i]["NotGiven4"].ToString());
-						bool notGiven5=PIn.Bool(tableRaw.Rows[i]["NotGiven5"].ToString());
-						bool notGiven6=PIn.Bool(tableRaw.Rows[i]["NotGiven6"].ToString());
+						int count1=SIn.Int(tableRaw.Rows[i]["Count1"].ToString());
+						int count2=SIn.Int(tableRaw.Rows[i]["Count2"].ToString());
+						int count3=SIn.Int(tableRaw.Rows[i]["Count3"].ToString());
+						count3a=SIn.Int(tableRaw.Rows[i]["Count3a"].ToString());
+						count3b=SIn.Int(tableRaw.Rows[i]["Count3b"].ToString());
+						count3c=SIn.Int(tableRaw.Rows[i]["Count3c"].ToString());
+						int count4=SIn.Int(tableRaw.Rows[i]["Count4"].ToString());
+						int count5=SIn.Int(tableRaw.Rows[i]["Count5"].ToString());
+						int count6=SIn.Int(tableRaw.Rows[i]["Count6"].ToString());
+						bool notGiven1=SIn.Bool(tableRaw.Rows[i]["NotGiven1"].ToString());
+						bool notGiven2=SIn.Bool(tableRaw.Rows[i]["NotGiven2"].ToString());
+						bool notGiven3=SIn.Bool(tableRaw.Rows[i]["NotGiven3"].ToString());
+						notGiven3a=SIn.Bool(tableRaw.Rows[i]["NotGiven3a"].ToString());
+						notGiven3b=SIn.Bool(tableRaw.Rows[i]["NotGiven3b"].ToString());
+						notGiven3c=SIn.Bool(tableRaw.Rows[i]["NotGiven3c"].ToString());
+						bool notGiven4=SIn.Bool(tableRaw.Rows[i]["NotGiven4"].ToString());
+						bool notGiven5=SIn.Bool(tableRaw.Rows[i]["NotGiven5"].ToString());
+						bool notGiven6=SIn.Bool(tableRaw.Rows[i]["NotGiven6"].ToString());
 						if(notGiven1 || notGiven2 || notGiven3 || notGiven3a || notGiven3b || notGiven3c || notGiven4 || notGiven5 || notGiven6) {
 							row["exclusion"]="X";
 							row["explanation"]+="Not given.";//too complicated to document.
@@ -2208,26 +2209,26 @@ namespace OpenDentBusiness {
 					#region ImmunizeChild_12
 					case QualityType.ImmunizeChild_12:
 						//ImmunizeChild_12--------------------------------------------------------------------------------------------------------------
-						count1=PIn.Int(tableRaw.Rows[i]["Count1"].ToString());
-						count2=PIn.Int(tableRaw.Rows[i]["Count2"].ToString());
-						count3=PIn.Int(tableRaw.Rows[i]["Count3"].ToString());
-						count3a=PIn.Int(tableRaw.Rows[i]["Count3a"].ToString());
-						count3b=PIn.Int(tableRaw.Rows[i]["Count3b"].ToString());
-						count3c=PIn.Int(tableRaw.Rows[i]["Count3c"].ToString());
-						count4=PIn.Int(tableRaw.Rows[i]["Count4"].ToString());
-						count5=PIn.Int(tableRaw.Rows[i]["Count5"].ToString());
-						count6=PIn.Int(tableRaw.Rows[i]["Count6"].ToString());
-						int count7=PIn.Int(tableRaw.Rows[i]["Count7"].ToString());
-						notGiven1=PIn.Bool(tableRaw.Rows[i]["NotGiven1"].ToString());
-						notGiven2=PIn.Bool(tableRaw.Rows[i]["NotGiven2"].ToString());
-						notGiven3=PIn.Bool(tableRaw.Rows[i]["NotGiven3"].ToString());
-						notGiven3a=PIn.Bool(tableRaw.Rows[i]["NotGiven3a"].ToString());
-						notGiven3b=PIn.Bool(tableRaw.Rows[i]["NotGiven3b"].ToString());
-						notGiven3c=PIn.Bool(tableRaw.Rows[i]["NotGiven3c"].ToString());
-						notGiven4=PIn.Bool(tableRaw.Rows[i]["NotGiven4"].ToString());
-						notGiven5=PIn.Bool(tableRaw.Rows[i]["NotGiven5"].ToString());
-						notGiven6=PIn.Bool(tableRaw.Rows[i]["NotGiven6"].ToString());
-						bool notGiven7=PIn.Bool(tableRaw.Rows[i]["NotGiven7"].ToString());
+						count1=SIn.Int(tableRaw.Rows[i]["Count1"].ToString());
+						count2=SIn.Int(tableRaw.Rows[i]["Count2"].ToString());
+						count3=SIn.Int(tableRaw.Rows[i]["Count3"].ToString());
+						count3a=SIn.Int(tableRaw.Rows[i]["Count3a"].ToString());
+						count3b=SIn.Int(tableRaw.Rows[i]["Count3b"].ToString());
+						count3c=SIn.Int(tableRaw.Rows[i]["Count3c"].ToString());
+						count4=SIn.Int(tableRaw.Rows[i]["Count4"].ToString());
+						count5=SIn.Int(tableRaw.Rows[i]["Count5"].ToString());
+						count6=SIn.Int(tableRaw.Rows[i]["Count6"].ToString());
+						int count7=SIn.Int(tableRaw.Rows[i]["Count7"].ToString());
+						notGiven1=SIn.Bool(tableRaw.Rows[i]["NotGiven1"].ToString());
+						notGiven2=SIn.Bool(tableRaw.Rows[i]["NotGiven2"].ToString());
+						notGiven3=SIn.Bool(tableRaw.Rows[i]["NotGiven3"].ToString());
+						notGiven3a=SIn.Bool(tableRaw.Rows[i]["NotGiven3a"].ToString());
+						notGiven3b=SIn.Bool(tableRaw.Rows[i]["NotGiven3b"].ToString());
+						notGiven3c=SIn.Bool(tableRaw.Rows[i]["NotGiven3c"].ToString());
+						notGiven4=SIn.Bool(tableRaw.Rows[i]["NotGiven4"].ToString());
+						notGiven5=SIn.Bool(tableRaw.Rows[i]["NotGiven5"].ToString());
+						notGiven6=SIn.Bool(tableRaw.Rows[i]["NotGiven6"].ToString());
+						bool notGiven7=SIn.Bool(tableRaw.Rows[i]["NotGiven7"].ToString());
 						if(notGiven1 || notGiven2 || notGiven3 || notGiven3a || notGiven3b || notGiven3c || notGiven4 || notGiven5 || notGiven6 || notGiven7) {
 							row["exclusion"]="X";
 							row["explanation"]+="Not given.";//too complicated to document.
@@ -2245,7 +2246,7 @@ namespace OpenDentBusiness {
 					#region Pneumonia
 					case QualityType.Pneumonia:
 						//Pneumonia----------------------------------------------------------------------------------------------------------------
-						DateVaccine=PIn.Date(tableRaw.Rows[i]["DateVaccine"].ToString());
+						DateVaccine=SIn.Date(tableRaw.Rows[i]["DateVaccine"].ToString());
 						if(DateVaccine.Year<1880) {
 							row["explanation"]="No pneumococcal vaccine given";
 						}
@@ -2258,13 +2259,13 @@ namespace OpenDentBusiness {
 					#region DiabetesBloodPressure
 					case QualityType.DiabetesBloodPressure:
 						//DiabetesBloodPressure---------------------------------------------------------------------------------------------------
-						bool hasMedication=PIn.Bool(tableRaw.Rows[i]["HasMedication"].ToString());
-						bool HasDiagnosisDiabetes=PIn.Bool(tableRaw.Rows[i]["HasDiagnosisDiabetes"].ToString());
-						DateTime DateBP=PIn.Date(tableRaw.Rows[i]["DateBP"].ToString());
-						int systolic=PIn.Int(tableRaw.Rows[i]["Systolic"].ToString());
-						int diastolic=PIn.Int(tableRaw.Rows[i]["Diastolic"].ToString());
-						bool HasDiagnosisPolycystic=PIn.Bool(tableRaw.Rows[i]["HasDiagnosisPolycystic"].ToString());
-						bool HasDiagnosisAcuteDiabetes=PIn.Bool(tableRaw.Rows[i]["HasDiagnosisAcuteDiabetes"].ToString());
+						bool hasMedication=SIn.Bool(tableRaw.Rows[i]["HasMedication"].ToString());
+						bool HasDiagnosisDiabetes=SIn.Bool(tableRaw.Rows[i]["HasDiagnosisDiabetes"].ToString());
+						DateTime DateBP=SIn.Date(tableRaw.Rows[i]["DateBP"].ToString());
+						int systolic=SIn.Int(tableRaw.Rows[i]["Systolic"].ToString());
+						int diastolic=SIn.Int(tableRaw.Rows[i]["Diastolic"].ToString());
+						bool HasDiagnosisPolycystic=SIn.Bool(tableRaw.Rows[i]["HasDiagnosisPolycystic"].ToString());
+						bool HasDiagnosisAcuteDiabetes=SIn.Bool(tableRaw.Rows[i]["HasDiagnosisAcuteDiabetes"].ToString());
 						if(!hasMedication && !HasDiagnosisDiabetes) {
 							continue;//not part of denominator
 						}
@@ -2291,13 +2292,13 @@ namespace OpenDentBusiness {
 					#region BloodPressureManage
 					case QualityType.BloodPressureManage:
 						//BloodPressureManage-------------------------------------------------------------------------------------------------------
-						bool HasDiagnosisHypertension=PIn.Bool(tableRaw.Rows[i]["HasDiagnosisHypertension"].ToString());
-						bool HasProcedureESRD=PIn.Bool(tableRaw.Rows[i]["HasProcedureESRD"].ToString());
-						bool HasDiagnosisPregnancy=PIn.Bool(tableRaw.Rows[i]["HasDiagnosisPregnancy"].ToString());
-						bool HasDiagnosisESRD=PIn.Bool(tableRaw.Rows[i]["HasDiagnosisESRD"].ToString());
-						DateBP=PIn.Date(tableRaw.Rows[i]["DateBP"].ToString());
-						systolic=PIn.Int(tableRaw.Rows[i]["Systolic"].ToString());
-						diastolic=PIn.Int(tableRaw.Rows[i]["Diastolic"].ToString());
+						bool HasDiagnosisHypertension=SIn.Bool(tableRaw.Rows[i]["HasDiagnosisHypertension"].ToString());
+						bool HasProcedureESRD=SIn.Bool(tableRaw.Rows[i]["HasProcedureESRD"].ToString());
+						bool HasDiagnosisPregnancy=SIn.Bool(tableRaw.Rows[i]["HasDiagnosisPregnancy"].ToString());
+						bool HasDiagnosisESRD=SIn.Bool(tableRaw.Rows[i]["HasDiagnosisESRD"].ToString());
+						DateBP=SIn.Date(tableRaw.Rows[i]["DateBP"].ToString());
+						systolic=SIn.Int(tableRaw.Rows[i]["Systolic"].ToString());
+						diastolic=SIn.Int(tableRaw.Rows[i]["Diastolic"].ToString());
 						if(!HasDiagnosisHypertension) {
 							continue;//not part of denominator
 						}
@@ -2332,8 +2333,8 @@ namespace OpenDentBusiness {
 			
 			//these queries only work for mysql
 			string command="SELECT GROUP_CONCAT(provider.ProvNum) FROM provider "
-				+"WHERE provider.LName=(SELECT pv.LName FROM provider pv WHERE pv.ProvNum="+POut.Long(provNum)+")"
-				+"AND provider.FName=(SELECT pv.FName FROM provider pv WHERE pv.ProvNum="+POut.Long(provNum)+")";
+				+"WHERE provider.LName=(SELECT pv.LName FROM provider pv WHERE pv.ProvNum="+SOut.Long(provNum)+")"
+				+"AND provider.FName=(SELECT pv.FName FROM provider pv WHERE pv.ProvNum="+SOut.Long(provNum)+")";
 			string provs=DataCore.GetScalar(command);
 			QualityMeasure measureCur=new QualityMeasure();
 			List<string> listOneOfEncOIDs=new List<string>();
@@ -2346,9 +2347,9 @@ namespace OpenDentBusiness {
 			string encounterSelectWhere="SELECT encounter.* FROM encounter "
 				+"INNER JOIN patient ON patient.PatNum=encounter.PatNum "
 				+"WHERE YEAR(patient.Birthdate)>1880 "//valid birthdate
-				+"AND encounter.ProvNum IN("+POut.String(provs)+") "
-				+"AND DATE(encounter.DateEncounter) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
-			string encounterWhereAdults="AND patient.Birthdate<="+POut.Date(dateStart)+"-INTERVAL 18 YEAR ";//18 or over at start of measurement period
+				+"AND encounter.ProvNum IN("+SOut.String(provs)+") "
+				+"AND DATE(encounter.DateEncounter) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
+			string encounterWhereAdults="AND patient.Birthdate<="+SOut.Date(dateStart)+"-INTERVAL 18 YEAR ";//18 or over at start of measurement period
 			string encounterOrder="ORDER BY encounter.PatNum,encounter.DateEncounter DESC";
 			string adultEncCommand=encounterSelectWhere+encounterWhereAdults+encounterOrder;
 			switch(qtype) {
@@ -2407,8 +2408,8 @@ namespace OpenDentBusiness {
 					#region Get Initial Patient Population
 					#region Get Raw Encounters
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.600.1.1751");//BMI Encounter Code Set Grouping Value Set
-					string encsWhere65="AND patient.Birthdate<"+POut.Date(dateStart)+"-INTERVAL 65 YEAR ";//65 or over at the start of the measurement period
-					string encsWhereLessThan64="AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 64 YEAR ";//< 64 years old at the start of the measurement period
+					string encsWhere65="AND patient.Birthdate<"+SOut.Date(dateStart)+"-INTERVAL 65 YEAR ";//65 or over at the start of the measurement period
+					string encsWhereLessThan64="AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 64 YEAR ";//< 64 years old at the start of the measurement period
 					string encCommand="";
 					if(qtype==QualityType2014.WeightOver65) {
 						encCommand=encounterSelectWhere+encsWhere65+encounterOrder;
@@ -2498,7 +2499,7 @@ namespace OpenDentBusiness {
 					#region Get Interventions
 					//Get all interventions for eligible value sets that occurred within 6 months of the start of the measurement period up to the end of the measurement period
 					command="SELECT * FROM intervention "
-						+"WHERE DATE(DateEntry) BETWEEN "+POut.Date(dateStart)+"-INTERVAL 6 MONTH AND "+POut.Date(dateEnd)+" ";
+						+"WHERE DATE(DateEntry) BETWEEN "+SOut.Date(dateStart)+"-INTERVAL 6 MONTH AND "+SOut.Date(dateEnd)+" ";
 					if(listEhrPatNums!=null && listEhrPatNums.Count>0) {
 						command+="AND intervention.PatNum IN("+string.Join(",",listEhrPatNums)+") ";
 					}
@@ -2537,20 +2538,20 @@ namespace OpenDentBusiness {
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1025");//Preventive Care Services - Established Office Visit, 18 and Up Grouping Value Set
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1048");//Face-to-Face Interaction Grouping Value Set
 					string child0To19Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+" "//age >= 0 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 20 YEAR "//age < 20 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+" "//age >= 0 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 20 YEAR "//age < 20 at start of measurement period
 						+encounterOrder;
 					string child0To5Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+" "//age >= 0 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 6 YEAR "//age <= 5 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+" "//age >= 0 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 6 YEAR "//age <= 5 at start of measurement period
 						+encounterOrder;
 					string child6To12Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+"-INTERVAL 6 YEAR "//age >= 6 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 13 YEAR "//age <= 12 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+"-INTERVAL 6 YEAR "//age >= 6 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 13 YEAR "//age <= 12 at start of measurement period
 						+encounterOrder;
 					string child13To19Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+"-INTERVAL 13 YEAR "//age >= 13 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 20 YEAR "//age < 20 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+"-INTERVAL 13 YEAR "//age >= 13 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 20 YEAR "//age < 20 at start of measurement period
 						+encounterOrder;
 					if(qtype==QualityType2014.CariesPrevent) {
 						measureCur.DictPatNumListEncounters=GetEncountersWithOneOfAndTwoOfOIDs(child0To19Command,listOneOfEncOIDs,listTwoOfEncOIDs);
@@ -2596,8 +2597,8 @@ namespace OpenDentBusiness {
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1025");//Preventive Care Services - Established Office Visit, 18 and Up Grouping Value Set
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1048");//Face-to-Face Interaction Grouping Value Set
 					child0To19Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+" "//age >= 0 at start of measurement period (born before or on start date)
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 20 YEAR "//age < 20 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+" "//age >= 0 at start of measurement period (born before or on start date)
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 20 YEAR "//age < 20 at start of measurement period
 						+encounterOrder;
 					measureCur.DictPatNumListEncounters=GetEncountersWithOneOfAndTwoOfOIDs(child0To19Command,listOneOfEncOIDs,listTwoOfEncOIDs);
 					//if no eligible encounters, no need to go on
@@ -2633,7 +2634,7 @@ namespace OpenDentBusiness {
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1025");//Preventive Care Services - Established Office Visit, 18 and Up Grouping Value Set
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1048");//Face-to-Face Interaction Grouping Value Set
 					encCommand=encounterSelectWhere
-						+"AND patient.Birthdate<"+POut.Date(dateStart)+"-INTERVAL 65 YEAR "//65 or over at start of measurement period
+						+"AND patient.Birthdate<"+SOut.Date(dateStart)+"-INTERVAL 65 YEAR "//65 or over at start of measurement period
 						+encounterOrder;
 					measureCur.DictPatNumListEncounters=GetEncountersWithOneOfAndTwoOfOIDs(encCommand,listOneOfEncOIDs,listTwoOfEncOIDs);
 					//if no eligible encounters, no need to go on
@@ -2703,7 +2704,7 @@ namespace OpenDentBusiness {
 					#region Get Tobacco Cessation Interventions
 					//Get all interventions within 24 months of end of measurement period
 					command="SELECT * FROM intervention "
-						+"WHERE DATE(DateEntry) BETWEEN "+POut.Date(dateEnd)+"-INTERVAL 24 MONTH AND "+POut.Date(dateEnd)+" ";
+						+"WHERE DATE(DateEntry) BETWEEN "+SOut.Date(dateEnd)+"-INTERVAL 24 MONTH AND "+SOut.Date(dateEnd)+" ";
 					if(listEhrPatNums!=null && listEhrPatNums.Count>0) {
 						command+="AND intervention.PatNum IN("+string.Join(",",listEhrPatNums)+") ";
 					}
@@ -2764,7 +2765,7 @@ namespace OpenDentBusiness {
 					listTwoOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1014");//Care Services in Long-Term Residential Facility Grouping Value Set
 					listTwoOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1016");//Home Healthcare Services Grouping Value Set
 					encCommand=encounterSelectWhere
-						+"AND patient.Birthdate<"+POut.Date(dateStart)+"-INTERVAL 6 MONTH "//>= 6 months at start of measurement period
+						+"AND patient.Birthdate<"+SOut.Date(dateStart)+"-INTERVAL 6 MONTH "//>= 6 months at start of measurement period
 						+encounterOrder;
 					measureCur.DictPatNumListEncounters=GetEncountersWithOneOfAndTwoOfOIDs(encCommand,listOneOfEncOIDs,listTwoOfEncOIDs);
 					#endregion
@@ -2791,8 +2792,8 @@ namespace OpenDentBusiness {
 						encCommand="SELECT encounter.* FROM encounter "
 						+"INNER JOIN patient ON patient.PatNum=encounter.PatNum "
 						+"WHERE YEAR(patient.Birthdate)>1880 "//valid birthdate
-						+"AND encounter.ProvNum IN("+POut.String(provs)+") "
-						+"AND DATE(encounter.DateEncounter) BETWEEN "+POut.Date(dateStart.AddDays(-92))+" AND "+POut.Date(dateStart.AddDays(91))+" ";
+						+"AND encounter.ProvNum IN("+SOut.String(provs)+") "
+						+"AND DATE(encounter.DateEncounter) BETWEEN "+SOut.Date(dateStart.AddDays(-92))+" AND "+SOut.Date(dateStart.AddDays(91))+" ";
 						if(listEhrPatNums!=null && listEhrPatNums.Count>0) {
 							command+="AND encounter.PatNum IN("+string.Join(",",listEhrPatNums)+") ";
 						}
@@ -2925,16 +2926,16 @@ namespace OpenDentBusiness {
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1026");//Preventive Care Services-Individual Counseling Grouping Value Set
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1022");//Preventive Care- Initial Office Visit, 0 to 17 Grouping Value Set
 					string child3To16Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+"-INTERVAL 3 YEAR "//age >= 3 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 17 YEAR "//age < 17 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+"-INTERVAL 3 YEAR "//age >= 3 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 17 YEAR "//age < 17 at start of measurement period
 						+encounterOrder;
 					string child3To11Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+"-INTERVAL 3 YEAR "//age >= 3 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 12 YEAR "//age <= 11 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+"-INTERVAL 3 YEAR "//age >= 3 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 12 YEAR "//age <= 11 at start of measurement period
 						+encounterOrder;
 					string child12To16Command=encounterSelectWhere
-						+"AND patient.Birthdate<="+POut.Date(dateStart)+"-INTERVAL 12 YEAR "//age >= 12 at start of measurement period
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 17 YEAR "//age < 17 at start of measurement period
+						+"AND patient.Birthdate<="+SOut.Date(dateStart)+"-INTERVAL 12 YEAR "//age >= 12 at start of measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 17 YEAR "//age < 17 at start of measurement period
 						+encounterOrder;
 					if(new[] { QualityType2014.WeightChild_1_1,QualityType2014.WeightChild_1_2,QualityType2014.WeightChild_1_3 }.Contains(qtype)) {
 						measureCur.DictPatNumListEncounters=GetEncountersWithOneOfAndTwoOfOIDs(child3To16Command,listOneOfEncOIDs,listTwoOfEncOIDs);
@@ -2965,7 +2966,7 @@ namespace OpenDentBusiness {
 					else {
 						//DictPatNumListInterventions will hold the phys activity and Nutrition counseling interventions
 						command="SELECT * FROM intervention "
-							+"WHERE DATE(DateEntry) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+							+"WHERE DATE(DateEntry) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 						if(listEhrPatNums!=null && listEhrPatNums.Count>0) {
 							command+="AND intervention.PatNum IN("+string.Join(",",listEhrPatNums)+") ";
 						}
@@ -2989,7 +2990,7 @@ namespace OpenDentBusiness {
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1025");//Preventive Care Services - Established Office Visit, 18 and Up Grouping Value Set
 					listOneOfEncOIDs.Add("2.16.840.1.113883.3.464.1003.101.12.1048");//Face-to-Face Interaction Grouping Value Set
 					string encsWhere18To85=encounterSelectWhere
-						+"AND patient.Birthdate>"+POut.Date(dateStart)+"-INTERVAL 85 YEAR "//< 85 years old at the start of the measurement period
+						+"AND patient.Birthdate>"+SOut.Date(dateStart)+"-INTERVAL 85 YEAR "//< 85 years old at the start of the measurement period
 						+encounterOrder;
 					measureCur.DictPatNumListEncounters=GetEncountersWithOneOfAndTwoOfOIDs(encsWhere18To85,listOneOfEncOIDs,listTwoOfEncOIDs);
 					#endregion
@@ -3039,7 +3040,7 @@ namespace OpenDentBusiness {
 						listValueSetOIDs.Add("2.16.840.1.113883.3.464.1003.109.12.1016");//Dialysis Education Grouping Value Set
 						//Get all interventions for eligible value sets that occurred before or during the measurement period
 						command="SELECT * FROM intervention "
-							+"WHERE DATE(DateEntry)<="+POut.Date(dateEnd)+" ";
+							+"WHERE DATE(DateEntry)<="+SOut.Date(dateEnd)+" ";
 						if(listEhrPatNums!=null && listEhrPatNums.Count>0) {
 							command+="AND intervention.PatNum IN("+string.Join(",",listEhrPatNums)+") ";
 						}
@@ -3061,8 +3062,8 @@ namespace OpenDentBusiness {
 					command="SELECT encounter.* FROM encounter "
 						+"INNER JOIN patient ON patient.PatNum=encounter.PatNum "
 						+"WHERE YEAR(patient.Birthdate)>1880 "//valid birthdate
-						+"AND encounter.ProvNum IN("+POut.String(provs)+") "
-						+"AND DATE(encounter.DateEncounter)<="+POut.Date(dateEnd)+" ";
+						+"AND encounter.ProvNum IN("+SOut.String(provs)+") "
+						+"AND DATE(encounter.DateEncounter)<="+SOut.Date(dateEnd)+" ";
 					if(listEhrPatNums!=null && listEhrPatNums.Count>0) {
 						command+="AND encounter.PatNum IN("+string.Join(",",listEhrPatNums)+") ";
 					}
@@ -3277,8 +3278,8 @@ namespace OpenDentBusiness {
 			string command="SELECT ehrmeasureevent.*,COALESCE(snomed.Description,'') AS Description "
 				+"FROM ehrmeasureevent "
 				+"LEFT JOIN snomed ON snomed.SnomedCode=ehrmeasureevent.CodeValueResult AND ehrmeasureevent.CodeSystemResult='SNOMEDCT' "
-				+"WHERE EventType="+POut.Int((int)EhrMeasureEventType.TobaccoUseAssessed)+" " 
-				+"AND "+DbHelper.DtimeToDate("DateTEvent")+">="+POut.Date(dateEnd)+"-INTERVAL 24 MONTH ";
+				+"WHERE EventType="+SOut.Int((int)EhrMeasureEventType.TobaccoUseAssessed)+" " 
+				+"AND "+DbHelper.DtimeToDate("DateTEvent")+">="+SOut.Date(dateEnd)+"-INTERVAL 24 MONTH ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND ehrmeasureevent.PatNum IN("+string.Join(",",listPatNums)+") ";
 			}
@@ -3310,19 +3311,19 @@ namespace OpenDentBusiness {
 					}
 				}
 				if(isValidEvent && indexStatus>-1) {
-					dictEventNumEhrCode.Add(PIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString()),listTobaccoStatusCodes[indexStatus]);
+					dictEventNumEhrCode.Add(SIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString()),listTobaccoStatusCodes[indexStatus]);
 					continue;
 				}
 				tableEvents.Rows.RemoveAt(i);
 			}
 			for(int i=0;i<tableEvents.Rows.Count;i++) {
 				EhrCqmMeasEvent tobaccoAssessCur=new EhrCqmMeasEvent();
-				tobaccoAssessCur.EhrCqmMeasEventNum=PIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString());
+				tobaccoAssessCur.EhrCqmMeasEventNum=SIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString());
 				tobaccoAssessCur.EventType=EhrMeasureEventType.TobaccoUseAssessed;
-				tobaccoAssessCur.PatNum=PIn.Long(tableEvents.Rows[i]["PatNum"].ToString());
+				tobaccoAssessCur.PatNum=SIn.Long(tableEvents.Rows[i]["PatNum"].ToString());
 				tobaccoAssessCur.CodeValue=tableEvents.Rows[i]["CodeValueResult"].ToString();
 				tobaccoAssessCur.CodeSystemName=tableEvents.Rows[i]["CodeSystemResult"].ToString();
-				tobaccoAssessCur.DateTEvent=PIn.DateTime(tableEvents.Rows[i]["DateTEvent"].ToString());
+				tobaccoAssessCur.DateTEvent=SIn.DateTime(tableEvents.Rows[i]["DateTEvent"].ToString());
 				string descript=tableEvents.Rows[i]["Description"].ToString();//if code is not in snomed table we will use description of EhrCode object
 				EhrCode ehrCodeCur=dictEventNumEhrCode[tobaccoAssessCur.EhrCqmMeasEventNum];
 				tobaccoAssessCur.CodeSystemOID=ehrCodeCur.CodeSystemOID;
@@ -3448,14 +3449,14 @@ namespace OpenDentBusiness {
 				+"FROM medicationpat "
 				+"LEFT JOIN medication ON medication.MedicationNum=medicationpat.MedicationNum "
 				+"WHERE (medication.RxCui IS NOT NULL OR medicationpat.RxCui>0) "
-				+"AND DATE(medicationpat.DateStart) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+				+"AND DATE(medicationpat.DateStart) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 				//not going to check stop date, the measures only specify 'starts before or during' without any reference to whether or not the medication has stopped
 				//+"AND (YEAR(medicationpat.DateStop)<1880 OR medicationpat.DateStop>"+POut.Date(dateEnd)+") "//no valid stop date or stop date after measurement period end date
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND medicationpat.PatNum IN("+string.Join(",",listPatNums)+") ";
 			}
 			if(listEhrCodes.Count>0) {
-				string rxcuiCodes=string.Join(",",listEhrCodes.Select(x => "'"+POut.String(x.CodeValue)+"'"));
+				string rxcuiCodes=string.Join(",",listEhrCodes.Select(x => "'"+SOut.String(x.CodeValue)+"'"));
 				command+="AND (medicationpat.RxCui IN("+rxcuiCodes+") OR medication.RxCui IN("+rxcuiCodes+")) ";
 			}
 			command+="ORDER BY medicationpat.PatNum,medicationpat.DateStart DESC";
@@ -3467,20 +3468,20 @@ namespace OpenDentBusiness {
 			for(int i=tableAllMedPats.Rows.Count-1;i>-1;i--) {
 				for(int j=0;j<listEhrCodes.Count;j++) {
 					if(tableAllMedPats.Rows[i]["RxCui"].ToString()==listEhrCodes[j].CodeValue) {
-						dictMedicationPatNumEhrCode.Add(PIn.Long(tableAllMedPats.Rows[i]["MedicationPatNum"].ToString()),listEhrCodes[j]);
+						dictMedicationPatNumEhrCode.Add(SIn.Long(tableAllMedPats.Rows[i]["MedicationPatNum"].ToString()),listEhrCodes[j]);
 						break;
 					}
 				}
 			}
 			for(int i=0;i<tableAllMedPats.Rows.Count;i++) {
 				EhrCqmMedicationPat ehrMedPatCur=new EhrCqmMedicationPat();
-				ehrMedPatCur.EhrCqmMedicationPatNum=PIn.Long(tableAllMedPats.Rows[i]["MedicationPatNum"].ToString());
+				ehrMedPatCur.EhrCqmMedicationPatNum=SIn.Long(tableAllMedPats.Rows[i]["MedicationPatNum"].ToString());
 				ehrMedPatCur.EhrCqmVaccinePatNum=0;
-				ehrMedPatCur.PatNum=PIn.Long(tableAllMedPats.Rows[i]["PatNum"].ToString());
+				ehrMedPatCur.PatNum=SIn.Long(tableAllMedPats.Rows[i]["PatNum"].ToString());
 				ehrMedPatCur.PatNote=tableAllMedPats.Rows[i]["PatNote"].ToString();
-				ehrMedPatCur.RxCui=PIn.Long(tableAllMedPats.Rows[i]["RxCui"].ToString());
-				ehrMedPatCur.DateStart=PIn.Date(tableAllMedPats.Rows[i]["DateStart"].ToString());
-				ehrMedPatCur.DateStop=PIn.Date(tableAllMedPats.Rows[i]["DateStop"].ToString());
+				ehrMedPatCur.RxCui=SIn.Long(tableAllMedPats.Rows[i]["RxCui"].ToString());
+				ehrMedPatCur.DateStart=SIn.Date(tableAllMedPats.Rows[i]["DateStart"].ToString());
+				ehrMedPatCur.DateStop=SIn.Date(tableAllMedPats.Rows[i]["DateStop"].ToString());
 				EhrCode ehrCodeCur=dictMedicationPatNumEhrCode[ehrMedPatCur.EhrCqmMedicationPatNum];
 				ehrMedPatCur.CodeSystemName=ehrCodeCur.CodeSystem;
 				ehrMedPatCur.CodeSystemOID=ehrCodeCur.CodeSystemOID;
@@ -3526,15 +3527,15 @@ namespace OpenDentBusiness {
 				+"LEFT JOIN loinc ON loinc.LoincCode=ehrnotperformed.CodeValue AND ehrnotperformed.CodeSystem='LOINC' "
 				+"LEFT JOIN snomed ON snomed.SnomedCode=ehrnotperformed.CodeValue AND ehrnotperformed.CodeSystem='SNOMEDCT' "
 				+"LEFT JOIN snomed sReason ON sReason.SnomedCode=ehrnotperformed.CodeValueReason AND ehrnotperformed.CodeSystemReason='SNOMEDCT' "
-				+"WHERE ehrnotperformed.DateEntry BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+				+"WHERE ehrnotperformed.DateEntry BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND ehrnotperformed.PatNum IN("+string.Join(",",listPatNums)+") ";
 			}
 			if(listItems.Count>0) {
-				command+="AND ehrnotperformed.CodeValue IN("+string.Join(",",listItems.Select(x => "'"+POut.String(x.CodeValue)+"'"))+") ";
+				command+="AND ehrnotperformed.CodeValue IN("+string.Join(",",listItems.Select(x => "'"+SOut.String(x.CodeValue)+"'"))+") ";
 			}
 			if(listReasons.Count>0) {
-				command+="AND ehrnotperformed.CodeValueReason IN("+string.Join(",",listReasons.Select(x => "'"+POut.String(x.CodeValue)+"'"))+") ";
+				command+="AND ehrnotperformed.CodeValueReason IN("+string.Join(",",listReasons.Select(x => "'"+SOut.String(x.CodeValue)+"'"))+") ";
 			}
 			command+="GROUP BY ehrnotperformed.EhrNotPerformedNum "//just in case a code was in one of the code system tables more than once, should never happen
 				+"ORDER BY ehrnotperformed.PatNum,ehrnotperformed.DateEntry DESC";
@@ -3551,7 +3552,7 @@ namespace OpenDentBusiness {
 					if(tableNotPerfs.Rows[i]["CodeValue"].ToString()==listItems[j].CodeValue
 						&& tableNotPerfs.Rows[i]["CodeSystem"].ToString()==listItems[j].CodeSystem)
 					{
-						dictItemNumEhrCode.Add(PIn.Long(tableNotPerfs.Rows[i]["EhrNotPerformedNum"].ToString()),listItems[j]);
+						dictItemNumEhrCode.Add(SIn.Long(tableNotPerfs.Rows[i]["EhrNotPerformedNum"].ToString()),listItems[j]);
 						break;
 					}
 				}
@@ -3559,20 +3560,20 @@ namespace OpenDentBusiness {
 					if(tableNotPerfs.Rows[i]["CodeValueReason"].ToString()==listReasons[j].CodeValue
 						&& tableNotPerfs.Rows[i]["CodeSystemReason"].ToString()==listReasons[j].CodeSystem)
 					{
-						dictReasonNumEhrCode.Add(PIn.Long(tableNotPerfs.Rows[i]["EhrNotPerformedNum"].ToString()),listReasons[j]);
+						dictReasonNumEhrCode.Add(SIn.Long(tableNotPerfs.Rows[i]["EhrNotPerformedNum"].ToString()),listReasons[j]);
 						break;
 					}
 				}
 			}
 			for(int i=0;i<tableNotPerfs.Rows.Count;i++) {
 				EhrCqmNotPerf ehrNotPerfCur=new EhrCqmNotPerf();
-				ehrNotPerfCur.EhrCqmNotPerfNum=PIn.Long(tableNotPerfs.Rows[i]["EhrNotPerformedNum"].ToString());
-				ehrNotPerfCur.PatNum=PIn.Long(tableNotPerfs.Rows[i]["PatNum"].ToString());
+				ehrNotPerfCur.EhrCqmNotPerfNum=SIn.Long(tableNotPerfs.Rows[i]["EhrNotPerformedNum"].ToString());
+				ehrNotPerfCur.PatNum=SIn.Long(tableNotPerfs.Rows[i]["PatNum"].ToString());
 				ehrNotPerfCur.CodeValue=tableNotPerfs.Rows[i]["CodeValue"].ToString();
 				ehrNotPerfCur.CodeSystemName=tableNotPerfs.Rows[i]["CodeSystem"].ToString();
 				ehrNotPerfCur.CodeValueReason=tableNotPerfs.Rows[i]["CodeValueReason"].ToString();
 				ehrNotPerfCur.CodeSystemNameReason=tableNotPerfs.Rows[i]["CodeSystemReason"].ToString();
-				ehrNotPerfCur.DateEntry=PIn.Date(tableNotPerfs.Rows[i]["DateEntry"].ToString());
+				ehrNotPerfCur.DateEntry=SIn.Date(tableNotPerfs.Rows[i]["DateEntry"].ToString());
 				EhrCode itemEhrCode=dictItemNumEhrCode[ehrNotPerfCur.EhrCqmNotPerfNum];
 				ehrNotPerfCur.CodeSystemOID=itemEhrCode.CodeSystemOID;
 				ehrNotPerfCur.ValueSetName=itemEhrCode.ValueSetName;
@@ -3639,8 +3640,8 @@ namespace OpenDentBusiness {
 				+"LEFT JOIN snomed ON snomed.SnomedCode=diseasedef.SnomedCode "
 				+"LEFT JOIN icd9 ON icd9.ICD9Code=diseasedef.ICD9Code "
 				+"LEFT JOIN icd10 ON icd10.Icd10Code=diseasedef.Icd10Code "
-				+"WHERE disease.DateStart<="+POut.Date(dateEnd)+" "
-				+"AND (YEAR(disease.DateStop)<1880 OR disease.DateStop>"+POut.Date(dateStart)+") ";
+				+"WHERE disease.DateStart<="+SOut.Date(dateEnd)+" "
+				+"AND (YEAR(disease.DateStop)<1880 OR disease.DateStop>"+SOut.Date(dateStart)+") ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND disease.PatNum IN("+string.Join(",",listPatNums)+") ";
 			}
@@ -3674,17 +3675,17 @@ namespace OpenDentBusiness {
 					if((listValidProbs[j].CodeSystem=="SNOMEDCT" && tableAllProbs.Rows[i]["SnomedCode"].ToString()==listValidProbs[j].CodeValue)
 						|| (listValidProbs[j].CodeSystem=="ICD9CM" && tableAllProbs.Rows[i]["ICD9Code"].ToString()==listValidProbs[j].CodeValue)
 						|| (listValidProbs[j].CodeSystem=="ICD10CM" && tableAllProbs.Rows[i]["Icd10Code"].ToString()==listValidProbs[j].CodeValue)) {
-						dictDiseaseNumEhrCode.Add(PIn.Long(tableAllProbs.Rows[i]["DiseaseNum"].ToString()),listValidProbs[j]);//link the problem to the EhrCode object for retrieving information
+						dictDiseaseNumEhrCode.Add(SIn.Long(tableAllProbs.Rows[i]["DiseaseNum"].ToString()),listValidProbs[j]);//link the problem to the EhrCode object for retrieving information
 						break;
 					}
 				}
 			}
 			for(int i=0;i<tableAllProbs.Rows.Count;i++) {
 				EhrCqmProblem ehrProblemCur=new EhrCqmProblem();
-				ehrProblemCur.EhrCqmProblemNum=PIn.Long(tableAllProbs.Rows[i]["DiseaseNum"].ToString());
-				ehrProblemCur.PatNum=PIn.Long(tableAllProbs.Rows[i]["PatNum"].ToString());
-				ehrProblemCur.DateStart=PIn.Date(tableAllProbs.Rows[i]["DateStart"].ToString());
-				ehrProblemCur.DateStop=PIn.Date(tableAllProbs.Rows[i]["DateStop"].ToString());
+				ehrProblemCur.EhrCqmProblemNum=SIn.Long(tableAllProbs.Rows[i]["DiseaseNum"].ToString());
+				ehrProblemCur.PatNum=SIn.Long(tableAllProbs.Rows[i]["PatNum"].ToString());
+				ehrProblemCur.DateStart=SIn.Date(tableAllProbs.Rows[i]["DateStart"].ToString());
+				ehrProblemCur.DateStop=SIn.Date(tableAllProbs.Rows[i]["DateStop"].ToString());
 				ehrProblemCur.Description=tableAllProbs.Rows[i]["Description"].ToString();
 				EhrCode ehrCodeCur=dictDiseaseNumEhrCode[ehrProblemCur.EhrCqmProblemNum];
 				ehrProblemCur.CodeValue=ehrCodeCur.CodeValue;//use the code value from the ehrcode object because diseasedef can have an ICD9CM, ICD10CM, and SNOMEDCT code, and the codes do not have to be for the same thing, so use the code that belongs to the ValueSetOID that makes it valid for this measure
@@ -3712,8 +3713,8 @@ namespace OpenDentBusiness {
 			string command="SELECT ehrmeasureevent.*,COALESCE(snomed.Description,'') AS Description "
 				+"FROM ehrmeasureevent "
 				+"LEFT JOIN snomed ON snomed.SnomedCode=ehrmeasureevent.CodeValueEvent AND ehrmeasureevent.CodeSystemEvent='SNOMEDCT' "
-				+"WHERE EventType="+POut.Int((int)EhrMeasureEventType.CurrentMedsDocumented)+" "
-				+"AND DATE(DateTEvent) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+				+"WHERE EventType="+SOut.Int((int)EhrMeasureEventType.CurrentMedsDocumented)+" "
+				+"AND DATE(DateTEvent) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND ehrmeasureevent.PatNum IN("+string.Join(",",listPatNums)+") ";
 			}
@@ -3729,7 +3730,7 @@ namespace OpenDentBusiness {
 				bool isValid=false;
 				for(int j=0;j<listEhrCodes.Count;j++) {//currently this can only be one code, SNOMEDCT - 428191000124101, but we will treat it like a list in case that changes
 					if(tableEvents.Rows[i]["CodeValueEvent"].ToString()==listEhrCodes[j].CodeValue && tableEvents.Rows[i]["CodeSystemEvent"].ToString()==listEhrCodes[j].CodeSystem) {
-						dictEhrMeasureEventNumEhrCode.Add(PIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString()),listEhrCodes[j]);
+						dictEhrMeasureEventNumEhrCode.Add(SIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString()),listEhrCodes[j]);
 						isValid=true;
 						break;
 					}
@@ -3740,12 +3741,12 @@ namespace OpenDentBusiness {
 			}
 			for(int i=0;i<tableEvents.Rows.Count;i++) {
 				EhrCqmMeasEvent ehrProcCur=new EhrCqmMeasEvent();
-				ehrProcCur.EhrCqmMeasEventNum=PIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString());
+				ehrProcCur.EhrCqmMeasEventNum=SIn.Long(tableEvents.Rows[i]["EhrMeasureEventNum"].ToString());
 				ehrProcCur.EventType=EhrMeasureEventType.CurrentMedsDocumented;
-				ehrProcCur.PatNum=PIn.Long(tableEvents.Rows[i]["PatNum"].ToString());
+				ehrProcCur.PatNum=SIn.Long(tableEvents.Rows[i]["PatNum"].ToString());
 				ehrProcCur.CodeValue=tableEvents.Rows[i]["CodeValueEvent"].ToString();
 				ehrProcCur.CodeSystemName=tableEvents.Rows[i]["CodeSystemEvent"].ToString();
-				ehrProcCur.DateTEvent=PIn.DateTime(tableEvents.Rows[i]["DateTEvent"].ToString());
+				ehrProcCur.DateTEvent=SIn.DateTime(tableEvents.Rows[i]["DateTEvent"].ToString());
 				string descript=tableEvents.Rows[i]["Description"].ToString();//if code is not in snomed table we will use description of EhrCode object
 				EhrCode ehrCodeCur=dictEhrMeasureEventNumEhrCode[ehrProcCur.EhrCqmMeasEventNum];
 				ehrProcCur.CodeSystemOID=ehrCodeCur.CodeSystemOID;
@@ -3773,7 +3774,7 @@ namespace OpenDentBusiness {
 				return retval;
 			}
 			string command="SELECT * FROM vitalsign "
-				+"WHERE DATE(DateTaken) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" "
+				+"WHERE DATE(DateTaken) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" "
 				+"AND vitalsign.Height>0 AND vitalsign.Weight>0 ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND vitalsign.PatNum IN("+string.Join(",",listPatNums)+") ";
@@ -3830,7 +3831,7 @@ namespace OpenDentBusiness {
 				return retval;
 			}
 			string command="SELECT * FROM vitalsign "
-				+"WHERE DATE(DateTaken) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" "
+				+"WHERE DATE(DateTaken) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" "
 				+"AND vitalsign.BpSystolic>0 AND vitalsign.BpDiastolic>0 ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND vitalsign.PatNum IN("+string.Join(",",listPatNums)+") ";
@@ -3879,7 +3880,7 @@ namespace OpenDentBusiness {
 				+"procedurecode.ProcCode,procedurecode.Descript FROM procedurelog "
 				+"INNER JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum "
 				+"WHERE procedurelog.ProcStatus=2 "
-				+"AND procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+				+"AND procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 			if(listPatNums!=null && listPatNums.Count>0) {
 				command+="AND procedurelog.PatNum IN ("+string.Join(",",listPatNums)+")";
 			}
@@ -3895,17 +3896,17 @@ namespace OpenDentBusiness {
 			for(int i=tableAllProcs.Rows.Count-1;i>-1;i--) {
 				for(int j=0;j<listValidProcs.Count;j++) {
 					if(tableAllProcs.Rows[i]["ProcCode"].ToString()==listValidProcs[j].CodeValue) {
-						dictProcNumEhrCode.Add(PIn.Long(tableAllProcs.Rows[i]["ProcNum"].ToString()),listValidProcs[j]);
+						dictProcNumEhrCode.Add(SIn.Long(tableAllProcs.Rows[i]["ProcNum"].ToString()),listValidProcs[j]);
 						break;
 					}
 				}
 			}
 			for(int i=0;i<tableAllProcs.Rows.Count;i++) {
 				EhrCqmProc ehrProcCur=new EhrCqmProc();
-				ehrProcCur.EhrCqmProcNum=PIn.Long(tableAllProcs.Rows[i]["ProcNum"].ToString());
-				ehrProcCur.PatNum=PIn.Long(tableAllProcs.Rows[i]["PatNum"].ToString());
-				ehrProcCur.ProvNum=PIn.Long(tableAllProcs.Rows[i]["ProvNum"].ToString());
-				ehrProcCur.ProcDate=PIn.Date(tableAllProcs.Rows[i]["ProcDate"].ToString());
+				ehrProcCur.EhrCqmProcNum=SIn.Long(tableAllProcs.Rows[i]["ProcNum"].ToString());
+				ehrProcCur.PatNum=SIn.Long(tableAllProcs.Rows[i]["PatNum"].ToString());
+				ehrProcCur.ProvNum=SIn.Long(tableAllProcs.Rows[i]["ProvNum"].ToString());
+				ehrProcCur.ProcDate=SIn.Date(tableAllProcs.Rows[i]["ProcDate"].ToString());
 				ehrProcCur.ProcCode=tableAllProcs.Rows[i]["ProcCode"].ToString();
 				ehrProcCur.Description=tableAllProcs.Rows[i]["Descript"].ToString();
 				EhrCode ehrCodeCur=dictProcNumEhrCode[ehrProcCur.EhrCqmProcNum];
@@ -3933,7 +3934,7 @@ namespace OpenDentBusiness {
 			string command="SELECT vaccinepat.VaccinePatNum,vaccinepat.PatNum,vaccinepat.DateTimeStart,vaccinepat.DateTimeEnd,vaccinedef.CVXCode,vaccinepat.CompletionStatus "
 				+"FROM vaccinepat "
 				+"INNER JOIN vaccinedef ON vaccinepat.VaccineDefNum=vaccinedef.VaccineDefNum "
-				+"WHERE DATE(vaccinepat.DateTimeStart) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" ";
+				+"WHERE DATE(vaccinepat.DateTimeStart) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" ";
 			if(isGiven) {
 				command+="AND vaccinepat.CompletionStatus=0 ";//CompletionStatus=0 (complete)
 			}
@@ -3954,7 +3955,7 @@ namespace OpenDentBusiness {
 				bool isValidVaccine=false;
 				for(int j=0;j<listEhrCodes.Count;j++) {
 					if(tableAllVaccinePats.Rows[i]["CVXCode"].ToString()==listEhrCodes[j].CodeValue) {
-						dictVaccinePatNumEhrCode.Add(PIn.Long(tableAllVaccinePats.Rows[i]["VaccinePatNum"].ToString()),listEhrCodes[j]);
+						dictVaccinePatNumEhrCode.Add(SIn.Long(tableAllVaccinePats.Rows[i]["VaccinePatNum"].ToString()),listEhrCodes[j]);
 						isValidVaccine=true;
 						break;
 					}
@@ -3966,12 +3967,12 @@ namespace OpenDentBusiness {
 			for(int i=0;i<tableAllVaccinePats.Rows.Count;i++) {
 				EhrCqmMedicationPat ehrVacPatCur=new EhrCqmMedicationPat();
 				ehrVacPatCur.EhrCqmMedicationPatNum=0;
-				ehrVacPatCur.EhrCqmVaccinePatNum=PIn.Long(tableAllVaccinePats.Rows[i]["VaccinePatNum"].ToString());
-				ehrVacPatCur.PatNum=PIn.Long(tableAllVaccinePats.Rows[i]["PatNum"].ToString());
+				ehrVacPatCur.EhrCqmVaccinePatNum=SIn.Long(tableAllVaccinePats.Rows[i]["VaccinePatNum"].ToString());
+				ehrVacPatCur.PatNum=SIn.Long(tableAllVaccinePats.Rows[i]["PatNum"].ToString());
 				ehrVacPatCur.CVXCode=tableAllVaccinePats.Rows[i]["CVXCode"].ToString();
-				ehrVacPatCur.CompletionStatus=(VaccineCompletionStatus)PIn.Int(tableAllVaccinePats.Rows[i]["CompletionStatus"].ToString());
-				ehrVacPatCur.DateStart=PIn.DateTime(tableAllVaccinePats.Rows[i]["DateTimeStart"].ToString());
-				ehrVacPatCur.DateStop=PIn.DateTime(tableAllVaccinePats.Rows[i]["DateTimeEnd"].ToString());
+				ehrVacPatCur.CompletionStatus=(VaccineCompletionStatus)SIn.Int(tableAllVaccinePats.Rows[i]["CompletionStatus"].ToString());
+				ehrVacPatCur.DateStart=SIn.DateTime(tableAllVaccinePats.Rows[i]["DateTimeStart"].ToString());
+				ehrVacPatCur.DateStop=SIn.DateTime(tableAllVaccinePats.Rows[i]["DateTimeEnd"].ToString());
 				EhrCode ehrCodeCur=dictVaccinePatNumEhrCode[ehrVacPatCur.EhrCqmVaccinePatNum];
 				ehrVacPatCur.CodeSystemName=ehrCodeCur.CodeSystem;
 				ehrVacPatCur.CodeSystemOID=ehrCodeCur.CodeSystemOID;

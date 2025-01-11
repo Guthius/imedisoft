@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -94,10 +95,10 @@ namespace OpenDental{
 				+Lan.g(this,"claims added.");
 			SecurityLogs.MakeLogEntry(EnumPermType.RepeatChargeTool,0,"Repeat Charge Tool ran.\r\n"+metrics);
 			Cursor=Cursors.Default;
-			MessageBox.Show(metrics);
+			ODMessageBox.Show(metrics);
 			if(!string.IsNullOrEmpty(repeatChargeResult.ErrorMsg.ToString())) {
 				SecurityLogs.MakeLogEntry(EnumPermType.RepeatChargeTool,0,"Repeat Charge Tool Error: "+repeatChargeResult.ErrorMsg.ToString());
-				MessageBox.Show(repeatChargeResult.ErrorMsg.ToString());
+				ODMessageBox.Show(repeatChargeResult.ErrorMsg.ToString());
 			}
 			Signalods.SetInvalid(InvalidType.BillingList);
 			DialogResult=DialogResult.OK;

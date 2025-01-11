@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -75,18 +76,18 @@ namespace OpenDental {
 				//need a check for if clinics is on here
 				if(true //Clinics are enabled
 					&& (Security.CurUser.ClinicIsRestricted || !comboClinics.IsAllSelected) 
-					&& clinicNum!=PIn.Long(_table.Rows[i]["ClinicNum"].ToString()))   //currently selected clinic doesn't match the row's clinic
+					&& clinicNum!=SIn.Long(_table.Rows[i]["ClinicNum"].ToString()))   //currently selected clinic doesn't match the row's clinic
 				{
 					continue;
 				}
 				row=new GridRow();
-				DateTime dateLastSeen=PIn.Date(_table.Rows[i]["LastSent"].ToString());
-				DateTime dateBanding=PIn.Date(_table.Rows[i]["DateBanding"].ToString());
-				DateTime dateNextClaim=PIn.Date(_table.Rows[i]["OrthoAutoNextClaimDate"].ToString());
-				DateSpan dateSpanMonthsRem=new DateSpan(PIn.Date(_table.Rows[i]["DateBanding"].ToString()).AddMonths(PIn.Int(_table.Rows[i]["MonthsTreat"].ToString())),DateTime.Today);
-				row.Cells.Add(PIn.String(_table.Rows[i]["Patient"].ToString()));
-				row.Cells.Add(PIn.String(_table.Rows[i]["CarrierName"].ToString()));
-				row.Cells.Add(PIn.String(_table.Rows[i]["MonthsTreat"].ToString()));
+				DateTime dateLastSeen=SIn.Date(_table.Rows[i]["LastSent"].ToString());
+				DateTime dateBanding=SIn.Date(_table.Rows[i]["DateBanding"].ToString());
+				DateTime dateNextClaim=SIn.Date(_table.Rows[i]["OrthoAutoNextClaimDate"].ToString());
+				DateSpan dateSpanMonthsRem=new DateSpan(SIn.Date(_table.Rows[i]["DateBanding"].ToString()).AddMonths(SIn.Int(_table.Rows[i]["MonthsTreat"].ToString())),DateTime.Today);
+				row.Cells.Add(SIn.String(_table.Rows[i]["Patient"].ToString()));
+				row.Cells.Add(SIn.String(_table.Rows[i]["CarrierName"].ToString()));
+				row.Cells.Add(SIn.String(_table.Rows[i]["MonthsTreat"].ToString()));
 				row.Cells.Add(dateBanding.Year < 1880 ? "" : dateBanding.ToShortDateString());//add blank if there is no banding
 				if(dateBanding.Year < 1880) { //add blank if there is no banding
 					row.Cells.Add("");
@@ -95,12 +96,12 @@ namespace OpenDental {
 					row.Cells.Add(((dateSpanMonthsRem.YearsDiff * 12) + dateSpanMonthsRem.MonthsDiff)+" "+Lan.g(this,"months")
 					+", "+dateSpanMonthsRem.DaysDiff +" "+Lan.g(this,"days"));
 				}
-				row.Cells.Add(PIn.String(_table.Rows[i]["NumSent"].ToString()));
+				row.Cells.Add(SIn.String(_table.Rows[i]["NumSent"].ToString()));
 				row.Cells.Add(dateLastSeen.Year < 1880 ? "" : dateLastSeen.ToShortDateString());
 				row.Cells.Add(dateNextClaim.Year < 1880 ? "" : dateNextClaim.ToShortDateString());
 				if(true) { //clinics is turned on
 					//Use the long list of clinics so that hidden clinics can be shown for unrestricted users.
-					row.Cells.Add(Clinics.GetAbbr(PIn.Long(_table.Rows[i]["ClinicNum"].ToString())));
+					row.Cells.Add(Clinics.GetAbbr(SIn.Long(_table.Rows[i]["ClinicNum"].ToString())));
 				}
 				row.Tag=_table.Rows[i];
 				gridMain.ListGridRows.Add(row);
@@ -122,9 +123,9 @@ namespace OpenDental {
 			List<long> listInsSubNums = new List<long>();
 			for(int i = 0;i < gridMain.SelectedIndices.Count();i++) {
 				DataRow row =(DataRow)gridMain.ListGridRows[gridMain.SelectedIndices[i]].Tag;
-				listPlanNums.Add(PIn.Long(row["PlanNum"].ToString()));
-				listPatPlanNums.Add(PIn.Long(row["PatPlanNum"].ToString()));
-				listInsSubNums.Add(PIn.Long(row["InsSubNum"].ToString()));
+				listPlanNums.Add(SIn.Long(row["PlanNum"].ToString()));
+				listPatPlanNums.Add(SIn.Long(row["PatPlanNum"].ToString()));
+				listInsSubNums.Add(SIn.Long(row["InsSubNum"].ToString()));
 			}
 			List<InsPlan> listInsPlansSelected=InsPlans.GetPlans(listPlanNums);
 			List<PatPlan> listPatPlansSelected=PatPlans.GetPatPlans(listPatPlanNums);
@@ -136,17 +137,17 @@ namespace OpenDental {
 			List<string> listHiddenProcCodes=new List<string>();
 			for(int i = 0;i < gridMain.SelectedIndices.Count();i++) {
 				DataRow row =(DataRow)gridMain.ListGridRows[gridMain.SelectedIndices[i]].Tag;
-				long patNum = PIn.Long(row["PatNum"].ToString());
+				long patNum = SIn.Long(row["PatNum"].ToString());
 				Patient patient = Patients.GetPat(patNum);
 				PatientNote patientNote = PatientNotes.Refresh(patNum,patient.Guarantor);
-				long codeNum = PIn.Long(row["AutoCodeNum"].ToString());
-				long provNum = PIn.Long(row["ProvNum"].ToString());
-				long clinicNum = PIn.Long(row["ClinicNum"].ToString());
-				long insPlanNum = PIn.Long(row["PlanNum"].ToString());
-				long patPlanNum = PIn.Long(row["PatPlanNum"].ToString());
-				long insSubNum = PIn.Long(row["InsSubNum"].ToString());
-				int monthsTreat = PIn.Int(row["MonthsTreat"].ToString());
-				DateTime dateTimeDue =  PIn.Date(row["OrthoAutoNextClaimDate"].ToString());
+				long codeNum = SIn.Long(row["AutoCodeNum"].ToString());
+				long provNum = SIn.Long(row["ProvNum"].ToString());
+				long clinicNum = SIn.Long(row["ClinicNum"].ToString());
+				long insPlanNum = SIn.Long(row["PlanNum"].ToString());
+				long patPlanNum = SIn.Long(row["PatPlanNum"].ToString());
+				long insSubNum = SIn.Long(row["InsSubNum"].ToString());
+				int monthsTreat = SIn.Int(row["MonthsTreat"].ToString());
+				DateTime dateTimeDue =  SIn.Date(row["OrthoAutoNextClaimDate"].ToString());
 				string procCode=ProcedureCodes.GetProcCode(codeNum).ProcCode;
 				if(!listHiddenProcCodes.Contains(procCode) && ProcedureCodes.AreAnyProcCodesHidden(codeNum)) {
 					listHiddenProcCodes.Add(procCode);
@@ -186,10 +187,10 @@ namespace OpenDental {
 						claimType="S";
 						break;
 				}
-				DateSpan dateSpanMonthsRem=new DateSpan(PIn.Date(row["DateBanding"].ToString()).AddMonths(PIn.Int(row["MonthsTreat"].ToString())),DateTime.Today);
+				DateSpan dateSpanMonthsRem=new DateSpan(SIn.Date(row["DateBanding"].ToString()).AddMonths(SIn.Int(row["MonthsTreat"].ToString())),DateTime.Today);
 				Claims.CreateClaimForOrthoProc(claimType,patPlan,insPlan,insSub,
-					ClaimProcs.GetForProcWithOrdinal(procedure.ProcNum,patPlan.Ordinal),procedure,feeBilled,PIn.Date(row["DateBanding"].ToString()),
-					PIn.Int(row["MonthsTreat"].ToString()),((dateSpanMonthsRem.YearsDiff * 12) + dateSpanMonthsRem.MonthsDiff));
+					ClaimProcs.GetForProcWithOrdinal(procedure.ProcNum,patPlan.Ordinal),procedure,feeBilled,SIn.Date(row["DateBanding"].ToString()),
+					SIn.Int(row["MonthsTreat"].ToString()),((dateSpanMonthsRem.YearsDiff * 12) + dateSpanMonthsRem.MonthsDiff));
 				PatPlans.IncrementOrthoNextClaimDates(patPlan,insPlan,monthsTreat,patientNote);
 				listRowsSucceeded.Add(row);
 				SecurityLogs.MakeLogEntry(EnumPermType.ProcComplCreate,patient.PatNum

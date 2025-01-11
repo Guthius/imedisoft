@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -107,7 +108,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(Lan.g(this,"Request failed: ")+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Request failed: ")+ex.Message);
 			}			
 			DialogResult=DialogResult.OK;
 		}

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -104,7 +105,7 @@ namespace OpenDental {
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			int index=gridMain.GetSelectedIndex();
 			if(index==-1) {
-				MessageBox.Show("Please select a data element first.");
+				ODMessageBox.Show("Please select a data element first.");
 				return;
 			}
 			using FormPatListElementEditEHR2014 formPatListElementEditEHR2014=new FormPatListElementEditEHR2014();
@@ -118,7 +119,7 @@ namespace OpenDental {
 
 		private void butResults_Click(object sender,EventArgs e) {
 			if(gridMain.ListGridRows.Count<1) {
-				MessageBox.Show(Lans.g(this,"Please add a data element."));
+				ODMessageBox.Show(Lans.g(this,"Please add a data element."));
 				return;
 			}
 			//bool hasOrder=false;

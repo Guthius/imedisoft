@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -130,7 +131,7 @@ namespace OpenDental {
 			comboInsAutoReceiveNoAssign.SetSelected(2);//Default to use global preference.
 			ClinicPref clinicPrefInsAutoReceiveNoAssign=ClinicPrefs.GetPref(PrefName.InsAutoReceiveNoAssign,ClinicCur.Id);
 			if(clinicPrefInsAutoReceiveNoAssign!=null) {
-				comboInsAutoReceiveNoAssign.SetSelected(PIn.Int(clinicPrefInsAutoReceiveNoAssign.ValueString));
+				comboInsAutoReceiveNoAssign.SetSelected(SIn.Int(clinicPrefInsAutoReceiveNoAssign.ValueString));
 			}
 			//"Always Assign Benefits to the Patient" checkbox is an override. If the clinic has this pref value, this means it is checked.
 			ClinicPref clinicPrefAlwaysAssignBenToPatient=ClinicPrefs.GetPref(PrefName.InsDefaultAssignBen,ClinicCur.Id);
@@ -221,7 +222,7 @@ namespace OpenDental {
 
 		private void butRemove_Click(object sender,EventArgs e) {
 			if(gridSpecialty.SelectedIndices.Length==0) {
-				MessageBox.Show(Lan.g(this,"Please select a specialty first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a specialty first."));
 				return;
 			}
 			gridSpecialty.SelectedIndices
@@ -301,7 +302,7 @@ namespace OpenDental {
 				//ensure that there are no users who have only this clinic assigned to them.
 				List<Userod> listUserodsRestricted = Userods.GetUsersOnlyThisClinic(ClinicCur.Id);
 				if(listUserodsRestricted.Count > 0) {
-					MessageBox.Show(Lan.g(this,"You may not hide this clinic as the following users are restricted to only this clinic") + ": "
+					ODMessageBox.Show(Lan.g(this,"You may not hide this clinic as the following users are restricted to only this clinic") + ": "
 						+ string.Join(", ",listUserodsRestricted.Select(x => x.UserName)));
 					return;
 				}
@@ -373,7 +374,7 @@ namespace OpenDental {
 			ClinicCur.SchedulingNote=textSchedRules.Text;
 			List<PrefName> listClinicPrefsToDelete=new List<PrefName>();
 			if(comboDefaultBillingType.SelectedIndex>0) {//If default billing type is not set to default, update/insert clinicpref row.
-				string strBillingType=POut.Long(comboDefaultBillingType.GetSelectedDefNum());
+				string strBillingType=SOut.Long(comboDefaultBillingType.GetSelectedDefNum());
 				ClinicPrefs.Upsert(PrefName.PracticeDefaultBillType,ClinicCur.Id,strBillingType);
 			}
 			else {//"Use Global Preference" selected, delete the pref if it exists.
@@ -389,7 +390,7 @@ namespace OpenDental {
 				listClinicPrefsToDelete.Add(PrefName.InsAutoReceiveNoAssign);
 			}
 			else {
-				string strInsAutoReceiveNoAssignClinicPref=POut.Int(comboInsAutoReceiveNoAssign.SelectedIndex);
+				string strInsAutoReceiveNoAssignClinicPref=SOut.Int(comboInsAutoReceiveNoAssign.SelectedIndex);
 				ClinicPrefs.Upsert(PrefName.InsAutoReceiveNoAssign,ClinicCur.Id,strInsAutoReceiveNoAssignClinicPref);
 			}
 			ClinicPrefs.DeletePrefs(ClinicCur.Id,listClinicPrefsToDelete);

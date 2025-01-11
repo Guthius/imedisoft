@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpFinanceCharge{
@@ -12,13 +13,13 @@ namespace OpenDentBusiness {
 				+",adjustment.AdjAmt "
 				+"FROM patient "
 				+"INNER JOIN adjustment ON patient.PatNum=adjustment.PatNum "
-					+"AND adjustment.AdjDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+" "
-					+"AND adjustment.AdjType = "+POut.Long(finChargeAdjType)+" ";
+					+"AND adjustment.AdjDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" "
+					+"AND adjustment.AdjType = "+SOut.Long(finChargeAdjType)+" ";
 				if(listProvNums.Count>0) {
-					query+="AND patient.PriProv IN ("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
+					query+="AND patient.PriProv IN ("+string.Join(",",listProvNums.Select(x => SOut.Long(x)))+") ";
 				}
 				if(listBillingDefNums.Count>0) {
-					query+="AND patient.BillingType IN ("+string.Join(",",listBillingDefNums.Select(x => POut.Long(x)))+") ";
+					query+="AND patient.BillingType IN ("+string.Join(",",listBillingDefNums.Select(x => SOut.Long(x)))+") ";
 				}
 				query+="ORDER BY patient.LName,patient.FName,AdjAmt DESC";
 			DataTable table=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));

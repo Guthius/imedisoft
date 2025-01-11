@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -164,7 +165,7 @@ namespace OpenDental {
 				DataValid.SetInvalid(InvalidType.Prefs);
 			}
 			else {
-				ClinicPrefs.Upsert(PrefName.EmailHostingUseNoReply,comboBoxClinicPicker1.ClinicNumSelected,POut.Bool(checkUseNoReply.Checked));
+				ClinicPrefs.Upsert(PrefName.EmailHostingUseNoReply,comboBoxClinicPicker1.ClinicNumSelected,SOut.Bool(checkUseNoReply.Checked));
 				DataValid.SetInvalid(InvalidType.ClinicPrefs);
 			}
 		}
@@ -192,7 +193,7 @@ namespace OpenDental {
 					}
 				});
 				if(string.IsNullOrWhiteSpace(error)) {
-					MessageBox.Show(this,Lan.g(this,"An email containing a link to complete the verification process has been sent to: ")+emailAddress.EmailUsername);
+					ODMessageBox.Show(this,Lan.g(this,"An email containing a link to complete the verification process has been sent to: ")+emailAddress.EmailUsername);
 				}
 				else {
 					ShowError(error);
@@ -206,7 +207,7 @@ namespace OpenDental {
 				return;
 			}
 			string emailAddress=identityResource.Identity;
-			if(MessageBox.Show(this,Lan.g(this,"Are you sure you want to delete the email address verification for: ")+emailAddress+"?"
+			if(ODMessageBox.Show(this,Lan.g(this,"Are you sure you want to delete the email address verification for: ")+emailAddress+"?"
 				,Lan.g(this,"Delete Verification?"),MessageBoxButtons.YesNo)==DialogResult.No) 
 			{
 				return;

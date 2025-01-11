@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -57,14 +58,14 @@ namespace OpenDental {
 				program=Programs.GetCur(ProgramName.PayConnect);
 				labelUpdated.Visible=false;
 				checkForceDuplicates.Visible=true;
-				checkForceDuplicates.Checked=PIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(program.ProgramNum,
+				checkForceDuplicates.Checked=SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(program.ProgramNum,
 					PayConnect.ProgramProperties.PayConnectForceRecurringCharge,Clinics.ClinicNum));
 			}
 			if(Programs.IsEnabled(ProgramName.EdgeExpress)) {
 				program=Programs.GetCur(ProgramName.EdgeExpress);
 				labelUpdated.Visible=false;
 				checkForceDuplicates.Visible=true;
-				checkForceDuplicates.Checked=PIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(program.ProgramNum,
+				checkForceDuplicates.Checked=SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(program.ProgramNum,
 					ProgramProperties.PropertyDescs.EdgeExpress.ForceRecurringCharge,Clinics.ClinicNum));
 			}
 			if(Programs.IsEnabled(ProgramName.Xcharge)) {
@@ -72,7 +73,7 @@ namespace OpenDental {
 				labelUpdated.Visible=true;
 				checkForceDuplicates.Visible=true;
 				string xPath=Programs.GetProgramPath(program);
-				checkForceDuplicates.Checked=PIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(program.ProgramNum,
+				checkForceDuplicates.Checked=SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(program.ProgramNum,
 					ProgramProperties.PropertyDescs.XCharge.XChargeForceRecurringCharge,Clinics.ClinicNum));
 				if(!File.Exists(xPath)) {//program path is invalid
 					//if user has setup permission and they want to edit the program path, show the X-Charge setup window
@@ -230,7 +231,7 @@ namespace OpenDental {
 				if(dateStart>DateTime.Today) {
 					dateStart=dateStart.AddMonths(-1);//Won't give a date with incorrect day.  AddMonths will give the end of the month if needed.
 				}
-				DateTime dateExcludeBefore=PIn.Date(textDate.Text);//If entry is invalid, all charges will be included because this will be MinDate.
+				DateTime dateExcludeBefore=SIn.Date(textDate.Text);//If entry is invalid, all charges will be included because this will be MinDate.
 				if(dateStart < dateExcludeBefore) {
 					continue;//Don't show row in grid
 				}
@@ -442,7 +443,7 @@ namespace OpenDental {
 				}
 			}
 			if(deselectedCount > 0) {
-				MessageBox.Show(Lan.g(this,"Number of cards deselected because they are inactive")+": "+deselectedCount);
+				ODMessageBox.Show(Lan.g(this,"Number of cards deselected because they are inactive")+": "+deselectedCount);
 			}
 			if(gridMain.SelectedIndices.Length<1) {
 				MsgBox.Show(this,"Must select at least one recurring charge.");

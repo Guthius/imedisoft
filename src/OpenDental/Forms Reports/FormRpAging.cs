@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -155,7 +156,7 @@ namespace OpenDental{
 		///<summary>Sets parameters/fills lists based on form controls.</summary>
 		private RpAgingParamObject GetParamsFromForm() {
 			RpAgingParamObject rpo=new RpAgingParamObject();
-			rpo.AsOfDate=PIn.Date(textDate.Text);
+			rpo.AsOfDate=SIn.Date(textDate.Text);
 			if(rpo.AsOfDate.Year<1880) {
 				rpo.AsOfDate=DateTime.Today;
 			}
@@ -288,7 +289,7 @@ namespace OpenDental{
 			}
 			//Patient Account Aging Query-----------------------------------------------
 			bool isWoEstIncluded=true;
-			if(checkAgeWriteoffs.Checked && tableAging.Select().All(x => Math.Abs(PIn.Double(x["InsWoEst"].ToString()))<=0.005)) {
+			if(checkAgeWriteoffs.Checked && tableAging.Select().All(x => Math.Abs(SIn.Double(x["InsWoEst"].ToString()))<=0.005)) {
 				tableAging.Columns.Remove("InsWoEst");
 				isWoEstIncluded=false;
 			}

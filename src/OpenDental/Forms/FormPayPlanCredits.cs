@@ -7,6 +7,7 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Printing;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -103,7 +104,7 @@ namespace OpenDental {
 				cell=new GridCell(_listPayPlanEntries[i].AmtStr);
 				cell.ColorBackG=_listPayPlanEntries[i].IsChargeOrd ? Color.LightCyan : Color.White;
 				row.Cells.Add(cell);
-				totalAttached+=PIn.Double(_listPayPlanEntries[i].AmtStr);
+				totalAttached+=SIn.Double(_listPayPlanEntries[i].AmtStr);
 				cell=new GridCell(_listPayPlanEntries[i].RemAftStr);
 				cell.ColorBackG=_listPayPlanEntries[i].IsChargeOrd ? Color.LightCyan : Color.White;
 				row.Cells.Add(cell);
@@ -195,7 +196,7 @@ namespace OpenDental {
 							textAmt.Text=payPlanEntrySelected.RemBefStr; //set textAmt to the value in RemBefore
 						}
 						else {//if there are other charges attached, fill the amount textbox with the minimum value in the RemAftr column.
-							textAmt.Text=listPayPlanEntriesForProc.Min(x => PIn.Double(x.RemAftStr)).ToString("f");
+							textAmt.Text=listPayPlanEntriesForProc.Min(x => SIn.Double(x.RemAftStr)).ToString("f");
 						}
 						textDate.Text=DateTime.Today.ToShortDateString();
 						textNote.Text=ProcedureCodes.GetStringProcCode(payPlanEntrySelected.Proc.CodeNum)+": "+Procedures.GetDescription(payPlanEntrySelected.Proc);
@@ -236,7 +237,7 @@ namespace OpenDental {
 		private void butAddOrUpdate_Click(object sender,EventArgs e) {
 			List<PayPlanEdit.PayPlanEntry> listPayPlanEntriesSelected=gridMain.SelectedTags<PayPlanEdit.PayPlanEntry>();
 			if(listPayPlanEntriesSelected.Count<=1) { //validation (doesn't matter if multiple are selected)
-				if(string.IsNullOrEmpty(textAmt.Text) || !textAmt.IsValid() || PIn.Double(textAmt.Text)==0) {
+				if(string.IsNullOrEmpty(textAmt.Text) || !textAmt.IsValid() || SIn.Double(textAmt.Text)==0) {
 					MsgBox.Show(this,"Please enter a valid amount.");
 					return;
 				}
@@ -248,7 +249,7 @@ namespace OpenDental {
 			if(textDate.Text=="") {
 				textDate.Text=DateTime.Today.ToShortDateString();
 			}
-			if(Security.IsGlobalDateLock(EnumPermType.PayPlanEdit,PIn.Date(textDate.Text))) {
+			if(Security.IsGlobalDateLock(EnumPermType.PayPlanEdit,SIn.Date(textDate.Text))) {
 				return;
 			}
 			//There will be no FauxAccountEntries for procedures associated to a dynamic payment plans that do not have any debits.
@@ -268,7 +269,7 @@ namespace OpenDental {
 				}
 				//add an unattached charge only if not on enforce fully
 				PayPlanCharge payPlanChargeAdd=PayPlanEdit.CreateUnattachedCredit(textDate.Text,_patient.PatNum,textNote.Text,_payPlan.PayPlanNum,
-					PIn.Double(textAmt.Text));
+					SIn.Double(textAmt.Text));
 				ListPayPlanChargesCredit.Add(payPlanChargeAdd);
 			}
 			else if(listPayPlanEntriesSelected.Count==1) { //if they have one selected
@@ -291,7 +292,7 @@ namespace OpenDental {
 					//DO NOT use PayPlanChargeNum. They are not pre-inserted so they will all be 0 if new.
 					payPlanChargeSelected=((PayPlanEdit.PayPlanEntry)(gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag)).Charge;
 				}
-				ListPayPlanChargesCredit=PayPlanEdit.CreateOrUpdateChargeForSelectedEntry(payPlanEntrySelected,ListPayPlanChargesCredit,PIn.Double(textAmt.Text),
+				ListPayPlanChargesCredit=PayPlanEdit.CreateOrUpdateChargeForSelectedEntry(payPlanEntrySelected,ListPayPlanChargesCredit,SIn.Double(textAmt.Text),
 					textNote.Text,textDate.Text,_patient.PatNum,_payPlan.PayPlanNum,payPlanChargeSelected);
 			}
 			else if(listPayPlanEntriesSelected.Count>1) { //if they have more than one entry selected
@@ -375,7 +376,7 @@ namespace OpenDental {
 				return;
 			}
 			e.HasMorePages=false;
-			text=Lan.g(this,"Total")+": "+PIn.Double(textTotal.Text).ToString("c");
+			text=Lan.g(this,"Total")+": "+SIn.Double(textTotal.Text).ToString("c");
 			g.DrawString(text,fontSubHeading,Brushes.Black,center+gridMain.Width/2-g.MeasureString(text,fontSubHeading).Width-10,yPos);
 		}
 

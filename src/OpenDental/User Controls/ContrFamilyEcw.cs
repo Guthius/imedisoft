@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -37,7 +38,7 @@ namespace OpenDental {
 			if(PatCur==null){
 				return;
 			}
-			if(PIn.Bool(ProgramProperties.GetPropVal(ProgramName.eClinicalWorks,"FeeSchedulesSetManually"))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(ProgramName.eClinicalWorks,"FeeSchedulesSetManually"))) {
 				comboFeeSched.Enabled=true;
 			}
 			else {

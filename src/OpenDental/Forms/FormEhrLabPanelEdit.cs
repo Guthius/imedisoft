@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Printing;
+using CodeBase;
 using OpenDental.UI;
 
 namespace OpenDental {
@@ -78,7 +79,7 @@ namespace OpenDental {
 
 		private void butAdd_Click(object sender,EventArgs e) {
 			if(IsNew) {
-				MessageBox.Show("Lab results can only be added to saved or existing lab panels.");
+				ODMessageBox.Show("Lab results can only be added to saved or existing lab panels.");
 				return;
 			}
 			using FormEhrLabResultEdit FormLRE=new FormEhrLabResultEdit();
@@ -95,7 +96,7 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show("Delete?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			if(ODMessageBox.Show("Delete?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			LabPanels.Delete(PanelCur.LabPanelNum);
@@ -105,11 +106,11 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(textSpecimenSourceCode.Text!="" && textSpecimenLocation.Text=="") {
-				MessageBox.Show("If specimen code is entered, then specimen location must be entered."); 
+				ODMessageBox.Show("If specimen code is entered, then specimen location must be entered."); 
 				return;
 			}
 			if(textSpecimenSourceCode.Text=="" && textSpecimenLocation.Text!="") {
-				MessageBox.Show("If specimen location is entered, then specimen code must be entered.");
+				ODMessageBox.Show("If specimen location is entered, then specimen code must be entered.");
 				return;
 			}
 			PanelCur.ServiceId=textServiceID.Text;

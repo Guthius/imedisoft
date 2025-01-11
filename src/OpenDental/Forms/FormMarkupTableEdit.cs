@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -59,13 +60,13 @@ namespace OpenDental {
 					for(int c=0;c<stringArrayCells.Length;c++) {
 						string colName="";
 						if(!Regex.IsMatch(stringArrayCells[c],@"^(Width="")\d+""\|")) {//e.g. Width="90"| 
-							MessageBox.Show("Table is corrupt.  Each header must start with Width=\"#\"|.  Please manually edit the markup in the following window.");
+							ODMessageBox.Show("Table is corrupt.  Each header must start with Width=\"#\"|.  Please manually edit the markup in the following window.");
 							ManuallyEdit();
 							return;
 						}
 						string width=stringArrayCells[c].Substring(7);//90"|Column Heading 1
 						width=width.Substring(0,width.IndexOf("\""));//90
-						_listColWidths.Add(PIn.Int(width));
+						_listColWidths.Add(SIn.Int(width));
 						colName=stringArrayCells[c].Substring(stringArrayCells[c].IndexOf("|")+1);
 						_listColNames.Add(colName);
 						_table.Columns.Add("");//must be an empty string because Table object does not allow duplicate column names.
@@ -79,7 +80,7 @@ namespace OpenDental {
 				stringArrayLines[i]=stringArrayLines[i].Substring(1);//strips off the leading |
 				stringArrayCells=stringArrayLines[i].Split(new string[] { "||" },StringSplitOptions.None);
 				if(stringArrayCells.Length!=_listColNames.Count || stringArrayCells.Length!=_listColWidths.Count) {
-					MessageBox.Show("Table is corrupt.  There are "+_listColNames.Count.ToString()+" columns, but row "+((i-1)/2).ToString()
+					ODMessageBox.Show("Table is corrupt.  There are "+_listColNames.Count.ToString()+" columns, but row "+((i-1)/2).ToString()
 						+" has "+stringArrayCells.Length.ToString()+" cells.  Please manually edit the markup in the following window.");
 					ManuallyEdit();
 					return;
@@ -431,7 +432,7 @@ namespace OpenDental {
 			//access data as arrayTblBuilder[Y][X], arrayTblBuilder contains all of the table data in a potentially uneven array (technically a list), 
 			//Check for enough columns---------------------------------------------------------------------------------------------------------
 			if(pointStarting.X + colsNeeded > _table.Columns.Count) {
-				MessageBox.Show(this,Lan.g(this,"Additional columns required to paste")+": "+(pointStarting.X+colsNeeded-gridMain.Columns.Count));
+				ODMessageBox.Show(this,Lan.g(this,"Additional columns required to paste")+": "+(pointStarting.X+colsNeeded-gridMain.Columns.Count));
 				return;
 			}
 			//Check for Content----------------------------------------------------------------------------------------------------------------
@@ -484,7 +485,7 @@ namespace OpenDental {
 					xmlDocument.Load(stringReader);//Loading this document provides error checking
 				}
 				catch {
-					MessageBox.Show(Lan.g(this,"The header for column "+(h+1)+" is invalid."));
+					ODMessageBox.Show(Lan.g(this,"The header for column "+(h+1)+" is invalid."));
 					return;
 				}
 			}
@@ -501,7 +502,7 @@ namespace OpenDental {
 						xmlDocument.Load(stringReader);
 					}
 					catch {
-						MessageBox.Show(Lan.g(this,"The cell at column "+(j+1)+", row "+(i+1)+" is invalid"));
+						ODMessageBox.Show(Lan.g(this,"The cell at column "+(j+1)+", row "+(i+1)+" is invalid"));
 						return;
 					}
 				}

@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental.Bridges {
 	/// <summary></summary>
@@ -53,10 +54,10 @@ namespace OpenDental.Bridges {
 					string patId="";
 					ProgramProperty propertyCur=ProgramProperties.GetCur(listProgProperties, "Enter 0 to use PatientNum, or 1 to use ChartNum");;
 					if(propertyCur.PropertyValue=="0"){
-						patId=POut.Long(pat.PatNum);
+						patId=SOut.Long(pat.PatNum);
 					}
 					else {
-						patId=POut.String(pat.ChartNumber);
+						patId=SOut.String(pat.ChartNumber);
 					}
 					info = "/P:" + patId + "," + pat.LName + "," + pat.FName;
 					if(IsWindow(hwndLink) == true) {

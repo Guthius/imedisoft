@@ -151,7 +151,7 @@ namespace OpenDental{
 				return;
 			}
 			DataValid.SetInvalid(InvalidType.RecallTypes);
-			if(MessageBox.Show(Lan.g(this,"Recalls for all patients should be synchronized.  Synchronize now?"),"",MessageBoxButtons.YesNo)
+			if(ODMessageBox.Show(Lan.g(this,"Recalls for all patients should be synchronized.  Synchronize now?"),"",MessageBoxButtons.YesNo)
 				==DialogResult.Yes)
 			{
 				Cursor=Cursors.WaitCursor;

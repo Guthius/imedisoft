@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Globalization;
+using CodeBase;
 
 namespace OpenDental{
 	
@@ -103,7 +104,7 @@ namespace OpenDental{
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			int selectedRow=gridMain.GetSelectedIndex();
 			if(selectedRow==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
         return;
 			}
 			AutoCodeItem autoCodeItem=_listAutoCodeItems[selectedRow];
@@ -114,7 +115,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 		  if(textDescript.Text==""){
-        MessageBox.Show(Lan.g(this,"The Description cannot be blank"));
+        ODMessageBox.Show(Lan.g(this,"The Description cannot be blank"));
         return;
       }
 			if(_listAutoCodeItems.Count==0){
@@ -137,7 +138,7 @@ namespace OpenDental{
 					}
 					catch(ApplicationException ex) {
 						//should never happen
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 					return;
 				}
@@ -285,7 +286,7 @@ namespace OpenDental{
 				numCategories++;
 			}
 			if(numCategories!=_listAutoCodeItems[0].ListConditions.Count) {//Every row has to have the same number of conditions
-				MessageBox.Show(Lan.g(this,"When using ")+_listAutoCodeItems[0].ListConditions.Count+Lan.g(this," condition(s), you must use conditions from ")											
+				ODMessageBox.Show(Lan.g(this,"When using ")+_listAutoCodeItems[0].ListConditions.Count+Lan.g(this," condition(s), you must use conditions from ")											
 					+_listAutoCodeItems[0].ListConditions.Count+Lan.g(this," logical categories. You are using conditions from ")+numCategories+Lan.g(this," logical categories."));
 				e.Cancel=true;
 				return;
@@ -321,7 +322,7 @@ namespace OpenDental{
 				reqNumAutoCodeItems=reqNumAutoCodeItems*2;
 			}
 			if(_listAutoCodeItems.Count!=reqNumAutoCodeItems) {
-				MessageBox.Show(Lan.g(this,"For the condition categories you are using, you should have ")
+				ODMessageBox.Show(Lan.g(this,"For the condition categories you are using, you should have ")
 					+reqNumAutoCodeItems+Lan.g(this," entries in your list. You have ")+_listAutoCodeItems.Count+".");
 				e.Cancel=true;
 				return;

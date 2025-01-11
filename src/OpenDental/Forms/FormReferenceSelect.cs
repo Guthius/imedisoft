@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -32,12 +33,12 @@ namespace OpenDental {
 		private void FillMain(bool limit) {
 			int age=0;
 			try {
-				age=PIn.Int(textAge.Text);
+				age=SIn.Int(textAge.Text);
 			}
 			catch { }
 			int superFam=0;
 			try {
-				superFam=PIn.Int(textSuperFamily.Text);
+				superFam=SIn.Int(textSuperFamily.Text);
 			}
 			catch { }
 			List<long> listBillingTypes=listBillingType.GetListSelected<Def>().Select(x=>x.DefNum).ToList();
@@ -112,7 +113,7 @@ namespace OpenDental {
 		}
 
 		private void gridMain_CellDoubleClick(object sender,UI.ODGridClickEventArgs e) {
-			CustReference custReference=CustReferences.GetOne(PIn.Long(_tableRef.Rows[e.Row]["CustReferenceNum"].ToString()));
+			CustReference custReference=CustReferences.GetOne(SIn.Long(_tableRef.Rows[e.Row]["CustReferenceNum"].ToString()));
 			using FormReferenceEdit formReferenceEdit=new FormReferenceEdit(custReference);
 			formReferenceEdit.ShowDialog();
 			FillMain(true);
@@ -122,7 +123,7 @@ namespace OpenDental {
 			if(gridMain.SelectedIndices.Length!=1) {
 				return;
 			}
-			PatNumGoto=PIn.Long(_tableRef.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
+			PatNumGoto=SIn.Long(_tableRef.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
 			Close();
 		}
 
@@ -297,7 +298,7 @@ namespace OpenDental {
 			}
 			ListCustReferencesSelected=new List<CustReference>();
 			for(int i=0;i<gridMain.SelectedIndices.Length;i++) {
-				CustReference custReference=CustReferences.GetOne(PIn.Long(_tableRef.Rows[gridMain.SelectedIndices[i]]["CustReferenceNum"].ToString()));
+				CustReference custReference=CustReferences.GetOne(SIn.Long(_tableRef.Rows[gridMain.SelectedIndices[i]]["CustReferenceNum"].ToString()));
 				custReference.DateMostRecent=DateTime.Now;
 				CustReferences.Update(custReference);
 				ListCustReferencesSelected.Add(custReference);

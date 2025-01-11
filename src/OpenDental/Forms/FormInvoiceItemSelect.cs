@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -49,17 +50,17 @@ namespace OpenDental {
 			GridRow row;
 			List<ProcedureCode> listProcedureCodes=ProcedureCodes.GetAllCodes();
 			for(int i=0;i<_tableSuperFamAcct.Rows.Count;i++) {
-				if(checkIsFilteringZeroAmount.Checked && PIn.Double(_tableSuperFamAcct.Rows[i]["Amount"].ToString())==0){
+				if(checkIsFilteringZeroAmount.Checked && SIn.Double(_tableSuperFamAcct.Rows[i]["Amount"].ToString())==0){
 					continue;
 				}
 				row=new GridRow();
-				row.Cells.Add(PIn.DateTime(_tableSuperFamAcct.Rows[i]["Date"].ToString()).ToShortDateString());
+				row.Cells.Add(SIn.DateTime(_tableSuperFamAcct.Rows[i]["Date"].ToString()).ToShortDateString());
 				row.Cells.Add(_tableSuperFamAcct.Rows[i]["PatName"].ToString());
-				row.Cells.Add(Providers.GetAbbr(PIn.Long(_tableSuperFamAcct.Rows[i]["Prov"].ToString())));
+				row.Cells.Add(Providers.GetAbbr(SIn.Long(_tableSuperFamAcct.Rows[i]["Prov"].ToString())));
 				if(!string.IsNullOrWhiteSpace(_tableSuperFamAcct.Rows[i]["AdjType"].ToString())){	//It's an adjustment
 					row.Cells.Add(Lan.g(this,"Adjust"));//Adjustment
 					row.Cells.Add(Tooth.Display(_tableSuperFamAcct.Rows[i]["Tooth"].ToString()));
-					row.Cells.Add(Defs.GetName(DefCat.AdjTypes,PIn.Long(_tableSuperFamAcct.Rows[i]["AdjType"].ToString())));//Adjustment type
+					row.Cells.Add(Defs.GetName(DefCat.AdjTypes,SIn.Long(_tableSuperFamAcct.Rows[i]["AdjType"].ToString())));//Adjustment type
 				}
 				else if(!string.IsNullOrWhiteSpace(_tableSuperFamAcct.Rows[i]["ChargeType"].ToString())) {	//It's a payplan charge
 					if(PrefC.GetInt(PrefName.PayPlansVersion)!=(int)PayPlanVersions.AgeCreditsAndDebits) {
@@ -67,15 +68,15 @@ namespace OpenDental {
 					}
 					row.Cells.Add(Lan.g(this, "Pay Plan"));
 					row.Cells.Add(Tooth.Display(_tableSuperFamAcct.Rows[i]["Tooth"].ToString()));
-					row.Cells.Add(PIn.Enum<PayPlanChargeType>(PIn.Int(_tableSuperFamAcct.Rows[i]["ChargeType"].ToString())).GetDescription());//Pay Plan charge type
+					row.Cells.Add(SIn.Enum<PayPlanChargeType>(SIn.Int(_tableSuperFamAcct.Rows[i]["ChargeType"].ToString())).GetDescription());//Pay Plan charge type
 				}
 				else{//It's a procedure
-					ProcedureCode procedureCode=ProcedureCodes.GetProcCode(PIn.Long(_tableSuperFamAcct.Rows[i]["Code"].ToString()),listProcedureCodes);
+					ProcedureCode procedureCode=ProcedureCodes.GetProcCode(SIn.Long(_tableSuperFamAcct.Rows[i]["Code"].ToString()),listProcedureCodes);
 					row.Cells.Add(procedureCode.ProcCode);
 					row.Cells.Add(Tooth.Display(_tableSuperFamAcct.Rows[i]["Tooth"].ToString()));
 					row.Cells.Add(procedureCode.Descript);
 				}
-				row.Cells.Add(PIn.Double(_tableSuperFamAcct.Rows[i]["Amount"].ToString()).ToString("F"));
+				row.Cells.Add(SIn.Double(_tableSuperFamAcct.Rows[i]["Amount"].ToString()).ToString("F"));
 				row.Tag=_tableSuperFamAcct.Rows[i];
 				_gridMain.ListGridRows.Add(row);
 			}

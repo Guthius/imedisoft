@@ -51,7 +51,7 @@ namespace OpenDental {
 				dateRange=AppointmentL.GetAsapRange(_appointment.Op,_appointment.AptDateTime,_appointment.AptNum,listSchedules);
 			}
 			catch(ODException ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 				return;
 			}
 			catch(Exception ex) {

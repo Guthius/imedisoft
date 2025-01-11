@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -150,7 +151,7 @@ namespace OpenDental{
 			DataTable dataTableOnlinePayments=table.Clone();
 			List<long> listPayNums=new List<long>();
 			for(int i=0;i<table.Rows.Count;i++) {
-				listPayNums.Add(PIn.Long(table.Rows[i]["PayNum"].ToString()));
+				listPayNums.Add(SIn.Long(table.Rows[i]["PayNum"].ToString()));
 			}
 			List<Payment> listPayments=Payments.GetPayments(listPayNums);//No Cache
 			for(int i=0;i<listPayments.Count;i++) {
@@ -158,7 +159,7 @@ namespace OpenDental{
 					continue;
 				}
 				for(int j=table.Rows.Count-1;j>=0;j--) {//Loop backwards to make it safe to remove by index.
-					if(PIn.Long(table.Rows[j]["PayNum"].ToString())!=listPayments[i].PayNum) {
+					if(SIn.Long(table.Rows[j]["PayNum"].ToString())!=listPayments[i].PayNum) {
 						continue;
 					}
 					dataTableOnlinePayments.Rows.Add(table.Rows[j].ItemArray);
@@ -175,7 +176,7 @@ namespace OpenDental{
 			}
 			DataColumn col=table.Columns.Add("afterFee");
 			for(int i=0;i<table.Rows.Count;i++) {
-				table.Rows[i]["afterFee"]=PIn.Decimal(table.Rows[i]["amt"].ToString());
+				table.Rows[i]["afterFee"]=SIn.Decimal(table.Rows[i]["amt"].ToString());
 			}
 		}
 
@@ -189,11 +190,11 @@ namespace OpenDental{
 			col.SetOrdinal(table.Columns["amt"].Ordinal);
 			for(int i=0;i<table.Rows.Count;i++) {
 				//If the fee comes from CareCredit, we want to subtract the fee value. Otherwise, we'll add the surcharge to the cost of the payment.
-				table.Rows[i]["Merchant Fee"]=PIn.Decimal(table.Rows[i]["MerchantFee"].ToString());
-				table.Rows[i]["afterFee"]=PIn.Decimal(table.Rows[i]["amt"].ToString())+PIn.Decimal(table.Rows[i]["MerchantFee"].ToString());
-				if(PIn.Long(table.Rows[i]["PaymentSource"].ToString())==(long)CreditCardSource.CareCredit) {
-					table.Rows[i]["Merchant Fee"]=PIn.Decimal(table.Rows[i]["MerchantFee"].ToString())*-1;
-					table.Rows[i]["afterFee"]=PIn.Decimal(table.Rows[i]["amt"].ToString())-PIn.Decimal(table.Rows[i]["MerchantFee"].ToString());
+				table.Rows[i]["Merchant Fee"]=SIn.Decimal(table.Rows[i]["MerchantFee"].ToString());
+				table.Rows[i]["afterFee"]=SIn.Decimal(table.Rows[i]["amt"].ToString())+SIn.Decimal(table.Rows[i]["MerchantFee"].ToString());
+				if(SIn.Long(table.Rows[i]["PaymentSource"].ToString())==(long)CreditCardSource.CareCredit) {
+					table.Rows[i]["Merchant Fee"]=SIn.Decimal(table.Rows[i]["MerchantFee"].ToString())*-1;
+					table.Rows[i]["afterFee"]=SIn.Decimal(table.Rows[i]["amt"].ToString())-SIn.Decimal(table.Rows[i]["MerchantFee"].ToString());
 				}
 			}
 		}
@@ -301,7 +302,7 @@ namespace OpenDental{
 				for(int i=tablePat.Rows.Count-1;i>=0;i--) {
 					DataRow rowPat=tablePat.Rows[i];
 					//IF this payment comes from a source we want to see fees for, AND it actually has a fee in the first place, AND we haven't already taken care of this payment, THEN we'll make a new row for the fee.
-					if(PIn.Decimal(rowPat["MerchantFee"].ToString())!=0 && !listPayNumsVisited.Contains(PIn.Long(rowPat["PayNum"].ToString()))) {
+					if(SIn.Decimal(rowPat["MerchantFee"].ToString())!=0 && !listPayNumsVisited.Contains(SIn.Long(rowPat["PayNum"].ToString()))) {
 						//This new fee row should not have an amt or a provider abbreviation. It's purely for the fee portion of the payment. The other information is still relevant though,
 						//so we'll just copy the current row and clear out the amt and provider.
 						DataRow rowNew=tablePat.NewRow();
@@ -314,7 +315,7 @@ namespace OpenDental{
 						//Insert the new row right after our current one.
 						tablePat.Rows.InsertAt(rowNew,i+1);
 						//We don't want to make the same row for one payment multiple times, so add the PayNum to our visited list.
-						listPayNumsVisited.Add(PIn.Long(rowPat["PayNum"].ToString()));
+						listPayNumsVisited.Add(SIn.Long(rowPat["PayNum"].ToString()));
 					}
 					//If we care about the MerchantFee, we'll have made a new row for it already. Safe to clear it out of the base row.
 					rowPat["MerchantFee"]=0;

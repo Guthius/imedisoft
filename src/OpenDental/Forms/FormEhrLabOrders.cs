@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormEhrLabOrders:FormODBase {
@@ -40,7 +41,7 @@ namespace OpenDental {
 			for(int i=0;i<ListEhrLabs.Count;i++) {
 				row=new GridRow();
 				string dateSt=ListEhrLabs[i].ResultDateTime.PadRight(8,'0').Substring(0,8);//stored in DB as yyyyMMddhhmmss-zzzz
-				DateTime dateT=PIn.Date(dateSt.Substring(4,2)+"/"+dateSt.Substring(6,2)+"/"+dateSt.Substring(0,4));
+				DateTime dateT=SIn.Date(dateSt.Substring(4,2)+"/"+dateSt.Substring(6,2)+"/"+dateSt.Substring(0,4));
 				row.Cells.Add(dateT.ToShortDateString());//date only
 				row.Cells.Add(ListEhrLabs[i].PlacerOrderNum);
 				row.Cells.Add(ListEhrLabs[i].FillerOrderNum);
@@ -94,7 +95,7 @@ namespace OpenDental {
 				//}
 			}
 			catch (Exception Ex){
-				MessageBox.Show(this,"Unable to import lab.\r\n"+Ex.Message);
+				ODMessageBox.Show(this,"Unable to import lab.\r\n"+Ex.Message);
 				return;
 			}
 			for(int i=0;i<listEhrLabs.Count;i++) {

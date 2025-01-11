@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -39,13 +40,13 @@ namespace OpenDental {
 		#region Methods - Event Handlers Sync
 		private void checkPatientSelectFilterRestrictedClinics_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PatientSelectFilterRestrictedClinics);
-			prefValSync.PrefVal=POut.Bool(checkPatientSelectFilterRestrictedClinics.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkPatientSelectFilterRestrictedClinics.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkEnterpriseAllowRefreshWhileTyping_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.EnterpriseAllowRefreshWhileTyping);
-			prefValSync.PrefVal=POut.Bool(checkEnterpriseAllowRefreshWhileTyping.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkEnterpriseAllowRefreshWhileTyping.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 		#endregion Methods - Event Handlers Sync
@@ -99,7 +100,7 @@ namespace OpenDental {
 				timeSpanPopup=TimeSpan.ParseExact(popupsDisableDays+"."+popupsDisableTimeSpan,"%d\\.hh\\:mm\\:ss",CultureInfo.InvariantCulture);
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"Popups Disable Timespan is invalid."));
+				ODMessageBox.Show(Lan.g(this,"Popups Disable Timespan is invalid."));
 				return false;
 			}
 			Changed |=Prefs.UpdateString(PrefName.MainWindowTitle,textMainWindowTitle.Text);
@@ -126,10 +127,10 @@ namespace OpenDental {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PatientSelectFilterRestrictedClinics);
 			if(true){
 				checkPatientSelectFilterRestrictedClinics.Visible=true;
-				checkPatientSelectFilterRestrictedClinics.Checked=PIn.Bool(prefValSync.PrefVal);
+				checkPatientSelectFilterRestrictedClinics.Checked=SIn.Bool(prefValSync.PrefVal);
 			}
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.EnterpriseAllowRefreshWhileTyping);
-			checkEnterpriseAllowRefreshWhileTyping.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkEnterpriseAllowRefreshWhileTyping.Checked=SIn.Bool(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -101,7 +102,7 @@ namespace OpenDental {
 		///<summary>Returns true if there was an operatory selected.</summary>
 		private bool SelectOperatory() {
 			if(gridMain.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return false;
 			}
 			OperatoryNumSelected=((Operatory)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).OperatoryNum;

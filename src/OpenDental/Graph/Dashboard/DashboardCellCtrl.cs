@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental.Graph.Dashboard
@@ -65,7 +66,7 @@ namespace OpenDental.Graph.Dashboard
 
                 if (_dockedControlHolder != null)
                 {
-                    MessageBox.Show("This cell already has contains a graph. You must move or delete this graph before dragging a new graph onto the cell.");
+                    ODMessageBox.Show("This cell already has contains a graph. You must move or delete this graph before dragging a new graph onto the cell.");
                     return;
                 }
 

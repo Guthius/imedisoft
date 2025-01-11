@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -75,7 +76,7 @@ namespace OpenDental{
 			string explanation=Userods.IsPasswordStrong(textPassword.Text);
 			if(PrefC.GetBool(PrefName.PasswordsMustBeStrong)) {
 				if(explanation!="") {
-					MessageBox.Show(explanation);
+					ODMessageBox.Show(explanation);
 					return;
 				}
 			}

@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -51,7 +52,7 @@ namespace OpenDental {
 				return;
 			}
 			_insBlueBookRule.LimitType=listLimitType.GetSelected<InsBlueBookRuleLimitType>();
-			_insBlueBookRule.LimitValue=PIn.Int(textLimitValue.Text);
+			_insBlueBookRule.LimitValue=SIn.Int(textLimitValue.Text);
 			DialogResult=DialogResult.OK;
 		}
 

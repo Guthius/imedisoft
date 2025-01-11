@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormEtrans277Edit:FormODBase {
@@ -29,7 +30,7 @@ namespace OpenDental {
 				_x277=new X277(_msgText);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Claim Status Response not valid.  An error occurred while loading: ")+"\r\n"+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Claim Status Response not valid.  An error occurred while loading: ")+"\r\n"+ex.Message);
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
@@ -126,7 +127,7 @@ namespace OpenDental {
 					row.Cells.Add(new GridCell(stringArrayClaimInfo[7]));//service date end
 				}
 				string claimStatus="";
-				decimal claimAmount=PIn.Decimal(stringArrayClaimInfo[9]);
+				decimal claimAmount=SIn.Decimal(stringArrayClaimInfo[9]);
 				if(stringArrayClaimInfo[3]=="A") {
 					claimStatus="Accepted";
 					numAccepted++;

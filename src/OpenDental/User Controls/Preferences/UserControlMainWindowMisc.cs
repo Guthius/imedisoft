@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -73,7 +74,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
 				return;
 			}
-			prefValSync.PrefVal=POut.Int(textSignalInactiveMinutes.Value);
+			prefValSync.PrefVal=SOut.Int(textSignalInactiveMinutes.Value);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -84,7 +85,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
 				return;
 			}
-			prefValSync.PrefVal=POut.Int(textProcessSigsIntervalInSecs.Value);
+			prefValSync.PrefVal=SOut.Int(textProcessSigsIntervalInSecs.Value);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 		#endregion Methods - Event Handlers Sync
@@ -152,7 +153,7 @@ namespace OpenDental {
 
 		public bool SaveMainWindowMisc() {
 			if(!textProcessSigsIntervalInSecs.IsValid() || !textSignalInactiveMinutes.IsValid() || !textAlertInterval.IsValid() || !textInactiveAlert.IsValid() || !textAlertCloudSessions.IsValid() || !textAuditEntries.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return false;
 			}
 			if(string.IsNullOrWhiteSpace(textProcessSigsIntervalInSecs.Text) && PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)!=0) {
@@ -164,10 +165,10 @@ namespace OpenDental {
 					return false;
 				}
 			}
-			if(PIn.Long(textProcessSigsIntervalInSecs.Text)>=(5+(PIn.Long(textSignalInactiveMinutes.Text)*60)) && PIn.Long(textSignalInactiveMinutes.Text)!=0) {//Signal Refresh time is less than or equal to 5 seconds plus the number of seconds in textSigInterval
+			if(SIn.Long(textProcessSigsIntervalInSecs.Text)>=(5+(SIn.Long(textSignalInactiveMinutes.Text)*60)) && SIn.Long(textSignalInactiveMinutes.Text)!=0) {//Signal Refresh time is less than or equal to 5 seconds plus the number of seconds in textSigInterval
 				string question=Lans.g(this,"The inactive signal time is less than or equal to the signal refresh time.")+"\r\n"
 					+Lans.g(this,"This could inadvertently cause signals to not correctly refresh.  Continue?");
-				if(MessageBox.Show(question,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(question,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return false;
 				}
 			}
@@ -191,18 +192,18 @@ namespace OpenDental {
 				hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,0);
 			}
 			else {
-				hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,PIn.Long(textAlertInterval.Text));
+				hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,SIn.Long(textAlertInterval.Text));
 			}
 			if(textInactiveAlert.Text=="") {
 				hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,0);
 			}
 			else {
-				hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,PIn.Long(textInactiveAlert.Text));
+				hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,SIn.Long(textInactiveAlert.Text));
 			}
 			hasChanged |=Prefs.UpdateBool(PrefName.ImeCompositionCompatibility,checkImeCompositionCompatibility.Checked);
 			hasChanged |=Prefs.UpdateString(PrefName.CentralManagerSyncCode,textSyncCode.Text);
 			hasChanged |=Prefs.UpdateString(PrefName.WebServiceServerName,textWebServiceServerName.Text);
-			hasChanged |=Prefs.UpdateLong(PrefName.CloudAlertWithinLimit,PIn.Long(textAlertCloudSessions.Text));
+			hasChanged |=Prefs.UpdateLong(PrefName.CloudAlertWithinLimit,SIn.Long(textAlertCloudSessions.Text));
 			hasChanged |=Prefs.UpdateString(PrefName.ClinicTrackLast,_listTrackLastClinicBys[comboTrackClinic.SelectedIndex]);
 			hasChanged |=Prefs.UpdateBool(PrefName.SendUnhandledExceptionsToHQ,checkSubmitExceptions.Checked);
 			hasChanged |=Prefs.UpdateString(PrefName.AuditTrailEntriesDisplayed,textAuditEntries.Text);
@@ -221,9 +222,9 @@ namespace OpenDental {
 		public void FillSynced(){
 			//This will revert invalid Values back to the PrefVal if other prefs are updated before invalid Values are fixed
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.SignalInactiveMinutes);
-			textSignalInactiveMinutes.Value=PIn.Int(prefValSync.PrefVal);//0 shows as empty
+			textSignalInactiveMinutes.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ProcessSigsIntervalInSecs);
-			textProcessSigsIntervalInSecs.Value=PIn.Int(prefValSync.PrefVal);//0 shows as empty
+			textProcessSigsIntervalInSecs.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
 			PrefValSync prefValSyncCompName=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ReportingServerCompName);
 			PrefValSync prefValSyncURI=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ReportingServerURI);
 			if(prefValSyncCompName.PrefVal=="" && prefValSyncURI.PrefVal=="") {

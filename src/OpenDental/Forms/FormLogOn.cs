@@ -194,7 +194,7 @@ namespace OpenDental {
 				userod=Userods.CheckUserAndPassword(userName,passwordTyped,isEcw);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//successful login.

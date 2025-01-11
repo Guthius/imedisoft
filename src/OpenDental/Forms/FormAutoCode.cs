@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Globalization;
+using CodeBase;
 
 namespace OpenDental{
 	
@@ -75,7 +76,7 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender,System.EventArgs e) {
 			if(listAutoCodes.SelectedIndex < 0) {
-				MessageBox.Show(Lan.g(this,"You must first select a row"));
+				ODMessageBox.Show(Lan.g(this,"You must first select a row"));
 				return;
 			}
 			AutoCode autoCode=_listAutoCodes[listAutoCodes.SelectedIndex];
@@ -83,7 +84,7 @@ namespace OpenDental{
 				AutoCodes.Delete(autoCode);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			_changed=true;

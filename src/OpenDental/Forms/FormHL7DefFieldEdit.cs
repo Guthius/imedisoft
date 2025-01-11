@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -82,7 +83,7 @@ namespace OpenDental {
 			}
 			HL7DefFieldCur.DataType=(DataTypeHL7)comboDataType.SelectedIndex;
 			HL7DefFieldCur.TableId=textTableId.Text;
-			HL7DefFieldCur.OrdinalPos=PIn.Int(textItemOrder.Text);
+			HL7DefFieldCur.OrdinalPos=SIn.Int(textItemOrder.Text);
 			if(listFieldNames.SelectedIndex!=-1) {
 				HL7DefFieldCur.FieldName=listFieldNames.SelectedItem.ToString();
 				HL7DefFieldCur.FixedText="";

@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -114,7 +116,7 @@ namespace OpenDental{
 				Convert.ToInt32(textScreenGroupOrder.Text);
 			}
 			catch{
-				MessageBox.Show("Order invalid.");
+				ODMessageBox.Show("Order invalid.");
 				_isValid=false;
 				e.Cancel=true;
 			}
@@ -131,7 +133,7 @@ namespace OpenDental{
 				Convert.ToInt32(textAge.Text);
 			}
 			catch{
-				MessageBox.Show("Age invalid.");
+				ODMessageBox.Show("Age invalid.");
 				_isValid=false;
 				e.Cancel=true;
 			}
@@ -141,7 +143,7 @@ namespace OpenDental{
 			//this is necessary because Microsoft's updown control is too buggy to be useful
 			int currentValue=0;
 			try{
-				currentValue=PIn.Int(textAge.Text);
+				currentValue=SIn.Int(textAge.Text);
 			}
 			catch{
 				return;
@@ -169,7 +171,7 @@ namespace OpenDental{
 				DateTime.Parse(textBirthdate.Text);
 			}
 			catch{
-				MessageBox.Show("Birthdate invalid.");
+				ODMessageBox.Show("Birthdate invalid.");
 				_isValid=false;
 				e.Cancel=true;
 			}
@@ -229,7 +231,7 @@ namespace OpenDental{
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			ScreenCur.ScreenGroupOrder=PIn.Int(textScreenGroupOrder.Text);
+			ScreenCur.ScreenGroupOrder=SIn.Int(textScreenGroupOrder.Text);
 			ScreenCur.ScreenGroupNum=ScreenGroupCur.ScreenGroupNum;
 			if(radioUnknown.Checked) {
 				ScreenCur.Gender=PatientGender.Unknown;
@@ -243,10 +245,10 @@ namespace OpenDental{
 			ScreenCur.RaceOld=listRace.GetSelected<PatientRaceOld>();
 			ScreenCur.GradeLevel=(PatientGrade)comboGradeLevel.SelectedIndex;
 			if(textBirthdate.Text!="" && textAge.Text=="") {//Birthdate is present but age isn't entered, calculate it.
-				ScreenCur.Age=PIn.Byte(Patients.DateToAge(PIn.DateTime(textBirthdate.Text)).ToString());
+				ScreenCur.Age=SIn.Byte(Patients.DateToAge(SIn.DateTime(textBirthdate.Text)).ToString());
 			}
 			else if(textAge.Text!="") {//Age was manually entered, use it.
-				ScreenCur.Age=PIn.Byte(textAge.Text);
+				ScreenCur.Age=SIn.Byte(textAge.Text);
 			}
 			else {//No age information was entered at all.
 				ScreenCur.Age=0;
@@ -258,7 +260,7 @@ namespace OpenDental{
 			ScreenCur.EarlyChildCaries=GetCheckState(checkEarlyChildCaries);
 			ScreenCur.ExistingSealants=GetCheckState(checkExistingSealants);
 			ScreenCur.MissingAllTeeth=GetCheckState(checkMissingAllTeeth);
-			ScreenCur.Birthdate=PIn.Date(textBirthdate.Text);//"" is OK
+			ScreenCur.Birthdate=SIn.Date(textBirthdate.Text);//"" is OK
 			ScreenCur.Comments=textComments.Text;
 			if(IsNew) {
 				Screens.Insert(ScreenCur);

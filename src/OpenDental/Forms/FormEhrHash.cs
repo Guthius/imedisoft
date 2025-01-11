@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -18,7 +19,7 @@ namespace OpenDental {
 
 		private void butTransmit_Click(object sender,EventArgs e) {
 			if(textHash.Text.Trim()=="" || textMessage.Text.Trim()=="") {
-				MessageBox.Show("Data or hash should not be blank.");
+				ODMessageBox.Show("Data or hash should not be blank.");
 				return;
 			}
 			string attachContents="Original message:\r\n"+textMessage.Text+"\r\n\r\n\r\nHash:\r\n"+textHash.Text;
@@ -28,11 +29,11 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show("Sent");
+			ODMessageBox.Show("Sent");
 		}
 
 		private void butGenerate_Click(object sender,EventArgs e) {

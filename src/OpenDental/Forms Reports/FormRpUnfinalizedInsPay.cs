@@ -174,7 +174,7 @@ namespace OpenDental {
 			}
 			List<ClaimProc> listClaimProcForClaim=ClaimProcs.RefreshForClaim(unfinalPay.ClaimCur.ClaimNum);
 			if(!listClaimProcForClaim.Any(x => ClaimProcs.GetInsPaidStatuses().Contains(x.Status))) {
-				MessageBox.Show(Lan.g(this,"There are no valid received payments for this claim."));
+				ODMessageBox.Show(Lan.g(this,"There are no valid received payments for this claim."));
 				return;
 			}
 			ClaimPayment claimPayment=new ClaimPayment();
@@ -194,7 +194,7 @@ namespace OpenDental {
 					ClaimPayments.Delete(claimPayment);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 				return;
 			}
@@ -204,7 +204,7 @@ namespace OpenDental {
 				ClaimPayments.Update(claimPayment);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FormClaimEdit.FormFinalizePaymentHelper(claimPayment,unfinalPay.ClaimCur,unfinalPay.PatientCur,famCur);
@@ -274,7 +274,7 @@ namespace OpenDental {
 				SecurityLogs.MakeLogEntry(EnumPermType.InsPayEdit,0,"Claim Payment Deleted: "+unfinalPay.ClaimPaymentCur.ClaimPaymentNum);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			LoadData();
@@ -398,11 +398,11 @@ namespace OpenDental {
 				}
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+				ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
 
-			MessageBox.Show(Lan.g(this,"File created successfully"));
+			ODMessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 		
 	}

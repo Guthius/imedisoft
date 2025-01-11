@@ -19,7 +19,7 @@ namespace OpenDentBusiness {
 			}
 			query+="procedurelog.Surf AS Area,procedurecode.Descript,provider.Abbr,";
 			if(hasClinicsEnabled) {
-				query+="COALESCE(IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+POut.String(Lans.g("FormRpProcSheet","hidden"))+")'),clinic.Abbr),\"Unassigned\") Clinic,";
+				query+="COALESCE(IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpProcSheet","hidden"))+")'),clinic.Abbr),\"Unassigned\") Clinic,";
 			}
 			query+="procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits)"
 				+"-COALESCE(SUM(claimproc.WriteOff),0) $fee,patient.PatNum "//if no writeoff, then subtract 0
@@ -31,8 +31,8 @@ namespace OpenDentBusiness {
 				query+="LEFT JOIN clinic ON clinic.ClinicNum=procedurelog.ClinicNum ";
 			}
 			query+="LEFT JOIN claimproc ON procedurelog.ProcNum=claimproc.ProcNum "
-				+"AND claimproc.Status="+POut.Int((int)ClaimProcStatus.CapComplete)+" "//only CapComplete writeoffs are subtracted here.
-				+"WHERE procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+" ";
+				+"AND claimproc.Status="+SOut.Int((int)ClaimProcStatus.CapComplete)+" "//only CapComplete writeoffs are subtracted here.
+				+"WHERE procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+" ";
 			if(!hasAllProvs) {
 				query+="AND procedurelog.ProvNum IN ("+String.Join(",",listProvNums)+") ";
 			}
@@ -40,10 +40,10 @@ namespace OpenDentBusiness {
 				query+="AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			}
 			if(!string.IsNullOrEmpty(procCode)) {//don't include ProcCode condition if blank, it changes the execution plan and is much slower
-				query+="AND UPPER(procedurecode.ProcCode) LIKE '%"+POut.String(procCode.ToUpper())+"%' ";
+				query+="AND UPPER(procedurecode.ProcCode) LIKE '%"+SOut.String(procCode.ToUpper())+"%' ";
 			}
-			query+="AND procedurelog.ProcDate >= " +POut.Date(dateFrom)+" "
-				+"AND procedurelog.ProcDate <= " +POut.Date(dateTo)+" "
+			query+="AND procedurelog.ProcDate >= " +SOut.Date(dateFrom)+" "
+				+"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
 				+"GROUP BY procedurelog.ProcNum "
 				+"ORDER BY procedurelog.ProcDate,plfname,procedurecode.ProcCode,ToothNum";
 			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
@@ -57,8 +57,8 @@ namespace OpenDentBusiness {
 				+"FROM procedurelog "
 				+"INNER JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum "
 				+"INNER JOIN definition ON definition.DefNum=procedurecode.ProcCat "
-				+"LEFT JOIN claimproc ON claimproc.ProcNum=procedurelog.ProcNum AND claimproc.Status="+POut.Int((int)ClaimProcStatus.CapComplete)+" "
-				+"WHERE procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+" ";
+				+"LEFT JOIN claimproc ON claimproc.ProcNum=procedurelog.ProcNum AND claimproc.Status="+SOut.Int((int)ClaimProcStatus.CapComplete)+" "
+				+"WHERE procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+" ";
 			if(!hasAllProvs) {
 				query+="AND procedurelog.ProvNum IN ("+String.Join(",",listProvNums)+") ";
 			}
@@ -66,10 +66,10 @@ namespace OpenDentBusiness {
 				query+="AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			}
 			if(!string.IsNullOrEmpty(procCode)) {//don't include ProcCode condition if blank, it changes the execution plan and is much slower
-				query+="AND UPPER(procedurecode.ProcCode) LIKE '%"+POut.String(procCode.ToUpper())+"%' ";
+				query+="AND UPPER(procedurecode.ProcCode) LIKE '%"+SOut.String(procCode.ToUpper())+"%' ";
 			}
-			query+="AND procedurelog.ProcDate >= " +POut.Date(dateFrom)+" "
-				+"AND procedurelog.ProcDate <= " +POut.Date(dateTo)+" "
+			query+="AND procedurelog.ProcDate >= " +SOut.Date(dateFrom)+" "
+				+"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
 				+"GROUP BY procedurelog.ProcNum ) procs "
 				+"GROUP BY procs.ProcCode "
 				+"ORDER BY procs.ItemOrder,procs.ProcCode";

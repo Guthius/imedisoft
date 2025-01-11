@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -46,7 +47,7 @@ namespace OpenDental {
 			listBillType.Items.AddList(Defs.GetDefsForCategory(DefCat.BillingTypes,true),x => x.ItemName);
 			List<long> listDefaultBillTypes=PrefC.GetString(PrefName.LateChargeDefaultBillingTypes)
 				.Split(new char[] {','},StringSplitOptions.RemoveEmptyEntries)
-				.Select(x => PIn.Long(x,false))
+				.Select(x => SIn.Long(x,false))
 				.ToList();
 			for(int i=0;i<listBillType.Items.Count;i++) {
 				if(listDefaultBillTypes.Contains(((Def)listBillType.Items.GetObjectAt(i)).DefNum)) {
@@ -90,7 +91,7 @@ namespace OpenDental {
 			Prefs.RefreshCache();
 			if(!PrefC.IsAgingAllowedToStart()) {
 				if(isOnLoad) {
-					MessageBox.Show(this,Lan.g(this,"In order to add late charges, aging must be calculated, but you cannot run aging until it has finished "
+					ODMessageBox.Show(this,Lan.g(this,"In order to add late charges, aging must be calculated, but you cannot run aging until it has finished "
 						+"the current calculations which began on")+" "+PrefC.GetDateT(PrefName.AgingBeginDateTime).ToString()+".\r\n"+Lans.g(this,"If you believe the current aging "
 						+"process has finished, a user with SecurityAdmin permission can manually clear the date and time by going to Setup | Preferences | Account - General and "
 						+"pressing the 'Clear' button."));
@@ -98,12 +99,12 @@ namespace OpenDental {
 				return false;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.AgingRan,0,"Starting Aging - Late Charges window");
-			Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateTime(dateTimeNow,false));//get lock on pref to block others
+			Prefs.UpdateString(PrefName.AgingBeginDateTime,SOut.DateTime(dateTimeNow,false));//get lock on pref to block others
 			Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
 			ProgressWin progressOD=new ProgressWin();
 			progressOD.ActionMain=() => {
 				Ledgers.ComputeAging(0,dateTimeToday);
-				Prefs.UpdateString(PrefName.DateLastAging,POut.Date(dateTimeToday,false));
+				Prefs.UpdateString(PrefName.DateLastAging,SOut.Date(dateTimeToday,false));
 			};
 			progressOD.StartingMessage=Lan.g(this,"Calculating enterprise aging for all patients as of")+" "+dateTimeToday.ToShortDateString()+"...";
 			try {
@@ -164,15 +165,15 @@ namespace OpenDental {
 				MsgBox.Show(this,"All fields other than the percentage must be filled out and at least one Billing Type must be selected.");
 				return true;
 			}
-			if(PIn.Date(textDateNewCharges.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
+			if(SIn.Date(textDateNewCharges.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
 				MsgBox.Show(this,"Adjustments cannot be made for future dates. Late charges were not made.");
 				return true;
 			}
-			if(CompareDouble.IsLessThanOrEqualToZero(PIn.Double(textMaxCharge.Text))) {
+			if(CompareDouble.IsLessThanOrEqualToZero(SIn.Double(textMaxCharge.Text))) {
 				MsgBox.Show(this,"The maximum charge is less than or equal to zero. Late Charges were not made.");
 				return true;
 			}
-			if(CompareDouble.IsLessThan(PIn.Double(textMaxCharge.Text),PIn.Double(textMinCharge.Text))) {
+			if(CompareDouble.IsLessThan(SIn.Double(textMaxCharge.Text),SIn.Double(textMinCharge.Text))) {
 				MsgBox.Show(this,"The maximum charge must be greater than or equal to the minimum charge.");
 				return true;
 			}
@@ -181,9 +182,9 @@ namespace OpenDental {
 
 		///<summary>Only call after AreLateChargeSettingsValid() returns false. Rounds all double fields to two decimal places.</summary>
 		private void RoundDoubleFields() {
-			textExcludeLessThan.Text=PIn.Double(textExcludeLessThan.Text).ToString("f");
-			textMinCharge.Text=PIn.Double(textMinCharge.Text).ToString("f");
-			textMaxCharge.Text=PIn.Double(textMaxCharge.Text).ToString("f");
+			textExcludeLessThan.Text=SIn.Double(textExcludeLessThan.Text).ToString("f");
+			textMinCharge.Text=SIn.Double(textMinCharge.Text).ToString("f");
+			textMaxCharge.Text=SIn.Double(textMaxCharge.Text).ToString("f");
 		}
 
 		///<summary>Saves preferences for all of the fields in the Late charge settings groupbox.</summary>
@@ -226,9 +227,9 @@ namespace OpenDental {
 
 		///<summary>Determines if we should use the percentage of the statement balance, the min charge, or the max charge.</summary>
 		private decimal CalculateLateChargeAmount(decimal statementBalanceRemaining) {
-			decimal minCharge=PIn.Decimal(textMinCharge.Text);
-			decimal maxCharge=PIn.Decimal(textMaxCharge.Text);
-			int percent=PIn.Int(textChargePercent.Text);
+			decimal minCharge=SIn.Decimal(textMinCharge.Text);
+			decimal maxCharge=SIn.Decimal(textMaxCharge.Text);
+			int percent=SIn.Int(textChargePercent.Text);
 			if(percent==0) {
 				return minCharge;
 			}
@@ -335,12 +336,12 @@ namespace OpenDental {
 				MsgBox.Show(this,"Late Charges have never been run. There are no late charge adjustments to undo.");
 				return;
 			}
-			string stringMessageConfirm=Lan.g(this,"Delete all Late Charge adjustments from")+" "+PIn.Date(textDateUndo.Text).ToShortDateString()+"?";
-			if(MessageBox.Show(this,stringMessageConfirm,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			string stringMessageConfirm=Lan.g(this,"Delete all Late Charge adjustments from")+" "+SIn.Date(textDateUndo.Text).ToShortDateString()+"?";
+			if(ODMessageBox.Show(this,stringMessageConfirm,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			Adjustments.ChargeUndoData chargeUndoDataLate=new Adjustments.ChargeUndoData();
-			DateTime dateUndo=PIn.Date(textDateUndo.Text);
+			DateTime dateUndo=SIn.Date(textDateUndo.Text);
 			ProgressWin progressOD=new ProgressWin();
 			progressOD.ActionMain=() => {
 				chargeUndoDataLate=Adjustments.UndoLateCharges(dateUndo);
@@ -354,7 +355,7 @@ namespace OpenDental {
 				//Cancelling aborts the thread. This may result in a log being created for an adjustment that is not deleted, or the StatementProds to
 				//not be updated for a deleted adjustment.
 			}
-			MessageBox.Show(Lan.g(this,$"Late charge adjustments deleted:")+$" {chargeUndoDataLate.CountDeletedAdjustments.ToString()}");
+			ODMessageBox.Show(Lan.g(this,$"Late charge adjustments deleted:")+$" {chargeUndoDataLate.CountDeletedAdjustments.ToString()}");
 			if(!chargeUndoDataLate.ListSkippedPatNums.IsNullOrEmpty()
 				&& MsgBox.Show(this,MsgBoxButtons.YesNo,"Some late charges could not be deleted because they have pay splits or a payment plans attached. "
 				+"Would you like to see a list of the patients for whom we could not delete late charges?"))
@@ -388,10 +389,10 @@ namespace OpenDental {
 			}
 			List<StatementData> listStatementDatas=new List<StatementData>();
 			List<long> listSelectedBillingTypes=listBillType.GetListSelected<Def>().Select(x => x.DefNum).ToList();
-			DateTime dateRangeEnd=DateTime.Now.AddDays(-PIn.Int(textDateRangeEnd.Text)).Date;
-			DateTime dateRangeStart=DateTime.Now.AddDays(-PIn.Int(textDateRangeStart.Text)).Date;
+			DateTime dateRangeEnd=DateTime.Now.AddDays(-SIn.Int(textDateRangeEnd.Text)).Date;
+			DateTime dateRangeStart=DateTime.Now.AddDays(-SIn.Int(textDateRangeStart.Text)).Date;
 			DateTime dateTemp;
-			DateTime dateNewCharges=PIn.Date(textDateNewCharges.Text);
+			DateTime dateNewCharges=SIn.Date(textDateNewCharges.Text);
 			//Users can enter the start or end of the date range in either field, so we figure out which is which here and assign them accordingly.
 			if(dateRangeEnd < dateRangeStart) {
 				dateTemp=dateRangeStart;
@@ -401,7 +402,7 @@ namespace OpenDental {
 			ProgressWin progressOD=new ProgressWin();
 			progressOD.ActionMain=() => {
 				listStatementDatas=StatementData.GetListStatementDataForLateCharges(checkExcludeAccountNoTil.Checked,checkExcludeExistingLateCharges.Checked,
-					PIn.Decimal(textExcludeLessThan.Text),dateRangeStart,dateRangeEnd,listSelectedBillingTypes);
+					SIn.Decimal(textExcludeLessThan.Text),dateRangeStart,dateRangeEnd,listSelectedBillingTypes);
 			};
 			progressOD.StartingMessage=Lans.g(this,"Getting statements...");
 			progressOD.ShowDialog();
@@ -422,7 +423,7 @@ namespace OpenDental {
 				//Cancelling on the progress bar aborts the thread. This may result in a log being created for an adjustment that didn't get inserted,
 				//or the statementprods to not be updated with the adjustments AdjNum.
 			}
-			MessageBox.Show(this,Lan.g(this,"Late Charges ran successfully. Adjustments created:")+" "+listLateChargeAdjNums.Count.ToString());
+			ODMessageBox.Show(this,Lan.g(this,"Late Charges ran successfully. Adjustments created:")+" "+listLateChargeAdjNums.Count.ToString());
 			if(Prefs.UpdateDateT(PrefName.LateChargeLastRunDate,dateNewCharges)) {
 				DataValid.SetInvalid(InvalidType.Prefs);
 			}

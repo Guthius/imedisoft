@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness{
 	///<summary>One field on a sheet. Any language translations have already happened. See SheetFieldDef.</summary>
@@ -123,7 +124,7 @@ namespace OpenDentBusiness{
 					List<Point> listPoints=new List<Point>();
 					string[] arrayCoords=FieldValue.Split(new string[] { ";" },StringSplitOptions.RemoveEmptyEntries);
 					foreach(string p in arrayCoords) {
-						List<int> listXYCoords=p.Split(',').Select(x => PIn.Int(x)).ToList();
+						List<int> listXYCoords=p.Split(',').Select(x => SIn.Int(x)).ToList();
 						listPoints.Add(new Point(listXYCoords[0],listXYCoords[1]));
 					}
 					if(listPoints.Count>0) {//It's somehow possible to have a Drawing with no coordinates.  Min will fail in this case.

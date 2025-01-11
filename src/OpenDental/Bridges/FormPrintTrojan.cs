@@ -243,7 +243,7 @@ namespace OpenDental
         {
             if (numTimesPrinted < minimumTimesToPrint)
             {
-                if (MessageBox.Show("WARNING: You should print this document at least " +
+                if (ODMessageBox.Show("WARNING: You should print this document at least " +
                                     (minimumTimesToPrint == 1 ? "one time." : (minimumTimesToPrint + " times.")) +
                                     "You may not be able to print this document again if you close it now. Are you sure you want to close this document?", "",
                         MessageBoxButtons.YesNo) == DialogResult.No)

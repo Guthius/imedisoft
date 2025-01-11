@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -156,7 +158,7 @@ namespace OpenDental {
 				#endregion Validate Column Widths
 				#region Validate Column Names
 				if(listColNames.Contains(colName)) {
-					MessageBox.Show(Lan.g(this,$"Duplicate column name detected")+": "+colName);
+					ODMessageBox.Show(Lan.g(this,$"Duplicate column name detected")+": "+colName);
 					return;
 				}
 				listColNames.Add(colName);
@@ -177,7 +179,7 @@ namespace OpenDental {
 				}
 				//Check for reserved words--------------------------------------------------------------------------------
 				if(DbHelper.IsMySqlReservedWord(colName)) {
-					MessageBox.Show(Lan.g(this,"Column name is a reserved word in MySQL")+": "+colName);
+					ODMessageBox.Show(Lan.g(this,"Column name is a reserved word in MySQL")+": "+colName);
 					return;
 				}
 				#endregion Validate Column Names
@@ -186,9 +188,9 @@ namespace OpenDental {
 			#region Update _listTableHeaders
 			for(int i=0;i<_listWikiListHeaderWidths.Count;i++) {
 				if(i>0) {//don't allow renaming the first column, it's the PK
-					_listWikiListHeaderWidths[i].ColName=PIn.String(gridMain.ListGridRows[i].Cells[0].Text);
+					_listWikiListHeaderWidths[i].ColName=SIn.String(gridMain.ListGridRows[i].Cells[0].Text);
 				}
-				_listWikiListHeaderWidths[i].ColWidth=PIn.Int(gridMain.ListGridRows[i].Cells[1].Text);
+				_listWikiListHeaderWidths[i].ColWidth=SIn.Int(gridMain.ListGridRows[i].Cells[1].Text);
 			}
 			#endregion Update _listTableHeaders
 			#region Try Update DB
@@ -196,7 +198,7 @@ namespace OpenDental {
 				WikiListHeaderWidths.UpdateNamesAndWidths(_wikiListCurName,_listWikiListHeaderWidths);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);//will throw exception if table schema has changed since the window was opened.
+				ODMessageBox.Show(ex.Message);//will throw exception if table schema has changed since the window was opened.
 				DialogResult=DialogResult.Cancel;
 			}
 			#endregion Try Update DB

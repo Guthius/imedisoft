@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -59,8 +60,8 @@ namespace OpenDental {
 			if(textQty.Text=="" || textPrice.Text==""){
 				return;
 			}
-			int qty=PIn.Int(textQty.Text);
-			double price=PIn.Double(textPrice.Text);
+			int qty=SIn.Int(textQty.Text);
+			double price=SIn.Double(textPrice.Text);
 			double subtotal=qty*price;
 			textSubtotal.Text=subtotal.ToString("n");
 		}
@@ -70,9 +71,9 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			SupplyOrderItemCur.Qty=PIn.Int(textQty.Text);
-			SupplyOrderItemCur.Price=PIn.Double(textPrice.Text);
-			SupplyOrderItemCur.DateReceived=PIn.Date(textDateReceived.Text);
+			SupplyOrderItemCur.Qty=SIn.Int(textQty.Text);
+			SupplyOrderItemCur.Price=SIn.Double(textPrice.Text);
+			SupplyOrderItemCur.DateReceived=SIn.Date(textDateReceived.Text);
 			SupplyOrderItems.Update(SupplyOrderItemCur);//never new
 			DialogResult=DialogResult.OK;
 		}

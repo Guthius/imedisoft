@@ -6,6 +6,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -60,9 +61,9 @@ namespace OpenDental {
 		private void FillGrid() {
 			DateTime dateFrom=DateTime.Today;
 			DateTime dateTo=DateTime.Today;
-			dateFrom=PIn.Date(textDateStart.Text);//handles blank or invalid
+			dateFrom=SIn.Date(textDateStart.Text);//handles blank or invalid
 			if(textDateEnd.Text!="") {//if it is blank, default to today
-				dateTo=PIn.Date(textDateEnd.Text);
+				dateTo=SIn.Date(textDateEnd.Text);
 			}
 			gridMain.Columns.Clear();
 			GridColumn col=new GridColumn(Lan.g(this,"Date"),70);
@@ -80,8 +81,8 @@ namespace OpenDental {
 			gridMain.ListGridRows.Clear();
 			DataTable table=Sheets.GetWebFormSheetsTable(dateFrom,dateTo,comboClinics.ListClinicNumsSelected);
 			for(int i=0;i<table.Rows.Count;i++) {
-				long patNum=PIn.Long(table.Rows[i]["PatNum"].ToString());
-				long sheetNum=PIn.Long(table.Rows[i]["SheetNum"].ToString());
+				long patNum=SIn.Long(table.Rows[i]["PatNum"].ToString());
+				long sheetNum=SIn.Long(table.Rows[i]["SheetNum"].ToString());
 				Patient patient=Patients.GetPat(patNum);
 				if(patient==null) {
 					continue;

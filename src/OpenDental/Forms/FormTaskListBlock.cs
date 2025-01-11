@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormTaskListBlocks:FormODBase {
@@ -176,7 +177,7 @@ namespace OpenDental {
 		/// <summary> Start from the roots of the tree, and work toward leaves.  Sets the node to checked if needed.
 		private void SetCheckBoxes(TreeNode treeNode) {
 			treeNode.Checked=false;//Unchecked if no block exists yet.
-			if(_listUserOdPrefsBlocks.Exists(x => x.Fkey==(long)treeNode.Tag && PIn.Bool(x.ValueString))) {
+			if(_listUserOdPrefsBlocks.Exists(x => x.Fkey==(long)treeNode.Tag && SIn.Bool(x.ValueString))) {
 				treeNode.Checked=true;
 			}
 			//Deal with children
@@ -256,7 +257,7 @@ namespace OpenDental {
 			userOdPref.Fkey=(long)treeNode.Tag;
 			userOdPref.FkeyType=UserOdFkeyType.TaskListBlock;
 			userOdPref.UserNum=Security.CurUser.UserNum;
-			userOdPref.ValueString=POut.Bool(treeNode.Checked);
+			userOdPref.ValueString=SOut.Bool(treeNode.Checked);
 			// Add preference to list of preferences
 			BlockedTaskPref blockedTaskPref = new BlockedTaskPref();
 			blockedTaskPref.TaskListNum=(long)treeNode.Tag;

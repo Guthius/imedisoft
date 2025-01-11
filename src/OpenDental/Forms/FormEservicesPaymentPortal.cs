@@ -87,7 +87,7 @@ namespace OpenDental {
 				}
 			}
 			if(!listErrors.IsNullOrEmpty()) {
-				MessageBox.Show(Lan.g(this,"Please fix the following errors before continuing:\r\n")+string.Join("\r\n",listErrors));
+				ODMessageBox.Show(Lan.g(this,"Please fix the following errors before continuing:\r\n")+string.Join("\r\n",listErrors));
 			}
 			return listErrors.IsNullOrEmpty();
 		}

@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
 using OpenDental.UI;
@@ -42,7 +43,7 @@ OBX|4|NM|14927-8^Triglycerides^LN|333123|127|mg/dl|<150| N|||F|||20100920083000"
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
@@ -88,7 +89,7 @@ OBX|4|NM|14927-8^Triglycerides^LN|333123|127|mg/dl|<150| N|||F|||20100920083000"
 			catch {
 				patNum=0;
 				FillPatAndGrid();
-				MessageBox.Show("Error parsing HL7.");
+				ODMessageBox.Show("Error parsing HL7.");
 			}
 		}
 
@@ -193,7 +194,7 @@ OBX|4|NM|14927-8^Triglycerides^LN|333123|127|mg/dl|<150| N|||F|||20100920083000"
 
 		private void butOK_Click(object sender,EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1) {
-				MessageBox.Show("Please select a lab order first.");
+				ODMessageBox.Show("Please select a lab order first.");
 				return;
 			}
 			//if(!CreateLabPanel()) {

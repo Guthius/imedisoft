@@ -21,6 +21,7 @@ using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using Microsoft.Web.WebView2.Core;
 using System.Threading.Tasks;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -247,14 +248,14 @@ Here is the desired behavior:
 			}
 			TaskAttachment taskAttachment=TaskAttachments.GetOneByDocNum(document.DocNum);
 			if(taskAttachment!=null) {
-				MessageBox.Show(Lan.g(this,"This document is attached to task ")+taskAttachment.TaskNum+". "+Lan.g(this,"Detach document from this task before deleting the document."));
+				ODMessageBox.Show(Lan.g(this,"This document is attached to task ")+taskAttachment.TaskNum+". "+Lan.g(this,"Detach document from this task before deleting the document."));
 				return;
 			}
 			EhrLab ehrLab=EhrLabImages.GetFirstLabForDocNum(document.DocNum);
 			if(ehrLab!=null) {
 				string dateStr=ehrLab.ObservationDateTimeStart.PadRight(8,'0').Substring(0,8);//stored in DB as yyyyMMddhhmmss-zzzz
-				DateTime dateTime=PIn.Date(dateStr.Substring(4,2)+"/"+dateStr.Substring(6,2)+"/"+dateStr.Substring(0,4));
-				MessageBox.Show(Lan.g(this,"This image is attached to a lab order for this patient on "+dateTime.ToShortDateString()+". "+Lan.g(this,"Detach image from this lab order before deleting the image.")));
+				DateTime dateTime=SIn.Date(dateStr.Substring(4,2)+"/"+dateStr.Substring(6,2)+"/"+dateStr.Substring(0,4));
+				ODMessageBox.Show(Lan.g(this,"This image is attached to a lab order for this patient on "+dateTime.ToShortDateString()+". "+Lan.g(this,"Detach image from this lab order before deleting the image.")));
 				return;
 			}
 			//EnableAllToolBarButtons(false);
@@ -283,7 +284,7 @@ Here is the desired behavior:
 				ImageStore.DeleteDocuments(documentArray,PatFolder);
 			}
 			catch(Exception ex) {  //Image could not be deleted, in use.
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 			}
 			if(IsDocumentShowing()){
 				EventFillTree?.Invoke(this,false);
@@ -367,12 +368,12 @@ Here is the desired behavior:
 		public void formVideo_BitmapCapturedMount(object sender, Bitmap bitmap, Document document){
 			if(IsMountItemSelected()){
 				//user must have clicked onto an occupied position in the middle of a series.
-				MessageBox.Show(Lan.g(this,"Please select an empty mount position first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an empty mount position first."));
 				return;
 			}
 			if(_idxSelectedInMount==-1){
 				//user must have clicked outside mount to deselect
-				MessageBox.Show(Lan.g(this,"Please select an empty mount position first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an empty mount position first."));
 				return;
 			}
 			Document documentOld=document.Copy();
@@ -644,7 +645,7 @@ Here is the desired behavior:
 					SetPdfFilePath(PatFolder,GetDocumentShowing(0).FileName,"","Downloading Document...");
 				}
 				if(!File.Exists(_odWebView2FilePath)) {
-					MessageBox.Show(Lan.g(this,"File not found")+": "+GetDocumentShowing(0).FileName);
+					ODMessageBox.Show(Lan.g(this,"File not found")+": "+GetDocumentShowing(0).FileName);
 					_odWebView2FilePath="";
 					return;
 				}
@@ -1104,10 +1105,10 @@ Here is the desired behavior:
 					if(ImageHelper.HasImageExtension(document.FileName)) {
 						string srcFileName = ODFileUtils.CombinePaths(PatFolder,document.FileName);
 						if(File.Exists(srcFileName)) {
-							MessageBox.Show(Lan.g(this,"File found but cannot be opened, probably because it's too big:")+srcFileName);
+							ODMessageBox.Show(Lan.g(this,"File found but cannot be opened, probably because it's too big:")+srcFileName);
 						}
 						else {
-							MessageBox.Show(Lan.g(this,"File not found")+": " + srcFileName);
+							ODMessageBox.Show(Lan.g(this,"File not found")+": " + srcFileName);
 						}
 					}
 					else if(Path.GetExtension(document.FileName).ToLower()==".pdf") {
@@ -1539,7 +1540,7 @@ Here is the desired behavior:
 					ImageStore.DeleteDocuments(_documentArrayShowing,PatFolder);
 				}
 				catch(Exception ex) {  //Image could not be deleted, in use.
-					MessageBox.Show(this,ex.Message);
+					ODMessageBox.Show(this,ex.Message);
 					return;
 				}
 			}
@@ -1567,7 +1568,7 @@ Here is the desired behavior:
 						saveFileDialog.FileName=GetDocumentShowing(0).FileName;
 					}
 					else {
-						MessageBox.Show(this,"Only allowed when the source file is a .tiff or .tif.");
+						ODMessageBox.Show(this,"Only allowed when the source file is a .tiff or .tif.");
 						return;
 					}
 				}
@@ -1587,7 +1588,7 @@ Here is the desired behavior:
 				if(ImageHelper.HasImageExtension(GetDocumentShowing(0).FileName)){
 					using Bitmap bitmapCopy=ImageHelper.CopyWithCropRotate(GetDocumentShowing(0),GetBitmapShowing(0));
 					if(bitmapCopy==null){
-						MessageBox.Show(Lan.g(this,"Unable to export, file not found."));
+						ODMessageBox.Show(Lan.g(this,"Unable to export, file not found."));
 						return;
 					}
 					using Graphics g=Graphics.FromImage(bitmapCopy);
@@ -1604,7 +1605,7 @@ Here is the desired behavior:
 						ImageStore.Export(saveFileDialog.FileName,GetDocumentShowing(0),PatientCur);
 					}
 					catch(Exception ex) {
-						MessageBox.Show(Lan.g(this,"Unable to export file, may be in use")+": " + ex.Message);
+						ODMessageBox.Show(Lan.g(this,"Unable to export file, may be in use")+": " + ex.Message);
 						return;
 					}
 				}				
@@ -1628,7 +1629,7 @@ Here is the desired behavior:
 						saveFileDialog.FileName=_documentArrayShowing[_idxSelectedInMount].FileName;
 					}
 					else {
-						MessageBox.Show(this,"Only allowed when the source file is a .tiff or .tif.");
+						ODMessageBox.Show(this,"Only allowed when the source file is a .tiff or .tif.");
 						return;
 					}
 				}
@@ -1673,7 +1674,7 @@ Here is the desired behavior:
 						ImageStore.Export(saveFileDialog.FileName,_documentArrayShowing[_idxSelectedInMount],PatientCur);
 					}
 					catch(Exception ex) {
-						MessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message);
+						ODMessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message);
 						return;
 					}
 				}
@@ -1690,7 +1691,7 @@ Here is the desired behavior:
 					return;
 				}
 				if(doExportAsTiff) {
-					MessageBox.Show(this,"Not available for mounts. Export will be jpg.");
+					ODMessageBox.Show(this,"Not available for mounts. Export will be jpg.");
 					return;
 				}
 				SaveFileDialog saveFileDialog=new SaveFileDialog();
@@ -1709,7 +1710,7 @@ Here is the desired behavior:
 					bitmapExport.Save(saveFileDialog.FileName);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Unable to export file, May be in use")+": " + ex.Message);
 					return;
 				}
 				bitmapExport.Dispose();
@@ -1838,7 +1839,7 @@ Here is the desired behavior:
 				iDataObject=Clipboard.GetDataObject();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			if(iDataObject==null){
@@ -1871,7 +1872,7 @@ Here is the desired behavior:
 				if(bitmapPaste!=null){
 					if(_idxSelectedInMount==-1 || _documentArrayShowing[_idxSelectedInMount]!=null){
 						Cursor=Cursors.Default;
-						MessageBox.Show(Lan.g(this,"Please select an empty mount item, first."));
+						ODMessageBox.Show(Lan.g(this,"Please select an empty mount item, first."));
 						return;
 					}
 					Document doc=null;
@@ -1884,7 +1885,7 @@ Here is the desired behavior:
 					}
 					catch(Exception ex) {
 						Cursor=Cursors.Default;
-						MessageBox.Show(Lan.g(this,"Unable to paste bitmap: ")+ex.Message);
+						ODMessageBox.Show(Lan.g(this,"Unable to paste bitmap: ")+ex.Message);
 					}
 					if(OpenDentBusiness.Bridges.Pearl.DoAutoUploadForImageCategory(doc.DocCategory)) {
 						OpenDentBusiness.Bridges.Pearl pearl=OpenDentBusiness.Bridges.Pearl.SetupPearlForSendingSingle(PatientCur,doc,bitmapPaste,mountItem:_listMountItems[_idxSelectedInMount]);
@@ -1927,7 +1928,7 @@ Here is the desired behavior:
 						}
 						catch(Exception ex) {
 							Cursor=Cursors.Default;
-							MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayfileNames[i]);
+							ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayfileNames[i]);
 							continue;
 						}
 						if(OpenDentBusiness.Bridges.Pearl.DoAutoUploadForImageCategory(doc.DocCategory)) {
@@ -1954,7 +1955,7 @@ Here is the desired behavior:
 				}
 				catch {
 					Cursor=Cursors.Default;
-					MessageBox.Show(Lan.g(this,"Error saving document."));
+					ODMessageBox.Show(Lan.g(this,"Error saving document."));
 					return;
 				}
 				bool keepSelection=false;
@@ -1998,7 +1999,7 @@ Here is the desired behavior:
 						}
 					}
 					catch(Exception ex) {
-						MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayfileNames[i]);
+						ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayfileNames[i]);
 						continue;
 					}
 					if(stringArrayfileNames.Length>1){
@@ -2045,7 +2046,7 @@ Here is the desired behavior:
 				if(IsMountShowing()){//into mount
 					if(_idxSelectedInMount==-1 || _documentArrayShowing[_idxSelectedInMount]!=null){
 						//Cursor=Cursors.Default;
-						MessageBox.Show(Lan.g(this,"If pasting into a mount, please select an empty mount item, first."));
+						ODMessageBox.Show(Lan.g(this,"If pasting into a mount, please select an empty mount item, first."));
 						return;
 					}
 				}
@@ -2514,7 +2515,7 @@ Here is the desired behavior:
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFiles[i]);
+					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFiles[i]);
 					continue;
 				}
 				Document documentOld=document.Copy();
@@ -4625,7 +4626,7 @@ Here is the desired behavior:
 				SetPdfFilePath(atoZFolder,atoZFileName,localPath,downloadMessage);
 				if(!File.Exists(_odWebView2FilePath)) {
 					_odWebView2FilePath="";
-					MessageBox.Show(Lan.g(this,"File not found")+": " + atoZFileName);
+					ODMessageBox.Show(Lan.g(this,"File not found")+": " + atoZFileName);
 				}
 				else {
 					if(_odWebView2.CoreWebView2==null) {
@@ -4836,7 +4837,7 @@ Here is the desired behavior:
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFileNames[i]);
+					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFileNames[i]);
 					continue;
 				}
 				Document documentOld=document.Copy();
@@ -4903,7 +4904,7 @@ Here is the desired behavior:
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFileNames[i]);
+					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFileNames[i]);
 					continue;
 				}
 				if(!false && i>0){

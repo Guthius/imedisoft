@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental
@@ -13,7 +14,7 @@ namespace OpenDental
             if (treeViewNotes.Nodes.Count == 0 && userOdPref != null)
             {
                 //if this is the fill on load, the node count will be 0, expanded node list from pref
-                listDefNumsExpanded = userOdPref.ValueString.Split(',').Where(x => x != "" && x != "0").Select(x => PIn.Long(x)).ToList();
+                listDefNumsExpanded = userOdPref.ValueString.Split(',').Where(x => x != "" && x != "0").Select(x => SIn.Long(x)).ToList();
             }
             else
             {

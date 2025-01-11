@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental.UI {
 	public partial class PinBoard:Control {
@@ -36,10 +38,10 @@ namespace OpenDental.UI {
 				components?.Dispose();
 				//get rid of temp appts on pinboard. =jordan I don't see any docs on why this is here. Doesn't seem quite right, but it works.
 				for(int i=0;i<ListPinBoardItems.Count;i++) {
-					if(PIn.Int(ListPinBoardItems[i].DataRowAppt["AptStatus"].ToString())!=(int)ApptStatus.UnschedList){
+					if(SIn.Int(ListPinBoardItems[i].DataRowAppt["AptStatus"].ToString())!=(int)ApptStatus.UnschedList){
 						continue;
 					}
-					if(PIn.DateTime(ListPinBoardItems[i].DataRowAppt["AptDateTime"].ToString()).Year>1880){
+					if(SIn.DateTime(ListPinBoardItems[i].DataRowAppt["AptDateTime"].ToString()).Year>1880){
 						continue;
 					}
 					Appointment appt=null;
@@ -136,10 +138,10 @@ namespace OpenDental.UI {
 					DataRow dataRow=ListPinBoardItems[i].DataRowAppt;
 					Pen penProvOutline;
 					if(dataRow["ProvNum"].ToString()!="0" && dataRow["IsHygiene"].ToString()=="0") {//dentist
-						penProvOutline=new Pen(Providers.GetOutlineColor(PIn.Long(dataRow["ProvNum"].ToString())),3f);
+						penProvOutline=new Pen(Providers.GetOutlineColor(SIn.Long(dataRow["ProvNum"].ToString())),3f);
 					}
 					else if(dataRow["ProvHyg"].ToString()!="0" && dataRow["IsHygiene"].ToString()=="1") {//hygienist
-						penProvOutline=new Pen(Providers.GetOutlineColor(PIn.Long(dataRow["ProvHyg"].ToString())),3f);
+						penProvOutline=new Pen(Providers.GetOutlineColor(SIn.Long(dataRow["ProvHyg"].ToString())),3f);
 					}
 					else {//unknown
 						penProvOutline=new Pen(Color.Black,3f);//Do not use Pens.Black because we will be disposing this pen later on.
@@ -263,7 +265,7 @@ namespace OpenDental.UI {
 			Appointment apt=Appointments.GetOneApt(ListPinBoardItems[SelectedIndex].AptNum);
 			if(apt==null) {
 				ClearAt(SelectedIndex);
-				MessageBox.Show("Appointment not found.");
+				ODMessageBox.Show("Appointment not found.");
 				return;
 			}
 			Appointment oldApt=apt.Copy();
@@ -292,7 +294,7 @@ namespace OpenDental.UI {
 			if(apt.AptStatus!=ApptStatus.UnschedList) {
 				string message=Providers.CheckApptProvidersTermDates(apt);
 				if(message!="") {
-					MessageBox.Show(this,message);//translated in Providers S class method
+					ODMessageBox.Show(this,message);//translated in Providers S class method
 					return;
 				}
 			}
@@ -388,7 +390,7 @@ namespace OpenDental.UI {
 			pinBoardItem.DataRowAppt=dataRow;
 			List<long> listAptNums=new List<long>(){aptNum};
 			pinBoardItem.TableApptFields=Appointments.GetApptFieldsByApptNums(listAptNums);
-			List<long> listPatNums=new List<long>(){PIn.Long(dataRow["PatNum"].ToString())};
+			List<long> listPatNums=new List<long>(){SIn.Long(dataRow["PatNum"].ToString())};
 			pinBoardItem.TablePatFields=Appointments.GetPatFields(listPatNums);
 			ListPinBoardItems.Add(pinBoardItem);
 			_selectedIndex=ListPinBoardItems.Count-1;

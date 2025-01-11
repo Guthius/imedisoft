@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Drawing.Printing;
+using CodeBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -110,7 +111,7 @@ namespace OpenDental {
 			}
 			else if(!String.IsNullOrEmpty(messageSkipped)) {
 				messageSkipped="The following prescription(s) were not printed because they do not have a provider: \r\n" + messageSkipped;
-				MessageBox.Show(messageSkipped);
+				ODMessageBox.Show(messageSkipped);
 			}
 			if(listRxPats.Count==1) {//old way of printing one rx
 				//This logic is an exact copy of FormRxEdit.butPrint_Click()'s logic.  If this is updated, that method needs to be updated as well.

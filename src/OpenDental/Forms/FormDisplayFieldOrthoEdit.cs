@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -39,7 +40,7 @@ namespace OpenDental{
 			if(_orthoChartTabLink!=null && _orthoChartTabLink.ColumnWidthOverride>0) {
 				widthCol=_orthoChartTabLink.ColumnWidthOverride;
 			}
-			textWidth.Text=POut.Int(widthCol);
+			textWidth.Text=SOut.Int(widthCol);
 			if(_displayField.PickList!=""){
 				radioPickList.Checked=true;
 				SetPickListVisibility(true);
@@ -287,7 +288,7 @@ namespace OpenDental{
 			}
 			_displayField.Description=textDescription.Text;
 			_displayField.DescriptionOverride=textDescriptionOverride.Text;
-			int widthCol=PIn.Int(textWidth.Text);
+			int widthCol=SIn.Int(textWidth.Text);
 			if(IsOverrideMode()) {//Editing ColumnWidthOverride,
 				_orthoChartTabLink.ColumnWidthOverride=widthCol;
 				if(widthCol==_displayField.ColumnWidth) {
@@ -295,7 +296,7 @@ namespace OpenDental{
 				}
 			}
 			else {//Editing the default ColumnWidth of the DisplayField.
-				_displayField.ColumnWidth=PIn.Int(textWidth.Text);//Use _displayFieldCur
+				_displayField.ColumnWidth=SIn.Int(textWidth.Text);//Use _displayFieldCur
 			}
 			if(radioText.Checked){
 				_displayField.InternalName="";

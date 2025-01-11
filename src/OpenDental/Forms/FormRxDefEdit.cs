@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -141,7 +142,7 @@ namespace OpenDental{
 			if(formRxNorms.DialogResult!=DialogResult.OK) {
 				return;
 			}
-			_rxDef.RxCui=PIn.Long(formRxNorms.RxNormSelected.RxCui);
+			_rxDef.RxCui=SIn.Long(formRxNorms.RxNormSelected.RxCui);
 			FillRxCui();
 		}
 

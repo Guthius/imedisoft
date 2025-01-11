@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -90,7 +91,7 @@ namespace OpenDental {
 
 		private void ToggleInterestDelayFieldsHelper() {
 			bool areVisible=true;
-			if(CompareDouble.IsZero(PIn.Double(textAPR.Text))) {
+			if(CompareDouble.IsZero(SIn.Double(textAPR.Text))) {
 				textInterestDelay.Text="";
 				areVisible=false;
 			}
@@ -104,7 +105,7 @@ namespace OpenDental {
 		}
 
 		private void textPaymentCount_TextChanged(object sender,EventArgs e) {
-			if(PIn.Double(textPaymentCount.Text)>0) {
+			if(SIn.Double(textPaymentCount.Text)>0) {
 				textPeriodPayment.Text="";
 			} 
 		}
@@ -137,7 +138,7 @@ namespace OpenDental {
 				stringBuilder.AppendLine(Lan.g(this,"You can not have values for both Payment Amount and Number of Payments."));
 			}
 			if(!String.IsNullOrWhiteSpace(stringBuilder.ToString())) {
-				MessageBox.Show(stringBuilder.ToString());
+				ODMessageBox.Show(stringBuilder.ToString());
 				return false;
 			}
 			return true;
@@ -178,12 +179,12 @@ namespace OpenDental {
 			if(true) {
 				_payPlanTemplate.ClinicNum=comboBoxClinic.GetSelectedClinic().Id;
 			}
-			_payPlanTemplate.APR=PIn.Double(textAPR.Text);
-			_payPlanTemplate.InterestDelay=PIn.Int(textInterestDelay.Text);
-			_payPlanTemplate.PayAmt=PIn.Double(textPeriodPayment.Text);
-			_payPlanTemplate.NumberOfPayments=PIn.Int(textPaymentCount.Text);
+			_payPlanTemplate.APR=SIn.Double(textAPR.Text);
+			_payPlanTemplate.InterestDelay=SIn.Int(textInterestDelay.Text);
+			_payPlanTemplate.PayAmt=SIn.Double(textPeriodPayment.Text);
+			_payPlanTemplate.NumberOfPayments=SIn.Int(textPaymentCount.Text);
 			_payPlanTemplate.ChargeFrequency=GetChargeFrequency();
-			_payPlanTemplate.DownPayment=PIn.Double(textDownPayment.Text);
+			_payPlanTemplate.DownPayment=SIn.Double(textDownPayment.Text);
 			_payPlanTemplate.DynamicPayPlanTPOption=GetSelectedTreatmentPlannedOption();
 			_payPlanTemplate.IsHidden=checkHidden.Checked;
 			_payPlanTemplate.SheetDefNum=comboSheet.GetSelectedKey<SheetDef>(x=>x.SheetDefNum);

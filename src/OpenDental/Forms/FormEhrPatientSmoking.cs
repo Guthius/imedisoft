@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -259,7 +260,7 @@ namespace OpenDental {
 				listRows.Add(row);
 			}
 			#endregion
-			listRows.OrderBy(x => PIn.Date(x.Cells[0].Text))//rows ordered by date, oldest first
+			listRows.OrderBy(x => SIn.Date(x.Cells[0].Text))//rows ordered by date, oldest first
 				.ThenBy(x => x.Cells[3].Text!="")
 				//interventions at the top, declined med interventions below normal interventions
 				.ThenBy(x => x.Tag.GetType().Name!="Intervention" || ((Intervention)x.Tag).CodeSystem=="RXNORM").ToList()
@@ -299,7 +300,7 @@ namespace OpenDental {
 				return;
 			}
 			//Insert measure event if one does not already exist for this date
-			DateTime dateTEntered=PIn.DateTime(textDateAssessed.Text);//will be set to DateTime.Now when form loads
+			DateTime dateTEntered=SIn.DateTime(textDateAssessed.Text);//will be set to DateTime.Now when form loads
 			EhrMeasureEvent eventCur;
 			foreach(GridRow row in gridAssessments.ListGridRows) {
 				eventCur=(EhrMeasureEvent)row.Tag;
@@ -443,7 +444,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"You must select a tobacco status.");
 				return;
 			}
-			DateTime dateTEntered=PIn.DateTime(textDateAssessed.Text);
+			DateTime dateTEntered=SIn.DateTime(textDateAssessed.Text);
 			EhrMeasureEvent meas=new EhrMeasureEvent();
 			meas.DateTEvent=dateTEntered;
 			meas.EventType=EhrMeasureEventType.TobaccoUseAssessed;
@@ -464,15 +465,15 @@ namespace OpenDental {
 				return;
 			}
 			EhrCode iCodeCur=_listInterventionCodes[comboInterventionCode.SelectedIndex];
-			DateTime dateCur=PIn.Date(textDateIntervention.Text);
+			DateTime dateCur=SIn.Date(textDateIntervention.Text);
 			if(iCodeCur.CodeSystem=="RXNORM" && !checkPatientDeclined.Checked) {//if patient declines the medication, enter as a declined intervention
 				//codeVal will be RxCui of medication, see if it already exists in Medication table
-				Medication medCur=Medications.GetMedicationFromDbByRxCui(PIn.Long(iCodeCur.CodeValue));
+				Medication medCur=Medications.GetMedicationFromDbByRxCui(SIn.Long(iCodeCur.CodeValue));
 				if(medCur==null) {//no med with this RxCui, create one
 					medCur=new Medication();
 					Medications.Insert(medCur);//so that we will have the primary key
 					medCur.GenericNum=medCur.MedicationNum;
-					medCur.RxCui=PIn.Long(iCodeCur.CodeValue);
+					medCur.RxCui=SIn.Long(iCodeCur.CodeValue);
 					medCur.MedName=RxNorms.GetDescByRxCui(iCodeCur.CodeValue);
 					Medications.Update(medCur);
 					Medications.RefreshCache();//refresh cache to include new medication

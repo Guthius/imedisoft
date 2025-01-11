@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -117,7 +118,7 @@ namespace OpenDental{
 			_dunning.InsIsPending=(YN)new List<RadioButton> { radioU,radioY,radioN }.FindIndex(x => x.Checked);//0=Unknown, 1=Yes, 2=No
 			_dunning.DaysInAdvance=0;//default will be 0
 			if(!radioAny.Checked) {
-				_dunning.DaysInAdvance=PIn.Int(textDaysInAdvance.Text);//blank=0
+				_dunning.DaysInAdvance=SIn.Int(textDaysInAdvance.Text);//blank=0
 			}
 			_dunning.DunMessage=textDunMessage.Text;
 			_dunning.MessageBold=textMessageBold.Text;

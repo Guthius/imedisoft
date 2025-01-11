@@ -11,6 +11,7 @@ using CodeBase;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -607,7 +608,7 @@ namespace OpenDental {
 			panelReminderDays.Visible=false;
 			datePickerReminder.Visible=false;
 			timePickerReminder.Visible=false;
-			int reminderFrequency=PIn.Int(textReminderRepeatFrequency.Text,false);
+			int reminderFrequency=SIn.Int(textReminderRepeatFrequency.Text,false);
 			if(taskReminderType==TaskReminderType.NoReminder) {
 				panelReminderFrequency.Visible=false;
 				return;
@@ -744,7 +745,7 @@ namespace OpenDental {
 
 		private void butChangeUser_Click(object sender,EventArgs e) {
 			if(IsNew) {
-				MessageBox.Show(Lan.g(this,"From User cannot be changed on new tasks. Save the task first."));
+				ODMessageBox.Show(Lan.g(this,"From User cannot be changed on new tasks. Save the task first."));
 				return;
 			}
 			using FormLogOn formLogOn=new FormLogOn(isSimpleSwitch:true);
@@ -871,7 +872,7 @@ namespace OpenDental {
 			}
 			if(taskReminderType!=TaskReminderType.NoReminder && !PrefC.GetBool(PrefName.TasksUseRepeating)) {//Is a reminder and not using legacy task system
 				if(taskReminderType!=TaskReminderType.Once &&
-					(!textReminderRepeatFrequency.IsValid() || PIn.Int(textReminderRepeatFrequency.Text)<1)) 
+					(!textReminderRepeatFrequency.IsValid() || SIn.Int(textReminderRepeatFrequency.Text)<1)) 
 				{
 					MsgBox.Show(this,"Reminder frequency must be a positive number.");
 					return false;
@@ -909,7 +910,7 @@ namespace OpenDental {
 				TaskCur.ReminderType=taskReminderType;
 				TaskCur.ReminderFrequency=0;
 				if(taskReminderType!=TaskReminderType.Once) {
-					TaskCur.ReminderFrequency=PIn.Int(textReminderRepeatFrequency.Text);
+					TaskCur.ReminderFrequency=SIn.Int(textReminderRepeatFrequency.Text);
 				}
 				if(String.IsNullOrEmpty(TaskCur.ReminderGroupId)) {//Make a new ID if it's blank no matter what.  Could be an old task being changed.
 					Tasks.SetReminderGroupId(TaskCur);
@@ -924,7 +925,7 @@ namespace OpenDental {
 					timePickerReminder.Value.TimeOfDay.Hours,timePickerReminder.Value.TimeOfDay.Minutes,timePickerReminder.Value.TimeOfDay.Seconds);
 			}
 			else {
-				TaskCur.DateTimeEntry=PIn.DateTime(textDateTimeEntry.Text);
+				TaskCur.DateTimeEntry=SIn.DateTime(textDateTimeEntry.Text);
 				if(taskReminderType!=TaskReminderType.NoReminder && IsNew && DateTime.Now>TaskCur.DateTimeEntry) { //New Reminder Task.
 					//Could be a future reminder, so we want to calculate when the reminder would be due.
 					TaskCur.DateTimeEntry=Tasks.CalcTaskForwardDate(TaskCur);
@@ -985,11 +986,11 @@ namespace OpenDental {
 				TaskCur.DateTimeFinished=DateTime.Now;
 			}
 			else {
-				TaskCur.DateTimeFinished=PIn.DateTime(textDateTimeFinished.Text);
+				TaskCur.DateTimeFinished=SIn.DateTime(textDateTimeFinished.Text);
 			}
 			TaskCur.Descript=textDescript.Text;
 			TaskCur.DescriptOverride=textDescriptOverride.Text;
-			TaskCur.DateTask=PIn.Date(textDateTask.Text);
+			TaskCur.DateTask=SIn.Date(textDateTask.Text);
 			TaskCur.DateType=(TaskDateType)comboDateType.SelectedIndex;
 			TaskCur.IsReadOnly=checkIsReadOnly.Checked;
 			//Original task was read only, updated  task is not.
@@ -1010,7 +1011,7 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					Cursor=Cursors.Default;
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return false;
 				}
 				return true;
@@ -1031,7 +1032,7 @@ namespace OpenDental {
 				}	
 				catch(Exception ex) {
 					Cursor=Cursors.Default;
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return false;
 				}
 				Cursor=Cursors.Default;
@@ -1048,7 +1049,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			return true;
@@ -1151,7 +1152,7 @@ namespace OpenDental {
 			taskHist.IsNoteChange=DidNotesChange;
 			taskHist.UserNum=Security.CurUser.UserNum;
 			TaskHists.Insert(taskHist);
-			SecurityLogs.MakeLogEntry(EnumPermType.TaskDelete,0,"Task "+POut.Long(TaskCur.TaskNum)+" deleted",0);
+			SecurityLogs.MakeLogEntry(EnumPermType.TaskDelete,0,"Task "+SOut.Long(TaskCur.TaskNum)+" deleted",0);
 			DialogResult=DialogResult.OK;
 			Close();
 		}
@@ -1262,7 +1263,7 @@ namespace OpenDental {
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return false;
 				}
 				//Add copies of any taskAttachments from the original task
@@ -1426,7 +1427,7 @@ namespace OpenDental {
 			}
 			if(IsNew) {
 				Tasks.Delete(TaskCur.TaskNum);//Shouldn't be displayed in UserControlTasks yet, so no refill needed.
-				SecurityLogs.MakeLogEntry(EnumPermType.TaskDelete,0,"Task "+POut.Long(TaskCur.TaskNum)+" deleted",0);
+				SecurityLogs.MakeLogEntry(EnumPermType.TaskDelete,0,"Task "+SOut.Long(TaskCur.TaskNum)+" deleted",0);
 			}
 			else if(DidNotesChange) {//Note changed and dialogue result was not OK
 				//This should only ever be hit if the user clicked cancel or X.  Everything else will have dialogue result OK and exit above.
@@ -1468,7 +1469,7 @@ namespace OpenDental {
 
 		private void ButEditAutoNote_Click(object sender,EventArgs e) {
 			if(!GetHasAutoNotePrompt()) {
-				MessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
+				ODMessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
 				return;
 			}
 			FrmAutoNoteCompose frmAutoNoteCompose=new FrmAutoNoteCompose();

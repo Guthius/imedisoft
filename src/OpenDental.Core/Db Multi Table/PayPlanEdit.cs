@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -275,7 +276,7 @@ namespace OpenDentBusiness {
 			else if(note.Contains("increased interest:")) {//description
 				descript="#"+(payPlanListOrdinal+1)+" Increased Interest:";
 			}
-			else if(PIn.Double(payPlanList[6].ToString())>0) {//payment
+			else if(SIn.Double(payPlanList[6].ToString())>0) {//payment
 				descript=payPlanList[2].ToString();
 			}
 			else if(payPlanList[2].ToString().StartsWith("#-")) {
@@ -311,18 +312,18 @@ namespace OpenDentBusiness {
 				descript="Payment";
 			}
 			else {
-				descript=Defs.GetName(DefCat.PaymentTypes,PIn.Long(rowBundlePayment["PayType"].ToString()));
+				descript=Defs.GetName(DefCat.PaymentTypes,SIn.Long(rowBundlePayment["PayType"].ToString()));
 				if(rowBundlePayment["CheckNum"].ToString()!="") {
 					descript+=" #"+rowBundlePayment["CheckNum"].ToString();
 				}
 				descript+=" "+payPlanSplit.SplitAmt.ToString("c");
-				if(PIn.Double(rowBundlePayment["PayAmt"].ToString())!=payPlanSplit.SplitAmt) {
+				if(SIn.Double(rowBundlePayment["PayAmt"].ToString())!=payPlanSplit.SplitAmt) {
 					descript+=Lans.g("FormPayPlan","(split)");
 				}
 			}
 			retVal["ChargeDate"]=payPlanSplit.DatePay.ToShortDateString();//0 Date
 			if(!isDynamic) {
-				retVal["Provider"]=Providers.GetAbbr(PIn.Long(rowBundlePayment["ProvNum"].ToString()));//1 Prov Abbr
+				retVal["Provider"]=Providers.GetAbbr(SIn.Long(rowBundlePayment["ProvNum"].ToString()));//1 Prov Abbr
 			}
 			retVal["Description"]=descript;//2 Descript
 			retVal["Principal"]=0.ToString("f");//3 Principal
@@ -346,28 +347,28 @@ namespace OpenDentBusiness {
 		///<summary>Creates pay plan split rows for display on the form from the data table input. Similar to CreateRowForClaimProcs but for use with sheets/datatables.</summary>
 		public static DataRow CreateRowForClaimProcsDT(DataTable table,DataRow rowBundleClaimProc,bool isDynamic) {//Either a claimpayment or a bundle of claimprocs with no claimpayment that were on the same date.
 			DataRow retVal=table.NewRow();
-			string descript=Defs.GetName(DefCat.InsurancePaymentType,PIn.Long(rowBundleClaimProc["PayType"].ToString()));
+			string descript=Defs.GetName(DefCat.InsurancePaymentType,SIn.Long(rowBundleClaimProc["PayType"].ToString()));
 			if(rowBundleClaimProc["CheckNum"].ToString()!="") {
 				descript+=" #"+rowBundleClaimProc["CheckNum"];
 			}
-			if(PIn.Long(rowBundleClaimProc["ClaimPaymentNum"].ToString())==0) {
+			if(SIn.Long(rowBundleClaimProc["ClaimPaymentNum"].ToString())==0) {
 				descript+="No Finalized Payment";
 			}
 			else {
-				double checkAmt=PIn.Double(rowBundleClaimProc["CheckAmt"].ToString());
+				double checkAmt=SIn.Double(rowBundleClaimProc["CheckAmt"].ToString());
 				descript+=" "+checkAmt.ToString("c");
-				double insPayAmt=PIn.Double(rowBundleClaimProc["InsPayAmt"].ToString());
+				double insPayAmt=SIn.Double(rowBundleClaimProc["InsPayAmt"].ToString());
 				if(checkAmt!=insPayAmt) {
 					descript+=" "+Lans.g("FormPayPlan","(split)");
 				}
 			}
-			retVal["ChargeDate"]=PIn.DateTime(rowBundleClaimProc["DateCP"].ToString()).ToShortDateString();//0 Date
-			retVal["Provider"]=Providers.GetLName(PIn.Long(rowBundleClaimProc["ProvNum"].ToString()));//1 Prov Abbr
+			retVal["ChargeDate"]=SIn.DateTime(rowBundleClaimProc["DateCP"].ToString()).ToShortDateString();//0 Date
+			retVal["Provider"]=Providers.GetLName(SIn.Long(rowBundleClaimProc["ProvNum"].ToString()));//1 Prov Abbr
 			retVal["Description"]=descript;//2 Descript
 			retVal["Principal"]="";//3 Principal
 			retVal["Interest"]="";//4 Interest
 			retVal["Due"]="";//5 Due
-			retVal["Payment"]=PIn.Double(rowBundleClaimProc["InsPayAmt"].ToString()).ToString("n");// Payment
+			retVal["Payment"]=SIn.Double(rowBundleClaimProc["InsPayAmt"].ToString()).ToString("n");// Payment
 			if(!isDynamic) {
 				retVal["Adjustment"]="";//7
 			}
@@ -378,8 +379,8 @@ namespace OpenDentBusiness {
 
 		///<summary>Performs same function as ComparePayPlanRows but for use with DataTables/Sheets.</summary>
 		public static int ComparePayPlanRowsDT(DataRow x,DataRow y) {
-			DateTime dateTimeX=PIn.Date(x["ChargeDate"].ToString());
-			DateTime dateTimeY=PIn.Date(y["ChargeDate"].ToString()); 
+			DateTime dateTimeX=SIn.Date(x["ChargeDate"].ToString());
+			DateTime dateTimeY=SIn.Date(y["ChargeDate"].ToString()); 
 			if(dateTimeX.Date!=dateTimeY.Date) {
 				return dateTimeX.CompareTo(dateTimeY);// sort by date
 			}
@@ -389,7 +390,7 @@ namespace OpenDentBusiness {
 				return xIsRecalc.CompareTo(yIsRecalc);// recalculated charges to the bottom of the current date.
 			}
 			if(xIsRecalc && yIsRecalc) { 
-				return PIn.Double(x["Principal"].ToString()).CompareTo(PIn.Double(y["Principal"].ToString()));// sort by principal amounts if both are recalculated charges
+				return SIn.Double(x["Principal"].ToString()).CompareTo(SIn.Double(y["Principal"].ToString()));// sort by principal amounts if both are recalculated charges
 			}
 			if(x["Type"].ToString()!=y["Type"].ToString()) {
 				return x["Type"].ToString().CompareTo(y["Type"].ToString());//charges first; I.e. "charge".CompareTo("pay") will return charge first
@@ -398,8 +399,8 @@ namespace OpenDentBusiness {
 		}
 
 		public static int CompareDynamicPayPlanRowsDT(DataRow x,DataRow y) {
-			DateTime dateTimeX=PIn.Date(x["ChargeDate"].ToString());
-			DateTime dateTimeY=PIn.Date(y["ChargeDate"].ToString()); 
+			DateTime dateTimeX=SIn.Date(x["ChargeDate"].ToString());
+			DateTime dateTimeY=SIn.Date(y["ChargeDate"].ToString()); 
 			if(x["chargeDate"].ToString()=="TBD") {
 				dateTimeX=DateTime.MaxValue;
 			}
@@ -428,8 +429,8 @@ namespace OpenDentBusiness {
 			{
 				return -1;
 			}
-			DateTime dateTimeX=PIn.Date(x.ProductionDate.ToString());
-			DateTime dateTimeY=PIn.Date(y.ProductionDate.ToString());
+			DateTime dateTimeX=SIn.Date(x.ProductionDate.ToString());
+			DateTime dateTimeY=SIn.Date(y.ProductionDate.ToString());
 			if(dateTimeX!=dateTimeY) {
 				return dateTimeX.CompareTo(dateTimeY);// sort by date
 			}
@@ -865,10 +866,10 @@ namespace OpenDentBusiness {
 		///<summary>Creats a single PayPlanCharge credit that is unattached to a procedure.</summary>
 		public static PayPlanCharge CreateUnattachedCredit(string textDate,long patNum,string textNote,long payPlanNum,double amt) {
 			PayPlanCharge addCharge=new PayPlanCharge() {
-					ChargeDate=PIn.Date(textDate),
+					ChargeDate=SIn.Date(textDate),
 					ChargeType=PayPlanChargeType.Credit,
 					Guarantor=patNum,//credits should always appear on the patient of the payment plan.
-					Note=PIn.String(textNote),
+					Note=SIn.String(textNote),
 					PatNum=patNum,
 					PayPlanNum=payPlanNum,
 					Principal=amt,
@@ -884,13 +885,13 @@ namespace OpenDentBusiness {
 			double amt,string textNote,string textDate,long patNum,long payPlanNum,PayPlanCharge selectedCharge) 
 		{
 			selectedCharge.Principal=amt;
-			selectedCharge.Note=PIn.String(textNote);
+			selectedCharge.Note=SIn.String(textNote);
 			if(selectedEntry.ProcStatOrd==ProcStat.TP && selectedEntry.ProcNumOrd!=0) { //if it's treatment planned, save the date as maxvalue so it will not show up in the ledger.
 				//if it doesn't have a procnum, then we are editing an unattached row.
 				selectedCharge.ChargeDate=DateTime.MaxValue;
 			}
 			else {
-				selectedCharge.ChargeDate=PIn.Date(textDate);
+				selectedCharge.ChargeDate=SIn.Date(textDate);
 			}
 			if(!selectedEntry.IsChargeOrd) { //if it's a procedure
 					//add a charge for the selected procedure. get info from text boxes.
@@ -929,9 +930,9 @@ namespace OpenDentBusiness {
 				addCharge.Note=ProcedureCodes.GetStringProcCode(entryProcCur.Proc.CodeNum)+": "+Procedures.GetDescription(entryProcCur.Proc);
 				addCharge.PatNum=patNum;
 				addCharge.PayPlanNum=payPlanNum;
-				addCharge.Principal=PIn.Double(entryProcCur.RemBefStr);
+				addCharge.Principal=SIn.Double(entryProcCur.RemBefStr);
 				if(listEntriesForProc.Count!=0) {
-					addCharge.Principal=listEntriesForProc.Min(x => PIn.Double(x.RemAftStr));
+					addCharge.Principal=listEntriesForProc.Min(x => SIn.Double(x.RemAftStr));
 				}
 				addCharge.ProcNum=entryProcCur.ProcNumOrd;
 				//provider/clinic will be set when the amortization schedule is saved. FormPayPlan.SaveData()

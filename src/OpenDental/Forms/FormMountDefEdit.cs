@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 	
@@ -511,7 +512,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textDescription.Text==""){
-				MessageBox.Show(Lan.g(this,"Description cannot be blank."));
+				ODMessageBox.Show(Lan.g(this,"Description cannot be blank."));
 				return;
 			}
 			if(!textWidth.IsValid() 
@@ -533,8 +534,8 @@ namespace OpenDental{
 			if(def!=null && def.IsHidden) {
 				MsgBox.Show(Lan.g(this,"Warning: This Mount's default image category is hidden. Mounts with this category will be hidden."));
 			}
-			MountDefCur.Width=PIn.Int(textWidth.Text);
-			MountDefCur.Height=PIn.Int(textHeight.Text);
+			MountDefCur.Width=SIn.Int(textWidth.Text);
+			MountDefCur.Height=SIn.Int(textHeight.Text);
 			MountDefCur.ColorBack=butColorBack.BackColor;
 			MountDefCur.ColorFore=butColorFore.BackColor;
 			if(checkTransparent.Checked){
@@ -554,7 +555,7 @@ namespace OpenDental{
 				MountDefs.Update(MountDefCur);//whether new or not
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

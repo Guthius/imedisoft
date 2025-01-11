@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -55,7 +56,7 @@ namespace OpenDental {
 
 		private void checkApptSecondaryProviderConsiderOpOnly_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ApptSecondaryProviderConsiderOpOnly);
-			prefValSync.PrefVal=POut.Bool(checkApptSecondaryProviderConsiderOpOnly.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkApptSecondaryProviderConsiderOpOnly.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -150,7 +151,7 @@ namespace OpenDental {
 			}
 			int waitingRoomAlertTime=0;
 			try {
-				waitingRoomAlertTime=PIn.Int(textWaitRoomWarn.Text);
+				waitingRoomAlertTime=SIn.Int(textWaitRoomWarn.Text);
 				if(waitingRoomAlertTime<0) {
 					throw new ApplicationException("Waiting room time cannot be negative");//User never sees this message.
 				}
@@ -171,7 +172,7 @@ namespace OpenDental {
 			Changed|=Prefs.UpdateInt(PrefName.ApptWeekViewStartDay,comboWeekViewStartDay.SelectedIndex);
 			Changed|=Prefs.UpdateDouble(PrefName.FormClickDelay,comboDelay.GetSelected<double>(),doUseEnUSFormat:true);
 			Changed|=Prefs.UpdateString(PrefName.ApptFontSize,apptFontSize.ToString());
-			Changed|=Prefs.UpdateInt(PrefName.ApptProvbarWidth,PIn.Int(textApptProvbarWidth.Text));
+			Changed|=Prefs.UpdateInt(PrefName.ApptProvbarWidth,SIn.Int(textApptProvbarWidth.Text));
 			Changed|=Prefs.UpdateBool(PrefName.WaitingRoomFilterByView,checkWaitingRoomFilterByView.Checked);
 			Changed|=Prefs.UpdateInt(PrefName.WaitingRoomAlertTime,waitingRoomAlertTime);
 			//Changed|=Prefs.UpdateBool(PrefName.ApptSecondaryProviderConsiderOpOnly,checkApptSecondaryProviderConsiderOpOnly.Checked);
@@ -183,7 +184,7 @@ namespace OpenDental {
 			}
 			List<string> listTriggerNewNums=new List<string>();
 			if(Prefs.UpdateLong(PrefName.AppointmentTimeArrivedTrigger,timeArrivedTrigger)){
-				listTriggerNewNums.Add(POut.Long(timeArrivedTrigger));
+				listTriggerNewNums.Add(SOut.Long(timeArrivedTrigger));
 				Changed=true;
 			}
 			long timeSeatedTrigger=0;
@@ -191,7 +192,7 @@ namespace OpenDental {
 				timeSeatedTrigger=comboTimeSeated.GetSelectedDefNum();
 			}
 			if(Prefs.UpdateLong(PrefName.AppointmentTimeSeatedTrigger,timeSeatedTrigger)){
-				listTriggerNewNums.Add(POut.Long(timeSeatedTrigger));
+				listTriggerNewNums.Add(SOut.Long(timeSeatedTrigger));
 				Changed=true;
 			}
 			long timeDismissedTrigger=0;
@@ -199,7 +200,7 @@ namespace OpenDental {
 				timeDismissedTrigger=comboTimeDismissed.GetSelectedDefNum();
 			}
 			if(Prefs.UpdateLong(PrefName.AppointmentTimeDismissedTrigger,timeDismissedTrigger)){
-				listTriggerNewNums.Add(POut.Long(timeDismissedTrigger));
+				listTriggerNewNums.Add(SOut.Long(timeDismissedTrigger));
 				Changed=true;
 			}
 			if(listTriggerNewNums.Count>0) {
@@ -234,7 +235,7 @@ namespace OpenDental {
 
 		public void FillSynced() {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ApptSecondaryProviderConsiderOpOnly);
-			checkApptSecondaryProviderConsiderOpOnly.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkApptSecondaryProviderConsiderOpOnly.Checked=SIn.Bool(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

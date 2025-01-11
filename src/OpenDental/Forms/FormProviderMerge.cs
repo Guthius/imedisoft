@@ -4,6 +4,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -25,7 +27,7 @@ namespace OpenDental {
 			}
 			Provider providerSelected=Providers.GetProv(frmProviderPick.ProvNumSelected);
 			textAbbrInto.Text=providerSelected.Abbr;
-			textProvNumInto.Text=POut.Long(providerSelected.ProvNum);
+			textProvNumInto.Text=SOut.Long(providerSelected.ProvNum);
 			textNpiInto.Text=providerSelected.NationalProvID;
 			textFullNameInto.Text=providerSelected.FName+" "+providerSelected.LName;
 			CheckUIState();
@@ -39,7 +41,7 @@ namespace OpenDental {
 			}
 			Provider providerSelected=Providers.GetProv(frmProviderPick.ProvNumSelected);
 			textAbbrFrom.Text=providerSelected.Abbr;
-			textProvNumFrom.Text=POut.Long(providerSelected.ProvNum);
+			textProvNumFrom.Text=SOut.Long(providerSelected.ProvNum);
 			textNpiFrom.Text=providerSelected.NationalProvID;
 			textFullNameFrom.Text=providerSelected.FName+" "+providerSelected.LName;
 			CheckUIState();
@@ -62,8 +64,8 @@ namespace OpenDental {
 			if(textFullNameFrom.Text!=textFullNameInto.Text) {
 				differentFields+="\r\nFull Name";
 			}
-			long numPats=Providers.CountPats(PIn.Long(textProvNumFrom.Text));
-			long numClaims=Providers.CountClaims(PIn.Long(textProvNumFrom.Text));
+			long numPats=Providers.CountPats(SIn.Long(textProvNumFrom.Text));
+			long numClaims=Providers.CountClaims(SIn.Long(textProvNumFrom.Text));
 			if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Are you sure?  The results are permanent and cannot be undone.")) {
 				return;
 			}
@@ -74,12 +76,12 @@ namespace OpenDental {
 			msgText+=Lan.g(this,"This change is irreversible")+".  "+Lan.g(this,"This provider is the primary or secondary provider for")+" "+numPats+" "+Lan.g(this,"active patients")
 				+", "+Lan.g(this,"and the billing or treating provider for")+" "+numClaims+" "+Lan.g(this,"claims")+".  "
 				+Lan.g(this,"Continue anyways?");
-			if(MessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)!=DialogResult.OK)	{
+			if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)!=DialogResult.OK)	{
 				return;
 			}
-			long rowsChanged=Providers.Merge(PIn.Long(textProvNumFrom.Text),PIn.Long(textProvNumInto.Text));
+			long rowsChanged=Providers.Merge(SIn.Long(textProvNumFrom.Text),SIn.Long(textProvNumInto.Text));
 			string logText=Lan.g(this,"Providers merged")+": "+textAbbrFrom.Text+" "+Lan.g(this,"merged into")+" "+textAbbrInto.Text+".\r\n"
-			+Lan.g(this,"Rows changed")+": "+POut.Long(rowsChanged);
+			+Lan.g(this,"Rows changed")+": "+SOut.Long(rowsChanged);
 			SecurityLogs.MakeLogEntry(EnumPermType.ProviderMerge,0,logText);
 			textAbbrFrom.Clear();
 			textProvNumFrom.Clear();

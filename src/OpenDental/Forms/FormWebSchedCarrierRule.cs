@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 
@@ -115,7 +116,7 @@ namespace OpenDental {
 				DataValid.SetInvalid(InvalidType.Prefs);
 				return;
 			}
-			ClinicPrefs.Upsert(PrefName.WebSchedNewPatRequestInsurance,_clinicNum,POut.Bool(checkNewPatRequestIns.Checked));
+			ClinicPrefs.Upsert(PrefName.WebSchedNewPatRequestInsurance,_clinicNum,SOut.Bool(checkNewPatRequestIns.Checked));
 			DataValid.SetInvalid(InvalidType.ClinicPrefs);
 		}
 
@@ -125,7 +126,7 @@ namespace OpenDental {
 				DataValid.SetInvalid(InvalidType.Prefs);
 				return;
 			}
-			ClinicPrefs.Upsert(PrefName.WebSchedExistingPatRequestInsurance,_clinicNum,POut.Bool(checkExistingPatRequestIns.Checked));
+			ClinicPrefs.Upsert(PrefName.WebSchedExistingPatRequestInsurance,_clinicNum,SOut.Bool(checkExistingPatRequestIns.Checked));
 			DataValid.SetInvalid(InvalidType.ClinicPrefs);
 		}
 

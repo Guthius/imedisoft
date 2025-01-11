@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Printing;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -99,7 +100,7 @@ namespace OpenDental.User_Controls.SetupWizard {
 			PrintSituation sit = PrintSituation.Default;
 			switch(contr.Name) {
 				default:
-					MessageBox.Show("error. "+contr.Name);
+					ODMessageBox.Show("error. "+contr.Name);
 					break;
 				case "comboDefault":
 				case "checkDefault":
@@ -206,7 +207,7 @@ namespace OpenDental.User_Controls.SetupWizard {
 				return false;
 			}
 			if(textScanDocQuality.Text=="100"
-				|| (radioScanDocUseOptionsBelow.Checked && PIn.Int(textScanDocResolution.Text)>300)) 
+				|| (radioScanDocUseOptionsBelow.Checked && SIn.Int(textScanDocResolution.Text)>300)) 
 			{
 				if(!MsgBox.Show("FormSetupWizard",MsgBoxButtons.YesNo,"With the provided scanner compression settings, the file created may be extremely large. "
 					+" Would you like to continue?")) {
@@ -283,8 +284,8 @@ namespace OpenDental.User_Controls.SetupWizard {
 			ComputerPrefs.LocalComputer.ScanDocShowOptions=radioScanDocShowOptions.Checked;
 			ComputerPrefs.LocalComputer.ScanDocDuplex=checkScanDocDuplex.Checked;
 			ComputerPrefs.LocalComputer.ScanDocGrayscale=checkScanDocGrayscale.Checked;
-			ComputerPrefs.LocalComputer.ScanDocResolution=PIn.Int(textScanDocResolution.Text);
-			ComputerPrefs.LocalComputer.ScanDocQuality=PIn.Byte(textScanDocQuality.Text);
+			ComputerPrefs.LocalComputer.ScanDocResolution=SIn.Int(textScanDocResolution.Text);
+			ComputerPrefs.LocalComputer.ScanDocQuality=SIn.Byte(textScanDocQuality.Text);
 			ComputerPrefs.Update(ComputerPrefs.LocalComputer);
 			DataValid.SetInvalid(InvalidType.Prefs);
 		}

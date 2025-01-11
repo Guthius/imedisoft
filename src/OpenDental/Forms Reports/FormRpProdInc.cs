@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -234,15 +235,15 @@ namespace OpenDental {
 
 		private void butLeft_Click(object sender, System.EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			dateFrom=PIn.Date(textDateFrom.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
 			if(dateFrom.Year < 1880) {
 				MsgBox.Show(this,"Please fix the From date first.");
 				return;
 			}
-			dateTo=PIn.Date(textDateTo.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			if(radioDaily.Checked || radioProvider.Checked) {
 				textDateFrom.Text=dateFrom.AddDays(-1).ToShortDateString();
 				textDateTo.Text=dateTo.AddDays(-1).ToShortDateString();
@@ -254,7 +255,7 @@ namespace OpenDental {
 				}
 				textDateFrom.Text=dateFrom.AddMonths(-1).ToShortDateString();
 				textDateTo.Text=dateTo.AddMonths(-1).ToShortDateString();
-				dateTo=PIn.Date(textDateTo.Text);
+				dateTo=SIn.Date(textDateTo.Text);
 				if(toLastDay){
 					textDateTo.Text=new DateTime(dateTo.Year,dateTo.Month,
 						CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month))
@@ -269,11 +270,11 @@ namespace OpenDental {
 
 		private void butRight_Click(object sender, System.EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			dateFrom=PIn.Date(textDateFrom.Text);
-			dateTo=PIn.Date(textDateTo.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			if(radioDaily.Checked || radioProvider.Checked) {
 				textDateFrom.Text=dateFrom.AddDays(1).ToShortDateString();
 				textDateTo.Text=dateTo.AddDays(1).ToShortDateString();
@@ -285,7 +286,7 @@ namespace OpenDental {
 				}
 				textDateFrom.Text=dateFrom.AddMonths(1).ToShortDateString();
 				textDateTo.Text=dateTo.AddMonths(1).ToShortDateString();
-				dateTo=PIn.Date(textDateTo.Text);
+				dateTo=SIn.Date(textDateTo.Text);
 				if(toLastDay){
 					textDateTo.Text=new DateTime(dateTo.Year,dateTo.Month,
 						CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month))
@@ -354,8 +355,8 @@ namespace OpenDental {
 			if(checkAllClin.Checked) {
 				listClin.SetAll(true);
 			}
-			dateFrom=PIn.Date(textDateFrom.Text);
-			dateTo=PIn.Date(textDateTo.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			List<Provider> listProvs=new List<Provider>();
 			if(checkAllProv.Checked) {
 				listProvs=_listProviders;
@@ -532,18 +533,18 @@ namespace OpenDental {
 			double totalIncome=0;
 			for(int i=0;i<tableDailyProd.Rows.Count;i++) {
 				//Total production is (Production + Adjustments - Writeoffs)
-				totalProduction+=PIn.Double(tableDailyProd.Rows[i]["Production"].ToString());
-				totalProduction+=PIn.Double(tableDailyProd.Rows[i]["Adjust"].ToString());
+				totalProduction+=SIn.Double(tableDailyProd.Rows[i]["Production"].ToString());
+				totalProduction+=SIn.Double(tableDailyProd.Rows[i]["Adjust"].ToString());
 				if(radioWriteoffBoth.Checked) {
-					totalProduction+=PIn.Double(tableDailyProd.Rows[i]["Writeoff Est"].ToString());
-					totalProduction+=PIn.Double(tableDailyProd.Rows[i]["Writeoff Adj"].ToString());
+					totalProduction+=SIn.Double(tableDailyProd.Rows[i]["Writeoff Est"].ToString());
+					totalProduction+=SIn.Double(tableDailyProd.Rows[i]["Writeoff Adj"].ToString());
 				}
 				else {
-					totalProduction+=PIn.Double(tableDailyProd.Rows[i]["Writeoff"].ToString());
+					totalProduction+=SIn.Double(tableDailyProd.Rows[i]["Writeoff"].ToString());
 				}
 				//Total income is (Pt Income + Ins Income)
-				totalIncome+=PIn.Double(tableDailyProd.Rows[i]["Pt Income"].ToString());
-				totalIncome+=PIn.Double(tableDailyProd.Rows[i]["Ins Income"].ToString());
+				totalIncome+=SIn.Double(tableDailyProd.Rows[i]["Pt Income"].ToString());
+				totalIncome+=SIn.Double(tableDailyProd.Rows[i]["Ins Income"].ToString());
 			}
 			//Add the Total Production and Total Income to the bottom of the report if there were any rows present.
 			if(tableDailyProd.Rows.Count > 0) {
@@ -617,17 +618,17 @@ namespace OpenDental {
 				double ptIncome=0;
 				double insIncome=0;
 				for(int j=0;j<dataSetDailyProdSplitByClinic.Tables[i].Rows.Count;j++) {
-					production+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Production"].ToString());
-					adjust+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Adjust"].ToString());
+					production+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Production"].ToString());
+					adjust+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Adjust"].ToString());
 					if(radioWriteoffBoth.Checked) {
-						writeoffest+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Writeoff Est"].ToString());
-						writeoffadj+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Writeoff Adj"].ToString());
+						writeoffest+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Writeoff Est"].ToString());
+						writeoffadj+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Writeoff Adj"].ToString());
 					}
 					else {
-						writeoff+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Writeoff"].ToString());
+						writeoff+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Writeoff"].ToString());
 					}
-					ptIncome+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Pt Income"].ToString());
-					insIncome+=PIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Ins Income"].ToString());
+					ptIncome+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Pt Income"].ToString());
+					insIncome+=SIn.Double(dataSetDailyProdSplitByClinic.Tables[i].Rows[j]["Ins Income"].ToString());
 				}
 				if(radioWriteoffBoth.Checked) {
 					tableClinicTotals.Rows.Add(clinicDesc,production,adjust,writeoffest,writeoffadj,ptIncome,insIncome);
@@ -653,8 +654,8 @@ namespace OpenDental {
 			if(checkAllClin.Checked) {
 				listClin.SetAll(true);
 			}
-			dateFrom=PIn.Date(textDateFrom.Text);
-			dateTo=PIn.Date(textDateTo.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			List<Provider> listProvs=new List<Provider>();
 			if(checkAllProv.Checked) {
 				listProvs=_listProviders;
@@ -843,8 +844,8 @@ namespace OpenDental {
 			if(checkAllClin.Checked) {
 				listClin.SetAll(true);
 			}
-			dateFrom=PIn.Date(textDateFrom.Text);
-			dateTo=PIn.Date(textDateTo.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			List<Provider> listProvs=new List<Provider>();
 			if(checkAllProv.Checked) {
 				listProvs=_listProviders;
@@ -1013,8 +1014,8 @@ namespace OpenDental {
 		private void RunProvider() {
 			//If adding the unearned column, need more space. Set report to landscape.
 			ReportComplex report=new ReportComplex(true,radioWriteoffBoth.Checked || checkUnearned.Checked);
-			dateFrom=PIn.Date(textDateFrom.Text);
-			dateTo=PIn.Date(textDateTo.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			if(checkAllProv.Checked) {
 				listProv.SetAll(true);
 			}
@@ -1169,8 +1170,8 @@ namespace OpenDental {
 					return;
 				}
 			}
-			dateFrom=PIn.Date(textDateFrom.Text);
-			dateTo=PIn.Date(textDateTo.Text);
+			dateFrom=SIn.Date(textDateFrom.Text);
+			dateTo=SIn.Date(textDateTo.Text);
 			if(dateTo<dateFrom) {
 				MsgBox.Show(this,"To date cannot be before From date.");
 				return;

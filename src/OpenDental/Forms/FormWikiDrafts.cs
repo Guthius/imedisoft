@@ -53,7 +53,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				webBrowserWiki.DocumentText="";
-				MessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed.  Error message:")+" "+ex.Message);
+				ODMessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed.  Error message:")+" "+ex.Message);
 			}
 		}
 
@@ -127,7 +127,7 @@ namespace OpenDental {
 			}
 			catch (Exception ex){
 				//should never happen because we are only ever editing drafts here.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//deleting Edge cases.

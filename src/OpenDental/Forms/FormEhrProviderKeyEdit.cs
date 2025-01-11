@@ -1,5 +1,7 @@
 using System;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -41,20 +43,20 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(textYear.Text==""){
-				MessageBox.Show("Please enter a year.");
+				ODMessageBox.Show("Please enter a year.");
 				return;
 			}
 			if(!textYear.IsValid()) {
-				MessageBox.Show("Invalid year, must be two digits.");
+				ODMessageBox.Show("Invalid year, must be two digits.");
 				return;
 			}
-			if(!FormEHR.ProvKeyIsValid(textLName.Text,textFName.Text,PIn.Int(textYear.Text),textKey.Text)) {
+			if(!FormEHR.ProvKeyIsValid(textLName.Text,textFName.Text,SIn.Int(textYear.Text),textKey.Text)) {
 				MsgBox.Show(this,"Invalid provider key");
 				return;
 			}
 			_keyCur.LName=textLName.Text;
 			_keyCur.FName=textFName.Text;
-			_keyCur.YearValue=PIn.Int(textYear.Text);
+			_keyCur.YearValue=SIn.Int(textYear.Text);
 			_keyCur.ProvKey=textKey.Text;
 			if(_keyCur.IsNew) {
 				bool isFirstKey=false;

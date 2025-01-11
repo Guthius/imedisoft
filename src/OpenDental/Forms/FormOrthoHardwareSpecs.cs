@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -88,7 +89,7 @@ namespace OpenDental {
 
 		private void butUp_Click(object sender, System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			if(gridMain.GetSelectedIndex()==0) {
@@ -108,7 +109,7 @@ namespace OpenDental {
 		
 		private void butDown_Click(object sender, System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			if(gridMain.GetSelectedIndex()==gridMain.ListGridRows.Count-1) {

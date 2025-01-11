@@ -140,8 +140,8 @@ namespace OpenDental {
 				xslContents=EhrSummaryCcds.GetEhrResource("CCR");
 			}
 			else {
-				MessageBox.Show("This is not a valid CCD, CCDA, CCR, or C32 message.  Only the raw text will be shown");
-				MessageBox.Show(strXmlCCD);
+				ODMessageBox.Show("This is not a valid CCD, CCDA, CCR, or C32 message.  Only the raw text will be shown");
+				ODMessageBox.Show(strXmlCCD);
 				return false;
 			}
 			XmlNode node=doc.SelectSingleNode("/processing-instruction(\"xml-stylesheet\")");
@@ -177,13 +177,13 @@ namespace OpenDental {
 			try {
 				ccd=EhrCCD.GenerateSummaryOfCare(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FrmReferralsPatient FrmReferralsPatient=new FrmReferralsPatient();
@@ -191,7 +191,7 @@ namespace OpenDental {
 			FrmReferralsPatient.IsSelectionMode=true;
 			FrmReferralsPatient.ShowDialog();
 			if(FrmReferralsPatient.IsDialogCancel) {
-				MessageBox.Show("Summary of Care not exported.");
+				ODMessageBox.Show("Summary of Care not exported.");
 				return;
 			}
 			using FolderBrowserDialog dlg=new FolderBrowserDialog();
@@ -201,7 +201,7 @@ namespace OpenDental {
 				return;
 			}
 			if(File.Exists(Path.Combine(dlg.SelectedPath,"ccd.xml"))) {
-				if(MessageBox.Show("Overwrite existing ccd.xml?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show("Overwrite existing ccd.xml?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}
@@ -221,7 +221,7 @@ namespace OpenDental {
 			newMeasureEvent.FKey=FrmReferralsPatient.RefAttachNum;//Can be 0 if user didn't pick a referral for some reason.
 			EhrMeasureEvents.Insert(newMeasureEvent);
 			FillGridSent();
-			MessageBox.Show("Exported");
+			ODMessageBox.Show("Exported");
 		}
 
 		private void butSendEmail_Click(object sender,EventArgs e) {
@@ -234,13 +234,13 @@ namespace OpenDental {
 			try {
 				ccd=EhrCCD.GenerateSummaryOfCare(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FrmReferralsPatient FrmReferralsPatient=new FrmReferralsPatient();
@@ -248,7 +248,7 @@ namespace OpenDental {
 			FrmReferralsPatient.IsSelectionMode=true;
 			FrmReferralsPatient.ShowDialog();
 			if(FrmReferralsPatient.IsDialogCancel) {
-				MessageBox.Show("Summary of Care not exported.");
+				ODMessageBox.Show("Summary of Care not exported.");
 				return;
 			}
 			Cursor=Cursors.WaitCursor;
@@ -268,7 +268,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			EmailMessages.Insert(emailMessage);
@@ -297,20 +297,20 @@ namespace OpenDental {
 			FrmReferralsPatient.IsSelectionMode=true;
 			FrmReferralsPatient.ShowDialog();
 			if(FrmReferralsPatient.IsDialogCancel) {
-				MessageBox.Show("Summary of Care not shown.");
+				ODMessageBox.Show("Summary of Care not shown.");
 				return;
 			}
 			string ccd="";
 			try {
 				ccd=EhrCCD.GenerateSummaryOfCare(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			bool didPrint=DisplayCCD(ccd);
@@ -331,13 +331,13 @@ namespace OpenDental {
 			try {
 				ccd=EhrCCD.GenerateSummaryOfCare(PatCur,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			using MsgBoxCopyPaste msgbox=new MsgBoxCopyPaste(ccd);
@@ -367,7 +367,7 @@ namespace OpenDental {
 
 		private void butDelete_Click(object sender,EventArgs e) {
 			if(gridSent.SelectedIndices.Length < 1) {
-				MessageBox.Show("Please select at least one record to delete.");
+				ODMessageBox.Show("Please select at least one record to delete.");
 				return;
 			}
 			for(int i=0;i<gridSent.SelectedIndices.Length;i++) {

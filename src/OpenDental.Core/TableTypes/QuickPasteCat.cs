@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using DataConnectionBase;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness{
@@ -28,7 +29,7 @@ namespace OpenDentBusiness{
 				if(string.IsNullOrEmpty(DefaultForTypes)) {
 					return new List<EnumQuickPasteType>();
 				}
-				return DefaultForTypes.Split(',').Select(x => PIn.Enum<EnumQuickPasteType>(x)).ToList();
+				return DefaultForTypes.Split(',').Select(x => SIn.Enum<EnumQuickPasteType>(x)).ToList();
 			}
 		}
 		

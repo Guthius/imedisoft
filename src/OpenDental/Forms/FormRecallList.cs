@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -278,7 +279,7 @@ namespace OpenDental {
 				SendWebSched();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error sending Web Sched notifications. Error message:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error sending Web Sched notifications. Error message:")+" "+ex.Message);
 			}
 			_hasClickedWebSched=false;
 		}
@@ -330,10 +331,10 @@ namespace OpenDental {
 			GridRow row;
 			List<long> listConflictingPatNums=new List<long>();
 			if(checkShowConflictingTypes.Checked) {
-				listConflictingPatNums=Recalls.GetConflictingPatNums(_tableRecalls.Rows.OfType<DataRow>().Select(x => PIn.Long(x["PatNum"].ToString())).ToList());
+				listConflictingPatNums=Recalls.GetConflictingPatNums(_tableRecalls.Rows.OfType<DataRow>().Select(x => SIn.Long(x["PatNum"].ToString())).ToList());
 			}
 			for(int i=0;i<_tableRecalls.Rows.Count;i++) {
-				long patNum=PIn.Long(_tableRecalls.Rows[i]["PatNum"].ToString());
+				long patNum=SIn.Long(_tableRecalls.Rows[i]["PatNum"].ToString());
 				if(checkShowConflictingTypes.Checked) {
 					//If the RecallType checkbox is checked, show patients with future scheduled appointments that have conflicting recall appointments.
 					//Ex. A patient is scheduled for a perio recall but their recall type is set to prophy
@@ -342,7 +343,7 @@ namespace OpenDental {
 						//Continue since we don't want to show them when the RecallTypes checkbox is checked. 
 						continue;
 					}
-					long recallTypeNum=PIn.Long(_tableRecalls.Rows[i]["RecallTypeNum"].ToString());
+					long recallTypeNum=SIn.Long(_tableRecalls.Rows[i]["RecallTypeNum"].ToString());
 					if(!RecallTypes.IsSpecialRecallType(recallTypeNum)) {
 						//Make sure recall type is Perio or Prophy
 						continue;
@@ -395,17 +396,17 @@ namespace OpenDental {
 				}
 				PatRowTag patRowTag=new PatRowTag();
 				patRowTag.PatNum=patNum;
-				patRowTag.PriKeyNum=PIn.Long(_tableRecalls.Rows[i]["RecallNum"].ToString());
-				patRowTag.StatusDefNum=PIn.Long(_tableRecalls.Rows[i]["RecallStatus"].ToString());
-				patRowTag.NumReminders=PIn.Int(_tableRecalls.Rows[i]["numberOfReminders"].ToString());
-				patRowTag.Email=PIn.String(_tableRecalls.Rows[i]["Email"].ToString());
-				patRowTag.ContactMethodRecallPref=PIn.Enum<ContactMethod>(_tableRecalls.Rows[i]["PreferRecallMethod"].ToString());
-				patRowTag.GuarantorNum=PIn.Long(_tableRecalls.Rows[i]["Guarantor"].ToString());
-				patRowTag.ClinicNum=PIn.Long(_tableRecalls.Rows[i]["ClinicNum"].ToString());
-				patRowTag.DateDue=PIn.Date(_tableRecalls.Rows[i]["dueDate"].ToString());
-				patRowTag.WirelessPhone=PIn.String(_tableRecalls.Rows[i]["WirelessPhone"].ToString());
-				patRowTag.WebSchedSendError=PIn.String(_tableRecalls.Rows[i]["webSchedSendError"].ToString());
-				patRowTag.AutoCommStatusWebSchedSend=PIn.Enum<AutoCommStatus>(_tableRecalls.Rows[i]["webSchedSendStatus"].ToString(),defaultValue:AutoCommStatus.Undefined);
+				patRowTag.PriKeyNum=SIn.Long(_tableRecalls.Rows[i]["RecallNum"].ToString());
+				patRowTag.StatusDefNum=SIn.Long(_tableRecalls.Rows[i]["RecallStatus"].ToString());
+				patRowTag.NumReminders=SIn.Int(_tableRecalls.Rows[i]["numberOfReminders"].ToString());
+				patRowTag.Email=SIn.String(_tableRecalls.Rows[i]["Email"].ToString());
+				patRowTag.ContactMethodRecallPref=SIn.Enum<ContactMethod>(_tableRecalls.Rows[i]["PreferRecallMethod"].ToString());
+				patRowTag.GuarantorNum=SIn.Long(_tableRecalls.Rows[i]["Guarantor"].ToString());
+				patRowTag.ClinicNum=SIn.Long(_tableRecalls.Rows[i]["ClinicNum"].ToString());
+				patRowTag.DateDue=SIn.Date(_tableRecalls.Rows[i]["dueDate"].ToString());
+				patRowTag.WirelessPhone=SIn.String(_tableRecalls.Rows[i]["WirelessPhone"].ToString());
+				patRowTag.WebSchedSendError=SIn.String(_tableRecalls.Rows[i]["webSchedSendError"].ToString());
+				patRowTag.AutoCommStatusWebSchedSend=SIn.Enum<AutoCommStatus>(_tableRecalls.Rows[i]["webSchedSendStatus"].ToString(),defaultValue:AutoCommStatus.Undefined);
 				row.Tag=patRowTag;
 				gridRecalls.ListGridRows.Add(row);
 				if(listPatRowTagsSelected.Any(x => x.PriKeyNum==((PatRowTag)row.Tag).PriKeyNum)) {
@@ -555,7 +556,7 @@ namespace OpenDental {
 				appointment=AppointmentL.CreateRecallApt(patient,listInsPlans,recallNum,listInSubs);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return new List<Appointment>();
 			}
 			//The appointment got saved with min date. We need the object to have the actual appointment date so we can jump to the appointment date.
@@ -597,7 +598,7 @@ namespace OpenDental {
 				listAppointments.Add(appointment);
 			}
 			if(patsRestricted>0) {
-				MessageBox.Show(Lan.g(this,"Family members skipped due to patient restriction")+" "+PatRestrictions.GetPatRestrictDesc(PatRestrict.ApptSchedule)
+				ODMessageBox.Show(Lan.g(this,"Family members skipped due to patient restriction")+" "+PatRestrictions.GetPatRestrictDesc(PatRestrict.ApptSchedule)
 					+": "+patsRestricted+".");
 			}
 			if(listAppointments.Count==0) {
@@ -671,7 +672,7 @@ namespace OpenDental {
 				string message=Lan.g(this,"You have selected recalls whose clinic is not signed up for Web Sched recall. "
 					+"Do you want to go to the sign up portal to sign these clinics up? "
 					+"Clicking 'No' will deselect these recalls and send the remaining.");
-				if(MessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.Yes) {
+				if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.Yes) {
 					OpenSignupPortal();
 					return;
 				}
@@ -681,7 +682,7 @@ namespace OpenDental {
 			#endregion Check Web Sched Pref and Show Promo
 			#region Recall List Validation
 			if(gridRecalls.ListGridRows.Count < 1) {
-				MessageBox.Show(Lan.g(this,"There are no Patients in the Recall table.  Must have at least one."));
+				ODMessageBox.Show(Lan.g(this,"There are no Patients in the Recall table.  Must have at least one."));
 				return;
 			}
 			if(!EmailAddresses.ExistsValidEmail()) {
@@ -730,7 +731,7 @@ namespace OpenDental {
 			int skippedRestricted=0;
 			List<long> listRestricted=PatRestrictions.GetAllRestrictedForType(PatRestrict.ApptSchedule);
 			DataTable tableRecalls=GetRecallTable();
-			List<long> listPatNumsInTableRecallCur=tableRecalls.Select().Select(x => PIn.Long(x["PatNum"].ToString())).ToList();
+			List<long> listPatNumsInTableRecallCur=tableRecalls.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList();
 			for(int i=gridRecalls.SelectedIndices.Length-1;i>=0;i--) {
 				PatRowTag patRowTag=gridRecalls.ListGridRows[gridRecalls.SelectedIndices[i]].Tag as PatRowTag;
 				if(listRestricted.Contains(patRowTag.PatNum)){
@@ -801,7 +802,7 @@ namespace OpenDental {
 				listSkippedMsgs.Add(Lan.g(this,"Selected patients skipped due to no longer being in the recall list:")+" "+skippedNotInList);
 			}
 			if(!listSkippedMsgs.IsNullOrEmpty()) {
-				MessageBox.Show(string.Join("\r\n",listSkippedMsgs));
+				ODMessageBox.Show(string.Join("\r\n",listSkippedMsgs));
 			}
 			if(gridRecalls.SelectedIndices.Length==0) {
 				MsgBox.Show(this,"No Web Sched emails or texts sent.");
@@ -1054,7 +1055,7 @@ namespace OpenDental {
 				return;
 			}
 			if(skipped>0){
-				MessageBox.Show(Lan.g(this,"Selected patients skipped due to missing/invalid email addresses: ")+skipped.ToString());
+				ODMessageBox.Show(Lan.g(this,"Selected patients skipped due to missing/invalid email addresses: ")+skipped.ToString());
 			}
 			if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Send email to all of the selected patients?")) {
 				return;
@@ -1074,21 +1075,21 @@ namespace OpenDental {
 			List<PatRowTag> listPatRowTagsSent=new List<PatRowTag>();
 			for(int i=0;i<_tableAddress.Rows.Count;i++){
 				emailMessage=new EmailMessage();
-				emailMessage.PatNum=PIn.Long(_tableAddress.Rows[i]["emailPatNum"].ToString());
-				emailMessage.ToAddress=PIn.String(_tableAddress.Rows[i]["email"].ToString());//might be guarantor email
-				language=PIn.String(_tableAddress.Rows[i]["Language"].ToString());//might be guarantor language
+				emailMessage.PatNum=SIn.Long(_tableAddress.Rows[i]["emailPatNum"].ToString());
+				emailMessage.ToAddress=SIn.String(_tableAddress.Rows[i]["email"].ToString());//might be guarantor email
+				language=SIn.String(_tableAddress.Rows[i]["Language"].ToString());//might be guarantor language
 				ClinicDto clinic;
 				if(isRecallGridSelected) {
-					clinic=Clinics.GetClinicForRecall(PIn.Long(_tableAddress.Rows[i]["recallNums"].ToString().Split(',').FirstOrDefault()));
+					clinic=Clinics.GetClinicForRecall(SIn.Long(_tableAddress.Rows[i]["recallNums"].ToString().Split(',').FirstOrDefault()));
 				}
 				else {
-					clinic=Clinics.GetClinic(PIn.Long(_tableAddress.Rows[i]["ClinicNum"].ToString()));
+					clinic=Clinics.GetClinic(SIn.Long(_tableAddress.Rows[i]["ClinicNum"].ToString()));
 				}
 				long clinicNumEmail=clinic?.Id??Clinics.ClinicNum;
 				OpenDental.UI.ComboBox cbEmail=isRecallGridSelected?comboEmailFromRecalls:comboEmailFromReact;
 				emailAddress=cbEmail.GetSelected<EmailAddress>()??new EmailAddress();
 				if(emailAddress.EmailAddressNum==0) { //clinic/practice default
-					clinicNumEmail=PIn.Long(_tableAddress.Rows[i]["ClinicNum"].ToString());
+					clinicNumEmail=SIn.Long(_tableAddress.Rows[i]["ClinicNum"].ToString());
 					emailAddress=EmailAddresses.GetByClinic(clinicNumEmail);
 				}
 				emailAddress=EmailAddresses.OverrideSenderAddressClinical(emailAddress,clinicNumEmail); //Use clinic's Email Sender Address Override, if present
@@ -1153,7 +1154,7 @@ namespace OpenDental {
 							str=LanguagePats.GetPrefTranslation(PrefName.RecallEmailMessage3,language);
 						}
 					}
-					str=str.Replace("[DueDate]",PIn.Date(_tableAddress.Rows[i]["dateDue"].ToString()).ToShortDateString());
+					str=str.Replace("[DueDate]",SIn.Date(_tableAddress.Rows[i]["dateDue"].ToString()).ToShortDateString());
 					str=str.Replace("[NameF]",_tableAddress.Rows[i]["patientNameF"].ToString());
 					str=str.Replace("[NameFL]",_tableAddress.Rows[i]["patientNameFL"].ToString());
 				}
@@ -1185,13 +1186,13 @@ namespace OpenDental {
 					if(ex.GetType()==typeof(System.ArgumentException)){
 						str+=$"Go to Setup, {(isRecallGridSelected ? "Recall":"Reactivation")}.  The subject for an email may not be multiple lines.\r\n";
 					}
-					MessageBox.Show(str+"Patient:"+_tableAddress.Rows[i]["patientNameFL"].ToString());
+					ODMessageBox.Show(str+"Patient:"+_tableAddress.Rows[i]["patientNameFL"].ToString());
 					break;
 				}
 				sentEmailCount++;
 				//Add current row to the list of rows sent.
 				if(isRecallGridSelected) {
-					List<long> listRecallNums=_tableAddress.Rows[i]["recallNums"].ToString().Split(',').Select(x => PIn.Long(x)).ToList();
+					List<long> listRecallNums=_tableAddress.Rows[i]["recallNums"].ToString().Split(',').Select(x => SIn.Long(x)).ToList();
 					for(int j=0;j<grid.ListGridRows.Count;j++) {
 						if(listRecallNums.Contains(((PatRowTag)grid.ListGridRows[j].Tag).PriKeyNum)) {
 							listPatRowTagsSent.Add((PatRowTag)grid.ListGridRows[j].Tag);
@@ -1199,7 +1200,7 @@ namespace OpenDental {
 					}
 				}
 				else {//Reactivation
-					List<long> listPatNums=_tableAddress.Rows[i]["patNums"].ToString().Split(',').Select(x => PIn.Long(x)).ToList();
+					List<long> listPatNums=_tableAddress.Rows[i]["patNums"].ToString().Split(',').Select(x => SIn.Long(x)).ToList();
 					for(int j=0;j<grid.ListGridRows.Count;j++) {
 						if(listPatNums.Contains(((PatRowTag)grid.ListGridRows[j].Tag).PatNum)) {
 							listPatRowTagsSent.Add((PatRowTag)grid.ListGridRows[j].Tag);
@@ -1327,7 +1328,7 @@ namespace OpenDental {
 			string language;
 			while(yPos<ev.PageBounds.Height-bottomPageMargin && patientsPrinted<_tableAddress.Rows.Count){
 				//Return Address--------------------------------------------------------------------------
-				clinicNum=PIn.Long(_tableAddress.Rows[patientsPrinted]["ClinicNum"].ToString());
+				clinicNum=SIn.Long(_tableAddress.Rows[patientsPrinted]["ClinicNum"].ToString());
 				string practicePhone=TelephoneNumbers.ReFormat(PrefC.GetString(PrefName.PracticePhone));
 				language=_tableAddress.Rows[patientsPrinted]["Language"].ToString();
 				if(PrefC.GetBool(PrefName.RecallCardsShowReturnAdd)){
@@ -1674,36 +1675,36 @@ namespace OpenDental {
 			gridReactivations.ListGridRows.Clear();
 			for(int i=0;i<tableReacts.Rows.Count;i++) {
 				GridRow rowNew=new GridRow();
-				if(PIn.Bool(tableReacts.Rows[i]["DoNotContact"].ToString())) {
+				if(SIn.Bool(tableReacts.Rows[i]["DoNotContact"].ToString())) {
 					rowNew.ColorBackG=Color.Orange;
 				}
-				rowNew.Cells.Add(PIn.Date(tableReacts.Rows[i]["DateLastProc"].ToString()).ToShortDateString());
+				rowNew.Cells.Add(SIn.Date(tableReacts.Rows[i]["DateLastProc"].ToString()).ToShortDateString());
 				rowNew.Cells.Add(Patients.GetNameLF(tableReacts.Rows[i]["LName"].ToString(),tableReacts.Rows[i]["FName"].ToString(),tableReacts.Rows[i]["Preferred"].ToString(),tableReacts.Rows[i]["MiddleI"].ToString()));
-				rowNew.Cells.Add(Patients.DateToAge(PIn.Date(tableReacts.Rows[i]["Birthdate"].ToString())).ToString());
-				rowNew.Cells.Add(Providers.GetLongDesc(PIn.Long(tableReacts.Rows[i]["PriProv"].ToString())));
+				rowNew.Cells.Add(Patients.DateToAge(SIn.Date(tableReacts.Rows[i]["Birthdate"].ToString())).ToString());
+				rowNew.Cells.Add(Providers.GetLongDesc(SIn.Long(tableReacts.Rows[i]["PriProv"].ToString())));
 				if(true) {
-					rowNew.Cells.Add(Clinics.GetDesc(PIn.Long(tableReacts.Rows[i]["ClinicNum"].ToString())));
+					rowNew.Cells.Add(Clinics.GetDesc(SIn.Long(tableReacts.Rows[i]["ClinicNum"].ToString())));
 				}
 				if(!PrefC.GetBool(PrefName.EasyHidePublicHealth)) {
-					rowNew.Cells.Add(Sites.GetDescription(PIn.Long(tableReacts.Rows[i]["SiteNum"].ToString())));
+					rowNew.Cells.Add(Sites.GetDescription(SIn.Long(tableReacts.Rows[i]["SiteNum"].ToString())));
 				}
 				rowNew.Cells.Add(tableReacts.Rows[i]["BillingType"].ToString());
 				rowNew.Cells.Add(tableReacts.Rows[i]["ContactedCount"].ToString());
 				rowNew.Cells.Add(tableReacts.Rows[i]["DateLastContacted"].ToString());
 				rowNew.Cells.Add(tableReacts.Rows[i]["ContactMethod"].ToString()); 
-				long status=PIn.Long(tableReacts.Rows[i]["ReactivationStatus"].ToString());
+				long status=SIn.Long(tableReacts.Rows[i]["ReactivationStatus"].ToString());
 				rowNew.Cells.Add(status>0?Defs.GetDef(DefCat.RecallUnschedStatus,status).ItemName:"");
 				rowNew.Cells.Add(tableReacts.Rows[i]["ReactivationNote"].ToString());
 				PatRowTag patRowTag=new PatRowTag();
-				patRowTag.PatNum=PIn.Long(tableReacts.Rows[i]["PatNum"].ToString());
-				patRowTag.PriKeyNum=PIn.Long(tableReacts.Rows[i]["ReactivationNum"].ToString());
+				patRowTag.PatNum=SIn.Long(tableReacts.Rows[i]["PatNum"].ToString());
+				patRowTag.PriKeyNum=SIn.Long(tableReacts.Rows[i]["ReactivationNum"].ToString());
 				patRowTag.StatusDefNum=status;
-				patRowTag.NumReminders=PIn.Int(tableReacts.Rows[i]["ContactedCount"].ToString());
+				patRowTag.NumReminders=SIn.Int(tableReacts.Rows[i]["ContactedCount"].ToString());
 				patRowTag.Email=tableReacts.Rows[i]["Email"].ToString();
-				patRowTag.ContactMethodRecallPref=PIn.Enum<ContactMethod>(tableReacts.Rows[i]["PreferRecallMethod"].ToString());
-				patRowTag.GuarantorNum=PIn.Long(tableReacts.Rows[i]["Guarantor"].ToString());
-				patRowTag.ClinicNum=PIn.Long(tableReacts.Rows[i]["ClinicNum"].ToString());
-				patRowTag.WirelessPhone=PIn.String(tableReacts.Rows[i]["WirelessPhone"].ToString());
+				patRowTag.ContactMethodRecallPref=SIn.Enum<ContactMethod>(tableReacts.Rows[i]["PreferRecallMethod"].ToString());
+				patRowTag.GuarantorNum=SIn.Long(tableReacts.Rows[i]["Guarantor"].ToString());
+				patRowTag.ClinicNum=SIn.Long(tableReacts.Rows[i]["ClinicNum"].ToString());
+				patRowTag.WirelessPhone=SIn.String(tableReacts.Rows[i]["WirelessPhone"].ToString());
 				rowNew.Tag=patRowTag;
 				gridReactivations.ListGridRows.Add(rowNew);
 				if(listPatRowTagsSelected.Any(x => x.PriKeyNum==((PatRowTag)rowNew.Tag).PriKeyNum)) {

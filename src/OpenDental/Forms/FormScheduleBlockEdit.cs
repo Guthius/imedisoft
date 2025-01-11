@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -77,7 +78,7 @@ namespace OpenDental{
 		}
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
-			if(MessageBox.Show(Lan.g(this,"Delete Blockout?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+			if(ODMessageBox.Show(Lan.g(this,"Delete Blockout?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 			  return;   
 			}
 			if(IsNew){
@@ -128,7 +129,7 @@ namespace OpenDental{
 					Schedules.BlockoutLogHelper(BlockoutAction.Create,_schedule);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				DialogResult=DialogResult.OK;	
@@ -139,7 +140,7 @@ namespace OpenDental{
 				Schedules.BlockoutLogHelper(BlockoutAction.Edit,_schedule);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

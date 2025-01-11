@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental
@@ -25,7 +26,7 @@ namespace OpenDental
             Func<string, string, bool> funcYesNoMsgPrompt = (msg, caption) =>
             {
                 //msg is pre-translated
-                return MessageBox.Show(msg, caption, MessageBoxButtons.YesNo) == DialogResult.Yes;
+                return ODMessageBox.Show(msg, caption, MessageBoxButtons.YesNo) == DialogResult.Yes;
             };
             Action<Commlog> actionShowCommlog = (commLog) =>
             {

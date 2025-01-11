@@ -12,6 +12,7 @@ using OpenDental.Bridges;
 using CodeBase;
 using System.Text;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -211,7 +212,7 @@ namespace OpenDental {
 			StringBuilder stringBuilder=new StringBuilder();
 			#region check if pay prog is enabled
 			bool isEnabled(ProgramName programName,string preventPropName) {
-				bool hasPreventCreditCardAdd=PIn.Bool(ProgramProperties.GetPropVal(Programs.GetCur(programName).ProgramNum,preventPropName,Clinics.ClinicNum));
+				bool hasPreventCreditCardAdd=SIn.Bool(ProgramProperties.GetPropVal(Programs.GetCur(programName).ProgramNum,preventPropName,Clinics.ClinicNum));
 				string errMsg="";
 				bool isPayProgEnabled=Programs.IsEnabled(programName) && !hasPreventCreditCardAdd && Programs.IsEnabledByHq(programName,out errMsg);
 				if(!isPayProgEnabled && !string.IsNullOrWhiteSpace(errMsg)) {
@@ -265,7 +266,7 @@ namespace OpenDental {
 					//all bridges were disabled by the dental office (not HQ).
 					errMsg=Lan.g(this,"Not allowed to store credit cards.");
 				}
-				MessageBox.Show(this,errMsg);
+				ODMessageBox.Show(this,errMsg);
 				return;
 			}
 			CreditCard creditCard=null;
@@ -390,13 +391,13 @@ namespace OpenDental {
 							insertCard=true;
 						}
 						if(line.StartsWith("XCACCOUNTID=")) {
-							xChargeToken=PIn.String(line.Substring(12));
+							xChargeToken=SIn.String(line.Substring(12));
 						}
 						if(line.StartsWith("ACCOUNT=")) {
-							accountMasked=PIn.String(line.Substring(8));
+							accountMasked=SIn.String(line.Substring(8));
 						}
 						if(line.StartsWith("EXPIRATION=")) {
-							exp=PIn.String(line.Substring(11));
+							exp=SIn.String(line.Substring(11));
 						}
 						line=textReader.ReadLine();
 					}
@@ -409,7 +410,7 @@ namespace OpenDental {
 				catch(Exception ex) {
 					string errMsg=Lans.g(this,"There was a problem adding the credit card.  Please try again.");
 					if(ex.Message=="X-Charge result was not success.") {
-						MessageBox.Show(errMsg);
+						ODMessageBox.Show(errMsg);
 					}
 					else {
 						FriendlyException.Show(errMsg,ex);

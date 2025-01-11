@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -104,7 +105,7 @@ namespace OpenDental
                     }
                     else
                     {
-                        row.Cells.Add(POut.Int(clinicCount.Count));
+                        row.Cells.Add(SOut.Int(clinicCount.Count));
                     }
 
                     row.Cells.Add(Clinics[i].IsHidden ? "X" : "");

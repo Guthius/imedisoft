@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using OpenDental.ReportingComplex;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -162,11 +163,11 @@ namespace OpenDental{
 			List<string> listAdjType=new List<string>();
 			if(checkAllAdjs.Checked) {
 				//add all adjustment types, including hidden
-				listAdjType=Defs.GetDefsForCategory(DefCat.AdjTypes).Select(x => POut.Long(x.DefNum)).ToList();
+				listAdjType=Defs.GetDefsForCategory(DefCat.AdjTypes).Select(x => SOut.Long(x.DefNum)).ToList();
 			}
 			else {
 				for(int i=0;i<listType.SelectedIndices.Count;i++) {//1:1
-					listAdjType.Add(POut.Long(_listAdjTypeDefs[listType.SelectedIndices[i]].DefNum));
+					listAdjType.Add(SOut.Long(_listAdjTypeDefs[listType.SelectedIndices[i]].DefNum));
 				}
 			}
 			ReportComplex report=new ReportComplex(true,false);	 

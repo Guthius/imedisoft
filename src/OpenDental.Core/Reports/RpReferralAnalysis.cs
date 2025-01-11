@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpReferralAnalysis {
@@ -22,14 +23,14 @@ namespace OpenDentBusiness {
 			query+=" FROM referral"
 				+" INNER JOIN("
 					+" SELECT refattach.ReferralNum, refattach.PatNum FROM refattach"
-					+" WHERE refattach.RefType="+POut.Int((int)ReferralType.RefFrom)
+					+" WHERE refattach.RefType="+SOut.Int((int)ReferralType.RefFrom)
 					+" GROUP BY refattach.PatNum, refattach.ReferralNum"
 				+") attach ON attach.ReferralNum = referral.ReferralNum ";
 			query+="INNER JOIN("
 				+"SELECT PatNum, SUM(";
 			if(hasOnlyNewPats) {
-				query+="CASE WHEN procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "
-					+POut.Date(dateEnd)+" THEN ";
+				query+="CASE WHEN procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "
+					+SOut.Date(dateEnd)+" THEN ";
 			}
 			query+="procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits) ";
 			if(hasOnlyNewPats) {
@@ -39,14 +40,14 @@ namespace OpenDentBusiness {
 				+"FROM procedurelog "
 				+"INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum "
 				+"AND ProcCode NOT IN ('D9986','D9987') "/*Do not count missed or canceled appointments*/
-				+"WHERE ProcStatus="+POut.Int((int)ProcStat.C)+" "
+				+"WHERE ProcStatus="+SOut.Int((int)ProcStat.C)+" "
 				+whereProv;
 			if(!hasOnlyNewPats) {
-				query+=" AND procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd);
+				query+=" AND procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd);
 			}
 			query+="GROUP BY PatNum ";
 			if(hasOnlyNewPats) {
-				query+="HAVING MIN(ProcDate) BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd);
+				query+="HAVING MIN(ProcDate) BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd);
 			}
 			query+=") procs "
 				+"ON procs.PatNum = attach.PatNum ";

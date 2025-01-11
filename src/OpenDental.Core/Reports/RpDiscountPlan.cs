@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpDiscountPlan {
@@ -16,7 +17,7 @@ namespace OpenDentBusiness {
 				" INNER JOIN definition ON definition.DefNum=discountplan.DefNum"+
 				" INNER JOIN discountplansub ON discountplansub.DiscountPlanNum=discountplan.DiscountPlanNum"+
 				" INNER JOIN patient ON patient.PatNum=discountplansub.PatNum"+
-				" WHERE discountplan.Description LIKE '%"+POut.String(description)+"%'"+
+				" WHERE discountplan.Description LIKE '%"+SOut.String(description)+"%'"+
 				" ORDER BY discountplan.Description,patient.LName,patient.FName,patient.MiddleI";
 			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
 		}

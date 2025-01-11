@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -88,7 +89,7 @@ namespace OpenDental {
 					}
 					if(stringArrayFiles[i].ToUpper().StartsWith("QC_ACDQ_")) {
 						try {
-							long year=PIn.Long(stringArrayFiles[i].Substring(8,4));
+							long year=SIn.Long(stringArrayFiles[i].Substring(8,4));
 							if(year<DateTime.Now.Year) {//Current year and next year will show up.
 								continue;//Quebec fee schedules for previous years must be unavailable to the user.
 							}

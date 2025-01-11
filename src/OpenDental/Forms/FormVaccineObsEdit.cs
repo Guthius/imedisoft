@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormVaccineObsEdit:FormODBase {
@@ -91,7 +92,7 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+			if(ODMessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 				return;
 			}
 			_vaccineObsCur.VaccinePatNum=0;//So the calling code knows that the vaccineobs was deleted.
@@ -142,7 +143,7 @@ namespace OpenDental {
 				return;
 			}
 			if(!textDateObserved.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			if(!textMethodCode.ReadOnly && textMethodCode.Text.Trim()=="") {
@@ -159,7 +160,7 @@ namespace OpenDental {
 			}
 			_vaccineObsCur.DateObs=DateTime.MinValue;
 			if(textDateObserved.Text!="") {
-				_vaccineObsCur.DateObs=PIn.Date(textDateObserved.Text);
+				_vaccineObsCur.DateObs=SIn.Date(textDateObserved.Text);
 			}
 			_vaccineObsCur.MethodCode=textMethodCode.Text;
 			DialogResult=DialogResult.OK;

@@ -6,6 +6,7 @@ using System.Drawing.Printing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -191,7 +192,7 @@ namespace OpenDental{
 				listErrorMsgs.Add(Lan.g(this,"Invalid selection of employees."));
 			}
 			if(listErrorMsgs.Count > 0 && !isQuiet) {
-				MessageBox.Show(string.Join("\r\n",listErrorMsgs));
+				ODMessageBox.Show(string.Join("\r\n",listErrorMsgs));
 			}
 			return (listErrorMsgs.Count==0);
 		}
@@ -224,8 +225,8 @@ namespace OpenDental{
 				if(false) {
 					canViewNotes=Security.IsAuthorized(EnumPermType.Schedules,true);
 				}
-				_dateFromDate=PIn.Date(textDateFrom.Text);
-				_dateToDate=PIn.Date(textDateTo.Text);
+				_dateFromDate=SIn.Date(textDateFrom.Text);
+				_dateToDate=SIn.Date(textDateTo.Text);
 				Logger.LogToPath("Schedules.GetPeriod",LogPath.Signals,LogPhase.Start);
 				_tableScheds=Schedules.GetPeriod(_dateFromDate,_dateToDate,listProvNums,listEmpNums,checkPracticeNotes.Checked,
 					checkClinicNotes.Checked,comboClinic.ClinicNumSelected,checkShowClinicSchedules.Checked,canViewNotes);
@@ -509,7 +510,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Provider or Employee selection has been changed.  Please refresh first.");
 				return;
 			}
-			if(_dateFromDate!=PIn.Date(textDateFrom.Text) || _dateToDate!=PIn.Date(textDateTo.Text)) {
+			if(_dateFromDate!=SIn.Date(textDateFrom.Text) || _dateToDate!=SIn.Date(textDateTo.Text)) {
 				MsgBox.Show(this,"Dates have changed, refresh before continuing.");
 				return;
 			}
@@ -529,7 +530,7 @@ namespace OpenDental{
 			List<long> listEmployeeNums;
 			GetSelectedProvidersEmployeesAndClinic(out listProvNums,out listEmployeeNums);
 			if(listProvNums.Count>0) {
-				if(MessageBox.Show(Lan.g(this,"Delete schedules for")+" "+listProvNums.Distinct().Count()+" "
+				if(ODMessageBox.Show(Lan.g(this,"Delete schedules for")+" "+listProvNums.Distinct().Count()+" "
 					+Lan.g(this,"provider(s) for the selected week?"),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) 
 				{
 					return;
@@ -565,7 +566,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"No providers or employees have been selected.");
 				return;
 			}
-			if(_dateFromDate!=PIn.Date(textDateFrom.Text) || _dateToDate!=PIn.Date(textDateTo.Text)) {
+			if(_dateFromDate!=SIn.Date(textDateFrom.Text) || _dateToDate!=SIn.Date(textDateTo.Text)) {
 				MsgBox.Show(this,"Dates have changed, refresh before continuing.");
 				return;
 			}
@@ -598,7 +599,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"No providers or employees have been selected.");
 				return;
 			}
-			if(_dateFromDate!=PIn.Date(textDateFrom.Text) || _dateToDate!=PIn.Date(textDateTo.Text)) {
+			if(_dateFromDate!=SIn.Date(textDateFrom.Text) || _dateToDate!=SIn.Date(textDateTo.Text)) {
 				MsgBox.Show(this,"Dates have changed, refresh before continuing.");
 				return;
 			}
@@ -698,7 +699,7 @@ namespace OpenDental{
 				if(listProvNums.Count > 0) {
 					int countDistinctProvNums=listSchedulesToCopy.Where(x => x.ProvNum!=0).Select(y => y.ProvNum).Distinct().Count();
 					actionCloseScheduleProgress?.Invoke();
-					if(MessageBox.Show(Lan.g(this,"Replace schedules for")+" "+countDistinctProvNums+" "
+					if(ODMessageBox.Show(Lan.g(this,"Replace schedules for")+" "+countDistinctProvNums+" "
 						+Lan.g(this,"provider(s)?"),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) 
 					{
 						return;
@@ -723,7 +724,7 @@ namespace OpenDental{
 					,listIgnoreProvNums:(checkReplace.Checked ? listProvNums : null));
 				if(listProvNumsOverlapping.Count>0) {
 					actionCloseScheduleProgress?.Invoke();
-					if(MessageBox.Show(Lan.g(this,"Overlapping provider schedules detected, would you like to continue anyway?")
+					if(ODMessageBox.Show(Lan.g(this,"Overlapping provider schedules detected, would you like to continue anyway?")
 						+"\r\n"+Lan.g(this,"Providers affected")
 						+":\r\n  "+string.Join("\r\n  ",listProvNumsOverlapping.Select(x=>Providers.GetLongDesc(x))),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) 
 					{
@@ -760,7 +761,7 @@ namespace OpenDental{
 				listSchedulesToInsert.Add(schedule);
 			}
 			if(listSchedulesHolidays.Count>0){
-				MessageBox.Show(Lan.g(this,listSchedulesHolidays.Count+" holidays exist in the destination date range. Holidays will not be replaced and must be done manually."));
+				ODMessageBox.Show(Lan.g(this,listSchedulesHolidays.Count+" holidays exist in the destination date range. Holidays will not be replaced and must be done manually."));
 			}
 			Schedules.Insert(false,true,listSchedulesToInsert);
 			DateTime rememberDateStart=_dateCopyStart;
@@ -787,7 +788,7 @@ namespace OpenDental{
 			}
 			int repeatCount;
 			try{
-				repeatCount=PIn.Int(textRepeat.Text);
+				repeatCount=SIn.Int(textRepeat.Text);
 			}
 			catch{
 				MsgBox.Show(this,"Please fix number box first.");
@@ -857,7 +858,7 @@ namespace OpenDental{
 				if(listProvNums.Count > 0) {
 					int countDistinctProvNums=listSchedulesToCopy.Where(x => x.ProvNum!=0).Select(y => y.ProvNum).Distinct().Count();
 					actionCloseScheduleProgress?.Invoke();
-					if(MessageBox.Show(Lan.g(this,"Replace schedules for")+" "+countDistinctProvNums+" "
+					if(ODMessageBox.Show(Lan.g(this,"Replace schedules for")+" "+countDistinctProvNums+" "
 						+Lan.g(this,"provider(s)?"),"",MessageBoxButtons.YesNo)==DialogResult.No) 
 					{
 						return;
@@ -910,7 +911,7 @@ namespace OpenDental{
 			}
 			if(listProvNumsOverlapping.Count > 0) {
 				actionCloseScheduleProgress?.Invoke();
-				if(MessageBox.Show(Lan.g(this,"Overlapping provider schedules detected, would you like to continue anyway?")
+				if(ODMessageBox.Show(Lan.g(this,"Overlapping provider schedules detected, would you like to continue anyway?")
 					+"\r\n"+Lan.g(this,"Providers affected")
 					+":\r\n  "+string.Join("\r\n  ",listProvNumsOverlapping.Select(x=>Providers.GetLongDesc(x))),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) 
 				{
@@ -959,7 +960,7 @@ namespace OpenDental{
 				dayCount+=CalculateNextDay(dateSelectedStart.AddDays(dayCount));
 			}
 			if(listSchedulesHoliday.Count>0) {
-				MessageBox.Show(Lan.g(this,listSchedulesHoliday.Count+" holidays exist in the destination date range. Holidays will not be replaced and must be done manually."));
+				ODMessageBox.Show(Lan.g(this,listSchedulesHoliday.Count+" holidays exist in the destination date range. Holidays will not be replaced and must be done manually."));
 			}
 			Schedules.DeleteMany(listSchedNumsToDelete);
 			Schedules.Insert(false,true,listSchedulesToInsert);

@@ -11,6 +11,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -218,7 +219,7 @@ namespace OpenDental {
 			menuNavAttachment.Enabled=false;
 			_isTaskSortApptDateTime=PrefC.GetBool(PrefName.TaskSortApptDateTime);//This sets it for use and also for the task options default value.
 			List<UserOdPref> listUserOdPrefsForCollapsing=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.TaskCollapse);
-			_isCollapsedByDefault=listUserOdPrefsForCollapsing.Count==0 ? false : PIn.Bool(listUserOdPrefsForCollapsing[0].ValueString);
+			_isCollapsedByDefault=listUserOdPrefsForCollapsing.Count==0 ? false : SIn.Bool(listUserOdPrefsForCollapsing[0].ValueString);
 			_hasListSwitched=true;
 			_taskCollapsedState=_isCollapsedByDefault ? 1 : 0;
 			SetFiltersToDefault();//Fills Tree and Grid
@@ -1657,7 +1658,7 @@ namespace OpenDental {
 			_isShowArchivedTaskLists=formTaskOptions.ShowArchivedTaskLists;
 			_dateTimeStartShowFinished=formTaskOptions.DateTimeStartShowFinished;
 			_isTaskSortApptDateTime=formTaskOptions.DoSortApptDateTime;
-			_isCollapsedByDefault=PIn.Bool(UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.TaskCollapse)[0].ValueString);
+			_isCollapsedByDefault=SIn.Bool(UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.TaskCollapse)[0].ValueString);
 			_hasListSwitched=true;//To display tasks in correctly collapsed/expanded state
 			FillGrid();
 		}
@@ -1845,7 +1846,7 @@ namespace OpenDental {
 				//do nothing
 			}
 			if(Regex.IsMatch(textClip,@"^tasknum:\d+$")) { //very restrictive specific match for "TaskNum:##"
-				long taskNum=PIn.Long(textClip.Substring(8));
+				long taskNum=SIn.Long(textClip.Substring(8));
 				// if the tasknum was the same as last time then we have already tried this search once
 				if (taskNum!=_taskNumOld) { // if #'s differ then we are doing a fresh search and should just look for the tasknum
 					_taskNumOld=taskNum;
@@ -1904,7 +1905,7 @@ namespace OpenDental {
 				if(idx>-1) {
 					_listTasks[idx]=taskOld;
 				}
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			TaskUnreads.DeleteForTask(task);
@@ -2254,7 +2255,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				FillGrid();//Full refresh on local machine.  This will revert/refresh the clicked task so any changes made above are ignored.
 				return null;
 			}
@@ -2345,7 +2346,7 @@ namespace OpenDental {
 						RefillLocalTaskGrids(task,_listTaskNotes.FindAll(x => x.TaskNum==task.TaskNum),new List<long>() { signalNum });
 					}
 					catch(Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}
 				}
@@ -2489,7 +2490,7 @@ namespace OpenDental {
 				List<TaskList> listTaskLists=TaskLists.RefreshChildren(taskList.TaskListNum,Security.CurUser.UserNum,0,TaskType.All);
 				int countHiddenTasks=listTaskLists.Sum(x => x.NewTaskCount)+listTasks.Count-taskList.NewTaskCount;
 				if(listTasks.Count>0 || listTaskLists.Count>0){
-					MessageBox.Show(Lan.g(this,"Not allowed to delete a list unless it's empty.  This task list contains:")+"\r\n"
+					ODMessageBox.Show(Lan.g(this,"Not allowed to delete a list unless it's empty.  This task list contains:")+"\r\n"
 						+listTasks.FindAll(x => String.IsNullOrEmpty(x.ReminderGroupId)).Count+" "+Lan.g(this,"normal tasks")+"\r\n"
 						+listTasks.FindAll(x => !String.IsNullOrEmpty(x.ReminderGroupId)).Count+" "+Lan.g(this,"reminder tasks")+"\r\n"
 						+countHiddenTasks+" "+Lan.g(this,"filtered tasks")+"\r\n"
@@ -2565,7 +2566,7 @@ namespace OpenDental {
 				taskHist.IsNoteChange=false;
 				taskHist.UserNum=Security.CurUser.UserNum;
 				TaskHists.Insert(taskHist);
-				SecurityLogs.MakeLogEntry(EnumPermType.TaskDelete,0,"Task "+POut.Long(task.TaskNum)+" deleted",0);
+				SecurityLogs.MakeLogEntry(EnumPermType.TaskDelete,0,"Task "+SOut.Long(task.TaskNum)+" deleted",0);
 			}
 			else {
 				MsgBox.Show(this, "Please select a valid task or task list.");
@@ -2588,7 +2589,7 @@ namespace OpenDental {
 				TaskLists.Delete(taskList);
 			}
 			catch(Exception e) {
-				MessageBox.Show(e.Message);
+				ODMessageBox.Show(e.Message);
 			}
 		}
 
@@ -2970,7 +2971,7 @@ namespace OpenDental {
 				RefillLocalTaskGrids(taskNew,_listTaskNotes.FindAll(x => x.TaskNum==taskNew.TaskNum),new List<long>() { signalNum });
 			}
 			catch(Exception ex) {//Happens when two users edit the same task at the same time.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 

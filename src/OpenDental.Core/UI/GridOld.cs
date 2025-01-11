@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using PdfSharp.Drawing;
@@ -1156,7 +1157,7 @@ namespace OpenDental.UI {
 				else {//image
 					int imageIndex=-1;
 					if(gridRow.Cells[i].Text!="") {
-						imageIndex= PIn.Int(gridRow.Cells[i].Text);
+						imageIndex= SIn.Int(gridRow.Cells[i].Text);
 					}
 					if(imageIndex != -1) {
 						Image img =Columns[i].ImageList.Images[imageIndex];
@@ -2200,7 +2201,7 @@ namespace OpenDental.UI {
 				else {
 					int imageIndex=-1;
 					if(ListGridRows[rowI].Cells[i].Text!="") {
-						imageIndex= PIn.Int(ListGridRows[rowI].Cells[i].Text);
+						imageIndex= SIn.Int(ListGridRows[rowI].Cells[i].Text);
 					}
 					if(imageIndex != -1) {
 						Image img =Columns[i].ImageList.Images[imageIndex];
@@ -2415,7 +2416,7 @@ namespace OpenDental.UI {
 				else {
 					int imageIndex=-1;
 					if(ListGridRows[rowI].Cells[i].Text!="") {
-						imageIndex= PIn.Int(ListGridRows[rowI].Cells[i].Text);
+						imageIndex= SIn.Int(ListGridRows[rowI].Cells[i].Text);
 					}
 					if(imageIndex != -1) {
 						XImage img =Columns[i].ImageList.Images[imageIndex];

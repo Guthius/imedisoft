@@ -341,7 +341,7 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			//this does mess up the item orders a little, but missing numbers don't actually hurt anything.
-			if(MessageBox.Show(Lan.g(this,"Delete mobile view?"),"",MessageBoxButtons.OKCancel)
+			if(ODMessageBox.Show(Lan.g(this,"Delete mobile view?"),"",MessageBoxButtons.OKCancel)
 				!=DialogResult.OK){
 				return;
 			}
@@ -352,7 +352,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(_listApptViewItemsDisplayedMain.Count==0){
-				MessageBox.Show(Lan.g(this,"At least one row type must be displayed."));
+				ODMessageBox.Show(Lan.g(this,"At least one row type must be displayed."));
 				return;
 			}
 			_parentForm.UpdateMobileViewList(_listApptViewItemsDisplayedMain);

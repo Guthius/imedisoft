@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpBirthday {
@@ -28,7 +29,7 @@ namespace OpenDentBusiness {
 			DataTable table=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(command));
 			table.Columns.Add("Age");
 			for(int i=0;i<table.Rows.Count;i++) {
-				table.Rows[i]["Age"]=Patients.DateToAge(PIn.Date(table.Rows[i]["Birthdate"].ToString()),dateTo).ToString();
+				table.Rows[i]["Age"]=Patients.DateToAge(SIn.Date(table.Rows[i]["Birthdate"].ToString()),dateTo).ToString();
 			}
 			return table;
 		}

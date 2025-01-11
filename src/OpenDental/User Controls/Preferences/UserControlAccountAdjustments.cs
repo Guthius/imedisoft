@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -36,7 +37,7 @@ namespace OpenDental {
 			string[] arrayDefNums=PrefC.GetString(PrefName.BadDebtAdjustmentTypes).Split(new char[] {','}); //comma-delimited list.
 			List<long> listBadAdjDefNums = new List<long>();
 			foreach(string strDefNum in arrayDefNums) {
-				listBadAdjDefNums.Add(PIn.Long(strDefNum));
+				listBadAdjDefNums.Add(SIn.Long(strDefNum));
 			}
 			List<Def> listBadAdjDefs=Defs.GetDefs(DefCat.AdjTypes,listBadAdjDefNums);
 			using FormDefinitionPicker FormDP = new FormDefinitionPicker(DefCat.AdjTypes,listBadAdjDefs);
@@ -89,7 +90,7 @@ namespace OpenDental {
 			string[] arrayDefNums=PrefC.GetString(PrefName.BadDebtAdjustmentTypes).Split(new char[] { ',' }); //comma-delimited list.
 			List<long> listBadAdjDefNums=new List<long>();
 			foreach(string strDefNum in arrayDefNums) {
-				listBadAdjDefNums.Add(PIn.Long(strDefNum));
+				listBadAdjDefNums.Add(SIn.Long(strDefNum));
 			}
 			FillListboxBadDebt(Defs.GetDefs(DefCat.AdjTypes,listBadAdjDefNums));
 			//Fill the combobox with providers

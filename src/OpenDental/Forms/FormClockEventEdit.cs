@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -229,7 +230,7 @@ namespace OpenDental{
 					_clockEvent.TimeEntered2=DateTime.MinValue;
 				}
 				else {
-					_clockEvent.TimeEntered2=PIn.Date(textTimeEntered2.Text);
+					_clockEvent.TimeEntered2=SIn.Date(textTimeEntered2.Text);
 				}
 			}
 			catch {
@@ -430,7 +431,7 @@ namespace OpenDental{
 			if(PayPeriods.CannotEditPayPeriodOfDate(timeDisplayed1,_clockEvent.EmployeeNum)) {
 				string message=Lan.g(this,"You only have permission to edit your time card for the current pay period. The ");
 				string messageTwo=Lan.g(this," you have entered does not fall within the current pay period.");
-				MessageBox.Show(message+groupBox1.Text+messageTwo);
+				ODMessageBox.Show(message+groupBox1.Text+messageTwo);
 				return;
 			}
 			TimeSpan timeSpanOvertime=TimeSpan.Zero;

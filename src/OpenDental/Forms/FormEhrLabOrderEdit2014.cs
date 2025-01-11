@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using EhrLaboratories;
 using System.Text;
 using System.Text.RegularExpressions;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormEhrLabOrderEdit2014:FormODBase {
@@ -212,7 +214,7 @@ namespace OpenDental {
 				}
 				else {
 					string dateSt=EhrLabCur.ListEhrLabResults[i].ObservationDateTime.Substring(0,8);//stored in DB as yyyyMMdd[hh[mm[ss]]], []==optional components
-					DateTime dateT=PIn.Date(dateSt.Substring(4,2)+"/"+dateSt.Substring(6,2)+"/"+dateSt.Substring(0,4));
+					DateTime dateT=SIn.Date(dateSt.Substring(4,2)+"/"+dateSt.Substring(6,2)+"/"+dateSt.Substring(0,4));
 					row.Cells.Add(dateT.ToShortDateString());//date only
 				}
 				if(EhrLabCur.ListEhrLabResults[i].ObservationIdentifierID!="") {
@@ -437,7 +439,7 @@ namespace OpenDental {
 			if(textOrderingProvAAUID.Text==OIDInternals.GetForType(IdentifierType.Provider).IDRoot) {
 				Provider prov=null;
 				try {
-					prov=Providers.GetProv(PIn.Long(textOrderingProvIdentifier.Text));
+					prov=Providers.GetProv(SIn.Long(textOrderingProvIdentifier.Text));
 				}
 				catch { }
 				if(prov==null) {
@@ -452,7 +454,7 @@ namespace OpenDental {
 			//TODO: validate the controls
 			if(errorMessage.ToString()!="") {
 				errorMessage.Insert(0,"Unable to save current Lab Order for the following reasons:\r\n");
-				MessageBox.Show(this,errorMessage.ToString());
+				ODMessageBox.Show(this,errorMessage.ToString());
 				return false;
 			}
 			return true;

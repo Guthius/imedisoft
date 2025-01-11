@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -420,7 +421,7 @@ namespace OpenDental {
 				clinicPref=new ClinicPref(_clinic.Id,prefName,valueBool:false);
 				_listClinicPrefs.Add(clinicPref);
 			}
-			clinicPref.ValueString=POut.Bool(false);
+			clinicPref.ValueString=SOut.Bool(false);
 			return true;
 		}
 
@@ -429,7 +430,7 @@ namespace OpenDental {
 		private bool SwitchToDefaults(ApptReminderType apptReminderType) {
 			if(_listApptReminderRules.Any(x => x.ClinicNum==_clinic.Id && x.TypeCur==apptReminderType)) {
 				string prompt=Lans.g(this,"Delete custom ")+apptReminderType.GetDescription()+Lans.g(this," rules for this clinic and switch to using defaults? This cannot be undone.");
-				if(MessageBox.Show(this,prompt,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show(this,prompt,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return false;
 				}
 			}
@@ -452,14 +453,14 @@ namespace OpenDental {
 				_listClinicPrefs.Add(clinicPref);
 			}
 			//TURNING DEFAULTS OFF
-			if(!checkBox.Checked && PIn.Bool(clinicPref.ValueString)) {//Default switched off
-				clinicPref.ValueString=POut.Bool(false);
+			if(!checkBox.Checked && SIn.Bool(clinicPref.ValueString)) {//Default switched off
+				clinicPref.ValueString=SOut.Bool(false);
 				FillRemindConfirmData();
 			}
 			//TURNING DEFAULTS ON
-			else if(checkBox.Checked && !PIn.Bool(clinicPref.ValueString)) {//Default switched on
+			else if(checkBox.Checked && !SIn.Bool(clinicPref.ValueString)) {//Default switched on
 				if(SwitchToDefaults(apptReminderType)) {
-					clinicPref.ValueString=POut.Bool(true);
+					clinicPref.ValueString=SOut.Bool(true);
 					FillRemindConfirmData();
 				}
 				else {
@@ -556,7 +557,7 @@ namespace OpenDental {
 		///<summary>Returns true if the clinicpref exists and is set to true.</summary>
 		private bool GetIsClinicPrefEnabled(PrefName prefName,long clinicNum) {
 			ClinicPref clinicPref=_listClinicPrefs.FirstOrDefault(x => x.PrefName==prefName && x.ClinicNum==clinicNum);
-			return clinicPref!=null && PIn.Bool(clinicPref.ValueString);
+			return clinicPref!=null && SIn.Bool(clinicPref.ValueString);
 		}
 
 		private bool GetUseDefaultForApptType(ApptReminderType apptReminderType,long clinicNum) {
@@ -604,7 +605,7 @@ namespace OpenDental {
 					if(listApptReminderRulesClinicDefaults.FindAll(x=>x.TypeCur==listApptReminderRulesClinicDefaults[k].TypeCur 
 						&& x.TSPrior==listApptReminderRulesClinicDefaults[k].TSPrior).Count()>1) 
 					{
-						MessageBox.Show(this,Lans.g(this,"Duplicate rules are not allowed for the same type and days."));
+						ODMessageBox.Show(this,Lans.g(this,"Duplicate rules are not allowed for the same type and days."));
 						return;
 					}
 				}

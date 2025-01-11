@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpAdjSheet {
@@ -25,7 +26,7 @@ namespace OpenDentBusiness {
 					+DbHelper.Concat("patient.LName","', '","patient.FName","', '","patient.MiddleI")+","
 					+"provider.Abbr,";
 			if(hasClinicsEnabled) {
-				query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+POut.String(Lans.g("FormRpAdjSheet","hidden"))+")'),clinic.Abbr),";
+				query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpAdjSheet","hidden"))+")'),clinic.Abbr),";
 			}
 			query+="definition.ItemName,adjustment.AdjNote,adjustment.AdjAmt "
 				+"FROM adjustment "
@@ -33,7 +34,7 @@ namespace OpenDentBusiness {
 				+"INNER JOIN patient ON patient.PatNum=adjustment.PatNum "
 			  +"LEFT JOIN provider ON provider.ProvNum=adjustment.ProvNum "
 				+"LEFT JOIN clinic ON clinic.ClinicNum=adjustment.ClinicNum "
-				+"WHERE adjustment.AdjDate >= "+POut.Date(dateStart)+" AND adjustment.AdjDate <= "+POut.Date(dateEnd)+" ";
+				+"WHERE adjustment.AdjDate >= "+SOut.Date(dateStart)+" AND adjustment.AdjDate <= "+SOut.Date(dateEnd)+" ";
 			query+=whereProv;
 			if(hasClinicsEnabled) {
 				query+=whereClin;

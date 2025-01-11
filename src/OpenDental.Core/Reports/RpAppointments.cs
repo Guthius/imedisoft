@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpAppointments {
@@ -14,7 +15,7 @@ namespace OpenDentBusiness {
 			//Appointment status conditions
 			string whereApptStatus="";
 			if(listApptStatusesToExclude.Count > 0) {
-				whereApptStatus+=" appointment.AptStatus NOT IN ("+string.Join(",",listApptStatusesToExclude.Select(x => POut.Int((int)x)))+") AND ";
+				whereApptStatus+=" appointment.AptStatus NOT IN ("+string.Join(",",listApptStatusesToExclude.Select(x => SOut.Int((int)x)))+") AND ";
 			}
 			//Provider Conditions
 			string whereProv="";
@@ -50,7 +51,7 @@ namespace OpenDentBusiness {
 				patient.HmPhone,
 				patient.WkPhone,
 				patient.WirelessPhone,
-				COALESCE(clinic.Description,'"+POut.String(Lans.g("formSender","Unassigned"))+@"') ClinicDesc,
+				COALESCE(clinic.Description,'"+SOut.String(Lans.g("formSender","Unassigned"))+@"') ClinicDesc,
 				appointment.SecDateTEntry AS 'DateTimeCreated',
 				appointment.Confirmed,
 				appointment.Note,
@@ -69,7 +70,7 @@ namespace OpenDentBusiness {
 					+" ORDER BY appointment.ClinicNum,appointment.SecDateTEntry,PatName";
 			}
 			else if(sortBy==SortAndFilterBy.AptDateTime) {
-				command+=" appointment.AptDateTime BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd.AddDays(1))
+				command+=" appointment.AptDateTime BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd.AddDays(1))
 					+" ORDER BY appointment.ClinicNum,appointment.AptDateTime,PatName";
 			}
 			DataTable table=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(command));
@@ -103,14 +104,14 @@ namespace OpenDentBusiness {
 			if(dateStart.Date <= dateUpdateToVersion21_1.Date) {
 				if(listSources.Count>0) {
 					innerJoinWebSchedBoth=" INNER JOIN securitylog ON appointment.AptNum=securitylog.FKey"
-						+" AND securitylog.PermType="+POut.Int((int)EnumPermType.AppointmentCreate)
+						+" AND securitylog.PermType="+SOut.Int((int)EnumPermType.AppointmentCreate)
 						+" AND securitylog.LogSource IN ("+string.Join(",",listSources.Select(x => (int)x))+") ";
 				}
 			}
 			else {
 				if(listEserviceTypes.Count>0) {
 					innerJoinWebSchedBoth=" INNER JOIN eservicelog ON appointment.AptNum=eservicelog.FKey"
-						+" AND eservicelog.EserviceAction="+POut.Int((int)eServiceAction.WSAppointmentScheduledFromServer)
+						+" AND eservicelog.EserviceAction="+SOut.Int((int)eServiceAction.WSAppointmentScheduledFromServer)
 						+" AND eservicelog.EServiceType IN ("+string.Join(",",listEserviceTypes.Select(x => (int)x))+") ";
 				}
 			}

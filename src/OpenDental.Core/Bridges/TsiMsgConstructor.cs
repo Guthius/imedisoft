@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 
@@ -21,7 +22,7 @@ namespace OpenDentBusiness {
 			string[] fieldVals=new string[33] {
 				clientID,
 				"",//since PatNums can be larger than 10 digits, we will send in field 3 which can hold up to 20 digits
-				POut.Long(patAge.Guarantor),
+				SOut.Long(patAge.Guarantor),
 				guar.GetNameLFnoPref(),
 				guar.Address,
 				guar.Address2,
@@ -47,7 +48,7 @@ namespace OpenDentBusiness {
 				pat.Country,//country will be blank unless HQ
 				gGetLanguageString(pat.Language),//will be blank if not set
 				patAge.DateBalBegan.ToString("MMddyyyy"),
-				POut.Double(patAge.AmountDue),//POut.Double so it will be in the format XXX.XX with 2 decimal places,
+				SOut.Double(patAge.AmountDue),//POut.Double so it will be in the format XXX.XX with 2 decimal places,
 				patAge.DateLastPay.ToString("MMddyyyy"),
 				Math.Max((int)serviceType,1).ToString(),//(enum 0 based, send 1 for Accelerator - 0 and ProfitRecovery - 1) 1 - AcceleratorPr, 2 - ProfessionalCollections
 				((int)TsiServiceCode.Diplomatic+1).ToString(),//(enum 0 based, plus 1 to send to TSI) 1 - Diplomatic, 2 - Intensive or 3 - Bad Check.
@@ -58,11 +59,11 @@ namespace OpenDentBusiness {
 		public static string GenerateUpdate(long patNum,string clientID,TsiTransType transType,double transAmount,double newBal) {
 			string[] fieldVals=new string[6] {
 				clientID,
-				POut.Long(patNum),
+				SOut.Long(patNum),
 				transType.ToString(),
 				DateTime.Today.ToString("MMddyyyy"),
-				POut.Double(Math.Abs(transAmount)),//msgs sent with pos amt, Transworld uses tran type to determine whether it increases or decreases amt owed
-				POut.Double(newBal)
+				SOut.Double(Math.Abs(transAmount)),//msgs sent with pos amt, Transworld uses tran type to determine whether it increases or decreases amt owed
+				SOut.Double(newBal)
 			};
 			return fieldVals.Aggregate((a,b) => (a??"")+"|"+(b??""));
 		}

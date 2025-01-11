@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using CodeBase;
 using OpenDentBusiness;
 using System.Diagnostics;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -63,14 +64,14 @@ namespace OpenDental {
 				promptMsg=Lan.g(this,"Would you like to immediately change all plans to not use assignment of benefits?\r\n"
 					+$"Warning: This will update all existing plans to render payment to the patient on all future claims.");
 			}
-			if(MessageBox.Show(promptMsg,Lan.g(this,"Change all plans?"),MessageBoxButtons.YesNo)==DialogResult.No) {
+			if(ODMessageBox.Show(promptMsg,Lan.g(this,"Change all plans?"),MessageBoxButtons.YesNo)==DialogResult.No) {
 				return;
 			}
 			long subsAffected=InsSubs.SetAllSubsAssignBen(checkInsDefaultAssignmentOfBenefits.Checked);
 			SecurityLogs.MakeLogEntry(EnumPermType.InsPlanChangeAssign,0
-				,Lan.g(this,"The following count of plan(s) had their assignment of benefits updated in the Family tab in Module Preferences:")+" "+POut.Long(subsAffected)
+				,Lan.g(this,"The following count of plan(s) had their assignment of benefits updated in the Family tab in Module Preferences:")+" "+SOut.Long(subsAffected)
 			);
-			MessageBox.Show(Lan.g(this,"Plans affected:")+" "+POut.Long(subsAffected));
+			ODMessageBox.Show(Lan.g(this,"Plans affected:")+" "+SOut.Long(subsAffected));
 		}
 
 		private void checkInsDefaultShowUCRonClaims_Click(object sender,EventArgs e) {
@@ -81,7 +82,7 @@ namespace OpenDental {
 				return;
 			}
 			long plansAffected=InsPlans.SetAllPlansToShowUCR();
-			MessageBox.Show(Lan.g(this,"Plans affected: ")+plansAffected.ToString());
+			ODMessageBox.Show(Lan.g(this,"Plans affected: ")+plansAffected.ToString());
 		}
 
 		private void comboCobRule_SelectionChangeCommitted(object sender,EventArgs e) {
@@ -95,7 +96,7 @@ namespace OpenDental {
 				Process.Start("https://www.opendental.com/manual/cob.html");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/cob.html"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/cob.html"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}
@@ -105,7 +106,7 @@ namespace OpenDental {
 				Process.Start("https://www.opendental.com/resources/UnitTestsDocumentation.xml#InsPlans_ComputeEstimates_ZeroWriteoffOverFrequencyGlobalLevel"); 
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/resources/UnitTestsDocumentation.xml#InsPlans_ComputeEstimates_ZeroWriteoffOverFrequencyGlobalLevel"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/resources/UnitTestsDocumentation.xml#InsPlans_ComputeEstimates_ZeroWriteoffOverFrequencyGlobalLevel"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}
@@ -115,7 +116,7 @@ namespace OpenDental {
 				Process.Start("https://www.opendental.com/resources/UnitTestsDocumentation.xml#InsPlans_ComputeEstimates_ZeroWriteoffOverAnnualMaxGlobalLevel"); 
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/resources/UnitTestsDocumentation.xml#InsPlans_ComputeEstimates_ZeroWriteoffOverAnnualMaxGlobalLevel"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/resources/UnitTestsDocumentation.xml#InsPlans_ComputeEstimates_ZeroWriteoffOverAnnualMaxGlobalLevel"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}

@@ -119,7 +119,7 @@ namespace OpenDental {
 				listSendModes.Add(Lan.g(this,"Text"));
 			}
 			message=message+string.Join(", ",listSendModes);
-			MessageBox.Show(message);
+			ODMessageBox.Show(message);
 			DialogResult=DialogResult.OK;
 		}
 
@@ -188,13 +188,13 @@ namespace OpenDental {
 			if(checkText.Checked) {
 				//Message must contain Text to pay tag.
 				if(!textMessage.Text.Contains(MsgToPayTagReplacer.MSG_TO_PAY_TAG)) {
-					MessageBox.Show(Lan.g(this,"SMS Message Text must contain")+" '"+MsgToPayTagReplacer.MSG_TO_PAY_TAG+"'.");
+					ODMessageBox.Show(Lan.g(this,"SMS Message Text must contain")+" '"+MsgToPayTagReplacer.MSG_TO_PAY_TAG+"'.");
 					return false;
 				}
 			}
 			if(checkEmail.Checked) {//Not an else if because we can send for both, in that case validate for both.
 				if(!browserEmail.DocumentText.Contains(MsgToPayTagReplacer.MSG_TO_PAY_TAG)) {
-					MessageBox.Show(Lan.g(this,"Email Message Text must contain")+" '"+MsgToPayTagReplacer.MSG_TO_PAY_TAG+"'.");
+					ODMessageBox.Show(Lan.g(this,"Email Message Text must contain")+" '"+MsgToPayTagReplacer.MSG_TO_PAY_TAG+"'.");
 					return false;
 				}
 				if(string.IsNullOrWhiteSpace(textSubject.Text)) {
@@ -279,7 +279,7 @@ namespace OpenDental {
 				sendSuccessful=Statements.HandleSmsSent(listSmsToMobiles,ListTools.FromSingle(statement)).IsNullOrEmpty();//If empty, nothing failed
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"An error occurred while attempting to send your message: ")+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"An error occurred while attempting to send your message: ")+ex.Message);
 				return false;
 			}
 			if(!sendSuccessful) {
@@ -321,7 +321,7 @@ namespace OpenDental {
 				EmailMessages.SendEmail(emailMessage,emailAddress);
 			}
 			catch (Exception ex) {
-				MessageBox.Show(Lan.g(this,"Email failed to send: ")+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Email failed to send: ")+ex.Message);
 				return false;
 			}
 			return true;

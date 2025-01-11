@@ -276,7 +276,7 @@ namespace OpenDental{
 			string errors=TimeCardRules.ValidateOvertimeRules();
 			if(!string.IsNullOrEmpty(errors)) {
 				errors="Fix the following errors:\r\n"+errors;
-				MessageBox.Show(errors);
+				ODMessageBox.Show(errors);
 				e.Cancel=true;
 			}
 			if(textADPCompanyCode.Text!="" && !Regex.IsMatch(textADPCompanyCode.Text,"^[a-zA-Z0-9]{2,3}$")) {

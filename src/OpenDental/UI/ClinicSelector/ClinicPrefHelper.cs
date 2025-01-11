@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -55,9 +56,9 @@ namespace OpenDental{
 				return -1;
 			}
 			if(_listClinicPrefs.Any(x => x.ClinicNum==clinicNum && x.PrefName==prefName)) { //we've already loaded this item, just load its checked value
-				return PIn.Int(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==clinicNum && x.PrefName==prefName).ValueString);
+				return SIn.Int(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==clinicNum && x.PrefName==prefName).ValueString);
 			}
-			return PIn.Int(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString);
+			return SIn.Int(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString);
 		}
 
 		///<summary>If there is no val for this clinic, then it uses the default pref, which is also in the available list.</summary>
@@ -66,9 +67,9 @@ namespace OpenDental{
 				return false;
 			}
 			if(_listClinicPrefs.Any(x => x.ClinicNum==clinicNum && x.PrefName==prefName)) { //we've already loaded this item, just load its checked value
-				return PIn.Bool(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==clinicNum && x.PrefName==prefName).ValueString);
+				return SIn.Bool(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==clinicNum && x.PrefName==prefName).ValueString);
 			}
-			return PIn.Bool(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString);
+			return SIn.Bool(_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString);
 		}
 
 		
@@ -84,7 +85,7 @@ namespace OpenDental{
 
 		///<summary>For ClinicNum==0</summary>
 		public bool GetDefaultBoolVal(PrefName prefName){
-			return PIn.Bool(_listClinicPrefs.First(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString);
+			return SIn.Bool(_listClinicPrefs.First(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString);
 		}
 
 		///<summary>For ClinicNum==0</summary>

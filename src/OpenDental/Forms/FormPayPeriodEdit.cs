@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental{
 	/// <summary>
@@ -65,9 +66,9 @@ namespace OpenDental{
 				MsgBox.Show(this,"Start and end dates are required.");
 				return;
 			}
-			DateTime dateStart=PIn.Date(textDateStart.Text);
-			DateTime dateStop=PIn.Date(textDateStop.Text);
-			DateTime datePaycheck=PIn.Date(textDatePaycheck.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
+			DateTime dateStop=SIn.Date(textDateStop.Text);
+			DateTime datePaycheck=SIn.Date(textDatePaycheck.Text);
 			if(dateStart>dateStop) {
 				MsgBox.Show(this,"The End Date cannot be before the Start Date.  Please change the date range.");
 				return;
@@ -76,9 +77,9 @@ namespace OpenDental{
 				MsgBox.Show(this,"The Paycheck Date must be on or after the End Date.  Please change the End Date or the Paycheck Date.");
 				return;
 			}
-			_payPeriod.DateStart=PIn.Date(textDateStart.Text);
-			_payPeriod.DateStop=PIn.Date(textDateStop.Text);
-			_payPeriod.DatePaycheck=PIn.Date(textDatePaycheck.Text);
+			_payPeriod.DateStart=SIn.Date(textDateStart.Text);
+			_payPeriod.DateStop=SIn.Date(textDateStop.Text);
+			_payPeriod.DatePaycheck=SIn.Date(textDatePaycheck.Text);
 			PayPeriods.RefreshCache(); //Refresh the cache to include any other changes that might have been made in FormTimeCardSetup.
 			List<PayPeriod> listPayPeriodsExisting=PayPeriods.GetDeepCopy();
 			if(_listPayPeriodsNonInserted!=null) {

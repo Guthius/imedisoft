@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -2734,7 +2735,7 @@ namespace OpenDentBusiness {
 				case PrefValueType.STRING:
 					return PrefC.GetString(prefName);
 				case PrefValueType.LONG:
-					return POut.Long(PrefC.GetLong(prefName));
+					return SOut.Long(PrefC.GetLong(prefName));
 				case PrefValueType.LONG_NEG_ONE_AS_ZERO:
 					if(PrefC.GetLong(prefName)==-1) {
 						return "0";
@@ -2758,18 +2759,18 @@ namespace OpenDentBusiness {
 				case PrefValueType.NONE: 
 					return false; //nothing to save
 				case PrefValueType.BOOL: 
-					return Prefs.UpdateBool(prefName,PIn.Bool(value.ToString()));
+					return Prefs.UpdateBool(prefName,SIn.Bool(value.ToString()));
 				case PrefValueType.ENUM:
 				case PrefValueType.INT:
 				case PrefValueType.COLOR:
 				case PrefValueType.YN_DEFAULT_FALSE:
 				case PrefValueType.YN_DEFAULT_TRUE:
-					return Prefs.UpdateInt(prefName,PIn.Int(value.ToString()));
+					return Prefs.UpdateInt(prefName,SIn.Int(value.ToString()));
 				case PrefValueType.LONG:
-					return Prefs.UpdateLong(prefName,PIn.Long(value.ToString()));
+					return Prefs.UpdateLong(prefName,SIn.Long(value.ToString()));
 				case PrefValueType.LONG_NEG_ONE_AS_ZERO:
 				case PrefValueType.LONG_NEG_ONE_AS_BLANK:
-					long newValue=PIn.Long(value.ToString());
+					long newValue=SIn.Long(value.ToString());
 					if(newValue>0) {
 						return Prefs.UpdateLong(prefName,newValue);
 					}
@@ -2777,7 +2778,7 @@ namespace OpenDentBusiness {
 						return Prefs.UpdateLong(prefName,-1);
 					}					
 				case PrefValueType.DOUBLE:
-					return Prefs.UpdateDouble(prefName,PIn.Double(value.ToString()));
+					return Prefs.UpdateDouble(prefName,SIn.Double(value.ToString()));
 				case PrefValueType.DATE:
 				case PrefValueType.DATETIME:
 					return Prefs.UpdateDateT(prefName,(DateTime)value);

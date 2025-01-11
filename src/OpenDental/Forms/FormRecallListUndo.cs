@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -21,7 +23,7 @@ namespace OpenDental {
 
 		private void textDate_TextChanged(object sender,EventArgs e) {
 			if(textDate.IsValid()) {
-				int count=Commlogs.GetRecallUndoCount(PIn.Date(textDate.Text));
+				int count=Commlogs.GetRecallUndoCount(SIn.Date(textDate.Text));
 				labelCount.Text=count.ToString();
 				return;
 			}
@@ -37,13 +39,13 @@ namespace OpenDental {
 				MsgBox.Show(this,"Invalid date");
 				return;
 			}
-			DateTime date=PIn.Date(textDate.Text);
+			DateTime date=SIn.Date(textDate.Text);
 			if(date < DateTime.Today.AddDays(-7)){
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Date is from more than one week ago.  Continue anyway?")){
 					return;
 				}
 			}
-			if(MessageBox.Show("Delete all "+labelCount.Text+" commlog entries?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			if(ODMessageBox.Show("Delete all "+labelCount.Text+" commlog entries?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			Commlogs.RecallUndo(date);

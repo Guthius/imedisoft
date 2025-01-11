@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpInsCo {
@@ -18,7 +19,7 @@ namespace OpenDentBusiness {
 				//+"AND patplan.PatNum=patient.PatNum "
 				//+"AND patplan.Ordinal=1 "
 				+"AND carrier.CarrierNum=insplan.CarrierNum "
-				+"AND carrier.CarrierName LIKE '"+POut.String(carrier)+"%' "
+				+"AND carrier.CarrierName LIKE '"+SOut.String(carrier)+"%' "
 				+"ORDER BY carrier.CarrierName,patient.LName";
 			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
 		}	

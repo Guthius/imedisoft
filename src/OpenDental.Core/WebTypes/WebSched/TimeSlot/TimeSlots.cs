@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -510,7 +511,7 @@ public class TimeSlots
             var listApptNums = new List<long>();
             foreach (DataRow row in dtAppts.Rows)
             {
-                listApptNums.Add(PIn.Long(row["AptNum"].ToString()));
+                listApptNums.Add(SIn.Long(row["AptNum"].ToString()));
             }
 
             var procsMultApts = Procedures.GetProcsMultApts(listApptNums);

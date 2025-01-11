@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Media;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -96,7 +97,7 @@ namespace OpenDental{
 				textSynchIcon.Text="0";
 			}
 			_sigButDef.ButtonText=textButtonText.Text;
-			_sigButDef.SynchIcon=PIn.Byte(textSynchIcon.Text);
+			_sigButDef.SynchIcon=SIn.Byte(textSynchIcon.Text);
 			_sigButDef.SigElementDefNumUser=0;
 			if(comboTo.SelectedIndex>0){
 				_sigButDef.SigElementDefNumUser=_arraySigElementDefUser[comboTo.SelectedIndex-1].SigElementDefNum;

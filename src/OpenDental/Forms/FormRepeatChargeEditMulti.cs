@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormRepeatChargeEditMulti:FormODBase {
@@ -38,23 +39,23 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter both Charge Amounts.");
 				return;
 			}
-			if(PIn.Double(textChargeAmount.Text)<0 || PIn.Double(textChargeAmountNew.Text)<0) {
+			if(SIn.Double(textChargeAmount.Text)<0 || SIn.Double(textChargeAmountNew.Text)<0) {
 				MsgBox.Show(this,"Please enter a Charge Amount greater than zero.");
 				return;
 			}
-			if(PIn.Double(textChargeAmount.Text)==PIn.Double(textChargeAmountNew.Text)) {
+			if(SIn.Double(textChargeAmount.Text)==SIn.Double(textChargeAmountNew.Text)) {
 				MsgBox.Show(this,"Current Charge Amount and New Charge Amount cannot be the same.");
 				return;
 			}
-			long patNumSuperFamily=PIn.Long(textPatNumSuperFamilyHead.Text);
+			long patNumSuperFamily=SIn.Long(textPatNumSuperFamilyHead.Text);
 			Patient patientSuperFamilyHead=Patients.GetPat(patNumSuperFamily);
 			if(patNumSuperFamily!=0 && patientSuperFamilyHead==null) {
 				MsgBox.Show(this,"Please enter a valid PatNum.");
 				return;
 			}
-			string procCode=PIn.String(textProcCode.Text);
-			double chargeAmount=PIn.Double(textChargeAmount.Text);
-			DateTime dateStart=PIn.Date(textDateStart.Text);
+			string procCode=SIn.String(textProcCode.Text);
+			double chargeAmount=SIn.Double(textChargeAmount.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
 			//A list of repeat charges, both IsEnabled and !IsEnabled that match the search criteria.
 			List<RepeatCharge> listRepeatChargesBoth=RepeatCharges.GetRepeatChargesMulti(patNumSuperFamily,procCode,chargeAmount,dateStart);
 			//A list of repeat charges, !IsEnabled.
@@ -84,7 +85,7 @@ namespace OpenDental {
 			//Create a commlog, securitylog and update the charge amount for each patient in the list.
 			for(int i=0;i<_listRepeatCharges.Count;i++) {
 				CreateLogs(_listRepeatCharges[i]);
-				_listRepeatCharges[i].ChargeAmt=PIn.Double(textChargeAmountNew.Text);
+				_listRepeatCharges[i].ChargeAmt=SIn.Double(textChargeAmountNew.Text);
 				RepeatCharges.Update(_listRepeatCharges[i]);
 			}
 			WriteToDesktop();
@@ -101,7 +102,7 @@ namespace OpenDental {
 				", Old Charge Amount: "+textChargeAmount.Text+", New Charge Amount: "+textChargeAmountNew.Text;
 			Commlogs.Insert(commlogRepeatChargeMulti);
 			RepeatCharge repeatChargeNew=repeatChargeOld.Copy();
-			repeatChargeNew.ChargeAmt=PIn.Double(textChargeAmountNew.Text);
+			repeatChargeNew.ChargeAmt=SIn.Double(textChargeAmountNew.Text);
 			Patient patient=Patients.GetPat(repeatChargeOld.PatNum);
 			RepeatCharges.InsertRepeatChargeChangeSecurityLogEntry(repeatChargeOld,EnumPermType.RepeatChargeUpdate,patient,repeatChargeNew);
 		}
@@ -111,8 +112,8 @@ namespace OpenDental {
 			string procCode=textProcCode.Text;
 			string chargeAmount=textChargeAmount.Text;
 			string chargeAmountNew=textChargeAmountNew.Text;
-			long patNumSuperFamily=PIn.Long(textPatNumSuperFamilyHead.Text);
-			DateTime dateStart=PIn.Date(textDateStart.Text);
+			long patNumSuperFamily=SIn.Long(textPatNumSuperFamilyHead.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
 			//Append today's date to the output filename.
 			string dateTime=DateTime.Now.ToString("MM-dd-yy");
 			//Write file to desktop:

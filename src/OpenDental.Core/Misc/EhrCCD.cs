@@ -12,6 +12,7 @@ using CodeBase;
 using System.Xml;
 using System.Xml.XPath;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.FileIO;
@@ -3212,7 +3213,7 @@ Vital Signs
 					}
 					MedicationPat medicationPat=new MedicationPat();
 					medicationPat.IsNew=true;//Needed for reconcile window to know this record is not in the db yet.
-					medicationPat.RxCui=PIn.Long(strCode);
+					medicationPat.RxCui=SIn.Long(strCode);
 					medicationPat.MedDescript=strMedDescript;
 					medicationPat.DateStart=dateTimeEffectiveLow;
 					medicationPat.DateStop=dateTimeEffectiveHigh;
@@ -3345,8 +3346,8 @@ Vital Signs
 					}
 					Allergy allergy=new Allergy();
 					allergy.IsNew=true;//Needed for reconcile window to know this record is not in the db yet.
-					allergy.SnomedReaction=PIn.String(strCodeReaction);
-					allergy.Reaction=PIn.String(strAlgStatusDescript);
+					allergy.SnomedReaction=SIn.String(strCodeReaction);
+					allergy.Reaction=SIn.String(strAlgStatusDescript);
 					allergy.DateAdverseReaction=dateTimeEffectiveLow;
 					allergy.StatusIsActive=isActive;
 					listAllergies.Add(allergy);
@@ -3382,11 +3383,11 @@ Vital Signs
 					string strCodeRx=xmlNodeCode.Attributes["code"].Value;
 					string strRxName=xmlNodeCode.Attributes["displayName"].Value;//Look into this being required or not.
 					allergyDefName=strRxName;
-					med=Medications.GetMedicationFromDbByRxCui(PIn.Long(strCodeRx));
+					med=Medications.GetMedicationFromDbByRxCui(SIn.Long(strCodeRx));
 					if(med==null) {
 						med=new Medication();
 						med.MedName=strRxName;
-						med.RxCui=PIn.Long(strCodeRx);
+						med.RxCui=SIn.Long(strCodeRx);
 						Medications.Insert(med);
 						med.GenericNum=med.MedicationNum;
 						Medications.Update(med);

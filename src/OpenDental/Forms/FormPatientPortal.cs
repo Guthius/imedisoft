@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -78,7 +79,7 @@ namespace OpenDental {
 				}
 				string error=UserWebs.ValidatePatientAccess(_patient);
 				if(!String.IsNullOrEmpty(error)) { 
-					MessageBox.Show(error);
+					ODMessageBox.Show(error);
 					return;
 				}
 				Cursor=Cursors.WaitCursor;
@@ -122,20 +123,20 @@ namespace OpenDental {
 
 		private void butOpen_Click(object sender,EventArgs e) {
 			if(textPatientPortalURL.Text=="") {
-				MessageBox.Show("Please use Setup to set the Online Access Link first.");
+				ODMessageBox.Show("Please use Setup to set the Online Access Link first.");
 				return;
 			}
 			try {
 				System.Diagnostics.Process.Start(textPatientPortalURL.Text);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 		
 		private void butGenerate_Click(object sender,EventArgs e) {
 			if(textOnlinePassword.ReadOnly) {
-				MessageBox.Show("Please use the Provide Online Access button first.");
+				ODMessageBox.Show("Please use the Provide Online Access button first.");
 				return;
 			}
 			Cursor=Cursors.WaitCursor;
@@ -154,12 +155,12 @@ namespace OpenDental {
 				return;
 			}
 			if(textOnlinePassword.Text=="" || textOnlinePassword.Text=="********") {
-				MessageBox.Show("Password required. Please generate a new password.");
+				ODMessageBox.Show("Password required. Please generate a new password.");
 				return;
 			}
 			string error=Patients.IsPortalPasswordValid(textOnlinePassword.Text);
 			if(error!="") {//Non-empty string means it was invalid.
-				MessageBox.Show(this,error);
+				ODMessageBox.Show(this,error);
 				return;
 			}
 			_wasPrinted=true;
@@ -218,7 +219,7 @@ namespace OpenDental {
 			if(textOnlinePassword.Text!="" && textOnlinePassword.Text!="********") {
 				string error=Patients.IsPortalPasswordValid(textOnlinePassword.Text);
 				if(error!="") {//Non-empty string means it was invalid.
-					MessageBox.Show(this,error);
+					ODMessageBox.Show(this,error);
 					return;
 				}
 				if(!_wasPrinted) {
@@ -228,7 +229,7 @@ namespace OpenDental {
 				_userWeb.LoginDetails=Authentication.GenerateLoginDetailsSHA512(textOnlinePassword.Text);
 			}
 			if(shouldPrint) {
-				DialogResult dialogResult=MessageBox.Show(Lan.g(this,"Online Username or Password changed but was not printed, would you like to print?")
+				DialogResult dialogResult=ODMessageBox.Show(Lan.g(this,"Online Username or Password changed but was not printed, would you like to print?")
 					,Lan.g(this,"Print Patient Info")
 					,MessageBoxButtons.YesNoCancel);
 				if(dialogResult==DialogResult.Yes) {

@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -117,7 +118,7 @@ namespace OpenDentBusiness.UI {
 			string strPatNum="patnum:";
 			List<long> listNumMatches=Regex.Matches(text,$@"{strPatNum}\d+",RegexOptions.IgnoreCase)
 				.OfType<Match>()
-				.Select(x => PIn.Long(x.Groups[0].Value.Substring(strPatNum.Length),false))//Get pat num out of text.
+				.Select(x => SIn.Long(x.Groups[0].Value.Substring(strPatNum.Length),false))//Get pat num out of text.
 				.Distinct()
 				.ToList();
 			return listNumMatches;
@@ -128,7 +129,7 @@ namespace OpenDentBusiness.UI {
 			string strTaskNum="tasknum:";
 			List<long> listNumMatches=Regex.Matches(text,$@"{strTaskNum}\d+",RegexOptions.IgnoreCase)
 				.OfType<Match>()
-				.Select(x => PIn.Long(x.Groups[0].Value.Substring(strTaskNum.Length),false))//Get task num out of text.
+				.Select(x => SIn.Long(x.Groups[0].Value.Substring(strTaskNum.Length),false))//Get task num out of text.
 				.Distinct()
 				.ToList();
 			return listNumMatches;
@@ -139,7 +140,7 @@ namespace OpenDentBusiness.UI {
 			string strJobNum = "jobnum:";
 			List<long> listNumMatches = Regex.Matches(text,$@"{strJobNum}\d+",RegexOptions.IgnoreCase)
 				.OfType<Match>()
-				.Select(x => PIn.Long(x.Groups[0].Value.Substring(strJobNum.Length),false))//Get Job num out of text.
+				.Select(x => SIn.Long(x.Groups[0].Value.Substring(strJobNum.Length),false))//Get Job num out of text.
 				.Distinct()
 				.ToList();
 			return listNumMatches;

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -60,7 +61,7 @@ namespace OpenDental{
 				for(int i=0;i<family.ListPats.Length;i++) {
 					string name=family.ListPats[i].GetNameLF();
 					if(false) {
-						name+=" - "+POut.Long(family.ListPats[i].PatNum);
+						name+=" - "+SOut.Long(family.ListPats[i].PatNum);
 					}
 					contextMenu.MenuItems.Add(name,eventHandlerOnClick);
 				}

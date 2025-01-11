@@ -60,7 +60,7 @@ namespace OpenDental {
 				InsFilingCodeSubtypes.DeleteForInsFilingCode(InsFilingCodeCur.InsFilingCodeNum);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			return;
 		}
@@ -77,7 +77,7 @@ namespace OpenDental {
 				InsFilingCodeSubtypes.Update(frmInsFilingCodeSubtypeEdit.InsFilingCodeSubtypeCur);
 			} 
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FillGrid();
@@ -103,7 +103,7 @@ namespace OpenDental {
 				InsFilingCodeSubtypes.Insert(frmInsFilingCodeSubtypeEdit.InsFilingCodeSubtypeCur);
 			} 
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FillGrid();
@@ -147,11 +147,11 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(this.textDescription.Text==""){
-				MessageBox.Show(Lan.g(this,"Please enter a description."));
+				ODMessageBox.Show(Lan.g(this,"Please enter a description."));
 				return;
 			}
 			if(this.textEclaimCode.Text==""){
-				MessageBox.Show(Lan.g(this,"Please enter an electronic claim code."));
+				ODMessageBox.Show(Lan.g(this,"Please enter an electronic claim code."));
 				return;
 			}
 			SaveFilingCode();

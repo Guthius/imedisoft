@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -72,13 +73,13 @@ namespace OpenDental {
 		#region Methods - Event Handlers Sync
 		private void comboPaymentClinicSetting_ChangeCommitted(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentClinicSetting);
-			prefValSync.PrefVal=POut.Int(comboPaymentClinicSetting.SelectedIndex);
+			prefValSync.PrefVal=SOut.Int(comboPaymentClinicSetting.SelectedIndex);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkPaymentsPromptForPayType_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentsPromptForPayType);
-			prefValSync.PrefVal=POut.Bool(checkPaymentsPromptForPayType.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkPaymentsPromptForPayType.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -90,17 +91,17 @@ namespace OpenDental {
 
 		private void comboPayPlansVersion_ChangeCommitted(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PayPlansVersion);
-			prefValSync.PrefVal=POut.Int((int)comboPayPlansVersion.GetSelected<PayPlanVersions>());
+			prefValSync.PrefVal=SOut.Int((int)comboPayPlansVersion.GetSelected<PayPlanVersions>());
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void textBillingElectBatchMax_Validating(object sender,CancelEventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.BillingElectBatchMax);
 			if(!textBillingElectBatchMax.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			prefValSync.PrefVal=POut.Int(textBillingElectBatchMax.Value);
+			prefValSync.PrefVal=SOut.Int(textBillingElectBatchMax.Value);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -114,7 +115,7 @@ namespace OpenDental {
 			//SecurityLogOffAfterMinutes
 			//ClaimReportReceiveInterval
 			int reportCheckIntervalMinuteCount=0;
-			reportCheckIntervalMinuteCount=PIn.Int(textClaimReportReceiveInterval.Text,false);
+			reportCheckIntervalMinuteCount=SIn.Int(textClaimReportReceiveInterval.Text,false);
 			if(textClaimReportReceiveInterval.Enabled && (reportCheckIntervalMinuteCount<5 || reportCheckIntervalMinuteCount>60)) {
 				errorMsg+="Report check interval must be between 5 and 60 inclusive.\r\n";
 			}
@@ -146,7 +147,7 @@ namespace OpenDental {
 				checkBox.Visible=false;
 				return;
 			}
-			checkBox.Checked=PIn.Bool(valueString);
+			checkBox.Checked=SIn.Bool(valueString);
 		}
 
 		///<summary>Returns the ValueString of a pref or null if that pref is not found in the database.</summary>
@@ -183,7 +184,7 @@ namespace OpenDental {
 				textClaimReportReceiveTime.Text=dateClaimReportReceiveTime.ToShortTimeString();
 			}
 			else {
-				textClaimReportReceiveInterval.Text=POut.Int(_claimReportReceiveInterval);
+				textClaimReportReceiveInterval.Text=SOut.Int(_claimReportReceiveInterval);
 				radioReceiveAtAnInterval.Checked=true;
 			}
 			List<RigorousAccounting> listRigorousAccountings=Enum.GetValues(typeof(RigorousAccounting)).OfType<RigorousAccounting>().ToList();
@@ -213,8 +214,8 @@ namespace OpenDental {
 			Changed|= Prefs.UpdateBool(PrefName.BillingShowTransSinceBalZero,checkBillingShowTransSinceBalZero.Checked);
 			//Changed|=Prefs.UpdateString(PrefName.ClaimIdPrefix,textClaimIdPrefix.Text);
 			Changed|=Prefs.UpdateBool(PrefName.ClaimReportReceivedByService,checkClaimReportReceivedByService.Checked);
-			Changed|=Prefs.UpdateDateT(PrefName.ClaimReportReceiveTime,PIn.DateTime(textClaimReportReceiveTime.Text));
-			Changed|=Prefs.UpdateInt(PrefName.ClaimReportReceiveInterval,PIn.Int(textClaimReportReceiveInterval.Text));
+			Changed|=Prefs.UpdateDateT(PrefName.ClaimReportReceiveTime,SIn.DateTime(textClaimReportReceiveTime.Text));
+			Changed|=Prefs.UpdateInt(PrefName.ClaimReportReceiveInterval,SIn.Int(textClaimReportReceiveInterval.Text));
 			int prefRigorousAccounting=PrefC.GetInt(PrefName.RigorousAccounting);
 			//Copied logging for RigorousAccounting and RigorousAdjustments from FormModuleSetup.
 			if(Prefs.UpdateInt(PrefName.RigorousAccounting,comboRigorousAccounting.SelectedIndex)) {
@@ -239,17 +240,17 @@ namespace OpenDental {
 
 		public void FillSynced(){
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.AgingServiceTimeDue);
-			textAgingServiceTimeDue.Text=PIn.DateTime(prefValSync.PrefVal).ToShortTimeString();
+			textAgingServiceTimeDue.Text=SIn.DateTime(prefValSync.PrefVal).ToShortTimeString();
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentClinicSetting);
-			comboPaymentClinicSetting.SelectedIndex=PIn.Int(prefValSync.PrefVal);
+			comboPaymentClinicSetting.SelectedIndex=SIn.Int(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentsPromptForPayType);
-			checkPaymentsPromptForPayType.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkPaymentsPromptForPayType.Checked=SIn.Bool(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ClaimIdPrefix);
 			textClaimIdPrefix.Text=prefValSync.PrefVal;
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PayPlansVersion);
-			comboPayPlansVersion.SetSelectedEnum(PIn.Int(prefValSync.PrefVal));
+			comboPayPlansVersion.SetSelectedEnum(SIn.Int(prefValSync.PrefVal));
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.BillingElectBatchMax);
-			textBillingElectBatchMax.Value=PIn.Int(prefValSync.PrefVal);
+			textBillingElectBatchMax.Value=SIn.Int(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

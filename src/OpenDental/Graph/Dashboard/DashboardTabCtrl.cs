@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using CodeBase;
 using OpenDental.Graph.Base;
 using OpenDental.Graph.Cache;
 using OpenDental.Graph.Concrete;
@@ -598,13 +599,13 @@ namespace OpenDental.Graph.Dashboard
 
             if (tabControl.TabCount == 2)
             {
-                MessageBox.Show("Dashboard must contain a minimum of 1 tab.");
+                ODMessageBox.Show("Dashboard must contain a minimum of 1 tab.");
                 return;
             }
 
             if (!dashboardPanel.CanDelete)
             {
-                MessageBox.Show("Tab '" + dashboardPanel.Name + "' has items. Remove all items from tab before continuing.");
+                ODMessageBox.Show("Tab '" + dashboardPanel.Name + "' has items. Remove all items from tab before continuing.");
                 return;
             }
 
@@ -655,7 +656,7 @@ namespace OpenDental.Graph.Dashboard
         {
             if (tabControl.TabPages.ContainsKey(tabName))
             {
-                MessageBox.Show("Tab name '" + tabName + "' already exists.");
+                ODMessageBox.Show("Tab name '" + tabName + "' already exists.");
                 return false;
             }
 
@@ -765,7 +766,7 @@ namespace OpenDental.Graph.Dashboard
         {
             if (!GetDashboardPanel(tabControl.SelectedIndex, out _, out var dashboardPanel))
             {
-                MessageBox.Show("Can't print this page.  Please try printing the graphs individually.");
+                ODMessageBox.Show("Can't print this page.  Please try printing the graphs individually.");
                 return;
             }
 

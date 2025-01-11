@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -48,7 +49,7 @@ namespace OpenDental {
 		private void FillTreeView() {
 			List<long> listDefNumsExpanded=new List<long>();
 			if(_userOdPref!=null) {//if this is the fill on load, the node count will be 0, expanded node list from pref
-				listDefNumsExpanded=_userOdPref.ValueString.Split(',').Where(x => x!="" && x!="0").Select(x => PIn.Long(x)).ToList();
+				listDefNumsExpanded=_userOdPref.ValueString.Split(',').Where(x => x!="" && x!="0").Select(x => SIn.Long(x)).ToList();
 			}
 			//clear current tree contents
 			treeView.SelectedItem=null;
@@ -56,7 +57,7 @@ namespace OpenDental {
 			//add categories with all auto notes that are assigned to that category
 			List<long> listDefNumsCats=_listDefs.Select(x => x.DefNum).ToList();
 			//Get a list of root cats (where def.ItemValue is blank) or any def with invalid parent def num (ItemValue)
-			List<Def> listDefsRoots=_listDefs.FindAll(x => string.IsNullOrWhiteSpace(x.ItemValue) || !listDefNumsCats.Contains(PIn.Long(x.ItemValue)));
+			List<Def> listDefsRoots=_listDefs.FindAll(x => string.IsNullOrWhiteSpace(x.ItemValue) || !listDefNumsCats.Contains(SIn.Long(x.ItemValue)));
 			for(int i=0;i<listDefsRoots.Count;i++){
 				treeView.Items.Add(CreateNodeAndChildren(listDefsRoots[i]));//child cats and categorized auto notes added in recursive function
 			}

@@ -11,6 +11,7 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using SparksToothChart;
@@ -323,8 +324,8 @@ namespace OpenDental
 					if(cellText==null || cellText==""){
 						continue;
 					}
-					if(((perioSequenceType==PerioSequenceType.MGJ || perioSequenceType==PerioSequenceType.AttGing) && PIn.Long(cellText)<=prefVal)
-						|| (perioSequenceType!=PerioSequenceType.MGJ && perioSequenceType!=PerioSequenceType.AttGing && PIn.Long(cellText)>=prefVal)){
+					if(((perioSequenceType==PerioSequenceType.MGJ || perioSequenceType==PerioSequenceType.AttGing) && SIn.Long(cellText)<=prefVal)
+						|| (perioSequenceType!=PerioSequenceType.MGJ && perioSequenceType!=PerioSequenceType.AttGing && SIn.Long(cellText)>=prefVal)){
 						intTooth=(int)Math.Ceiling((double)x/3);
 						if(section==2 || section==3){//if mand
 							intTooth=33-intTooth;
@@ -738,7 +739,7 @@ namespace OpenDental
 		
 		public void ToggleSkip(long perioExamNum) {
 			if(selectedTeeth.Count==0){
-				MessageBox.Show(Lan.g(this,"Please select teeth first."));
+				ODMessageBox.Show(Lan.g(this,"Please select teeth first."));
 				return;
 			}
 			for(int i=0;i<selectedTeeth.Count;i++){
@@ -784,8 +785,8 @@ namespace OpenDental
 				}
 				return;
 			}
-			int probValue=PIn.Int(_perioCellArray[colRowProbingCell.Col,colRowProbingCell.Row].Text);
-			int gingValue=PIn.Int(_perioCellArray[colRowGingLoc.Col,colRowGingLoc.Row].Text);
+			int probValue=SIn.Int(_perioCellArray[colRowProbingCell.Col,colRowProbingCell.Row].Text);
+			int gingValue=SIn.Int(_perioCellArray[colRowGingLoc.Col,colRowGingLoc.Row].Text);
 			if(gingValue>100) {
 				gingValue=100-gingValue;
 			}
@@ -815,8 +816,8 @@ namespace OpenDental
 				}
 				return;
 			}
-			int probValue=PIn.Int(_perioCellArray[colRowProbingCell.Col,colRowProbingCell.Row].Text);
-			int MGJValue=PIn.Int(_perioCellArray[colRowMGJLoc.Col,colRowMGJLoc.Row].Text);
+			int probValue=SIn.Int(_perioCellArray[colRowProbingCell.Col,colRowProbingCell.Row].Text);
+			int MGJValue=SIn.Int(_perioCellArray[colRowMGJLoc.Col,colRowMGJLoc.Row].Text);
 			_perioCellArray[colRowAttGingLoc.Col,colRowAttGingLoc.Row].Text=(MGJValue-probValue).ToString();
 			if(alsoInvalidate){
 				Invalidate(Rectangle.Ceiling(GetBounds(colRowAttGingLoc.Col,colRowAttGingLoc.Row)));
@@ -854,7 +855,7 @@ namespace OpenDental
 						case PerioSequenceType.Probing:
 							break;
 						default:
-							MessageBox.Show("Error in FillDataArray");
+							ODMessageBox.Show("Error in FillDataArray");
 							break;
 					}
 				}
@@ -918,7 +919,7 @@ namespace OpenDental
 				return;
 			}
 			if(letter !="b" && letter !="s" && letter !="p" && letter !="c" && letter !="j" && letter !="g" && letter !="f" && letter !="m" && letter !="."){
-				MessageBox.Show("Only b,s,p,c,j,g,f,m,and period (.) are allowed");//just for debugging
+				ODMessageBox.Show("Only b,s,p,c,j,g,f,m,and period (.) are allowed");//just for debugging
 				//Any changes here should also be changed in ContrPerio.OnKeyDown and FormPerio.FormPerio_ChangeTitle
 				return;
 			}
@@ -1060,7 +1061,7 @@ namespace OpenDental
 			for(int i=0;i<ListColRowsSelected.Count;i++) {
 				if((number < 0 || number > 19) 
 					&& _perioSequenceTypeArray[GetSection(ListColRowsSelected[i].Row)][GetSectionRow(ListColRowsSelected[i].Row)]!=PerioSequenceType.GingMargin){//large values are allowed for GingMargin to represent hyperplasia (e.g. 101 to 109 represent -1 to -9)
-					MessageBox.Show("Only values 0 through 19 allowed");//just for debugging
+					ODMessageBox.Show("Only values 0 through 19 allowed");//just for debugging
 					return;
 				}
 				PerioCell perioCell=GetPerioCell(ListColRowsSelected[i],setText:false);
@@ -1296,7 +1297,7 @@ namespace OpenDental
 				return -1;
 			}
 			//MessageBox.Show("full");
-			return PIn.Int(_perioCellArray[colRow.Col,colRow.Row].Text);
+			return SIn.Int(_perioCellArray[colRow.Col,colRow.Row].Text);
 		}
 
 		///<summary>Returns PerioCell for the colrow passed in. Sets PerioCell in DataArray based on the colrow passed in. Option to not set PerioCell Text.</summary>
@@ -1605,7 +1606,7 @@ namespace OpenDental
 			}
 			if (_idxExamSelected == -1)
 			{
-				MessageBox.Show(Lan.g(this, "Please add or select an exam first in the list to the left."));
+				ODMessageBox.Show(Lan.g(this, "Please add or select an exam first in the list to the left."));
 				return;
 			}
 			PerioCell perioCell=GetPerioCell(ListColRowsSelected[0],setText:false);
@@ -2071,7 +2072,7 @@ namespace OpenDental
 				}
 				if(_perioCellArray[i,rowIndex].Text==null || _perioCellArray[i,rowIndex].Text==""){//No data recorded by user for the current cell. Display the old text from the previous perio exam.
 					drawOld=true;
-					cellValue=PIn.Int(_perioCellArray[i,rowIndex].OldText);
+					cellValue=SIn.Int(_perioCellArray[i,rowIndex].OldText);
 					if(cellValue>100) {//used for negative numbers
 						cellValue=100-cellValue;//i.e. 100-103 = -3
 					}
@@ -2079,7 +2080,7 @@ namespace OpenDental
 				}
 				else{
 					drawOld=false;
-					cellValue=PIn.Int(_perioCellArray[i,rowIndex].Text);
+					cellValue=SIn.Int(_perioCellArray[i,rowIndex].Text);
 					if(cellValue>100) {//used for negative numbers
 						cellValue=100-cellValue;//i.e. 100-103 = -3
 					}
@@ -2244,7 +2245,7 @@ namespace OpenDental
 				listIndexesGMRows.Add(r);//Keep track of each gingival margin row's index
 				//Search all columns in this row for negative values
 				for(int c = 1;c<_perioCellArray.GetLength(0);c++) {//Start at 1 to avoid labels
-					int CellValue=PIn.Int(_perioCellArray[c, r].Text);
+					int CellValue=SIn.Int(_perioCellArray[c, r].Text);
 					if(CellValue>100) {//101-109 represent negative values (e.g. 103 -> -3)
 						setLabelToRecession=false;//Found a negative value so label should be "Ging Marg" instead of "Recession"
 					}

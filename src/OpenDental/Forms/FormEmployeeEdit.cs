@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.IO;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -52,7 +54,7 @@ namespace OpenDental{
 				Employees.Delete(EmployeeCur.EmployeeNum);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -66,7 +68,7 @@ namespace OpenDental{
 			EmployeeCur.MiddleI=textMI.Text;
 			EmployeeCur.PayrollID=textPayrollID.Text;
 			try{
-				EmployeeCur.PhoneExt=PIn.Int(textPhoneExt.Text);
+				EmployeeCur.PhoneExt=SIn.Int(textPhoneExt.Text);
 			}
 			catch{
 				EmployeeCur.PhoneExt=0;
@@ -92,7 +94,7 @@ namespace OpenDental{
 				Employees.UpdateChanged(EmployeeCur,employeeOld);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

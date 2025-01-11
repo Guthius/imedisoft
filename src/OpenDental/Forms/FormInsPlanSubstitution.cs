@@ -253,7 +253,7 @@ namespace OpenDental {
 			if(_listInsPlanSubstitution.Where(x=>x.ProcCode.CodeNum==insPlanSubstitution.ProcCode.CodeNum && x.SubLink!=null).Count()<2 && insPlanSubstitution.ProcCode.SubstitutionCode!="") {
 				msgText+="\r\n"+(Lans.g(this,"Deleting the insurance specific substitution code will default to the global substitution code for this procedure")+".");
 			}
-			if(MessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+			if(ODMessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 				return;
 			}
 			_listInsPlanSubstitution.Remove(insPlanSubstitution);
@@ -281,7 +281,7 @@ namespace OpenDental {
 			}
 			if(!_insPlan.CodeSubstNone
 				&& areAllGlobalSubsOverriddenWithNever
-				&& MessageBox.Show(this,msgText,null,MessageBoxButtons.YesNo)==DialogResult.Yes)
+				&& ODMessageBox.Show(this,msgText,null,MessageBoxButtons.YesNo)==DialogResult.Yes)
 			{
 				_insPlan.CodeSubstNone=true;
 			}

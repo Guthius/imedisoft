@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -53,7 +54,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			SupplyNeededCur.DateAdded=PIn.Date(textVDate.Text);
+			SupplyNeededCur.DateAdded=SIn.Date(textVDate.Text);
 			SupplyNeededCur.Description=textDescription.Text;
 			if(SupplyNeededCur.IsNew) {
 				SupplyNeededs.Insert(SupplyNeededCur);

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormNewCropBilling:FormODBase {
@@ -50,24 +51,24 @@ namespace OpenDental {
 
 		private void butLoad_Click(object sender,EventArgs e) {
 			if(!textBillingFilePath.Text.ToLower().EndsWith(".csv")) {
-				MessageBox.Show("Billing file must be a comma separated values (csv) file.");
+				ODMessageBox.Show("Billing file must be a comma separated values (csv) file.");
 				return;
 			}
 			if(!File.Exists(textBillingFilePath.Text)) {
-				MessageBox.Show("Billing file does not exist or could not be accessed. Make sure the file is not open in another program and try again.");
+				ODMessageBox.Show("Billing file does not exist or could not be accessed. Make sure the file is not open in another program and try again.");
 				return;
 			}
 			if(!Regex.IsMatch(textBillingYearMonth.Text,"^[0-9]{6}.*")) {
-				MessageBox.Show("Invalid billing year or month.");
+				ODMessageBox.Show("Invalid billing year or month.");
 				return;
 			}
 			try {
-				int year=PIn.Int(textBillingYearMonth.Text.Substring(0,4));
-				int month=PIn.Int(textBillingYearMonth.Text.Substring(4,2));
+				int year=SIn.Int(textBillingYearMonth.Text.Substring(0,4));
+				int month=SIn.Int(textBillingYearMonth.Text.Substring(4,2));
 				_dateBillingMonthYear=new DateTime(year,month,1);
 			}
 			catch {
-				MessageBox.Show("Invalid billing year or month.");
+				ODMessageBox.Show("Invalid billing year or month.");
 				return;
 			}
 			_listNewCropChargesToAdd=new List<NewCropCharge>();
@@ -114,8 +115,8 @@ namespace OpenDental {
 				newCropCharge.Direct=stringArrayLineValues[23];
 				newCropCharge.DoctorDirect=stringArrayLineValues[24];				
 				int patNumLength=newCropCharge.AccountId.IndexOf("-");
-				string patNumStr=PIn.String(newCropCharge.AccountId.Substring(0,patNumLength));
-				newCropCharge.PatNumForRegKey=PIn.Long(patNumStr);//PatNum of registration key used to create the account id.
+				string patNumStr=SIn.String(newCropCharge.AccountId.Substring(0,patNumLength));
+				newCropCharge.PatNumForRegKey=SIn.Long(patNumStr);//PatNum of registration key used to create the account id.
 				if(newCropCharge.PatNumForRegKey==6566) {
 					//Account 6566 corresponds to our software key in the training database.  These accounts are test accounts.
 					continue;//Do not show OD test accounts.
@@ -179,7 +180,7 @@ namespace OpenDental {
 				CreateChargeList(isLoading);
 			}
 			catch(Exception ex) {
-				MessageBox.Show("There is something wrong with the input file. Try again. If issue persists, then contact a programmer: "+ex.Message);
+				ODMessageBox.Show("There is something wrong with the input file. Try again. If issue persists, then contact a programmer: "+ex.Message);
 				return;
 			}
 			RefreshGridColumns();
@@ -202,10 +203,10 @@ namespace OpenDental {
 					row.Cells.Add(new GridCell(_listNewCropCharges[i].AccountId));
 					//2 PatNum
 					if(_listNewCropCharges[i].repeatCharge==null) {
-						row.Cells.Add(new GridCell(POut.Long(_listNewCropCharges[i].PatNumForRegKey)));
+						row.Cells.Add(new GridCell(SOut.Long(_listNewCropCharges[i].PatNumForRegKey)));
 					}
 					else {
-						row.Cells.Add(new GridCell(POut.Long(_listNewCropCharges[i].repeatCharge.PatNum)));//Allows techs to manually move repeating charge to another account.
+						row.Cells.Add(new GridCell(SOut.Long(_listNewCropCharges[i].repeatCharge.PatNum)));//Allows techs to manually move repeating charge to another account.
 					}
 					//3 NPI
 					row.Cells.Add(new GridCell(_listNewCropCharges[i].NPI));

@@ -106,7 +106,7 @@ namespace OpenDental {
 			//The 997, 999, 277, or 835 would only exist for a failure.  A success would be a 271.
 			if(_etransAck271!=null && (_etransAck271.Etype==EtransType.Acknowledge_997 || _etransAck271.Etype==EtransType.Acknowledge_999 || _etransAck271.Etype==EtransType.StatusNotify_277 || _etransAck271.Etype==EtransType.ERA_835)) {
 				if(IsInitialResponse) {
-					MessageBox.Show(EtransCur.Note);
+					ODMessageBox.Show(EtransCur.Note);
 				}
 			}
 		}

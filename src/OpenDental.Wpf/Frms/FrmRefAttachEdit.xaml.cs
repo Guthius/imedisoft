@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls.UI;
@@ -211,12 +212,12 @@ namespace OpenDental {
 				RefAttachCur.ProvNum=comboProvNum.GetSelectedProvNum();
 			}
 			//(Optional) Also Set ProvNum on RefType.Other??
-			RefAttachCur.RefDate=PIn.Date(textRefDate.Text);
+			RefAttachCur.RefDate=SIn.Date(textRefDate.Text);
 			//RefAttachCur.ItemOrder=PIn.Int(textOrder.Text);//no. It's read only
 			RefAttachCur.RefToStatus=(ReferralToStatus)comboRefToStatus.SelectedIndex;
 			RefAttachCur.Note=textNote.Text;
 			RefAttachCur.IsTransitionOfCare=(bool)checkIsTransitionOfCare.Checked;
-			RefAttachCur.DateProcComplete=PIn.Date(textDateProcCompleted.Text);
+			RefAttachCur.DateProcComplete=SIn.Date(textDateProcCompleted.Text);
 		}
 
 		private void butDetach_Click(object sender,EventArgs e) {

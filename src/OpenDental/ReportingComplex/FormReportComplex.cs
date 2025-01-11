@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
@@ -1141,11 +1142,11 @@ namespace OpenDental.ReportingComplex
                         //Right now, if multiple query groups share the same column name that is being summed, the total will include both sets.
                         if (queryObj.IsNegativeSummary)
                         {
-                            retVal -= PIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
+                            retVal -= SIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
                         }
                         else
                         {
-                            retVal += PIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
+                            retVal += SIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
                         }
                     }
                     else if (operation == SummaryOperation.Count)
@@ -1176,11 +1177,11 @@ namespace OpenDental.ReportingComplex
 
             if (reportObject.FieldValueType == FieldValueType.Age)
             {
-                displayText = Patients.AgeToString(Patients.DateToAge(PIn.Date(rawText))); //(fieldObject.FormatString);
+                displayText = Patients.AgeToString(Patients.DateToAge(SIn.Date(rawText))); //(fieldObject.FormatString);
             }
             else if (reportObject.FieldValueType == FieldValueType.Boolean)
             {
-                if (PIn.Bool(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()))
+                if (SIn.Bool(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()))
                 {
                     displayText = "X";
                 }
@@ -1191,12 +1192,12 @@ namespace OpenDental.ReportingComplex
 
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    prevDisplayText = PIn.Bool(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString();
+                    prevDisplayText = SIn.Bool(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString();
                 }
             }
             else if (reportObject.FieldValueType == FieldValueType.Date)
             {
-                DateTime rowDateTime = PIn.DateTime(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
+                DateTime rowDateTime = SIn.DateTime(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
                 if (rowDateTime.Year > 1880)
                 {
                     displayText = rowDateTime.ToString(reportObject.StringFormat);
@@ -1204,7 +1205,7 @@ namespace OpenDental.ReportingComplex
 
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    rowDateTime = PIn.DateTime(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
+                    rowDateTime = SIn.DateTime(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
                     prevDisplayText = "";
                     if (rowDateTime.Year > 1880)
                     {
@@ -1214,18 +1215,18 @@ namespace OpenDental.ReportingComplex
             }
             else if (reportObject.FieldValueType == FieldValueType.Integer)
             {
-                displayText = PIn.Long(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                displayText = SIn.Long(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    prevDisplayText = PIn.Long(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                    prevDisplayText = SIn.Long(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 }
             }
             else if (reportObject.FieldValueType == FieldValueType.Number)
             {
-                displayText = PIn.Double(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                displayText = SIn.Double(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    prevDisplayText = PIn.Double(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                    prevDisplayText = SIn.Double(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 }
             }
             else if (reportObject.FieldValueType == FieldValueType.String)
@@ -1480,11 +1481,11 @@ namespace OpenDental.ReportingComplex
             }
             catch
             {
-                MessageBox.Show(Lan.g(this, "File in use by another program.  Close and try again."));
+                ODMessageBox.Show(Lan.g(this, "File in use by another program.  Close and try again."));
                 return;
             }
             
-            MessageBox.Show(Lan.g(this, "File created successfully"));
+            ODMessageBox.Show(Lan.g(this, "File created successfully"));
         }
 
         private void OnWrapText_Click()

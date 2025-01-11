@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -144,7 +145,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix date.");
 				return;
 			}
-			_disease=Diseases.SetDiseaseFields(_disease,PIn.Date(textVDateStart.Text),PIn.Date(textVDateStop.Text),(ProblemStatus)comboStatus.SelectedIndex,textNote.Text,
+			_disease=Diseases.SetDiseaseFields(_disease,SIn.Date(textVDateStart.Text),SIn.Date(textVDateStop.Text),(ProblemStatus)comboStatus.SelectedIndex,textNote.Text,
 				(SnomedProblemTypes)comboSnomedProblemType.SelectedIndex,(FunctionalStatus)comboEhrFunctionalStatus.SelectedIndex);
 			if(IsNew){
 				//This code is never hit in current implementation 09/26/2013.

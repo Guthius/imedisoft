@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Globalization;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	
@@ -51,7 +53,7 @@ namespace OpenDental {
 			if(!textPercent.IsValid())
 			//|| !textPriBasicPercent.IsValid()
 			{
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			_covCat.Description=textDescription.Text;
@@ -59,7 +61,7 @@ namespace OpenDental {
 				_covCat.DefaultPercent=-1;
 			}
 			else {
-				_covCat.DefaultPercent=PIn.Int(textPercent.Text);
+				_covCat.DefaultPercent=SIn.Int(textPercent.Text);
 			}
 			_covCat.IsHidden=checkHidden.Checked;
 			_covCat.EbenefitCat=(EbenefitCategory)comboCat.SelectedIndex;

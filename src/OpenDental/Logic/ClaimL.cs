@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -23,7 +24,7 @@ namespace OpenDental
             string errorMessage = Clearinghouses.CheckClearinghouseDefaults();
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                MessageBox.Show(errorMessage);
+                ODMessageBox.Show(errorMessage);
                 return false;
             }
 
@@ -43,7 +44,7 @@ namespace OpenDental
             createClaimDataWrapper.HasError = true;
             if (isVerbose)
             {
-                MessageBox.Show(message, msgBoxHeader);
+                ODMessageBox.Show(message, msgBoxHeader);
             }
         }
 
@@ -65,9 +66,9 @@ namespace OpenDental
             //Create CreateClaimItem objects from the data rows so that we have deep copied and strongly typed objects to work with in other methods.
             return listDataRows.Select(x => new CreateClaimItem()
             {
-                ProcNum = PIn.Long(x["ProcNum"].ToString()),
-                ProcNumLab = PIn.Long(x["ProcNumLab"].ToString()),
-                ChargesDouble = PIn.Double(x["chargesDouble"].ToString()),
+                ProcNum = SIn.Long(x["ProcNum"].ToString()),
+                ProcNumLab = SIn.Long(x["ProcNumLab"].ToString()),
+                ChargesDouble = SIn.Double(x["chargesDouble"].ToString()),
                 IsSelected = hasSelections,
             }).ToList();
         }
@@ -591,11 +592,11 @@ namespace OpenDental
 
             //If we are going to block based on a preference, do that before figuring out other claim validation.
             //Ignore "No Bill Ins" here, because we want "No Bill Ins" to be the more important block for backwards compatability.
-            switch (PIn.Enum<ClaimZeroDollarProcBehavior>(PrefC.GetInt(PrefName.ClaimZeroDollarProcBehavior)))
+            switch (SIn.Enum<ClaimZeroDollarProcBehavior>(PrefC.GetInt(PrefName.ClaimZeroDollarProcBehavior)))
             {
                 case ClaimZeroDollarProcBehavior.Warn:
                     if (listProceduresBillIns.Any(x => CompareDouble.IsZero(x.ProcFee))
-                        && MessageBox.Show(Lan.g("ContrAccount", "You are about to make a") + " " + (claimTypeDesc == "" ? "" : (claimTypeDesc + " "))
+                        && ODMessageBox.Show(Lan.g("ContrAccount", "You are about to make a") + " " + (claimTypeDesc == "" ? "" : (claimTypeDesc + " "))
                                            + Lan.g("ContrAccount", "claim that will include a $0 procedure.  Continue?"), "", MessageBoxButtons.OKCancel) != DialogResult.OK)
                     {
                         //Nothing to log. The user hit Cancel.
@@ -829,7 +830,7 @@ namespace OpenDental
                 {
                     if (claimMedTypeI != EnumClaimMedType.Dental)
                     {
-                        MsgBox.Show("ContrAccount", "On claim " + POut.Int(i) + ", the MedType does not match the clearinghouse e-format.");
+                        MsgBox.Show("ContrAccount", "On claim " + SOut.Int(i) + ", the MedType does not match the clearinghouse e-format.");
                         return listClaimSendQueueItemsRetVal;
                     }
                 }
@@ -838,7 +839,7 @@ namespace OpenDental
                 {
                     if (claimMedTypeI != EnumClaimMedType.Medical && claimMedTypeI != EnumClaimMedType.Institutional)
                     {
-                        MsgBox.Show("ContrAccount", "On claim " + POut.Int(i) + ", the MedType does not match the clearinghouse e-format.");
+                        MsgBox.Show("ContrAccount", "On claim " + SOut.Int(i) + ", the MedType does not match the clearinghouse e-format.");
                         return listClaimSendQueueItemsRetVal;
                     }
                 }
@@ -846,7 +847,7 @@ namespace OpenDental
                 if (listClaimSendQueueItems[i].HasIcd9)
                 {
                     string msgText = Lan.g("ContrAccount", "There are ICD-9 codes attached to a procedure.  Would you like to send the claim without the ICD-9 codes? ");
-                    if (MessageBox.Show(msgText, "", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                    if (ODMessageBox.Show(msgText, "", MessageBoxButtons.YesNo) != DialogResult.Yes)
                     {
                         return listClaimSendQueueItemsRetVal;
                     }
@@ -1036,7 +1037,7 @@ namespace OpenDental
 
             if (claimProcCreditsGreaterThanProcFee == ClaimProcCreditsGreaterThanProcFee.Warn)
             {
-                return MessageBox.Show(Lan.g("FormClaimPayTotal", "Remaining amount is negative for the following procedures") + ":\r\n"
+                return ODMessageBox.Show(Lan.g("FormClaimPayTotal", "Remaining amount is negative for the following procedures") + ":\r\n"
                                                                                                                                + string.Join("\r\n", listProcDescripts.Take(10)) + "\r\n" + (listProcDescripts.Count > 10 ? "...\r\n" : "") + Lan.g("ClaimL", "Continue?")
                     , Lan.g("FormClaimPayTotal", "Overpaid Procedure Warning"), MessageBoxButtons.OKCancel) == DialogResult.Cancel;
             }

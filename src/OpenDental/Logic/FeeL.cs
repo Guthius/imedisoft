@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -86,7 +87,7 @@ namespace OpenDental
                     {
                         //no current fee
                         fee = new Fee();
-                        fee.Amount = PIn.Double(fields[1]);
+                        fee.Amount = SIn.Double(fields[1]);
                         fee.FeeSched = feeSchedNum;
                         fee.CodeNum = codeNum;
                         fee.ClinicNum = clinicNum; //Either 0 because you're importing on an HQ schedule or local clinic because the feesched is localizable.
@@ -97,7 +98,7 @@ namespace OpenDental
                     }
                     else
                     {
-                        fee.Amount = PIn.Double(fields[1]);
+                        fee.Amount = SIn.Double(fields[1]);
                         Fees.Update(fee);
                     }
 
@@ -147,7 +148,7 @@ namespace OpenDental
                 return true;
             }
 
-            MessageBox.Show(Lans.g("Fee", "User is clinic restricted and") + " " + feeSched.Description + " " + Lans.g("Fee", "is not global."));
+            ODMessageBox.Show(Lans.g("Fee", "User is clinic restricted and") + " " + feeSched.Description + " " + Lans.g("Fee", "is not global."));
             return false;
         }
 

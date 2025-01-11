@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -50,7 +51,7 @@ namespace OpenDental {
 			if(IsNew){
 				if(!Security.IsAuthorized(EnumPermType.AdjustmentCreate,DateTime.Now,true)) {//Date not checked here.  Message will show later.
 					if(!Security.IsAuthorized(EnumPermType.AdjustmentEditZero,true)) {//Let user create an adjustment of zero if they have this perm.
-						MessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(EnumPermType.AdjustmentCreate));
+						ODMessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(EnumPermType.AdjustmentCreate));
 						DialogResult=DialogResult.Cancel;
 						return;
 					}
@@ -127,7 +128,7 @@ namespace OpenDental {
 			if(!true || listProgramPropertiesForClinicExcludedAdjTypes.Count==0) {
 				listProgramPropertiesForClinicExcludedAdjTypes=listProgramPropertiesExcludedAdjTypes.FindAll(x => x.ClinicNum==0);
 			}
-			_listTsiExcludedAdjDefNums=listProgramPropertiesForClinicExcludedAdjTypes.Select(x=>PIn.Long(x.PropertyValue,false)).ToList();
+			_listTsiExcludedAdjDefNums=listProgramPropertiesForClinicExcludedAdjTypes.Select(x=>SIn.Long(x.PropertyValue,false)).ToList();
 			if(_program.Enabled && Patients.IsGuarCollections(_patientGuar.PatNum) && _listTsiExcludedAdjDefNums.Any(x => x>0)) { //Transworld program link is enabled and the patient is part of a family where the guarantor has been sent to TSI
 				checkOnlyTsiExcludedAdjTypes.Checked=true;
 			}
@@ -228,10 +229,10 @@ namespace OpenDental {
 			double procAdjCur=0;
 			if(textAmount.IsValid()){
 				if(listTypePos.SelectedIndex>-1){//pos
-					procAdjCur=PIn.Double(textAmount.Text);
+					procAdjCur=SIn.Double(textAmount.Text);
 				}
 				else if(listTypeNeg.SelectedIndex>-1 || Defs.GetValue(DefCat.AdjTypes,_adjustment.AdjType)=="dp"){//neg or discount plan
-					procAdjCur=-PIn.Double(textAmount.Text);
+					procAdjCur=-SIn.Double(textAmount.Text);
 				}
 			}
 			_isNegativeAdjustment=procAdjCur<0;
@@ -297,7 +298,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(!textAdjDate.IsValid() || !textProcDate.IsValid() || !textAmount.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry error first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry error first."));
 				return;
 			}
 			if(Security.IsGlobalDateLock(EnumPermType.AdjustmentEdit,textAdjDate.Value)) {
@@ -309,12 +310,12 @@ namespace OpenDental {
 				}
 			}
 			bool isDiscountPlanAdj=(Defs.GetValue(DefCat.AdjTypes,_adjustment.AdjType)=="dp");
-			if(PIn.Date(textAdjDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
+			if(SIn.Date(textAdjDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
 				MsgBox.Show(this,"Adjustment date can not be in the future.");
 				return;
 			}
 			if(textAmount.Text==""){
-				MessageBox.Show(Lan.g(this,"Please enter an amount."));	
+				ODMessageBox.Show(Lan.g(this,"Please enter an amount."));	
 				return;
 			}
 			if(!isDiscountPlanAdj && listTypeNeg.SelectedIndex==-1 && listTypePos.SelectedIndex==-1){
@@ -332,7 +333,7 @@ namespace OpenDental {
 				isDPP=payPlan.IsDynamic;
 			}
 			if(isDPP) { //No longer allowing negative, unallocated adjustments on DPPs.
-				double value=PIn.Double(textAmount.Text);
+				double value=SIn.Double(textAmount.Text);
 				//If a Subtraction adjustment type is selected, make value negative.
 				if(listTypeNeg.SelectedIndex!=-1) {
 					value*=-1;
@@ -358,9 +359,9 @@ namespace OpenDental {
 			List<PaySplit> listPaySplitsForAdjust=new List<PaySplit>();
 			if(IsNew){
 				//prevents backdating of initial adjustment
-				if(!Security.IsAuthorized(EnumPermType.AdjustmentCreate,PIn.Date(textAdjDate.Text),true)){//Give message later.
+				if(!Security.IsAuthorized(EnumPermType.AdjustmentCreate,SIn.Date(textAdjDate.Text),true)){//Give message later.
 					if(!_checkZeroAmount) {//Let user create as long as Amount is zero and has edit zero permissions.  This was checked on load.
-						MessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(EnumPermType.AdjustmentCreate));
+						ODMessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(EnumPermType.AdjustmentCreate));
 						return;
 					}
 				}
@@ -368,7 +369,7 @@ namespace OpenDental {
 			else{
 				//Editing an old entry will already be blocked if the date was too old, and user will not be able to click OK button
 				//This catches it if user changed the date to be older.
-				if(!Security.IsAuthorized(EnumPermType.AdjustmentEdit,PIn.Date(textAdjDate.Text))){
+				if(!Security.IsAuthorized(EnumPermType.AdjustmentEdit,SIn.Date(textAdjDate.Text))){
 					return;
 				}
 				if(_adjustment.ProvNum!=comboProv.GetSelectedProvNum()) {
@@ -392,21 +393,21 @@ namespace OpenDental {
 			}
 			//DateEntry not allowed to change
 			DateTime datePreviousChange=_adjustment.SecDateTEdit;
-			_adjustment.AdjDate=PIn.Date(textAdjDate.Text);
-			_adjustment.ProcDate=PIn.Date(textProcDate.Text);
+			_adjustment.AdjDate=SIn.Date(textAdjDate.Text);
+			_adjustment.ProcDate=SIn.Date(textProcDate.Text);
 			_adjustment.ProvNum=comboProv.GetSelectedProvNum();
 			_adjustment.ClinicNum=comboClinic.ClinicNumSelected;
 			if(listTypePos.SelectedIndex!=-1) {
 				_adjustment.AdjType=_listDefsAdjPosCats[listTypePos.SelectedIndex].DefNum;
-				_adjustment.AdjAmt=PIn.Double(textAmount.Text);
+				_adjustment.AdjAmt=SIn.Double(textAmount.Text);
 			}
 			if(listTypeNeg.SelectedIndex!=-1) {
 				_adjustment.AdjType=_listDefsAdjNegCats[listTypeNeg.SelectedIndex].DefNum;
-				_adjustment.AdjAmt=-PIn.Double(textAmount.Text);
+				_adjustment.AdjAmt=-SIn.Double(textAmount.Text);
 			}
 			if(isDiscountPlanAdj) {
 				//AdjustmentCur.AdjType is already set to a "discount plan" adj type.
-				_adjustment.AdjAmt=-PIn.Double(textAmount.Text);
+				_adjustment.AdjAmt=-SIn.Double(textAmount.Text);
 			}
 			if(_checkZeroAmount && _adjustment.AdjAmt!=0) {
 				MsgBox.Show(this,"Amount has to be 0.00 due to security permission.");
@@ -426,7 +427,7 @@ namespace OpenDental {
 					Adjustments.Insert(_adjustment);
 				}
 				catch(Exception ex){//even though it doesn't currently throw any exceptions
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				SecurityLogs.MakeLogEntry(EnumPermType.AdjustmentCreate,_adjustment.PatNum,
@@ -439,7 +440,7 @@ namespace OpenDental {
 					Adjustments.Update(_adjustment);
 				}
 				catch(Exception ex){//even though it doesn't currently throw any exceptions
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				SecurityLogs.MakeLogEntry(EnumPermType.AdjustmentEdit,_adjustment.PatNum,_patient.GetNameLF()+", "+_adjustment.AdjAmt.ToString("c"),0,datePreviousChange);

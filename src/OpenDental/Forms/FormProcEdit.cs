@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -119,7 +120,7 @@ namespace OpenDental {
 			if(false) {
 				labelTaxEst.Visible=true;
 				textTaxAmt.Visible=true;
-				textTaxAmt.Text=POut.Double(_procedure.TaxAmt);
+				textTaxAmt.Text=SOut.Double(_procedure.TaxAmt);
 				if(_procedure.ProcStatus==ProcStat.C) {
 					labelTaxEst.Text="Tax Amt";
 				}
@@ -703,12 +704,12 @@ namespace OpenDental {
 					labelOrigDateComp.Visible=false;
 					textOrigDateComp.Visible=false;
 				}
-				dateT=PIn.DateTime(_procedure.ProcTime.ToString());
+				dateT=SIn.DateTime(_procedure.ProcTime.ToString());
 				if(dateT.ToShortTimeString()!="12:00 AM"){
 					textTimeStart.Text+=dateT.ToShortTimeString();
 				}
 				if(PrefC.GetBool(PrefName.ShowFeatureMedicalInsurance)) {
-					dateT=PIn.DateTime(_procedure.ProcTimeEnd.ToString());
+					dateT=SIn.DateTime(_procedure.ProcTimeEnd.ToString());
 					if(dateT.ToShortTimeString()!="12:00 AM") {
 						textTimeEnd.Text=dateT.ToShortTimeString();
 					}
@@ -1174,7 +1175,7 @@ namespace OpenDental {
 				List<Benefit> listBenefits = Benefits.Refresh(_listPatPlans,_listInsSubs);
 				ClaimProcs.CreateEst(claimProc,_procedure,insPlan,insSub);
 				if(insPlan.PlanType=="c") {//capitation
-					double procFee = PIn.Double(textProcFee.Text);
+					double procFee = SIn.Double(textProcFee.Text);
 					claimProc.BaseEst=procFee;
 					claimProc.InsEstTotal=procFee;
 					claimProc.CopayAmt=InsPlans.GetCopay(_procedure.CodeNum,insPlan.FeeSched,insPlan.CopayFeeSched,
@@ -1384,7 +1385,7 @@ namespace OpenDental {
 				procFee=0;
 			}
 			else{
-				procFee=PIn.Double(textProcFee.Text);
+				procFee=SIn.Double(textProcFee.Text);
 			}
 			if(_procedure.ProcFee==procFee){
 				return;
@@ -1528,7 +1529,7 @@ namespace OpenDental {
 						+Lan.g(this,", and the procedure has credits attached in the amount of")+" "+credits.ToString("c")
 						+Lan.g(this,".  This will result in an overallocated procedure")+".\r\n"+Lan.g(this,"Continue?");
 					//Prompt user to accept the overallocation or revert back to old ProcCode.
-					if(MessageBox.Show(this,strMsg,Lan.g(this,"Overpaid Procedure Warning"),MessageBoxButtons.YesNo)==DialogResult.No) {
+					if(ODMessageBox.Show(this,strMsg,Lan.g(this,"Overpaid Procedure Warning"),MessageBoxButtons.YesNo)==DialogResult.No) {
 						_procedure=procedureOld;
 						ClearClaimProcs(_listClaimProcs);
 						Procedures.ComputeEstimates(_procedure,_patient.PatNum,ref _listClaimProcs,false,_listInsPlans,_listPatPlans,_listBenefits,
@@ -1620,7 +1621,7 @@ namespace OpenDental {
 					isAllowedToCompl=false;
 				}
 				//else if so that we don't give multiple notifications to the user.
-				else if(!Security.IsAuthorized(EnumPermType.ProcComplCreate,PIn.Date(textDate.Text),_procedure.CodeNum,PIn.Double(textProcFee.Text))) {
+				else if(!Security.IsAuthorized(EnumPermType.ProcComplCreate,SIn.Date(textDate.Text),_procedure.CodeNum,SIn.Double(textProcFee.Text))) {
 					isAllowedToCompl=false;
 				}
 				//Check to see if the user is allowed to set the procedure complete.
@@ -1643,7 +1644,7 @@ namespace OpenDental {
 				if(_procedure.AptNum!=0) {//if attached to an appointment
 					Appointment appointment=Appointments.GetOneApt(_procedure.AptNum);
 					if(appointment.AptDateTime.Date > MiscData.GetNowDateTime().Date) {//if appointment is in the future
-						MessageBox.Show(Lan.g(this,"Not allowed because procedure is attached to a future appointment with a date of ")
+						ODMessageBox.Show(Lan.g(this,"Not allowed because procedure is attached to a future appointment with a date of ")
 							+appointment.AptDateTime.ToShortDateString());
 						return;
 					}
@@ -1711,7 +1712,7 @@ namespace OpenDental {
 				}
 				else {
 					if(appointment.AptDateTime.Date > MiscData.GetNowDateTime().Date){//if appointment is in the future
-						MessageBox.Show(Lan.g(this,"Not allowed because procedure is attached to a future appointment with a date of ")
+						ODMessageBox.Show(Lan.g(this,"Not allowed because procedure is attached to a future appointment with a date of ")
 							+appointment.AptDateTime.ToShortDateString());
 						return;
 					}
@@ -1727,7 +1728,7 @@ namespace OpenDental {
 				dateTimeProc=MiscData.GetNowDateTime();
 			}
 			//Use procDateNew since this is the date that the procedure would end up as
-			if(!Security.IsAuthorized(EnumPermType.ProcComplCreate,dateTimeProc,_procedure.CodeNum,PIn.Double(textProcFee.Text))) {
+			if(!Security.IsAuthorized(EnumPermType.ProcComplCreate,dateTimeProc,_procedure.CodeNum,SIn.Double(textProcFee.Text))) {
 				return;
 			}
 			//broken appointment procedure codes shouldn't trigger DateFirstVisit update.
@@ -1864,7 +1865,7 @@ namespace OpenDental {
 			int index=textNotes.Find(inputBox.StringResult);//Gets the location of the first character in the control.
 			if(index<0) {//-1 is returned when the text is not found.
 				textNotes.DeselectAll();
-				MessageBox.Show("\""+searchText+"\"\r\n"+Lan.g(this,"was not found in the notes")+".");
+				ODMessageBox.Show("\""+searchText+"\"\r\n"+Lan.g(this,"was not found in the notes")+".");
 				return;
 			}
 			textNotes.Select(index,searchText.Length);
@@ -1901,7 +1902,7 @@ namespace OpenDental {
 				}
 			}
 			else {
-				MessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
+				ODMessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
 			}
 		}
 
@@ -1932,7 +1933,7 @@ namespace OpenDental {
 			int startTime=0;
 			int stopTime=0;
 			try {
-				startTime=PIn.Int(textTimeStart.Text);
+				startTime=SIn.Int(textTimeStart.Text);
 			}
 			catch { 
 				try {//Try DateTime format.
@@ -1944,7 +1945,7 @@ namespace OpenDental {
 				}
 			}
 			try {
-				stopTime=PIn.Int(textTimeEnd.Text);
+				stopTime=SIn.Int(textTimeEnd.Text);
 			}
 			catch { 
 				try {//Try DateTime format.
@@ -2105,7 +2106,7 @@ namespace OpenDental {
 				Procedures.Delete(_procedure.ProcNum,hideGraphics:true);//also deletes any claimprocs (other than ins payments of course) and hides graphics.
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			SecurityLogs.MakeLogEntry(permissions,_patient.PatNum,Lan.g(this,"Invalidated: ")+
@@ -2217,7 +2218,7 @@ namespace OpenDental {
 			if(!Procedures.IsProcComplEditAuthorized(_procedureOld,true)) {
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete Procedure?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+			if(ODMessageBox.Show(Lan.g(this,"Delete Procedure?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 				return;
 			}
 			Result result=Procedures.DeleteProcedure(_procedure,_procedureOld);
@@ -2277,11 +2278,11 @@ namespace OpenDental {
 			bool hasOrthoProcLink=_orthoProcLink!=null;
 			bool isTextDrugNdcNotBlank=textDrugNDC.Text!="";
 			bool isSigChangedAndNotBlank=_signatureChanged && !signatureBoxWrapper.SigIsBlank;
-			int unityQty=PIn.Int(textUnitQty.Text, false);
+			int unityQty=SIn.Int(textUnitQty.Text, false);
 			bool isTextDateOriginalProsthBlank=textDateOriginalProsth.Text=="";
-			DateTime dateTimeProc=PIn.Date(textDate.Text);
+			DateTime dateTimeProc=SIn.Date(textDate.Text);
 			bool result=Procedures.EntriesAreValid(textNotes.Text,isSigChangedAndNotBlank,textTimeStart.Text,textTimeEnd.Text,unityQty,comboProv.GetSelectedProvNum(),textMedicalCode.Text,isTextDrugNdcNotBlank,textDrugQty.Text,
-				ref dateTimeProc,IsNew,PIn.Double(textProcFee.Text),_isQuickAdd,isCheckTypeCodeNonXChecked,checkTypeCodeX.Checked,listProsth.SelectedIndex,isQuadrantSelected,
+				ref dateTimeProc,IsNew,SIn.Double(textProcFee.Text),_isQuickAdd,isCheckTypeCodeNonXChecked,checkTypeCodeX.Checked,listProsth.SelectedIndex,isQuadrantSelected,
 				hasOrthoProcLink,isTextDateOriginalProsthBlank,comboDrugUnit.SelectedIndex,textSurfaces.Text,textTooth.Text,IsSextantSelected(),IsArchSelected(),
 				_procedure,_procedureOld,ref _procedureCode,translationSource,Security.CurUser,
 				actionOnFailure,actionYesNoPrompt,actionOnProcedureCodeFailure,
@@ -2321,10 +2322,10 @@ namespace OpenDental {
 			if(textProcFee.Text=="") {
 				textProcFee.Text="0";
 			}
-			Procedures.UpdateProcedureFields(_procedure,_patient,textMedicalCode.Text,PIn.Double(textDiscount.Text),
+			Procedures.UpdateProcedureFields(_procedure,_patient,textMedicalCode.Text,SIn.Double(textDiscount.Text),
 				_snomedBodySite,checkIcdVersion.Checked,GetListDiagnosticCodes(),checkIsPrincDiag.Checked,_provNumSelectedOrder,_referralOrdering,
-				textCodeMod1.Text,textCodeMod2.Text,textCodeMod3.Text,textCodeMod4.Text,PIn.Int(textUnitQty.Text),(ProcUnitQtyType)comboUnitType.SelectedIndex,
-				textRevCode.Text,(EnumProcDrugUnit)comboDrugUnit.SelectedIndex,PIn.Float(textDrugQty.Text),(checkIsEmergency.Checked?ProcUrgency.Emergency:ProcUrgency.Normal),
+				textCodeMod1.Text,textCodeMod2.Text,textCodeMod3.Text,textCodeMod4.Text,SIn.Int(textUnitQty.Text),(ProcUnitQtyType)comboUnitType.SelectedIndex,
+				textRevCode.Text,(EnumProcDrugUnit)comboDrugUnit.SelectedIndex,SIn.Float(textDrugQty.Text),(checkIsEmergency.Checked?ProcUrgency.Emergency:ProcUrgency.Normal),
 				comboProv.GetSelectedProvNum(),comboClinic.ClinicNumSelected
 			);
 			ClaimProcs.TrySetProvFromProc(_procedure,_listClaimProcs);
@@ -2340,7 +2341,7 @@ namespace OpenDental {
 			}
 			#endregion Verify security authorization for provider change and completed proc status change. Can also change a few procedure field values.
 			#region Additional UI syncing (_procedure dates and fee).
-			Procedures.SetMiscDateAndTimeEditFields(_procedure,textDateTP.Text,PIn.Date(textDate.Text),textTimeStart.Text,textTimeEnd.Text);
+			Procedures.SetMiscDateAndTimeEditFields(_procedure,textDateTP.Text,SIn.Date(textDate.Text),textTimeStart.Text,textTimeEnd.Text);
 			DateTime procedureDate=DateTime.Parse(textDate.Text);
 			List<ProcMultiVisit> listPmvs=ProcMultiVisits.GetGroupsForProcsFromDb(_listClaimProcs.Select(x => x.ProcNum).ToArray());
 			for(int i=0;i<_listClaimProcs.Count;i++) {//if the proc date has changed update the ClaimProcs
@@ -2355,7 +2356,7 @@ namespace OpenDental {
 					ClaimProcs.Update(_listClaimProcs[i],claimProcOld);
 				}
 			}
-			_procedure.ProcFee=PIn.Double(textProcFee.Text);
+			_procedure.ProcFee=SIn.Double(textProcFee.Text);
 			#endregion Additional UI syncing (_procedure dates and fee).
 			#region Tooth UI cleanup and validation, set various tooth fields for _procedure.
 			ClearAdultToothSelections();
@@ -2407,7 +2408,7 @@ namespace OpenDental {
 			}
 			else {
 				//Sets various prosth based _procedure fields.
-				Procedures.SetProsthEditFields(_procedureCode,_procedure,listProsth.SelectedIndex,PIn.Date(textDateOriginalProsth.Text),checkIsDateProsthEst.Checked);
+				Procedures.SetProsthEditFields(_procedureCode,_procedure,listProsth.SelectedIndex,SIn.Date(textDateOriginalProsth.Text),checkIsDateProsthEst.Checked);
 			}
 			_procedure.ClaimNote=textClaimNote.Text;
 			#endregion Additional UI syncing (_procedure fields). In Canada, Procedures.SetCanadianEditFields(...) can also create and/or update rows in the DB.

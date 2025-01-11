@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using OpenDentBusiness.UI;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -484,7 +485,7 @@ namespace OpenDental{
 			_procedureCode.PaintType=listPaintType.GetSelected<ToothPaintingType>();
 			_procedureCode.PaintText=textPaintText.Text;
 			_procedureCode.TreatArea=(TreatmentArea)listTreatArea.SelectedIndex;
-			_procedureCode.BaseUnits=PIn.Int(textBaseUnits.Text.ToString());
+			_procedureCode.BaseUnits=SIn.Int(textBaseUnits.Text.ToString());
 			_procedureCode.DrugNDC=textDrugNDC.Text;
 			_procedureCode.RevenueCodeDefault=textRevenueCode.Text;
 			if(listCategory.SelectedIndex!=-1) {
@@ -492,7 +493,7 @@ namespace OpenDental{
 			}
 			_procedureCode.ProvNumDefault=comboProvNumDefault.GetSelectedProvNum();			
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA, for CanadaTimeUnits
-				_procedureCode.CanadaTimeUnits=PIn.Double(textTimeUnits.Text);
+				_procedureCode.CanadaTimeUnits=SIn.Double(textTimeUnits.Text);
 			}
 			if(checkBypassLockDate.Checked) {
 				_procedureCode.BypassGlobalLock=BypassLockStatus.BypassIfZero;

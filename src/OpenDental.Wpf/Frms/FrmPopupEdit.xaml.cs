@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using WpfControls.UI;
 
@@ -45,7 +46,7 @@ namespace OpenDental {
 			else {
 				if(PopupCur.UserNum!=0) {//This check is so that any old popups without a user will still display correctly.
 					//Display last user to edit PopupCur, or "Unknown(5)" if user not found.
-					textUser.Text=Userods.GetUser(PopupCur.UserNum)?.UserName??(Lans.g(this,"Unknown")+$"({POut.Long(PopupCur.UserNum)})");
+					textUser.Text=Userods.GetUser(PopupCur.UserNum)?.UserName??(Lans.g(this,"Unknown")+$"({SOut.Long(PopupCur.UserNum)})");
 				}
 				if(PopupAudit!=null) {//This checks if this window opened from FormPopupAudit
 					textCreateDate.Text="";

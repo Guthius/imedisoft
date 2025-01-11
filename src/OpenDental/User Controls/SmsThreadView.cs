@@ -369,7 +369,7 @@ namespace OpenDental {
 				Process.Start(link);
 			}
 			catch {
-				MessageBox.Show(Lans.g(this,"Failed to open web browser.  Please make sure you have a default browser set and are connected to the internet then try again."),Lans.g(this,"Attention"));
+				ODMessageBox.Show(Lans.g(this,"Failed to open web browser.  Please make sure you have a default browser set and are connected to the internet then try again."),Lans.g(this,"Attention"));
 			}
 
 		}

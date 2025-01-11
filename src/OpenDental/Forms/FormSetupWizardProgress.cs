@@ -50,7 +50,7 @@ namespace OpenDental {
 				string strMsg=Lan.g("FormSetupWizard","You have not finished setting this section up yet.") 
 					+"\r\n"+_listSetupWizClasses[_indexSetupClasses].SetupControl.StrIncomplete;
 				strMsg+="\r\n"+Lan.g("FormSetupWizard","Click 'Skip' if you do not wish to finish setting this section up at this time.");
-				MessageBox.Show(strMsg);
+				ODMessageBox.Show(strMsg);
 				return;
 			}
 			//Call the Control Done method for the setup class.

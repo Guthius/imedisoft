@@ -771,7 +771,7 @@ namespace OpenDental {
 				Podium.ShowPage();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 

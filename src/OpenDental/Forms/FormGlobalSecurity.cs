@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.DirectoryServices;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -198,8 +199,8 @@ namespace OpenDental {
 			doInvalidatePrefs |=Prefs.UpdateBool(PrefName.SecurityBadgesRequirePassword,checkBadgeLogIn.Checked);
 			doInvalidatePrefs |=Prefs.UpdateBool(PrefName.PasswordsStrongIncludeSpecial,checkPasswordsStrongIncludeSpecial.Checked);
 			doInvalidatePrefs |=Prefs.UpdateBool(PrefName.PasswordsWeakChangeToStrong,checkPasswordForceWeakToStrong.Checked);
-			doInvalidatePrefs |=Prefs.UpdateInt(PrefName.SecurityLogOffAfterMinutes,PIn.Int(textLogOffAfterMinutes.Text));
-			doInvalidatePrefs |=Prefs.UpdateString(PrefName.DomainLoginPath,PIn.String(textDomainLoginPath.Text));
+			doInvalidatePrefs |=Prefs.UpdateInt(PrefName.SecurityLogOffAfterMinutes,SIn.Int(textLogOffAfterMinutes.Text));
+			doInvalidatePrefs |=Prefs.UpdateString(PrefName.DomainLoginPath,SIn.String(textDomainLoginPath.Text));
 			doInvalidatePrefs |=Prefs.UpdateString(PrefName.DomainLoginPath,textDomainLoginPath.Text);
 			doInvalidatePrefs |=Prefs.UpdateString(PrefName.DomainLoginPath,textDomainLoginPath.Text);
 			doInvalidatePrefs |=Prefs.UpdateBool(PrefName.DomainLoginEnabled,checkDomainLoginEnabled.Checked);

@@ -12,6 +12,7 @@ using OpenDentBusiness;
 using System.Collections;
 using OpenDental.UI;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Thinfinity;
@@ -496,13 +497,13 @@ namespace OpenDental {
 
 		/// <summary>Sets date controls in both date tabs</summary>
 		private void SetDates(DateTime dateFrom,DateTime dateTo) {
-			string daysOldMin=POut.Int((int)Math.Round((DateTime.Today-dateTo.Date).TotalDays,0));//Calculate min days old from dateTo.
+			string daysOldMin=SOut.Int((int)Math.Round((DateTime.Today-dateTo.Date).TotalDays,0));//Calculate min days old from dateTo.
 			string daysOldMax="";
 			if(dateFrom>dateTo) {
 				dateFrom=dateTo.Date;//dateFrom cannot be after dateTo
 			}
 			if(dateFrom>DateTime.MinValue) {
-				daysOldMax=POut.Int((int)Math.Round((DateTime.Today-dateFrom.Date).TotalDays,0));//Calculate max days old from dateFrom.
+				daysOldMax=SOut.Int((int)Math.Round((DateTime.Today-dateFrom.Date).TotalDays,0));//Calculate max days old from dateFrom.
 			}
 			else {
 				dateFrom=DateTime.MinValue;//MinValue, but show a blank in the date text box.
@@ -749,11 +750,11 @@ namespace OpenDental {
 				}
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+				ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
 
-			MessageBox.Show(Lan.g(this,"File created successfully"));
+			ODMessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		private void butZeroClaims_Click(object sender,EventArgs e) {

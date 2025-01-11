@@ -18,6 +18,7 @@ using OpenDentBusiness;
 using CodeBase;
 using OpenDentBusiness.Crud;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Eclaims;
@@ -424,7 +425,7 @@ namespace OpenDental {
 			if(Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)) {
 				checkCodeSubst.Visible=false;
 			}
-			_dateTimePatPlanLastVerified=PIn.Date(textDateLastVerifiedPatPlan.Text);
+			_dateTimePatPlanLastVerified=SIn.Date(textDateLastVerifiedPatPlan.Text);
 			_procedureCodeOrthoAuto=null;
 			if(_insPlan.OrthoAutoProcCodeNumOverride!=0) {
 				_procedureCodeOrthoAuto=ProcedureCodes.GetProcCode(_insPlan.OrthoAutoProcCodeNumOverride);
@@ -546,7 +547,7 @@ namespace OpenDental {
 			if(_insPlan.PlanType=="f") {
 				comboPlanType.SelectedIndex=(int)InsPlanTypeComboItem.MedicaidOrFlatCopay;
 			}
-			_insPlanTypeComboItemSelected=PIn.Enum<InsPlanTypeComboItem>(comboPlanType.SelectedIndex);
+			_insPlanTypeComboItemSelected=SIn.Enum<InsPlanTypeComboItem>(comboPlanType.SelectedIndex);
 			checkAlternateCode.Checked=_insPlan.UseAltCode;
 			checkCodeSubst.Checked=_insPlan.CodeSubstNone;
 			checkPpoSubWo.Checked=_insPlan.HasPpoSubstWriteoffs;
@@ -650,7 +651,7 @@ namespace OpenDental {
 			InsVerify insVerifyBenefits=InsVerifies.GetOneByFKey(_insPlan.PlanNum,VerifyTypes.InsuranceBenefit);
 			if(insVerifyBenefits!=null && insVerifyBenefits.DateLastVerified.Year>1880) {//Only show a date if this insurance has ever been verified
 				textDateLastVerifiedBenefits.Text=insVerifyBenefits.DateLastVerified.ToShortDateString();
-				_dateTimeInsPlanLastVerified=PIn.Date(textDateLastVerifiedBenefits.Text);
+				_dateTimeInsPlanLastVerified=SIn.Date(textDateLastVerifiedBenefits.Text);
 			}
 			//if(PlanCur.BenefitNotes=="") {
 			//	butBenefitNotes.Enabled=false;
@@ -824,7 +825,7 @@ namespace OpenDental {
 				FillBenefits();
 			}
 			InsPlanTypeComboItem InsPlanTypeComboItemPrevSelection=_insPlanTypeComboItemSelected;
-			_insPlanTypeComboItemSelected=PIn.Enum<InsPlanTypeComboItem>(comboPlanType.SelectedIndex);
+			_insPlanTypeComboItemSelected=SIn.Enum<InsPlanTypeComboItem>(comboPlanType.SelectedIndex);
 			switch(_insPlanTypeComboItemSelected) {
 				case InsPlanTypeComboItem.CategoryPercentage:
 					_insPlan.PlanType="";
@@ -1288,13 +1289,13 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				if(PrefC.GetBool(PrefName.SubscriberAllowChangeAlways)) {
-					DialogResult dialogResult=MessageBox.Show(Lan.g(this,"Warning!  Do not change unless fixing database corruption.  ")+"\r\n"+ex.Message);
+					DialogResult dialogResult=ODMessageBox.Show(Lan.g(this,"Warning!  Do not change unless fixing database corruption.  ")+"\r\n"+ex.Message);
 					if(dialogResult!=DialogResult.OK) {
 						return;
 					}
 				}
 				else {
-					MessageBox.Show(Lan.g(this,"Not allowed to change.")+"\r\n"+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Not allowed to change.")+"\r\n"+ex.Message);
 					return;
 				}
 			}
@@ -1385,18 +1386,18 @@ namespace OpenDental {
 			else {
 				RegistryKey registryKey=Registry.LocalMachine.OpenSubKey("Software\\TROJAN BENEFIT SERVICE");
 				if(registryKey==null) {//dmg Unix OS will exit here.
-					MessageBox.Show("Trojan not installed properly.");
+					ODMessageBox.Show("Trojan not installed properly.");
 					return;
 				}
 				//C:\ETW
 				if(registryKey.GetValue("INSTALLDIR")==null) {
-					MessageBox.Show(@"Registry entry is missing and should be added manually.  LocalMachine\Software\TROJAN BENEFIT SERVICE. StringValue.  Name='INSTALLDIR',	value= path where the Trojan program is located.  Full path to directory, without trailing slash.");
+					ODMessageBox.Show(@"Registry entry is missing and should be added manually.  LocalMachine\Software\TROJAN BENEFIT SERVICE. StringValue.  Name='INSTALLDIR',	value= path where the Trojan program is located.  Full path to directory, without trailing slash.");
 					return;
 				}
 				file=ODFileUtils.CombinePaths(registryKey.GetValue("INSTALLDIR").ToString(),"Planout.txt");
 			}
 			if(!File.Exists(file)) {
-				MessageBox.Show(file+" not found.  You should export from Trojan first.");
+				ODMessageBox.Show(file+" not found.  You should export from Trojan first.");
 				return;
 			}
 			TrojanObject trojanObject=Trojan.ProcessTextToObject(File.ReadAllText(file));
@@ -1588,7 +1589,7 @@ namespace OpenDental {
 								benefit.CovCatNum=CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum;
 								benefit.PlanNum=_insPlan.PlanNum;
 								benefit.TimePeriod=BenefitTimePeriod.CalendarYear;
-								benefit.MonetaryAmt=PIn.Double(stringArraySplitField[0].Remove(0,1));//removes the $
+								benefit.MonetaryAmt=SIn.Double(stringArraySplitField[0].Remove(0,1));//removes the $
 								_listBenefits.Add(benefit.Copy());
 							}
 							break;
@@ -1604,7 +1605,7 @@ namespace OpenDental {
 								benefit.CovCatNum=CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum;
 								benefit.PlanNum=_insPlan.PlanNum;
 								benefit.TimePeriod=BenefitTimePeriod.CalendarYear;
-								benefit.MonetaryAmt=PIn.Double(stringArraySplitField[0].Remove(0,1));//removes the $
+								benefit.MonetaryAmt=SIn.Double(stringArraySplitField[0].Remove(0,1));//removes the $
 								_listBenefits.Add(benefit.Copy());
 							}
 							break;
@@ -1621,7 +1622,7 @@ namespace OpenDental {
 								break;
 							}
 							stringArraySplitField[0]=stringArraySplitField[0].Remove(stringArraySplitField[0].Length-1,1);//remove %
-							percent=PIn.Int(stringArraySplitField[0]);
+							percent=SIn.Int(stringArraySplitField[0]);
 							if(percent<0 || percent>100) {
 								break;
 							}
@@ -1640,7 +1641,7 @@ namespace OpenDental {
 								break;
 							}
 							stringArraySplitField[0]=stringArraySplitField[0].Remove(stringArraySplitField[0].Length-1,1);//remove %
-							percent=PIn.Int(stringArraySplitField[0]);
+							percent=SIn.Int(stringArraySplitField[0]);
 							if(percent<0 || percent>100) {
 								break;
 							}
@@ -1680,7 +1681,7 @@ namespace OpenDental {
 								break;
 							}
 							stringArraySplitField[0]=stringArraySplitField[0].Remove(stringArraySplitField[0].Length-1,1);//remove %
-							percent=PIn.Int(stringArraySplitField[0]);
+							percent=SIn.Int(stringArraySplitField[0]);
 							if(percent<0 || percent>100) {
 								break;
 							}
@@ -1711,7 +1712,7 @@ namespace OpenDental {
 								break;
 							}
 							stringArraySplitField[0]=stringArraySplitField[0].Remove(stringArraySplitField[0].Length-1,1);//remove %
-							percent=PIn.Int(stringArraySplitField[0]);
+							percent=SIn.Int(stringArraySplitField[0]);
 							if(percent<0 || percent>100) {
 								break;
 							}
@@ -1735,7 +1736,7 @@ namespace OpenDental {
 								benefit.CovCatNum=CovCats.GetForEbenCat(EbenefitCategory.Orthodontics).CovCatNum;
 								benefit.PlanNum=_insPlan.PlanNum;
 								benefit.TimePeriod=BenefitTimePeriod.CalendarYear;
-								benefit.MonetaryAmt=PIn.Double(stringArraySplitField[0].Remove(0,1));//removes the $
+								benefit.MonetaryAmt=SIn.Double(stringArraySplitField[0].Remove(0,1));//removes the $
 								_listBenefits.Add(benefit.Copy());
 							}
 							break;
@@ -1913,11 +1914,11 @@ namespace OpenDental {
 			}
 			catch(ApplicationException ex) {
 				Iap.CloseDatabase();
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			catch(Exception ex) {
 				Iap.CloseDatabase();
-				MessageBox.Show("Error: "+ex.Message);
+				ODMessageBox.Show("Error: "+ex.Message);
 			}
 			FillBenefits();
 		}
@@ -1948,7 +1949,7 @@ namespace OpenDental {
 			}
 			catch(ApplicationException ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//PlanCur.BenefitNotes+=result;
@@ -2026,7 +2027,7 @@ namespace OpenDental {
 						InsSubs.Delete(_insSub.InsSubNum);//Checks dependencies first;  If none, deletes the inssub, claimprocs, patplans, and recomputes all estimates.
 					}
 					catch(ApplicationException ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}
 					logText=Lan.g(this,"The subscriber")+" "+Patients.GetPat(_insSub.Subscriber).GetNameFLnoPref()+" "
@@ -2051,7 +2052,7 @@ namespace OpenDental {
 				InsPlans.Delete(_insPlan);//Checks dependencies first;  If none, deletes insplan, inssub, benefits, claimprocs, patplans, and recomputes all estimates.
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			logText=Lan.g(this,"The insurance plan for the carrier")+" "+Carriers.GetCarrier(_insPlan.CarrierNum).CarrierName+" "+Lan.g(this,"was deleted.");
@@ -2129,7 +2130,7 @@ namespace OpenDental {
 			}
 			catch(ApplicationException ex) {
 				//the catch is just to display a message to the user.  It doesn't affect the success of the function.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}	
 			LabelSingle.PrintCarrier(carrier.CarrierNum);//,pd.PrinterSettings.PrinterName);
 		}
@@ -2245,7 +2246,7 @@ namespace OpenDental {
 			if(IsNewPlan && _insPlan.PlanNum != _insPlanOld.PlanNum) {  //If adding a new plan and picked existing plan from list
 				//==Travis 05/06/2015:  Allowing users to edit insurance benefits for new plans that were picked from the list was causing problems with 
 				//	duplicating benefits.  This was the fix we decided to go with, as the issue didn't seem to be affecting existing plans for a patient.
-				MessageBox.Show(Lan.g(this,"You have picked an existing insurance plan and changes cannot be made to benefits until you have saved the plan for this new subscriber.")
+				ODMessageBox.Show(Lan.g(this,"You have picked an existing insurance plan and changes cannot be made to benefits until you have saved the plan for this new subscriber.")
 					+"\r\n"+Lan.g(this,"To edit, click OK and then open the edit insurance plan window again."));
 				return;
 			}
@@ -2339,7 +2340,7 @@ namespace OpenDental {
 			//It is nicer to the user to not make them wait when they can fix the settings beforehand.
 			string settingErrors271=X271.ValidateSettings();
 			if(settingErrors271!="") {
-				MessageBox.Show(settingErrors271);
+				ODMessageBox.Show(settingErrors271);
 				return;
 			}
 			if(!FillPlanCurFromForm()) {
@@ -2401,7 +2402,7 @@ namespace OpenDental {
 					}
 				}
 				else if(!error.IsNullOrEmpty()) {
-					MessageBox.Show(error);
+					ODMessageBox.Show(error);
 				}
 			}
 			catch(Exception ex) {//although many errors will be caught and result in a response etrans.
@@ -2466,7 +2467,7 @@ namespace OpenDental {
 				passWord = "";
 			}
 			if(loginID == "") {
-				MessageBox.Show("ClaimConnect login ID and password are required to check eligibility.");
+				ODMessageBox.Show("ClaimConnect login ID and password are required to check eligibility.");
 				Cursor = Cursors.Default;
 				return;
 			}
@@ -2486,7 +2487,7 @@ namespace OpenDental {
 			}
 			catch{//Exception ex) {
 				// SPK /AAD 8/16/08 Display more user friendly error message
-				MessageBox.Show("Error : Inadequate data for response. Payer site may be unavailable.");
+				ODMessageBox.Show("Error : Inadequate data for response. Payer site may be unavailable.");
 			}
 			Cursor = Cursors.Default;
 		}
@@ -2547,10 +2548,10 @@ namespace OpenDental {
 				TaxoCode = "Unknown";
 			}
 			else {
-				infoReceiverFirstName = PIn.String(table.Rows[0][0].ToString());
-				infoReceiverLastName = PIn.String(table.Rows[0][1].ToString());
+				infoReceiverFirstName = SIn.String(table.Rows[0][0].ToString());
+				infoReceiverLastName = SIn.String(table.Rows[0][1].ToString());
 				// Case statement for TaxoCode
-				switch(PIn.Long(table.Rows[0][2].ToString())) {
+				switch(SIn.Long(table.Rows[0][2].ToString())) {
 					case 1:
 						TaxoCode = "124Q00000X";
 						break;
@@ -2630,7 +2631,7 @@ namespace OpenDental {
 			//Get Provider NPI #
 			table = Providers.GetDefaultPracticeProvider3();
 			if(table.Rows.Count != 0) {
-				xmlNodeInfoReceiverProviderNPI.InnerText = PIn.String(table.Rows[0][0].ToString());
+				xmlNodeInfoReceiverProviderNPI.InnerText = SIn.String(table.Rows[0][0].ToString());
 			};
 			xmlNodeInfoReceiver.AppendChild(xmlNodeInfoReceiverProviderNPI);
 			//SPK / AAD 8/13/08 Add NPI -- End
@@ -2672,9 +2673,9 @@ namespace OpenDental {
 				GenderCode = "?";
 			}
 			else {
-				xmlNodePatientFirstName.InnerText = PIn.String(table.Rows[0][0].ToString());
-				xmlNodePatientLastName.InnerText = PIn.String(table.Rows[0][1].ToString());
-				xmlNodePatientDOB.InnerText = PIn.String(table.Rows[0][2].ToString());
+				xmlNodePatientFirstName.InnerText = SIn.String(table.Rows[0][0].ToString());
+				xmlNodePatientLastName.InnerText = SIn.String(table.Rows[0][1].ToString());
+				xmlNodePatientDOB.InnerText = SIn.String(table.Rows[0][2].ToString());
 				switch(comboRelationship.Text) {
 					case "Self":
 						RelationShip = "18";
@@ -2689,7 +2690,7 @@ namespace OpenDental {
 						RelationShip = "34";
 						break;
 				}
-				switch(PIn.String(table.Rows[0][3].ToString())) {
+				switch(SIn.String(table.Rows[0][3].ToString())) {
 					case "1":
 						GenderCode = "F";
 						break;
@@ -2727,10 +2728,10 @@ namespace OpenDental {
 				GenderCode = "?";
 			}
 			else {
-				xmlNodeSubscriberFirstName.InnerText = PIn.String(table.Rows[0][0].ToString());
-				xmlNodeSubscriberLastName.InnerText = PIn.String(table.Rows[0][1].ToString());
-				xmlNodeSubscriberDOB.InnerText = PIn.String(table.Rows[0][2].ToString());
-				switch(PIn.String(table.Rows[0][3].ToString())) {
+				xmlNodeSubscriberFirstName.InnerText = SIn.String(table.Rows[0][0].ToString());
+				xmlNodeSubscriberLastName.InnerText = SIn.String(table.Rows[0][1].ToString());
+				xmlNodeSubscriberDOB.InnerText = SIn.String(table.Rows[0][2].ToString());
+				switch(SIn.String(table.Rows[0][3].ToString())) {
 					case "1":
 						GenderCode = "F";
 						break;
@@ -2763,8 +2764,8 @@ namespace OpenDental {
 			// Read Patient FName,LName,DOB, and Gender from Patient Table
 			table=Providers.GetPrimaryProviders(_patPlan.PatNum);
 			if(table.Rows.Count != 0) {
-				renderingProviderFirstName = PIn.String(table.Rows[0][0].ToString());
-				renderingProviderLastName = PIn.String(table.Rows[0][1].ToString());
+				renderingProviderFirstName = SIn.String(table.Rows[0][0].ToString());
+				renderingProviderLastName = SIn.String(table.Rows[0][1].ToString());
 			}
 			else {
 				renderingProviderFirstName = infoReceiverFirstName;
@@ -2836,11 +2837,11 @@ namespace OpenDental {
 					xmlNodeErrorMessage = xmlDocument.SelectSingleNode("EligBenefitResponse/Response/ErrorMsg");
 					IsEligibleStatus = textSubscriber.Text + " is Not Eligible. Error Code:";
 					IsEligibleStatus += xmlNodeErrorCode.InnerText + " Error Description:" + xmlNodeErrorMessage.InnerText;
-					MessageBox.Show(IsEligibleStatus);
+					ODMessageBox.Show(IsEligibleStatus);
 					break;
 				default:
 					IsEligibleStatus = textSubscriber.Text + " Eligibility status is Unknown";
-					MessageBox.Show(IsEligibleStatus);
+					ODMessageBox.Show(IsEligibleStatus);
 					break;
 			}
 		}
@@ -3056,8 +3057,8 @@ namespace OpenDental {
 			if(_insSub!=null) {
 				//Subscriber: Only changed when user clicks change button.
 				_insSub.SubscriberID=textSubscriberID.Text;
-				_insSub.DateEffective=PIn.Date(textDateEffect.Text);
-				_insSub.DateTerm=PIn.Date(textDateTerm.Text);
+				_insSub.DateEffective=SIn.Date(textDateEffect.Text);
+				_insSub.DateTerm=SIn.Date(textDateTerm.Text);
 				_insSub.ReleaseInfo=checkRelease.Checked;
 				_insSub.AssignBen=checkAssign.Checked;
 				_insSub.SubscNote=textSubscNote.Text;
@@ -3179,11 +3180,11 @@ namespace OpenDental {
 			}
 			else if(comboCopay.SelectedIndex==-1) {//CopayFeeSched is hidden or switching to/from PPO Fixed Benefits plan
 				if(IsFixedBenefitMismatch(FeeScheds.GetFirstOrDefault(x => x.FeeSchedNum==comboCopay.GetSelectedKey<FeeSched>(x=>x.FeeSchedNum)))) {
-					MessageBox.Show(Lans.g(this,"PPO Fixed Benefits Fee Schedules can only be assigned to PPO Fixed Benefits plan types. "
+					ODMessageBox.Show(Lans.g(this,"PPO Fixed Benefits Fee Schedules can only be assigned to PPO Fixed Benefits plan types. "
 						+"Please make a valid selection from ")+labelCopayFeeSched.Text);
 					return false;	
 				}
-				if(MessageBox.Show(this,Lans.g(this,"The selected ")+labelCopayFeeSched.Text
+				if(ODMessageBox.Show(this,Lans.g(this,"The selected ")+labelCopayFeeSched.Text
 					+Lan.g(this," fee schedule has been hidden. Are you sure you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No) 
 				{
 					return false;
@@ -3265,9 +3266,9 @@ namespace OpenDental {
 			if(checkOrthoWaitDays.Checked) {
 				_insPlan.OrthoAutoClaimDaysWait=30;
 			}
-			_insPlan.OrthoAutoFeeBilled=PIn.Double(textOrthoAutoFee.Text);
-			_insPlan.PerVisitPatAmount=PIn.Double(textPerVisitPatAmount.Text);
-			_insPlan.PerVisitInsAmount=PIn.Double(textPerVisitInsAmount.Text);
+			_insPlan.OrthoAutoFeeBilled=SIn.Double(textOrthoAutoFee.Text);
+			_insPlan.PerVisitPatAmount=SIn.Double(textPerVisitPatAmount.Text);
+			_insPlan.PerVisitInsAmount=SIn.Double(textPerVisitInsAmount.Text);
 			return true;
 		}
 
@@ -3280,7 +3281,7 @@ namespace OpenDental {
 				//Check all claims for plan
 				claimCount=Claims.GetCountReceived(_insPlanOriginal.PlanNum);
 				if(claimCount!=0) {
-					if(MessageBox.Show(Lan.g(this,"There are")+" "+claimCount+" "+Lan.g(this,"received claims for this insurance plan that will have the carrier changed")+".  "+Lan.g(this,"You should NOT do this if the patient is changing insurance")+".  "+Lan.g(this,"Use the Drop button instead")+".  "+Lan.g(this,"Continue")+"?","",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(Lan.g(this,"There are")+" "+claimCount+" "+Lan.g(this,"received claims for this insurance plan that will have the carrier changed")+".  "+Lan.g(this,"You should NOT do this if the patient is changing insurance")+".  "+Lan.g(this,"Use the Drop button instead")+".  "+Lan.g(this,"Continue")+"?","",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return false; //abort
 					}
 				}
@@ -3289,7 +3290,7 @@ namespace OpenDental {
 				if(radioChangeAll.Checked==true) {//Check radio button
 					claimCount=Claims.GetCountReceived(_insPlanOriginal.PlanNum);
 					if(claimCount!=0) {//Check all claims for plan
-						if(MessageBox.Show(Lan.g(this,"There are")+" "+claimCount+" "+Lan.g(this,"received claims for this insurance plan that will have the carrier changed")+".  "+Lan.g(this,"You should NOT do this if the patient is changing insurance")+".  "+Lan.g(this,"Use the Drop button instead")+".  "+Lan.g(this,"Continue")+"?","",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+						if(ODMessageBox.Show(Lan.g(this,"There are")+" "+claimCount+" "+Lan.g(this,"received claims for this insurance plan that will have the carrier changed")+".  "+Lan.g(this,"You should NOT do this if the patient is changing insurance")+".  "+Lan.g(this,"Use the Drop button instead")+".  "+Lan.g(this,"Continue")+"?","",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 							return false; //abort
 						}
 					}
@@ -3297,7 +3298,7 @@ namespace OpenDental {
 				else {//Check claims for plan and patient only
 					claimCount=Claims.GetCountReceived(_insPlanOriginal.PlanNum,_patPlan.InsSubNum);
 					if(claimCount!=0) {
-						if(MessageBox.Show(Lan.g(this,"There are")+" "+claimCount+" "+Lan.g(this,"received claims for this insurance plan that will have the carrier changed")+".  "+Lan.g(this,"You should NOT do this if the patient is changing insurance")+".  "+Lan.g(this,"Use the Drop button instead")+".  "+Lan.g(this,"Continue")+"?","",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+						if(ODMessageBox.Show(Lan.g(this,"There are")+" "+claimCount+" "+Lan.g(this,"received claims for this insurance plan that will have the carrier changed")+".  "+Lan.g(this,"You should NOT do this if the patient is changing insurance")+".  "+Lan.g(this,"Use the Drop button instead")+".  "+Lan.g(this,"Continue")+"?","",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 							return false; //abort
 						}
 					}
@@ -3376,9 +3377,9 @@ namespace OpenDental {
 				MsgBox.Show(this,"To view this setup window, the insurance plan must be set to have an Ortho Claim Type of Initial Plus Periodic.");
 				return;
 			}
-			double defaultFee=PIn.Double(textOrthoAutoFee.Text);
-			string carrierName=PIn.String(textCarrier.Text);
-			string subID=PIn.String(textSubscriberID.Text);
+			double defaultFee=SIn.Double(textOrthoAutoFee.Text);
+			string carrierName=SIn.String(textCarrier.Text);
+			string subID=SIn.String(textSubscriberID.Text);
 			if(defaultFee==0) {
 				defaultFee=_insPlan.OrthoAutoFeeBilled;
 			}
@@ -3454,7 +3455,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error Code 1")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(Lan.g(this,"Error Code 1")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
 			#endregion 1 - Validate Carrier Received Claims
@@ -3478,7 +3479,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error Code 2")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(Lan.g(this,"Error Code 2")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
 			#endregion 2 - InsPlanChangeAssign Permission Check
@@ -3487,11 +3488,11 @@ namespace OpenDental {
 				//Validation is finished at this point.
 				//PatPlan-------------------------------------------------------------------------------------------
 				if(_patPlan!=null) {
-					if(PIn.Long(textOrdinal.Text)!=_patPlan.Ordinal) {//Ordinal changed by user
-						_patPlan.Ordinal=(byte)(PatPlans.SetOrdinal(_patPlan.PatPlanNum,PIn.Int(textOrdinal.Text)));
+					if(SIn.Long(textOrdinal.Text)!=_patPlan.Ordinal) {//Ordinal changed by user
+						_patPlan.Ordinal=(byte)(PatPlans.SetOrdinal(_patPlan.PatPlanNum,SIn.Int(textOrdinal.Text)));
 						_hasOrdinalChanged=true;
 					}
-					else if(PIn.Long(textOrdinal.Text)!=PatPlans.GetByPatPlanNum(_patPlan.PatPlanNum).Ordinal) {
+					else if(SIn.Long(textOrdinal.Text)!=PatPlans.GetByPatPlanNum(_patPlan.PatPlanNum).Ordinal) {
 						//PatPlan's ordinal changed by somebody else and not this user, set it to what's in the DB for this update.
 						_patPlan.Ordinal=PatPlans.GetByPatPlanNum(_patPlan.PatPlanNum).Ordinal;
 					}
@@ -3502,10 +3503,10 @@ namespace OpenDental {
 						_patPlanOld.PatID=_patPlanOld.PatID??"";
 					}
 					PatPlans.Update(_patPlan,_patPlanOld);
-					if(!PIn.Date(textDateLastVerifiedPatPlan.Text).Date.Equals(_dateTimePatPlanLastVerified.Date)) {
+					if(!SIn.Date(textDateLastVerifiedPatPlan.Text).Date.Equals(_dateTimePatPlanLastVerified.Date)) {
 						InsVerify insVerify=InsVerifies.GetOneByFKey(_patPlan.PatPlanNum,VerifyTypes.PatientEnrollment);
 						if(insVerify!=null) {
-							insVerify.DateLastVerified=PIn.Date(textDateLastVerifiedPatPlan.Text);
+							insVerify.DateLastVerified=SIn.Date(textDateLastVerifiedPatPlan.Text);
 							InsVerifyHists.InsertFromInsVerify(insVerify);
 						}
 					}
@@ -3515,7 +3516,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error Code 3")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(Lan.g(this,"Error Code 3")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
 			//It is okay to set the plan num on the subscriber object at this point.
@@ -3541,7 +3542,7 @@ namespace OpenDental {
 						}
 					}
 					catch(Exception ex) {
-						MessageBox.Show(Lan.g(this,"Error Code 4")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+						ODMessageBox.Show(Lan.g(this,"Error Code 4")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 						return;
 					}
 					#endregion 4 - InsPlan Null Subscriber
@@ -3567,7 +3568,7 @@ namespace OpenDental {
 										removeLogs=true;
 									}
 									catch(ApplicationException ex) {
-										MessageBox.Show(ex.Message);
+										ODMessageBox.Show(ex.Message);
 										//do not need to update PlanCur because no changes were made.
 										SecurityLogs.MakeLogEntry(EnumPermType.InsPlanEdit,_patPlan?.PatNum??0
 											,Lan.g(this,"FormInsPlan region 5 delete validation failed.  Plan was not deleted."),_insPlanOld.PlanNum,
@@ -3582,7 +3583,7 @@ namespace OpenDental {
 								}
 							}
 							catch(Exception ex) { //catch any other exceptions and display
-								MessageBox.Show(Lan.g(this,"Error Code 5")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+								ODMessageBox.Show(Lan.g(this,"Error Code 5")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 								return;
 							}
 							#endregion 5 - InsPlan Non-Null Subscriber, New Plan, No Changes Made
@@ -3605,7 +3606,7 @@ namespace OpenDental {
 											removeLogs=true;
 										}
 										catch(ApplicationException ex) {
-											MessageBox.Show(ex.Message);
+											ODMessageBox.Show(ex.Message);
 											SecurityLogs.MakeLogEntry(EnumPermType.InsPlanEdit,_patPlan?.PatNum??0
 												,Lan.g(this,"FormInsPlan region 6 delete validation failed.  Plan was not deleted."),_insPlanOld.PlanNum,
 												DateTime.MinValue); //new plan, no date needed.
@@ -3630,7 +3631,7 @@ namespace OpenDental {
 									}
 								}
 								catch(Exception ex) {
-									MessageBox.Show(Lan.g(this,"Error Code 6")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+									ODMessageBox.Show(Lan.g(this,"Error Code 6")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 									return;
 								}
 							}
@@ -3659,7 +3660,7 @@ namespace OpenDental {
 								}
 							}
 							catch(Exception ex) {
-								MessageBox.Show(Lan.g(this,"Error Code 7")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+								ODMessageBox.Show(Lan.g(this,"Error Code 7")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 								return;
 							}
 							#endregion 7 - InsPlan Non-Null Subscriber, Not a New Plan, No Changes Made
@@ -3680,7 +3681,7 @@ namespace OpenDental {
 										//So if any benefits were changed, the synch further down will trigger updates for the benefits on the picked plan.
 									}
 									catch(Exception ex) {
-										MessageBox.Show(Lan.g(this,"Error Code 8")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+										ODMessageBox.Show(Lan.g(this,"Error Code 8")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 										return;
 									}
 									#endregion 8 - InsPlan Non-Null Subscriber, Not a New Plan, Pick From List, Changes Made, Change All Checked
@@ -3712,7 +3713,7 @@ namespace OpenDental {
 										}
 									}
 									catch(Exception ex) {
-										MessageBox.Show(Lan.g(this,"Error Code 9")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+										ODMessageBox.Show(Lan.g(this,"Error Code 9")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 										return;
 									}
 									#endregion 9 - InsPlan Non-Null Subscriber, Not a New Plan, Pick From List, Changes Made, Create New Plan Checked
@@ -3747,7 +3748,7 @@ namespace OpenDental {
 									}
 								}
 								catch(Exception ex) {
-									MessageBox.Show(Lan.g(this,"Error Code 10")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+									ODMessageBox.Show(Lan.g(this,"Error Code 10")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 									return;
 								}
 								#endregion 10 - InsPlan Non-Null Subscriber, Not a New Plan, Not Picked From List, Changes Made
@@ -3779,7 +3780,7 @@ namespace OpenDental {
 									removeLogs=true;
 								}
 								catch(ApplicationException ex) {
-									MessageBox.Show(ex.Message);
+									ODMessageBox.Show(ex.Message);
 									SecurityLogs.MakeLogEntry(EnumPermType.InsPlanEdit,_patPlan?.PatNum??0
 										,Lan.g(this,"FormInsPlan region 5a delete validation failed.  Plan was not deleted."),
 										_insPlanOld.PlanNum,DateTime.MinValue); //new plan, no date needed.
@@ -3789,7 +3790,7 @@ namespace OpenDental {
 							}
 						}
 						catch(Exception ex) {
-							MessageBox.Show(Lan.g(this,"Error Code 5a")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+							ODMessageBox.Show(Lan.g(this,"Error Code 5a")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 							return;
 						}
 						#endregion 5a - User Without Permissions, InsPlan Non-Null Subscriber, New Plan
@@ -3799,9 +3800,9 @@ namespace OpenDental {
 			#endregion InsPlan Edit
 			#region InsSub and Benefit Sync
 			try {
-				if(!PIn.Date(textDateLastVerifiedBenefits.Text).Date.Equals(_dateTimeInsPlanLastVerified.Date)) {
+				if(!SIn.Date(textDateLastVerifiedBenefits.Text).Date.Equals(_dateTimeInsPlanLastVerified.Date)) {
 					InsVerify insVerify=InsVerifies.GetOneByFKey(_insPlan.PlanNum,VerifyTypes.InsuranceBenefit);
-					insVerify.DateLastVerified=PIn.Date(textDateLastVerifiedBenefits.Text);
+					insVerify.DateLastVerified=SIn.Date(textDateLastVerifiedBenefits.Text);
 					InsVerifyHists.InsertFromInsVerify(insVerify);
 				}
 				//PatPlanCur.InsSubNum is already set before opening this window.  There is no possible way to change it from within this window.  Even if PlanNum changes, it's still the same inssub.  And even if inssub.Subscriber changes, it's still the same inssub.  So no change to PatPlanCur.InsSubNum is ever require from within this window.
@@ -3828,7 +3829,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error Code 11")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(Lan.g(this,"Error Code 11")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
 			#endregion InsSub and Benefit Sync
@@ -3852,7 +3853,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error Code 12")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(Lan.g(this,"Error Code 12")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
 			#endregion Carrier
@@ -3873,7 +3874,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error Code 13")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(Lan.g(this,"Error Code 13")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
 			#endregion Carrier FeeSched
@@ -3951,7 +3952,7 @@ namespace OpenDental {
 					ClaimProcs.DeleteMany(_arrayListAdj.ToArray().Cast<ClaimProc>().ToList());
 				}
 				catch(ApplicationException ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					SecurityLogs.MakeLogEntry(EnumPermType.InsPlanEdit,_patPlan?.PatNum??0
 						,Lan.g(this,"FormInsPlan_Closing delete validation failed.  Plan was not deleted."),_insPlanOld.PlanNum,DateTime.MinValue);//new plan, no date needed.
 					return;

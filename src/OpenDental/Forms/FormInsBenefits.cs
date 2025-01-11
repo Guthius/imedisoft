@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -806,7 +807,7 @@ namespace OpenDental {
 			for(int i=0;i<listBenefitsFreq.Count;i++) {
 				int indexFrequencySelected=gridFrequencies.ListGridRows[i].Cells[3].ComboSelectedIndex;
 				int indexTreatAreaSelected=gridFrequencies.ListGridRows[i].Cells[4].ComboSelectedIndex;
-				Byte byteProvided=PIn.Byte(gridFrequencies.ListGridRows[i].Cells[2].Text, throwExceptions:false);
+				Byte byteProvided=SIn.Byte(gridFrequencies.ListGridRows[i].Cells[2].Text, throwExceptions:false);
 				bool isPatOverride=gridFrequencies.ListGridRows[i].Cells[0].Text=="X";
 				if(byteProvided>0) {
 					Benefit benefit=MakeFrequencyBenefit(listBenefitsFreq[i],indexFrequencySelected,indexTreatAreaSelected,byteProvided,isPatOverride);
@@ -889,7 +890,7 @@ namespace OpenDental {
 			string messageText=Lan.g(this,"field is invalid.\r\n"
 				+"Leave the field blank or enter an age to denote coverage through that year before clicking OK.");
 			if(!textOrthoAge.IsValid()) {
-				MessageBox.Show(this,labelOrthoThroughAge.Text+" "+messageText);
+				ODMessageBox.Show(this,labelOrthoThroughAge.Text+" "+messageText);
 				return false;
 			}
 			if(!textAnnualMax.IsValid()
@@ -961,7 +962,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Individual;
 				}
-				benefit.MonetaryAmt=PIn.Double(textAnnualMax.Text);
+				benefit.MonetaryAmt=SIn.Double(textAnnualMax.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//annual max family
@@ -982,7 +983,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Family;
 				}
-				benefit.MonetaryAmt=PIn.Double(textAnnualMaxFam.Text);
+				benefit.MonetaryAmt=SIn.Double(textAnnualMaxFam.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			#endregion Annual Max
@@ -1005,7 +1006,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Individual;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductible.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductible.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//deductible family
@@ -1026,14 +1027,14 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Family;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductibleFam.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductibleFam.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			#endregion
 			#region Age Limitation
 			List<Benefit> listBenefitsAgeLim=gridAgeLimits.ListGridRows.Select(x=>(Benefit)x.Tag).ToList();
 			for(int i=0;i<listBenefitsAgeLim.Count;i++) {
-				byte age=PIn.Byte(gridAgeLimits.ListGridRows[i].Cells[2].Text,throwExceptions:false);
+				byte age=SIn.Byte(gridAgeLimits.ListGridRows[i].Cells[2].Text,throwExceptions:false);
 				if(age>0) {
 					benefit=MakeAgeLimitBenefit(listBenefitsAgeLim[i],age);
 					_listBenefitsAll.Add(benefit);
@@ -1046,7 +1047,7 @@ namespace OpenDental {
 			for(int i=0;i<listBenefitsFreq.Count;i++) {
 				int indexFrequencySelected=gridFrequencies.ListGridRows[i].Cells[3].ComboSelectedIndex;
 				int indexTreatAreaSelected=gridFrequencies.ListGridRows[i].Cells[4].ComboSelectedIndex;
-				Byte byteProvided=PIn.Byte(gridFrequencies.ListGridRows[i].Cells[2].Text,throwExceptions:false);
+				Byte byteProvided=SIn.Byte(gridFrequencies.ListGridRows[i].Cells[2].Text,throwExceptions:false);
 				bool isPatOverride=!String.IsNullOrEmpty(gridFrequencies.ListGridRows[i].Cells[0].Text);
 				if(byteProvided>0) {
 					benefit=MakeFrequencyBenefit(listBenefitsFreq[i],indexFrequencySelected,indexTreatAreaSelected,byteProvided,isPatOverride);
@@ -1067,7 +1068,7 @@ namespace OpenDental {
 					benefit.PlanNum=_planNum;
 					benefit.QuantityQualifier=BenefitQuantity.AgeLimit;
 				}
-				benefit.Quantity=PIn.Byte(textOrthoAge.Text);
+				benefit.Quantity=SIn.Byte(textOrthoAge.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//ortho max
@@ -1082,7 +1083,7 @@ namespace OpenDental {
 					benefit.PlanNum=_planNum;
 					benefit.TimePeriod=BenefitTimePeriod.Lifetime;
 				}
-				benefit.MonetaryAmt=PIn.Double(textOrthoMax.Text);
+				benefit.MonetaryAmt=SIn.Double(textOrthoMax.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//ortho percent
@@ -1102,7 +1103,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textOrthoPercent.Text);
+				benefit.Percent=SIn.Int(textOrthoPercent.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			#endregion Ortho
@@ -1125,7 +1126,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Individual;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductDiag.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductDiag.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//deductible diagnostic family
@@ -1146,7 +1147,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Family;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductDiagFam.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductDiagFam.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//deductible xray individual
@@ -1167,7 +1168,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Individual;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductXray.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductXray.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//deductible xray family
@@ -1188,7 +1189,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Family;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductXrayFam.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductXrayFam.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//deductible preventive individual
@@ -1209,7 +1210,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Individual;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductPrevent.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductPrevent.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//deductible preventive family
@@ -1230,7 +1231,7 @@ namespace OpenDental {
 					}
 					benefit.CoverageLevel=BenefitCoverageLevel.Family;
 				}
-				benefit.MonetaryAmt=PIn.Double(textDeductPreventFam.Text);
+				benefit.MonetaryAmt=SIn.Double(textDeductPreventFam.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Diagnostic
@@ -1250,7 +1251,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textDiagnostic.Text);
+				benefit.Percent=SIn.Int(textDiagnostic.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//X-Ray
@@ -1270,7 +1271,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textXray.Text);
+				benefit.Percent=SIn.Int(textXray.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//RoutinePreventive
@@ -1290,7 +1291,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textRoutinePrev.Text);
+				benefit.Percent=SIn.Int(textRoutinePrev.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Restorative
@@ -1310,7 +1311,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textRestorative.Text);
+				benefit.Percent=SIn.Int(textRestorative.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Endo
@@ -1330,7 +1331,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textEndo.Text);
+				benefit.Percent=SIn.Int(textEndo.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Perio
@@ -1350,7 +1351,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textPerio.Text);
+				benefit.Percent=SIn.Int(textPerio.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//OralSurg
@@ -1370,7 +1371,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textOralSurg.Text);
+				benefit.Percent=SIn.Int(textOralSurg.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Crowns
@@ -1390,7 +1391,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textCrowns.Text);
+				benefit.Percent=SIn.Int(textCrowns.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Prosth
@@ -1410,7 +1411,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textProsth.Text);
+				benefit.Percent=SIn.Int(textProsth.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//MaxProsth
@@ -1430,7 +1431,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textMaxProsth.Text);
+				benefit.Percent=SIn.Int(textMaxProsth.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			//Accident
@@ -1450,7 +1451,7 @@ namespace OpenDental {
 						benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 					}
 				}
-				benefit.Percent=PIn.Int(textAccident.Text);
+				benefit.Percent=SIn.Int(textAccident.Text);
 				_listBenefitsAll.Add(benefit);
 			}
 			#endregion Deductible
@@ -1533,7 +1534,7 @@ namespace OpenDental {
 					benefit.TimePeriod=BenefitTimePeriod.ServiceYear;
 				}
 			}
-			benefit.Quantity=PIn.Byte(validNum.Text);
+			benefit.Quantity=SIn.Byte(validNum.Text);
 			listBenefits.Add(benefit);
 		}
 
@@ -1603,7 +1604,7 @@ namespace OpenDental {
 				MonthRenew=0;
 			}
 			else {
-				MonthRenew=PIn.Byte(textMonth.Text);
+				MonthRenew=SIn.Byte(textMonth.Text);
 			}
 			Note=textSubscNote.Text;
 			DialogResult=DialogResult.OK;

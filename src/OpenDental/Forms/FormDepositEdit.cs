@@ -14,6 +14,7 @@ using CodeBase;
 using System.IO;
 using OpenDental.Thinfinity;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -103,7 +104,7 @@ namespace OpenDental{
 				comboDepositAccountNum.SetSelectedDefNum(_depositCur.DepositAccountNum);
 			}
 			if(IsNew) {
-				textDateStart.Text=PIn.Date(PrefC.GetString(PrefName.DateDepositsStarted)).ToShortDateString();
+				textDateStart.Text=SIn.Date(PrefC.GetString(PrefName.DateDepositsStarted)).ToShortDateString();
 				if(!true) {
 					comboClinic.Visible=false;
 					labelClinic.Visible=false;
@@ -237,7 +238,7 @@ namespace OpenDental{
 		
 		private void FillGrids(){
 			if(IsNew){
-				DateTime dateTimeStart=PIn.Date(textDateStart.Text);
+				DateTime dateTimeStart=SIn.Date(textDateStart.Text);
 				long clinicNum=0;
 				if(!comboClinic.IsAllSelected){
 					clinicNum=comboClinic.ClinicNumSelected;
@@ -434,7 +435,7 @@ namespace OpenDental{
 			catch(Exception ex) {
 				Cursor.Current=Cursors.Default;
 				if(allowContinue) {
-					if(MessageBox.Show(ex.Message+"\r\n\r\n"
+					if(ODMessageBox.Show(ex.Message+"\r\n\r\n"
 						+Lan.g(this,"The deposit has not been created in QuickBooks. Would you like to create the deposit locally anyway?")
 						,Lan.g(this,"QuickBooks Deposit Create Failed")
 						,MessageBoxButtons.YesNo)==DialogResult.Yes) 
@@ -443,7 +444,7 @@ namespace OpenDental{
 					}
 				}
 				else {
-					MessageBox.Show(ex.Message,Lan.g(this,"QuickBooks Deposit Create Failed"));
+					ODMessageBox.Show(ex.Message,Lan.g(this,"QuickBooks Deposit Create Failed"));
 				}
 				return false;//Did not want to continue creating regular deposit or failed creating QuickBooks Deposit with no option to continue.
 			}
@@ -467,16 +468,16 @@ namespace OpenDental{
 				return false;
 			}
 			//Prevent backdating----------------------------------------------------------------------------------------
-			DateTime dateTime=PIn.Date(textDate.Text);
+			DateTime dateTime=SIn.Date(textDate.Text);
 			//We enforce security here based on date displayed, not date entered
 			if(!Security.IsAuthorized(EnumPermType.DepositSlips,dateTime)) {
 				return false;
 			}
 			_depositCur.DateDeposit=dateTime;
 			//amount already handled.
-			_depositCur.BankAccountInfo=PIn.String(textBankAccountInfo.Text);
-			_depositCur.Memo=PIn.String(textMemo.Text);
-			_depositCur.Batch=PIn.String(textBatch.Text);
+			_depositCur.BankAccountInfo=SIn.String(textBankAccountInfo.Text);
+			_depositCur.Memo=SIn.String(textMemo.Text);
+			_depositCur.Batch=SIn.String(textBatch.Text);
 			if(comboDepositAccountNum.SelectedIndex > -1) {
 				_depositCur.DepositAccountNum=comboDepositAccountNum.GetSelectedDefNum();
 			}
@@ -497,7 +498,7 @@ namespace OpenDental{
 			if(listSelectedPayNums.Count>0) {
 				int countAlreadyAttached=Payments.GetCountAttachedToDeposit(listSelectedPayNums,_depositCur.DepositNum);//Depositnum might be 0
 				if(countAlreadyAttached>0) {
-					MessageBox.Show(this,countAlreadyAttached+" "+Lan.g(this,"patient payments are already attached to another deposit")+".");
+					ODMessageBox.Show(this,countAlreadyAttached+" "+Lan.g(this,"patient payments are already attached to another deposit")+".");
 					//refresh
 					return false;
 				}
@@ -507,7 +508,7 @@ namespace OpenDental{
 			if(listSelectedClaimPaymentNums.Count>0) {
 				int countAlreadyAttached=ClaimPayments.GetCountAttachedToDeposit(listSelectedClaimPaymentNums,_depositCur.DepositNum);//Depositnum might be 0
 				if(countAlreadyAttached>0) {
-					MessageBox.Show(this,countAlreadyAttached+" "+Lan.g(this,"insurance payments are already attached to another deposit")+".");
+					ODMessageBox.Show(this,countAlreadyAttached+" "+Lan.g(this,"insurance payments are already attached to another deposit")+".");
 					//refresh
 					return false;
 				}
@@ -552,7 +553,7 @@ namespace OpenDental{
 					ClaimPayments.Update(claimPaymentSelected,IsNew);//This could be enhanced with a multi row update.
 				}
 				catch(ApplicationException ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return false;
 				}
 				if(!_isOnOKClick) {//Print/Create PDF
@@ -620,7 +621,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"QuickBooks is not available while viewing through the web.");
 				return;
 			}
-			DateTime dateTime=PIn.Date(textDate.Text);//We use security on the date showing.
+			DateTime dateTime=SIn.Date(textDate.Text);//We use security on the date showing.
 			if(!Security.IsAuthorized(EnumPermType.DepositSlips,dateTime)) {
 				return;
 			}
@@ -645,7 +646,7 @@ namespace OpenDental{
 			//Only allowed to change date and bank account info, NOT attached checks.
 			//We enforce security here based on date displayed, not date entered.
 			//If user is trying to change date without permission:
-			DateTime dateTime=PIn.Date(textDate.Text);
+			DateTime dateTime=SIn.Date(textDate.Text);
 			if(Security.IsAuthorized(EnumPermType.DepositSlips,dateTime,true)){
 				if(!SaveToDB()) {
 					return false;
@@ -736,7 +737,7 @@ namespace OpenDental{
 			gridIns.SetAll(true);
 			ComputeAmt();
 			textBankAccountInfo.Text=Clinics.GetClinic(comboClinic.ClinicNumSelected).BankNumber;
-			_isChanged |= Prefs.UpdateString(PrefName.DateDepositsStarted,POut.Date(PIn.Date(textDateStart.Text),false));
+			_isChanged |= Prefs.UpdateString(PrefName.DateDepositsStarted,SOut.Date(SIn.Date(textDateStart.Text),false));
 		}
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
@@ -763,7 +764,7 @@ namespace OpenDental{
 					Transactions.Delete(transaction);
 				}
 				catch(ApplicationException ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}
@@ -771,7 +772,7 @@ namespace OpenDental{
 				Deposits.Delete(_depositCur);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);//Already translated.
+				ODMessageBox.Show(ex.Message);//Already translated.
 				return;
 			}
 			DialogResult=DialogResult.OK;

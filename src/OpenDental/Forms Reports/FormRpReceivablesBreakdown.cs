@@ -21,6 +21,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using OpenDental.ReportingComplex;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -125,7 +126,7 @@ namespace OpenDental {
 				}
 				else {
 					bDate = wDate;
-					eDate = POut.Date(date1.SelectionStart.AddDays(1)).Substring(1,10);// Needed because all Queries are < end date to get correct Starting AR
+					eDate = SOut.Date(date1.SelectionStart.AddDays(1)).Substring(1,10);// Needed because all Queries are < end date to get correct Starting AR
 				}
 				TableProduction=RpReceivablesBreakdown.GetRecvBreakdownTable(date1.SelectionStart,listProvNums,radioWriteoffPay.Checked,isPayPlan2,wDate,eDate,bDate,"TableProduction");
 				if(isPayPlan2) {
@@ -143,36 +144,36 @@ namespace OpenDental {
 				TableIns=RpReceivablesBreakdown.GetRecvBreakdownTable(date1.SelectionStart,listProvNums,radioWriteoffPay.Checked,isPayPlan2,wDate,eDate,bDate,"TableIns");
 				TableAdj=RpReceivablesBreakdown.GetRecvBreakdownTable(date1.SelectionStart,listProvNums,radioWriteoffPay.Checked,isPayPlan2,wDate,eDate,bDate,"TableAdj");
 				//Sum up all the transactions grouped by date.
-				Dictionary<DateTime,decimal> dictPayPlanCharges = TablePayPlanCharge.Select().GroupBy(x => PIn.Date(x["ChargeDate"].ToString()))
-					.ToDictionary(y => y.Key,y => y.ToList().Sum(z => PIn.Decimal(z["Amt"].ToString())));
+				Dictionary<DateTime,decimal> dictPayPlanCharges = TablePayPlanCharge.Select().GroupBy(x => SIn.Date(x["ChargeDate"].ToString()))
+					.ToDictionary(y => y.Key,y => y.ToList().Sum(z => SIn.Decimal(z["Amt"].ToString())));
 				//1st Loop Calculate running Accounts Receivable upto the 1st of the Month Selected
 				//2nd Loop Calculate the Daily Accounts Receivable upto the Date Selected
 				//Finaly Generate Report showing the breakdown upto the date specified with totals for what is on the report
 				if(j == 0) {
 					for(int k = 0;k < TableCharge.Rows.Count;k++) {
-						rcvCharge += PIn.Decimal(TableCharge.Rows[k][1].ToString());//Production-PayPlanCredits
+						rcvCharge += SIn.Decimal(TableCharge.Rows[k][1].ToString());//Production-PayPlanCredits
 					}
 					rcvPayPlanCharges+=dictPayPlanCharges.Sum(x => x.Value);
 					for(int k = 0;k < TableCapWriteoff.Rows.Count;k++) {
-						rcvWriteoff += PIn.Decimal(TableCapWriteoff.Rows[k][1].ToString());
+						rcvWriteoff += SIn.Decimal(TableCapWriteoff.Rows[k][1].ToString());
 					}
 					for(int k = 0;k < TableInsWriteoff.Rows.Count;k++) {
-						rcvWriteoff += PIn.Decimal(TableInsWriteoff.Rows[k][1].ToString());
+						rcvWriteoff += SIn.Decimal(TableInsWriteoff.Rows[k][1].ToString());
 					}
 					for(int k = 0;k < TablePay.Rows.Count;k++) {
-						rcvPayment += PIn.Decimal(TablePay.Rows[k][1].ToString());
+						rcvPayment += SIn.Decimal(TablePay.Rows[k][1].ToString());
 					}
 					for(int k = 0;k < TableIns.Rows.Count;k++) {
-						rcvInsPayment += PIn.Decimal(TableIns.Rows[k][1].ToString());
+						rcvInsPayment += SIn.Decimal(TableIns.Rows[k][1].ToString());
 					}
 					for(int k = 0;k < TableAdj.Rows.Count;k++) {
-						rcvAdj += PIn.Decimal(TableAdj.Rows[k][1].ToString());
+						rcvAdj += SIn.Decimal(TableAdj.Rows[k][1].ToString());
 					}
 					for(int k = 0;k < TableProduction.Rows.Count;k++) {
-						rcvProd += PIn.Decimal(TableProduction.Rows[k][1].ToString());
+						rcvProd += SIn.Decimal(TableProduction.Rows[k][1].ToString());
 					}
 					for(int k = 0;k < TablePayPlanCredit.Rows.Count;k++) {
-						rcvPayPlanCredit += PIn.Decimal(TablePayPlanCredit.Rows[k][1].ToString());
+						rcvPayPlanCredit += SIn.Decimal(TablePayPlanCredit.Rows[k][1].ToString());
 					}
 					TableProduction.Clear();
 					TablePayPlanCredit.Clear();
@@ -208,26 +209,26 @@ namespace OpenDental {
 					TableQ.Columns.Add("InsPayment");
 					TableQ.Columns.Add("Daily");
 					TableQ.Columns.Add("Running");
-					eDate = POut.Date(date1.SelectionStart).Substring(1,10);// Reset EndDate to Selected Date
-					DateTime[] dates = new DateTime[(PIn.Date(eDate) - PIn.Date(bDate)).Days + 1];
+					eDate = SOut.Date(date1.SelectionStart).Substring(1,10);// Reset EndDate to Selected Date
+					DateTime[] dates = new DateTime[(SIn.Date(eDate) - SIn.Date(bDate)).Days + 1];
 					for(int i = 0;i < dates.Length;i++) {//usually 31 days in loop
-						dates[i] = PIn.Date(bDate).AddDays(i);
+						dates[i] = SIn.Date(bDate).AddDays(i);
 						//create new row called 'row' based on structure of TableQ
 						DataRow row = TableQ.NewRow();
 						row[0] = dates[i].ToShortDateString();
 						for(int k = 0;k < TableProduction.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TableProduction.Rows[k][0].ToString()))) {
-								rcvProd += PIn.Decimal(TableProduction.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TableProduction.Rows[k][0].ToString()))) {
+								rcvProd += SIn.Decimal(TableProduction.Rows[k][1].ToString());
 							}
 						}
 						for(int k = 0;k < TablePayPlanCredit.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TablePayPlanCredit.Rows[k][0].ToString()))) {
-								rcvPayPlanCredit += PIn.Decimal(TablePayPlanCredit.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TablePayPlanCredit.Rows[k][0].ToString()))) {
+								rcvPayPlanCredit += SIn.Decimal(TablePayPlanCredit.Rows[k][1].ToString());
 							}
 						}
 						for(int k = 0;k < TableCharge.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TableCharge.Rows[k][0].ToString()))) {
-								rcvCharge += PIn.Decimal(TableCharge.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TableCharge.Rows[k][0].ToString()))) {
+								rcvCharge += SIn.Decimal(TableCharge.Rows[k][1].ToString());
 							}
 						}
 						decimal rcvPayPlanChargesForDay = 0;
@@ -235,28 +236,28 @@ namespace OpenDental {
 							rcvPayPlanCharges += rcvPayPlanChargesForDay;
 						}
 						for(int k = 0;k < TableCapWriteoff.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TableCapWriteoff.Rows[k][0].ToString()))) {
-								rcvWriteoff += PIn.Decimal(TableCapWriteoff.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TableCapWriteoff.Rows[k][0].ToString()))) {
+								rcvWriteoff += SIn.Decimal(TableCapWriteoff.Rows[k][1].ToString());
 							}
 						}
 						for(int k = 0;k < TableAdj.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TableAdj.Rows[k][0].ToString()))) {
-								rcvAdj += PIn.Decimal(TableAdj.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TableAdj.Rows[k][0].ToString()))) {
+								rcvAdj += SIn.Decimal(TableAdj.Rows[k][1].ToString());
 							}
 						}
 						for(int k = 0;k < TableInsWriteoff.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TableInsWriteoff.Rows[k][0].ToString()))) {
-								rcvWriteoff += PIn.Decimal(TableInsWriteoff.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TableInsWriteoff.Rows[k][0].ToString()))) {
+								rcvWriteoff += SIn.Decimal(TableInsWriteoff.Rows[k][1].ToString());
 							}
 						}
 						for(int k = 0;k < TablePay.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TablePay.Rows[k][0].ToString()))) {
-								rcvPayment += PIn.Decimal(TablePay.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TablePay.Rows[k][0].ToString()))) {
+								rcvPayment += SIn.Decimal(TablePay.Rows[k][1].ToString());
 							}
 						}
 						for(int k = 0;k < TableIns.Rows.Count;k++) {
-							if(dates[i] == (PIn.Date(TableIns.Rows[k][0].ToString()))) {
-								rcvInsPayment += PIn.Decimal(TableIns.Rows[k][1].ToString());
+							if(dates[i] == (SIn.Date(TableIns.Rows[k][0].ToString()))) {
+								rcvInsPayment += SIn.Decimal(TableIns.Rows[k][1].ToString());
 							}
 						}
 						//rcvPayPlanCharges and rcvPayPlanCredit will be 0 if not on version 2.

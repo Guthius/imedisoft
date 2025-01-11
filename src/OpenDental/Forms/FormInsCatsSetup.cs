@@ -7,6 +7,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Globalization;
+using CodeBase;
 
 namespace OpenDental {
 	
@@ -233,7 +234,7 @@ namespace OpenDental {
 		private void butDefaultsReset_Click(object sender,EventArgs e) {
 			string retVal=CheckDefaults();
 			if(retVal!="") {
-				MessageBox.Show(retVal);
+				ODMessageBox.Show(retVal);
 				return;
 			}
 			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Reset orders and spans to default?")) {

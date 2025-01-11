@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.ReportingComplex;
 using OpenDental.UI;
@@ -108,22 +109,22 @@ namespace OpenDental {
 					DataRow rowCur=queryObj.ReportTable.Rows[j];
 					row=new GridRow();
 					#region Set Row Values from Query Object
-					row.Cells.Add(PIn.Date(rowCur["DatePayPlanStart"].ToString()).ToShortDateString());
-					row.Cells.Add(PIn.String(rowCur["patientName"].ToString()));
-					row.Cells.Add(PIn.String(rowCur["guarName"].ToString()));
-					row.Cells.Add(PIn.String(rowCur["provAbbr"].ToString()));
+					row.Cells.Add(SIn.Date(rowCur["DatePayPlanStart"].ToString()).ToShortDateString());
+					row.Cells.Add(SIn.String(rowCur["patientName"].ToString()));
+					row.Cells.Add(SIn.String(rowCur["guarName"].ToString()));
+					row.Cells.Add(SIn.String(rowCur["provAbbr"].ToString()));
 					if(true) {//Only show if clinics are on
-						row.Cells.Add(PIn.String(rowCur["clinicAbbr"].ToString()));
+						row.Cells.Add(SIn.String(rowCur["clinicAbbr"].ToString()));
 					}
-					row.Cells.Add(PIn.String(rowCur["description"].ToString()));
-					row.Cells.Add(PIn.String(rowCur["overridden"].ToString()));
-					row.Cells.Add(PIn.Double(rowCur["patPortion"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["patPaidOutsidePlan"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["patPortionOnPlan"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["planDebits"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["amtOvercharged"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["patPaidOnPlan"].ToString()).ToString("c"));
-					row.Cells.Add(PIn.Double(rowCur["amtOverpaid"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.String(rowCur["description"].ToString()));
+					row.Cells.Add(SIn.String(rowCur["overridden"].ToString()));
+					row.Cells.Add(SIn.Double(rowCur["patPortion"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["patPaidOutsidePlan"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["patPortionOnPlan"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["planDebits"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["amtOvercharged"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["patPaidOnPlan"].ToString()).ToString("c"));
+					row.Cells.Add(SIn.Double(rowCur["amtOverpaid"].ToString()).ToString("c"));
 					#endregion
 					row.Tag=rowCur;
 					gridMain.ListGridRows.Add(row);
@@ -261,31 +262,31 @@ namespace OpenDental {
 			}
 			List<PayPlanCharge> listChargesToInsert=new List<PayPlanCharge>();
 			List<long> listPatNums=listSelectedGridRows.Select(x => (DataRow)x.Tag)
-				.Select(x => PIn.Long(x["PatNum"].ToString()))
+				.Select(x => SIn.Long(x["PatNum"].ToString()))
 				.ToList();
 			long[] longArrPayPlanNums=listSelectedGridRows.Select(x => (DataRow)x.Tag)
-				.Select(y => PIn.Long(y["PayPlanNum"].ToString()))
+				.Select(y => SIn.Long(y["PayPlanNum"].ToString()))
 				.ToArray();
 			List<Family> listFamilies=Patients.GetFamilies(listPatNums);
 			List<PayPlan> listPayPlans=PayPlans.GetMany(longArrPayPlanNums);
 			for(int i = 0;i<listSelectedGridRows.Count;i++) {
 				DataRow dataRow=(DataRow)listSelectedGridRows[i].Tag;
-				PayPlan payPlan=listPayPlans.ToList().Find(x => x.PayPlanNum==PIn.Long(dataRow["PayPlanNum"].ToString()));
-				Family family=listFamilies.Find(x => x.ListPats.Select(x => x.PatNum).Contains(PIn.Long(dataRow["PatNum"].ToString())));
+				PayPlan payPlan=listPayPlans.ToList().Find(x => x.PayPlanNum==SIn.Long(dataRow["PayPlanNum"].ToString()));
+				Family family=listFamilies.Find(x => x.ListPats.Select(x => x.PatNum).Contains(SIn.Long(dataRow["PatNum"].ToString())));
 				if(family==null || payPlan==null) {
 					continue;
 				}
 				//Create Negative PayPlan Charge that counters the debit
 				PayPlanCharge payPlanChargeOffset=PayPlanEdit.CreateDebitChargeDynamic(payPlan,
 					family,
-					PIn.Long(dataRow["ProvNum"].ToString()),
-					PIn.Long(dataRow["ClinicNum"].ToString()),
-					principalAmt:-PIn.Double(dataRow["amtOverCharged"].ToString()),
+					SIn.Long(dataRow["ProvNum"].ToString()),
+					SIn.Long(dataRow["ClinicNum"].ToString()),
+					principalAmt:-SIn.Double(dataRow["amtOverCharged"].ToString()),
 					interestAmt:0,
 					dateCharge:DateTime.Now,
 					note:"Offsetting overcharge.",
-					PIn.Long(dataRow["FKey"].ToString()),
-					PIn.Enum<PayPlanLinkType>(dataRow["LinkType"].ToString())
+					SIn.Long(dataRow["FKey"].ToString()),
+					SIn.Enum<PayPlanLinkType>(dataRow["LinkType"].ToString())
 				);
 				listChargesToInsert.Add(payPlanChargeOffset);
 			}
@@ -313,7 +314,7 @@ namespace OpenDental {
 				return;
 			}
 			DataRow row=(DataRow)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-			long patNum=PIn.Long(row["patNum"].ToString());
+			long patNum=SIn.Long(row["patNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 			SendToBack();
 		}

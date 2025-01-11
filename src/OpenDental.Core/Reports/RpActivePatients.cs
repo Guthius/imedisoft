@@ -42,8 +42,8 @@ namespace OpenDentBusiness {
 				LEFT JOIN insplan ON insplan.PlanNum=inssub.PlanNum
 				LEFT JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum
 				LEFT JOIN provider ON provider.ProvNum=patient.PriProv 
-				WHERE procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+@"
-					AND procedurelog.ProcDate BETWEEN "+POut.DateTime(dateStart)+@" AND "+POut.DateTime(dateEnd);
+				WHERE procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+@"
+					AND procedurelog.ProcDate BETWEEN "+SOut.DateTime(dateStart)+@" AND "+SOut.DateTime(dateEnd);
 			if(!hasAllProvs) {
 				command+=@" AND (patient.PriProv IN("+String.Join(",",listProvNums)+") OR patient.SecProv IN("+String.Join(",",listProvNums)+")) ";
 			}
@@ -61,7 +61,7 @@ namespace OpenDentBusiness {
 			DataTable raw=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(command));
 			Patient pat;
 			for(int i=0;i<raw.Rows.Count;i++) {
-				Def billingType=listDefs.FirstOrDefault(x => x.DefNum==PIn.Long(raw.Rows[i]["BillingType"].ToString()));
+				Def billingType=listDefs.FirstOrDefault(x => x.DefNum==SIn.Long(raw.Rows[i]["BillingType"].ToString()));
 				row=table.NewRow();
 				pat=new Patient();
 				pat.LName=raw.Rows[i]["LName"].ToString();
@@ -69,7 +69,7 @@ namespace OpenDentBusiness {
 				pat.MiddleI=raw.Rows[i]["MiddleI"].ToString();
 				pat.Preferred=raw.Rows[i]["Preferred"].ToString();
 				row["name"]=pat.GetNameLF();
-				row["priProv"]=Providers.GetAbbr(PIn.Long(raw.Rows[i]["PriProv"].ToString()));
+				row["priProv"]=Providers.GetAbbr(SIn.Long(raw.Rows[i]["PriProv"].ToString()));
 				row["Address"]=raw.Rows[i]["Address"].ToString();
 				row["Address2"]=raw.Rows[i]["Address2"].ToString();
 				row["City"]=raw.Rows[i]["City"].ToString();
@@ -80,9 +80,9 @@ namespace OpenDentBusiness {
 				row["WkPhone"]=raw.Rows[i]["WkPhone"].ToString();
 				row["WirelessPhone"]=raw.Rows[i]["WirelessPhone"].ToString();
 				row["billingType"]=(billingType==null) ? "" : billingType.ItemValue;
-				row["secProv"]=Providers.GetLName(PIn.Long(raw.Rows[i]["SecProv"].ToString()),listProvs);
+				row["secProv"]=Providers.GetLName(SIn.Long(raw.Rows[i]["SecProv"].ToString()),listProvs);
 				if(hasClinicsEnabled) {//Using clinics
-					string clinicDesc=Clinics.GetDesc(PIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
+					string clinicDesc=Clinics.GetDesc(SIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
 					row["clinic"]=(clinicDesc=="")?Lans.g("FormRpPayPlans","Unassigned"):clinicDesc;
 				}
 				table.Rows.Add(row);

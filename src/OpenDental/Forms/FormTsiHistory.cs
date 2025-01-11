@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -371,13 +372,13 @@ namespace OpenDental {
 					if(string.IsNullOrWhiteSpace(selectedText)) {
 						return;//nothing in the field so no text selected for translation
 					}
-					textSelectedFieldDetails.Text=PIn.Enum<TsiServiceCode>(PIn.Int(selectedText,false)-1).GetDescription();
+					textSelectedFieldDetails.Text=SIn.Enum<TsiServiceCode>(SIn.Int(selectedText,false)-1).GetDescription();
 					return;
 				case "TRANSACTION TYPE":
 					if(string.IsNullOrWhiteSpace(selectedText)) {
 						return;//nothing in the field so no text selected for translation
 					}
-					TsiTransType tsiTransType=PIn.Enum<TsiTransType>(selectedText,true);
+					TsiTransType tsiTransType=SIn.Enum<TsiTransType>(selectedText,true);
 					textSelectedFieldDetails.Text=tsiTransType.GetDescription();
 					if(tsiTransType==TsiTransType.None) {
 						textSelectedFieldDetails.Text+=" (transaction NOT sent to TSI, e.g. a payment received from TSI)";

@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -99,7 +101,7 @@ namespace OpenDental
 				SaveGridChanges();
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			List<ClaimProcHist> listClaimProcHists=null;
@@ -156,21 +158,21 @@ namespace OpenDental
 				}
 			}
 			for(int i=0;i<ListClaimProcs.Count;i++){
-				ListClaimProcs[i].InsPayEst=PIn.Double(gridMain.ListGridRows[i].Cells[4-toothIndexOffset].Text);
+				ListClaimProcs[i].InsPayEst=SIn.Double(gridMain.ListGridRows[i].Cells[4-toothIndexOffset].Text);
 				ListClaimProcs[i].Remarks=gridMain.ListGridRows[i].Cells[5-toothIndexOffset].Text;
 			}
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(!textTotal.IsValid()) {
-				MessageBox.Show(this,"Please fix data entry errors first.");
+				ODMessageBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
 			try {
 				SaveGridChanges();
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

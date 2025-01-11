@@ -8,6 +8,7 @@ using System.Media;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.Thinfinity;
 
 namespace OpenDental{
@@ -112,10 +113,10 @@ namespace OpenDental{
 			}
 			importFilePath=openFileDialog1.FileName;
 			try{
-				SigElementDefCur.Sound=POut.Sound(importFilePath);
+				SigElementDefCur.Sound=SOut.Sound(importFilePath);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			SetSoundButtons();
@@ -132,10 +133,10 @@ namespace OpenDental{
 				return;
 			}
 			try {
-				PIn.Sound(SigElementDefCur.Sound,saveFileDialog1.FileName);
+				SIn.Sound(SigElementDefCur.Sound,saveFileDialog1.FileName);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -178,7 +179,7 @@ namespace OpenDental{
 			}
 			SigElementDefCur.SigElementType=listType.GetSelected<SignalElementType>();
 			SigElementDefCur.SigText=textSigText.Text;
-			SigElementDefCur.LightRow=PIn.Byte(textLightRow.Text);
+			SigElementDefCur.LightRow=SIn.Byte(textLightRow.Text);
 			SigElementDefCur.LightColor=butColor.BackColor;
 			if(IsNew){
 				SigElementDefs.Insert(SigElementDefCur);

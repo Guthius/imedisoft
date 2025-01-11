@@ -386,7 +386,7 @@ namespace OpenDental {
 				listErrorMsgs.Add(Lan.g(this,"Please select at least one provider or one employee first."));
 			}
 			if(listErrorMsgs.Count>0) {
-				MessageBox.Show(string.Join("\r\n",listErrorMsgs));
+				ODMessageBox.Show(string.Join("\r\n",listErrorMsgs));
 			}
 			if(listErrorMsgs.Count==0 //only perform this check if everything else is okay.
 				&& listProv.SelectedIndices.Count>0 && !listProv.SelectedIndices.Contains(0) //at least one valid provider selected
@@ -602,7 +602,7 @@ namespace OpenDental {
 			countProviders=listSchedulesToRemove.Where(x => x.ProvNum!=0).Select(y => y.ProvNum).Distinct().Count();
 			if(countProviders>0) {
 				string message=Lan.g(this,"Delete schedules on this day for")+" "+countProviders+" "+Lan.g(this,"provider(s)?");
-				if(MessageBox.Show(message,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return;
 				}
 			}

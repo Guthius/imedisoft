@@ -253,7 +253,7 @@ namespace OpenDental {
 			SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate,payment.PatNum,logText);
 			string strErrorMsg=Ledgers.ComputeAgingForPaysplitsAllocatedToDiffPats(_patient.PatNum,listPaySplits);
 			if(!string.IsNullOrEmpty(strErrorMsg)) {
-				MessageBox.Show(strErrorMsg);
+				ODMessageBox.Show(strErrorMsg);
 			}
 			RefreshWindow();
 		}

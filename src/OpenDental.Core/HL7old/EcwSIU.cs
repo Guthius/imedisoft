@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -9,7 +10,7 @@ namespace OpenDentBusiness.HL7 {
 	public class EcwSIU {
 		public static void ProcessMessage(MessageHL7 message,bool isVerboseLogging) {
 			SegmentHL7 seg=message.GetSegment(SegmentNameHL7.PID,true);
-			long patNum=PIn.Long(seg.GetFieldFullText(2));
+			long patNum=SIn.Long(seg.GetFieldFullText(2));
 			Patient pat=Patients.GetPat(patNum);
 			Patient patOld=null;
 			bool isNewPat = pat==null;
@@ -18,7 +19,7 @@ namespace OpenDentBusiness.HL7 {
 				pat.PatNum=patNum;
 				pat.Guarantor=patNum;
 				pat.PriProv=PrefC.GetLong(PrefName.PracticeDefaultProv);
-				pat.BillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
+				pat.BillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
 			}
 			else {
 				patOld=pat.Copy();
@@ -33,7 +34,7 @@ namespace OpenDentBusiness.HL7 {
 			//SCH- Schedule Activity Information
 			seg=message.GetSegment(SegmentNameHL7.SCH,true);
 			//The documentation is wrong.  SCH.01 is not the appointment ID, but is instead a sequence# (always 1)
-			long aptNum=PIn.Long(seg.GetFieldFullText(2));
+			long aptNum=SIn.Long(seg.GetFieldFullText(2));
 			Appointment apt=Appointments.GetOneApt(aptNum);
 			Appointment aptOld=null;
 			bool isNewApt = apt==null;
@@ -135,11 +136,11 @@ namespace OpenDentBusiness.HL7 {
 			if(str.Length != 14) {
 				return DateTime.MinValue;
 			}
-			int year=PIn.Int(str.Substring(0,4));
-			int month=PIn.Int(str.Substring(4,2));
-			int day=PIn.Int(str.Substring(6,2));
-			int hour=PIn.Int(str.Substring(8,2));
-			int minute=PIn.Int(str.Substring(10,2));
+			int year=SIn.Int(str.Substring(0,4));
+			int month=SIn.Int(str.Substring(4,2));
+			int day=SIn.Int(str.Substring(6,2));
+			int hour=SIn.Int(str.Substring(8,2));
+			int minute=SIn.Int(str.Substring(10,2));
 			//skip seconds
 			DateTime retVal=new DateTime(year,month,day,hour,minute,0);
 			return retVal;

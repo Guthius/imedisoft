@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using DataConnectionBase;
 using Dicom;
 using Dicom.Imaging;
 using Dicom.Imaging.Codec;
@@ -144,7 +145,7 @@ namespace OpenDentBusiness
 
             BitmapDicom bitmapDicom = new BitmapDicom();
             DicomDataset dicomDataset = dicomFile.Dataset;
-            EnumDicomPhotometricInterp enumPhotometricInterp = PIn.Enum<EnumDicomPhotometricInterp>(dicomDataset.GetSingleValueOrDefault(new DicomTag(0x0028, 0x0004), ""), enumString: true, defaultValue: EnumDicomPhotometricInterp.None);
+            EnumDicomPhotometricInterp enumPhotometricInterp = SIn.Enum<EnumDicomPhotometricInterp>(dicomDataset.GetSingleValueOrDefault(new DicomTag(0x0028, 0x0004), ""), enumString: true, defaultValue: EnumDicomPhotometricInterp.None);
             if (enumPhotometricInterp == EnumDicomPhotometricInterp.None)
             {
                 return null;

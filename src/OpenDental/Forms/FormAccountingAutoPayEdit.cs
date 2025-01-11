@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 	/// <summary>Allows user to edit automatic payment entries. Form can be found at Manage->Accounting->Setup->Open Dental->Double click on entry in table</summary>
@@ -29,7 +30,7 @@ namespace OpenDental{
 
 		private void FormAccountingAutoPayEdit_Load(object sender,EventArgs e) {
 			if(AccountingAutoPayCur==null) {
-				MessageBox.Show("Autopay cannot be null.");//just for debugging
+				ODMessageBox.Show("Autopay cannot be null.");//just for debugging
 			}
 			_listDefsPaymentTypes=Defs.GetDefsForCategory(DefCat.PaymentTypes,true);
 			for(int i=0;i<_listDefsPaymentTypes.Count;i++){
@@ -44,7 +45,7 @@ namespace OpenDental{
 			List<string> listStrings=AccountingAutoPayCur.PickList.Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
 			_listAccountNums=new List<long>();
 			for(int i=0;i<listStrings.Count;i++) {
-				_listAccountNums.Add(PIn.Long(listStrings[i]));
+				_listAccountNums.Add(SIn.Long(listStrings[i]));
 			}
 			FillList();
 		}

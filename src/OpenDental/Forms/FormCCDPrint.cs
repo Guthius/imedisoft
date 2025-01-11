@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -187,7 +188,7 @@ namespace OpenDental {
 				_listProcedureExtracted=Procedures.GetCanadianExtractedTeeth(listProcedures);
 			}
 			if(_messageText==null || _messageText.Length<23) {
-				MessageBox.Show(Lan.g(this,"CCD message format too short")+": "+_messageText);
+				ODMessageBox.Show(Lan.g(this,"CCD message format too short")+": "+_messageText);
 				Close();
 				return;
 			}
@@ -245,7 +246,7 @@ namespace OpenDental {
 					//There is no standard form for a reversal response, but we print the reversal response later on based on the transactioncode so we don't need to do anything here.
 				}
 				else {
-					MessageBox.Show(Lan.g(this,"Unhandled transactionCode")+" '"+_transactionCode+"' "+Lan.g(this,"for version 02 message."));
+					ODMessageBox.Show(Lan.g(this,"Unhandled transactionCode")+" '"+_transactionCode+"' "+Lan.g(this,"for version 02 message."));
 					Close();
 					return;
 				}
@@ -276,7 +277,7 @@ namespace OpenDental {
 				CCDField ccdFieldPaymentAdjustmentAmount=_ccdReceived.GetFieldById("G33");
 				if(ccdFieldPaymentAdjustmentAmount!=null) {
 					if(ccdFieldPaymentAdjustmentAmount.valuestr.Substring(1)!="000000") {
-						MessageBox.Show(Lan.g(this,"Payment adjustment amount")+": "+RawMoneyStrToDisplayMoney(ccdFieldPaymentAdjustmentAmount.valuestr));
+						ODMessageBox.Show(Lan.g(this,"Payment adjustment amount")+": "+RawMoneyStrToDisplayMoney(ccdFieldPaymentAdjustmentAmount.valuestr));
 					}
 				}
 				if(_isAutoPrint) {
@@ -415,7 +416,7 @@ namespace OpenDental {
 			}
 			Canadian.EOBImportHelper(_ccdReceived,_listClaimProcs,listProcedures,listClaimProcs,_claim,false,FormClaimEdit.ShowProviderTransferWindow,eraBehaviors,_patient);
 			SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate,_etrans.PatNum
-				,"Claim for service date "+POut.Date(_claim.DateService)+" amounts overwritten manually using received EOB amounts.");
+				,"Claim for service date "+SOut.Date(_claim.DateService)+" amounts overwritten manually using received EOB amounts.");
 			MsgBox.Show(this,"Done");
 		}
 
@@ -457,12 +458,12 @@ namespace OpenDental {
 			List<int> listDisplayMessageNumbers=new List<int>();
 			for(int i=0;i<ccdFieldArrayNoteOutputFlags.Length;i++) {
 				//We display notes on screen only if they are marked with output flag 1 (display notes on screen). Output flag 0 (prompt) is ignored here because such notes are printed on the physical printout.
-				if(PIn.Int(ccdFieldArrayNoteOutputFlags[i].valuestr)!=1) { 
+				if(SIn.Int(ccdFieldArrayNoteOutputFlags[i].valuestr)!=1) { 
 					continue;
 				}
 				listStringDisplayMessages.Add(ccdFieldArrayNoteTexts[i].valuestr);
 				if(i<ccdFieldArrayNoteNumbers.Length) {
-					listDisplayMessageNumbers.Add(PIn.Int(ccdFieldArrayNoteNumbers[i].valuestr));
+					listDisplayMessageNumbers.Add(SIn.Int(ccdFieldArrayNoteNumbers[i].valuestr));
 				}
 				else {
 					listDisplayMessageNumbers.Add(i+1);
@@ -648,7 +649,7 @@ namespace OpenDental {
 		///<summary>If canPrint is false, then simply displays to the screen.</summary>
 		private void PrintClaimForm(bool isPreview) {
 			if(_claim==null) {
-				MessageBox.Show(this,"The carrier has requested this claim be sent in the mail using a printed claim form. "+
+				ODMessageBox.Show(this,"The carrier has requested this claim be sent in the mail using a printed claim form. "+
 					"However, the claim for this response could not be found in the database. "+
 					"Locate the claim manually and print it from the Edit Claim window.");
 				Close();
@@ -1771,7 +1772,7 @@ namespace OpenDental {
 				if(isEOB) {
 					CCDField ccdFieldTotalPayable=_ccdReceived.GetFieldById("G55");
 					if(ccdFieldTotalPayable!=null) {
-						totalPaid=PIn.Double(RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.valuestr));
+						totalPaid=SIn.Double(RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.valuestr));
 					}
 					_documentGenerator.DrawString(g,totalPaid.ToString("F"),dentaidePaysColumn,0);
 				}
@@ -3059,12 +3060,12 @@ namespace OpenDental {
 			_documentGenerator.StartElement(_verticalLine);
 			for(int i=0;i<ccdFieldsArrayNoteTexts.Length;i++) {//noteTexts.Length<=32
 				if(i<ccdFieldsArrayNoteOutputFlags.Length) {//Sometimes G26 exists without the output flags or the note numbers.
-					if(PIn.Int(ccdFieldsArrayNoteOutputFlags[i].valuestr)==1) {
+					if(SIn.Int(ccdFieldsArrayNoteOutputFlags[i].valuestr)==1) {
 						continue;//We will print the notes if either the output flag is 2 (print) or 0 (prompt), but will not print notes with output flag 1 (display notes on screen).
 					}
 				}
 				if(i<ccdFieldsArrayNoteNumbers.Length) {
-					listDisplayMessageNumbers.Add(PIn.Int(ccdFieldsArrayNoteNumbers[i].valuestr));
+					listDisplayMessageNumbers.Add(SIn.Int(ccdFieldsArrayNoteNumbers[i].valuestr));
 				}
 				else {
 					listDisplayMessageNumbers.Add(i+1);
@@ -3096,7 +3097,7 @@ namespace OpenDental {
 			for(int i=0;i<ccdFieldArrayErrors.Length;i++){
 				_x=_documentGenerator.StartElement();
 				_documentGenerator.DrawString(g,ccdFieldArrayErrors[i].valuestr.PadLeft(3,'0'),_x,0);
-				_documentGenerator.DrawString(g,CCDerror.message(Convert.ToInt32(ccdFieldArrayErrors[i].valuestr),_isFrench),_x+80,0);
+				_documentGenerator.DrawString(g,CCDerror.Message(Convert.ToInt32(ccdFieldArrayErrors[i].valuestr),_isFrench),_x+80,0);
 			}
 			return ccdFieldArrayErrors.Length;
 		}

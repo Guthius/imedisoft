@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDental.Bridges;
@@ -43,7 +44,7 @@ namespace OpenDental{
 					toolBar.ImageList.Images.RemoveByKey(strProgramNum);
 				}
 				if(program.ButtonImage!="") {
-					Image image=PIn.Bitmap(program.ButtonImage);
+					Image image=SIn.Bitmap(program.ButtonImage);
 					toolBar.ImageList.Images.Add(strProgramNum,image);
 				}
 				else if(program.ProgName==ProgramName.PracticeBooster.ToString()) {
@@ -95,7 +96,7 @@ namespace OpenDental{
 					List<ProgramProperty> listProgProps=ProgramProperties.GetForProgram(program.ProgramNum);
 					for(int i=0;i<listProgProps.Count;i++){
 						if(listProgProps[i].PropertyDesc==ProgramProperties.PropertyDescs.CareCredit.CareCreditDoDisableAdvertising){ 
-							listProgProps[i].PropertyValue=POut.Bool(true);
+							listProgProps[i].PropertyValue=SOut.Bool(true);
 						}
 					}
 					ProgramProperties.Sync(listProgProps,program.ProgramNum);

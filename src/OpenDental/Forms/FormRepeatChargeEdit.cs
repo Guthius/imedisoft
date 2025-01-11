@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -142,7 +143,7 @@ namespace OpenDental{
 			comboFrequencyTypes.SelectedItem=_repeatCharge.Frequency;
 			checkUseUnearned.Checked=_repeatCharge.UsePrepay;
 			List<long> listDefNumsUnearnedTypeCur=(_repeatCharge.UnearnedTypes??"").Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries)
-				.Select(x => PIn.Long(x,false)).ToList();
+				.Select(x => SIn.Long(x,false)).ToList();
 			List<Def> listDefs=new List<Def>();
 			listDefs.AddRange(Defs.GetUnearnedDefs(isShort:true));
 			comboUnearnedTypes.IncludeAll=true;
@@ -255,7 +256,7 @@ namespace OpenDental{
 				procedure=RepeatCharges.AddProcForRepeatCharge(chargeManual,DateTime.Today,DateTime.Today,orthoCaseProcedureLinker:orthoCaseProcedureLinker);
 			}
 			catch(ODException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			if(!string.IsNullOrEmpty(chargeManual.Note)) {
@@ -268,11 +269,11 @@ namespace OpenDental{
 		}
 
 		private void butCalculate_Click(object sender,EventArgs e) {
-			if(CompareDouble.IsZero(PIn.Double(textNumOfCharges.Text))	|| CompareDouble.IsZero(PIn.Double(textTotalAmount.Text))) {
+			if(CompareDouble.IsZero(SIn.Double(textNumOfCharges.Text))	|| CompareDouble.IsZero(SIn.Double(textTotalAmount.Text))) {
 				textChargeAmt.Text=_repeatCharge.ChargeAmt.ToString("F");
 				return;
 			}
-			textChargeAmt.Text=(PIn.Double(textTotalAmount.Text)/PIn.Double(textNumOfCharges.Text)).ToString("F");
+			textChargeAmt.Text=(SIn.Double(textTotalAmount.Text)/SIn.Double(textNumOfCharges.Text)).ToString("F");
 		}
 
 		///<summary>This button is only visible internally and for other distributors.</summary>
@@ -313,7 +314,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return false;
 			}
-			if(PIn.Double(textChargeAmt.Text)<0 && checkCreatesClaim.Checked) {//user entered a value less than zero while checkCreatesClaim is checked
+			if(SIn.Double(textChargeAmt.Text)<0 && checkCreatesClaim.Checked) {//user entered a value less than zero while checkCreatesClaim is checked
 				MsgBox.Show(this,"Creates Claim cannot be checked while Charge Amout is less than zero.");
 				return false;
 			}
@@ -321,13 +322,13 @@ namespace OpenDental{
 				MsgBox.Show(this,"Start date cannot be left blank.");
 				return false;
 			}
-			if(PIn.Date(textDateStart.Text)!=_repeatCharge.DateStart) {//if the user changed the date
-				if(PIn.Date(textDateStart.Text)<DateTime.Today.AddDays(-3)) {//and if the date the user entered is more than three days in the past
+			if(SIn.Date(textDateStart.Text)!=_repeatCharge.DateStart) {//if the user changed the date
+				if(SIn.Date(textDateStart.Text)<DateTime.Today.AddDays(-3)) {//and if the date the user entered is more than three days in the past
 					MsgBox.Show(this,"Start date cannot be more than three days in the past.  You should enter previous charges manually in the account.");
 					return false;
 				}
 			}
-			if(textDateStop.Text.Trim()!="" && PIn.Date(textDateStart.Text)>PIn.Date(textDateStop.Text)) {
+			if(textDateStop.Text.Trim()!="" && SIn.Date(textDateStart.Text)>SIn.Date(textDateStop.Text)) {
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"The start date is after the stop date.  Continue?")) {
 					return false;
 				}
@@ -353,10 +354,10 @@ namespace OpenDental{
 				return false;
 			}
 			repeatCharge.ProcCode=textCode.Text;
-			repeatCharge.ChargeAmt=PIn.Double(textChargeAmt.Text);
+			repeatCharge.ChargeAmt=SIn.Double(textChargeAmt.Text);
 			repeatCharge.Frequency=(EnumRepeatChargeFrequency)comboFrequencyTypes.SelectedItem;
-			repeatCharge.DateStart=PIn.Date(textDateStart.Text);
-			repeatCharge.DateStop=PIn.Date(textDateStop.Text);
+			repeatCharge.DateStart=SIn.Date(textDateStart.Text);
+			repeatCharge.DateStop=SIn.Date(textDateStop.Text);
 			repeatCharge.Npi=textNpi.Text;
 			repeatCharge.ErxAccountId=textErxAccountId.Text;
 			repeatCharge.Note=textNote.Text;
@@ -370,7 +371,7 @@ namespace OpenDental{
 				repeatCharge.UnearnedTypes=string.Join(",",comboUnearnedTypes.GetListSelected<Def>().Select(x => x.DefNum));
 			}
 			if((IsForZipwhip() || _isMassEmail) && textZipwhipChargeAmount.Text.Trim()!="") {
-				repeatCharge.ChargeAmtAlt=Currency.Round(PIn.Double(textZipwhipChargeAmount.Text));
+				repeatCharge.ChargeAmtAlt=Currency.Round(SIn.Double(textZipwhipChargeAmount.Text));
 			}
 			return true;
 		}
@@ -386,14 +387,14 @@ namespace OpenDental{
 				return;
 			}
 			if(PrefC.GetBool(PrefName.BillingUseBillingCycleDay) && textBillingDay.Text!="") {
-				patientNewChange.BillingCycleDay=PIn.Int(textBillingDay.Text);
+				patientNewChange.BillingCycleDay=SIn.Int(textBillingDay.Text);
 				Patients.Update(patientNewChange,patientOldChange);
 			}
 			if(IsNew) {
 				if(!RepeatCharges.ActiveRepeatChargeExists(_repeatCharge.PatNum) 
 					&& (textBillingDay.Text=="" || textBillingDay.Text=="0"))
 				{
-					patientNewChange.BillingCycleDay=PIn.Date(textDateStart.Text).Day;
+					patientNewChange.BillingCycleDay=SIn.Date(textDateStart.Text).Day;
 					Patients.Update(patientNewChange,patientOldChange);
 				}
 				_repeatCharge.RepeatChargeNum=RepeatCharges.Insert(_repeatCharge);

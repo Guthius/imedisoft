@@ -9,6 +9,7 @@ using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.Thinfinity;
 
 namespace OpenDental{
@@ -25,7 +26,7 @@ namespace OpenDental{
 		private void FormTranslation_Load(object sender, System.EventArgs e) {
 			//MessageBox.Show(CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
 			if(CultureInfo.CurrentCulture.Name=="en-US"){
-				MessageBox.Show("You must change your culture in Windows first to something other than English-US.");
+				ODMessageBox.Show("You must change your culture in Windows first to something other than English-US.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
@@ -58,7 +59,7 @@ namespace OpenDental{
 			}
 			catch{
 				Cursor=Cursors.Default;
-				MessageBox.Show("Either you do not have internet access, or no translations are available for "+CultureInfo.CurrentCulture.DisplayName);
+				ODMessageBox.Show("Either you do not have internet access, or no translations are available for "+CultureInfo.CurrentCulture.DisplayName);
 				return;
 			}
 			//ClassConvertDatabase ConvertDB=new ClassConvertDatabase();
@@ -69,12 +70,12 @@ namespace OpenDental{
 			}
 			catch{
 				Cursor=Cursors.Default;
-				MessageBox.Show("Translations not installed properly.");
+				ODMessageBox.Show("Translations not installed properly.");
 				return;
 			}
 			LanguageForeigns.RefreshCache();
 			Cursor=Cursors.Default;
-			MessageBox.Show("Done");
+			ODMessageBox.Show("Done");
 		}
 
 		///<summary>Only exports for the current culture.</summary>
@@ -99,15 +100,15 @@ namespace OpenDental{
 			List<LanguageForeign> listLanguageForeigns=LanguageForeigns.GetListForCurrentCulture();
 			for(int i=0;i<listLanguageForeigns.Count;i++){
 				streamWriter.WriteLine(
-					"INSERT INTO languageforeign (ClassType,English,Culture,Translation,Comments) VALUES ('"+POut.String(listLanguageForeigns[i].ClassType)
-					+"', '"+POut.String(listLanguageForeigns[i].English)
-					+"', '"+POut.String(listLanguageForeigns[i].Culture)
-					+"', '"+POut.String(listLanguageForeigns[i].Translation)
-					+"', '"+POut.String(listLanguageForeigns[i].Comments)+"');"
+					"INSERT INTO languageforeign (ClassType,English,Culture,Translation,Comments) VALUES ('"+SOut.String(listLanguageForeigns[i].ClassType)
+					+"', '"+SOut.String(listLanguageForeigns[i].English)
+					+"', '"+SOut.String(listLanguageForeigns[i].Culture)
+					+"', '"+SOut.String(listLanguageForeigns[i].Translation)
+					+"', '"+SOut.String(listLanguageForeigns[i].Comments)+"');"
 				);
 			}//for
 			streamWriter.Close();
-			MessageBox.Show("Done");
+			ODMessageBox.Show("Done");
 		}
 
 	}

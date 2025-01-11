@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.HL7 {
@@ -220,7 +221,7 @@ namespace OpenDentBusiness.HL7 {
 						continue;
 					case "pat.PatNum":
 						try {
-							patNum=PIn.Long(pidSeg.GetFieldComponent(fieldDefCur.OrdinalPos));
+							patNum=SIn.Long(pidSeg.GetFieldComponent(fieldDefCur.OrdinalPos));
 						}
 						catch(Exception ex) {
 							//do nothing, patNum will remain 0

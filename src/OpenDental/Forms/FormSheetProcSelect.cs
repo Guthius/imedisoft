@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -57,7 +58,7 @@ namespace OpenDental {
 					description=procedureCode.LaymanTerm;
 				}
 				row.Cells.Add(description);
-				long procNum=PIn.Long(listProcedures[i].ProcNum.ToString());
+				long procNum=SIn.Long(listProcedures[i].ProcNum.ToString());
 				if(ProcMultiVisits.IsProcInProcess(procNum)) {
 					row.Cells.Add(Lan.g("enumProcStat",ProcStatExt.InProcess));
 				}

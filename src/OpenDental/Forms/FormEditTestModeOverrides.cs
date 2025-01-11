@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -55,7 +56,7 @@ namespace OpenDental {
 			bool changed=Introspection.SetOverride(_introspectionEntity,textEnterOverrideValue.Text);
 			if(changed) {
 				butSave.Enabled=false;
-				MessageBox.Show(Lan.g(this,"Override saved succcessfully."));
+				ODMessageBox.Show(Lan.g(this,"Override saved succcessfully."));
 			}
 			_textOverrideOrig=Introspection.GetOverride(_introspectionEntity);
 			textEnterOverrideValue.Text=_textOverrideOrig;

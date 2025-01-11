@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness.UI {
 	public class SigBox {
@@ -17,8 +18,8 @@ namespace OpenDentBusiness.UI {
 			foreach(DataRow row in listSheetRows) {
 				listSheetFields.Add(new SheetField()
 				{
-					FieldValue=PIn.String(row["FieldValue"].ToString()),
-					FieldType=PIn.Enum<SheetFieldType>(row["FieldType"].ToString())
+					FieldValue=SIn.String(row["FieldValue"].ToString()),
+					FieldType=SIn.Enum<SheetFieldType>(row["FieldType"].ToString())
 				});
 			}
 			return GetSignatureKeySheets(listSheetFields);

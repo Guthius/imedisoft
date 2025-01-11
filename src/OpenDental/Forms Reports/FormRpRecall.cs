@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -133,7 +134,7 @@ namespace OpenDental {
 	private void CreateSQLwhere() {
 	  SQLwhere="WHERE patient.PatNum=recall.PatNum ";
 			if(RecallNumList.Count>0) {
-				SQLwhere+=$"AND recall.RecallNum IN({string.Join(",",RecallNumList.Select(x => POut.Long(x)))})";
+				SQLwhere+=$"AND recall.RecallNum IN({string.Join(",",RecallNumList.Select(x => SOut.Long(x)))})";
 			}
 	}
 

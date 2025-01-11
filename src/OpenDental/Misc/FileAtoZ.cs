@@ -5,7 +5,6 @@ using System.Drawing;
 using System.IO;
 using CodeBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness;
 
 namespace OpenDental
 {
@@ -18,10 +17,7 @@ namespace OpenDental
 
         public static void WriteAllText(string fileName, string textForFile)
         {
-            {
-                //Not cloud
-                File.WriteAllText(fileName, textForFile);
-            }
+            File.WriteAllText(fileName, textForFile);
         }
 
         public static List<string> GetFilesInDirectory(string folderFullPath)
@@ -38,15 +34,7 @@ namespace OpenDental
         {
             try
             {
-                string tempFile;
-                if (displayedFileName == "")
-                {
-                    tempFile = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), Path.GetFileName(actualFilePath));
-                }
-                else
-                {
-                    tempFile = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), displayedFileName);
-                }
+                var tempFile = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), displayedFileName == "" ? Path.GetFileName(actualFilePath) : displayedFileName);
 
                 File.Copy(actualFilePath, tempFile, true);
 

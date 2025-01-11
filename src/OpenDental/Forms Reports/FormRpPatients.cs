@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	
@@ -404,7 +405,7 @@ namespace OpenDental {
 				listWhereClauses.Add("patient.patnum=refattach.patnum");
 				listWhereClauses.Add("referral.referralnum=refattach.referralnum");
 				if(!listBoxRefType.GetListSelected<ReferralType>().IsNullOrEmpty()) {
-					listWhereClauses.Add("refattach.RefType IN ("+String.Join(",",listBoxRefType.GetListSelected<ReferralType>().Select(x => POut.Int((int)x))) + ") ");
+					listWhereClauses.Add("refattach.RefType IN ("+String.Join(",",listBoxRefType.GetListSelected<ReferralType>().Select(x => SOut.Int((int)x))) + ") ");
 				}
 			}
 			if(NeedInsPlan) {
@@ -412,7 +413,7 @@ namespace OpenDental {
 			}
 			if(NeedProcLogFirst || NeedProcLogLast) {
 				listWhereClauses.Add("procedurelog.patnum=patient.patnum");
-				listWhereClauses.Add("procedurelog.procstatus!="+POut.Enum<ProcStat>(ProcStat.D));
+				listWhereClauses.Add("procedurelog.procstatus!="+SOut.Enum<ProcStat>(ProcStat.D));
 			}
 			if(NeedRecall) {
 				listWhereClauses.Add("recall.PatNum=patient.PatNum");
@@ -731,18 +732,18 @@ namespace OpenDental {
 
 		private void butAddFilter_Click(object sender,System.EventArgs e) {
 			if(!TextDate.IsValid() || !TextValidAge.IsValid() || (TextDate.Text=="" &&  IsDate)) {
-				MessageBox.Show("Please fix data entry errors first.");
+				ODMessageBox.Show("Please fix data entry errors first.");
 				return;
 			}
 			if(DropListFilter.SelectedItem == null) {
 				return;
 			}
 			if(TextValidAge.Text=="" && DropListFilter.SelectedItem.ToString()=="Age") {
-				MessageBox.Show("Please enter age.");
+				ODMessageBox.Show("Please enter age.");
 				return;
 			}
 			if(listConditions.SelectedIndex==-1) {
-				MessageBox.Show("Please select a condition.");
+				ODMessageBox.Show("Please select a condition.");
 				return;
 			}
 			UsingRefDent.Add(false);
@@ -823,29 +824,29 @@ namespace OpenDental {
 					if(listConditions.SelectedIndex==0) {
 						//Add the HAVING statement to ListPrerequisites with a leading asterisk so that it shows up in the UI so that users can delete it.
 						//It is added with a leading asterisk so that it gets skipped in CreateSQLwhereComparison().
-						listPrerequisites.Items.Add("*HAVING MIN(procdate) LIKE '%"+POut.Date(DateTime.Parse(TextDate.Text),false)+"%'");
+						listPrerequisites.Items.Add("*HAVING MIN(procdate) LIKE '%"+SOut.Date(DateTime.Parse(TextDate.Text),false)+"%'");
 						//Set the class wide variable without the *HAVING portion. If ProcLogFirstDate has a value, it will be used in CreateSQLgroup().
-						ProcLogFirstDate="MIN(procdate) LIKE '%"+POut.Date(DateTime.Parse(TextDate.Text),false)+"%'";
+						ProcLogFirstDate="MIN(procdate) LIKE '%"+SOut.Date(DateTime.Parse(TextDate.Text),false)+"%'";
 					}
 					else {
 						listPrerequisites.Items.Add("*HAVING MIN(procdate) "+listConditions.SelectedItem.ToString()
-							+" "+POut.Date(DateTime.Parse(TextDate.Text)));
+							+" "+SOut.Date(DateTime.Parse(TextDate.Text)));
 						ProcLogFirstDate="MIN(procdate) "+listConditions.SelectedItem.ToString()
-							+" "+POut.Date(DateTime.Parse(TextDate.Text));
+							+" "+SOut.Date(DateTime.Parse(TextDate.Text));
 					}
 					UsingProcLogFirst[UsingInsPlans.Count-1]=true;
 				}
 				else if(DropListFilter.SelectedItem.ToString()=="Last Visit Date") {
 					if(listConditions.SelectedIndex==0) {
 						//See comment above where ProcLogFirstDate is handled regarding the reasoning for leading the having statement with an asterisk.
-						listPrerequisites.Items.Add("*HAVING MAX(procdate) LIKE '%"+POut.Date(DateTime.Parse(TextDate.Text),false)+"%'");
-						ProcLogLastDate="MAX(procdate) LIKE '%"+POut.Date(DateTime.Parse(TextDate.Text),false)+"%'";
+						listPrerequisites.Items.Add("*HAVING MAX(procdate) LIKE '%"+SOut.Date(DateTime.Parse(TextDate.Text),false)+"%'");
+						ProcLogLastDate="MAX(procdate) LIKE '%"+SOut.Date(DateTime.Parse(TextDate.Text),false)+"%'";
 					}
 					else {
 						listPrerequisites.Items.Add("*HAVING MAX(procdate) "+listConditions.SelectedItem.ToString()
-							+" "+POut.Date(DateTime.Parse(TextDate.Text)));
+							+" "+SOut.Date(DateTime.Parse(TextDate.Text)));
 						ProcLogLastDate="MAX(procdate) "+listConditions.SelectedItem.ToString()
-							+" "+POut.Date(DateTime.Parse(TextDate.Text));
+							+" "+SOut.Date(DateTime.Parse(TextDate.Text));
 					}
 					UsingProcLogLast[UsingInsPlans.Count-1]=true;
 				}
@@ -866,7 +867,7 @@ namespace OpenDental {
 					bool isMin=DropListFilter.SelectedItem.ToString().StartsWith("F");
 					string body=$"(SELECT {(isMin?"MIN":"MAX")}(ProcDate) FROM procedurelog WHERE procedurelog.PatNum = patient.PatNum AND procedurelog.ProcStatus = 2)";
 					string operation = listConditions.SelectedItem.ToString().Trim().ToUpper();
-					string date=POut.Date(DateTime.Parse(TextDate.Text),false);
+					string date=SOut.Date(DateTime.Parse(TextDate.Text),false);
 					date=(operation=="LIKE")?$"'%{date}%'":$"'{date}'";
 					listPrerequisites.Items.Add($"{body} {operation} {date}");
 					if (isMin) {
@@ -881,11 +882,11 @@ namespace OpenDental {
 				else {
 					if(listConditions.SelectedIndex==0) {
 						listPrerequisites.Items.Add(DropListFilter.SelectedItem.ToString()
-							+" Like '%"+POut.Date(DateTime.Parse(TextDate.Text),false)+"%'");
+							+" Like '%"+SOut.Date(DateTime.Parse(TextDate.Text),false)+"%'");
 					}
 					else {
 						listPrerequisites.Items.Add(DropListFilter.SelectedItem.ToString()+" "
-							+listConditions.SelectedItem.ToString()+" "+POut.Date(DateTime.Parse(TextDate.Text)));
+							+listConditions.SelectedItem.ToString()+" "+SOut.Date(DateTime.Parse(TextDate.Text)));
 					}
 				}
 			}

@@ -8,6 +8,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -101,7 +102,7 @@ namespace OpenDental {
 			if(comboConfirmStatuses.SelectedIndex!=-1) {
 				Prefs.UpdateLong(_prefNameConfirmStatus,comboConfirmStatuses.GetSelectedDefNum());
 			}
-			Prefs.UpdateString(PrefName.WebSchedExistingPatRecallName,PIn.String(textRecallDisplayName.Text));
+			Prefs.UpdateString(PrefName.WebSchedExistingPatRecallName,SIn.String(textRecallDisplayName.Text));
 			Prefs.UpdateBool(PrefName.WebSchedExistingPatAllowDisabledRecalls,checkAllowDisabledRecalls.Checked);
 		}
 		#endregion Methods - Public
@@ -223,7 +224,7 @@ namespace OpenDental {
 			if(!signupOutEService.IsEnabled) {
 				return;//Do nothing, this clinic is excluded.
 			}
-			DateTime dateStart=PIn.DateTime(textApptsDateStart.Text);
+			DateTime dateStart=SIn.DateTime(textApptsDateStart.Text);
 			DateTime dateEnd=dateStart.AddDays(30);
 			gridApptTimeSlots.BeginUpdate();
 			List<TimeSlot> listTimeSlots=new List<TimeSlot>();
@@ -454,7 +455,7 @@ namespace OpenDental {
 			if(!textApptSearchDays.IsValid()) {
 				return;
 			}
-			int appointmentDays=PIn.Int(textApptSearchDays.Text);
+			int appointmentDays=SIn.Int(textApptSearchDays.Text);
 			if(appointmentDays<=0) {
 				appointmentDays=0;
 			}

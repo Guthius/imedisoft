@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -370,7 +371,7 @@ namespace OpenDental {
 			DataTable tablePts=Patients.GetPtDataTable(ptTableSearchParams);//Mimics FormPatientSelect.cs
 			long selectedPatNum=0;
 			if(tablePts.Rows.Count==1) {
-				selectedPatNum=PIn.Long(tablePts.Rows[0]["PatNum"].ToString());
+				selectedPatNum=SIn.Long(tablePts.Rows[0]["PatNum"].ToString());
 			}
 			using FormEtrans835ClaimSelect formEtrans835ClaimSelect=new FormEtrans835ClaimSelect(selectedPatNum,hx835_ClaimPaid);
 			formEtrans835ClaimSelect.ShowDialog();
@@ -441,7 +442,7 @@ namespace OpenDental {
 			}
 			if(stringBuilderWarnings.Length>0) {
 				stringBuilderWarnings.AppendLine(Lan.g(this,"Click OK to continue, or click Cancel to leave claims attached."));
-				if(MessageBox.Show(this,stringBuilderWarnings.ToString(),"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show(this,stringBuilderWarnings.ToString(),"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}
@@ -551,7 +552,7 @@ namespace OpenDental {
 			}
 			if(eraAutomationResult.Status==X835Status.Finalized) {
 				Etrans835s.Upsert(etrans835,_x835,x835AutoProcessed:X835AutoProcessed.SemiAutoComplete);
-				MessageBox.Show(automationResultMessage);
+				ODMessageBox.Show(automationResultMessage);
 				DialogResult=DialogResult.OK;
 				Close();//Update of EtransCur happens in FormClosing
 			}

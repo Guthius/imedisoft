@@ -281,11 +281,11 @@ namespace OpenDental.Graph.Dashboard
                     ThinfinityUtils.ExportForDownload(sd.FileName);
                 }
 
-                MessageBox.Show(Lans.g(this, "Chart saved."));
+                ODMessageBox.Show(Lans.g(this, "Chart saved."));
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Chart not saved." + "\r\n" + ex.Source + "\r\n" + ex.Message + "\r\n" + ex.StackTrace);
+                ODMessageBox.Show("Chart not saved." + "\r\n" + ex.Source + "\r\n" + ex.Message + "\r\n" + ex.StackTrace);
             }
         }
 

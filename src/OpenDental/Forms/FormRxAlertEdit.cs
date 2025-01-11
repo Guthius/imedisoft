@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -39,7 +40,7 @@ namespace OpenDental {
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
-			_rxAlert.NotificationMsg=PIn.String(textMessage.Text);
+			_rxAlert.NotificationMsg=SIn.String(textMessage.Text);
 			_rxAlert.IsHighSignificance=checkIsHighSignificance.Checked;
 			RxAlerts.Update(_rxAlert);
 			DialogResult=DialogResult.OK;

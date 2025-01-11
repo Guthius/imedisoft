@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -26,7 +27,7 @@ namespace OpenDental {
 				webBrowser1.Url=new Uri(ResourceURL);
 			}
 			catch(UriFormatException ex) {
-				MessageBox.Show("The specified URL is in an incorrect format.  Did you include the http:// ?");
+				ODMessageBox.Show("The specified URL is in an incorrect format.  Did you include the http:// ?");
 				DialogResult=DialogResult.Cancel;
 			}
 			Cursor=Cursors.Default;

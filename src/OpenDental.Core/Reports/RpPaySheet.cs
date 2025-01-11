@@ -4,6 +4,7 @@ using System.Data;
 using System.Reflection;
 using System.Text;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpPaySheet {
@@ -19,7 +20,7 @@ namespace OpenDentBusiness {
 					if(i>0) {
 						whereProv+=",";
 					}
-					whereProv+=POut.Long(listProvNums[i]);
+					whereProv+=SOut.Long(listProvNums[i]);
 				}
 				whereProv+=") ";
 			}
@@ -32,7 +33,7 @@ namespace OpenDentBusiness {
 					if(i>0) {
 						whereClin+=",";
 					}
-					whereClin+=POut.Long(listClinicNums[i]);
+					whereClin+=SOut.Long(listClinicNums[i]);
 				}
 				whereClin+=") ";
 			}
@@ -60,15 +61,15 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+whereClaimPayGroup
-				+"AND claimpayment.CheckDate >= "+POut.Date(dateFrom)+" "
-				+"AND claimpayment.CheckDate <= "+POut.Date(dateTo)+" ";
+				+"AND claimpayment.CheckDate >= "+SOut.Date(dateFrom)+" "
+				+"AND claimpayment.CheckDate <= "+SOut.Date(dateTo)+" ";
 			if(!hasInsuranceTypes && listInsuranceTypes.Count>0) {
 				queryIns+="AND claimpayment.PayType IN (";
 				for(int i=0;i<listInsuranceTypes.Count;i++) {
 					if(i>0) {
 						queryIns+=",";
 					}
-					queryIns+=POut.Long(listInsuranceTypes[i]);
+					queryIns+=SOut.Long(listInsuranceTypes[i]);
 				}
 				queryIns+=") ";
 			}
@@ -90,7 +91,7 @@ namespace OpenDentBusiness {
 			DataTable table=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(queryIns));
 			foreach(DataRow row in table.Rows) {
 				//If there is more than one patient attached to a check, we will append an asterisk to the end.
-				int countPats=PIn.Int(row["countPats"].ToString());
+				int countPats=SIn.Int(row["countPats"].ToString());
 				if(countPats > 1) {
 					row["lfname"]=row["lfname"].ToString().TrimEnd()+"*";
 				}
@@ -118,7 +119,7 @@ namespace OpenDentBusiness {
 			string queryPat="SELECT payment.PayDate DatePay,"
 				+"MAX("+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+") lfname,GROUP_CONCAT(DISTINCT provider.Abbr),";
 			if(hasClinicsEnabled) {
-				queryPat+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+POut.String(Lans.g("FormRpPaySheet","hidden"))+")'),clinic.Abbr) clinicAbbr,";
+				queryPat+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpPaySheet","hidden"))+")'),clinic.Abbr) clinicAbbr,";
 			}
 			queryPat+="payment.CheckNum,SUM(COALESCE(paysplit.SplitAmt,0)) amt,payment.PayNum,ItemName,payment.PayType,MerchantFee,PaymentSource "
 				+"FROM payment "
@@ -129,15 +130,15 @@ namespace OpenDentBusiness {
 			if(hasClinicsEnabled) {
 				queryPat+="LEFT JOIN clinic ON clinic.ClinicNum=paysplit.ClinicNum ";
 			}
-			queryPat+="WHERE payment.PayDate BETWEEN "+POut.Date(dateFrom)+" AND "+POut.Date(dateTo)+" ";
+			queryPat+="WHERE payment.PayDate BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" ";
 			if(hasClinicsEnabled && listClinicNums.Count>0) {
-				queryPat+="AND paysplit.ClinicNum IN("+string.Join(",",listClinicNums.Select(x => POut.Long(x)))+") ";
+				queryPat+="AND paysplit.ClinicNum IN("+string.Join(",",listClinicNums.Select(x => SOut.Long(x)))+") ";
 			}
 			if(!hasAllProvs && listProvNums.Count>0) {
-				queryPat+="AND paysplit.ProvNum IN("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
+				queryPat+="AND paysplit.ProvNum IN("+string.Join(",",listProvNums.Select(x => SOut.Long(x)))+") ";
 			}
 			if(!hasPatientTypes && listPatientTypes.Count>0) {
-				queryPat+="AND payment.PayType IN ("+string.Join(",",listPatientTypes.Select(x => POut.Long(x)))+") ";
+				queryPat+="AND payment.PayType IN ("+string.Join(",",listPatientTypes.Select(x => SOut.Long(x)))+") ";
 			}
 			if(!isUnearnedIncluded) {//UnearnedType of 0 means the paysplit is NOT unearned
 				queryPat+="AND paysplit.UnearnedType=0 ";

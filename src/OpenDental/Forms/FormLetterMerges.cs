@@ -152,7 +152,7 @@ namespace OpenDental{
 			}
 			catch(Exception ex) {
 				string message=Lan.g(this,"There was a error getting letter merge info:");
-				MessageBox.Show(message+"\r\n"+ex.Message);
+				ODMessageBox.Show(message+"\r\n"+ex.Message);
 				return false;
 			}
 			table=FormQuery.MakeReadable(table,null,false);
@@ -529,7 +529,7 @@ namespace OpenDental{
 			string templateFile=ODFileUtils.CombinePaths(PrefC.GetString(PrefName.LetterMergePath),letterMerge.TemplateName);
 			string dataFile=ODFileUtils.CombinePaths(PrefC.GetString(PrefName.LetterMergePath),letterMerge.DataFileName);
 			if(!File.Exists(templateFile)){
-				MessageBox.Show(Lan.g(this,"Template file does not exist:")+"  "+templateFile);
+				ODMessageBox.Show(Lan.g(this,"Template file does not exist:")+"  "+templateFile);
 				return;
 			}
 			if(!CreateDataFile(dataFile,letterMerge)){

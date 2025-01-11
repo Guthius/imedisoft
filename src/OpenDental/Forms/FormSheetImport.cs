@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -74,7 +75,7 @@ namespace OpenDental {
 			if(SheetCur!=null) {
 				_patient=Patients.GetPat(SheetCur.PatNum);
 				if(SheetCur.SheetFields!=null) {
-					_isPatTransferSheet=SheetCur.SheetFields.Any(x => x.FieldName=="isTransfer" && PIn.Bool(x.FieldValue));
+					_isPatTransferSheet=SheetCur.SheetFields.Any(x => x.FieldName=="isTransfer" && SIn.Bool(x.FieldValue));
 				}
 			}
 			else if(EFormCur!=null){
@@ -364,7 +365,7 @@ namespace OpenDental {
 							importRow.NewValObj=patientGender;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid gender."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid gender."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -393,7 +394,7 @@ namespace OpenDental {
 							importRow.NewValObj=patientPosition;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid PatientPosition."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid PatientPosition."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -417,7 +418,7 @@ namespace OpenDental {
 					}
 					importRow.OldValObj=_patient.Birthdate;
 					if(EFormCur!=null){
-						importRow.NewValObj=PIn.Date(fieldVal);
+						importRow.NewValObj=SIn.Date(fieldVal);
 					}
 					if(SheetCur!=null){
 						importRow.NewValObj=SheetFields.GetBirthDate(fieldVal,SheetCur.IsWebForm,SheetCur.IsCemtTransfer);
@@ -547,7 +548,7 @@ namespace OpenDental {
 							importRow.NewValObj=contactMethod;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid ContactMethod."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid ContactMethod."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -579,7 +580,7 @@ namespace OpenDental {
 							importRow.NewValObj=contactMethod;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid ContactMethod."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid ContactMethod."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -611,7 +612,7 @@ namespace OpenDental {
 							importRow.NewValObj=contactMethod;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid ContactMethod."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid ContactMethod."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -934,7 +935,7 @@ namespace OpenDental {
 							importRow.NewValObj=relat;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid Relationship."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid Relationship."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -1144,7 +1145,7 @@ namespace OpenDental {
 							importRow.NewValObj=relat;
 						}
 						catch {
-							MessageBox.Show(fieldVal+Lan.g(this," is not a valid Relationship."));
+							ODMessageBox.Show(fieldVal+Lan.g(this," is not a valid Relationship."));
 						}
 					}
 					importRow.ImpValDisplay=importRow.NewValDisplay;
@@ -2446,7 +2447,7 @@ namespace OpenDental {
 		///<summary>Mostly the same as IsImportable.  But subtle differences.</summary>
 		private bool IsEditable(ImportRow row) {
 			if(row.FieldName=="wirelessCarrier"){
-				MessageBox.Show(row.FieldName+" "+Lan.g(this,"cannot be imported."));
+				ODMessageBox.Show(row.FieldName+" "+Lan.g(this,"cannot be imported."));
 				return false;
 			}
 			if(row.FieldName=="referredFrom") {
@@ -2856,7 +2857,7 @@ namespace OpenDental {
 				|| sheetImportRowCarrierName==null
 				|| sheetImportRowCarrierPhone==null) 
 			{
-				MessageBox.Show(Lan.g(this,"Required ")+insWarnStr+Lan.g(this," fields are missing on this sheet.  You cannot import ")+insWarnStr
+				ODMessageBox.Show(Lan.g(this,"Required ")+insWarnStr+Lan.g(this," fields are missing on this sheet.  You cannot import ")+insWarnStr
 					+Lan.g(this," with this sheet until it contains all of required fields.  Required fields: Relationship, Subscriber, SubscriberID, CarrierName, and CarrierPhone."));
 				return false;
 			}
@@ -2865,7 +2866,7 @@ namespace OpenDental {
 				|| (string)sheetImportRowSubscriberId.ImpValObj==""
 				|| sheetImportRowCarrierName.ImpValObj==null
 				|| sheetImportRowCarrierPhone.ImpValObj==null) {
-				MessageBox.Show(Lan.g(this,"Cannot import ")+insWarnStr+Lan.g(this," until all required fields have been set.  Required fields: Relationship, Subscriber, SubscriberID, CarrierName, and CarrierPhone."));
+				ODMessageBox.Show(Lan.g(this,"Cannot import ")+insWarnStr+Lan.g(this," until all required fields have been set.  Required fields: Relationship, Subscriber, SubscriberID, CarrierName, and CarrierPhone."));
 				return false;
 			}
 			InsPlan insPlan=null;
@@ -3082,7 +3083,7 @@ namespace OpenDental {
 				msgBoxButton=MessageBoxButtons.YesNoCancel;
 				createNewPlanMsg=$"\r\n\r\n{Lan.g(this,"No will create a new plan using all of the import values.")}";
 			}
-			return MessageBox.Show(Lan.g(this,"The ")+insStr+importValue+Lan.g(this," does not match the selected plan's ")+importValue+".\r\n"
+			return ODMessageBox.Show(Lan.g(this,"The ")+insStr+importValue+Lan.g(this," does not match the selected plan's ")+importValue+".\r\n"
 				+Lan.g(this,"Use the selected plan's ")+importValue+"?"
 				+createNewPlanMsg,Lan.g(this,"Import ")+insStr+importValue,msgBoxButton);
 		}
@@ -3247,7 +3248,7 @@ namespace OpenDental {
 				if(_isAddressSameForFam) {
 					bool isAuthArchivedEdit=Security.IsAuthorized(EnumPermType.ArchivedPatientEdit,true);
 					if(!isAuthArchivedEdit && _family.HasArchivedMember()) {
-						MessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(EnumPermType.ArchivedPatientEdit)+"\r\n"
+						ODMessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(EnumPermType.ArchivedPatientEdit)+"\r\n"
 							+Lans.g(this,"Archived patients in the family will not be updated.  All other family members will be updated as usual."));
 					}
 					Patients.UpdateAddressForFam(_patient,false,isAuthArchivedEdit);

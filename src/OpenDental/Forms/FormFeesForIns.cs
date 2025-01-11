@@ -7,6 +7,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -134,7 +135,7 @@ namespace OpenDental{
 				planType=_table.Rows[i]["PlanType"].ToString();
 				if(planType=="p") {
 					//The CopayFeeSched field stores Copay fee schedules and fixed benefit fee schedules.
-					if(_listFixedBenefitFeeSchedNums.Contains(PIn.Long(_table.Rows[i]["CopayFeeSched"].ToString()))) {
+					if(_listFixedBenefitFeeSchedNums.Contains(SIn.Long(_table.Rows[i]["CopayFeeSched"].ToString()))) {
 						row.Cells.Add("FixedBenefitPPO");
 					}
 					else {
@@ -150,7 +151,7 @@ namespace OpenDental{
 				else {
 					row.Cells.Add("Cat%");
 				}
-				bool isFixedBenefitFeeSched=_listFixedBenefitFeeSchedNums.Contains(PIn.Long(_table.Rows[i]["FeeSched"].ToString()));
+				bool isFixedBenefitFeeSched=_listFixedBenefitFeeSchedNums.Contains(SIn.Long(_table.Rows[i]["FeeSched"].ToString()));
 				bool doAddName=true;
 				if((FeeScheduleType)listType.SelectedIndex==FeeScheduleType.CoPay && isFixedBenefitFeeSched) {
 					doAddName=false;
@@ -176,7 +177,7 @@ namespace OpenDental{
 			FeeScheduleType feeScheduleTypeSelected=(FeeScheduleType)listType.SelectedIndex;
 			//Prevent Manual Blue Book fee schedules from changing while BlueBook is turned off.
 			if(!isBlueBookOn && feeScheduleTypeSelected==FeeScheduleType.ManualBlueBook) {
-				MessageBox.Show(Lan.g(this,"Cannot change Manual Blue Book fee schedules while the Blue Book feature is turned off."));
+				ODMessageBox.Show(Lan.g(this,"Cannot change Manual Blue Book fee schedules while the Blue Book feature is turned off."));
 				return false;
 			}
 			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Change the fee schedule for all selected plans to the new fee schedule?")) {
@@ -356,7 +357,7 @@ namespace OpenDental{
 			FillGrid();
 			comboInsPlanType.SelectedIndex=0;
 			Cursor=Cursors.Default;
-			MessageBox.Show(Lan.g(this,"Plans changed: ")+listInsPlanNumsToChange.Count.ToString());
+			ODMessageBox.Show(Lan.g(this,"Plans changed: ")+listInsPlanNumsToChange.Count.ToString());
 		}
 
 		private void butChangeFeeSchedule_Click(object sender,System.EventArgs e) {
@@ -396,7 +397,7 @@ namespace OpenDental{
 			long rowsChanged=InsPlans.ChangeFeeScheds(listInsPlanNumsToChange,newFeeSchedNum,(FeeScheduleType)listType.SelectedIndex,_disableBlueBook,_enableBlueBook);
 			FillGrid();
 			Cursor=Cursors.Default;
-			MessageBox.Show(Lan.g(this,"Plans changed: ")+rowsChanged.ToString());
+			ODMessageBox.Show(Lan.g(this,"Plans changed: ")+rowsChanged.ToString());
 		}
 
 		///<summary>Holds InsPlan data needed in this form.</summary>
@@ -408,10 +409,10 @@ namespace OpenDental{
 
 			///<summary>Creates an InsPlanRow from a DataRow.</summary>
 			public InsPlanRow(DataRow dataRow) {
-				PlanNum=PIn.Long(dataRow["PlanNum"].ToString());
-				IsBlueBookEnabled=PIn.Bool(dataRow["IsBlueBookEnabled"].ToString());
-				PlanType=PIn.String(dataRow["PlanType"].ToString());
-				FeeSched=PIn.Long(dataRow["FeeSched"].ToString());
+				PlanNum=SIn.Long(dataRow["PlanNum"].ToString());
+				IsBlueBookEnabled=SIn.Bool(dataRow["IsBlueBookEnabled"].ToString());
+				PlanType=SIn.String(dataRow["PlanType"].ToString());
+				FeeSched=SIn.Long(dataRow["FeeSched"].ToString());
 			}
 		}
 

@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -81,7 +82,7 @@ namespace OpenDental {
 				}
 			}
 			if(stringBuilder.ToString()!="") {
-				MessageBox.Show(Lan.g(this,"UNII code has invalid characters: ")+stringBuilder);
+				ODMessageBox.Show(Lan.g(this,"UNII code has invalid characters: ")+stringBuilder);
 				return;
 			}
 			if(textUnii.Text!="" && textUnii.Text.Length!=10) {

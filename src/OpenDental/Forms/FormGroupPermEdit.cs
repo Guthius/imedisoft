@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -69,13 +71,13 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			int newerDays=PIn.Int(textDays.Text);
+			int newerDays=SIn.Int(textDays.Text);
 			if(newerDays>GroupPermissions.NewerDaysMax) {
 				MsgBox.Show(this,$"Days must be less than {GroupPermissions.NewerDaysMax.ToString()}.");
 				return;
 			}
 			_groupPermission.NewerDays=newerDays;
-			_groupPermission.NewerDate=PIn.Date(textDate.Text);
+			_groupPermission.NewerDate=SIn.Date(textDate.Text);
 			try{
 				if(_groupPermission.IsNew) {
 					GroupPermissions.Insert(_groupPermission);
@@ -87,7 +89,7 @@ namespace OpenDental{
 					$"'{UserGroups.GetGroup(_groupPermission.UserGroupNum).Description}'");
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

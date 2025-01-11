@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -50,7 +51,7 @@ namespace OpenDental {
 			else {
 				radioEmail.Checked=true;
 			}
-			_isTemplateRawHtml=PIn.Enum<EmailType>(ClinicPrefs.GetPrefValue(PrefName.WebSchedAsapEmailTemplateType,_clinicNum))==EmailType.RawHtml;
+			_isTemplateRawHtml=SIn.Enum<EmailType>(ClinicPrefs.GetPrefValue(PrefName.WebSchedAsapEmailTemplateType,_clinicNum))==EmailType.RawHtml;
 			FillSendDetails();
 			timerUpdateDetails.Start();
 		}

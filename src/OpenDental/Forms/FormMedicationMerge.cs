@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -31,10 +32,10 @@ namespace OpenDental {
 			formMedications.ShowDialog();
 			if(formMedications.DialogResult==DialogResult.OK) {
 				_medicationInto=Medications.GetMedication(formMedications.SelectedMedicationNum);
-				textGenNumInto.Text=POut.Long(_medicationInto.GenericNum);
+				textGenNumInto.Text=SOut.Long(_medicationInto.GenericNum);
 				textMedNameInto.Text=_medicationInto.MedName;
-				textMedNumInto.Text=POut.Long(_medicationInto.MedicationNum);
-				textRxInto.Text=POut.Long(_medicationInto.RxCui);
+				textMedNumInto.Text=SOut.Long(_medicationInto.MedicationNum);
+				textRxInto.Text=SOut.Long(_medicationInto.RxCui);
 			}
 			CheckUIState();
 		}
@@ -45,10 +46,10 @@ namespace OpenDental {
 			formMedications.ShowDialog();
 			if(formMedications.DialogResult==DialogResult.OK) {
 				_medicationFrom=Medications.GetMedication(formMedications.SelectedMedicationNum);
-				textGenNumFrom.Text=POut.Long(_medicationFrom.GenericNum);
+				textGenNumFrom.Text=SOut.Long(_medicationFrom.GenericNum);
 				textMedNameFrom.Text=_medicationFrom.MedName;
-				textMedNumFrom.Text=POut.Long(_medicationFrom.MedicationNum);
-				textRxFrom.Text=POut.Long(_medicationFrom.RxCui);
+				textMedNumFrom.Text=SOut.Long(_medicationFrom.MedicationNum);
+				textRxFrom.Text=SOut.Long(_medicationFrom.RxCui);
 			}
 			CheckUIState();
 		}
@@ -64,7 +65,7 @@ namespace OpenDental {
 			if(_medicationFrom.MedicationNum==_medicationFrom.GenericNum && Medications.IsInUseAsGeneric(_medicationFrom)) {
 				msgText=Lan.g(this,"The medication you are merging from is a generic medication associated with other brands")+". "+
 					Lan.g(this,"Select a different medication to merge from instead.")+".";
-				MessageBox.Show(msgText);
+				ODMessageBox.Show(msgText);
 				return;
 			}
 			if(textMedNameFrom.Text!=textMedNameInto.Text) {
@@ -86,12 +87,12 @@ namespace OpenDental {
 			}
 			msgText+=Lan.g(this,"This change is irreversible")+".  "+Lan.g(this,"This medication is assigned to")+" "+numPats+" "
 				+Lan.g(this,"patients")+".  "+Lan.g(this,"Continue anyways?");
-			if(MessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			long rowsChanged=Medications.Merge(_medicationFrom.MedicationNum,_medicationInto.MedicationNum);
 			string logText=Lan.g(this,"Medications merged")+": "+_medicationFrom.MedName+" "+Lan.g(this,"merged into")+" "+_medicationInto.MedName+".\r\n"
-			+Lan.g(this,"Rows changed")+": "+POut.Long(rowsChanged);
+			+Lan.g(this,"Rows changed")+": "+SOut.Long(rowsChanged);
 			SecurityLogs.MakeLogEntry(EnumPermType.MedicationMerge,0,logText);
 			textRxFrom.Clear();
 			textMedNumFrom.Clear();

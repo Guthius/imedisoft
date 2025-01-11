@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormElectIDEdit:FormODBase {
@@ -47,7 +48,7 @@ namespace OpenDental {
 			EclaimsCommBridge eclaimsCommBridge=ElectIDCur.CommBridge;
 			List<long> listAttributes=new List<long>();
 			if(ElectIDCur.Attributes!=null) {
-				listAttributes=ElectIDCur.Attributes.Split(",",StringSplitOptions.RemoveEmptyEntries).Select(x=>PIn.Long(x,throwExceptions:false)).ToList();
+				listAttributes=ElectIDCur.Attributes.Split(",",StringSplitOptions.RemoveEmptyEntries).Select(x=>SIn.Long(x,throwExceptions:false)).ToList();
 			}
 			switch(eclaimsCommBridge) {
 				case EclaimsCommBridge.ClaimConnect:

@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -77,13 +78,13 @@ namespace OpenDental {
 				Hx835_Proc hx835_proc=(Hx835_Proc)gridProcedures.ListGridRows[i].Tag;
 				hx835_proc.ProcCodeBilled=gridProcedures.ListGridRows[i].Cells[0].Text;
 				hx835_proc.ProcCodeAdjudicated=gridProcedures.ListGridRows[i].Cells[1].Text;
-				hx835_proc.ProcFee=PIn.Decimal(gridProcedures.ListGridRows[i].Cells[2].Text);
-				hx835_proc.InsPaid=PIn.Decimal(gridProcedures.ListGridRows[i].Cells[3].Text);
-				hx835_proc.PatientPortionAmt=PIn.Decimal(gridProcedures.ListGridRows[i].Cells[4].Text);
-				hx835_proc.DeductibleAmt=PIn.Decimal(gridProcedures.ListGridRows[i].Cells[5].Text);
-				hx835_proc.WriteoffAmt=PIn.Decimal(gridProcedures.ListGridRows[i].Cells[6].Text);
+				hx835_proc.ProcFee=SIn.Decimal(gridProcedures.ListGridRows[i].Cells[2].Text);
+				hx835_proc.InsPaid=SIn.Decimal(gridProcedures.ListGridRows[i].Cells[3].Text);
+				hx835_proc.PatientPortionAmt=SIn.Decimal(gridProcedures.ListGridRows[i].Cells[4].Text);
+				hx835_proc.DeductibleAmt=SIn.Decimal(gridProcedures.ListGridRows[i].Cells[5].Text);
+				hx835_proc.WriteoffAmt=SIn.Decimal(gridProcedures.ListGridRows[i].Cells[6].Text);
 			}
-			Hx835Claim.ClaimFee=PIn.Decimal(textClaimFee.Text);
+			Hx835Claim.ClaimFee=SIn.Decimal(textClaimFee.Text);
 			if(textVDoubleClaimFeeOverride.Text!="") {
 				Hx835Claim.ClaimFee=(decimal)textVDoubleClaimFeeOverride.Value;
 			}

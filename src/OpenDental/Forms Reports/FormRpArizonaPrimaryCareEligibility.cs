@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using System.IO;
 using System.Text.RegularExpressions;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormRpArizonaPrimaryCareEligibility:FormODBase {
@@ -42,7 +43,7 @@ namespace OpenDental {
 			this.textLog.Text="";
 			string outFile=ODFileUtils.CombinePaths(textEligibilityFolder.Text,textEligibilityFile.Text);
 			if(File.Exists(outFile)) {
-				if(MessageBox.Show("The file at "+outFile+" already exists. Overwrite?","Overwrite File?",
+				if(ODMessageBox.Show("The file at "+outFile+" already exists. Overwrite?","Overwrite File?",
 					MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return;
 				}
@@ -54,23 +55,23 @@ namespace OpenDental {
 			string statusStr="Eligibility Status";
 			string command="";
 			//Locate the payment definition number for copayments of patients using the Arizona Primary Care program.
-			command="SELECT DefNum FROM definition WHERE Category="+POut.Long((int)DefCat.PaymentTypes)+" AND IsHidden=0 AND LOWER(TRIM(ItemName))='noah'";
+			command="SELECT DefNum FROM definition WHERE Category="+SOut.Long((int)DefCat.PaymentTypes)+" AND IsHidden=0 AND LOWER(TRIM(ItemName))='noah'";
 			DataTable copayDefNumTab=DataCore.GetTable(command);
 			if(copayDefNumTab.Rows.Count!=1){
-				MessageBox.Show("You must define exactly one payment type with the name 'NOAH' before running this report. "+
+				ODMessageBox.Show("You must define exactly one payment type with the name 'NOAH' before running this report. "+
 					"This payment type must be used on payments made by Arizona Primary Care patients.");
 				return;
 			}
-			long copayDefNum=PIn.Long(copayDefNumTab.Rows[0][0].ToString());
+			long copayDefNum=SIn.Long(copayDefNumTab.Rows[0][0].ToString());
 			//Get the list of all Arizona Primary Care patients, based on the patients which have an insurance carrier named 'noah'
 			command="SELECT DISTINCT p.PatNum FROM patplan pp,inssub,insplan i,patient p,carrier c "+
 				"WHERE p.PatNum=pp.PatNum AND inssub.InsSubNum=pp.InsSubNum AND inssub.PlanNum=i.PlanNum AND i.CarrierNum=c.CarrierNum "+
 				"AND LOWER(TRIM(c.CarrierName))='noah' AND "+
 				"(SELECT MAX(a.AptDateTime) FROM appointment a WHERE a.PatNum=p.PatNum AND a.AptStatus="+((int)ApptStatus.Complete)+") BETWEEN "+
-					POut.Date(dateTimeFrom.Value)+" AND "+POut.Date(dateTimeTo.Value);
+					SOut.Date(dateTimeFrom.Value)+" AND "+SOut.Date(dateTimeTo.Value);
 			DataTable primaryCarePatients=DataCore.GetTable(command);
 			for(int i=0;i<primaryCarePatients.Rows.Count;i++) {
-				string patNum=POut.Long(PIn.Long(primaryCarePatients.Rows[i][0].ToString()));
+				string patNum=SOut.Long(SIn.Long(primaryCarePatients.Rows[i][0].ToString()));
 				command="SELECT "+
 					"TRIM((SELECT f.FieldValue FROM patfield f WHERE f.PatNum=p.PatNum AND "+
 						"LOWER(f.FieldName)=LOWER('"+patientsIdNumberStr+"') "+DbHelper.LimitAnd(1)+")) PCIN, "+//Patient's Care ID Number
@@ -107,7 +108,7 @@ namespace OpenDental {
 				string outputRow="";
 				string rowErrors="";
 				string rowWarnings="";
-				string pcin=PIn.String(primaryCareReportRow.Rows[0]["PCIN"].ToString());
+				string pcin=SIn.String(primaryCareReportRow.Rows[0]["PCIN"].ToString());
 				if(pcin.Length<9) {
 					rowErrors+="ERROR: Incorrectly formatted patient data for patient with patnum "+patNum+
 						". Patient ID Number '"+pcin+"' is not at least 9 characters long."+Environment.NewLine;
@@ -125,11 +126,11 @@ namespace OpenDental {
 					siteId=siteId.Substring(siteId.Length-5);
 				}
 				outputRow+=siteId;
-				outputRow+=PIn.Date(primaryCareReportRow.Rows[0]["Birthdate"].ToString()).ToString("MMddyyyy");//Patient's Date of Birth
-				outputRow+=POut.Long(PIn.Long(primaryCareReportRow.Rows[0]["MaritalStatus"].ToString()));
+				outputRow+=SIn.Date(primaryCareReportRow.Rows[0]["Birthdate"].ToString()).ToString("MMddyyyy");//Patient's Date of Birth
+				outputRow+=SOut.Long(SIn.Long(primaryCareReportRow.Rows[0]["MaritalStatus"].ToString()));
 				//outputRow+=primaryCareReportRow.Rows[0]["PatRace"].ToString();
 				//Gets the old patient race enum based on the PatientRace entries in the db and displays the corresponding letters.
-				switch (PatientRaces.GetPatientRaceOldFromPatientRaces(PIn.Long(patNum))) {
+				switch (PatientRaces.GetPatientRaceOldFromPatientRaces(SIn.Long(patNum))) {
 					case PatientRaceOld.Asian:
 						outputRow+='A';
 						break;
@@ -153,7 +154,7 @@ namespace OpenDental {
 						break;
 				}
 				//Household residence address
-				string householdAddress=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HouseholdAddress"].ToString()));
+				string householdAddress=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HouseholdAddress"].ToString()));
 				if(householdAddress.Length>29) {
 					string newHouseholdAddress=householdAddress.Substring(0,29);
 					rowWarnings+="WARNING: Address for patient with patnum of "+patNum+" was longer than 29 characters and "+
@@ -163,7 +164,7 @@ namespace OpenDental {
 				}
 				outputRow+=householdAddress.PadRight(29,' ');
 				//Household residence city
-				string householdCity=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HouseholdCity"].ToString()));
+				string householdCity=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HouseholdCity"].ToString()));
 				if(householdCity.Length>15) {
 					string newHouseholdCity=householdCity.Substring(0,15);
 					rowWarnings+="WARNING: City name for patient with patnum of "+patNum+" was longer than 15 characters and "+
@@ -173,7 +174,7 @@ namespace OpenDental {
 				}
 				outputRow+=householdCity.PadRight(15,' ');
 				//Household residence state
-				string householdState=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HouseholdState"].ToString()));
+				string householdState=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HouseholdState"].ToString()));
 				if(householdState.Length>2) {
 					string newHouseholdState=householdState.Substring(0,2);
 					rowWarnings+="WARNING: State abbreviation for patient with patnum of "+patNum+" was longer than 2 characters and "+
@@ -183,7 +184,7 @@ namespace OpenDental {
 				}
 				outputRow+=householdState.PadRight(2,' ');
 				//Household residence zip code
-				string householdZip=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HouseholdZip"].ToString()));
+				string householdZip=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HouseholdZip"].ToString()));
 				if(householdZip.Length>5) {
 					string newHouseholdZip=householdZip.Substring(0,5);
 					rowWarnings+="WARNING: The zipcode for patient with patnum of "+patNum+" was longer than 5 characters and "+
@@ -193,7 +194,7 @@ namespace OpenDental {
 				}
 				outputRow+=householdZip.PadRight(5,' ');
 				//Household gross income
-				string householdGrossIncome=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HGI"].ToString()));
+				string householdGrossIncome=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HGI"].ToString()));
 				if(householdGrossIncome==""||householdGrossIncome=="null") {
 					householdGrossIncome="0";
 				}
@@ -210,7 +211,7 @@ namespace OpenDental {
 				}
 				outputRow+=householdGrossIncome;
 				//Household percent of poverty
-				string householdPercentPoverty=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HPP"].ToString()));
+				string householdPercentPoverty=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HPP"].ToString()));
 				if(householdPercentPoverty==""||householdPercentPoverty=="null") {
 					householdPercentPoverty="0";
 				}
@@ -226,7 +227,7 @@ namespace OpenDental {
 						householdPercentPoverty+"' for the patient with the patnum of "+patNum+Environment.NewLine;
 				}
 				outputRow+=householdPercentPoverty;
-				string householdSlidingFeeScale=POut.String(PIn.String(primaryCareReportRow.Rows[0]["HSFS"].ToString()));
+				string householdSlidingFeeScale=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["HSFS"].ToString()));
 				if(householdSlidingFeeScale.Length==0){
 					householdSlidingFeeScale="0";
 				}
@@ -245,11 +246,11 @@ namespace OpenDental {
 				string dateOfEligibilityStatusStr=primaryCareReportRow.Rows[0]["DES"].ToString();
 				DateTime dateOfEligibilityStatus=DateTime.MinValue;
 				if(dateOfEligibilityStatusStr!="" && dateOfEligibilityStatusStr!="null"){
-					dateOfEligibilityStatus=PIn.Date(dateOfEligibilityStatusStr);
+					dateOfEligibilityStatus=SIn.Date(dateOfEligibilityStatusStr);
 				}
 				outputRow+=dateOfEligibilityStatus.ToString("MMddyyyy");
 				//Primary care status
-				string primaryCareStatus=POut.String(PIn.String(primaryCareReportRow.Rows[0]["CareStatus"].ToString())).ToUpper();
+				string primaryCareStatus=SOut.String(SIn.String(primaryCareReportRow.Rows[0]["CareStatus"].ToString())).ToUpper();
 				if(primaryCareStatus!="A"&&primaryCareStatus!="B"&&primaryCareStatus!="C"&&primaryCareStatus!="D") {
 					rowErrors+="ERROR: The primary care status of the patient with a patnum of "+patNum+" is set to '"+primaryCareStatus+
 						"', but must be set to A, B, C or D. "+Environment.NewLine;
@@ -262,7 +263,7 @@ namespace OpenDental {
 				outputText+=outputRow+Environment.NewLine;//Only add the row to the output file if it is properly formatted.
 			}
 			File.WriteAllText(outFile,outputText);
-			MessageBox.Show("Done.");
+			ODMessageBox.Show("Done.");
 		}
 
 	}

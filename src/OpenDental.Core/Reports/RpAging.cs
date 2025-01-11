@@ -74,15 +74,15 @@ namespace OpenDentBusiness {
 				listWhereAnds.Add("patient.Zip != ''");
 			}
 			if(rpo.ListBillTypes.Count>0) {//if all bill types is selected, list will be empty
-				listWhereAnds.Add("patient.BillingType IN ("+string.Join(",",rpo.ListBillTypes.Select(x => POut.Long(x)))+")");
+				listWhereAnds.Add("patient.BillingType IN ("+string.Join(",",rpo.ListBillTypes.Select(x => SOut.Long(x)))+")");
 			}
 			if(rpo.ListProvNums.Count>0) {//if all provs is selected, list will be empty
-				listWhereAnds.Add("patient.PriProv IN ("+string.Join(",",rpo.ListProvNums.Select(x => POut.Long(x)))+")");
+				listWhereAnds.Add("patient.PriProv IN ("+string.Join(",",rpo.ListProvNums.Select(x => SOut.Long(x)))+")");
 			}
 			if(ReportsComplex.RunFuncOnReportServer(() => true)) //if clinics enabled, at least one clinic will be selected
 			{
 				//listClin may contain "Unassigned" clinic with ClinicNum 0, in which case it will also be in the query string
-				listWhereAnds.Add("patient.ClinicNum IN ("+string.Join(",",rpo.ListClinicNums.Select(x => POut.Long(x)))+")");
+				listWhereAnds.Add("patient.ClinicNum IN ("+string.Join(",",rpo.ListClinicNums.Select(x => SOut.Long(x)))+")");
 			}
 			if(listWhereAnds.Count>0) {
 				queryAg+="WHERE "+string.Join(" AND ",listWhereAnds)+" ";

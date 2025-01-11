@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -130,7 +131,7 @@ namespace OpenDentBusiness {
 						carrierNew.Zip=add.Postal_Code;
 					}
 					carrierNew.CanadianSupportedTypes=GetSupportedTypes(jsonCarrier);
-					carrierNew.CDAnetVersion=POut.Int(jsonCarrier.Versions.Max(x => PIn.Int(x))).PadLeft(2,'0');//Version must be in 2 digit format. ex. 02.
+					carrierNew.CDAnetVersion=SOut.Int(jsonCarrier.Versions.Max(x => SIn.Int(x))).PadLeft(2,'0');//Version must be in 2 digit format. ex. 02.
 					carrierNew.CarrierName=jsonCarrier.Name.En;
 					try {
 						Carriers.Insert(carrierNew);
@@ -184,7 +185,7 @@ namespace OpenDentBusiness {
 			//Since Reversals must be done same day and primary claims only, they are not very useful and we can afford to have this flag wrong.
 			odCarrier.CanadianSupportedTypes=odCarrier.CanadianSupportedTypes&~(CanSupTransTypes.ClaimReversal_02|CanSupTransTypes.ClaimReversalResponse_12);
 			odCarrier.CanadianSupportedTypes|=GetSupportedTypes(jsonCarrier);//If the reversal flag is still present, it will be added back here.
-			odCarrier.CDAnetVersion=POut.Int(jsonCarrier.Versions.Max(x => PIn.Int(x))).PadLeft(2,'0');//Version must be in 2 digit format. ex. 02.
+			odCarrier.CDAnetVersion=SOut.Int(jsonCarrier.Versions.Max(x => SIn.Int(x))).PadLeft(2,'0');//Version must be in 2 digit format. ex. 02.
 			List<ItransImportFields> listFields=Enum.GetValues(typeof(ItransImportFields)).Cast<ItransImportFields>().ToList();
 			foreach(ItransImportFields field in listFields) {
 				if(fieldsToImport==ItransImportFields.None) {

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -101,12 +102,12 @@ namespace OpenDental{
 			textUsername.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,"Username",clinicNum);
 			textXWebID.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,"XWebID",clinicNum);
 			textTerminalID.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,"TerminalID",clinicNum);
-			checkWebPayEnabled.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"IsOnlinePaymentsEnabled",clinicNum));
-			checkPromptSig.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"PromptSignature",clinicNum));
-			checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"PrintReceipt",clinicNum));
-			checkForceDuplicate.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkWebPayEnabled.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"IsOnlinePaymentsEnabled",clinicNum));
+			checkPromptSig.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"PromptSignature",clinicNum));
+			checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,"PrintReceipt",clinicNum));
+			checkForceDuplicate.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				ProgramProperties.PropertyDescs.XCharge.XChargeForceRecurringCharge,clinicNum));
-			checkPreventSavingNewCC.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkPreventSavingNewCC.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC,clinicNum));
 		}
 
@@ -146,11 +147,11 @@ namespace OpenDental{
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert && x.PropertyDesc=="PromptSignature");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkPromptSig.Checked);//always 1 item, null safe
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkPromptSig.Checked);//always 1 item, null safe
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert && x.PropertyDesc=="PrintReceipt");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkPrintReceipt.Checked);//always 1 item, null safe
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkPrintReceipt.Checked);//always 1 item, null safe
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert && x.PropertyDesc=="XWebID");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
@@ -166,7 +167,7 @@ namespace OpenDental{
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert && x.PropertyDesc=="IsOnlinePaymentsEnabled");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkWebPayEnabled.Checked);//always 1 item, null safe
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkWebPayEnabled.Checked);//always 1 item, null safe
 			}
 			//payment type already validated
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert && x.PropertyDesc=="PaymentType");
@@ -176,12 +177,12 @@ namespace OpenDental{
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert && 
 				x.PropertyDesc==ProgramProperties.PropertyDescs.XCharge.XChargeForceRecurringCharge);
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkForceDuplicate.Checked);
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkForceDuplicate.Checked);
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==_clinicNumRevert &&
 					x.PropertyDesc==ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC);
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkPreventSavingNewCC.Checked);
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkPreventSavingNewCC.Checked);
 			}
 			_clinicNumRevert=comboClinic.ClinicNumSelected;//now that we've updated the values for the clinic we're switching from, update _clinicNumRevert
 			textPassword.UseSystemPasswordChar=false;//FillFields will set this to true if the clinic being selected has a password set
@@ -237,7 +238,7 @@ namespace OpenDental{
 			string msg=Lan.g(this,"Online payments is already enabled for another processor and must be disabled in order to use Xcharge online payments. "
 				+"Would you like to disable the other processor online payments?");
 			if(programPropertyWebPayEnabled!=null) {
-				if(MessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+				if(ODMessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 					checkWebPayEnabled.Checked=false;
 					return;
 				}
@@ -426,7 +427,7 @@ namespace OpenDental{
 				return;
 			}
 			if(checkEnabled.Checked && !Programs.IsEnabledByHq(ProgramName.Xcharge,out string err)) {
-				MessageBox.Show(err);
+				ODMessageBox.Show(err);
 				return;
 			}
 			#region Validate Path and Local Path Override
@@ -496,11 +497,11 @@ namespace OpenDental{
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="PromptSignature");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkPromptSig.Checked);//always 1 item, null safe
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkPromptSig.Checked);//always 1 item, null safe
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="PrintReceipt");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkPrintReceipt.Checked);//always 1 item, null safe
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkPrintReceipt.Checked);//always 1 item, null safe
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="XWebID");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
@@ -516,7 +517,7 @@ namespace OpenDental{
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="IsOnlinePaymentsEnabled");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkWebPayEnabled.Checked);//always 1 item, null safe
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkWebPayEnabled.Checked);//always 1 item, null safe
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc=="PaymentType");
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
@@ -524,11 +525,11 @@ namespace OpenDental{
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==ProgramProperties.PropertyDescs.XCharge.XChargeForceRecurringCharge);
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkForceDuplicate.Checked);
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkForceDuplicate.Checked);
 			}
 			listProgramPropertiesPropertyDesc=_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC);
 			for(int i = 0;i<listProgramPropertiesPropertyDesc.Count;i++) {
-				listProgramPropertiesPropertyDesc[i].PropertyValue=POut.Bool(checkPreventSavingNewCC.Checked);
+				listProgramPropertiesPropertyDesc[i].PropertyValue=SOut.Bool(checkPreventSavingNewCC.Checked);
 			}
 			#endregion Update Local List of Program Properties
 			#region Validate PaymentTypes For All Clinics
@@ -550,14 +551,14 @@ namespace OpenDental{
 			ProgramProperties.Sync(_listProgramProperties,_program.ProgramNum);
 			//Find all clinics that have Xcharge online payments enabled
 			List<ProgramProperty> listProgramPropertyOnlinePayments=_listProgramProperties.FindAll(x => x.PropertyDesc=="IsOnlinePaymentsEnabled" &&
-				PIn.Bool(x.PropertyValue));
+				SIn.Bool(x.PropertyValue));
 			for(int i=0;i < listProgramPropertyOnlinePayments.Count;i++) {
 				//Find all online payment enabled program properties that we saved in this session. Only clinics that have changes will have an 
 				//IsOnlinePaymentsEnabled property in memory. This is needed to ensure that we don't disable other processors if someone
 				//checks to use Xcharge online payments and then decides to keep it disabled during the same session.
 				ProgramProperty programPropertyWebPay=_listProgramPropertiesWebPay.FirstOrDefault(y => y.ClinicNum==listProgramPropertyOnlinePayments[i].ClinicNum);
 				if(programPropertyWebPay!=null) {
-					ProgramProperties.UpdateProgramPropertyWithValue(programPropertyWebPay,POut.Bool(false));
+					ProgramProperties.UpdateProgramPropertyWithValue(programPropertyWebPay,SOut.Bool(false));
 				}
 			}
 			#endregion Save

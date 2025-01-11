@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Collections.Generic;
 using System.Linq;
+using CodeBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -129,7 +130,7 @@ namespace OpenDental{
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(IsSelectMode) {
 				if(gridElectIDs.SelectedIndices.Length<1) {
-					MessageBox.Show(Lan.g(this,"Please select an item first."));
+					ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 					return;
 				}
 				ElectIDSelected=_listElectIDsToShow[gridElectIDs.SelectedIndices[0]];

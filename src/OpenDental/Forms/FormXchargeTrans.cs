@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.Bridges;
@@ -43,7 +44,7 @@ namespace OpenDental {
 			}
 			checkSignature.Checked=IsPromptSignatureChecked;
 			checkPrintReceipt.Checked=IsPrintReceiptChecked;
-			if(PIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC,ClinicNum))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC,ClinicNum))) {
 				checkSaveToken.Checked=false;
 				checkSaveToken.Enabled=false;
 			}
@@ -67,7 +68,7 @@ namespace OpenDental {
 					MsgBox.Show(this,"Please fix data entry errors first.");
 					return;
 				}
-				CashBackAmount=PIn.Decimal(textCashBackAmt.Text);
+				CashBackAmount=SIn.Decimal(textCashBackAmt.Text);
 			}
 			IdxTransactionType=listTransType.SelectedIndex;
 			IsSaveTokenChecked=checkSaveToken.Checked;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDentBusiness
 {
@@ -122,9 +123,9 @@ namespace OpenDentBusiness
 			if(segNumInfoSourceNM101!=-1) {
 				try {
 					string dateStr=segments[segNumInfoSourceNM101+2].Get(3);
-					int dateYear=PIn.Int(dateStr.Substring(0,4));
-					int dateMonth=PIn.Int(dateStr.Substring(4,2));
-					int dateDay=PIn.Int(dateStr.Substring(6,2));
+					int dateYear=SIn.Int(dateStr.Substring(0,4));
+					int dateMonth=SIn.Int(dateStr.Substring(4,2));
+					int dateDay=SIn.Int(dateStr.Substring(6,2));
 					return new DateTime(dateYear,dateMonth,dateDay);
 				}
 				catch {
@@ -138,9 +139,9 @@ namespace OpenDentBusiness
 			if(segNumInfoSourceNM101!=-1) {
 				try {
 					string dateStr=segments[segNumInfoSourceNM101+3].Get(3);
-					int dateYear=PIn.Int(dateStr.Substring(0,4));
-					int dateMonth=PIn.Int(dateStr.Substring(4,2));
-					int dateDay=PIn.Int(dateStr.Substring(6,2));
+					int dateYear=SIn.Int(dateStr.Substring(0,4));
+					int dateMonth=SIn.Int(dateStr.Substring(4,2));
+					int dateDay=SIn.Int(dateStr.Substring(6,2));
 					return new DateTime(dateYear,dateMonth,dateDay);
 				}
 				catch {
@@ -343,15 +344,15 @@ namespace OpenDentBusiness
 					//The DTP segment for the date of service will not be present when an invalid date was originally sent to the carrier (even though the specifications have it marked as a required segment).
 					if(seg.SegmentID=="DTP") {
 						string dateServiceStr=seg.Get(3);
-						int dateServiceStartYear=PIn.Int(dateServiceStr.Substring(0,4));
-						int dateServiceStartMonth=PIn.Int(dateServiceStr.Substring(4,2));
-						int dateServiceStartDay=PIn.Int(dateServiceStr.Substring(6,2));
+						int dateServiceStartYear=SIn.Int(dateServiceStr.Substring(0,4));
+						int dateServiceStartMonth=SIn.Int(dateServiceStr.Substring(4,2));
+						int dateServiceStartDay=SIn.Int(dateServiceStr.Substring(6,2));
 						result[6]=(new DateTime(dateServiceStartYear,dateServiceStartMonth,dateServiceStartDay)).ToShortDateString();
 						result[7]=result[6];//End date equals start date if the end date is not specifically defined.
 						if(dateServiceStr.Length==17) { //Date range.
-							int dateServiceEndYear=PIn.Int(dateServiceStr.Substring(9,4));
-							int dateServiceEndMonth=PIn.Int(dateServiceStr.Substring(13,2));
-							int dateServiceEndDay=PIn.Int(dateServiceStr.Substring(15,2));
+							int dateServiceEndYear=SIn.Int(dateServiceStr.Substring(9,4));
+							int dateServiceEndMonth=SIn.Int(dateServiceStr.Substring(13,2));
+							int dateServiceEndDay=SIn.Int(dateServiceStr.Substring(15,2));
 							result[7]=(new DateTime(dateServiceEndYear,dateServiceEndMonth,dateServiceEndDay)).ToShortDateString();
 						}
 					}
@@ -441,27 +442,27 @@ namespace OpenDentBusiness
 					return "R";
 				case "R5":  //Request for additional information/more specific detail-Additional information as a follow up to a previous request is needed. The original information was received but is inadequate. More specific/detailed information is requested.
 					return "R";
-				case "R6":  //Requests for additional information – Regulatory requirements
+				case "R6":  //Requests for additional information ï¿½ Regulatory requirements
 					return "R";
-				case "R7":  //Requests for additional information – Confirm care is consistent with Health Plan policy coverage
+				case "R7":  //Requests for additional information ï¿½ Confirm care is consistent with Health Plan policy coverage
 					return "R";
-				case "R8":  //Requests for additional information – Confirm care is consistent with health plan coverage exceptions
+				case "R8":  //Requests for additional information ï¿½ Confirm care is consistent with health plan coverage exceptions
 					return "R";
-				case "R9":  //Requests for additional information – Determination of medical necessity
+				case "R9":  //Requests for additional information ï¿½ Determination of medical necessity
 					return "R";
-				case "R10": //Requests for additional information – Support a filed grievance or appeal
+				case "R10": //Requests for additional information ï¿½ Support a filed grievance or appeal
 					return "R";
-				case "R11": //Requests for additional information – Pre-payment review of claims
+				case "R11": //Requests for additional information ï¿½ Pre-payment review of claims
 					return "R";
-				case "R12": //Requests for additional information – Clarification or justification of use for specified procedure code
+				case "R12": //Requests for additional information ï¿½ Clarification or justification of use for specified procedure code
 					return "R";
-				case "R13": //Requests for additional information – Original documents submitted are not readable. Used only for subsequent request(s).
+				case "R13": //Requests for additional information ï¿½ Original documents submitted are not readable. Used only for subsequent request(s).
 					return "R";
-				case "R14": //Requests for additional information – Original documents received are not what was requested. Used only for subsequent request(s).
+				case "R14": //Requests for additional information ï¿½ Original documents received are not what was requested. Used only for subsequent request(s).
 					return "R";
-				case "R15": //Requests for additional information – Workers Compensation coverage determination.
+				case "R15": //Requests for additional information ï¿½ Workers Compensation coverage determination.
 					return "R";
-				case "R16": //Requests for additional information – Eligibility determination
+				case "R16": //Requests for additional information ï¿½ Eligibility determination
 					return "R";
 				case "R17": //Replacement of a Prior Request. Used to indicate that the current attachment request replaces a prior attachment request.
 					return "R";
@@ -1826,7 +1827,7 @@ namespace OpenDentBusiness
 				case "13":
 					return "Contracted Service Provider";
 				case "17":
-					return "Consultant’s Office";
+					return "Consultantï¿½s Office";
 				case "1E":
 					return "Health Maintenance Organization (HMO)";
 				case "1G":
@@ -1900,23 +1901,23 @@ namespace OpenDentBusiness
 				case "3I":
 					return "Other Specialty Facility";
 				case "3J":
-					return "Children’s General Facility";
+					return "Childrenï¿½s General Facility";
 				case "3K":
-					return "Children’s Hospital Unit of an Institution";
+					return "Childrenï¿½s Hospital Unit of an Institution";
 				case "3L":
-					return "Children’s Psychiatric Facility";
+					return "Childrenï¿½s Psychiatric Facility";
 				case "3M":
-					return "Children’s Tuberculosis and Other Respiratory Diseases Facility";
+					return "Childrenï¿½s Tuberculosis and Other Respiratory Diseases Facility";
 				case "3N":
-					return "Children’s Eye, Ear, Nose and Throat Facility";
+					return "Childrenï¿½s Eye, Ear, Nose and Throat Facility";
 				case "3O":
-					return "Children’s Rehabilitiaion Facility";
+					return "Childrenï¿½s Rehabilitiaion Facility";
 				case "3P":
-					return "Children’s Orthopedic Facility";
+					return "Childrenï¿½s Orthopedic Facility";
 				case "3Q":
-					return "Children’s Chronic Disease Facility";
+					return "Childrenï¿½s Chronic Disease Facility";
 				case "3R":
-					return "Children’s Other Specialty Facility";
+					return "Childrenï¿½s Other Specialty Facility";
 				case "3S":
 					return "Institution for Mental Retardation";
 				case "3T":
@@ -1964,7 +1965,7 @@ namespace OpenDentBusiness
 				case "4M":
 					return "Adult Day Care Program Facility";
 				case "4N":
-					return "Alzheimer’s Diagnostic/Assessment Services";
+					return "Alzheimerï¿½s Diagnostic/Assessment Services";
 				case "4O":
 					return "Comprehensive Geriatric Assessment Facility";
 				case "4P":
@@ -2078,7 +2079,7 @@ namespace OpenDentBusiness
 				case "6R":
 					return "Speech Therapy Services";
 				case "6S":
-					return "Women’s Health Center/Services";
+					return "Womenï¿½s Health Center/Services";
 				case "6U":
 					return "Cardiac Rehabilitation Program Facility";
 				case "6V":
@@ -2106,7 +2107,7 @@ namespace OpenDentBusiness
 				case "82":
 					return "Rendering Provider";
 				case "84":
-					return "Subscriber’s Employer";
+					return "Subscriberï¿½s Employer";
 				case "85":
 					return "Billing Provider";
 				case "87":

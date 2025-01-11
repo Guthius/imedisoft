@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -38,8 +39,8 @@ namespace OpenDental {
 				listType.Items.Add(Enum.GetNames(typeof(EnumQuickPasteType))[i],(EnumQuickPasteType)i);
 			}
 			for(int i=0;i<stringArrayTypes.Length;i++) {
-				if(listType.Items.Contains((EnumQuickPasteType)PIn.Int(stringArrayTypes[i]))) {
-					listType.SetSelectedEnum((EnumQuickPasteType)PIn.Int(stringArrayTypes[i]));
+				if(listType.Items.Contains((EnumQuickPasteType)SIn.Int(stringArrayTypes[i]))) {
+					listType.SetSelectedEnum((EnumQuickPasteType)SIn.Int(stringArrayTypes[i]));
 				}
 			}
 			textDescription.Text=QuickPasteCatCur.Description;

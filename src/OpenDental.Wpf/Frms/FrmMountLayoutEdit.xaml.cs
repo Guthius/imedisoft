@@ -12,6 +12,7 @@ using OpenDentBusiness;
 using WpfControls.UI;
 using OpenDental.Drawing;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	
@@ -360,8 +361,8 @@ namespace OpenDental {
 			//Limit size of mount to 20k x 10k pixels. =600 MB color
 			//For comparison, 4K is 4000 x 2000
 			//Good sensor is 1700x1300. FMX mount would then be 10,700 x 3,900 = 125 MB
-			MountCur.Width=PIn.Int(textVIntWidth.Text);
-			MountCur.Height=PIn.Int(textVIntHeight.Text);
+			MountCur.Width=SIn.Int(textVIntWidth.Text);
+			MountCur.Height=SIn.Int(textVIntHeight.Text);
 			try{
 				Mounts.Update(MountCur);//whether new or not
 			}

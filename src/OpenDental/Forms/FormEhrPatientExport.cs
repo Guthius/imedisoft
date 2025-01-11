@@ -6,6 +6,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -74,7 +75,7 @@ namespace OpenDental {
 			int patNum=0;
 			try {
 				if(textPatNum.Text!="") {
-					patNum=PIn.Int(textPatNum.Text);
+					patNum=SIn.Int(textPatNum.Text);
 				}
 			}
 			catch {
@@ -128,7 +129,7 @@ namespace OpenDental {
 				if(!PrefC.GetBool(PrefName.EasyHidePublicHealth)) {
 					row.Cells.Add(_table.Rows[i]["Site"].ToString());
 				}
-				row.Tag=PIn.Long(_table.Rows[i]["PatNum"].ToString());
+				row.Tag=SIn.Long(_table.Rows[i]["PatNum"].ToString());
 				gridMain.ListGridRows.Add(row);
 			}
 			gridMain.EndUpdate();
@@ -141,7 +142,7 @@ namespace OpenDental {
 		private void butExport_Click(object sender,EventArgs e) {
 			string strCcdValidationErrors=EhrCCD.ValidateSettings();
 			if(strCcdValidationErrors!="") {//Do not even try to export if global settings are invalid.
-				MessageBox.Show(strCcdValidationErrors);//We do not want to use translations here, because the text is dynamic. The errors are generated in the business layer, and Lan.g() is not available there.
+				ODMessageBox.Show(strCcdValidationErrors);//We do not want to use translations here, because the text is dynamic. The errors are generated in the business layer, and Lan.g() is not available there.
 				return;
 			}
 			FolderBrowserDialog dlg=new FolderBrowserDialog();
@@ -162,7 +163,7 @@ namespace OpenDental {
 				Directory.CreateDirectory(folderPath);
 			}
 			catch {
-				MessageBox.Show("Error, Could not create folder");
+				ODMessageBox.Show("Error, Could not create folder");
 				return;
 			}
 			this.Cursor=Cursors.WaitCursor;
@@ -176,7 +177,7 @@ namespace OpenDental {
 				if(strCcdValidationErrors!="") {
 					if(gridMain.SelectedIndices.Length==1) {
 						numSkipped=-1; //Set to -1 so we know below to not show the "exported" message.
-						MessageBox.Show(Lan.g(this,"Patient not exported due to the following errors")+":\r\n"+strCcdValidationErrors);
+						ODMessageBox.Show(Lan.g(this,"Patient not exported due to the following errors")+":\r\n"+strCcdValidationErrors);
 						continue;
 					}
 					//If one patient is missing the required information for export, then simply skip the patient. We do not want to popup a message,
@@ -205,21 +206,21 @@ namespace OpenDental {
 					ccd=EhrCCD.GeneratePatientExport(patCur,out string warnings);
 					if(!string.IsNullOrEmpty(warnings)) {
 						this.Cursor=Cursors.Default;
-						if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+						if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 							return;
 						}
 					}
 				}
 				catch(Exception ex) {
 					this.Cursor=Cursors.Default;
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				try {
 					File.WriteAllText(ODFileUtils.CombinePaths(folderPath,fileName+".xml"),ccd);
 				}
 				catch {
-					MessageBox.Show("Error, Could not create xml file");
+					ODMessageBox.Show("Error, Could not create xml file");
 					this.Cursor=Cursors.Default;
 					return;
 				}
@@ -232,7 +233,7 @@ namespace OpenDental {
 				File.WriteAllText(ODFileUtils.CombinePaths(folderPath,"CCD.xsl"),EhrSummaryCcds.GetEhrResource("CCD"));
 			}
 			catch {
-				MessageBox.Show("Error, Could not create stylesheet file");
+				ODMessageBox.Show("Error, Could not create stylesheet file");
 			}
 			string strMsg=Lan.g(this,"Exported");
 			if(numSkipped>0) {
@@ -241,7 +242,7 @@ namespace OpenDental {
 				msgCP.Show();
 			}
 			else {
-				MessageBox.Show(strMsg);
+				ODMessageBox.Show(strMsg);
 			}
 			this.Cursor=Cursors.Default;
 		}

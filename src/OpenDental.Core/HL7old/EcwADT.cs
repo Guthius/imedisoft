@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -31,7 +32,7 @@ namespace OpenDentBusiness.HL7 {
 			//EVN-Ignore
 			//PID-------------------------------------
 			SegmentHL7 seg=message.GetSegment(SegmentNameHL7.PID,true);
-			long patNum=PIn.Long(seg.GetFieldFullText(2));
+			long patNum=SIn.Long(seg.GetFieldFullText(2));
 			Patient pat=null;
 			if(isStandalone) {
 				pat=Patients.GetPatByChartNumber(patNum.ToString());
@@ -67,7 +68,7 @@ namespace OpenDentBusiness.HL7 {
 					pat.Guarantor=patNum;
 				}
 				pat.PriProv=PrefC.GetLong(PrefName.PracticeDefaultProv);
-				pat.BillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
+				pat.BillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
 			}
 			else{
 				patOld=pat.Copy();

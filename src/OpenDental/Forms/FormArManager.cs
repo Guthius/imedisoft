@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -89,7 +90,7 @@ namespace OpenDental {
 			#region Unsent Tab Bill Type Combo
 			List<long> listDefaultBillTypes=PrefC.GetString(PrefName.ArManagerBillingTypes)
 				.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries)
-				.Select(x => PIn.Long(x)).ToList();
+				.Select(x => SIn.Long(x)).ToList();
 			comboBillTypes.IncludeAll=true;
 			if(_listBillTypesNoColl.All(x => !listDefaultBillTypes.Contains(x.DefNum))) {
 				comboBillTypes.IsAllSelected=true;//select All if no valid defaults are set
@@ -202,7 +203,7 @@ namespace OpenDental {
 				.Where(x => !x.In(TsiTransType.PF,TsiTransType.PT,TsiTransType.SS,TsiTransType.CN,TsiTransType.Agg)).ToList();
 			List<TsiTransType> listDefaultLastTransTypes=PrefC.GetString(PrefName.ArManagerLastTransTypes)
 				.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries)
-				.Select(x => PIn.Enum<TsiTransType>(x,true))
+				.Select(x => SIn.Enum<TsiTransType>(x,true))
 				.Where(x => !x.In(TsiTransType.PF,TsiTransType.PT,TsiTransType.SS,TsiTransType.CN,TsiTransType.Agg)).ToList();
 			comboLastTransType.IncludeAll=true;
 			if(listSentTabTransTypes.All(x => !listDefaultLastTransTypes.Contains(x))) {
@@ -349,7 +350,7 @@ namespace OpenDental {
 			DateTime dateLastAging=PrefC.GetDate(PrefName.DateLastAging);
 			string msgText=Lan.g(this,"Aging has already been calculated for")+" "+dtToday.ToShortDateString()+" "
 				+Lan.g(this,"and does not normally need to run more than once per day.")+"\r\n\r\n"+Lan.g(this,"Run anyway?");
-			if(dateLastAging.Date==dtToday.Date && MessageBox.Show(this,msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+			if(dateLastAging.Date==dtToday.Date && ODMessageBox.Show(this,msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 				return true;
 			}
 			Prefs.RefreshCache();
@@ -357,17 +358,17 @@ namespace OpenDental {
 				msgText=Lan.g(this,"In order to manage accounts receivable, aging must be calculated, but you cannot run aging until it has finished the current "
 					+"calculations which began on")+" "+PrefC.GetDateT(PrefName.AgingBeginDateTime).ToString()+".\r\n"+Lans.g(this,"If you believe the current aging process has finished, "
 					+"a user with SecurityAdmin permission can manually clear the date and time by going to Setup | Preferences | Account - General and pressing the 'Clear' button.");
-				MessageBox.Show(this,msgText);
+				ODMessageBox.Show(this,msgText);
 				return false;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.AgingRan,0,"Starting Aging - AR Manager");
-			Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateTime(dtNow,false));//get lock on pref to block others
+			Prefs.UpdateString(PrefName.AgingBeginDateTime,SOut.DateTime(dtNow,false));//get lock on pref to block others
 			Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
 			msgText=Lan.g(this,"Calculating enterprise aging for all patients as of")+" "+dtToday.ToShortDateString()+"...";
 			ProgressWin progressOD=new ProgressWin();
 			progressOD.ActionMain=() => { 
 				Ledgers.ComputeAging(0,dtToday);
-				Prefs.UpdateString(PrefName.DateLastAging,POut.Date(dtToday,false));
+				Prefs.UpdateString(PrefName.DateLastAging,SOut.Date(dtToday,false));
 			};
 			progressOD.StartingMessage=msgText;
 			progressOD.TestSleep=true;
@@ -632,11 +633,11 @@ namespace OpenDental {
 			}
 			int sentDaysSinceLastPay=0;
 			if(!string.IsNullOrWhiteSpace(textSentDaysLastPay.Text)) {
-				sentDaysSinceLastPay=PIn.Int(textSentDaysLastPay.Text);
+				sentDaysSinceLastPay=SIn.Int(textSentDaysLastPay.Text);
 			}
 			double sentMinBal=0.00;
 			if(!string.IsNullOrWhiteSpace(textSentMinBal.Text)) {
-				sentMinBal=PIn.Double(textSentMinBal.Text);
+				sentMinBal=SIn.Double(textSentMinBal.Text);
 			}
 			#endregion Sent Defaults
 			#region Unsent Defaults
@@ -650,11 +651,11 @@ namespace OpenDental {
 			}
 			int unsentDaysSinceLastPay=0;
 			if(!string.IsNullOrWhiteSpace(textUnsentDaysLastPay.Text)) {
-				unsentDaysSinceLastPay=PIn.Int(textUnsentDaysLastPay.Text);
+				unsentDaysSinceLastPay=SIn.Int(textUnsentDaysLastPay.Text);
 			}
 			double unsentMinBal=0.00;
 			if(!string.IsNullOrWhiteSpace(textUnsentMinBal.Text)) {
-				unsentMinBal=PIn.Double(textUnsentMinBal.Text);
+				unsentMinBal=SIn.Double(textUnsentMinBal.Text);
 			}
 			#endregion Unsent Defaults
 			#region Excluded Defaults
@@ -664,11 +665,11 @@ namespace OpenDental {
 			}
 			int excludedDaysSinceLastPay=0;
 			if(!string.IsNullOrWhiteSpace(textExcludedDaysLastPay.Text)) {
-				excludedDaysSinceLastPay=PIn.Int(textExcludedDaysLastPay.Text);
+				excludedDaysSinceLastPay=SIn.Int(textExcludedDaysLastPay.Text);
 			}
 			double excludedMinBal=0.00;
 			if(!string.IsNullOrWhiteSpace(textExcludedMinBal.Text)) {
-				excludedMinBal=PIn.Double(textExcludedMinBal.Text);
+				excludedMinBal=SIn.Double(textExcludedMinBal.Text);
 			}
 			#endregion Excluded Defaults
 			if( Prefs.UpdateString(PrefName.ArManagerBillingTypes,selectedBillTypes)
@@ -678,16 +679,16 @@ namespace OpenDental {
 				| Prefs.UpdateString(PrefName.ArManagerLastTransTypes,selectedTransTypes)
 				| Prefs.UpdateString(PrefName.ArManagerSentAgeOfAccount,sentAgeOfAccount)
 				| Prefs.UpdateInt(PrefName.ArManagerSentDaysSinceLastPay,sentDaysSinceLastPay)
-				| Prefs.UpdateString(PrefName.ArManagerSentMinBal,POut.Double(sentMinBal))
+				| Prefs.UpdateString(PrefName.ArManagerSentMinBal,SOut.Double(sentMinBal))
 				| Prefs.UpdateString(PrefName.ArManagerUnsentAgeOfAccount,unsentAgeOfAccount)
 				| Prefs.UpdateInt(PrefName.ArManagerUnsentDaysSinceLastPay,unsentDaysSinceLastPay)
-				| Prefs.UpdateString(PrefName.ArManagerUnsentMinBal,POut.Double(unsentMinBal))
+				| Prefs.UpdateString(PrefName.ArManagerUnsentMinBal,SOut.Double(unsentMinBal))
 				| Prefs.UpdateBool(PrefName.ArManagerExcludedExcludeBadAddresses,checkExcludedExcludeBadAddress.Checked)
 				| Prefs.UpdateBool(PrefName.ArManagerExcludedExcludeIfUnsentProcs,checkExcludedExcludeIfProcs.Checked)
 				| Prefs.UpdateBool(PrefName.ArManagerExcludedExcludeInsPending,checkExcludedExcludeInsPending.Checked)
 				| Prefs.UpdateString(PrefName.ArManagerExcludedAgeOfAccount,excludedAgeOfAccount)
 				| Prefs.UpdateInt(PrefName.ArManagerExcludedDaysSinceLastPay,excludedDaysSinceLastPay)
-				| Prefs.UpdateString(PrefName.ArManagerExcludedMinBal,POut.Double(excludedMinBal)))
+				| Prefs.UpdateString(PrefName.ArManagerExcludedMinBal,SOut.Double(excludedMinBal)))
 			{
 				DataValid.SetInvalid(InvalidType.Prefs);
 			}
@@ -1032,8 +1033,8 @@ namespace OpenDental {
 			}
 			#endregion Validate Inputs
 			#region Get Filter Data
-			double minBalance=Math.Round(PIn.Double(textUnsentMinBal.Text),3);
-			DateTime dtLastPay=DateTime.Today.AddDays(-PIn.Int(textUnsentDaysLastPay.Text));
+			double minBalance=Math.Round(SIn.Double(textUnsentMinBal.Text),3);
+			DateTime dtLastPay=DateTime.Today.AddDays(-SIn.Int(textUnsentDaysLastPay.Text));
 			AgeOfAccount accountAge=new[] { AgeOfAccount.Any,AgeOfAccount.Over30,AgeOfAccount.Over60,AgeOfAccount.Over90 }[comboUnsentAccountAge.SelectedIndex];
 			List<long> listBillTypes=new List<long>();
 			if(!comboBillTypes.IsAllSelected) {
@@ -1355,7 +1356,7 @@ namespace OpenDental {
 				Cursor=Cursors.Default;
 				msgTxt=Lan.g(this,"At least one of the selected guarantors is assigned to a clinic that does not have the")+" "+serviceType.GetDescription()
 					+" "+Lan.g(this,"service enabled.  Those account(s) will not be sent to TSI and will remain in the unsent grid.");
-				MessageBox.Show(msgTxt);
+				ODMessageBox.Show(msgTxt);
 			}
 			List<long> listPatNumsWrongService=new List<long>();
 			if(serviceType==TsiServiceType.Accelerator) {
@@ -1378,7 +1379,7 @@ namespace OpenDental {
 			}
 			if(listPatNumsWrongService.Count > 0) {
 				Cursor=Cursors.Default;
-				switch(MessageBox.Show(msgTxt,"",MessageBoxButtons.YesNoCancel)) {
+				switch(ODMessageBox.Show(msgTxt,"",MessageBoxButtons.YesNoCancel)) {
 					case DialogResult.No:
 						listPatNumsToReselect.AddRange(listPatNumsWrongService);
 						break;
@@ -1410,7 +1411,7 @@ namespace OpenDental {
 				Cursor=Cursors.Default;
 				msgTxt=Lan.g(this,"One or more of the selected guarantors has the following error(s) and will not be sent to TSI")+":\r\n\r\n"
 					+string.Join("\r\n",listErrorMsgs);
-				MessageBox.Show(msgTxt);
+				ODMessageBox.Show(msgTxt);
 			}
 			#endregion Validate Birthdate and Address
 			#region Validate Balances
@@ -1424,7 +1425,7 @@ namespace OpenDental {
 					+Lan.g(this,"Press Yes to send the account(s) with a balance less than or equal to 0 anyway.")+"\r\n\r\n"
 					+Lan.g(this,"Press No to skip the account(s) with a balance less than or equal to 0 and send the remaining account(s) to TSI.")+"\r\n\r\n"
 					+Lan.g(this,"Press Cancel to cancel sending all accounts.");
-				switch(MessageBox.Show(msgTxt,"",MessageBoxButtons.YesNoCancel)) {
+				switch(ODMessageBox.Show(msgTxt,"",MessageBoxButtons.YesNoCancel)) {
 					case DialogResult.No:
 						listPatNumsToReselect.AddRange(listPatNumsNegBal);
 						break;
@@ -1685,7 +1686,7 @@ namespace OpenDental {
 			SetSelectedRows((listPatNumsToReselect.Union(listFailedPatNums)).ToList(),gridCur);
 			Cursor=Cursors.Default;
 			if(listFailedPatNums.Count>0) {
-				MessageBox.Show(listFailedPatNums.Count+" "+Lan.g(this,"accounts did not upload successfully.  They have not been marked as sent to "
+				ODMessageBox.Show(listFailedPatNums.Count+" "+Lan.g(this,"accounts did not upload successfully.  They have not been marked as sent to "
 					+"TSI and will have to be resent."));
 			}
 		}
@@ -1860,8 +1861,8 @@ namespace OpenDental {
 			}
 			#endregion Validate Inputs
 			#region Get Filter Data
-			double minBalance=Math.Round(PIn.Double(textSentMinBal.Text),3);
-			DateTime dtLastPay=DateTime.Today.AddDays(-PIn.Int(textSentDaysLastPay.Text));
+			double minBalance=Math.Round(SIn.Double(textSentMinBal.Text),3);
+			DateTime dtLastPay=DateTime.Today.AddDays(-SIn.Int(textSentDaysLastPay.Text));
 			AgeOfAccount accountAge=new[] { AgeOfAccount.Any,AgeOfAccount.Over30,AgeOfAccount.Over60,AgeOfAccount.Over90 }[comboSentAccountAge.SelectedIndex];
 			List<TsiTransType> listTranTypes=new List<TsiTransType>();
 			if(!comboLastTransType.IsAllSelected) {
@@ -2017,7 +2018,7 @@ namespace OpenDental {
 					+"stage.  Accounts in the Transworld Systems Collection stage will NOT be suspended and will have to be reinstated from the unsent grid.  "
 					+"During the 50 day suspension you may reinstate the account(s) at any time.  However, after 50 days has passed, the account(s) will expire "
 					+"and will no longer be available to reinstate.")+"\r\n\r\n"+Lan.g(this,"Do you want to suspend the service for the selected account(s)?");
-				if(MessageBox.Show(msgTxt,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+				if(ODMessageBox.Show(msgTxt,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 					return;
 				}
 			}
@@ -2162,7 +2163,7 @@ namespace OpenDental {
 			FillGrids(false);
 			Cursor=Cursors.Default;
 			if(listFailedPatNums.Count>0) {
-				MessageBox.Show(listFailedPatNums.Count+" "+Lan.g(this,"accounts did not upload successfully.  They have not been marked as sent to "
+				ODMessageBox.Show(listFailedPatNums.Count+" "+Lan.g(this,"accounts did not upload successfully.  They have not been marked as sent to "
 					+"collection and will have to be resent."));
 				SetSelectedRows(listFailedPatNums,gridSent);
 			}
@@ -2350,8 +2351,8 @@ namespace OpenDental {
 			}
 			#endregion Validate Inputs
 			#region Get Filter Data
-			double minBalance=Math.Round(PIn.Double(textExcludedMinBal.Text),3);
-			DateTime dtLastPay=DateTime.Today.AddDays(-PIn.Int(textExcludedDaysLastPay.Text));
+			double minBalance=Math.Round(SIn.Double(textExcludedMinBal.Text),3);
+			DateTime dtLastPay=DateTime.Today.AddDays(-SIn.Int(textExcludedDaysLastPay.Text));
 			AgeOfAccount accountAge=new[] { AgeOfAccount.Any,AgeOfAccount.Over30,AgeOfAccount.Over60,AgeOfAccount.Over90 }[comboExcludedAccountAge.SelectedIndex];
 			List<long> listProvNums=new List<long>();
 			if(!comboProvsExcluded.IsAllSelected) {

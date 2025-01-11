@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -81,8 +82,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			DateStart=PIn.Date(textDateStart.Text);
-			DateEnd=PIn.Date(textDateEnd.Text);
+			DateStart=SIn.Date(textDateStart.Text);
+			DateEnd=SIn.Date(textDateEnd.Text);
 			DialogResult=DialogResult.OK;
 		}
 

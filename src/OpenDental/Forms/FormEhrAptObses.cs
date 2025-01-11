@@ -105,7 +105,7 @@ namespace OpenDental {
 				adt_a03=new EhrADT_A01(_appt);
 			}
 			catch(Exception ex) {//Exception happens when validation fails.
-				MessageBox.Show(ex.Message);//Show validation error messages.
+				ODMessageBox.Show(ex.Message);//Show validation error messages.
 				return;
 			}
 			string outputStr=adt_a03.GenerateMessage();
@@ -116,12 +116,12 @@ namespace OpenDental {
 				return;
 			}
 			if(File.Exists(dlg.FileName)) {
-				if(MessageBox.Show("Overwrite existing file?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show("Overwrite existing file?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}
 			File.WriteAllText(dlg.FileName,outputStr);
-			MessageBox.Show("Saved");
+			ODMessageBox.Show("Saved");
 		}
 
 	}

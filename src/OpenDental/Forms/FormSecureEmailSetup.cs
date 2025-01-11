@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -76,8 +77,8 @@ namespace OpenDental {
 		private void FillNoClinics() {
 			bool isSignedUp=Clinics.IsSecureEmailSignedUp(0);
 			bool isEnabled=Clinics.IsSecureEmailEnabled(0);
-			EmailPlatform emailPlatformDefault=PIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailDefaultSendPlatform,0),true);
-			EmailPlatform emailStatementsDefault=PIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailStatementsSecure,0),true);
+			EmailPlatform emailPlatformDefault=SIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailDefaultSendPlatform,0),true);
+			EmailPlatform emailStatementsDefault=SIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailStatementsSecure,0),true);
 			checkEnabled.Checked=isSignedUp && isEnabled;
 			comboPlatform.Items.Clear();
 			comboStatements.Items.Clear();
@@ -140,8 +141,8 @@ namespace OpenDental {
 				bool hasCredentials=Clinics.HasEmailHostingCredentials(clinic.Id);
 				bool isSecureEmailActivated=Clinics.IsSecureEmailSignedUp(clinic.Id);
 				bool isSecureEmailEnabled=Clinics.IsSecureEmailEnabled(clinic.Id);
-				EmailPlatform emailPlatformDefault=PIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailDefaultSendPlatform,clinic.Id),true);
-				EmailPlatform emailPlatformStatements=PIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailStatementsSecure,clinic.Id),true); //throws error invalid pref name
+				EmailPlatform emailPlatformDefault=SIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailDefaultSendPlatform,clinic.Id),true);
+				EmailPlatform emailPlatformStatements=SIn.Enum<EmailPlatform>(ClinicPrefs.GetPrefValue(PrefName.EmailStatementsSecure,clinic.Id),true); //throws error invalid pref name
 				row.Cells.Add(Clinics.GetAbbr(clinic.Id,listClinics));
 				AddSignupCell(row,hasCredentials,isSecureEmailActivated,isSecureEmailEnabled,new EventHandler((o,e) => SignupSecureEmail(clinic.Id)));
 				row.Cells.Add(new GridCell(clinicNumDefault==clinic.Id ? "X" : ""));

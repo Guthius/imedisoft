@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormTasksForAppt:FormODBase {
@@ -54,7 +55,7 @@ namespace OpenDental {
 				gridRow.Cells.Add(table.Rows[i]["description"].ToString());
 				gridRow.Note=table.Rows[i]["note"].ToString();
 				gridRow.ColorLborder=Color.Black;
-				gridRow.ColorText=Color.FromArgb(PIn.Int(table.Rows[i]["color"].ToString()));
+				gridRow.ColorText=Color.FromArgb(SIn.Int(table.Rows[i]["color"].ToString()));
 				gridMain.ListGridRows.Add(gridRow);
 				gridRow.Tag=table.Rows[i]["TaskNum"].ToString();
 			}
@@ -62,7 +63,7 @@ namespace OpenDental {
 		}
 
 		private void gridTasks_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			long taskNum=PIn.Long(gridMain.ListGridRows[e.Row].Tag.ToString());
+			long taskNum=SIn.Long(gridMain.ListGridRows[e.Row].Tag.ToString());
 			Task task=Tasks.GetOne(taskNum);
 			if(task!=null) {
 				using FormTaskEdit formTaskEdit=new FormTaskEdit(task);

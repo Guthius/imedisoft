@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -51,7 +52,7 @@ namespace OpenDental {
 		}
 
 		private void gridMedOrders_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			long medicalOrderNum=PIn.Long(table.Rows[e.Row]["MedicalOrderNum"].ToString());
+			long medicalOrderNum=SIn.Long(table.Rows[e.Row]["MedicalOrderNum"].ToString());
 			MedicalOrder ord=MedicalOrders.GetOne(medicalOrderNum);
 			if(ord.MedOrderType==MedicalOrderType.Laboratory) {
 				using FormEhrMedicalOrderLabEdit FormMlab=new FormEhrMedicalOrderLabEdit();

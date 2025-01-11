@@ -150,7 +150,7 @@ namespace OpenDental {
 			}
 			List<Sheet> batchRxList=new List<Sheet>();//list of sheets to be batch printed
 			if(rxSheetCountList.Count==0) {
-				MessageBox.Show(Lan.g("Sheets","MuitiRx sheet is invalid."
+				ODMessageBox.Show(Lan.g("Sheets","MuitiRx sheet is invalid."
 					+"Please visit the manual to see what output fields must be added to the MultiRx Sheet."));
 				return;
 			}
@@ -189,7 +189,7 @@ namespace OpenDental {
 				return false;
 			}
 			else if(validationErrors!=""){
-				MessageBox.Show(Lan.g("Sheets","Cannot print until missing info is fixed: ")+validationErrors);
+				ODMessageBox.Show(Lan.g("Sheets","Cannot print until missing info is fixed: ")+validationErrors);
 				return false;
 			}
 			Print(sheet,1,rx.IsControlled);
@@ -495,7 +495,7 @@ namespace OpenDental {
 			}
 			catch(OutOfMemoryException ex) {
 				//Cancel the print job because there is a static image on this sheet which is to big for the printer to handle.
-				MessageBox.Show(ex.Message);//Custom message that is already translated.
+				ODMessageBox.Show(ex.Message);//Custom message that is already translated.
 				e.Cancel=true;
 				return;
 			}

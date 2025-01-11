@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpUnearnedIncome {
@@ -35,8 +36,8 @@ namespace OpenDentBusiness {
 			}
 			command+="results.SplitAmt FROM (";
 			command+="SELECT SplitNum,DatePay,PatNum,UnearnedType,ClinicNum,SplitAmt,ProvNum FROM paysplit "
-				+"WHERE paysplit.DatePay >= "+POut.Date(date1Start)+" "
-				+"AND paysplit.DatePay <= "+POut.Date(date2Start)+" ";
+				+"WHERE paysplit.DatePay >= "+SOut.Date(date1Start)+" "
+				+"AND paysplit.DatePay <= "+SOut.Date(date2Start)+" ";
 				if(listHiddenUnearnedDefNums.Count>0) {
 					command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 				}
@@ -76,10 +77,10 @@ namespace OpenDentBusiness {
 			if(listClinicNums.Count>0 || listProvNums.Count>0) {
 				command += "INNER JOIN patient guar ON guar.PatNum = patient.Guarantor ";
 				if(listClinicNums.Count>0) {
-					command += "AND guar.ClinicNum IN ("+string.Join(",",listClinicNums.Select(x => POut.Long(x)))+") ";
+					command += "AND guar.ClinicNum IN ("+string.Join(",",listClinicNums.Select(x => SOut.Long(x)))+") ";
 				}
 				if(listProvNums.Count>0) {
-					command += "AND guar.PriProv IN ("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
+					command += "AND guar.PriProv IN ("+string.Join(",",listProvNums.Select(x => SOut.Long(x)))+") ";
 				}
 			}
 			if(showProvider) {
@@ -87,7 +88,7 @@ namespace OpenDentBusiness {
 			}
 			command +="WHERE paysplit.UnearnedType != 0 ";
 			if(listUnearnedTypeNums.Count>0) {
-				command +="AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => POut.Long(x)))+") ";
+				command +="AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => SOut.Long(x)))+") ";
 			}
 			if(listHiddenUnearnedDefNums.Count > 0) {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
@@ -98,7 +99,7 @@ namespace OpenDentBusiness {
 			}
 			//one row per family
 			DataTable tableUnallocatedUnearned = ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			List<long> listGuarantors = tableUnallocatedUnearned.Rows.OfType<DataRow>().Select(x => PIn.Long(x["Guarantor"].ToString())).ToList();
+			List<long> listGuarantors = tableUnallocatedUnearned.Rows.OfType<DataRow>().Select(x => SIn.Long(x["Guarantor"].ToString())).ToList();
 			//all procedures for the families that have not been explicitly paid off.
 			//Key: GuarantorNum | Val:ListRemainingProcsForFam
 			List<UnearnedProc> listRemProcs = ReportsComplex.RunFuncOnReportServer(() => Procedures.GetRemainingProcsForFamilies(listGuarantors));
@@ -128,9 +129,9 @@ namespace OpenDentBusiness {
 			for(int i=0; i<rowCount;i++) {
 				DataRow guarRowCur=tableUnallocatedUnearned.Rows[i];
 				int nextIndex=i+1;
-				long guarNum = PIn.Long(guarRowCur["Guarantor"].ToString());
-				DateTime dateFirstUnalloc = PIn.Date(guarRowCur["DatePay"].ToString());
-				double unallocAmt = PIn.Double(guarRowCur["UnallocAmt"].ToString());
+				long guarNum = SIn.Long(guarRowCur["Guarantor"].ToString());
+				DateTime dateFirstUnalloc = SIn.Date(guarRowCur["DatePay"].ToString());
+				double unallocAmt = SIn.Double(guarRowCur["UnallocAmt"].ToString());
 				List<UnearnedProc> listUnearnedProcsForGuar;
 				if(!dictFamRemainingProcs.TryGetValue(guarNum,out listUnearnedProcsForGuar)) {
 					continue;//This family does not have any procedures that need to have money allocated to.
@@ -154,7 +155,7 @@ namespace OpenDentBusiness {
 				}
 				retVal.Rows.Add(guarRow);
 				//If the next row has the same guarantor, then we know that it is another provider for this account and we should not populate the procedures yet
-				if(nextIndex<rowCount && guarNum==PIn.Long(tableUnallocatedUnearned.Rows[nextIndex]["Guarantor"].ToString())) { 
+				if(nextIndex<rowCount && guarNum==SIn.Long(tableUnallocatedUnearned.Rows[nextIndex]["Guarantor"].ToString())) { 
 					continue;
 				}
 				foreach(UnearnedProc unearnedProc in listUnearnedProcsForGuar) {
@@ -194,17 +195,17 @@ namespace OpenDentBusiness {
 			INNER JOIN patient ON patient.PatNum = paysplit.PatNum ";
 			if(listClinicNums.Count>0) {
 				command += @"
-					AND patient.ClinicNum IN ("+string.Join(",",listClinicNums.Select(x => POut.Long(x)))+") ";
+					AND patient.ClinicNum IN ("+string.Join(",",listClinicNums.Select(x => SOut.Long(x)))+") ";
 			}
 			if(listProvNums.Count>0) {
 				command += @"
-					AND patient.PriProv IN ("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
+					AND patient.PriProv IN ("+string.Join(",",listProvNums.Select(x => SOut.Long(x)))+") ";
 			}
 			command += @"
 			INNER JOIN patient guar ON guar.PatNum = patient.Guarantor 
 			WHERE paysplit.UnearnedType != 0 ";
 			if(listUnearnedTypeNums.Count>0) {
-				command +="AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => POut.Long(x)))+") ";
+				command +="AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => SOut.Long(x)))+") ";
 			}
 			if(listHiddenUnearnedDefNums.Count > 0) {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
@@ -215,7 +216,7 @@ namespace OpenDentBusiness {
 			}
 			DataTable tableUnallocatedPrepayments = ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
 			//get remaining amount for all procedures of the returned families.
-			List<long> listGuarantorNums = tableUnallocatedPrepayments.Rows.OfType<DataRow>().Select(x => PIn.Long(x["Guarantor"].ToString())).ToList();
+			List<long> listGuarantorNums = tableUnallocatedPrepayments.Rows.OfType<DataRow>().Select(x => SIn.Long(x["Guarantor"].ToString())).ToList();
 			if(listGuarantorNums.Count == 0) {
 				return retVal;//No families have paysplits with unallocated prepayments. Return empty table.
 			}
@@ -224,7 +225,7 @@ namespace OpenDentBusiness {
 				Procedures.GetRemainingProcsForFamilies(listGuarantorNums));
 			Dictionary<long,double> dictFamilyBalances = ReportsComplex.RunFuncOnReportServer(() => Ledgers.GetBalancesForFamilies(listGuarantorNums));
 			foreach(DataRow rowCur in tableUnallocatedPrepayments.Rows) {
-				long unallocatedGuarantor = PIn.Long(rowCur["Guarantor"].ToString());
+				long unallocatedGuarantor = SIn.Long(rowCur["Guarantor"].ToString());
 				if(listGuarantorRemainingProcs.Select(x => x.GuarNum).Contains(unallocatedGuarantor)) {
 					continue;//Has at least one procedure that is not fully paid off.
 				}
@@ -235,7 +236,7 @@ namespace OpenDentBusiness {
 				DataRow newRow = retVal.NewRow();
 				newRow["PatientName"] = rowCur["LName"].ToString() + ", " + rowCur["FName"].ToString();
 				newRow["GuarantorName"] = rowCur["GuarL"].ToString() + ", " + rowCur["GuarF"].ToString();
-				newRow["PatUnearnedAmt"] = PIn.Double(rowCur["UnallocatedAmt"].ToString());
+				newRow["PatUnearnedAmt"] = SIn.Double(rowCur["UnallocatedAmt"].ToString());
 				newRow["FamBal"] = famBal.ToString("f");
 				retVal.Rows.Add(newRow);
 			}

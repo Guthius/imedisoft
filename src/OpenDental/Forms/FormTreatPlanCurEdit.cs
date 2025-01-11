@@ -311,7 +311,7 @@ namespace OpenDental {
 					TreatPlans.Delete(TreatPlanCur);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}

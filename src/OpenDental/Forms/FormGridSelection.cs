@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 
 namespace OpenDental {
@@ -46,7 +47,7 @@ namespace OpenDental {
 
 		private void butOK_Click(object sender,EventArgs e) {
 			if(gridMain.SelectedIndices.Length==0) {
-				MessageBox.Show(Lan.g(this.Text+" "+gridMain.Title,"No items are selected.  Please select an item before continuing."));
+				ODMessageBox.Show(Lan.g(this.Text+" "+gridMain.Title,"No items are selected.  Please select an item before continuing."));
 				return;
 			}
 			ListSelectedTags=new List<object>(gridMain.SelectedTags<object>());

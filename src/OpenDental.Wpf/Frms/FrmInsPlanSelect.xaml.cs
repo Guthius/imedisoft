@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -168,7 +169,7 @@ namespace OpenDental {
 		}
 
 		private void gridMain_CellDoubleClick(object sender,GridClickEventArgs e){
-			InsPlan insPlan=InsPlans.GetPlan(PIn.Long(_table.Rows[e.Row]["PlanNum"].ToString()),null);
+			InsPlan insPlan=InsPlans.GetPlan(SIn.Long(_table.Rows[e.Row]["PlanNum"].ToString()),null);
 			if(!InsPlanExists(insPlan)) {
 				return;
 			}
@@ -225,7 +226,7 @@ namespace OpenDental {
 				MessageBox.Show(Lans.g(this,"Please select only one item first."));
 				return;
 			}
-			InsPlan insPlan=InsPlans.GetPlan(PIn.Long(_table.Rows[gridMain.SelectedIndices[0]]["PlanNum"].ToString()),null);
+			InsPlan insPlan=InsPlans.GetPlan(SIn.Long(_table.Rows[gridMain.SelectedIndices[0]]["PlanNum"].ToString()),null);
 			if(!InsPlanExists(insPlan)) {
 				return;
 			}

@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -141,7 +142,7 @@ namespace OpenDental {
 			else {
 				HL7DefMessageCur.InOrOut=InOutHL7.Outgoing;
 			}
-			HL7DefMessageCur.ItemOrder=PIn.Int(textItemOrder.Text);
+			HL7DefMessageCur.ItemOrder=SIn.Int(textItemOrder.Text);
 			HL7DefMessageCur.Note=textNote.Text;
 			if(HL7DefMessageCur.IsNew) {
 				HL7DefMessages.Insert(HL7DefMessageCur);

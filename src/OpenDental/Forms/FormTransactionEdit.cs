@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -550,12 +551,12 @@ namespace OpenDental{
 				journalEntry.DateDisplayed=DateTime.Today;
 			}
 			else {
-				journalEntry.DateDisplayed=PIn.Date(textDate.Text);
+				journalEntry.DateDisplayed=SIn.Date(textDate.Text);
 			}
 			journalEntry.AccountNum=_accountOfOrigin.AccountNum;
 			double amt=0;
 			if(textAmount.IsValid()) {//if no error
-				amt=PIn.Double(textAmount.Text);
+				amt=SIn.Double(textAmount.Text);
 			}
 			//if amt==0, then both credit and debit remain 0
 			if(amt>0){
@@ -630,7 +631,7 @@ namespace OpenDental{
 			}
 			catch(ApplicationException ex) {
 				_listJournalEntries=JournalEntries.GetForTrans(_transaction.TransactionNum);//Refreshes list so that the journal entries are not deleted by the update later.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			if(!IsNew){
@@ -644,7 +645,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			DateTime date=PIn.Date(textDate.Text);
+			DateTime date=SIn.Date(textDate.Text);
 			//Prevent backdating----------------------------------------------------------------------------------------
 			if(IsNew) {
 				if(!Security.IsAuthorized(EnumPermType.AccountingCreate,date)) {

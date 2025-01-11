@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Net.Mail;
 using OpenDentBusiness;
 using System.Net;
+using CodeBase;
 
 namespace OpenDental {
 	public partial class FormEhrEncryption:FormODBase {
@@ -28,7 +29,7 @@ namespace OpenDental {
 
 		private void butEncrypt_Click(object sender,EventArgs e) {
 			if(textInput.Text.Trim()==string.Empty) {
-				MessageBox.Show("No text to encrypt.");
+				ODMessageBox.Show("No text to encrypt.");
 				return;
 			}
 			textResult.Text=Encryption(textInput.Text);
@@ -36,7 +37,7 @@ namespace OpenDental {
 
 		private void butDecrypt_Click(object sender,EventArgs e) {
 			if(textInput.Text.Trim()==string.Empty) {
-				MessageBox.Show("No text to decrypt.");
+				ODMessageBox.Show("No text to decrypt.");
 				return;
 			}
 			textResult.Text=Decryption();
@@ -88,7 +89,7 @@ namespace OpenDental {
 				return decrypted;
 			}
 			catch { 
-				MessageBox.Show("Text entered was not valid encrypted text.");
+				ODMessageBox.Show("Text entered was not valid encrypted text.");
 				return"";
 			}
 		}
@@ -143,7 +144,7 @@ namespace OpenDental {
 
 		private void butTransmit_Click(object sender,EventArgs e) {
 			if(textInput.Text.Trim()==string.Empty) {
-				MessageBox.Show("No input text to send.");
+				ODMessageBox.Show("No input text to send.");
 				return;
 			}
 			//Encrypt the message.
@@ -160,11 +161,11 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show("Sent");
+			ODMessageBox.Show("Sent");
 		}
 
 	}

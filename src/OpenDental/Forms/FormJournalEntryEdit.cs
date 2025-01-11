@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -25,7 +27,7 @@ namespace OpenDental{
 
 		private void FormJournalEntryEdit_Load(object sender, System.EventArgs e) {
 			if(JournalEntryCur==null){
-				MessageBox.Show("Entry cannot be null.");
+				ODMessageBox.Show("Entry cannot be null.");
 			}
 			_accountPicked=Accounts.GetAccount(JournalEntryCur.AccountNum);//might be null
 			/*
@@ -113,15 +115,15 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please select an account first.");
 				return;
 			}*/
-			if(PIn.Double(textDebit.Text)<0 || PIn.Double(textCredit.Text)<0){
+			if(SIn.Double(textDebit.Text)<0 || SIn.Double(textCredit.Text)<0){
 				MsgBox.Show(this,"Both amounts not allowed to be less than 0.");
 				return;
 			}
-			if(PIn.Double(textDebit.Text)==0 && PIn.Double(textCredit.Text)==0) {
+			if(SIn.Double(textDebit.Text)==0 && SIn.Double(textCredit.Text)==0) {
 				MsgBox.Show(this,"One amount must be filled in.");
 				return;
 			}
-			if(PIn.Double(textDebit.Text)>0 && PIn.Double(textCredit.Text)>0) {
+			if(SIn.Double(textDebit.Text)>0 && SIn.Double(textCredit.Text)>0) {
 				MsgBox.Show(this,"Only one amount can be filled in.");
 				return;
 			}
@@ -130,8 +132,8 @@ namespace OpenDental{
 				return;
 			}
 			JournalEntryCur.AccountNum=_accountPicked.AccountNum;
-			JournalEntryCur.DebitAmt=PIn.Double(textDebit.Text);
-			JournalEntryCur.CreditAmt=PIn.Double(textCredit.Text);
+			JournalEntryCur.DebitAmt=SIn.Double(textDebit.Text);
+			JournalEntryCur.CreditAmt=SIn.Double(textCredit.Text);
 			JournalEntryCur.Memo=textMemo.Text;
 			JournalEntryCur.CheckNumber=textCheckNumber.Text;
 			DialogResult=DialogResult.OK;

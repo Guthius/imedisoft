@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -4388,7 +4389,7 @@ namespace OpenDental{
 					if(procedure.ProcTime==TimeSpan.Zero || procedure.ProcTimeEnd==TimeSpan.Zero) {
 						return "";
 					}
-					return POut.Int((int)(procedure.ProcTimeEnd-procedure.ProcTime).TotalMinutes);
+					return SOut.Int((int)(procedure.ProcTimeEnd-procedure.ProcTime).TotalMinutes);
 				case "UnitQty":
 					return procedure.UnitQty.ToString();
 				case "BaseUnits":
@@ -4581,7 +4582,7 @@ namespace OpenDental{
 					//United States Sextant 5 is Canadian sextant 07.
 					//United States Sextant 6 is Canadian sextant 08.
 					//The sextant goes into the "International Tooth Code" column on the claim form, according to the Nova Scotia NIHB fee guide page VII.
-					toothNum=(PIn.Int(procedure.Surf)+2).ToString().PadLeft(2,'0');//Add 2 to US sextant, then prepend a '0'.
+					toothNum=(SIn.Int(procedure.Surf)+2).ToString().PadLeft(2,'0');//Add 2 to US sextant, then prepend a '0'.
 				}
 				else {//United States
 					area="";//leave it blank.  Never used anyway.
@@ -4618,7 +4619,7 @@ namespace OpenDental{
 						return area;
 					}
 			}
-			MessageBox.Show("error in getprocinfo");
+			ODMessageBox.Show("error in getprocinfo");
 			return "";//should never get to here
 		}
 
@@ -4749,8 +4750,8 @@ namespace OpenDental{
 			foreach(string toothRangeVal in stringArrayToothRanges) {
 				if(toothRangeVal.Contains("-")) {
 					string[] arrayRange=toothRangeVal.Split('-');
-					int start=PIn.Int(arrayRange[0]);
-					int end=PIn.Int(arrayRange[1]);
+					int start=SIn.Int(arrayRange[0]);
+					int end=SIn.Int(arrayRange[1]);
 					//Create a list of ints given the starting number and total count of ints needed. Then comma delimit the list and add it to the return value.
 					listStringsRetVals.AddRange(Enumerable.Range(start,(end-start)+1).Select(x => x.ToString()));
 				}

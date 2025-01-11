@@ -226,7 +226,7 @@ namespace OpenDental{
 				DirectoryEntry.Exists(PrefC.GetString(PrefName.DomainLoginPath));
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"An error occurred while attempting to access the provided DomainLoginPath:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"An error occurred while attempting to access the provided DomainLoginPath:")+" "+ex.Message);
 				return;
 			}
 			using FormDomainUserPick formDomainUserPick=new FormDomainUserPick();
@@ -421,7 +421,7 @@ namespace OpenDental{
 					Userods.Insert(UserodCur,listUserGroup.GetListSelected<UserGroup>().Select(x => x.UserGroupNum).ToList());
 				}
 				catch (Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				for(int i = 0;i<_listUserOdPrefsDoseSpotNew.Count;i++) {
@@ -441,7 +441,7 @@ namespace OpenDental{
 					Userods.Update(UserodCur,listUserGroupsNew.Select(x => x.UserGroupNum).ToList());
 				}
 				catch (Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				//if this is the current user, update the user, credentials, etc.

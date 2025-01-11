@@ -238,15 +238,15 @@ namespace OpenDentBusiness {
 			List<DataRow> rows=new List<DataRow>();
 			string command="SELECT ChargeDate,Interest,Note,PayPlanChargeNum,Principal,ProvNum,PatNum,SecDateTEntry "
 				+"FROM payplancharge "
-				+"WHERE PayPlanNum="+POut.Long(payPlanNum)+" AND ChargeType="+POut.Int((int)PayPlanChargeType.Debit);//for v1, ChargesDue are the only ChargeType
+				+"WHERE PayPlanNum="+SOut.Long(payPlanNum)+" AND ChargeType="+SOut.Int((int)PayPlanChargeType.Debit);//for v1, ChargesDue are the only ChargeType
 			DataTable rawCharge=dcon.GetTable(command);
 			DateTime dateT;
 			decimal principal;
 			decimal interest;
 			decimal total;
 			for(int i=0;i<rawCharge.Rows.Count;i++){
-				interest=PIn.Decimal(rawCharge.Rows[i]["Interest"].ToString());
-				principal=PIn.Decimal(rawCharge.Rows[i]["Principal"].ToString());
+				interest=SIn.Decimal(rawCharge.Rows[i]["Interest"].ToString());
+				principal=SIn.Decimal(rawCharge.Rows[i]["Principal"].ToString());
 				total=principal+interest;
 				row=table.NewRow();
 				row["AdjNum"]=0;
@@ -259,10 +259,10 @@ namespace OpenDentBusiness {
 				row["colorText"]=Color.Black.ToArgb().ToString();
 				row["creditsDouble"]=0;
 				row["credits"]="";//((double)row["creditsDouble"]).ToString("n");
-				dateT=PIn.DateTime(rawCharge.Rows[i]["ChargeDate"].ToString());
+				dateT=SIn.DateTime(rawCharge.Rows[i]["ChargeDate"].ToString());
 				row["DateTime"]=dateT;
 				row["date"]=dateT.ToShortDateString();
-				row["dateTimeSort"]=PIn.DateTime(rawCharge.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
+				row["dateTimeSort"]=SIn.DateTime(rawCharge.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
 				row["description"]="";//"Princ: "+principal.ToString("n")+
 				if(interest!=0){
 					row["description"]+="Interest: "+interest.ToString("n");//+"Princ: "+principal.ToString("n")+;
@@ -275,14 +275,14 @@ namespace OpenDentBusiness {
 				}
 				//row["extraDetail"]="";
 				row["patient"]="";
-				row["PatNum"]=PIn.Long(rawCharge.Rows[i]["PatNum"].ToString());
+				row["PatNum"]=SIn.Long(rawCharge.Rows[i]["PatNum"].ToString());
 				row["PayNum"]=0;
 				row["PayPlanNum"]=0;
 				row["PayPlanChargeNum"]=rawCharge.Rows[i]["PayPlanChargeNum"].ToString();
 				row["ProcCode"]=Lans.g("AccountModule","PPcharge");
 				row["ProcNum"]="0";
 				row["procsOnObj"]="";
-				row["prov"]=Providers.GetAbbr(PIn.Long(rawCharge.Rows[i]["ProvNum"].ToString()));
+				row["prov"]=Providers.GetAbbr(SIn.Long(rawCharge.Rows[i]["ProvNum"].ToString()));
 				row["signed"]="";
 				row["StatementNum"]=0;
 				row["tth"]="";
@@ -298,7 +298,7 @@ namespace OpenDentBusiness {
 				command="SELECT CheckNum,DatePay,paysplit.PatNum,PayAmt,paysplit.PayNum,PayPlanNum,PayType,ProcDate,ProvNum,SplitAmt,paysplit.SecDateTEdit "
 					+"FROM paysplit "
 					+"LEFT JOIN payment ON paysplit.PayNum=payment.PayNum "
-					+"WHERE paysplit.PayPlanNum="+POut.Long(payPlanNum);
+					+"WHERE paysplit.PayPlanNum="+SOut.Long(payPlanNum);
 			}
 			else {//insurance payment plan
 				//Ins Payments
@@ -308,7 +308,7 @@ namespace OpenDentBusiness {
 					+"(SELECT ProvTreat FROM claim WHERE claimproc.ClaimNum=claim.ClaimNum) ProvNum,MAX(claimproc.SecDateTEdit) SecDateTEdit "
 					+"FROM claimproc "
 					+"LEFT JOIN claimpayment ON claimproc.ClaimPaymentNum=claimpayment.ClaimPaymentNum "
-					+"WHERE PayPlanNum="+POut.Long(payPlanNum)+" "
+					+"WHERE PayPlanNum="+SOut.Long(payPlanNum)+" "
 					+"AND (Status=1 OR Status=4 OR Status=5) "//received or supplemental or capclaim
 					+"GROUP BY ClaimNum,DateCP,claimproc.ClaimPaymentNum";
 			}
@@ -327,34 +327,34 @@ namespace OpenDentBusiness {
 				row["ClaimPaymentNum"]="0";
 				row["colorText"]=listDefs[3].ItemColor.ToArgb().ToString();
 				if(payPlanPlanNum!=0) {//ins payments
-					row["ClaimNum"]=PIn.Long(rawPay.Rows[i]["ClaimNum"].ToString());
+					row["ClaimNum"]=SIn.Long(rawPay.Rows[i]["ClaimNum"].ToString());
 					row["ClaimPaymentNum"]=rawPay.Rows[i]["ClaimPaymentNum"].ToString();
 					row["colorText"]=listDefs[7].ItemColor.ToArgb().ToString();
 				}
 				if(payPlanPlanNum==0) {
-					amt=PIn.Decimal(rawPay.Rows[i]["SplitAmt"].ToString());
+					amt=SIn.Decimal(rawPay.Rows[i]["SplitAmt"].ToString());
 				}
 				else {
-					amt=PIn.Decimal(rawPay.Rows[i]["InsPayAmt"].ToString());
+					amt=SIn.Decimal(rawPay.Rows[i]["InsPayAmt"].ToString());
 				}
 				row["creditsDouble"]=amt;
 				row["credits"]=((decimal)row["creditsDouble"]).ToString("n");
 				if(payPlanPlanNum==0) {
-					dateT=PIn.DateTime(rawPay.Rows[i]["DatePay"].ToString());
+					dateT=SIn.DateTime(rawPay.Rows[i]["DatePay"].ToString());
 				}
 				else {
-					dateT=PIn.DateTime(rawPay.Rows[i]["DateCP"].ToString());//this may be changed to ProcDate in the future
+					dateT=SIn.DateTime(rawPay.Rows[i]["DateCP"].ToString());//this may be changed to ProcDate in the future
 				}
 				row["DateTime"]=dateT;
 				row["date"]=dateT.ToShortDateString();
-				row["dateTimeSort"]=PIn.DateTime(rawPay.Rows[i]["SecDateTEdit"].ToString());//SecDateTEdit will be used for sorting if RandomKeys is enabled
+				row["dateTimeSort"]=SIn.DateTime(rawPay.Rows[i]["SecDateTEdit"].ToString());//SecDateTEdit will be used for sorting if RandomKeys is enabled
 				if(payPlanPlanNum==0) {
-					row["description"]=Defs.GetName(DefCat.PaymentTypes,PIn.Long(rawPay.Rows[i]["PayType"].ToString()));
-					payamt=PIn.Decimal(rawPay.Rows[i]["PayAmt"].ToString());
+					row["description"]=Defs.GetName(DefCat.PaymentTypes,SIn.Long(rawPay.Rows[i]["PayType"].ToString()));
+					payamt=SIn.Decimal(rawPay.Rows[i]["PayAmt"].ToString());
 				}
 				else {
-					row["description"]=Defs.GetName(DefCat.InsurancePaymentType,PIn.Long(rawPay.Rows[i]["PayType"].ToString()));
-					payamt=PIn.Decimal(rawPay.Rows[i]["CheckAmt"].ToString());
+					row["description"]=Defs.GetName(DefCat.InsurancePaymentType,SIn.Long(rawPay.Rows[i]["PayType"].ToString()));
+					payamt=SIn.Decimal(rawPay.Rows[i]["CheckAmt"].ToString());
 				}
 				if(rawPay.Rows[i]["CheckNum"].ToString()!=""){
 					row["description"]+=" #"+rawPay.Rows[i]["CheckNum"].ToString();
@@ -371,9 +371,9 @@ namespace OpenDentBusiness {
 				//we might use DatePay/DateCP here to add to description
 				//row["extraDetail"]="";
 				row["patient"]="";
-				row["PatNum"]=PIn.Long(rawPay.Rows[i]["PatNum"].ToString());
+				row["PatNum"]=SIn.Long(rawPay.Rows[i]["PatNum"].ToString());
 				if(payPlanPlanNum==0) {
-					row["PayNum"]=PIn.Long(rawPay.Rows[i]["PayNum"].ToString());
+					row["PayNum"]=SIn.Long(rawPay.Rows[i]["PayNum"].ToString());
 				}
 				else {
 					row["PayNum"]=0;
@@ -388,7 +388,7 @@ namespace OpenDentBusiness {
 				}
 				row["ProcNum"]="0";
 				row["procsOnObj"]="";
-				row["prov"]=Providers.GetAbbr(PIn.Long(rawPay.Rows[i]["ProvNum"].ToString()));
+				row["prov"]=Providers.GetAbbr(SIn.Long(rawPay.Rows[i]["ProvNum"].ToString()));
 				row["signed"]="";
 				row["StatementNum"]=0;
 				row["tth"]="";
@@ -448,18 +448,18 @@ namespace OpenDentBusiness {
 			table.Columns.Add("WebChatSessionNum");
 			//but we won't actually fill this table with rows until the very end.  It's more useful to use a List<> for now.
 			List<DataRow> rows=new List<DataRow>();
-			string familyPatNums=POut.Long(pat.PatNum);//just in case, fam should never be null so this will be replaced by the patnums from fam.ListPats
+			string familyPatNums=SOut.Long(pat.PatNum);//just in case, fam should never be null so this will be replaced by the patnums from fam.ListPats
 			Dictionary<string,string> dictPatFNames=new Dictionary<string,string>() { { pat.PatNum.ToString(),pat.FName } };
 			if(fam!=null && fam.ListPats!=null && fam.ListPats.Length>0) {
-				familyPatNums=string.Join(",",fam.ListPats.Select(x => POut.Long(x.PatNum)));
+				familyPatNums=string.Join(",",fam.ListPats.Select(x => SOut.Long(x.PatNum)));
 				dictPatFNames=fam.ListPats.ToDictionary(x => x.PatNum.ToString(),x => x.FName);
 			}
 			#region commlog
 			List<Def> listCommLogTypeDefs=Defs.GetDefsForCategory(DefCat.CommLogTypes);
 			long podiumProgramNum=Programs.GetCur(ProgramName.Podium).ProgramNum;
-			bool showPodiumCommlogs=PIn.Bool(ProgramProperties.GetPropVal(podiumProgramNum,Podium.PropertyDescs.ShowCommlogsInChartAndAccount));
-			string andNotPodiumCommlog=" AND (commlog.CommSource!="+POut.Int((int)CommItemSource.ProgramLink)+" "
-				+"OR commlog.ProgramNum!="+POut.Long(podiumProgramNum)+")";
+			bool showPodiumCommlogs=SIn.Bool(ProgramProperties.GetPropVal(podiumProgramNum,Podium.PropertyDescs.ShowCommlogsInChartAndAccount));
+			string andNotPodiumCommlog=" AND (commlog.CommSource!="+SOut.Int((int)CommItemSource.ProgramLink)+" "
+				+"OR commlog.ProgramNum!="+SOut.Long(podiumProgramNum)+")";
 			string command="SELECT CommDateTime,CommType,Mode_,SentOrReceived,Note,CommlogNum,commlog.PatNum,CommSource "
 				+"FROM commlog "
 				+"WHERE PatNum IN ("+familyPatNums+")"
@@ -469,8 +469,8 @@ namespace OpenDentBusiness {
 			for(int i=0;i<rawComm.Rows.Count;i++) {
 				DataRow rowCur=rawComm.Rows[i];
 				row=table.NewRow();
-				dateT=PIn.DateTime(rowCur["CommDateTime"].ToString());
-				long commTypeDefNum=PIn.Long(rowCur["CommType"].ToString());
+				dateT=SIn.DateTime(rowCur["CommDateTime"].ToString());
+				long commTypeDefNum=SIn.Long(rowCur["CommType"].ToString());
 				Def commlogType=listCommLogTypeDefs.FirstOrDefault(x => x.DefNum==commTypeDefNum);
 				//If Def exists and not an empty color use that color. Otherwise, leave row blank.
 				if(commlogType!=null && commlogType.ItemColor.ToArgb()!=Color.Empty.ToArgb()) {
@@ -497,7 +497,7 @@ namespace OpenDentBusiness {
 				row["FormPatNum"]="0";
 				row["mode"]="";
 				if(rowCur["Mode_"].ToString()!="0"){//anything except none
-					row["mode"]=Lans.g("enumCommItemMode",((CommItemMode)PIn.Long(rowCur["Mode_"].ToString())).ToString());
+					row["mode"]=Lans.g("enumCommItemMode",((CommItemMode)SIn.Long(rowCur["Mode_"].ToString())).ToString());
 				}
 				row["Note"]=rowCur["Note"].ToString();
 				string patName;
@@ -514,7 +514,7 @@ namespace OpenDentBusiness {
 			#endregion commlog
 			#region emailmessage
 			List<EmailSentOrReceived> listAckTypes=EmailMessages.GetUnsentTypes(EmailPlatform.Ack).Concat(EmailMessages.GetSentTypes(EmailPlatform.Ack)).ToList();
-			string ackTypesStr=string.Join(",",listAckTypes.Select(x => POut.Int((int)x)));
+			string ackTypesStr=string.Join(",",listAckTypes.Select(x => SOut.Int((int)x)));
 			//Get all emails for the entire family.  If a user creates an email that is attached to a patient, it will show up here for everyone.
 			command="SELECT emailmessage.MsgDateTime,emailmessage.SentOrReceived,emailmessage.Subject,emailmessage.EmailMessageNum, "
 				+"emailmessage.PatNum,emailmessage.RecipientAddress,emailmessage.HideIn "
@@ -526,7 +526,7 @@ namespace OpenDentBusiness {
 			for(int i=0;i<rawEmail.Rows.Count;i++) {
 				DataRow rowCur=rawEmail.Rows[i];
 				row=table.NewRow();
-				dateT=PIn.DateTime(rowCur["MsgDateTime"].ToString());
+				dateT=SIn.DateTime(rowCur["MsgDateTime"].ToString());
 				row["CommDateTime"]=dateT;
 				row["commDate"]=dateT.ToShortDateString();
 				if(dateT.TimeOfDay!=TimeSpan.Zero){
@@ -556,12 +556,12 @@ namespace OpenDentBusiness {
 			#endregion emailmessage
 			#region formpat
 			command="SELECT FormDateTime,FormPatNum "
-				+"FROM formpat WHERE PatNum ="+POut.Long(pat.PatNum);//Rows are ordered at the end
+				+"FROM formpat WHERE PatNum ="+SOut.Long(pat.PatNum);//Rows are ordered at the end
 			DataTable rawForm=dcon.GetTable(command);
 			for(int i=0;i<rawForm.Rows.Count;i++) {
 				DataRow rowCur=rawForm.Rows[i];
 				row=table.NewRow();
-				dateT=PIn.DateTime(rowCur["FormDateTime"].ToString());
+				dateT=SIn.DateTime(rowCur["FormDateTime"].ToString());
 				row["CommDateTime"]=dateT;
 				row["commDate"]=dateT.ToShortDateString();
 				if(dateT.TimeOfDay!=TimeSpan.Zero) {
@@ -586,13 +586,13 @@ namespace OpenDentBusiness {
 			command="SELECT DateTimeSheet,SheetNum,SheetType,Description,PatNum "
 				+"FROM sheet "
 				+"WHERE IsDeleted=0 "//Don't show deleted sheets in the Account module Communications Log section.
-				+"AND SheetType!="+POut.Long((int)SheetTypeEnum.Rx)+" "//rx are only accesssible from within Rx edit window.
+				+"AND SheetType!="+SOut.Long((int)SheetTypeEnum.Rx)+" "//rx are only accesssible from within Rx edit window.
 				+"AND PatNum IN ("+familyPatNums+")";//Rows are ordered at the end
 			DataTable rawSheet=dcon.GetTable(command);
 			for(int i=0;i<rawSheet.Rows.Count;i++) {
 				DataRow rowCur=rawSheet.Rows[i];
 				row=table.NewRow();
-				dateT=PIn.DateTime(rowCur["DateTimeSheet"].ToString());
+				dateT=SIn.DateTime(rowCur["DateTimeSheet"].ToString());
 				row["CommDateTime"]=dateT;
 				row["commDate"]=dateT.ToShortDateString();
 				if(dateT.TimeOfDay!=TimeSpan.Zero) {
@@ -724,7 +724,7 @@ namespace OpenDentBusiness {
 				dataSetAccount.Tables["account"].Rows.Cast<DataRow>().ToList().ForEach(x => x["PatNum"]=patient.PatNum);
 				dataSetAccount.Tables.Add(GetApptTable(family,!includeApptsForFamily,patient.PatNum));
 				dataSetAccount.Tables.Add(GetMisc(family,patient.PatNum,patientPayPlanDue,dynamicPayPlanDue,balanceForward,statementCur.StatementType,dataSetAccount));
-				listPayPlanNums=listPayPlanNums.Union(dataSetAccount.Tables["payplan"].Select().Select(x => PIn.Long(x["PayPlanNum"].ToString()))
+				listPayPlanNums=listPayPlanNums.Union(dataSetAccount.Tables["payplan"].Select().Select(x => SIn.Long(x["PayPlanNum"].ToString()))
 					.Where(x => x > 0)).ToList();
 				dataSetRetVal.Merge(dataSetAccount);//This works for the purposes we need it for.  Sheets framework auto-splits entries by patnum.
 			}
@@ -755,7 +755,7 @@ namespace OpenDentBusiness {
 				}
 			}
 			List<DataRow> listDataRowsPayPlan=dataSetRetVal.Tables["payplan"].Rows.OfType<DataRow>()
-				.OrderBy(x => x["PatNum"].ToString()).ThenBy(x => PIn.DateTime(x["DateTime"].ToString())).ToList();
+				.OrderBy(x => x["PatNum"].ToString()).ThenBy(x => SIn.DateTime(x["DateTime"].ToString())).ToList();
 			decimal payplanBal=0;
 			foreach(DataRow dataRow in listDataRowsPayPlan) {
 				payplanBal+=(decimal)dataRow["chargesDouble"];
@@ -843,7 +843,7 @@ namespace OpenDentBusiness {
 			string command;
 			string familyPatNums="";
 			if(family!=null && family.ListPats!=null && family.ListPats.Length>0) {//Currently fam is always defined and ListPats always has a reference this pat.
-				familyPatNums=string.Join(",",family.ListPats.Select(x => POut.Long(x.PatNum)));
+				familyPatNums=string.Join(",",family.ListPats.Select(x => SOut.Long(x.PatNum)));
 			}
 			string adjNumsForLimited="";
 			string paySplitNumsForLimited="";
@@ -851,11 +851,11 @@ namespace OpenDentBusiness {
 			string claimNumsForLimited="";
 			string payPlanChargeNumsForLimited="";
 			if(statement.StatementType==StmtType.LimitedStatement && statementNum>0) {
-				adjNumsForLimited=string.Join(",",statement.ListAdjNums.Select(x => POut.Long(x)));
-				paySplitNumsForLimited=string.Join(",",statement.ListPaySplitNums.Select(x => POut.Long(x)));
-				procNumsForLimited=string.Join(",",statement.ListProcNums.Select(x => POut.Long(x)));
-				claimNumsForLimited=string.Join(",",statement.ListInsPayClaimNums.Select(x => POut.Long(x)));
-				payPlanChargeNumsForLimited=string.Join(",",statement.ListPayPlanChargeNums.Select(x => POut.Long(x)));
+				adjNumsForLimited=string.Join(",",statement.ListAdjNums.Select(x => SOut.Long(x)));
+				paySplitNumsForLimited=string.Join(",",statement.ListPaySplitNums.Select(x => SOut.Long(x)));
+				procNumsForLimited=string.Join(",",statement.ListProcNums.Select(x => SOut.Long(x)));
+				claimNumsForLimited=string.Join(",",statement.ListInsPayClaimNums.Select(x => SOut.Long(x)));
+				payPlanChargeNumsForLimited=string.Join(",",statement.ListPayPlanChargeNums.Select(x => SOut.Long(x)));
 			}
 			#region Claimprocs
 			//claimprocs (ins payments)----------------------------------------------------------------------------
@@ -876,7 +876,7 @@ namespace OpenDentBusiness {
 				+"IsOverpay, "
 				+"SUM(InsEstTotalOverride) InsEstTotalOverride_ "
 				+"FROM claimproc "
-				+$"WHERE (claimproc.IsOverpay=1 OR (Status IN ({POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapClaim)})) "
+				+$"WHERE (claimproc.IsOverpay=1 OR (Status IN ({SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapClaim)})) "
 				+"AND (WriteOff!=0 OR InsPayAmt!=0)) ";
 			if(familyPatNums!="") {
 				command+="AND PatNum IN ("+familyPatNums+") ";
@@ -895,7 +895,7 @@ namespace OpenDentBusiness {
 			}
 			command+="GROUP BY claimproc.ClaimNum,claimproc.DateCP,claimproc.Status,claimproc.IsOverpay,"
 				//Differentiate multiple supplemental payments on the same day.
-				+$"CASE WHEN claimproc.Status={POut.Int((int)ClaimProcStatus.Supplemental)} THEN claimproc.ClaimPaymentNum ELSE 0 END";
+				+$"CASE WHEN claimproc.Status={SOut.Int((int)ClaimProcStatus.Supplemental)} THEN claimproc.ClaimPaymentNum ELSE 0 END";
 			DataTable rawClaimPay=new DataTable();
 			if(!isInvoice && (statement.StatementType!=StmtType.LimitedStatement || procNumsForLimited!="")) {//don't run if IsInvoice or if LimitedStatement with no procs
 				rawClaimPay=dataConnection.GetTable(command);
@@ -907,7 +907,7 @@ namespace OpenDentBusiness {
 				//Hide transfers from showing so that they do not confuse the user / patient.
 				//However, only hide transfers associated to claims with actual procedures attached.
 				//There was a bug with databases from conversions where there were claims with no procedures but with a claimproc (pay as total).
-				if(PIn.Bool(rawClaimPayRow["IsTransfer"].ToString()) && PIn.Bool(rawClaimPayRow["HasProc"].ToString())) {
+				if(SIn.Bool(rawClaimPayRow["IsTransfer"].ToString()) && SIn.Bool(rawClaimPayRow["HasProc"].ToString())) {
 					continue;
 				}
 				dataRow=dataTableAccount.NewRow();
@@ -917,31 +917,31 @@ namespace OpenDentBusiness {
 				dataRow["balanceDouble"]=0;//fill this later
 				dataRow["chargesDouble"]=0;
 				dataRow["charges"]="";
-				dataRow["ClaimNum"]=PIn.Long(rawClaimPayRow["ClaimNum"].ToString());
+				dataRow["ClaimNum"]=SIn.Long(rawClaimPayRow["ClaimNum"].ToString());
 				//jsalmon - I do not agree with the next line but am leaving it here so as to not break unknown parts of the program.  Something like this should never be done.
 				//          We either need to create a separate column using a naming convention that leads programmers to think it is a boolean or
 				//          we need to make the column lowercase "claimPaymentNum".  Making the first character lowercase will at least lead OD developers to this line 
 				//          so that they can then learn that this variable is not to be trusted and that it is in fact a boolean...
 				dataRow["ClaimPaymentNum"]="1";//this is now just a boolean flag indicating that it is a payment.
 				//this is because it will frequently not be attached to an actual claim payment.
-				long clinicNumCur=PIn.Long(rawClaimPayRow["ClinicNum"].ToString());
+				long clinicNumCur=SIn.Long(rawClaimPayRow["ClinicNum"].ToString());
 				dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 				dataRow["ClinicNum"]=clinicNumCur;
 				dataRow["colorText"]=listDefs[7].ItemColor.ToArgb().ToString();
-				amt=PIn.Decimal(rawClaimPayRow["InsPayAmt_"].ToString());//payments tracked in payment plans will show in the payment plan grid
-				writeoff=PIn.Decimal(rawClaimPayRow["WriteOff_"].ToString());
+				amt=SIn.Decimal(rawClaimPayRow["InsPayAmt_"].ToString());//payments tracked in payment plans will show in the payment plan grid
+				writeoff=SIn.Decimal(rawClaimPayRow["WriteOff_"].ToString());
 				if(rawClaimPayRow["PayPlanNum"].ToString()!="0" && amt+writeoff==0) {//payplan payments are tracked in the payplan, so nothing to display.
 					continue;//Does not add a row, so don't worry about setting the remaining columns.
 				}
 				dataRow["creditsDouble"]=amt+writeoff;
 				dataRow["credits"]=((decimal)dataRow["creditsDouble"]).ToString("n");
-				dateT=PIn.DateTime(rawClaimPayRow["DateCP"].ToString());
+				dateT=SIn.DateTime(rawClaimPayRow["DateCP"].ToString());
 				dataRow["DateTime"]=dateT;
 				dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-				dataRow["dateTimeSort"]=PIn.DateTime(rawClaimPayRow["SecDateTEdit"].ToString());//MAX SecDateTEdit will be used for sorting if RandomKeys is enabled
-				procdate=PIn.DateTime(rawClaimPayRow["ProcDate"].ToString());
-				if(PIn.Bool(rawClaimPayRow["IsOverpay"].ToString())) {
-					double insEstTotalOverride=PIn.Double(rawClaimPayRow["InsEstTotalOverride_"].ToString());
+				dataRow["dateTimeSort"]=SIn.DateTime(rawClaimPayRow["SecDateTEdit"].ToString());//MAX SecDateTEdit will be used for sorting if RandomKeys is enabled
+				procdate=SIn.DateTime(rawClaimPayRow["ProcDate"].ToString());
+				if(SIn.Bool(rawClaimPayRow["IsOverpay"].ToString())) {
+					double insEstTotalOverride=SIn.Double(rawClaimPayRow["InsEstTotalOverride_"].ToString());
 					if(insEstTotalOverride<0) {
 						dataRow["description"]=Lans.g("AccountModule","Insurance Overpayment")+": "+insEstTotalOverride.ToString("f");
 					}
@@ -970,8 +970,8 @@ namespace OpenDentBusiness {
 					//Indicate to the user that they need to finalize this payment before reports will be accurate.
 					dataRow["description"]+="\r\n"+Lans.g("AccountModule","PAYMENT NEEDS TO BE FINALIZED");
 				}
-				dataRow["IsTransfer"]=PIn.Bool(rawClaimPayRow["IsTransfer"].ToString());
-				long patNumCur=PIn.Long(rawClaimPayRow["PatNum"].ToString());
+				dataRow["IsTransfer"]=SIn.Bool(rawClaimPayRow["IsTransfer"].ToString());
+				long patNumCur=SIn.Long(rawClaimPayRow["PatNum"].ToString());
 				dataRow["patient"]=GetPatName(patNumCur,family,doIncludePatLName);
 				dataRow["PatNum"]=patNumCur;
 				dataRow["PayNum"]=0;
@@ -982,7 +982,7 @@ namespace OpenDentBusiness {
 				dataRow["ProcNumLab"]="";
 				dataRow["procsOnObj"]="";
 				dataRow["adjustsOnObj"]="";
-				dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawClaimPayRow["provNum_"].ToString()));
+				dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawClaimPayRow["provNum_"].ToString()));
 				dataRow["signed"]="";
 				dataRow["StatementNum"]=0;
 				dataRow["ToothNum"]="";
@@ -999,25 +999,25 @@ namespace OpenDentBusiness {
 				+$@"procedurelog.BaseUnits,procedurelog.BillingNote,procedurelog.ClinicNum,procedurecode.CodeNum,procedurecode.AbbrDesc,Descript,
 				SUM(CASE WHEN claimproc.Status IN ({string.Join(",",ClaimProcs.GetInsPaidStatuses().Select(x => (int)x))}) 
 					THEN claimproc.InsPayAmt END) insPayAmt_,
-				SUM(CASE WHEN claimproc.Status={POut.Int((int)ClaimProcStatus.NotReceived)} THEN claimproc.InsPayEst END) insPayEst_,
+				SUM(CASE WHEN claimproc.Status={SOut.Int((int)ClaimProcStatus.NotReceived)} THEN claimproc.InsPayEst END) insPayEst_,
 				LaymanTerm,procedurelog.MedicalCode,MAX(claimproc.NoBillIns) noBillIns_,procedurelog.PatNum,
 				(SELECT SUM(paysplit.SplitAmt) FROM paysplit WHERE procedurelog.ProcNum=paysplit.ProcNum 
 				AND paysplit.ProcNum!=0) patPay_,"//Prevents long load time in a patient with thousands of entries.
 				+@"ProcCode,procedurelog.ProcDate procDate_,ProcFee,procedurelog.ProcNum,procedurelog.ProcNumLab,procedurelog.ProvNum,procedurelog.Surf,
 				ToothNum,ToothRange,UnitQty,"
-				+@"SUM(CASE WHEN claimproc.Status IN("+POut.Int((int)ClaimProcStatus.NotReceived)+","+POut.Int((int)ClaimProcStatus.Received)+","+POut.Int((int)ClaimProcStatus.Supplemental)+","+POut.Int((int)ClaimProcStatus.CapClaim)+@") THEN claimproc.WriteOff END) writeOff_,
-				MIN(CASE WHEN claimproc.Status!="+POut.Int((int)ClaimProcStatus.CapComplete)+@" 
+				+@"SUM(CASE WHEN claimproc.Status IN("+SOut.Int((int)ClaimProcStatus.NotReceived)+","+SOut.Int((int)ClaimProcStatus.Received)+","+SOut.Int((int)ClaimProcStatus.Supplemental)+","+SOut.Int((int)ClaimProcStatus.CapClaim)+@") THEN claimproc.WriteOff END) writeOff_,
+				MIN(CASE WHEN claimproc.Status!="+SOut.Int((int)ClaimProcStatus.CapComplete)+@" 
 					AND insplan.IsMedical=(CASE WHEN procedurelog.MedicalCode!='' THEN 1 ELSE 0 END) 
-					THEN (CASE WHEN claimproc.Status IN ("+POut.Int((int)ClaimProcStatus.Estimate)+","+POut.Int((int)ClaimProcStatus.CapEstimate)+","+POut.Int((int)ClaimProcStatus.InsHist)
+					THEN (CASE WHEN claimproc.Status IN ("+SOut.Int((int)ClaimProcStatus.Estimate)+","+SOut.Int((int)ClaimProcStatus.CapEstimate)+","+SOut.Int((int)ClaimProcStatus.InsHist)
 					+@") THEN 0 ELSE 1 END) END) unsent_,
-				SUM(CASE WHEN claimproc.Status="+POut.Int((int)ClaimProcStatus.CapComplete)+@" THEN claimproc.WriteOff END) writeOffCap_,
+				SUM(CASE WHEN claimproc.Status="+SOut.Int((int)ClaimProcStatus.CapComplete)+@" THEN claimproc.WriteOff END) writeOffCap_,
 				procedurelog.StatementNum,procedurelog.DateTStamp
 				FROM procedurelog
 				INNER JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum "
 				//indexAcctCov will always exists because the convert script fails if it can't be added.
 				+"LEFT JOIN claimproc "+DbHelper.UseIndex("indexAcctCov")+@" ON procedurelog.ProcNum=claimproc.ProcNum 
 				LEFT JOIN insplan ON insplan.PlanNum=claimproc.PlanNum
-				WHERE ProcStatus="+POut.Int((int)ProcStat.C)+" ";
+				WHERE ProcStatus="+SOut.Int((int)ProcStat.C)+" ";
 			if(familyPatNums!="") {
 				command+="AND procedurelog.PatNum IN ("+familyPatNums+") ";
 			}
@@ -1034,7 +1034,7 @@ namespace OpenDentBusiness {
 					+"'' AS writeOff_,'' AS unsent_,'' AS writeOffCap_,procedurelog.StatementNum,procedurelog.DateTStamp "
 					+"FROM procedurelog "
 					+"LEFT JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum "
-					+"WHERE StatementNum="+POut.Long(statementNum);
+					+"WHERE StatementNum="+SOut.Long(statementNum);
 			}
 			DataTable rawProc=new DataTable();
 			if(statement.StatementType!=StmtType.LimitedStatement || procNumsForLimited!="") {//Don't run if this is a limited statement with no procs
@@ -1046,7 +1046,7 @@ namespace OpenDentBusiness {
 				&& DisplayFields.GetForCategory(DisplayFieldCategory.AccountModule).Any(x => x.InternalName=="Signed") //"Signed" is displayed in acct grid
 				||DisplayFields.GetForCategory(DisplayFieldCategory.LimitedCustomStatement).Any(x => x.InternalName=="Signed")) //or in Limited (Custom) Statements
 			{
-				listSignedProcNums=ProcNotes.GetIsProcNoteSigned(rawProc.Select().Select(x => PIn.Long(x["ProcNum"].ToString())).ToList());
+				listSignedProcNums=ProcNotes.GetIsProcNoteSigned(rawProc.Select().Select(x => SIn.Long(x["ProcNum"].ToString())).ToList());
 			}
 			decimal insPayAmt;
 			decimal insPayEst;
@@ -1065,15 +1065,15 @@ namespace OpenDentBusiness {
 				dataRow["AdjNum"]=0;
 				dataRow["balance"]="";//fill this later
 				dataRow["balanceDouble"]=0;//fill this later
-				qty=Math.Max(1,PIn.Long(rawProcRow["UnitQty"].ToString()) + PIn.Long(rawProcRow["BaseUnits"].ToString()));
-				amt=PIn.Decimal(rawProcRow["ProcFee"].ToString())*qty;
-				writeOffCap=PIn.Decimal(rawProcRow["writeOffCap_"].ToString());
+				qty=Math.Max(1,SIn.Long(rawProcRow["UnitQty"].ToString()) + SIn.Long(rawProcRow["BaseUnits"].ToString()));
+				amt=SIn.Decimal(rawProcRow["ProcFee"].ToString())*qty;
+				writeOffCap=SIn.Decimal(rawProcRow["writeOffCap_"].ToString());
 				amt-=writeOffCap;
 				dataRow["chargesDouble"]=amt;
 				dataRow["charges"]=((decimal)dataRow["chargesDouble"]).ToString("n");
 				dataRow["ClaimNum"]=0;
 				dataRow["ClaimPaymentNum"]="0";
-				long clinicNumCur=PIn.Long(rawProcRow["ClinicNum"].ToString());
+				long clinicNumCur=SIn.Long(rawProcRow["ClinicNum"].ToString());
 				dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 				dataRow["ClinicNum"]=clinicNumCur;
 				string procCode=rawProcRow["ProcCode"].ToString();
@@ -1088,11 +1088,11 @@ namespace OpenDentBusiness {
 				}
 				dataRow["creditsDouble"]=0;
 				dataRow["credits"]="";
-				dateT=PIn.DateTime(rawProcRow["procDate_"].ToString());
+				dateT=SIn.DateTime(rawProcRow["procDate_"].ToString());
 				dataRow["DateTime"]=dateT;
 				dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-				dataRow["dateTimeSort"]=PIn.DateTime(rawProcRow["DateTStamp"].ToString());//DateTStamp will be used for sorting if RandomKeys is enabled
-				long codeNum=PIn.Long(rawProcRow["CodeNum"].ToString());
+				dataRow["dateTimeSort"]=SIn.DateTime(rawProcRow["DateTStamp"].ToString());//DateTStamp will be used for sorting if RandomKeys is enabled
+				long codeNum=SIn.Long(rawProcRow["CodeNum"].ToString());
 				string surf=rawProcRow["Surf"].ToString();
 				string toothNum=rawProcRow["ToothNum"].ToString();
 				dataRow["description"]=Procedures.ConvertProcToString(codeNum,surf,toothNum,true)+" ";
@@ -1113,19 +1113,19 @@ namespace OpenDentBusiness {
 					//true if the parent proc does not have a claim attached and this lab is not marked "no bill ins".  Lab is unsent if parent proc is unsent
 					isShowUnsent=rawProc.Select().Any(x => x["ProcNum"].ToString()==strProcNumLab && x["unsent_"].ToString()=="0");
 				}
-				long procNum=PIn.Long(rawProcRow["ProcNum"].ToString());
+				long procNum=SIn.Long(rawProcRow["ProcNum"].ToString());
 				if(ProcMultiVisits.IsProcInProcess(procNum)) {
 					dataRow["description"]+=" "+Lans.g("ContrAccount","(In Process)");
 				}
 				else if(isShowUnsent) {
 					dataRow["description"]+=" "+Lans.g("ContrAccount","(unsent)");
 				}
-				insPayAmt=PIn.Decimal(rawProcRow["insPayAmt_"].ToString());
-				insPayEst=PIn.Decimal(rawProcRow["insPayEst_"].ToString());
-				writeOff=PIn.Decimal(rawProcRow["writeOff_"].ToString());
+				insPayAmt=SIn.Decimal(rawProcRow["insPayAmt_"].ToString());
+				insPayEst=SIn.Decimal(rawProcRow["insPayEst_"].ToString());
+				writeOff=SIn.Decimal(rawProcRow["writeOff_"].ToString());
 				patPort=amt-insPayAmt-insPayEst-writeOff;
-				patPay=PIn.Decimal(rawProcRow["patPay_"].ToString());
-				adjAmt=PIn.Decimal(rawProcRow["adj_"].ToString());
+				patPay=SIn.Decimal(rawProcRow["patPay_"].ToString());
+				adjAmt=SIn.Decimal(rawProcRow["adj_"].ToString());
 				extraDetail="";
 				if(patPay>0){
 					extraDetail+=Lans.g("AccountModule","Pat Paid: ")+patPay.ToString("c");
@@ -1167,11 +1167,11 @@ namespace OpenDentBusiness {
 						dataRow["description"]+="\r\n"+extraDetail;
 					}
 				}
-				string billingNote=PIn.String(rawProcRow["BillingNote"].ToString());
+				string billingNote=SIn.String(rawProcRow["BillingNote"].ToString());
 				if(billingNote!="") {
 					dataRow["description"]+="\r\n"+billingNote;
 				}
-				long patNumCur=PIn.Long(rawProcRow["PatNum"].ToString());
+				long patNumCur=SIn.Long(rawProcRow["PatNum"].ToString());
 				//for printing statements. Don't show zeros, just blanks.
 				dataRow["InvoiceNum"]=rawProcRow["StatementNum"].ToString()=="0" ? "" : rawProcRow["StatementNum"].ToString(); 
 				dataRow["patient"]=GetPatName(patNumCur,family,(doIncludePatLName));
@@ -1184,7 +1184,7 @@ namespace OpenDentBusiness {
 				dataRow["ProcNumLab"]=strProcNumLab;
 				dataRow["procsOnObj"]="";
 				dataRow["adjustsOnObj"]="";
-				dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawProcRow["ProvNum"].ToString()));
+				dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawProcRow["ProvNum"].ToString()));
 				dataRow["signed"]=listSignedProcNums.Contains(procNum)?"Signed":"";
 				dataRow["StatementNum"]=0;
 				dataRow["ToothNum"]=toothNum;
@@ -1208,7 +1208,7 @@ namespace OpenDentBusiness {
 				LEFT JOIN paysplit ON paysplit.AdjNum>0 AND adjustment.AdjNum=paysplit.AdjNum ";
 				//paysplit.AdjNum>0 added because MySQL 5.5 ignores all paysplit indexes without it. Runtime reduced from 3.3 sec to 0.005 sec for one user.
 			if(isInvoice) {
-				command+="WHERE adjustment.StatementNum="+POut.Long(statementNum)+" ";
+				command+="WHERE adjustment.StatementNum="+SOut.Long(statementNum)+" ";
 			}
 			else if(statement.StatementType==StmtType.LimitedStatement) {
 				List<string> listAdjWhereOR=new List<string>();
@@ -1234,10 +1234,10 @@ namespace OpenDentBusiness {
 			for(int i=0;i<rawAdj.Rows.Count;i++){
 				dataRow=dataTableAccount.NewRow();
 				dataRow["AbbrDesc"]="";
-				dataRow["AdjNum"]=PIn.Long(rawAdj.Rows[i]["AdjNum"].ToString());
+				dataRow["AdjNum"]=SIn.Long(rawAdj.Rows[i]["AdjNum"].ToString());
 				dataRow["balance"]="";//fill this later
 				dataRow["balanceDouble"]=0;//fill this later
-				amt=PIn.Decimal(rawAdj.Rows[i]["AdjAmt"].ToString());
+				amt=SIn.Decimal(rawAdj.Rows[i]["AdjAmt"].ToString());
 				if(amt<0){
 					dataRow["chargesDouble"]=0;
 					dataRow["charges"]="";
@@ -1252,17 +1252,17 @@ namespace OpenDentBusiness {
 				}
 				dataRow["ClaimNum"]=0;
 				dataRow["ClaimPaymentNum"]="0";
-				long clinicNumCur=PIn.Long(rawAdj.Rows[i]["ClinicNum"].ToString());
+				long clinicNumCur=SIn.Long(rawAdj.Rows[i]["ClinicNum"].ToString());
 				dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 				dataRow["ClinicNum"]=clinicNumCur;
 				dataRow["colorText"]=listDefs[1].ItemColor.ToArgb().ToString();
-				dateT=PIn.DateTime(rawAdj.Rows[i]["AdjDate"].ToString());
+				dateT=SIn.DateTime(rawAdj.Rows[i]["AdjDate"].ToString());
 				dataRow["DateTime"]=dateT;
 				dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-				dataRow["dateTimeSort"]=PIn.DateTime(rawAdj.Rows[i]["SecDateTEdit"].ToString());//SecDateTEdit will be used for sorting if RandomKeys is enabled
-				dataRow["description"]=Defs.GetName(DefCat.AdjTypes,PIn.Long(rawAdj.Rows[i]["AdjType"].ToString()));
-				decimal sumAmt=PIn.Decimal(rawAdj.Rows[i]["SumAmt"].ToString());
-				long procNum=PIn.Long(rawAdj.Rows[i]["ProcNum"].ToString());
+				dataRow["dateTimeSort"]=SIn.DateTime(rawAdj.Rows[i]["SecDateTEdit"].ToString());//SecDateTEdit will be used for sorting if RandomKeys is enabled
+				dataRow["description"]=Defs.GetName(DefCat.AdjTypes,SIn.Long(rawAdj.Rows[i]["AdjType"].ToString()));
+				decimal sumAmt=SIn.Decimal(rawAdj.Rows[i]["SumAmt"].ToString());
+				long procNum=SIn.Long(rawAdj.Rows[i]["ProcNum"].ToString());
 				bool isShowingProc=PrefC.GetBool(PrefName.StatementShowProcBreakdown);
 				if(sumAmt!=0 && procNum==0) {
 					if(isStatement && isShowingProc) {//Is a statement, use global pref.
@@ -1275,7 +1275,7 @@ namespace OpenDentBusiness {
 				if(rawAdj.Rows[i]["AdjNote"].ToString() !="" && showAdjNotes) {
 					dataRow["description"]+="\r\n"+rawAdj.Rows[i]["AdjNote"].ToString();
 				}
-				long patNumCur=PIn.Long(rawAdj.Rows[i]["PatNum"].ToString());
+				long patNumCur=SIn.Long(rawAdj.Rows[i]["PatNum"].ToString());
 				dataRow["patient"]=GetPatName(patNumCur,family,(doIncludePatLName));
 				dataRow["PatNum"]=patNumCur;
 				dataRow["PayNum"]=0;
@@ -1286,7 +1286,7 @@ namespace OpenDentBusiness {
 				dataRow["ProcNumLab"]="";
 				dataRow["procsOnObj"]=rawAdj.Rows[i]["ProcNum"].ToString();
 				dataRow["adjustsOnObj"]="";
-				dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawAdj.Rows[i]["ProvNum"].ToString()));
+				dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawAdj.Rows[i]["ProvNum"].ToString()));
 				dataRow["signed"]="";
 				dataRow["StatementNum"]=0;
 				dataRow["ToothNum"]="";
@@ -1362,7 +1362,7 @@ namespace OpenDentBusiness {
 					//paysplit must be to someone outside this family (query will include payments split both inside/outside the family.  Duplicates removed later).
 					+"INNER JOIN paysplit ON payment.PayNum=paysplit.PayNum AND paysplit.PatNum NOT IN ("+familyPatNums+") "
 					//payment must be made by this patient.
-					+$"WHERE payment.PatNum={POut.Long(pat.PatNum)} "
+					+$"WHERE payment.PatNum={SOut.Long(pat.PatNum)} "
 					//paysplits to another family but on a payplan for the current family already included in first half of UNION
 					+((string.IsNullOrWhiteSpace(familyPayPlanNums)) ? "" : "AND paysplit.PayPlanNum NOT IN ("+familyPayPlanNums+") ")
 					//A simple grouping because we only need to indicate this patient made a payment to someone outside the family.  Finer level of detail 
@@ -1386,11 +1386,11 @@ namespace OpenDentBusiness {
 					break;
 				}
 				//these are the GROUP BY columns from the rawPay query above, used to select the ProcNums from all of the paysplits using the same grouping
-				DateTime rpDatePay=PIn.Date(rowRp["DatePay"].ToString());
-				long rpPayPlanNum=PIn.Long(rowRp["PayPlanNum"].ToString());
-				long rpPayNum=PIn.Long(rowRp["PayNum"].ToString());
-				long rpPatNum=PIn.Long(rowRp["PatNum"].ToString());
-				long rpClinicNum=PIn.Long(rowRp["ClinicNum"].ToString());
+				DateTime rpDatePay=SIn.Date(rowRp["DatePay"].ToString());
+				long rpPayPlanNum=SIn.Long(rowRp["PayPlanNum"].ToString());
+				long rpPayNum=SIn.Long(rowRp["PayNum"].ToString());
+				long rpPatNum=SIn.Long(rowRp["PatNum"].ToString());
+				long rpClinicNum=SIn.Long(rowRp["ClinicNum"].ToString());
 				//if the GROUP BY for the query used to fill table rawPay changes, this Linq needs to be changed to match exactly
 				List<PaySplit> listPaySplitMatches=listPaySplits.FindAll(x => x.DatePay==rpDatePay
 					&& x.PayPlanNum==rpPayPlanNum
@@ -1417,14 +1417,14 @@ namespace OpenDentBusiness {
 			List<long> listSuperFamPatNums=(rawPay.Rows.Count>0) ? Patients.GetAllFamilyPatNumsForSuperFam(new List<long>{pat.SuperFamily}) : new List<long>();
 			//if isInvoice or if it's a LimitedStatement and no paysplits or procs were selected there will be 0 rows and this loop will be skipped
 			for(int i=0;i<rawPay.Rows.Count;i++) {
-				long rowPatNum=PIn.Long(rawPay.Rows[i]["PatNum"].ToString());
+				long rowPatNum=SIn.Long(rawPay.Rows[i]["PatNum"].ToString());
 				//Skip payments where the patnum (this is either paysplit.PatNum or payment.PatNum) is not in the current family OR superfamily.
 				if(!family.ListPats.Select(x => x.PatNum).Concat(listSuperFamPatNums).Contains(rowPatNum)) {
 					continue;
 				}
 				//There are 'fake' payment rows created for the scenario where a payment was made to a patient in a different family / super family.
-				bool isOutOfFamily=PIn.Bool(rawPay.Rows[i]["isOutOfFamily_"].ToString());
-				long payNum=PIn.Long(rawPay.Rows[i]["PayNum"].ToString());
+				bool isOutOfFamily=SIn.Bool(rawPay.Rows[i]["isOutOfFamily_"].ToString());
+				long payNum=SIn.Long(rawPay.Rows[i]["PayNum"].ToString());
 				if(isOutOfFamily && listPaySplits.Select(x => x.PayNum).Contains(payNum)) {
 					//The 'PaidToOtherFamily' query may create extra payment rows if the payment was split to someone inside and someone outside the 
 					//family.  Remove these duplicate rows here.
@@ -1443,7 +1443,7 @@ namespace OpenDentBusiness {
 					continue;
 				}
 				double hiddenPaySplitAmountTotal=listPaySplits.Where(x => 
-					listHiddenUnearnedDefNums.Contains(x.UnearnedType) && x.PayNum==PIn.Long(rawPay.Rows[i]["PayNum"].ToString()
+					listHiddenUnearnedDefNums.Contains(x.UnearnedType) && x.PayNum==SIn.Long(rawPay.Rows[i]["PayNum"].ToString()
 				)).Sum(x => x.SplitAmt);
 				dataRow=dataTableAccount.NewRow();
 				dataRow["AbbrDesc"]="";
@@ -1454,26 +1454,26 @@ namespace OpenDentBusiness {
 				dataRow["charges"]="";
 				dataRow["ClaimNum"]=0;
 				dataRow["ClaimPaymentNum"]="0";
-				long clinicNumCur=PIn.Long(rawPay.Rows[i]["ClinicNum"].ToString());
+				long clinicNumCur=SIn.Long(rawPay.Rows[i]["ClinicNum"].ToString());
 				dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 				dataRow["ClinicNum"]=clinicNumCur;
 				dataRow["colorText"]=listDefs[3].ItemColor.ToArgb().ToString();
-				amt=PIn.Decimal(rawPay.Rows[i]["splitAmt_"].ToString());
+				amt=SIn.Decimal(rawPay.Rows[i]["splitAmt_"].ToString());
 				dataRow["creditsDouble"]=amt-(decimal)hiddenPaySplitAmountTotal;
 				dataRow["credits"]=((decimal)dataRow["creditsDouble"]).ToString("n");
-				dateT=PIn.DateTime(rawPay.Rows[i]["DatePay"].ToString());//was ProcDate in earlier versions
+				dateT=SIn.DateTime(rawPay.Rows[i]["DatePay"].ToString());//was ProcDate in earlier versions
 				dataRow["DateTime"]=dateT;
 				dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-				dataRow["dateTimeSort"]=PIn.DateTime(rawPay.Rows[i]["SecDateTEdit"].ToString());//MAX SecDateTEdit will be used for sorting if RandomKeys is enabled
-				dataRow["description"]=Defs.GetName(DefCat.PaymentTypes,PIn.Long(rawPay.Rows[i]["PayType"].ToString()));
+				dataRow["dateTimeSort"]=SIn.DateTime(rawPay.Rows[i]["SecDateTEdit"].ToString());//MAX SecDateTEdit will be used for sorting if RandomKeys is enabled
+				dataRow["description"]=Defs.GetName(DefCat.PaymentTypes,SIn.Long(rawPay.Rows[i]["PayType"].ToString()));
 				if(rawPay.Rows[i]["CheckNum"].ToString()!=""){
 					dataRow["description"]+=" #"+rawPay.Rows[i]["CheckNum"].ToString();
 				}
-				payamt=PIn.Decimal(rawPay.Rows[i]["PayAmt"].ToString());
+				payamt=SIn.Decimal(rawPay.Rows[i]["PayAmt"].ToString());
 				dataRow["description"]+=" "+payamt.ToString("c");
 				if(rawPay.Rows[i]["PatNum"].ToString() != rawPay.Rows[i]["patNumPayment_"].ToString()){
 					dataRow["description"]+=" ("+Lans.g("ContrAccount","Paid by ")
-						+family.GetNameInFamFirstOrPreferredOrLast(PIn.Long(rawPay.Rows[i]["patNumPayment_"].ToString()))+")";
+						+family.GetNameInFamFirstOrPreferredOrLast(SIn.Long(rawPay.Rows[i]["patNumPayment_"].ToString()))+")";
 				}
 				if(payamt!=amt) {
 					//Both Payment query 1 andPayment query 3 have the same 'where' statements.
@@ -1488,7 +1488,7 @@ namespace OpenDentBusiness {
 					}
 				}
 				if(rawPay.Rows[i]["UnearnedType"].ToString()!="0") {
-					dataRow["description"]+=" - "+Defs.GetName(DefCat.PaySplitUnearnedType,PIn.Long(rawPay.Rows[i]["UnearnedType"].ToString()));
+					dataRow["description"]+=" - "+Defs.GetName(DefCat.PaySplitUnearnedType,SIn.Long(rawPay.Rows[i]["UnearnedType"].ToString()));
 				}
 				if(rawPay.Rows[i]["PayType"].ToString()=="0") {//if a txfr, clear the description
 					dataRow["description"]="";
@@ -1504,7 +1504,7 @@ namespace OpenDentBusiness {
 					dataRow["description"]+="\r\n"+Lans.g("AccountModule","Payment Number: ")+rawPay.Rows[i]["PayNum"].ToString();
 				}
 				dataRow["description"]+=strDescript;
-				long patNumCur=PIn.Long(rawPay.Rows[i]["PatNum"].ToString());
+				long patNumCur=SIn.Long(rawPay.Rows[i]["PatNum"].ToString());
 				//The following code is very old and would never do anything, commenting out per Allen and Nathan
 				//who decided we will wait for someone to complain about this before deciding it is a bug.
 				//string patname=fam.GetNameInFamFirst(patNumCur);
@@ -1514,7 +1514,7 @@ namespace OpenDentBusiness {
 				//row["patient"]=patname;
 				dataRow["patient"]=family.GetNameInFamFirst(patNumCur);
 				dataRow["PatNum"]=patNumCur;
-				long payNumCur=PIn.Long(rawPay.Rows[i]["PayNum"].ToString());
+				long payNumCur=SIn.Long(rawPay.Rows[i]["PayNum"].ToString());
 				dataRow["paymentsOnObj"]=string.Join(",",payNumCur);
 				dataRow["PayNum"]=payNumCur;
 				dataRow["PayPlanNum"]=0;
@@ -1530,7 +1530,7 @@ namespace OpenDentBusiness {
 				dataRow["procsOnObj"]=rawPay.Rows[i]["ProcNums_"];
 				dataRow["adjustsOnObj"]=rawPay.Rows[i]["AdjNums_"];
 				//Odd that this shows only one provider on the payment when there could be multiple, but there is no easy way to fix this currently.
-				dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawPay.Rows[i]["ProvNum"].ToString()));
+				dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawPay.Rows[i]["ProvNum"].ToString()));
 				dataRow["signed"]="";
 				dataRow["StatementNum"]=0;
 				dataRow["ToothNum"]="";
@@ -1587,7 +1587,7 @@ namespace OpenDentBusiness {
 					decimal procAmt_=0;
 					foreach(long key in dictProcNumRows.Keys) {
 						DataRow procRow=dictProcNumRows[key].First();
-						procAmt_+=PIn.Decimal(procRow["procAmt_"].ToString());
+						procAmt_+=SIn.Decimal(procRow["procAmt_"].ToString());
 					}
 					rcRow["procAmt_"]=procAmt_;
 					//Take every unique ProcNum and get every adjustment associated.
@@ -1610,19 +1610,19 @@ namespace OpenDentBusiness {
 				dataRow["balanceDouble"]=0;//fill this later
 				dataRow["chargesDouble"]=0;
 				dataRow["charges"]="";
-				dataRow["ClaimNum"]=PIn.Long(rawClaim.Rows[i]["ClaimNum"].ToString());
+				dataRow["ClaimNum"]=SIn.Long(rawClaim.Rows[i]["ClaimNum"].ToString());
 				dataRow["ClaimPaymentNum"]="0";
-				long clinicNumCur=PIn.Long(rawClaim.Rows[i]["ClinicNum"].ToString());
+				long clinicNumCur=SIn.Long(rawClaim.Rows[i]["ClinicNum"].ToString());
 				dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 				dataRow["ClinicNum"]=clinicNumCur;
 				dataRow["colorText"]=listDefs[4].ItemColor.ToArgb().ToString();
 					//might be changed lower down based on claim status
 				dataRow["creditsDouble"]=0;
 				dataRow["credits"]="";
-				dateT=PIn.DateTime(rawClaim.Rows[i]["DateService"].ToString());
+				dateT=SIn.DateTime(rawClaim.Rows[i]["DateService"].ToString());
 				dataRow["DateTime"]=dateT;
 				dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-				dataRow["dateTimeSort"]=PIn.DateTime(rawClaim.Rows[i]["SecDateTEdit"].ToString());//MAX SecDateTEdit will be used for sorting if RandomKeys is enabled
+				dataRow["dateTimeSort"]=SIn.DateTime(rawClaim.Rows[i]["SecDateTEdit"].ToString());//MAX SecDateTEdit will be used for sorting if RandomKeys is enabled
 				if(rawClaim.Rows[i]["ClaimType"].ToString()=="P"){
 					dataRow["description"]=Lans.g("ContrAccount","Pri")+" ";
 				}
@@ -1638,10 +1638,10 @@ namespace OpenDentBusiness {
 				else if(rawClaim.Rows[i]["ClaimType"].ToString()=="Cap"){
 					dataRow["description"]=Lans.g("ContrAccount","Cap")+" ";
 				}
-				amt=PIn.Decimal(rawClaim.Rows[i]["ClaimFee"].ToString());
+				amt=SIn.Decimal(rawClaim.Rows[i]["ClaimFee"].ToString());
 				dataRow["description"]+=Lans.g("ContrAccount","Claim")+" "+amt.ToString("c")+" "
 					+rawClaim.Rows[i]["CarrierName"].ToString();
-				daterec=PIn.DateTime(rawClaim.Rows[i]["DateReceived"].ToString());
+				daterec=SIn.DateTime(rawClaim.Rows[i]["DateReceived"].ToString());
 				claimStatus=rawClaim.Rows[i]["ClaimStatus"].ToString();
 				if(claimStatus=="R"){
 					dataRow["description"]+="\r\n"+Lans.g("ContrAccount","Received")+" ";
@@ -1671,16 +1671,16 @@ namespace OpenDentBusiness {
 				decimal claimLabFeeTotalAmt=0;
 				//For Canada, add lab fee amounts into total claim amount.
 				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {
-					string[] arrayProcNumsForClaim=PIn.ByteArray(rawClaim.Rows[i]["ProcNums_"]).Split(',').Distinct().ToArray();
+					string[] arrayProcNumsForClaim=SIn.ByteArray(rawClaim.Rows[i]["ProcNums_"]).Split(',').Distinct().ToArray();
 					for(int j=0;j<arrayProcNumsForClaim.Length;j++) {
-						long procNum=PIn.Long(arrayProcNumsForClaim[j]);
+						long procNum=SIn.Long(arrayProcNumsForClaim[j]);
 						if(procNum==0) {//ProcNum will be 0 for Total Payments on claims.
 							continue;
 						}
 						for(int k=0;k<rawProc.Rows.Count;k++) {//For each procedure attached to the claim, add the lab fees into the total amount. The lab fees show in the account because they are complete.
-							long procNumLab=PIn.Long(rawProc.Rows[k]["ProcNumLab"].ToString());
+							long procNumLab=SIn.Long(rawProc.Rows[k]["ProcNumLab"].ToString());
 							if(procNumLab==procNum) {
-								claimLabFeeTotalAmt+=PIn.Decimal(rawProc.Rows[k]["ProcFee"].ToString());
+								claimLabFeeTotalAmt+=SIn.Decimal(rawProc.Rows[k]["ProcFee"].ToString());
 							}
 						}
 					}
@@ -1688,12 +1688,12 @@ namespace OpenDentBusiness {
 				if(claimLabFeeTotalAmt>0) {
 					dataRow["description"]+="\r\n"+Lans.g("ContrAccount","Lab Fees")+" "+claimLabFeeTotalAmt.ToString("c");
 				}
-				procAmt=PIn.Decimal(rawClaim.Rows[i]["procAmt_"].ToString());
-				adjAmt=PIn.Decimal(rawClaim.Rows[i]["adjAmt_"].ToString());
-				insest=PIn.Decimal(rawClaim.Rows[i]["InsPayEst"].ToString());
-				amtpaid=PIn.Decimal(rawClaim.Rows[i]["InsPayAmt"].ToString());
-				writeoff=PIn.Decimal(rawClaim.Rows[i]["WriteOff"].ToString());
-				deductible=PIn.Decimal(rawClaim.Rows[i]["DedApplied"].ToString());
+				procAmt=SIn.Decimal(rawClaim.Rows[i]["procAmt_"].ToString());
+				adjAmt=SIn.Decimal(rawClaim.Rows[i]["adjAmt_"].ToString());
+				insest=SIn.Decimal(rawClaim.Rows[i]["InsPayEst"].ToString());
+				amtpaid=SIn.Decimal(rawClaim.Rows[i]["InsPayAmt"].ToString());
+				writeoff=SIn.Decimal(rawClaim.Rows[i]["WriteOff"].ToString());
+				deductible=SIn.Decimal(rawClaim.Rows[i]["DedApplied"].ToString());
 				if(!PrefC.GetBool(PrefName.BalancesDontSubtractIns) 
 					&& (claimStatus=="W" || claimStatus=="S")
 					&& rawClaim.Rows[i]["ClaimType"].ToString()!="Cap")
@@ -1737,7 +1737,7 @@ namespace OpenDentBusiness {
 					dataRow["description"]+="\r\n"+rawClaim.Rows[i]["ReasonUnderPaid"].ToString();
 				}
 				//row["extraDetail"]="";
-				long patNumCur=PIn.Long(rawClaim.Rows[i]["PatNum"].ToString());
+				long patNumCur=SIn.Long(rawClaim.Rows[i]["PatNum"].ToString());
 				dataRow["patient"]=GetPatName(patNumCur,family,false);
 				dataRow["PatNum"]=patNumCur;
 				dataRow["PayNum"]=0;
@@ -1748,7 +1748,7 @@ namespace OpenDentBusiness {
 				dataRow["ProcNumLab"]="";
 				dataRow["procsOnObj"]=rawClaim.Rows[i]["ProcNums_"];
 				dataRow["adjustsOnObj"]="";
-				dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawClaim.Rows[i]["ProvTreat"].ToString()));
+				dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawClaim.Rows[i]["ProvTreat"].ToString()));
 				dataRow["signed"]="";
 				dataRow["StatementNum"]=0;
 				dataRow["ToothNum"]="";
@@ -1765,11 +1765,11 @@ namespace OpenDentBusiness {
 				+"WHERE (PatNum IN ("+string.Join(",",listPatNums)+") ";
 			//Always include all statements from the super family if a super family is set.  They will be filtered out later.
 			if(family.ListPats[0].SuperFamily > 0) {
-				command+="OR SuperFamily ="+POut.Long(family.ListPats[0].SuperFamily);//Get all statements for the superfamily as well.
+				command+="OR SuperFamily ="+SOut.Long(family.ListPats[0].SuperFamily);//Get all statements for the superfamily as well.
 			}
 			command+=") ";
 			if(statementNum>0) {
-				command+="AND StatementNum != "+POut.Long(statementNum);
+				command+="AND StatementNum != "+SOut.Long(statementNum);
 			}
 			DataTable rawState=new DataTable();
 			if(!isInvoice && statement.StatementType!=StmtType.LimitedStatement) {
@@ -1779,8 +1779,8 @@ namespace OpenDentBusiness {
 			//if we are getting a DataSet for a super statement and this guar in the super family is not the super head, skip super statement rows
 			bool isSuperStmtSkipped=(isForStatementPrinting && statement.SuperFamily>0 && statement.SuperFamily!=pat.PatNum);
 			foreach(DataRow rowCur in rawState.Rows) {//rawState will have 0 rows if isInvoice or StatementType is LimitedStatement
-				long patNumCur=PIn.Long(rowCur["PatNum"].ToString());
-				long superFamNum=PIn.Long(rowCur["SuperFamily"].ToString());
+				long patNumCur=SIn.Long(rowCur["PatNum"].ToString());
+				long superFamNum=SIn.Long(rowCur["SuperFamily"].ToString());
 				if(isSuperStmtSkipped && superFamNum>0 && superFamNum!=pat.PatNum) {//skip super stmt rows for all members of super fam except for the super head
 					continue;
 				}
@@ -1798,17 +1798,17 @@ namespace OpenDentBusiness {
 				dataRow["colorText"]=listDefs[5].ItemColor.ToArgb().ToString();
 				dataRow["creditsDouble"]=0;
 				dataRow["credits"]="";
-				dateT=PIn.DateTime(rowCur["DateSent"].ToString());
+				dateT=SIn.DateTime(rowCur["DateSent"].ToString());
 				dataRow["DateTime"]=dateT;
 				dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-				dataRow["dateTimeSort"]=PIn.DateTime(rowCur["DateTStamp"].ToString());//DateTStamp will be used for sorting if RandomKeys is enabled
+				dataRow["dateTimeSort"]=SIn.DateTime(rowCur["DateTStamp"].ToString());//DateTStamp will be used for sorting if RandomKeys is enabled
 				if(rowCur["IsInvoice"].ToString()=="0") {//not an invoice
 					dataRow["description"]+=Lans.g("ContrAccount","Statement");
 				}
 				else {//Must be invoice
 					dataRow["description"]+=Lans.g("ContrAccount","Invoice")+" #"+rowCur["StatementNum"].ToString();
 				}
-				_mode=(StatementMode)PIn.Long(rowCur["Mode_"].ToString());
+				_mode=(StatementMode)SIn.Long(rowCur["Mode_"].ToString());
 				dataRow["description"]+="-"+Lans.g("enumStatementMode",_mode.ToString());
 				if(rowCur["IsSent"].ToString()=="0"){
 					dataRow["description"]+=" "+Lans.g("ContrAccount","(unsent)");
@@ -1825,7 +1825,7 @@ namespace OpenDentBusiness {
 				dataRow["adjustsOnObj"]="";
 				dataRow["prov"]="";
 				dataRow["signed"]="";
-				dataRow["StatementNum"]=PIn.Long(rowCur["StatementNum"].ToString());
+				dataRow["StatementNum"]=SIn.Long(rowCur["StatementNum"].ToString());
 				dataRow["ToothNum"]="";
 				dataRow["ToothRange"]="";
 				dataRow["tth"]="";
@@ -1846,7 +1846,7 @@ namespace OpenDentBusiness {
 				+"COALESCE(MAX(payplancharge.ClinicNum),0) ClinicNum,payplan.IsDynamic,payplan.MobileAppDeviceNum "
 				+"FROM payplan "
 				+"LEFT JOIN payplancharge ON payplancharge.PayPlanNum=payplan.PayPlanNum "
-					+"AND payplancharge.ChargeType="+POut.Int((int)PayPlanChargeType.Debit)+" "
+					+"AND payplancharge.ChargeType="+SOut.Int((int)PayPlanChargeType.Debit)+" "
 				+"LEFT JOIN insplan ON insplan.PlanNum=payplan.PlanNum "
 				+"LEFT JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum "
 				+"WHERE payplan.PatNum IN ("+familyPatNums+") OR payplan.Guarantor IN ("+familyPatNums+") "
@@ -1859,7 +1859,7 @@ namespace OpenDentBusiness {
 				//0 rows if isInvoice or statement type is LimitedStatement.  In spite of this, the payment plans breakdown will still show at the top of invoices.
 				for(int i=0;i<rawPayPlan.Rows.Count;i++) {
 					//Version 1. If the payment plan's patnum isn't in the current family, then skip. We only want it to show as a credit for the patient of the payment plan.
-					if(!family.ListPats.Select(x => x.PatNum).Contains(PIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString()))){
+					if(!family.ListPats.Select(x => x.PatNum).Contains(SIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString()))){
 						continue;
 					}
 					//For version 4, patient payment plans do not show in Ledger, but insurance payment plans always show for all versions.
@@ -1875,17 +1875,17 @@ namespace OpenDentBusiness {
 					dataRow["charges"]="";
 					dataRow["ClaimNum"]=0;
 					dataRow["ClaimPaymentNum"]="0";
-					long clinicNumCur=PIn.Long(rawPayPlan.Rows[i]["ClinicNum"].ToString());
+					long clinicNumCur=SIn.Long(rawPayPlan.Rows[i]["ClinicNum"].ToString());
 					dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 					dataRow["ClinicNum"]=clinicNumCur;
 					dataRow["colorText"]=listDefs[6].ItemColor.ToArgb().ToString();
-					amt=PIn.Decimal(rawPayPlan.Rows[i]["CompletedAmt"].ToString());
+					amt=SIn.Decimal(rawPayPlan.Rows[i]["CompletedAmt"].ToString());
 					dataRow["creditsDouble"]=amt;
 					dataRow["credits"]=((decimal)dataRow["creditsDouble"]).ToString("n");
-					dateT=PIn.DateTime(rawPayPlan.Rows[i]["PayPlanDate"].ToString());
+					dateT=SIn.DateTime(rawPayPlan.Rows[i]["PayPlanDate"].ToString());
 					dataRow["DateTime"]=dateT;
 					dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-					dataRow["dateTimeSort"]=PIn.DateTime(rawPayPlan.Rows[i]["SecDateTEntry"].ToString());//MAX SecDateTEntry will be used for sorting if RandomKeys is enabled
+					dataRow["dateTimeSort"]=SIn.DateTime(rawPayPlan.Rows[i]["SecDateTEntry"].ToString());//MAX SecDateTEntry will be used for sorting if RandomKeys is enabled
 					if(rawPayPlan.Rows[i]["PlanNum"].ToString()=="0"){
 						dataRow["description"]=Lans.g("ContrAccount","Payment Plan");
 					}
@@ -1894,11 +1894,11 @@ namespace OpenDentBusiness {
 							+rawPayPlan.Rows[i]["CarrierName"].ToString();
 					}
 					//row["extraDetail"]="";
-					long patNumCur=PIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString());
+					long patNumCur=SIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString());
 					dataRow["patient"]=GetPatName(patNumCur,family,false);
 					dataRow["PatNum"]=patNumCur;
 					dataRow["PayNum"]=0;
-					dataRow["PayPlanNum"]=PIn.Long(rawPayPlan.Rows[i]["PayPlanNum"].ToString());
+					dataRow["PayPlanNum"]=SIn.Long(rawPayPlan.Rows[i]["PayPlanNum"].ToString());
 					dataRow["PayPlanChargeNum"]="0";
 					dataRow["ProcCode"]=Lans.g("AccountModule","PayPln");
 					dataRow["ProcNum"]="0";
@@ -1923,7 +1923,7 @@ namespace OpenDentBusiness {
 				if(statement.SuperFamily!=0) {
 					List<Patient> listSuperFamilyMembers=Patients.GetBySuperFamily(statement.SuperFamily);
 					if(statement.IsInvoice) {
-						patnums=String.Join(",",listSuperFamilyMembers.Select(x => POut.Long(x.PatNum)));
+						patnums=String.Join(",",listSuperFamilyMembers.Select(x => SOut.Long(x.PatNum)));
 					}	
 					listFamilyMembers=listSuperFamilyMembers;	
 				}				
@@ -1938,7 +1938,7 @@ namespace OpenDentBusiness {
 					+"WHERE (payplancharge.Guarantor IN ("+patnums+") OR payplancharge.PatNum IN ("+patnums+")) ";
 				if(isInvoice) {
 					command+="AND payplancharge.ChargeDate<="+DbHelper.DateAddMonth(DbHelper.Curdate(),"3")+" "
-						+"AND payplancharge.StatementNum="+POut.Long(statementNum)+" ";
+						+"AND payplancharge.StatementNum="+SOut.Long(statementNum)+" ";
 				}
 				else {
 					command+="AND payplancharge.ChargeDate<="+DbHelper.Curdate()+" ";
@@ -1952,12 +1952,12 @@ namespace OpenDentBusiness {
 				}
 				//0 rows if isInvoice or statement type is LimitedStatement.  In spite of this, the payment plans breakdown will still show at the top of invoices.
 				for(int i=0;i<rawPayPlan2.Rows.Count;i++) {
-					PayPlanChargeType chargetype=PIn.Enum<PayPlanChargeType>(rawPayPlan2.Rows[i]["ChargeType"].ToString());
+					PayPlanChargeType chargetype=SIn.Enum<PayPlanChargeType>(rawPayPlan2.Rows[i]["ChargeType"].ToString());
 					if(rawPayPlan2.Rows[i]["PlanNum"].ToString()!="0" && chargetype==PayPlanChargeType.Debit) {
 						//debits attached to insurance payplans do not get shown in the account module.
 						continue;
 					}
-					long guarNumCur=PIn.Long(rawPayPlan2.Rows[i]["Guarantor"].ToString());
+					long guarNumCur=SIn.Long(rawPayPlan2.Rows[i]["Guarantor"].ToString());
 					if(chargetype == PayPlanChargeType.Debit
 						&& !listFamilyMembers.Select(x => x.PatNum).Contains(guarNumCur)) 
 					{
@@ -1971,12 +1971,12 @@ namespace OpenDentBusiness {
 					dataRow["balance"]="";//fill this later
 					dataRow["balanceDouble"]=0;//fill this later
 					dataRow["chargesDouble"]=0;
-					amt=PIn.Decimal(rawPayPlan2.Rows[i]["Principal"].ToString());
+					amt=SIn.Decimal(rawPayPlan2.Rows[i]["Principal"].ToString());
 					if(chargetype==PayPlanChargeType.Debit) {//show principle amount as a charge if it's a ChargeDue chargeType.
 						if(statement.StatementType==StmtType.LimitedStatement) {//Not interested in debits for limited statements.
 							continue;
 						}
-						amt+=PIn.Decimal(rawPayPlan2.Rows[i]["Interest"].ToString());
+						amt+=SIn.Decimal(rawPayPlan2.Rows[i]["Interest"].ToString());
 						dataRow["chargesDouble"]=amt;
 						dataRow["charges"]=amt.ToString("n");
 						dataRow["creditsDouble"]=0;
@@ -1993,14 +1993,14 @@ namespace OpenDentBusiness {
 					}
 					dataRow["ClaimNum"]=0;
 					dataRow["ClaimPaymentNum"]="0";
-					long clinicNumCur=PIn.Long(rawPayPlan2.Rows[i]["ClinicNum"].ToString());
+					long clinicNumCur=SIn.Long(rawPayPlan2.Rows[i]["ClinicNum"].ToString());
 					dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 					dataRow["ClinicNum"]=clinicNumCur;
 					dataRow["colorText"]=listDefs[6].ItemColor.ToArgb().ToString();
-					dateT=PIn.DateTime(rawPayPlan2.Rows[i]["ChargeDate"].ToString());
+					dateT=SIn.DateTime(rawPayPlan2.Rows[i]["ChargeDate"].ToString());
 					dataRow["DateTime"]=dateT;
 					dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-					dataRow["dateTimeSort"]=PIn.DateTime(rawPayPlan2.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
+					dataRow["dateTimeSort"]=SIn.DateTime(rawPayPlan2.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
 					if(rawPayPlan2.Rows[i]["PlanNum"].ToString()=="0") { //not an insurance payplan
 						dataRow["description"]=rawPayPlan2.Rows[i]["Note"].ToString();
 					}
@@ -2009,7 +2009,7 @@ namespace OpenDentBusiness {
 							+rawPayPlan2.Rows[i]["CarrierName"].ToString();
 					}
 					//row["extraDetail"]="";
-					long patNumCur=PIn.Long(rawPayPlan2.Rows[i]["PatNum"].ToString());
+					long patNumCur=SIn.Long(rawPayPlan2.Rows[i]["PatNum"].ToString());
 					dataRow["patient"]=GetPatName(patNumCur,family,(doIncludePatLName));
 					if(rawPayPlan2.Rows[i]["PlanNum"].ToString()=="0") { //not an insurance payplan
 						//The guarantor on the payplancharge is always set to the account it should appear in for patient payment plans.
@@ -2020,14 +2020,14 @@ namespace OpenDentBusiness {
 						dataRow["PatNum"]=patNumCur;
 					}
 					dataRow["PayNum"]=0;
-					dataRow["PayPlanNum"]=PIn.Long(rawPayPlan2.Rows[i]["PayPlanNum"].ToString());
+					dataRow["PayPlanNum"]=SIn.Long(rawPayPlan2.Rows[i]["PayPlanNum"].ToString());
 					dataRow["PayPlanChargeNum"]=rawPayPlan2.Rows[i]["PayPlanChargeNum"].ToString();
 					dataRow["ProcCode"]=Lans.g("AccountModule","PayPln:")+" "+chargetype.GetDescription();
 					dataRow["ProcNum"]="0";
 					dataRow["ProcNumLab"]="";
 					dataRow["procsOnObj"]=rawPayPlan2.Rows[i]["ProcNum"].ToString();
 					dataRow["adjustsOnObj"]="";
-					dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawPayPlan2.Rows[i]["ProvNum"].ToString()));
+					dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawPayPlan2.Rows[i]["ProvNum"].ToString()));
 					dataRow["signed"]="";
 					dataRow["StatementNum"]=0;
 					dataRow["ToothNum"]="";
@@ -2047,7 +2047,7 @@ namespace OpenDentBusiness {
 					+"LEFT JOIN insplan ON insplan.PlanNum = payplan.PlanNum "
 					+"LEFT JOIN carrier ON carrier.CarrierNum = insplan.CarrierNum "
 					+"WHERE (payplancharge.Guarantor IN ("+familyPatNums+") OR payplancharge.PatNum IN ("+familyPatNums+")) "
-					+"AND payplancharge.ChargeType = "+POut.Int((int)PayPlanChargeType.Credit)+" "
+					+"AND payplancharge.ChargeType = "+SOut.Int((int)PayPlanChargeType.Credit)+" "
 					+"AND payplancharge.ChargeDate<="+DbHelper.Curdate();
 				DataTable rawPayPlan3 = new DataTable();
 				if(!isInvoice && statement.StatementType!=StmtType.LimitedStatement) {
@@ -2061,21 +2061,21 @@ namespace OpenDentBusiness {
 					dataRow["balance"]="";//fill this later
 					dataRow["balanceDouble"]=0;//fill this later
 					dataRow["chargesDouble"]=0;
-					amt=PIn.Decimal(rawPayPlan3.Rows[i]["Principal"].ToString());
+					amt=SIn.Decimal(rawPayPlan3.Rows[i]["Principal"].ToString());
 					dataRow["chargesDouble"]=0;
 					dataRow["charges"]="";
 					dataRow["creditsDouble"]=amt;
 					dataRow["credits"]=amt.ToString("n");
 					dataRow["ClaimNum"]=0;
 					dataRow["ClaimPaymentNum"]="0";
-					long clinicNumCur=PIn.Long(rawPayPlan3.Rows[i]["ClinicNum"].ToString());
+					long clinicNumCur=SIn.Long(rawPayPlan3.Rows[i]["ClinicNum"].ToString());
 					dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 					dataRow["ClinicNum"]=clinicNumCur;
 					dataRow["colorText"]=listDefs[6].ItemColor.ToArgb().ToString();
-					dateT=PIn.DateTime(rawPayPlan3.Rows[i]["ChargeDate"].ToString());
+					dateT=SIn.DateTime(rawPayPlan3.Rows[i]["ChargeDate"].ToString());
 					dataRow["DateTime"]=dateT;
 					dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-					dataRow["dateTimeSort"]=PIn.DateTime(rawPayPlan3.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
+					dataRow["dateTimeSort"]=SIn.DateTime(rawPayPlan3.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
 					if(rawPayPlan3.Rows[i]["PlanNum"].ToString()=="0") { //not an insurance payplan
 						dataRow["description"]=rawPayPlan3.Rows[i]["Note"].ToString();
 					}
@@ -2084,25 +2084,25 @@ namespace OpenDentBusiness {
 							+rawPayPlan3.Rows[i]["CarrierName"].ToString();
 					}
 					//row["extraDetail"]="";
-					long patNumCur=PIn.Long(rawPayPlan3.Rows[i]["PatNum"].ToString());
+					long patNumCur=SIn.Long(rawPayPlan3.Rows[i]["PatNum"].ToString());
 					dataRow["patient"]=GetPatName(patNumCur,family,(doIncludePatLName));
 					if(rawPayPlan3.Rows[i]["PlanNum"].ToString()=="0") { //not an insurance payplan
 						//The guarantor on the payplancharge is always set to the account it should appear in for patient payment plans.
-						dataRow["PatNum"]=PIn.Long(rawPayPlan3.Rows[i]["Guarantor"].ToString());
+						dataRow["PatNum"]=SIn.Long(rawPayPlan3.Rows[i]["Guarantor"].ToString());
 					}
 					else {//an insurance payplan
 						//For insurance payment plans, the charges should appear on the patient's account.
 						dataRow["PatNum"]=patNumCur;
 					}
 					dataRow["PayNum"]=0;
-					dataRow["PayPlanNum"]=PIn.Long(rawPayPlan3.Rows[i]["PayPlanNum"].ToString());
+					dataRow["PayPlanNum"]=SIn.Long(rawPayPlan3.Rows[i]["PayPlanNum"].ToString());
 					dataRow["PayPlanChargeNum"]=rawPayPlan3.Rows[i]["PayPlanChargeNum"].ToString();
-					dataRow["ProcCode"]=Lans.g("AccountModule","PayPln:")+" "+PIn.Enum<PayPlanChargeType>(rawPayPlan3.Rows[i]["ChargeType"].ToString()).GetDescription();
+					dataRow["ProcCode"]=Lans.g("AccountModule","PayPln:")+" "+SIn.Enum<PayPlanChargeType>(rawPayPlan3.Rows[i]["ChargeType"].ToString()).GetDescription();
 					dataRow["ProcNum"]="0";
 					dataRow["ProcNumLab"]="";
 					dataRow["procsOnObj"]=rawPayPlan3.Rows[i]["ProcNum"].ToString();
 					dataRow["adjustsOnObj"]="";
-					dataRow["prov"]=Providers.GetAbbr(PIn.Long(rawPayPlan3.Rows[i]["ProvNum"].ToString()));
+					dataRow["prov"]=Providers.GetAbbr(SIn.Long(rawPayPlan3.Rows[i]["ProvNum"].ToString()));
 					dataRow["signed"]="";
 					dataRow["StatementNum"]=0;
 					dataRow["ToothNum"]="";
@@ -2125,18 +2125,18 @@ namespace OpenDentBusiness {
 				}
 				for(int i = 0;i < tablePayPlanLinks.Rows.Count;i++) {
 					//Don't show treatment planned procedure credits, no matter what.
-					if(PIn.Int(tablePayPlanLinks.Rows[i]["LinkType"].ToString())==(int)PayPlanLinkType.Procedure && PIn.Enum<ProcStat>(tablePayPlanLinks.Rows[i]["ProcStatus"].ToString())!=ProcStat.C) {
+					if(SIn.Int(tablePayPlanLinks.Rows[i]["LinkType"].ToString())==(int)PayPlanLinkType.Procedure && SIn.Enum<ProcStat>(tablePayPlanLinks.Rows[i]["ProcStatus"].ToString())!=ProcStat.C) {
 						continue;
 					}
 					dataRow=dataTableAccount.NewRow();
 					string num=tablePayPlanLinks.Rows[i]["Num"].ToString();
 					string adjNum="";
 					string procNum="";
-					amt=PIn.Decimal(tablePayPlanLinks.Rows[i]["AmountOverride"].ToString());
+					amt=SIn.Decimal(tablePayPlanLinks.Rows[i]["AmountOverride"].ToString());
 					if(amt==0) {
-						amt=PIn.Decimal(tablePayPlanLinks.Rows[i]["Fee"].ToString());
+						amt=SIn.Decimal(tablePayPlanLinks.Rows[i]["Fee"].ToString());
 					}
-					if(PIn.Int(tablePayPlanLinks.Rows[i]["LinkType"].ToString())==(int)PayPlanLinkType.Adjustment) {
+					if(SIn.Int(tablePayPlanLinks.Rows[i]["LinkType"].ToString())==(int)PayPlanLinkType.Adjustment) {
 						adjNum=num;
 					}
 					else {//Procedure Link
@@ -2144,7 +2144,7 @@ namespace OpenDentBusiness {
 						if(tablePayPlanLinks.Rows[i]["dynamicPayPlanTPOption"].ToString()==((int)DynamicPayPlanTPOptions.AwaitComplete).ToString() 
 							&& tablePayPlanLinks.Rows[i]["ProcStatus"].ToString()==((int)ProcStat.TP).ToString()) 
 						{
-							totPlannedFee+=PIn.Decimal(tablePayPlanLinks.Rows[i]["Fee"].ToString());
+							totPlannedFee+=SIn.Decimal(tablePayPlanLinks.Rows[i]["Fee"].ToString());
 							amt=0;
 						}
 					}
@@ -2158,31 +2158,31 @@ namespace OpenDentBusiness {
 					dataRow["credits"]=amt.ToString("n");
 					dataRow["ClaimNum"]=0;
 					dataRow["ClaimPaymentNum"]="0";
-					long clinicNumCur=PIn.Long(tablePayPlanLinks.Rows[i]["ClinicNum"].ToString());
+					long clinicNumCur=SIn.Long(tablePayPlanLinks.Rows[i]["ClinicNum"].ToString());
 					dataRow["clinic"]=Clinics.GetDesc(clinicNumCur);
 					dataRow["ClinicNum"]=clinicNumCur;
 					dataRow["colorText"]=listDefs[6].ItemColor.ToArgb().ToString();
-					dateT=PIn.DateTime(tablePayPlanLinks.Rows[i]["SecDateTEntry"].ToString());
+					dateT=SIn.DateTime(tablePayPlanLinks.Rows[i]["SecDateTEntry"].ToString());
 					if(PrefC.GetBool(PrefName.PayPlanItemDateShowProc)){
-						dateT=PIn.DateTime(tablePayPlanLinks.Rows[i]["ProdDate"].ToString());
+						dateT=SIn.DateTime(tablePayPlanLinks.Rows[i]["ProdDate"].ToString());
 					}
 					dataRow["DateTime"]=dateT.Date;
 					dataRow["date"]=dateT.ToString(Lans.GetShortDateTimeFormat());
-					dataRow["dateTimeSort"]=PIn.DateTime(tablePayPlanLinks.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
+					dataRow["dateTimeSort"]=SIn.DateTime(tablePayPlanLinks.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
 					dataRow["description"]="";
-					long patNumCur=PIn.Long(tablePayPlanLinks.Rows[i]["PatNum"].ToString());
+					long patNumCur=SIn.Long(tablePayPlanLinks.Rows[i]["PatNum"].ToString());
 					dataRow["patient"]=GetPatName(patNumCur,family,(doIncludePatLName));
 					//For insurance payment plans, the charges should appear on the patient's account.
 					dataRow["PatNum"]=patNumCur;
 					dataRow["PayNum"]=0;
-					dataRow["PayPlanNum"]=PIn.Long(tablePayPlanLinks.Rows[i]["PayPlanNum"].ToString());
+					dataRow["PayPlanNum"]=SIn.Long(tablePayPlanLinks.Rows[i]["PayPlanNum"].ToString());
 					dataRow["PayPlanChargeNum"]=0;//may need to make a new functional column here?
 					dataRow["ProcCode"]=Lans.g("AccountModule","PayPln:")+" "+PayPlanChargeType.Credit.GetDescription();
 					dataRow["ProcNum"]="0";
 					dataRow["ProcNumLab"]="";
 					dataRow["procsOnObj"]=procNum;
 					dataRow["adjustsOnObj"]=adjNum;
-					dataRow["prov"]=Providers.GetAbbr(PIn.Long(tablePayPlanLinks.Rows[i]["ProvNum"].ToString()));
+					dataRow["prov"]=Providers.GetAbbr(SIn.Long(tablePayPlanLinks.Rows[i]["ProvNum"].ToString()));
 					dataRow["signed"]="";
 					dataRow["StatementNum"]=0;
 					dataRow["ToothNum"]="";
@@ -2232,8 +2232,8 @@ namespace OpenDentBusiness {
 				if(!family.IsInFamily(patNum)) {//patNum is a pat from a different family (maybe not possible, but just to retain current behavior)
 					patGuarantor=Patients.GetFamily(patNum).ListPats[0];
 				}
-				listDataRows.RemoveAll(x => PIn.Long(x["SuperFamily"].ToString())!=0 && !patGuarantor.HasSuperBilling);
-				listDataRows.RemoveAll(x => PIn.Long(x["SuperFamily"].ToString())==0 && PIn.Long(x["PatNum"].ToString())!=patNum);
+				listDataRows.RemoveAll(x => SIn.Long(x["SuperFamily"].ToString())!=0 && !patGuarantor.HasSuperBilling);
+				listDataRows.RemoveAll(x => SIn.Long(x["SuperFamily"].ToString())==0 && SIn.Long(x["PatNum"].ToString())!=patNum);
 			}
 			else if(!intermingled) {//multiple patients not intermingled.  This is most common for an ordinary statement.  Never gets used with superstatements.
 				listDataRows.ForEach(x => dataTableAccount.Rows.Add(x));
@@ -2368,7 +2368,7 @@ namespace OpenDentBusiness {
 								procedurelog.ProcNum Num,payplanlink.LinkType,payplanlink.PayPlanLinkNum,procedurelog.ClinicNum,procedurelog.ProvNum,
 								procedurelog.ProcStatus,procedurelog.DiscountPlanAmt,procedurelog.Discount,procedurelog.ProcDate AS ProdDate
 					FROM payplanlink 
-					INNER JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Procedure)} 
+					INNER JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Procedure)} 
 					LEFT JOIN (
 							SELECT SUM(adjustment.AdjAmt) AdjAmt,adjustment.ProcNum,adjustment.PatNum,adjustment.ProvNum,adjustment.ClinicNum
 							FROM adjustment ";
@@ -2380,17 +2380,17 @@ namespace OpenDentBusiness {
 							AND procAdj.ClinicNum=procedurelog.ClinicNum
 					LEFT JOIN (
 							SELECT SUM(COALESCE((CASE WHEN claimproc.Status IN (
-									{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+									{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 								) THEN claimproc.InsPayAmt 
 								WHEN claimproc.InsEstTotalOverride!=-1 THEN claimproc.InsEstTotalOverride ELSE claimproc.InsPayEst END),0)*-1) InsPay
 							,SUM(COALESCE((CASE WHEN claimproc.Status IN (
-									{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+									{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 								)	THEN claimproc.WriteOff 
 								WHEN claimproc.WriteOffEstOverride!=-1 THEN claimproc.WriteOffEstOverride 
 								WHEN claimproc.WriteOffEst!=-1 THEN claimproc.WriteOffEst ELSE 0 END),0)*-1) WriteOff
 							,claimproc.ProcNum
 							FROM claimproc 
-							WHERE claimproc.Status!={POut.Int((int)ClaimProcStatus.Preauth)} ";
+							WHERE claimproc.Status!={SOut.Int((int)ClaimProcStatus.Preauth)} ";
 							command+=isAllPats?"":$"AND claimproc.PatNum IN ({familyPatNums}) ";
 							command+=$@"GROUP BY claimproc.ProcNum
 					)procClaimProc ON procClaimProc.ProcNum=procedurelog.ProcNum 
@@ -2406,7 +2406,7 @@ namespace OpenDentBusiness {
 							,payplanlink.PayPlanLinkNum,adjustment.ClinicNum,adjustment.ProvNum,'0','0','0',adjustment.AdjDate AS ProdDate
 							FROM payplanlink 
 							INNER JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey 
-								AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Adjustment)}
+								AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Adjustment)}
 							LEFT JOIN (
 								SELECT SUM(COALESCE(paysplit.SplitAmt,0))*-1 SplitAmt,paysplit.AdjNum
 								FROM paysplit
@@ -2438,8 +2438,8 @@ namespace OpenDentBusiness {
 			#region Get Data
 			//Get list of PayPlanNums for dynamic pay plans from table.
 			List<long> listDynamicPayPlanNums=rawPayPlan.Select()
-				.Where(x => PIn.Bool(x["IsDynamic"].ToString()))
-				.Select(x => PIn.Long(x["PayPlanNum"].ToString())).ToList();
+				.Where(x => SIn.Bool(x["IsDynamic"].ToString()))
+				.Select(x => SIn.Long(x["PayPlanNum"].ToString())).ToList();
 			//Get all dynamic pay plans.
 			List<PayPlan> listDynamicPayPlans=PayPlans.GetMany(listDynamicPayPlanNums.ToArray());
 			//Get all charges for dynamic pay plans.
@@ -2468,7 +2468,7 @@ namespace OpenDentBusiness {
 				PayPlanTerms terms=PayPlanEdit.GetPayPlanTerms(payPlanCur,listPayPlanLinks);
 				List<PayPlanCharge> listExpectedCharges=
 					PayPlanEdit.GetListExpectedCharges(listPayPlanChargesInDb,terms,fam,listPayPlanLinks,payPlanCur,false,listPaySplits:listPaySplits);
-				DataRow rowPayPlanCur=rawPayPlan.Select().First(x => PIn.Long(x["PayPlanNum"].ToString())==payPlanCur.PayPlanNum);
+				DataRow rowPayPlanCur=rawPayPlan.Select().First(x => SIn.Long(x["PayPlanNum"].ToString())==payPlanCur.PayPlanNum);
 				rowPayPlanCur["principal_"]=terms.PrincipalAmount;
 				rowPayPlanCur["interest_"]=(decimal)(listPayPlanChargesInDb.Sum(x => x.Interest)+listExpectedCharges.Sum(x => x.Interest));
 			}
@@ -2544,8 +2544,8 @@ namespace OpenDentBusiness {
 			decimal due;
 			decimal balance;
 			for(int i=0;i<rawPayPlan.Rows.Count;i++) {
-				long patNumCur=PIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString());
-				long guarNumCur=PIn.Long(rawPayPlan.Rows[i]["Guarantor"].ToString());
+				long patNumCur=SIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString());
+				long guarNumCur=SIn.Long(rawPayPlan.Rows[i]["Guarantor"].ToString());
 				if(patNumCur!=pat.PatNum && guarNumCur!=pat.PatNum && isSingle) {
 					continue;//skip pay plans that are not associated to this patient/guarantor
 				}
@@ -2553,30 +2553,30 @@ namespace OpenDentBusiness {
 				paid=0;
 				for(int p=0;p<rawPay.Rows.Count;p++){
 					if(rawPay.Rows[p]["PayPlanNum"].ToString()==rawPayPlan.Rows[i]["PayPlanNum"].ToString()){
-						paid+=PIn.Decimal(rawPay.Rows[p]["splitAmt_"].ToString());
+						paid+=SIn.Decimal(rawPay.Rows[p]["splitAmt_"].ToString());
 					}
 				}
 				for(int c=0;c<rawClaimPay.Rows.Count;c++) {
 					if(rawClaimPay.Rows[c]["PayPlanNum"].ToString()==rawPayPlan.Rows[i]["PayPlanNum"].ToString()) {
-						paid+=PIn.Decimal(rawClaimPay.Rows[c]["InsPayAmtPayPlan"].ToString());
+						paid+=SIn.Decimal(rawClaimPay.Rows[c]["InsPayAmtPayPlan"].ToString());
 					}
 				}
-				princ=PIn.Decimal(rawPayPlan.Rows[i]["principal_"].ToString());
-				princDue=PIn.Decimal(rawPayPlan.Rows[i]["principalDue_"].ToString());
-				interestDue=PIn.Decimal(rawPayPlan.Rows[i]["interestDue_"].ToString());
+				princ=SIn.Decimal(rawPayPlan.Rows[i]["principal_"].ToString());
+				princDue=SIn.Decimal(rawPayPlan.Rows[i]["principalDue_"].ToString());
+				interestDue=SIn.Decimal(rawPayPlan.Rows[i]["interestDue_"].ToString());
 				accumDue=princDue+interestDue;
 				princPaid=paid-interestDue;
-				totCost=princ+PIn.Decimal(rawPayPlan.Rows[i]["interest_"].ToString());
+				totCost=princ+SIn.Decimal(rawPayPlan.Rows[i]["interest_"].ToString());
 				due=accumDue-paid;
 				balance=princ-princPaid;
 				//then fill the row----------------------------------------------------------------------
 				row=table.NewRow();
 				row["accumDue"]=accumDue.ToString("n");
 				row["balance"]=balance.ToString("n");
-				dateT=PIn.DateTime(rawPayPlan.Rows[i]["PayPlanDate"].ToString());
+				dateT=SIn.DateTime(rawPayPlan.Rows[i]["PayPlanDate"].ToString());
 				row["DateTime"]=dateT;
 				row["date"]=dateT.ToShortDateString();
-				row["dateTimeSort"]=PIn.DateTime(rawPayPlan.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
+				row["dateTimeSort"]=SIn.DateTime(rawPayPlan.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
 				if(rawPayPlan.Rows[i]["PlanNum"].ToString()=="0") {
 					row["due"]=due.ToString("n");
 				}
@@ -2590,7 +2590,7 @@ namespace OpenDentBusiness {
 				row["paid"]=paid.ToString("n");
 				row["patient"]=GetPatName(patNumCur,fam,true);
 				row["PatNum"]=patNumCur;
-				row["PayPlanNum"]=PIn.Long(rawPayPlan.Rows[i]["PayPlanNum"].ToString());
+				row["PayPlanNum"]=SIn.Long(rawPayPlan.Rows[i]["PayPlanNum"].ToString());
 				row["PlanCategory"]=rawPayPlan.Rows[i]["PlanCategory"].ToString();
 				row["principal"]=princ.ToString("n");
 				row["princPaid"]=Math.Max(0,princPaid).ToString("n");
@@ -2604,28 +2604,28 @@ namespace OpenDentBusiness {
 				else{
 					row["type"]="Ins";
 				}
-				row["MobileAppDeviceNum"]=PIn.Long(rawPayPlan.Rows[i]["MobileAppDeviceNum"].ToString());
+				row["MobileAppDeviceNum"]=SIn.Long(rawPayPlan.Rows[i]["MobileAppDeviceNum"].ToString());
 				rows.Add(row);
 			}
 			//Installment plans-------------------------------------------------------------------------
 			for(int i=0;i<rawInstall.Rows.Count;i++){
-				long guarNumCur=PIn.Long(rawInstall.Rows[i]["PatNum"].ToString());//Pat for installment plan will always be guarantor
+				long guarNumCur=SIn.Long(rawInstall.Rows[i]["PatNum"].ToString());//Pat for installment plan will always be guarantor
 				if(guarNumCur!=pat.PatNum && isSingle) {
 					continue;//skip installment plans that are not associated to this patient
 				}
 				row=table.NewRow();
 				row["accumDue"]="";
 				row["balance"]="";
-				dateT=PIn.DateTime(rawInstall.Rows[i]["DateAgreement"].ToString());
+				dateT=SIn.DateTime(rawInstall.Rows[i]["DateAgreement"].ToString());
 				row["DateTime"]=dateT;
 				row["date"]=dateT.ToShortDateString();
 				row["dateTimeSort"]=dateT;//no DateTStamp columns on the installmentplan table, use DateAgreement I guess?
-				row["due"]=PIn.Decimal(rawInstall.Rows[i]["MonthlyPayment"].ToString()).ToString("f");
+				row["due"]=SIn.Decimal(rawInstall.Rows[i]["MonthlyPayment"].ToString()).ToString("f");
 				row["guarantor"]="";
-				row["InstallmentPlanNum"]=PIn.Long(rawInstall.Rows[i]["InstallmentPlanNum"].ToString());
+				row["InstallmentPlanNum"]=SIn.Long(rawInstall.Rows[i]["InstallmentPlanNum"].ToString());
 				row["IsClosed"]="0"; //installment plans are never closed.
 				row["paid"]="";
-				long patNumCur=PIn.Long(rawInstall.Rows[i]["PatNum"].ToString());
+				long patNumCur=SIn.Long(rawInstall.Rows[i]["PatNum"].ToString());
 				row["patient"]=GetPatName(patNumCur,fam,true);
 				row["PatNum"]=patNumCur;
 				row["PayPlanNum"]=0;
@@ -2678,27 +2678,27 @@ namespace OpenDentBusiness {
 			DataTable rawAmort;
 			long payPlanNum;
 			for(int i=0;i<rawPayPlan.Rows.Count;i++){//loop through the payment plans (usually zero or one)
-				if(!isForDynamic && PIn.Bool(rawPayPlan.Rows[i]["IsDynamic"].ToString())) {
+				if(!isForDynamic && SIn.Bool(rawPayPlan.Rows[i]["IsDynamic"].ToString())) {
 					continue;
 				}
-				if(isForDynamic && !PIn.Bool(rawPayPlan.Rows[i]["IsDynamic"].ToString())) {
+				if(isForDynamic && !SIn.Bool(rawPayPlan.Rows[i]["IsDynamic"].ToString())) {
 					continue;
 				}
-				payPlanNum=PIn.Long(rawPayPlan.Rows[i]["PayPlanNum"].ToString());
+				payPlanNum=SIn.Long(rawPayPlan.Rows[i]["PayPlanNum"].ToString());
 				if(listPayPlanNumsExclude!=null && listPayPlanNumsExclude.Contains(payPlanNum)) {
 					continue;//likely this payment plan has already shown up on another super family member
 				}
-				princ=PIn.Decimal(rawPayPlan.Rows[i]["principal_"].ToString());
-				interest=PIn.Decimal(rawPayPlan.Rows[i]["interest_"].ToString());
+				princ=SIn.Decimal(rawPayPlan.Rows[i]["principal_"].ToString());
+				interest=SIn.Decimal(rawPayPlan.Rows[i]["interest_"].ToString());
 				bal=princ+interest;
 				for(int p=0;p<rawPay.Rows.Count;p++){
 					if(rawPay.Rows[p]["PayPlanNum"].ToString()==rawPayPlan.Rows[i]["PayPlanNum"].ToString()){
-						bal-=PIn.Decimal(rawPay.Rows[p]["splitAmt_"].ToString());
+						bal-=SIn.Decimal(rawPay.Rows[p]["splitAmt_"].ToString());
 					}
 				}
 				for(int c=0;c<rawClaimPay.Rows.Count;c++) {
 					if(rawClaimPay.Rows[c]["PayPlanNum"].ToString()==rawPayPlan.Rows[i]["PayPlanNum"].ToString()) {
-						bal-=PIn.Decimal(rawClaimPay.Rows[c]["InsPayAmtPayPlan"].ToString());
+						bal-=SIn.Decimal(rawClaimPay.Rows[c]["InsPayAmtPayPlan"].ToString());
 					}
 				}       
 				//If on version 1, don't show closed plans with nothing due. If on version 2, don't show closed payplans at all.
@@ -2719,7 +2719,7 @@ namespace OpenDentBusiness {
 				row["credits"]="";
 				row["DateTime"]=DateTime.MinValue;
 				row["date"]="";
-				row["dateTimeSort"]=PIn.DateTime(rawPayPlan.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
+				row["dateTimeSort"]=SIn.DateTime(rawPayPlan.Rows[i]["SecDateTEntry"].ToString());//SecDateTEntry will be used for sorting if RandomKeys is enabled
 				string description=Lans.g("AccountModule",descriptionPayPlanType)+"\r\n"
 					+Lans.g("AccountModule",descriptionPrincipal)+" "+princ.ToString("c")+"\r\n";
 				if(interest!=0) {
@@ -2736,8 +2736,8 @@ namespace OpenDentBusiness {
 				}
 				//so all payment plans will have a patient.
 				//If Single Patient is checked, then we only want to show payment plans where the selected patient is either the PayPlan's Patient or Guarantor.
-				long patNumCur=PIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString());
-				long guarNumCur=PIn.Long(rawPayPlan.Rows[i]["Guarantor"].ToString());
+				long patNumCur=SIn.Long(rawPayPlan.Rows[i]["PatNum"].ToString());
+				long guarNumCur=SIn.Long(rawPayPlan.Rows[i]["Guarantor"].ToString());
 				if(singlePatient && guarNumCur!=pat.PatNum && patNumCur!=pat.PatNum) {
 					continue;
 				}
@@ -2820,7 +2820,7 @@ namespace OpenDentBusiness {
 		///<summary>All rows for the entire family are getting passed in here.  (Except Invoices)  The rows have already been sorted.  Balances have not been computed, and we will do that here, separately for each patient (except invoices).</summary>
 		private static DataTable GetPatientTable(Family fam,List<DataRow> rows,bool isInvoice,StmtType statementType){
 			//Create a helper dictionary in order to save on trying to find all corresponding rows for a specific patient when we loop through the family.
-			Dictionary<long,List<DataRow>> dictPatientRows=rows.GroupBy(x => PIn.Long(x["PatNum"].ToString()))
+			Dictionary<long,List<DataRow>> dictPatientRows=rows.GroupBy(x => SIn.Long(x["PatNum"].ToString()))
 				.ToDictionary(x => x.Key,x => x.ToList());
 			DataTable table=new DataTable("patient");
 			DataRow row;
@@ -2881,21 +2881,21 @@ namespace OpenDentBusiness {
 			List<DataRow> rows=new List<DataRow>();
 			string command="SELECT AptDateTime,PatNum,ProcDescript "
 				+"FROM appointment "
-				+"WHERE AptDateTime > "+POut.DateTime(DateTime.Now)+" "//Today.AddDays(1) midnight tonight
-				+"AND AptStatus !="+POut.Long((int)ApptStatus.Broken)+" "
-				+"AND AptStatus !="+POut.Long((int)ApptStatus.PtNote)+" "
-				+"AND AptStatus !="+POut.Long((int)ApptStatus.PtNoteCompleted)+" "
-				+"AND AptStatus !="+POut.Long((int)ApptStatus.UnschedList)+" "
+				+"WHERE AptDateTime > "+SOut.DateTime(DateTime.Now)+" "//Today.AddDays(1) midnight tonight
+				+"AND AptStatus !="+SOut.Long((int)ApptStatus.Broken)+" "
+				+"AND AptStatus !="+SOut.Long((int)ApptStatus.PtNote)+" "
+				+"AND AptStatus !="+SOut.Long((int)ApptStatus.PtNoteCompleted)+" "
+				+"AND AptStatus !="+SOut.Long((int)ApptStatus.UnschedList)+" "
 				+"AND (";
 			if(singlePatient){
-				command+="PatNum ="+POut.Long(patNum);
+				command+="PatNum ="+SOut.Long(patNum);
 			}
 			else{
 				for(int i=0;i<fam.ListPats.Length;i++){
 					if(i!=0){
 						command+="OR ";
 					}
-					command+="PatNum ="+POut.Long(fam.ListPats[i].PatNum)+" ";
+					command+="PatNum ="+SOut.Long(fam.ListPats[i].PatNum)+" ";
 				}
 			}
 			command+=") ORDER BY PatNum,AptDateTime";
@@ -2904,8 +2904,8 @@ namespace OpenDentBusiness {
 			long patNumm;
 			for(int i=0;i<raw.Rows.Count;i++){
 				row=table.NewRow();
-				patNumm=PIn.Long(raw.Rows[i]["PatNum"].ToString());
-				dateT=PIn.DateTime(raw.Rows[i]["AptDateTime"].ToString());
+				patNumm=SIn.Long(raw.Rows[i]["PatNum"].ToString());
+				dateT=SIn.DateTime(raw.Rows[i]["AptDateTime"].ToString());
 				row["descript"]=fam.GetNameInFamFL(patNumm)+":  "
 					+dateT.ToString("dddd")+",  "
 					+dateT.ToShortDateString()
@@ -2930,45 +2930,45 @@ namespace OpenDentBusiness {
 			//FamFinancial note--------------------
 			string command = 
 				"SELECT FamFinancial "
-				+"FROM patientnote WHERE patnum ="+POut.Long(fam.ListPats[0].PatNum);
+				+"FROM patientnote WHERE patnum ="+SOut.Long(fam.ListPats[0].PatNum);
 			DataTable raw=DataCore.GetTable(command);
 			row=table.NewRow();
 			row["descript"]="FamFinancial";
 			row["value"]="";
 			if(raw.Rows.Count==1){
-				row["value"]=PIn.String(raw.Rows[0][0].ToString());
+				row["value"]=SIn.String(raw.Rows[0][0].ToString());
 			}
 			rows.Add(row);
 			//payPlanDue---------------------------
 			row=table.NewRow();
 			row["descript"]="patientPayPlanDue";
-			row["value"]=POut.Decimal(patientPayPlanDue);
+			row["value"]=SOut.Decimal(patientPayPlanDue);
 			rows.Add(row);
 			row=table.NewRow();
 			row["descript"]="dynamicPayPlanDue";
-			row["value"]=POut.Decimal(dynamicPayPlanDue);
+			row["value"]=SOut.Decimal(dynamicPayPlanDue);
 			rows.Add(row);
 			row=table.NewRow();
 			row["descript"]="payPlanDue";
-			row["value"]=POut.Decimal(dynamicPayPlanDue+patientPayPlanDue);
+			row["value"]=SOut.Decimal(dynamicPayPlanDue+patientPayPlanDue);
 			rows.Add(row);
 			//balanceForward-----------------------
 			row=table.NewRow();
 			row["descript"]="balanceForward";
-			row["value"]=POut.Decimal(balanceForward);
+			row["value"]=SOut.Decimal(balanceForward);
 			rows.Add(row);
 			//patInsEst----------------------------
 			string procNumsForInsEst="";
 			command="SELECT COALESCE(SUM(inspayest+writeoff),0) FROM claimproc "
 				+"WHERE status = 0 ";//not received
 			if(statementType!=StmtType.LimitedStatement) {
-				command+="AND PatNum="+POut.Long(patNum);
+				command+="AND PatNum="+SOut.Long(patNum);
 			}
 			else {
 				procNumsForInsEst=string.Join(",",ds.Tables.OfType<DataTable>()//only reference to ds, should never be null if it's a LimitedStatement
 					.Where(x => x.TableName.StartsWith("account"))
 					.SelectMany(x => x.Rows.OfType<DataRow>()
-						.Select(y => POut.String(y["ProcNum"].ToString()))
+						.Select(y => SOut.String(y["ProcNum"].ToString()))
 						.Where(y => y!="0")));
 				command+="AND ProcNum IN ("+procNumsForInsEst+")";
 			}
@@ -2986,11 +2986,11 @@ namespace OpenDentBusiness {
 				if(i>0) {
 					command+=" OR ";
 				}
-				command+="PatNum= "+POut.Long(fam.ListPats[i].PatNum);
+				command+="PatNum= "+SOut.Long(fam.ListPats[i].PatNum);
 			}
 			command+=")";
 			//Unearned Amount from this datatable is deprecated.  Account module uses S-class methods to calculate it now.
-			double unearnedAmt=PIn.Double(DataCore.GetScalar(command));
+			double unearnedAmt=SIn.Double(DataCore.GetScalar(command));
 			row=table.NewRow();
 			row["descript"]="unearnedIncome";
 			row["value"]=unearnedAmt;
@@ -3111,13 +3111,13 @@ namespace OpenDentBusiness {
 					+ "paysplit.ProvNum, paysplit.ProcNum, payment.PayType, payment.PayNote Note, payment.CheckNum, 'PAT' TranType "
 					+ "FROM paysplit "
 					+ "INNER JOIN payment ON payment.PayNum = paysplit.PayNum "
-					+ "WHERE paysplit.PatNum IN ("+POut.String(string.Join(",",listPatNums))+") "
+					+ "WHERE paysplit.PatNum IN ("+SOut.String(string.Join(",",listPatNums))+") "
 					+ "UNION ALL "
 					+ "SELECT claimproc.ClaimProcNum PriKey, claimproc.PatNum, claimproc.DateCP Date, -claimproc.InsPayAmt Amt, "
 					+ "claimproc.ProvNum, claimproc.ProcNum, claimpayment.PayType, claimpayment.Note, claimpayment.CheckNum, 'INS' TranType "
 					+ "FROM claimproc "
 					+ "INNER JOIN claimpayment ON claimpayment.ClaimPaymentNum = claimproc.ClaimPaymentNum "
-					+ "WHERE claimproc.PatNum IN ("+POut.String(string.Join(",",listPatNums))+") ";
+					+ "WHERE claimproc.PatNum IN ("+SOut.String(string.Join(",",listPatNums))+") ";
 			if(PrefC.GetBool(PrefName.InvoicePaymentsGridShowNetProd)) {
 				command+= ""
 					//adjustments can already be manually selected to be included in invoices.
@@ -3130,9 +3130,9 @@ namespace OpenDentBusiness {
 					+ "SELECT claimproc.ClaimProcNum PriKey, claimproc.PatNum, claimproc.DateCP Date, -claimproc.WriteOff Amt, "
 					+ "claimproc.ProvNum, claimproc.ProcNum, '', claimproc.Remarks, '', 'WO' TranType "
 					+ "FROM claimproc "
-					+ "WHERE claimproc.Status IN("+POut.Int((int)ClaimProcStatus.NotReceived)+","+POut.Int((int)ClaimProcStatus.Received)+","
-						+POut.Int((int)ClaimProcStatus.Supplemental)+","+POut.Int((int)ClaimProcStatus.CapComplete)+") "
-					+ "AND PatNum IN ("+POut.String(string.Join(",",listPatNums))+") ";
+					+ "WHERE claimproc.Status IN("+SOut.Int((int)ClaimProcStatus.NotReceived)+","+SOut.Int((int)ClaimProcStatus.Received)+","
+						+SOut.Int((int)ClaimProcStatus.Supplemental)+","+SOut.Int((int)ClaimProcStatus.CapComplete)+") "
+					+ "AND PatNum IN ("+SOut.String(string.Join(",",listPatNums))+") ";
 			}
 			command+=") tran "
 				+ "LEFT JOIN definition ON definition.DefNum = tran.PayType "
@@ -3140,9 +3140,9 @@ namespace OpenDentBusiness {
 				+ "INNER JOIN patient ON patient.PatNum = tran.PatNum "
 				+ "LEFT JOIN procedurelog ON procedurelog.ProcNum = tran.ProcNum "
 				+ "LEFT JOIN procedurecode ON procedurecode.CodeNum = procedurelog.CodeNum "
-				+ "WHERE ((tran.Date = "+POut.Date(dateTimeInvoice)+" AND tran.ProcNum = 0) ";
+				+ "WHERE ((tran.Date = "+SOut.Date(dateTimeInvoice)+" AND tran.ProcNum = 0) ";
 			if(listProcNums!=null && listProcNums.Count > 0) {
-				command+= "OR tran.ProcNum IN ("+POut.String(string.Join(",",listProcNums))+") ";
+				command+= "OR tran.ProcNum IN ("+SOut.String(string.Join(",",listProcNums))+") ";
 			}
 			command+=")";
 			//logic to get all paysplits/payment info for payments made today or on procs on the invoice.
@@ -3540,7 +3540,7 @@ namespace OpenDentBusiness {
 									DateSpan dateDiff = new DateSpan(orthoProcDate,DateTime.Today);
 									int txTimeInMonths=(dateDiff.YearsDiff * 12) + dateDiff.MonthsDiff + (dateDiff.DaysDiff < 15? 0: 1);
 									try {
-										claim.OrthoRemainM=PIn.Byte((claim.OrthoTotalM-txTimeInMonths).ToString());
+										claim.OrthoRemainM=SIn.Byte((claim.OrthoTotalM-txTimeInMonths).ToString());
 									}
 									catch { //catches anything that doesn't fit into a byte (eg, negatives) and just substitues 0.
 										claim.OrthoRemainM=0;
@@ -3559,7 +3559,7 @@ namespace OpenDentBusiness {
 			Claims.CalculateAndUpdate(procsForPat,planList,claim,PatPlanList,Benefits.Refresh(PatPlanList,subList),pat,subList);
 			//Insert claim snapshots for historical reporting purposes.
 			if(PrefC.GetBool(PrefName.ClaimSnapshotEnabled) 
-				&& PIn.Enum<ClaimSnapshotTrigger>(PrefC.GetString(PrefName.ClaimSnapshotTriggerType),true)==ClaimSnapshotTrigger.ClaimCreate
+				&& SIn.Enum<ClaimSnapshotTrigger>(PrefC.GetString(PrefName.ClaimSnapshotTriggerType),true)==ClaimSnapshotTrigger.ClaimCreate
 				&& claimType!="PreAuth")
 			{
 				string snapshotClaimType=claimType;

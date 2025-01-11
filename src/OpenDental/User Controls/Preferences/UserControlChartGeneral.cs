@@ -96,7 +96,7 @@ namespace OpenDental {
 				Process.Start("https://opendental.com/manual/ehrcpoeradapprove.html");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/ehrcpoeradapprove.html"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/ehrcpoeradapprove.html"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}

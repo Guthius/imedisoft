@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
@@ -72,11 +73,11 @@ namespace OpenDental {
 
 		///<summary>Use UI selections to get statement datatable. Used to originate billing run, also called again on resume after billing pause.</summary>
 		private DataTable GetBillingDataTable() {
-			DateTime dateFrom=PIn.Date(textDateStart.Text);
+			DateTime dateFrom=SIn.Date(textDateStart.Text);
 			//If textDateEnd is empty then will assume dateTo is far in future(2200,1,1) in order to get all statements.
 			DateTime dateTo=new DateTime(2200,1,1);
 			if(textDateEnd.Text!="" && textDateEnd.IsValid()) {
-				dateTo=PIn.Date(textDateEnd.Text);
+				dateTo=SIn.Date(textDateEnd.Text);
 			}
 			//An empty list indicates to Statements.GetBilling to run for all clinics.
 			List<long> clinicNums=new List<long>();
@@ -89,7 +90,7 @@ namespace OpenDental {
 		///<summary>We will always try to preserve the selected bills as well as the scroll postition.</summary>
 		private void FillGrid() {
 			int scrollPos=gridBill.ScrollValue;
-			List<long> selectedKeys=gridBill.SelectedIndices.OfType<int>().Select(x => PIn.Long(((DataRow)gridBill.ListGridRows[x].Tag)["StatementNum"].ToString())).ToList();
+			List<long> selectedKeys=gridBill.SelectedIndices.OfType<int>().Select(x => SIn.Long(((DataRow)gridBill.ListGridRows[x].Tag)["StatementNum"].ToString())).ToList();
 			DataTable table=GetBillingDataTable();
 			gridBill.BeginUpdate();
 			gridBill.Columns.Clear();
@@ -154,7 +155,7 @@ namespace OpenDental {
 			}
 			else {
 				for(int i=0;i<gridBill.ListGridRows.Count;i++) {
-					gridBill.SetSelected(i,selectedKeys.Contains(PIn.Long(((DataRow)gridBill.ListGridRows[i].Tag)["StatementNum"].ToString())));
+					gridBill.SetSelected(i,selectedKeys.Contains(SIn.Long(((DataRow)gridBill.ListGridRows[i].Tag)["StatementNum"].ToString())));
 				}
 			}
 			gridBill.ScrollValue=scrollPos;
@@ -211,7 +212,7 @@ namespace OpenDental {
 		}
 
 		private void gridBill_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			Statement statement=Statements.GetStatement(PIn.Long(((DataRow)gridBill.ListGridRows[e.Row].Tag)["StatementNum"].ToString()));
+			Statement statement=Statements.GetStatement(SIn.Long(((DataRow)gridBill.ListGridRows[e.Row].Tag)["StatementNum"].ToString()));
 			ShowStatementOptions(statement);
 		}
 
@@ -226,7 +227,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please select one bill first.");
 				return;
 			}
-			long patNum=PIn.Long(((DataRow)gridBill.ListGridRows[gridBill.GetSelectedIndex()].Tag)["PatNum"].ToString());
+			long patNum=SIn.Long(((DataRow)gridBill.ListGridRows[gridBill.GetSelectedIndex()].Tag)["PatNum"].ToString());
 			GlobalFormOpenDental.PatientSelected(Patients.GetPat(patNum),false);
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:0);
 			SendToBack();
@@ -241,7 +242,7 @@ namespace OpenDental {
 			FormStatementOptions.ListStatementModesForSms=ListStatementModesForSms;
 			List<long> listStatementNums=new List<long>();
 			foreach(int index in gridBill.SelectedIndices) {
-				listStatementNums.Add(PIn.Long(((DataRow)gridBill.ListGridRows[index].Tag)["StatementNum"].ToString()));
+				listStatementNums.Add(SIn.Long(((DataRow)gridBill.ListGridRows[index].Tag)["StatementNum"].ToString()));
 			}
 			List<Statement> listStatementsSelected=Statements.GetStatements(listStatementNums);
 			if(listStatementsSelected.Count==1) {
@@ -354,11 +355,11 @@ namespace OpenDental {
 			_progExtended?.Fire(new ODEventArgs(ODEventType.Billing,new ProgressBarHelper(Lan.g(this,"Preparing First Batch")+"...",progressBarEventType: ProgBarEventType.TextMsg)));
 			SendStatementsIO sendStatementsIO=new SendStatementsIO();
 			sendStatementsIO.Source="FormBilling";
-			sendStatementsIO.ListStatementNumsToSend=gridBill.SelectedTags<DataRow>().Select(x => PIn.Long(x["StatementNum"].ToString())).ToList();
+			sendStatementsIO.ListStatementNumsToSend=gridBill.SelectedTags<DataRow>().Select(x => SIn.Long(x["StatementNum"].ToString())).ToList();
 			sendStatementsIO.FuncGetIsHistoryStartMinDate=() => { return IsHistoryStartMinDate; };
 			sendStatementsIO.FuncAskQuestion=(question) => {
 				//use a MessageBox for now until MsgBox hiding behind things is fixed
-				return MessageBox.Show(question,"",MessageBoxButtons.YesNo)==DialogResult.Yes;
+				return ODMessageBox.Show(question,"",MessageBoxButtons.YesNo)==DialogResult.Yes;
 			};
 			sendStatementsIO.ActionPrompt=(prompt,useCopyPasteDialog) => {
 				if(useCopyPasteDialog) {
@@ -366,7 +367,7 @@ namespace OpenDental {
 					msgBoxPatErrors.Show(this);
 				}
 				else {
-					MessageBox.Show(prompt);
+					ODMessageBox.Show(prompt);
 				}				
 			};
 			sendStatementsIO.FuncChooseSaveFile=(initialSaveDirectory) => {
@@ -526,7 +527,7 @@ namespace OpenDental {
 			//this MessageBox will activate every time the window is closed.
 			//If the OD shutdown signal causes this window to close, the msgbox will show for a second or two and then forcefully close anyway.
 			//In that case, it will not delete unsent bills.
-			DialogResult result=MessageBox.Show(Lan.g(this,"You may leave this window open while you work.  If you do close it, do you want to delete all unsent bills?"),
+			DialogResult result=ODMessageBox.Show(Lan.g(this,"You may leave this window open while you work.  If you do close it, do you want to delete all unsent bills?"),
 				"",MessageBoxButtons.YesNoCancel);
 			if(result==DialogResult.No){
 				return;
@@ -540,7 +541,7 @@ namespace OpenDental {
 			int totalCount=0;
 			dictionaryClinicStatmentsToDelete=gridBill.ListGridRows.Select(x => (DataRow)x.Tag)
 				.Where(x => x["IsSent"].ToString()=="0")
-				.GroupBy(x => PIn.Long(x["ClinicNum"].ToString()),x => PIn.Long(x["StatementNum"].ToString()))
+				.GroupBy(x => SIn.Long(x["ClinicNum"].ToString()),x => SIn.Long(x["StatementNum"].ToString()))
 				.ToDictionary(x => x.Key,x => x.ToList());
 			totalCount=dictionaryClinicStatmentsToDelete.Values.Sum(x => x.Count);
 			int runningTotal=0;

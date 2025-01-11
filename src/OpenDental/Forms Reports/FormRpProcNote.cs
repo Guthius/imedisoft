@@ -12,6 +12,7 @@ using System.IO;
 using OpenDental.UI;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -93,7 +94,7 @@ namespace OpenDental{
 			gridMain.ListGridRows.Clear();
 			foreach(DataRow row in table.Rows) {
 				GridRow newRow=new GridRow();
-				newRow.Cells.Add(PIn.Date(row["ProcDate"].ToString()).ToString("d"));
+				newRow.Cells.Add(SIn.Date(row["ProcDate"].ToString()).ToString("d"));
 				newRow.Cells.Add(row["PatName"].ToString());
 				if(Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)) {
 					newRow.Cells.Add(row["ProcCode"].ToString());
@@ -152,7 +153,7 @@ namespace OpenDental{
 			if(!Security.IsAuthorized(EnumPermType.ChartModule)) {
 				return;
 			}
-			long goToPatNum=PIn.Long(gridMain.ListGridRows[e.Row].Tag.ToString());
+			long goToPatNum=SIn.Long(gridMain.ListGridRows[e.Row].Tag.ToString());
 			System.Windows.Forms.Screen screenCurrent=System.Windows.Forms.Screen.FromHandle(this.Handle);
 			if(screenCurrent.DeviceName==_screenParent.DeviceName) {//If on same screen as main OD
 				this.WindowState=FormWindowState.Minimized;//Minimize
@@ -168,7 +169,7 @@ namespace OpenDental{
 			if(!Security.IsAuthorized(EnumPermType.ChartModule)) {
 				return;
 			}
-			long patNum=PIn.Long(gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag.ToString());
+			long patNum=SIn.Long(gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag.ToString());
 			Patient pat=Patients.GetPat(patNum);
 			GlobalFormOpenDental.PatientSelected(pat,false);
 			System.Windows.Forms.Screen screenCurrent=System.Windows.Forms.Screen.FromHandle(this.Handle);

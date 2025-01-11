@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -99,7 +100,7 @@ namespace OpenDental{
 				webClient.DownloadFile(url,tempFile);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Failed to download procedure codes")+":\r\n"+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Failed to download procedure codes")+":\r\n"+ex.Message);
 				Cursor=Cursors.Default;
 				return;
 			}
@@ -116,17 +117,17 @@ namespace OpenDental{
 					continue;
 				}
 				ProcedureCode procCode=new ProcedureCode();
-				procCode.ProcCode=PIn.String(stringArrayFields[0]);//0 ProcCode
-				procCode.Descript=PIn.String(stringArrayFields[1]);//1 Description
-				procCode.TreatArea=(TreatmentArea)PIn.Int(stringArrayFields[2]);//2 TreatArea
-				procCode.NoBillIns=PIn.Bool(stringArrayFields[3]);//3 NoBillIns
-				procCode.IsProsth=PIn.Bool(stringArrayFields[4]);//4 IsProsth
-				procCode.IsHygiene=PIn.Bool(stringArrayFields[5]);//5 IsHygiene
-				procCode.PaintType=(ToothPaintingType)PIn.Int(stringArrayFields[6]);//6 PaintType
-				procCode.ProcCatDescript=PIn.String(stringArrayFields[7]);//7 ProcCatDescript
-				procCode.ProcTime=PIn.String(stringArrayFields[8]);//8 ProcTime
-				procCode.AbbrDesc=PIn.String(stringArrayFields[9]);//9 AbbrDesc
-				procCode.CanadaTimeUnits=PIn.Double(stringArrayFields[10]);//10 CanadaTimeUnits
+				procCode.ProcCode=SIn.String(stringArrayFields[0]);//0 ProcCode
+				procCode.Descript=SIn.String(stringArrayFields[1]);//1 Description
+				procCode.TreatArea=(TreatmentArea)SIn.Int(stringArrayFields[2]);//2 TreatArea
+				procCode.NoBillIns=SIn.Bool(stringArrayFields[3]);//3 NoBillIns
+				procCode.IsProsth=SIn.Bool(stringArrayFields[4]);//4 IsProsth
+				procCode.IsHygiene=SIn.Bool(stringArrayFields[5]);//5 IsHygiene
+				procCode.PaintType=(ToothPaintingType)SIn.Int(stringArrayFields[6]);//6 PaintType
+				procCode.ProcCatDescript=SIn.String(stringArrayFields[7]);//7 ProcCatDescript
+				procCode.ProcTime=SIn.String(stringArrayFields[8]);//8 ProcTime
+				procCode.AbbrDesc=SIn.String(stringArrayFields[9]);//9 AbbrDesc
+				procCode.CanadaTimeUnits=SIn.Double(stringArrayFields[10]);//10 CanadaTimeUnits
 				_listProcedureCodes.Add(procCode);
 			}
 			Cursor=Cursors.Default;
@@ -139,7 +140,7 @@ namespace OpenDental{
 			DateTime datePromptStart=new DateTime(2024,10,30);
 			DateTime datePromptEnd=new DateTime(datePromptStart.Year,12,31);
 			if(DateTime.Now.Between(datePromptStart,datePromptEnd) && checkDcodes.Checked) {//Only validate if attempting to update D Codes
-				if(MessageBox.Show(//Still between datePromptStart and the first of the next year, prompt that these codes may cause problems.
+				if(ODMessageBox.Show(//Still between datePromptStart and the first of the next year, prompt that these codes may cause problems.
 						Lan.g(this,"Updating procedure codes at this time could result in acquiring codes which are not valid until ")
 						+datePromptEnd.AddDays(1).ToShortDateString()+Lan.g(this,". Using these codes and new claim form could cause claims to be rejected, continue?")
 						,Lan.g(this,"Procedure Codes"),MessageBoxButtons.YesNo)==DialogResult.No) 
@@ -167,7 +168,7 @@ namespace OpenDental{
 					rowsInserted+=FormProcCodes.ImportProcCodes("",null,Properties.Resources.NoFeeProcCodes);
 				}
 				catch(ApplicationException ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 				Changed=true;
 				DataValid.SetInvalid(InvalidType.Defs, InvalidType.ProcCodes);
@@ -185,22 +186,22 @@ namespace OpenDental{
 					Changed=true;
 					int procCodesFixed=ProcedureCodes.ResetADAdescriptionsAndAbbrs();
 					ClaimForms.SetDefaultClaimForm("ADA 2019","ADA 2024");
-					MessageBox.Show(Lan.g(this,"Procedure codes with descriptions or abbreviations updated:")+" "+procCodesFixed.ToString());
+					ODMessageBox.Show(Lan.g(this,"Procedure codes with descriptions or abbreviations updated:")+" "+procCodesFixed.ToString());
 				}
 				catch(ApplicationException ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 				DataValid.SetInvalid(InvalidType.Defs, InvalidType.ProcCodes);
 			}
 			#endregion
 			if(checkNcodes.Checked || checkDcodes.Checked){
-				MessageBox.Show("Procedure codes inserted: "+rowsInserted);
+				ODMessageBox.Show("Procedure codes inserted: "+rowsInserted);
 			}
 			#region Treatment Areas
 			if(checkTreatAreas.Checked && CultureInfo.CurrentCulture.Name.EndsWith("US")) {
 				int countProcCodesUpdated=ProcedureCodes.SetTreatAreasForADACodes();
 				Changed=true;
-				MessageBox.Show(Lans.g(this,"Treatment areas updated")+": "+countProcCodesUpdated);
+				ODMessageBox.Show(Lans.g(this,"Treatment areas updated")+": "+countProcCodesUpdated);
 				DataValid.SetInvalid(InvalidType.ProcCodes);
 			}
 			#endregion
@@ -304,7 +305,7 @@ namespace OpenDental{
 			}
 			#endregion
 			if(Changed) {
-				MessageBox.Show(Lan.g(this,"Done."));
+				ODMessageBox.Show(Lan.g(this,"Done."));
 				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"New Customer Procedure codes tool was run.");
 			}
 		}

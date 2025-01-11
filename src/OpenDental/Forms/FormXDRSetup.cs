@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.Bridges;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -82,7 +83,7 @@ namespace OpenDental {
 
 		private void FillForm() {
 			//ComboClinic is filled in the load method
-			if(PIn.Int(_programPropertyPatNumOrChartNum.PropertyValue)==1) {
+			if(SIn.Int(_programPropertyPatNumOrChartNum.PropertyValue)==1) {
 				radioChart.Checked=true;
 			}
 			else {
@@ -97,7 +98,7 @@ namespace OpenDental {
 			checkEnabled.Checked=_program.Enabled;
 			textPath.Text=_program.Path;
 			textButtonText.Text=listToolButItems[0].ButtonText;
-			pictureBox.Image=PIn.Bitmap(_program.ButtonImage);
+			pictureBox.Image=SIn.Bitmap(_program.ButtonImage);
 			ProgramProperty programProperty=_listProgramProperties.Find(x=>x.ClinicNum==_clinicNum && x.PropertyDesc==XDR.PropertyDescs.LocationID);
 			if(programProperty!=null) {
 				textLocationID.Text=programProperty.PropertyValue;
@@ -148,7 +149,7 @@ namespace OpenDental {
 			SaveLocationIdToList();
 			_program.Enabled=checkEnabled.Checked;
 			_program.Path=textPath.Text;
-			_program.ButtonImage=POut.Bitmap((Bitmap)pictureBox.Image,System.Drawing.Imaging.ImageFormat.Png);
+			_program.ButtonImage=SOut.Bitmap((Bitmap)pictureBox.Image,System.Drawing.Imaging.ImageFormat.Png);
 			ToolButItems.DeleteAllForProgram(_program.ProgramNum);
 			//Then add one toolButItem for each highlighted row in listbox
 			ToolButItem toolButItem;
@@ -164,7 +165,7 @@ namespace OpenDental {
 				_hasProgramPropertyChanged=true;
 				ProgramProperties.InsertOrUpdateLocalOverridePath(_program.ProgramNum,textOverride.Text);
 			}
-			UpdateProgramProperty(_programPropertyPatNumOrChartNum,POut.Bool(radioChart.Checked));//Will need to be enhanced if another radio button ever gets added.
+			UpdateProgramProperty(_programPropertyPatNumOrChartNum,SOut.Bool(radioChart.Checked));//Will need to be enhanced if another radio button ever gets added.
 			UpdateProgramProperty(_programPropertyInfoFilePath,textInfoFile.Text);
 			UpsertLocationIdsForClinics();
 			Programs.Update(_program);
@@ -224,7 +225,7 @@ namespace OpenDental {
 				return;
 			}
 			if(imageImported.Size!=new Size(22,22)) {
-					MessageBox.Show(Lan.g(this,"Required image dimensions are 22x22.")
+					ODMessageBox.Show(Lan.g(this,"Required image dimensions are 22x22.")
 						+"\r\n"+Lan.g(this,"Selected image dimensions are")+": "+imageImported.Size.Width+"x"+imageImported.Size.Height);
 					return;
 				}
@@ -237,7 +238,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(checkEnabled.Checked && !Programs.IsEnabledByHq(ProgramName.XDR,out string err)) {
-				MessageBox.Show(err);
+				ODMessageBox.Show(err);
 				return;
 			}
 			SaveProgram();

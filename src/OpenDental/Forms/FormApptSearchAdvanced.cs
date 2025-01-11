@@ -8,6 +8,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -46,7 +47,7 @@ namespace OpenDental {
 			else {
 				dateSearchFrom.Text=DateTime.Today.AddDays(1).ToShortDateString();
 			}
-			dateSearchTo.Text=PIn.Date(dateSearchFrom.Text).AddYears(2).AddDays(1).ToShortDateString();//default to 2 years from the afterDate. 
+			dateSearchTo.Text=SIn.Date(dateSearchFrom.Text).AddYears(2).AddDays(1).ToShortDateString();//default to 2 years from the afterDate. 
 			textBefore.Text=_beforeTime;//just blindly set these. They will be validated when the search is ran. 
 			textAfter.Text=_afterTime;
 			//Fill all combo and listboxes.
@@ -264,7 +265,7 @@ namespace OpenDental {
 			if(hrMin.Length > 1) {
 				min=hrMin[1];
 			}
-			timeSpan=TimeSpan.FromHours(PIn.Double(hr))+TimeSpan.FromMinutes(PIn.Double(min));
+			timeSpan=TimeSpan.FromHours(SIn.Double(hr))+TimeSpan.FromMinutes(SIn.Double(min));
 			if(isAfterPM && timeSpan.Hours < 12) {
 				timeSpan=timeSpan+TimeSpan.FromHours(12);
 			}

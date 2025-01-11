@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.IO;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using MigraDoc.DocumentObjectModel;
 
@@ -41,8 +42,8 @@ namespace OpenDental {
 			InitializeComponent();
 			InitializeLayoutManager();
 			Lan.F(this);
-			textAmount.Text=POut.Decimal(amount);
-			textAmountACH.Text=POut.Decimal(amount);
+			textAmount.Text=SOut.Decimal(amount);
+			textAmountACH.Text=SOut.Decimal(amount);
 			_clinicNum=clinicNum;
 			_patient=patient;
 			_creditCard=creditCard;
@@ -72,7 +73,7 @@ namespace OpenDental {
 					FillFieldsFromCard();
 				}
 			}
-			if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum))) {
 				checkPrintReceipt.Checked=true;
 				checkPrintReceiptACH.Checked=true;
 			}
@@ -93,7 +94,7 @@ namespace OpenDental {
 				checkPrintReceiptACH.Checked=false;
 				checkPrintReceiptACH.Enabled=false;
 			}
-			if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,_clinicNum))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,_clinicNum))) {
 				textCardNumber.ReadOnly=true;
 				textRoutingNumber.ReadOnly=true;
 				textCheckSaveNumber.ReadOnly=true;
@@ -164,7 +165,7 @@ namespace OpenDental {
 			_transType=PaySimple.TransType.SALE;
 			if(!checkPrintReceipt.Enabled) {
 				checkPrintReceipt.Enabled=true;
-				checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum));
+				checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum));
 			}
 			textCardNumber.Focus();//Usually transaction type is chosen before card number is entered, but textCardNumber box must be selected in order for card swipe to work.
 		}
@@ -195,7 +196,7 @@ namespace OpenDental {
 			_transType=PaySimple.TransType.VOID;
 			if(!checkPrintReceipt.Enabled) {
 				checkPrintReceipt.Enabled=true;
-				checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum));
+				checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum));
 			}
 			textCardNumber.Focus();//Usually transaction type is chosen before card number is entered, but textCardNumber box must be selected in order for card swipe to work.
 		}
@@ -212,7 +213,7 @@ namespace OpenDental {
 			_transType=PaySimple.TransType.RETURN;
 			if(!checkPrintReceipt.Enabled) {
 				checkPrintReceipt.Enabled=true;
-				checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum));
+				checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePrintReceipt,_clinicNum));
 			}
 			textCardNumber.Focus();//Usually transaction type is chosen before card number is entered, but textCardNumber box must be selected in order for card swipe to work.
 		}
@@ -244,7 +245,7 @@ namespace OpenDental {
 				_magstripCardParser=new MagstripCardParser(data);
 			}
 			catch(MagstripCardParseException) {
-				MessageBox.Show(this,"Could not read card, please try again.","Card Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+				ODMessageBox.Show(this,"Could not read card, please try again.","Card Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
 			}
 			if(_magstripCardParser!=null) {
 				textCardNumber.Text=_magstripCardParser.AccountNumber;
@@ -302,7 +303,7 @@ namespace OpenDental {
 				expYear=_creditCard.CCExpiration.Year;
 				expMonth=_creditCard.CCExpiration.Month;
 			}
-			else if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,_clinicNum))) {
+			else if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,_clinicNum))) {
 				MsgBox.Show(this,"Cannot add a new credit card.");
 				return null;
 			}
@@ -321,7 +322,7 @@ namespace OpenDental {
 			}
 			if(_transType.In(PaySimple.TransType.SALE,PaySimple.TransType.RETURN,PaySimple.TransType.VOID)) {//Only print a receipt if transaction is an approved SALE, RETURN, or VOID			
 				//The isSwiped boolean could be incorrectly set if the user swipes a card and then changes the data that was entered to a different card.
-				bool isVoidingRefund=PIn.Double(textAmount.Text)>0 && _transType==PaySimple.TransType.VOID;
+				bool isVoidingRefund=SIn.Double(textAmount.Text)>0 && _transType==PaySimple.TransType.VOID;
 				apiResponseRetVal.BuildReceiptString(cardNumber,expMonth,expYear,textNameOnCard.Text,_clinicNum,_magstripCardParser!=null,
 					isVoidingRefund:isVoidingRefund);
 				if(checkPrintReceipt.Checked) {
@@ -349,7 +350,7 @@ namespace OpenDental {
 			{
 				accountNumber=_creditCard.PaySimpleToken;
 			}
-			else if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,_clinicNum))) {
+			else if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,_clinicNum))) {
 				MsgBox.Show(this,"Cannot add a new ACH payment.");
 				return null;
 			}
@@ -358,12 +359,12 @@ namespace OpenDental {
 					apiResponseRetVal=PaySimple.AddACHAccount(_patient,textRoutingNumber.Text,textCheckSaveNumber.Text,textBankName.Text,radioCheckings.Checked,_clinicNum);
 				}
 				else {
-					apiResponseRetVal=PaySimple.MakePaymentACH(_patient,_creditCard,PIn.Decimal(textAmountACH.Text),textRoutingNumber.Text,textCheckSaveNumber.Text,
+					apiResponseRetVal=PaySimple.MakePaymentACH(_patient,_creditCard,SIn.Decimal(textAmountACH.Text),textRoutingNumber.Text,textCheckSaveNumber.Text,
 						textBankName.Text,radioCheckings.Checked,checkOneTimePaymentACH.Checked,_clinicNum);
 				}
 			}
 			catch(PaySimpleException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				if(ex.ErrorType==PaySimpleError.CustomerDoesNotExist && MsgBox.Show(this,MsgBoxButtons.OKCancel,
 					"Delete the link to the customer id for this patient?")) 
 				{
@@ -372,7 +373,7 @@ namespace OpenDental {
 				return null;
 			}
 			catch(ODException ex) {
-				MessageBox.Show(ex.Message);//This should have already been Lans.g if applicable.
+				ODMessageBox.Show(ex.Message);//This should have already been Lans.g if applicable.
 				return null;
 			}
 			catch(Exception ex) {
@@ -461,7 +462,7 @@ namespace OpenDental {
 					migraDocPrintDocument.Print();
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Printer not available.")+"\r\n"+Lan.g(this,"Original error")+": "+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Printer not available.")+"\r\n"+Lan.g(this,"Original error")+": "+ex.Message);
 				}
 			}
 		}
@@ -492,8 +493,8 @@ namespace OpenDental {
 			}
 			if(Regex.IsMatch(textExpDate.Text,@"^\d\d[/\- ]\d\d$")) {//08/07 or 08-07 or 08 07
 				try {//PIn.Int will throw an exception if not a valid format
-					expYear=PIn.Int("20"+textExpDate.Text.Substring(3,2));
-					expMonth=PIn.Int(textExpDate.Text.Substring(0,2));
+					expYear=SIn.Int("20"+textExpDate.Text.Substring(3,2));
+					expMonth=SIn.Int(textExpDate.Text.Substring(0,2));
 				}
 				catch(Exception) {
 					MsgBox.Show(this,"Expiration format invalid.");
@@ -502,8 +503,8 @@ namespace OpenDental {
 			}
 			else if(Regex.IsMatch(textExpDate.Text,@"^\d{4}$")) {//0807
 				try {//PIn.Int will throw an exception if not a valid format
-					expYear=PIn.Int("20"+textExpDate.Text.Substring(2,2));
-					expMonth=PIn.Int(textExpDate.Text.Substring(0,2));
+					expYear=SIn.Int("20"+textExpDate.Text.Substring(2,2));
+					expMonth=SIn.Int(textExpDate.Text.Substring(0,2));
 				}
 				catch(Exception) {
 					MsgBox.Show(this,"Expiration format invalid.");
@@ -571,7 +572,7 @@ namespace OpenDental {
 					case PaySimple.TransType.SALE:
 						//If _patCur is null or the PatNum is 0, we will make a one time payment for an UNKNOWN patient.  
 						//This is currently only intended for prepaid insurance cards.
-						apiResponseRetVal=PaySimple.MakePayment((_patient==null ? 0 : _patient.PatNum),_creditCard,PIn.Decimal(textAmount.Text),textCardNumber.Text
+						apiResponseRetVal=PaySimple.MakePayment((_patient==null ? 0 : _patient.PatNum),_creditCard,SIn.Decimal(textAmount.Text),textCardNumber.Text
 							,new DateTime(expYear,expMonth,1),checkOneTimePayment.Checked,textZipCode.Text,textSecurityCode.Text,_clinicNum,_carrierName);
 						break;
 					case PaySimple.TransType.AUTH:
@@ -619,15 +620,15 @@ namespace OpenDental {
 				if(ex.ErrorType==PaySimpleError.CustomerDoesNotExist && !isRetry) {
 					throw ex;
 				}
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return null;
 			}
 			catch(ODException wex) {
-				MessageBox.Show(wex.Message);//This should have already been Lans.g if applicable.
+				ODMessageBox.Show(wex.Message);//This should have already been Lans.g if applicable.
 				return null;
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error:")+" "+ex.Message);
 				return null;
 			}
 			return apiResponseRetVal;

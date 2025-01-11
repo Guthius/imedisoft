@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental.ReportingComplex
@@ -419,19 +420,19 @@ namespace OpenDental.ReportingComplex
             var retVals = new List<string>();
             if (reportObject.FieldValueType == FieldValueType.Age)
             {
-                displayText = Patients.AgeToString(Patients.DateToAge(PIn.Date(rawText))); //(fieldObject.FormatString);
+                displayText = Patients.AgeToString(Patients.DateToAge(SIn.Date(rawText))); //(fieldObject.FormatString);
             }
             else if (reportObject.FieldValueType == FieldValueType.Boolean)
             {
-                displayText = PIn.Bool(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(); //(fieldObject.FormatString);
+                displayText = SIn.Bool(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(); //(fieldObject.FormatString);
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    prevDisplayText = PIn.Bool(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString();
+                    prevDisplayText = SIn.Bool(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString();
                 }
             }
             else if (reportObject.FieldValueType == FieldValueType.Date)
             {
-                var rowDateTime = PIn.DateTime(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString());
+                var rowDateTime = SIn.DateTime(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString());
                 if (rowDateTime.Year > 1880)
                 {
                     displayText = rowDateTime.ToString(reportObject.StringFormat);
@@ -439,7 +440,7 @@ namespace OpenDental.ReportingComplex
 
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    rowDateTime = PIn.DateTime(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString());
+                    rowDateTime = SIn.DateTime(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString());
                     prevDisplayText = "";
                     if (rowDateTime.Year > 1880)
                     {
@@ -449,18 +450,18 @@ namespace OpenDental.ReportingComplex
             }
             else if (reportObject.FieldValueType == FieldValueType.Integer)
             {
-                displayText = PIn.Long(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                displayText = SIn.Long(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    prevDisplayText = PIn.Long(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                    prevDisplayText = SIn.Long(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 }
             }
             else if (reportObject.FieldValueType == FieldValueType.Number)
             {
-                displayText = PIn.Double(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                displayText = SIn.Double(ReportTable.Rows[i][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 if (i > 0 && reportObject.SuppressIfDuplicate)
                 {
-                    prevDisplayText = PIn.Double(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+                    prevDisplayText = SIn.Double(ReportTable.Rows[i - 1][ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
                 }
             }
             else if (reportObject.FieldValueType == FieldValueType.String)
@@ -493,7 +494,7 @@ namespace OpenDental.ReportingComplex
                 }
             }
 
-            MessageBox.Show("end of loop");
+            ODMessageBox.Show("end of loop");
             return null;
         }
 

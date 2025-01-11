@@ -113,7 +113,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error: ")+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error: ")+ex.Message);
 				return;
 			}
 			finally {

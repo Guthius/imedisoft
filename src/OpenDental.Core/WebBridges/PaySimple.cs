@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness {
@@ -165,7 +166,7 @@ namespace OpenDentBusiness {
 					CreditCards.Update(cc);
 				}
 			}
-			return PaySimpleApi.PostPayment(GetAuthHeader(clinicNum),PaySimpleApi.MakeNewPaymentData(PIn.Long(cc.PaySimpleToken),payAmt,cvv),
+			return PaySimpleApi.PostPayment(GetAuthHeader(clinicNum),PaySimpleApi.MakeNewPaymentData(SIn.Long(cc.PaySimpleToken),payAmt,cvv),
 				cc.CCSource); 
 		}
 
@@ -222,7 +223,7 @@ namespace OpenDentBusiness {
 			long psCustomerId=AddCustomer("UNKNOWN",lname,"",clinicNum);
 			ApiResponse apiResponse=AddCreditCard(psCustomerId,ccNum,ccExpDate,billingZipCode);
 			string accountId=apiResponse.PaySimpleToken;
-			return PaySimpleApi.PostPayment(GetAuthHeader(clinicNum),PaySimpleApi.MakeNewPaymentData(PIn.Long(accountId),payAmt,cvv),
+			return PaySimpleApi.PostPayment(GetAuthHeader(clinicNum),PaySimpleApi.MakeNewPaymentData(SIn.Long(accountId),payAmt,cvv),
 				CreditCardSource.PaySimple);
 		}
 
@@ -258,7 +259,7 @@ namespace OpenDentBusiness {
 					HandlePaySimpleException(ex,psCustomerId);
 				}
 			}
-			return PaySimpleApi.PostPayment(GetAuthHeader(clinicNum),PaySimpleApi.MakeNewPaymentACHData(PIn.Long(cc.PaySimpleToken),payAmt),
+			return PaySimpleApi.PostPayment(GetAuthHeader(clinicNum),PaySimpleApi.MakeNewPaymentACHData(SIn.Long(cc.PaySimpleToken),payAmt),
 				cc.CCSource);
 
 		}
@@ -1399,7 +1400,7 @@ namespace OpenDentBusiness {
 					client.Headers[HttpRequestHeader.Accept]="application/json";
 					client.Headers[HttpRequestHeader.ContentType]="application/json";
 					client.Headers[HttpRequestHeader.Authorization]=authHeader;
-					client.Encoding=UnicodeEncoding.UTF8;
+					client.Encoding=Encoding.UTF8;
 					//Post with Authorization headers and a body comprised of a JSON serialized anonymous type.
 					try {
 						string res="";

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -32,7 +33,7 @@ namespace OpenDental {
 			}
 			_program=Programs.GetCur(ProgramName.TrojanExpressCollect);
 			textExportFolder.Text=ProgramProperties.GetPropVal(_program.ProgramNum,"FolderPath");
-			long billtype=PIn.Long(ProgramProperties.GetPropVal(_program.ProgramNum,"BillingType"));
+			long billtype=SIn.Long(ProgramProperties.GetPropVal(_program.ProgramNum,"BillingType"));
 			_listDefsBillingType=Defs.GetDefsForCategory(DefCat.BillingTypes,true);
 			comboBillType.Items.AddList(_listDefsBillingType.Select(x => x.ItemName));
 			comboBillType.SelectedIndex=Math.Max(_listDefsBillingType.FindIndex(x => x.DefNum==billtype),0);
@@ -52,7 +53,7 @@ namespace OpenDental {
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"There was an error showing the Browse window.")+"\r\n"
+					ODMessageBox.Show(Lan.g(this,"There was an error showing the Browse window.")+"\r\n"
 					                                                                           +Lan.g(this,"Try running as an Administrator or manually typing in a path."));
 					return;
 				}
@@ -64,7 +65,7 @@ namespace OpenDental {
 				return true;//no need to check for valid fields if program link is disabled
 			}
 			else if(!Programs.IsEnabledByHq(ProgramName.TrojanExpressCollect,out string err)) {
-				MessageBox.Show(err);
+				ODMessageBox.Show(err);
 				return false;
 			}
 			if(!Directory.Exists(textExportFolder.Text)) {

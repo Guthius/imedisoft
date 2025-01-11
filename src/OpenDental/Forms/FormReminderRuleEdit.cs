@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -148,7 +149,7 @@ namespace OpenDental {
 				//	}
 				//  break;
 				default:
-					MessageBox.Show("You should never see this error message. Something has stopped working properly.");
+					ODMessageBox.Show("You should never see this error message. Something has stopped working properly.");
 					break;
 			}
 			FillFK();
@@ -174,14 +175,14 @@ namespace OpenDental {
 			{
 				ReminderRuleCur.CriterionValue="";
 				if(ReminderRuleCur.CriterionFK==-1 || ReminderRuleCur.CriterionFK==0) {
-					MessageBox.Show("Please select a valid "+ReminderRuleCur.ReminderCriterion.ToString().ToLower()+".");
+					ODMessageBox.Show("Please select a valid "+ReminderRuleCur.ReminderCriterion.ToString().ToLower()+".");
 					return;
 				}
 			}
 			else if(ReminderRuleCur.ReminderCriterion==EhrCriterion.Gender){
 				ReminderRuleCur.CriterionFK=0;
 				if(textCriterionValue.Text.ToLower()!="male" && textCriterionValue.Text.ToLower()!="female") {
-					MessageBox.Show("Please input male or female for gender value.");
+					ODMessageBox.Show("Please input male or female for gender value.");
 					return;
 				}
 				ReminderRuleCur.CriterionValue=textCriterionValue.Text.ToLower();
@@ -189,18 +190,18 @@ namespace OpenDental {
 			else if(ReminderRuleCur.ReminderCriterion==EhrCriterion.LabResult) {
 				ReminderRuleCur.CriterionFK=0;
 				if(textCriterionValue.Text=="") {
-					MessageBox.Show("Please input a valid lab result.");
+					ODMessageBox.Show("Please input a valid lab result.");
 					return;
 				}
 					ReminderRuleCur.CriterionValue=textCriterionValue.Text;
 			}
 			else {//Age
 				if(textCriterionValue.Text.Length<2){
-					MessageBox.Show("Criterion value must be comparator followed by an age. eg. \"<18\".");
+					ODMessageBox.Show("Criterion value must be comparator followed by an age. eg. \"<18\".");
 					return;
 				}
 				if(textCriterionValue.Text[0]!='<' && textCriterionValue.Text[0]!='>'){
-					MessageBox.Show("Age criterion must begin with either \"<\" or \">\".");
+					ODMessageBox.Show("Age criterion must begin with either \"<\" or \">\".");
 					return;
 				}
 				int tempAge;
@@ -208,22 +209,22 @@ namespace OpenDental {
 					tempAge=int.Parse(textCriterionValue.Text.Substring(1,textCriterionValue.Text.Length-1));
 				}
 				catch {
-					MessageBox.Show("Age criterion is not in the form of a valid age.");
+					ODMessageBox.Show("Age criterion is not in the form of a valid age.");
 					return;
 				}
 				if(tempAge<0 || tempAge>200) {
-					MessageBox.Show("Age must be between 0 and 200.");
+					ODMessageBox.Show("Age must be between 0 and 200.");
 					return;
 				}
 				ReminderRuleCur.CriterionValue=textCriterionValue.Text;
 			}
 			if(textReminderMessage.Text.Length>255){
-				MessageBox.Show("Reminder message must be shorter than 255 characters.");
+				ODMessageBox.Show("Reminder message must be shorter than 255 characters.");
 				return;
 			}
 			ReminderRuleCur.Message=textReminderMessage.Text;
 			if(ReminderRuleCur.Message=="") {
-				MessageBox.Show("Reminder will be saved with no reminder message.");
+				ODMessageBox.Show("Reminder will be saved with no reminder message.");
 			}
 			if(IsNew) {
 				ReminderRules.Insert(ReminderRuleCur);

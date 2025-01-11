@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 
@@ -53,7 +54,7 @@ namespace OpenDental {
 				return;
 			}
 			AttachmentItemCur.ImageAttachment.ImageFileNameDisplay=textFileName.Text;
-			AttachmentItemCur.ImageAttachment.ImageDate=PIn.Date(textDateCreated.Text);
+			AttachmentItemCur.ImageAttachment.ImageDate=SIn.Date(textDateCreated.Text);
 			AttachmentItemCur.ImageAttachment.ImageType=listBoxImageType.GetSelected<ClaimConnect.ImageTypeCode>();
 			AttachmentItemCur.HasTypeBeenSet=true;//The user will have picked a type at least once by now
 			DialogResult=DialogResult.OK;

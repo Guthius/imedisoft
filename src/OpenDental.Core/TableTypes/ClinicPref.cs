@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Drawing;
+using DataConnectionBase;
 
 namespace OpenDentBusiness{
 	///<summary>Used to store preferences specific to clinics.</summary>
@@ -26,7 +27,7 @@ namespace OpenDentBusiness{
 		public ClinicPref(long clinicNum, PrefName prefName, bool valueBool) {
 			this.ClinicNum=clinicNum;
 			this.PrefName=prefName;
-			this.ValueString=POut.Bool(valueBool);
+			this.ValueString=SOut.Bool(valueBool);
 		}
 
 		public ClinicPref(long clinicNum, PrefName prefName, string valueString) {

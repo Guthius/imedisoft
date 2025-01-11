@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.Remoting;
@@ -2338,14 +2339,14 @@ namespace OpenDentBusiness {
 			if(listHiddenUnearnedPayTypes.Count > 0) {
 				//Some income transfers may have splits that are associated to a hidden type. These transfers must not be deleted (via TaskNum 2806662).
 				command=$@"SELECT DISTINCT PayNum FROM paysplit
-				WHERE PayNum IN({string.Join(",",listPayNumsToDelete.Select(x => POut.Long(x)))})
-				AND UnearnedType IN({string.Join(",",listHiddenUnearnedPayTypes.Select(x => POut.Long(x)))})";
+				WHERE PayNum IN({string.Join(",",listPayNumsToDelete.Select(x => SOut.Long(x)))})
+				AND UnearnedType IN({string.Join(",",listHiddenUnearnedPayTypes.Select(x => SOut.Long(x)))})";
 				listPreservePayNums.AddRange(Db.GetListLong(command));
 			}
 			//Some income transfers may have splits that are associated to patients in different families. These transfers must not be deleted.
 			command=$@"SELECT DISTINCT PayNum FROM paysplit
-				WHERE PayNum IN({string.Join(",",listPayNumsToDelete.Select(x => POut.Long(x)))})
-				AND PatNum NOT IN({string.Join(",",listPatNums.Select(x => POut.Long(x)))})";
+				WHERE PayNum IN({string.Join(",",listPayNumsToDelete.Select(x => SOut.Long(x)))})
+				AND PatNum NOT IN({string.Join(",",listPatNums.Select(x => SOut.Long(x)))})";
 			listPreservePayNums.AddRange(Db.GetListLong(command));
 			//Remove any income transfers that need to be preserved from our list of payments to delete.
 			listPayNumsToDelete.RemoveAll(x => listPreservePayNums.Contains(x));

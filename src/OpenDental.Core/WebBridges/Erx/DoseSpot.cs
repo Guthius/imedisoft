@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -42,7 +43,7 @@ namespace OpenDentBusiness
 
         public static OIDExternal GetDoseSpotPatID(long patNum)
         {
-            return OIDExternals.GetOidExternal(GetDoseSpotRoot() + "." + POut.Int((int) IdentifierType.Patient), patNum, IdentifierType.Patient);
+            return OIDExternals.GetOidExternal(GetDoseSpotRoot() + "." + SOut.Int((int) IdentifierType.Patient), patNum, IdentifierType.Patient);
         }
 
         public static OIDExternal GetDoseSpotRootOid()
@@ -57,7 +58,7 @@ namespace OpenDentBusiness
 
         public static string GenerateAccountId(long patNum)
         {
-            string accountId = "DS;" + POut.Long(patNum);
+            string accountId = "DS;" + SOut.Long(patNum);
             accountId += "-" + MiscUtils.CreateRandomAlphaNumericString(3);
             long checkSum = patNum;
             checkSum += Convert.ToByte(accountId[accountId.IndexOf('-') + 1]) * 3;
@@ -148,7 +149,7 @@ namespace OpenDentBusiness
 
                 RxPat rxPat = new RxPat();
                 long rxCui = doseSpotMedicationWrapper.RxCUI; //If this is zero either DoseSpot didn't send the value or there was an issue casting from string to long.
-                rxPat.IsControlled = (PIn.Int(doseSpotMedicationWrapper.Schedule) != 0); //Controlled if Schedule is I,II,III,IV,V
+                rxPat.IsControlled = (SIn.Int(doseSpotMedicationWrapper.Schedule) != 0); //Controlled if Schedule is I,II,III,IV,V
                 rxPat.DosageCode = "";
                 rxPat.SendStatus = RxSendStatus.Unsent;
                 switch (doseSpotMedicationWrapper.PrescriptionStatus)
@@ -528,17 +529,17 @@ namespace OpenDentBusiness
             SingleSignOn singleSignOn = GetSingleSignOn(clinicID, clinicKey, userID, false);
             StringBuilder stringBuilder = new StringBuilder();
             QueryStringAddParameter(stringBuilder, "SingleSignOnCode", singleSignOn.SingleSignOnCode);
-            QueryStringAddParameter(stringBuilder, "SingleSignOnUserId", POut.Int(singleSignOn.SingleSignOnUserId));
+            QueryStringAddParameter(stringBuilder, "SingleSignOnUserId", SOut.Int(singleSignOn.SingleSignOnUserId));
             QueryStringAddParameter(stringBuilder, "SingleSignOnUserIdVerify", singleSignOn.SingleSignOnUserIdVerify);
-            QueryStringAddParameter(stringBuilder, "SingleSignOnClinicId", POut.Int(singleSignOn.SingleSignOnClinicId));
+            QueryStringAddParameter(stringBuilder, "SingleSignOnClinicId", SOut.Int(singleSignOn.SingleSignOnClinicId));
             if (!String.IsNullOrWhiteSpace(onBehalfOfUserId))
             {
-                QueryStringAddParameter(stringBuilder, "OnBehalfOfUserId", POut.String(onBehalfOfUserId));
+                QueryStringAddParameter(stringBuilder, "OnBehalfOfUserId", SOut.String(onBehalfOfUserId));
             }
 
             if (patient == null)
             {
-                QueryStringAddParameter(stringBuilder, "RefillsErrors", POut.Int(1)); //Request transmission errors
+                QueryStringAddParameter(stringBuilder, "RefillsErrors", SOut.Int(1)); //Request transmission errors
             }
             else
             {
@@ -760,7 +761,7 @@ namespace OpenDentBusiness
                         }
                         else if (xmlAttribute.Name == "EnabledStatus")
                         {
-                            erxStatus = PIn.Enum<ErxStatus>(PIn.Int(xmlAttribute.Value));
+                            erxStatus = SIn.Enum<ErxStatus>(SIn.Int(xmlAttribute.Value));
                         }
                         else if (xmlAttribute.Name == "ClinicId")
                         {
@@ -812,7 +813,7 @@ namespace OpenDentBusiness
         public static OIDExternal CreateOIDForPatient(int doseSpotPatID, long patNum)
         {
             OIDExternal oIDExternal = new OIDExternal();
-            oIDExternal.rootExternal = GetDoseSpotRoot() + "." + POut.Int((int) IdentifierType.Patient);
+            oIDExternal.rootExternal = GetDoseSpotRoot() + "." + SOut.Int((int) IdentifierType.Patient);
             oIDExternal.IDExternal = doseSpotPatID.ToString();
             oIDExternal.IDInternal = patNum;
             oIDExternal.IDType = IdentifierType.Patient;
@@ -905,8 +906,8 @@ namespace OpenDentBusiness
             string singleSignOnCode = CreateSsoCode(clinicKey, isQueryString);
             string singleSignOnUserIdVerify = CreateSsoUserIdVerify(clinicKey, userID, isQueryString);
             SingleSignOn dSSSingleSignOn = new SingleSignOn();
-            dSSSingleSignOn.SingleSignOnClinicId = PIn.Int(clinicID);
-            dSSSingleSignOn.SingleSignOnUserId = PIn.Int(userID);
+            dSSSingleSignOn.SingleSignOnClinicId = SIn.Int(clinicID);
+            dSSSingleSignOn.SingleSignOnUserId = SIn.Int(userID);
             dSSSingleSignOn.SingleSignOnPhraseLength = 32;
             dSSSingleSignOn.SingleSignOnCode = singleSignOnCode;
             dSSSingleSignOn.SingleSignOnUserIdVerify = singleSignOnUserIdVerify;
@@ -1148,7 +1149,7 @@ namespace OpenDentBusiness
             if (oIDExternal == null)
             {
                 //Create a DoseSpot patient and save it for future uses with this patient.
-                oIDExternal = CreateOIDForPatient(PIn.Int(DoseSpotREST.AddPatient(token, patient)), patient.PatNum);
+                oIDExternal = CreateOIDForPatient(SIn.Int(DoseSpotREST.AddPatient(token, patient)), patient.PatNum);
             }
             else
             {
@@ -1715,7 +1716,7 @@ namespace OpenDentBusiness
                 webClient.Headers[HttpRequestHeader.Accept] = acceptType;
                 webClient.Headers[HttpRequestHeader.ContentType] = acceptType;
                 webClient.Headers[HttpRequestHeader.Authorization] = authHeader;
-                webClient.Encoding = UnicodeEncoding.UTF8;
+                webClient.Encoding = Encoding.UTF8;
                 //Post with Authorization headers and a body comprised of a JSON serialized anonymous type.
                 try
                 {
@@ -2319,14 +2320,14 @@ namespace OpenDentBusiness
                 {
                     if (!_doseSpotSelfReported.RxCUI.IsNullOrEmpty())
                     {
-                        return PIn.Long(_doseSpotSelfReported.RxCUI, false); //Cast from string to long is intentional.
+                        return SIn.Long(_doseSpotSelfReported.RxCUI, false); //Cast from string to long is intentional.
                     }
                 }
                 else
                 {
                     if (!_doseSpotPrescription.RxCUI.IsNullOrEmpty())
                     {
-                        return PIn.Long(_doseSpotPrescription.RxCUI, false); //Cast from string to long is intentional.
+                        return SIn.Long(_doseSpotPrescription.RxCUI, false); //Cast from string to long is intentional.
                     }
                 }
 

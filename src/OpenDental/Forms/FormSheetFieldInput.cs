@@ -10,6 +10,7 @@ using OpenDentBusiness;
 using CodeBase;
 using PdfSharp.Drawing;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSheetFieldInput:FormODBase {
@@ -231,13 +232,13 @@ namespace OpenDental {
 			SheetFieldDefCur.FontName=comboFontName.GetSelected<string>();
 			SheetFieldDefCur.FontSize=fontSize;
 			SheetFieldDefCur.FontIsBold=checkFontIsBold.Checked;
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			SheetFieldDefCur.GrowthBehavior=comboGrowthBehavior.GetSelected<GrowthBehaviorEnum>();
 			SheetFieldDefCur.IsRequired=checkRequired.Checked;
-			SheetFieldDefCur.TabOrder=PIn.Int(textTabOrder.Text);
+			SheetFieldDefCur.TabOrder=SIn.Int(textTabOrder.Text);
 			SheetFieldDefCur.UiLabelMobile=textUiLabelMobile.Text;
 			//don't save to database here.
 			SheetFieldDefCur.IsNew=false;

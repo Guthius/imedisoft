@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 using OpenDentBusiness.Remoting;
@@ -469,7 +470,7 @@ namespace OpenDentBusiness {
 				}
 				else if(edgeExpressTransactionType==EdgeExpressTransType.QueryPayment) {
 					string responseCode=WebSerializer.DeserializeNode(result,"RESPONSECODE");
-					XWebResponseCodes responseCodeEnum=PIn.Enum<XWebResponseCodes>(responseCode,defaultValue:XWebResponseCodes.Undefined);
+					XWebResponseCodes responseCodeEnum=SIn.Enum<XWebResponseCodes>(responseCode,defaultValue:XWebResponseCodes.Undefined);
 					if(responseCodeEnum==XWebResponseCodes.InvalidReferenceError) {
 						//XWeb gives this code before the patient completes the transaction. They also give this code when the OrderId doesn't exist.
 						xResponse.XWebResponseCode=XWebResponseCodes.Pending;
@@ -483,7 +484,7 @@ namespace OpenDentBusiness {
 					EdgeExpressTransType.CreditOnlineCapture)
 				) {
 					string responseCode=WebSerializer.DeserializeNode(result,"RESPONSECODE");
-					XWebResponseCodes responseCodeEnum=PIn.Enum<XWebResponseCodes>(responseCode,defaultValue:XWebResponseCodes.Undefined);
+					XWebResponseCodes responseCodeEnum=SIn.Enum<XWebResponseCodes>(responseCode,defaultValue:XWebResponseCodes.Undefined);
 					if(responseCodeEnum==XWebResponseCodes.InvalidReferenceError) {
 						string transaction=WebSerializer.DeserializeNode(result,"TRANSACTIONID");
 						string desc=WebSerializer.DeserializeNode(result,"RESPONSEDESCRIPTION");
@@ -492,7 +493,7 @@ namespace OpenDentBusiness {
 					xResponse=ConvertEdgeExpressResponse(result);
 				}
 				else if(edgeExpressTransactionType==EdgeExpressTransType.AliasDelete) {
-					xResponse.XWebResponseCode=PIn.Enum<XWebResponseCodes>(WebSerializer.DeserializeNode(result,"RESPONSECODE"));
+					xResponse.XWebResponseCode=SIn.Enum<XWebResponseCodes>(WebSerializer.DeserializeNode(result,"RESPONSECODE"));
 					xResponse.ResponseDescription=WebSerializer.DeserializeNode(result,"RESPONSEDESCRIPTION");
 					if(xResponse.XWebResponseCode==XWebResponseCodes.AliasSuccess) {
 						xResponse.TransactionStatus=XWebTransactionStatus.EdgeExpressAliasDeleted;//Not Tracked by eConnector.
@@ -502,7 +503,7 @@ namespace OpenDentBusiness {
 					}
 				}
 				else if(edgeExpressTransactionType==EdgeExpressTransType.AliasUpdate) {
-					xResponse.XWebResponseCode=PIn.Enum<XWebResponseCodes>(WebSerializer.DeserializeNode(result,"RESPONSECODE"));
+					xResponse.XWebResponseCode=SIn.Enum<XWebResponseCodes>(WebSerializer.DeserializeNode(result,"RESPONSECODE"));
 					xResponse.ResponseDescription=WebSerializer.DeserializeNode(result,"RESPONSEDESCRIPTION");
 					if(xResponse.XWebResponseCode==XWebResponseCodes.AliasSuccess) {
 						xResponse.TransactionStatus=XWebTransactionStatus.EdgeExpressAliasUpdated;//Not Tracked by eConnector.

@@ -18,6 +18,7 @@ using System.IO;
 using System.Web;
 using System.Net;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -121,7 +122,7 @@ namespace OpenDental {
 			string[] statusRespose;
 			char[] separatorequal = { '=' };
 			statusRespose = parseResponse[0].Split(separatorequal);
-			responseStatus = PIn.Int(statusRespose[1]);
+			responseStatus = SIn.Int(statusRespose[1]);
 
 			Progress("Process Clearinghouse Authorization Response..");
 			string errormessage = string.Empty;
@@ -853,13 +854,13 @@ namespace OpenDental {
 				string[] statusRespose;
 				char[] separatorequal = { '=' };
 				statusRespose = parseResponse[0].Split(separatorequal);
-				responseStatus = PIn.Int(statusRespose[1]);
+				responseStatus = SIn.Int(statusRespose[1]);
 
 				string errormessage = string.Empty;
 				switch(responseStatus) {
 					case 0:
 						Progress("Patient eBill transmission completed Successfully.");
-						MessageBox.Show(this,"Patient eBill transmission completed Successfully.");
+						ODMessageBox.Show(this,"Patient eBill transmission completed Successfully.");
 						this.Close();
 						break;
 					case 1:

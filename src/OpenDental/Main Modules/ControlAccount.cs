@@ -14,6 +14,7 @@ using OpenDentBusiness;
 using CodeBase;
 using OpenDentBusiness.WebTypes;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
@@ -161,7 +162,7 @@ namespace OpenDental {
 		private void butAutoOrthoEditMonthsTreat_Click(object sender,EventArgs e) {
 			int txMonths;
 			try {
-				txMonths=PIn.Byte(textAutoOrthoMonthsTreat.Text);
+				txMonths=SIn.Byte(textAutoOrthoMonthsTreat.Text);
 			}
 			catch {
 				MsgBox.Show(this,"Please enter a number between 0 and 255.");
@@ -186,7 +187,7 @@ namespace OpenDental {
 		private void butEditAutoOrthoPlacement_Click(object sender,EventArgs e) {
 			DateTime dateOrthoPlacement;
 			try {
-				dateOrthoPlacement=PIn.Date(textDateAutoOrthoPlacement.Text);
+				dateOrthoPlacement=SIn.Date(textDateAutoOrthoPlacement.Text);
 			}
 			catch {
 				MsgBox.Show(this,"Invalid date.");
@@ -258,7 +259,7 @@ namespace OpenDental {
 
 		private void checkShowDetail_Click(object sender,EventArgs e) {
 			UserOdPref userOdPref=UserOdPrefs.GetFirstOrNewByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.AcctProcBreakdown);
-			userOdPref.ValueString=POut.Bool(checkShowDetail.Checked);
+			userOdPref.ValueString=SOut.Bool(checkShowDetail.Checked);
 			UserOdPrefs.Upsert(userOdPref);
 			DataValid.SetInvalid(InvalidType.UserOdPrefs);
 			if(_patient==null) {
@@ -274,7 +275,7 @@ namespace OpenDental {
 		///<summary>Uses the UserODPref to store ShowAutomatedCommlog separately from the chart module.</summary>
 		private void checkShowAutoComm_Click(object sender, EventArgs e) {
 			UserOdPref userOdPref=UserOdPrefs.GetFirstOrNewByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.ShowAutomatedCommlog);
-			userOdPref.ValueString=POut.Bool(checkShowCommAuto.Checked);
+			userOdPref.ValueString=SOut.Bool(checkShowCommAuto.Checked);
 			UserOdPrefs.Upsert(userOdPref);
 			DataValid.SetInvalid(InvalidType.UserOdPrefs);
 			if(_patient==null) {
@@ -315,7 +316,7 @@ namespace OpenDental {
 			menuItemAddRefund.Enabled=true;
 			menuItemAddRefundWorkNotPerformed.Enabled=true;
 			for(int i=0;i<listIdxRowsSelected.Count;i++) {
-				long payNum=PIn.Long(table.Rows[listIdxRowsSelected[i]]["PayNum"].ToString());
+				long payNum=SIn.Long(table.Rows[listIdxRowsSelected[i]]["PayNum"].ToString());
 				if(payNum==0) {
 					continue;//something is selected that's not a payment, move on.
 				}
@@ -372,7 +373,7 @@ namespace OpenDental {
 			// Only one row should be selected, and it should be a PayPlanCharge.
 			long payPlanChargeNum=0;
 			if(listIdxRowsSelected.Count==1) {
-				payPlanChargeNum=PIn.Long(table.Rows[listIdxRowsSelected[0]]["PayPlanChargeNum"].ToString());
+				payPlanChargeNum=SIn.Long(table.Rows[listIdxRowsSelected[0]]["PayPlanChargeNum"].ToString());
 			}
 			if(payPlanChargeNum!=0) {
 				menuItemEditPayPlanCharge.Visible=true;
@@ -385,7 +386,7 @@ namespace OpenDental {
 			//Delete PayPlan Charge--------------------------------------------------------------------------------------------
 			menuItemDeletePayPlanCharge.Visible=false;
 			for(int i=0;i<listIdxRowsSelected.Count;i++) {
-				payPlanChargeNum=PIn.Long(table.Rows[listIdxRowsSelected[i]]["PayPlanChargeNum"].ToString());
+				payPlanChargeNum=SIn.Long(table.Rows[listIdxRowsSelected[i]]["PayPlanChargeNum"].ToString());
 				if(payPlanChargeNum==0) {
 					continue;
 				}
@@ -586,7 +587,7 @@ namespace OpenDental {
 			_scrollValueWhenDoubleClick=gridAccount.ScrollValue;
 			DataTable table=_dataSetMain.Tables["account"];
 			if(table.Rows[e.Row]["ProcNum"].ToString()!="0") {
-				Procedure procedure=Procedures.GetOneProc(PIn.Long(table.Rows[e.Row]["ProcNum"].ToString()),true);
+				Procedure procedure=Procedures.GetOneProc(SIn.Long(table.Rows[e.Row]["ProcNum"].ToString()),true);
 				Patient patient=_family.GetPatient(procedure.PatNum);
 				using FormProcEdit formProcEdit=new FormProcEdit(procedure,patient,_family);
 				formProcEdit.ListClaimProcHists=_loadData.HistList;
@@ -594,7 +595,7 @@ namespace OpenDental {
 				formProcEdit.ShowDialog();
 			}
 			else if(table.Rows[e.Row]["AdjNum"].ToString()!="0") {
-				Adjustment adjustment=Adjustments.GetOne(PIn.Long(table.Rows[e.Row]["AdjNum"].ToString()));
+				Adjustment adjustment=Adjustments.GetOne(SIn.Long(table.Rows[e.Row]["AdjNum"].ToString()));
 				if(adjustment==null) {
 					MsgBox.Show(this,"The adjustment has been deleted.");//Don't return. Fall through to the refresh. 
 				}
@@ -604,9 +605,9 @@ namespace OpenDental {
 				}
 			}
 			else if(table.Rows[e.Row]["PayNum"].ToString()!="0") {
-				Payment payment=Payments.GetPayment(PIn.Long(table.Rows[e.Row]["PayNum"].ToString()));
+				Payment payment=Payments.GetPayment(SIn.Long(table.Rows[e.Row]["PayNum"].ToString()));
 				if(payment==null) {
-					MessageBox.Show(Lans.g(this,"No payment exists.  Please run database maintenance method")+" "+nameof(DatabaseMaintenances.PaySplitWithInvalidPayNum));
+					ODMessageBox.Show(Lans.g(this,"No payment exists.  Please run database maintenance method")+" "+nameof(DatabaseMaintenances.PaySplitWithInvalidPayNum));
 					return;
 				}
 				using FormPayment formPayment=new FormPayment(_patient,_family,payment,false);
@@ -617,7 +618,7 @@ namespace OpenDental {
 				if(!Security.IsAuthorized(EnumPermType.ClaimView)) {
 					return;
 				}
-				Claim claim=Claims.GetClaim(PIn.Long(table.Rows[e.Row]["ClaimNum"].ToString()));
+				Claim claim=Claims.GetClaim(SIn.Long(table.Rows[e.Row]["ClaimNum"].ToString()));
 				if(claim==null) {
 					MsgBox.Show(this,"The claim has been deleted.");
 				}
@@ -629,7 +630,7 @@ namespace OpenDental {
 				}
 			}
 			else if(table.Rows[e.Row]["StatementNum"].ToString()!="0") {
-				Statement statement=Statements.GetStatement(PIn.Long(table.Rows[e.Row]["StatementNum"].ToString()));
+				Statement statement=Statements.GetStatement(SIn.Long(table.Rows[e.Row]["StatementNum"].ToString()));
 				if(statement==null) {
 					MsgBox.Show(this,"The statement has been deleted");//Don't return. Fall through to the refresh. 
 				}
@@ -640,7 +641,7 @@ namespace OpenDental {
 				}
 			}
 			else if(table.Rows[e.Row]["PayPlanNum"].ToString()!="0") {
-				PayPlan payplan=PayPlans.GetOne(PIn.Long(table.Rows[e.Row]["PayPlanNum"].ToString()));
+				PayPlan payplan=PayPlans.GetOne(SIn.Long(table.Rows[e.Row]["PayPlanNum"].ToString()));
 				if(payplan==null) {
 					MsgBox.Show(this,"This pay plan has been deleted by another user.");
 					ModuleSelected(_patient.PatNum,IsFamilySelected());
@@ -697,7 +698,7 @@ namespace OpenDental {
 		private void gridComm_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			int row=(int)gridComm.ListGridRows[e.Row].Tag;
 			if(_dataSetMain.Tables["Commlog"].Rows[row]["CommlogNum"].ToString()!="0") {
-				Commlog commlog=Commlogs.GetOne(PIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["CommlogNum"].ToString()));
+				Commlog commlog=Commlogs.GetOne(SIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["CommlogNum"].ToString()));
 				if(commlog==null) {
 					MsgBox.Show(this,"This commlog has been deleted by another user.");
 					ModuleSelected(_patient.PatNum);
@@ -712,7 +713,7 @@ namespace OpenDental {
 			}
 			if(_dataSetMain.Tables["Commlog"].Rows[row]["EmailMessageNum"].ToString()!="0") {
 				EmailMessage emailMessage=
-					EmailMessages.GetOne(PIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["EmailMessageNum"].ToString()));
+					EmailMessages.GetOne(SIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["EmailMessageNum"].ToString()));
 				if(EmailMessages.IsSecureWebMail(emailMessage.SentOrReceived)) {
 					//web mail uses special secure messaging portal
 					using FormWebMailMessageEdit formWebMailMessageEdit=new FormWebMailMessageEdit(_patient.PatNum,emailMessage);
@@ -729,7 +730,7 @@ namespace OpenDental {
 				return;
 			}
 			if(_dataSetMain.Tables["Commlog"].Rows[row]["FormPatNum"].ToString()!="0") {
-				FormPat formPat=FormPats.GetOne(PIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["FormPatNum"].ToString()));
+				FormPat formPat=FormPats.GetOne(SIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["FormPatNum"].ToString()));
 				using FormFormPatEdit formFormPatEdit=new FormFormPatEdit();
 				formFormPatEdit.FormPatCur=formPat;
 				formFormPatEdit.ShowDialog();
@@ -739,7 +740,7 @@ namespace OpenDental {
 				return;
 			}
 			if(_dataSetMain.Tables["Commlog"].Rows[row]["SheetNum"].ToString()!="0") {
-				Sheet sheet=Sheets.GetSheet(PIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["SheetNum"].ToString()));
+				Sheet sheet=Sheets.GetSheet(SIn.Long(_dataSetMain.Tables["Commlog"].Rows[row]["SheetNum"].ToString()));
 				SheetUtilL.ShowSheet(sheet,_patient,FormSheetFillEdit_FormClosing);
 			}
 		}
@@ -788,7 +789,7 @@ namespace OpenDental {
 			if(dataRow["PayPlanNum"].ToString()=="0") {
 				return;
 			}
-			PayPlan payPlan=PayPlans.GetOne(PIn.Long(dataRow["PayPlanNum"].ToString()));
+			PayPlan payPlan=PayPlans.GetOne(SIn.Long(dataRow["PayPlanNum"].ToString()));
 			if(payPlan==null) {
 				MsgBox.Show(this,"This pay plan has been deleted by another user.");
 				return;
@@ -810,14 +811,14 @@ namespace OpenDental {
 			DataRow dataRow=(DataRow)gridPayPlan.ListGridRows[e.Row].Tag;
 			if(dataRow["PayPlanNum"].ToString()=="0") {//Installment Plan
 				using FormInstallmentPlanEdit formInstallmentPlanEdit=new FormInstallmentPlanEdit();
-				formInstallmentPlanEdit.InstallmentPlanCur=InstallmentPlans.GetOne(PIn.Long(dataRow["InstallmentPlanNum"].ToString()));
+				formInstallmentPlanEdit.InstallmentPlanCur=InstallmentPlans.GetOne(SIn.Long(dataRow["InstallmentPlanNum"].ToString()));
 				formInstallmentPlanEdit.IsNew=false;
 				formInstallmentPlanEdit.ShowDialog();
 				ModuleSelected(_patient.PatNum);
 				return;
 			}
 			//Payment plan
-			PayPlan payPlan=PayPlans.GetOne(PIn.Long(dataRow["PayPlanNum"].ToString()));
+			PayPlan payPlan=PayPlans.GetOne(SIn.Long(dataRow["PayPlanNum"].ToString()));
 			if(payPlan==null) {
 				MsgBox.Show(this,"This pay plan has been deleted by another user.");
 				ModuleSelected(_patient.PatNum,IsFamilySelected());
@@ -903,7 +904,7 @@ namespace OpenDental {
 		}
 
 		private void labelUnearnedAmt_MouseEnter(object sender,EventArgs e) {
-			if(Math.Abs(PIn.Decimal(labelUnearnedAmt.Text))>0) {
+			if(Math.Abs(SIn.Decimal(labelUnearnedAmt.Text))>0) {
 				gridUnearnedBreakdown.Visible=true;
 				gridUnearnedBreakdown.Enabled=true;
 			}
@@ -915,7 +916,7 @@ namespace OpenDental {
 		}
 
 		private void labelInsEstAmt_MouseEnter(object sender,EventArgs e) {
-			if(Math.Abs(PIn.Decimal(labelInsEstAmt.Text))>0) {
+			if(Math.Abs(SIn.Decimal(labelInsEstAmt.Text))>0) {
 				gridInsEstOpenClaims.Visible=true;
 				gridInsEstOpenClaims.Enabled=true;
 			}
@@ -957,7 +958,7 @@ namespace OpenDental {
 					if(table.Rows[i]["ProcNum"].ToString()=="0") {
 						continue;//ignore non-procedures
 					}
-					procedure=Procedures.GetProcFromList(claimData.ListProcs,PIn.Long(table.Rows[i]["ProcNum"].ToString()));
+					procedure=Procedures.GetProcFromList(claimData.ListProcs,SIn.Long(table.Rows[i]["ProcNum"].ToString()));
 					if(procedure.ProcFee==0) {
 						continue;//ignore zero fee procedures, but user can explicitly select them
 					}
@@ -1009,7 +1010,7 @@ namespace OpenDental {
 			formClaimEdit.IsNew=true;//this causes it to delete the claim if cancelling.
 			//If there's unallocated amounts, we want to redistribute the money to other procedures.
 			if(formClaimEdit.ShowDialog()==DialogResult.OK) {
-				ClaimL.AllocateUnearnedPayment(_patient,_family,PIn.Double(labelUnearnedAmt.Text),claim);
+				ClaimL.AllocateUnearnedPayment(_patient,_family,SIn.Double(labelUnearnedAmt.Text),claim);
 			}
 			ModuleSelected(_patient.PatNum);
 		}
@@ -1031,7 +1032,7 @@ namespace OpenDental {
 			using FormClaimEdit formClaimEdit=new FormClaimEdit(claim,_patient,_family);
 			formClaimEdit.IsNew=true;//this causes it to delete the claim if cancelling.
 			if(formClaimEdit.ShowDialog()==DialogResult.OK) {
-				ClaimL.AllocateUnearnedPayment(_patient,_family,PIn.Double(labelUnearnedAmt.Text),claim);
+				ClaimL.AllocateUnearnedPayment(_patient,_family,SIn.Double(labelUnearnedAmt.Text),claim);
 			}
 			ModuleSelected(_patient.PatNum);
 		}
@@ -1062,7 +1063,7 @@ namespace OpenDental {
 			formClaimEdit.IsNew=true;//this causes it to delete the claim if cancelling.
 			//If there's unallocated amounts, we want to redistribute the money to other procedures.
 			if(formClaimEdit.ShowDialog()==DialogResult.OK) {
-				ClaimL.AllocateUnearnedPayment(_patient,_family,PIn.Double(labelUnearnedAmt.Text),claim);
+				ClaimL.AllocateUnearnedPayment(_patient,_family,SIn.Double(labelUnearnedAmt.Text),claim);
 			}
 			ModuleSelected(_patient.PatNum);
 		}
@@ -1073,7 +1074,7 @@ namespace OpenDental {
 				return;
 			}
 			if(createClaimDataWrapper.CreateClaimData_.ListPatPlans.Count<2) {
-				MessageBox.Show(Lan.g(this,"Patient does not have secondary insurance."));
+				ODMessageBox.Show(Lan.g(this,"Patient does not have secondary insurance."));
 				return;
 			}
 			if(PatPlans.GetOrdinal(PriSecMed.Secondary,createClaimDataWrapper.CreateClaimData_.ListPatPlans,createClaimDataWrapper.CreateClaimData_.ListInsPlans
@@ -1096,7 +1097,7 @@ namespace OpenDental {
 			formClaimEdit.IsNew=true;//this causes it to delete the claim if cancelling.
 			//If there's unallocated amounts, we want to redistribute the money to other procedures.
 			if(formClaimEdit.ShowDialog()==DialogResult.OK) {
-				ClaimL.AllocateUnearnedPayment(_patient,_family,PIn.Double(labelUnearnedAmt.Text),claim);
+				ClaimL.AllocateUnearnedPayment(_patient,_family,SIn.Double(labelUnearnedAmt.Text),claim);
 			}
 			ModuleSelected(_patient.PatNum);
 		}
@@ -1116,7 +1117,7 @@ namespace OpenDental {
 			//Figure out what payment was right clicked on.
 			for(int i=0;i<listRowsSelected.Count;i++) {
 				if(table.Rows[listRowsSelected[i]]["PayNum"].ToString()!="0") {
-					long payNum=PIn.Long(table.Rows[listRowsSelected[i]]["PayNum"].ToString());
+					long payNum=SIn.Long(table.Rows[listRowsSelected[i]]["PayNum"].ToString());
 					paymentExisting=Payments.GetPayment(payNum);
 					break;
 				}
@@ -1177,7 +1178,7 @@ namespace OpenDental {
 		private void menuItemEditPayPlanCharge_Click(object sender,EventArgs e) {
 			DataTable table=_dataSetMain.Tables["account"];
 			int indexSelected = gridAccount.GetSelectedIndex();
-			long payPlanChargeNum=PIn.Long(table.Rows[indexSelected]["PayPlanChargeNum"].ToString());
+			long payPlanChargeNum=SIn.Long(table.Rows[indexSelected]["PayPlanChargeNum"].ToString());
 			List<PaySplit> listPaySplits=PaySplits.GetForPayPlanCharges(new List<long>{ payPlanChargeNum });
 			if(listPaySplits.Count>0) {
 				MsgBox.Show(Lan.g(this,"Charges with payments attached cannot be edited."));
@@ -1210,7 +1211,7 @@ namespace OpenDental {
 			List<long> listSelectedPayPlanChargeNums=new List<long>();
 			List<int> listIndices=gridAccount.SelectedIndices.ToList();
 			for(int i=0;i<listIndices.Count;i++) {
-				long payPlanChargeNum=PIn.Long(table.Rows[listIndices[i]]["PayPlanChargeNum"].ToString());
+				long payPlanChargeNum=SIn.Long(table.Rows[listIndices[i]]["PayPlanChargeNum"].ToString());
 				if(payPlanChargeNum==0) {
 					continue;
 				}
@@ -1259,11 +1260,11 @@ namespace OpenDental {
 					{
 						continue;//ignore items that aren't procs, adjustments, or pay plan charges
 					}
-					if(PIn.Date(table.Rows[i]["date"].ToString())!=DateTime.Today) {
+					if(SIn.Date(table.Rows[i]["date"].ToString())!=DateTime.Today) {
 						continue;
 					}
 					if(table.Rows[i]["ProcNum"].ToString()!="0") {//if selected item is a procedure
-						Procedure procedure=Procedures.GetOneProc(PIn.Long(table.Rows[i]["ProcNum"].ToString()),false);
+						Procedure procedure=Procedures.GetOneProc(SIn.Long(table.Rows[i]["ProcNum"].ToString()),false);
 						if(procedure.StatementNum!=0) {//already attached so don't autoselect
 							continue;
 						}
@@ -1272,7 +1273,7 @@ namespace OpenDental {
 						}
 					}
 					else if(table.Rows[i]["PayPlanChargeNum"].ToString()!="0") {//selected item is pay plan charge
-						PayPlanCharge payPlanCharge=PayPlanCharges.GetOne(PIn.Long(table.Rows[i]["PayPlanChargeNum"].ToString()));
+						PayPlanCharge payPlanCharge=PayPlanCharges.GetOne(SIn.Long(table.Rows[i]["PayPlanChargeNum"].ToString()));
 						if(payPlanCharge.PatNum!=_patient.PatNum) {
 							continue;
 						}
@@ -1284,7 +1285,7 @@ namespace OpenDental {
 						}
 					}
 					else {//item must be adjustment
-						Adjustment adjustment=Adjustments.GetOne(PIn.Long(table.Rows[i]["AdjNum"].ToString()));
+						Adjustment adjustment=Adjustments.GetOne(SIn.Long(table.Rows[i]["AdjNum"].ToString()));
 						if(adjustment.StatementNum!=0) {//already attached so don't autoselect
 							continue;
 						}
@@ -1322,7 +1323,7 @@ namespace OpenDental {
 					return;
 				}
 				if(dataRow["ProcNum"].ToString()!="0") {//the selected item is a proc
-					Procedure procedure=Procedures.GetOneProc(PIn.Long(dataRow["ProcNum"].ToString()),false);
+					Procedure procedure=Procedures.GetOneProc(SIn.Long(dataRow["ProcNum"].ToString()),false);
 					if(procedure.PatNum!=_patient.PatNum) {
 						MsgBox.Show(this,"You can only select procedures, payment plan charges or adjustments for the current patient on an invoice.");
 						gridAccount.SetAll(false);
@@ -1335,7 +1336,7 @@ namespace OpenDental {
 					}
 				}
 				else if(dataRow["PayPlanChargeNum"].ToString()!="0") {
-					PayPlanCharge payPlanCharge=PayPlanCharges.GetOne(PIn.Long(dataRow["PayPlanChargeNum"].ToString()));
+					PayPlanCharge payPlanCharge=PayPlanCharges.GetOne(SIn.Long(dataRow["PayPlanChargeNum"].ToString()));
 					if(payPlanCharge.PatNum!=_patient.PatNum) {
 						MsgBox.Show(this,"You can only select procedures, payment plan charges or adjustments for a single patient on an invoice.");
 						gridAccount.SetAll(false);
@@ -1353,7 +1354,7 @@ namespace OpenDental {
 					}
 				}
 				else{//the selected item must be an adjustment
-					Adjustment adjustment=Adjustments.GetOne(PIn.Long(dataRow["AdjNum"].ToString()));
+					Adjustment adjustment=Adjustments.GetOne(SIn.Long(dataRow["AdjNum"].ToString()));
 					if(adjustment.AdjDate.Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
 						MsgBox.Show(this,"Adjustments cannot be made for future dates");
 						return;
@@ -1398,7 +1399,7 @@ namespace OpenDental {
 			for(int i=0;i<gridAccount.SelectedIndices.Length;i++) {
 				DataRow dataRow=table.Rows[gridAccount.SelectedIndices[i]];
 				if(dataRow["ProcNum"].ToString()!="0") {//if selected item is a procedure
-					Procedure procedure=Procedures.GetProcFromList(listProceduresForPat,PIn.Long(dataRow["ProcNum"].ToString()));
+					Procedure procedure=Procedures.GetProcFromList(listProceduresForPat,SIn.Long(dataRow["ProcNum"].ToString()));
 					Procedure procedureOld=procedure.Copy();
 					procedure.StatementNum=statement.StatementNum;
 					if(procedure.ProcStatus==ProcStat.C && procedure.ProcDate.Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
@@ -1408,29 +1409,29 @@ namespace OpenDental {
 					Procedures.Update(procedure,procedureOld);
 				}
 				else if(dataRow["PayPlanChargeNum"].ToString()!="0") {
-					PayPlanCharge payPlanCharge=PayPlanCharges.GetOne(PIn.Long(dataRow["PayPlanChargeNum"].ToString()));
+					PayPlanCharge payPlanCharge=PayPlanCharges.GetOne(SIn.Long(dataRow["PayPlanChargeNum"].ToString()));
 					payPlanCharge.StatementNum=statement.StatementNum;
 					PayPlanCharges.Update(payPlanCharge);
 				}
 				else {//selected item must be adjustment
-					Adjustment adjustment=Adjustments.GetOne(PIn.Long(dataRow["AdjNum"].ToString()));
+					Adjustment adjustment=Adjustments.GetOne(SIn.Long(dataRow["AdjNum"].ToString()));
 					adjustment.StatementNum=statement.StatementNum;
 					Adjustments.Update(adjustment);
 				}
 			}
 			for(int i=0;i<listDataRowsSuperFam.Count;i++) {
 				if(listDataRowsSuperFam[i]["ChargeType"].ToString()!="") {//payplan
-					PayPlanCharge payPlanCharge = PayPlanCharges.GetOne(PIn.Long(listDataRowsSuperFam[i]["PriKey"].ToString()));
+					PayPlanCharge payPlanCharge = PayPlanCharges.GetOne(SIn.Long(listDataRowsSuperFam[i]["PriKey"].ToString()));
 					payPlanCharge.StatementNum=statement.StatementNum;
 					PayPlanCharges.Update(payPlanCharge);
 				}
 				else if(listDataRowsSuperFam[i]["AdjType"].ToString()!="") {//adjustment
-					Adjustment adjustment=Adjustments.GetOne(PIn.Long(listDataRowsSuperFam[i]["PriKey"].ToString()));
+					Adjustment adjustment=Adjustments.GetOne(SIn.Long(listDataRowsSuperFam[i]["PriKey"].ToString()));
 					adjustment.StatementNum=statement.StatementNum;
 					Adjustments.Update(adjustment);
 				}
 				else {
-					Procedure procedureNew = Procedures.GetOneProc(PIn.Long(listDataRowsSuperFam[i]["PriKey"].ToString()),false);
+					Procedure procedureNew = Procedures.GetOneProc(SIn.Long(listDataRowsSuperFam[i]["PriKey"].ToString()),false);
 					Procedure procedureOld=procedureNew.Copy();
 					procedureNew.StatementNum=statement.StatementNum;
 					if(procedureNew.ProcStatus==ProcStat.C && procedureNew.ProcDate.Date>DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
@@ -1463,8 +1464,8 @@ namespace OpenDental {
 				for(int i=0;i<table.Rows.Count;i++) {//loop through every line showing on screen
 					dataRow=table.Rows[i];
 					if(dataRow["ProcNum"].ToString()=="0" //ignore items that aren't procs
-						|| PIn.Date(dataRow["date"].ToString())!=DateTime.Today //autoselecting todays procs only
-						|| PIn.Long(dataRow["PatNum"].ToString())!=_patient.PatNum) //only procs for the current patient
+						|| SIn.Date(dataRow["date"].ToString())!=DateTime.Today //autoselecting todays procs only
+						|| SIn.Long(dataRow["PatNum"].ToString())!=_patient.PatNum) //only procs for the current patient
 					{
 						continue;
 					}
@@ -1496,11 +1497,11 @@ namespace OpenDental {
 			//At this point, all selected items are procedures, adjustments, payments, or claims.
 			//get all ClaimNums from claimprocs for the selected procs
 			List<long> listProcClaimNums=ClaimProcs.GetForProcs(gridAccount.SelectedIndices.Where(x => table.Rows[x]["ProcNum"].ToString()!="0")
-				.Select(x => PIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList()).FindAll(x => x.ClaimNum!=0).ConvertAll(x => x.ClaimNum);
+				.Select(x => SIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList()).FindAll(x => x.ClaimNum!=0).ConvertAll(x => x.ClaimNum);
 			//get all ClaimNums for any selected claimpayments
 			List<long> listPayClaimNums=gridAccount.SelectedIndices
 				.Where(x => table.Rows[x]["ClaimNum"].ToString()!="0" && table.Rows[x]["ClaimPaymentNum"].ToString()=="1")
-				.Select(x => PIn.Long(table.Rows[x]["ClaimNum"].ToString())).ToList();
+				.Select(x => SIn.Long(table.Rows[x]["ClaimNum"].ToString())).ToList();
 			//prevent user from selecting a claimpayment that is not associated with any of the selected procs
 			if(listPayClaimNums.Any(x => !listProcClaimNums.Contains(x))) {
 				MsgBox.Show(this,"You can only select claim payments for the selected procedures.");
@@ -1508,16 +1509,16 @@ namespace OpenDental {
 				return;
 			}
 			List<long> listPatNums=gridAccount.SelectedIndices
-				.Select(x => table.Rows[x]["PatNum"].ToString()).Distinct().Select(x => PIn.Long(x)).ToList();
+				.Select(x => table.Rows[x]["PatNum"].ToString()).Distinct().Select(x => SIn.Long(x)).ToList();
 			List<long> listAdjNums=gridAccount.SelectedIndices
 				.Where(x => table.Rows[x]["AdjNum"].ToString()!="0")
-				.Select(x => PIn.Long(table.Rows[x]["AdjNum"].ToString())).ToList();
+				.Select(x => SIn.Long(table.Rows[x]["AdjNum"].ToString())).ToList();
 			List<long> listPayNums=gridAccount.SelectedIndices
 				.Where(x => table.Rows[x]["PayNum"].ToString()!="0")
-				.Select(x => PIn.Long(table.Rows[x]["PayNum"].ToString())).ToList();
+				.Select(x => SIn.Long(table.Rows[x]["PayNum"].ToString())).ToList();
 			List<long> listProcNums=gridAccount.SelectedIndices
 				.Where(x => table.Rows[x]["ProcNum"].ToString()!="0")
-				.Select(x => PIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList();
+				.Select(x => SIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList();
 			long patNumStatement=_patient.Guarantor;
 			if(listPatNums.Count==1) {//If only one patient is selected
 				patNumStatement=_patient.PatNum; //Use the patient's info on statement instead of the guarantor's.
@@ -1542,8 +1543,8 @@ namespace OpenDental {
 				for(int i=0;i<table.Rows.Count;i++) {//loop through every line showing on screen
 					dataRow=table.Rows[i];
 					if(dataRow["ProcNum"].ToString()=="0" //ignore items that aren't procs
-						|| PIn.Date(dataRow["date"].ToString())!=DateTime.Today //autoselecting todays procs only
-						|| PIn.Long(dataRow["PatNum"].ToString())!=_patient.PatNum) //only procs for the current patient
+						|| SIn.Date(dataRow["date"].ToString())!=DateTime.Today //autoselecting todays procs only
+						|| SIn.Long(dataRow["PatNum"].ToString())!=_patient.PatNum) //only procs for the current patient
 					{
 						continue;
 					}
@@ -1577,11 +1578,11 @@ namespace OpenDental {
 				}
 				//get all ClaimNums from claimprocs for the selected procs
 				listProcClaimNums=ClaimProcs.GetForProcs(gridAccount.SelectedIndices.Where(x => table.Rows[x]["ProcNum"].ToString()!="0")
-					.Select(x => PIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList()).FindAll(x => x.ClaimNum!=0).ConvertAll(x => x.ClaimNum);
+					.Select(x => SIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList()).FindAll(x => x.ClaimNum!=0).ConvertAll(x => x.ClaimNum);
 				//get all ClaimNums for any selected claimpayments
 				listPayClaimNums=gridAccount.SelectedIndices
 					.Where(x => table.Rows[x]["ClaimNum"].ToString()!="0" && table.Rows[x]["ClaimPaymentNum"].ToString()=="1")
-					.Select(x => PIn.Long(table.Rows[x]["ClaimNum"].ToString())).ToList();
+					.Select(x => SIn.Long(table.Rows[x]["ClaimNum"].ToString())).ToList();
 				//prevent user from selecting a claimpayment that is not associatede with any of the selected procs
 				if(listPayClaimNums.Any(x => !listProcClaimNums.Contains(x))) {
 					MsgBox.Show(this,"You can only select claim payments for the selected procedures.");
@@ -1589,16 +1590,16 @@ namespace OpenDental {
 					return;
 				}
 				listPatNums=gridAccount.SelectedIndices
-					.Select(x => table.Rows[x]["PatNum"].ToString()).Distinct().Select(x => PIn.Long(x)).ToList();
+					.Select(x => table.Rows[x]["PatNum"].ToString()).Distinct().Select(x => SIn.Long(x)).ToList();
 				listAdjNums=gridAccount.SelectedIndices
 					.Where(x => table.Rows[x]["AdjNum"].ToString()!="0")
-					.Select(x => PIn.Long(table.Rows[x]["AdjNum"].ToString())).ToList();
+					.Select(x => SIn.Long(table.Rows[x]["AdjNum"].ToString())).ToList();
 				listPayNums=gridAccount.SelectedIndices
 					.Where(x => table.Rows[x]["PayNum"].ToString()!="0")
-					.Select(x => PIn.Long(table.Rows[x]["PayNum"].ToString())).ToList();
+					.Select(x => SIn.Long(table.Rows[x]["PayNum"].ToString())).ToList();
 				listProcNums=gridAccount.SelectedIndices
 					.Where(x => table.Rows[x]["ProcNum"].ToString()!="0")
-					.Select(x => PIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList();
+					.Select(x => SIn.Long(table.Rows[x]["ProcNum"].ToString())).ToList();
 			}
 			#endregion
 			bool isFamMember=_family.ListPats.Length>1;
@@ -1719,7 +1720,7 @@ namespace OpenDental {
 			}
 			List<string> listHiddenProcCodes=ProcedureCodes.GetProcCodesInHiddenCats(stringArrayProcCodes.Select(x => ProcedureCodes.GetCodeNum(x)).ToArray());
 			if(listHiddenProcCodes.Count > 0) {
-				MessageBox.Show(this,$"{Lan.g(this,"Cannot add the following procedures because they are in a hidden category")}: {string.Join(",",listHiddenProcCodes)}");
+				ODMessageBox.Show(this,$"{Lan.g(this,"Cannot add the following procedures because they are in a hidden category")}: {string.Join(",",listHiddenProcCodes)}");
 				return;
 			}
 			List<string> listProcCodesAdded=new List<string>();
@@ -1748,7 +1749,7 @@ namespace OpenDental {
 			List<long> listProcNumsSelected=new List<long>();
 			for(int i=0;i<listIndices.Count;i++) {
 				string procNumStr=table.Rows[listIndices[i]]["ProcNum"].ToString();
-				long procNum=PIn.Long(procNumStr);
+				long procNum=SIn.Long(procNumStr);
 				if(procNum==0) {
 					continue;
 				}
@@ -1868,7 +1869,7 @@ namespace OpenDental {
 				signupOut=WebServiceMainHQProxy.GetEServiceSetupLite(SignupPortalPermission.FromHQ,registrationKey.RegKey,"","","");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			using FormEServicesSignup formEServicesSignup=new FormEServicesSignup(signupOut);
@@ -1913,7 +1914,7 @@ namespace OpenDental {
 				if(table.Rows[listidxs[i]]["ProcNum"].ToString()=="0") {
 					continue;
 				}
-				listProcNumsSelected.Add(PIn.Long(table.Rows[listidxs[i]]["ProcNum"].ToString()));
+				listProcNumsSelected.Add(SIn.Long(table.Rows[listidxs[i]]["ProcNum"].ToString()));
 			}
 			List<OrthoProcLink> listOrthoProcLinks=OrthoProcLinks.GetManyForProcs(listProcNumsSelected);
 			if(listOrthoProcLinks.Count>0) {
@@ -1947,13 +1948,13 @@ namespace OpenDental {
 			statement.DateRangeFrom=DateTime.MinValue;
 			if(textDateStart.IsValid()) {
 				if(textDateStart.Text!="") {
-					statement.DateRangeFrom=PIn.Date(textDateStart.Text);
+					statement.DateRangeFrom=SIn.Date(textDateStart.Text);
 				}
 			}
 			statement.DateRangeTo=DateTime.Today;//Needed for payplan accuracy.  Used to be setting to new DateTime(2200,1,1);
 			if(textDateEnd.IsValid()) {
 				if(textDateEnd.Text!="") {
-					statement.DateRangeTo=PIn.Date(textDateEnd.Text);
+					statement.DateRangeTo=SIn.Date(textDateEnd.Text);
 				}
 			}
 			statement.Note="";
@@ -1987,13 +1988,13 @@ namespace OpenDental {
 			statement.DateRangeFrom=DateTime.MinValue;
 			if(textDateStart.IsValid()) {
 				if(textDateStart.Text!="") {
-					statement.DateRangeFrom=PIn.Date(textDateStart.Text);
+					statement.DateRangeFrom=SIn.Date(textDateStart.Text);
 				}
 			}
 			statement.DateRangeTo=DateTime.Today;//Needed for payplan accuracy.//new DateTime(2200,1,1);
 			if(textDateEnd.IsValid()) {
 				if(textDateEnd.Text!="") {
-					statement.DateRangeTo=PIn.Date(textDateEnd.Text);
+					statement.DateRangeTo=SIn.Date(textDateEnd.Text);
 				}
 			}
 			statement.Note="";
@@ -2081,7 +2082,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["account"];
 			//Guaranteed to be exactly one claim selected (among possible other selections)
 			int idxClaimSelected=gridAccount.SelectedIndices.ToList().Find(x => table.Rows[x]["ClaimNum"].ToString()!="0");
-			long claimNum=PIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
+			long claimNum=SIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
 			if(claimNum==0) {
 				return;
 			}
@@ -2099,7 +2100,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["account"];
 			//Guaranteed to be exactly one claim selected (among possible other selections)
 			int idxClaimSelected=gridAccount.SelectedIndices.ToList().Find(x => table.Rows[x]["ClaimNum"].ToString()!="0");
-			long claimNum=PIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
+			long claimNum=SIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
 			if(claimNum==0) {
 				return;
 			}
@@ -2117,7 +2118,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["account"];
 			//Guaranteed to be exactly one claim selected (among possible other selections)
 			int idxClaimSelected=gridAccount.SelectedIndices.ToList().Find(x => table.Rows[x]["ClaimNum"].ToString()!="0");
-			long claimNum=PIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
+			long claimNum=SIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
 			if(claimNum==0) {
 				return;
 			}
@@ -2135,7 +2136,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["account"];
 			//Guaranteed to be exactly one claim selected (among possible other selections)
 			int idxClaimSelected=gridAccount.SelectedIndices.ToList().Find(x => table.Rows[x]["ClaimNum"].ToString()!="0");
-			long claimNum=PIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
+			long claimNum=SIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
 			if(claimNum==0) {
 				return;
 			}
@@ -2268,7 +2269,7 @@ namespace OpenDental {
 						if(inputBox.BoolResult) {
 							preferCurrentPat=true;
 						}
-						toolBarButPay_Click(PIn.Double(inputBox.StringResult),preferCurrentPat:preferCurrentPat,isTsiPayment:isTsiPayment);
+						toolBarButPay_Click(SIn.Double(inputBox.StringResult),preferCurrentPat:preferCurrentPat,isTsiPayment:isTsiPayment);
 						break;
 					case "Adjustment":
 						toolBarButAdj_Click();
@@ -2450,13 +2451,13 @@ namespace OpenDental {
 				checkShowDetail.Checked=true;
 			}
 			else {
-				checkShowDetail.Checked=PIn.Bool(userOdPrefProcBreakdown.ValueString);
+				checkShowDetail.Checked=SIn.Bool(userOdPrefProcBreakdown.ValueString);
 			}
 			if(userOdPrefShowAutoCommlog==null) {
 				checkShowCommAuto.Checked=true;
 			}
 			else {
-				checkShowCommAuto.Checked=PIn.Bool(userOdPrefShowAutoCommlog.ValueString);
+				checkShowCommAuto.Checked=SIn.Bool(userOdPrefShowAutoCommlog.ValueString);
 			}
 			Logger.LogAction("RefreshModuleData",LogPath.AccountModule,() => RefreshModuleData(patNum,isSelectingFamily));
 			if(_patient!=null && _patient.PatStatus==PatientStatus.Deleted) {
@@ -2475,11 +2476,11 @@ namespace OpenDental {
 				List<DataRow> listDataRowsClaims=dataTable.Select().ToList().FindAll(x => x["ClaimNum"].ToString()!="0");
 				//Get a list of procnums of procedures that do not have a status of complete. Since the logic that fills the account
 				//table only selects completed procedures, any procnums not in the account table must have a different procstatus.
-				List<long> listProcNumsAll=dataTable.Select().Select(x => PIn.Long(x["ProcNum"].ToString())).ToList();
+				List<long> listProcNumsAll=dataTable.Select().Select(x => SIn.Long(x["ProcNum"].ToString())).ToList();
 				List<long> listProcNumsIncompleteClaims=string.Join(",",listDataRowsClaims.Select(x => x["procsOnObj"]))//All procNums on the all claims in account
 					.Split(",",StringSplitOptions.RemoveEmptyEntries)
 					.Distinct()
-					.Select(x => PIn.Long(x))
+					.Select(x => SIn.Long(x))
 					.ToList()
 					//get procNums that are on claim but not in account
 					.FindAll(y => !y.In(listProcNumsAll.ToArray()));
@@ -2500,7 +2501,7 @@ namespace OpenDental {
 			if(_patient!=null && DatabaseIntegrities.DoShowPopup(_patient.PatNum,EnumModuleType.Account)) {
 				List<PayPlan> listPayPlans=PayPlans.GetForPatNum(_patient.PatNum);
 				DataTable tableAccount=_dataSetMain.Tables["account"];
-				List<long> listPayNums=tableAccount.Select().Select(x => PIn.Long(x["PayNum"].ToString())).ToList();
+				List<long> listPayNums=tableAccount.Select().Select(x => SIn.Long(x["PayNum"].ToString())).ToList();
 				listPayNums.RemoveAll(x => x==0); //remove all non payment PKs
 				List<PaySplit> listPaySplits=PaySplits.GetForPayments(listPayNums);
 				List<Claim> listClaims=new List<Claim>(_loadData.ListClaims);
@@ -2541,7 +2542,7 @@ namespace OpenDental {
 				if(table.Rows[i]["ClaimNum"].ToString()=="0") {//not a claim or claimpayment
 					continue;
 				}
-				long claimNumRow=PIn.Long(table.Rows[i]["ClaimNum"].ToString());
+				long claimNumRow=SIn.Long(table.Rows[i]["ClaimNum"].ToString());
 				if(claimNumRow!=claimNum) {
 					continue;
 				}
@@ -2664,10 +2665,10 @@ namespace OpenDental {
 				DataTable table=_dataSetMain.Tables["account"];
 				List<int> listIndicesSelected=gridAccount.SelectedIndices.ToList();
 				for(int i=0;i<listIndicesSelected.Count;i++) {
-					long adjNum=PIn.Long(table.Rows[listIndicesSelected[i]]["AdjNum"].ToString());
-					double chargesDouble=PIn.Double(table.Rows[listIndicesSelected[i]]["chargesDouble"].ToString());
-					long payPlanChargeNum=PIn.Long(table.Rows[listIndicesSelected[i]]["PayPlanChargeNum"].ToString());
-					long procNum=PIn.Long(table.Rows[listIndicesSelected[i]]["ProcNum"].ToString());
+					long adjNum=SIn.Long(table.Rows[listIndicesSelected[i]]["AdjNum"].ToString());
+					double chargesDouble=SIn.Double(table.Rows[listIndicesSelected[i]]["chargesDouble"].ToString());
+					long payPlanChargeNum=SIn.Long(table.Rows[listIndicesSelected[i]]["PayPlanChargeNum"].ToString());
+					long procNum=SIn.Long(table.Rows[listIndicesSelected[i]]["ProcNum"].ToString());
 					//Add each selected proc to the list
 					if(procNum > 0) {
 						listAccountEntries.Add(new AccountEntry(Procedures.GetOneProc(procNum,false)));
@@ -2685,7 +2686,7 @@ namespace OpenDental {
 					}
 				}
 			}
-			double unearnedAmt=PIn.Double(labelUnearnedAmt.Text);
+			double unearnedAmt=SIn.Double(labelUnearnedAmt.Text);
 			//Don't allow the user to allocate negative unearned which is a problem that needs to be handled with a real income transfer.
 			if(isPrePay && CompareDecimal.IsGreaterThanZero(unearnedAmt)) {
 				if(listAccountEntries.Count<1) {
@@ -2778,11 +2779,11 @@ namespace OpenDental {
 		private void toolBarButStatement_Click() {
 			DateTime dateStop=DateTime.MinValue;
 			if(textDateEnd.IsValid() && textDateEnd.Text!="") {
-				dateStop=PIn.Date(textDateEnd.Text);
+				dateStop=SIn.Date(textDateEnd.Text);
 			}
 			DateTime dateStart=DateTime.MinValue;
 			if(textDateStart.IsValid() && textDateStart.Text!="") {//textDateStart has ultimate precedence. User may have intentionally set the date range for statement.
-				dateStart=PIn.Date(textDateStart.Text);
+				dateStart=SIn.Date(textDateStart.Text);
 			}
 			Statement statement=Statements.GenerateStatement(_patient,dateStart,dateStop,StatementMode.InPerson);
 			PrintStatement(statement);
@@ -2806,10 +2807,10 @@ namespace OpenDental {
 			DateTime dateTo=DateTime.MaxValue;
 			if(textDateStart.IsValid() && textDateEnd.IsValid()) {
 				if(textDateStart.Text!="") {
-					dateFrom=PIn.Date(textDateStart.Text);
+					dateFrom=SIn.Date(textDateStart.Text);
 				}
 				if(textDateEnd.Text!="") {
-					dateTo=PIn.Date(textDateEnd.Text);
+					dateTo=SIn.Date(textDateEnd.Text);
 				}
 			}
 			bool doMakeSecLog=false;
@@ -3038,7 +3039,7 @@ namespace OpenDental {
 			if(!isSelectingFamily) {
 				for(int i=0;i<tableMisc.Rows.Count;i++) {
 					if(tableMisc.Rows[i]["descript"].ToString()=="patInsEst") {
-						decimal estBal=(decimal)_patient.EstBalance-PIn.Decimal(tableMisc.Rows[i]["value"].ToString());
+						decimal estBal=(decimal)_patient.EstBalance-SIn.Decimal(tableMisc.Rows[i]["value"].ToString());
 						labelPatEstBalAmt.Text=estBal.ToString("F");
 					}
 				}
@@ -3050,7 +3051,7 @@ namespace OpenDental {
 					List<PaySplit> listUnearnedShownOnAccount=_loadData.ListUnearnedSplits.FindAll(x => !listDefNumsTpUnearned.Contains(x.UnearnedType)
 						&& _family.ListPats.Select(y => y.PatNum).Contains(x.PatNum));//We do not want to show unearned balances for paysplits to other families
 					labelUnearnedAmt.Text=listUnearnedShownOnAccount.Sum(x => x.SplitAmt).ToString("F");
-					if(PIn.Double(labelUnearnedAmt.Text)<=0) {
+					if(SIn.Double(labelUnearnedAmt.Text)<=0) {
 						labelUnearnedAmt.ForeColor=Color.Black;
 						labelUnearnedAmt.Font=new Font(labelUnearnedAmt.Font,FontStyle.Regular);
 					}
@@ -3128,12 +3129,12 @@ namespace OpenDental {
 			gridInsEstOpenClaims.ListGridRows.Clear();
 			for(int i=0;i<table.Rows.Count;i++) {
 				GridRow row=new GridRow();
-				row.Cells.Add(PIn.DateTime(table.Rows[i]["DateService"].ToString()).ToShortDateString());
-				long codeNum=PIn.Long(table.Rows[i]["CodeNum"].ToString());
+				row.Cells.Add(SIn.DateTime(table.Rows[i]["DateService"].ToString()).ToShortDateString());
+				long codeNum=SIn.Long(table.Rows[i]["CodeNum"].ToString());
 				ProcedureCode procedureCode=ProcedureCodes.GetProcCodeFromDb(codeNum);
 				row.Cells.Add(procedureCode.ProcCode);
-				double insPayEst=PIn.Double(table.Rows[i]["InsPayEst"].ToString());
-				double writeOff=PIn.Double(table.Rows[i]["WriteOff"].ToString());
+				double insPayEst=SIn.Double(table.Rows[i]["InsPayEst"].ToString());
+				double writeOff=SIn.Double(table.Rows[i]["WriteOff"].ToString());
 				if(insPayEst==0 && writeOff==0) {
 					continue;
 				}
@@ -3238,7 +3239,7 @@ namespace OpenDental {
 						//Fee
 						row=new GridRow();
 						row.Cells.Add(Lan.g(this,"FeeBilled"));
-						row.Cells.Add(patPlan.OrthoAutoFeeBilledOverride==-1 ? POut.Double(insPlan.OrthoAutoFeeBilled) : POut.Double(patPlan.OrthoAutoFeeBilledOverride));
+						row.Cells.Add(patPlan.OrthoAutoFeeBilledOverride==-1 ? SOut.Double(insPlan.OrthoAutoFeeBilled) : SOut.Double(patPlan.OrthoAutoFeeBilledOverride));
 						row.Tag=autoOrthoPat;
 						gridAutoOrtho.ListGridRows.Add(row);
 					}
@@ -3359,7 +3360,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["Commlog"];
 			for(int i=0;i<table.Rows.Count;i++) {
 				isCommlogAutomated=Commlogs.IsAutomated(table.Rows[i]["commType"].ToString(),
-					PIn.Enum<CommItemSource>(table.Rows[i]["CommSource"].ToString()));
+					SIn.Enum<CommItemSource>(table.Rows[i]["CommSource"].ToString()));
 				//Skip commlog entries which are automated per user option.
 				if(!this.checkShowCommAuto.Checked && isCommlogAutomated) {
 					continue;
@@ -3373,12 +3374,12 @@ namespace OpenDental {
 					continue;
 				}
 				else if(table.Rows[i]["EmailMessageNum"].ToString()!="0") {//if this is an Email
-					if(((HideInFlags)PIn.Int(table.Rows[i]["EmailMessageHideIn"].ToString())).HasFlag(HideInFlags.AccountCommLog)) {
+					if(((HideInFlags)SIn.Int(table.Rows[i]["EmailMessageHideIn"].ToString())).HasFlag(HideInFlags.AccountCommLog)) {
 						continue;
 					}
 				}
 				row=new GridRow();
-				int argbColorValue=PIn.Int(table.Rows[i]["colorText"].ToString());//Convert to int. If blank or 0, will use default color.
+				int argbColorValue=SIn.Int(table.Rows[i]["colorText"].ToString());//Convert to int. If blank or 0, will use default color.
 				if(argbColorValue!=Color.Empty.ToArgb()) {//A color was set for this commlog type
 					row.ColorText=Color.FromArgb(argbColorValue);
 				}
@@ -3468,10 +3469,10 @@ namespace OpenDental {
 							row.Cells.Add(table.Rows[i]["prov"].ToString());
 							break;
 						case "Clinic":
-							row.Cells.Add(Clinics.GetAbbr(PIn.Long(table.Rows[i]["ClinicNum"].ToString())));
+							row.Cells.Add(Clinics.GetAbbr(SIn.Long(table.Rows[i]["ClinicNum"].ToString())));
 							break;
 						case "ClinicDesc":
-							row.Cells.Add(Clinics.GetDesc(PIn.Long(table.Rows[i]["ClinicNum"].ToString())));
+							row.Cells.Add(Clinics.GetDesc(SIn.Long(table.Rows[i]["ClinicNum"].ToString())));
 							break;
 						case "Code":
 							row.Cells.Add(table.Rows[i]["ProcCode"].ToString());
@@ -3507,7 +3508,7 @@ namespace OpenDental {
 							break;
 					}
 				}
-				row.ColorText=Color.FromArgb(PIn.Int(table.Rows[i]["colorText"].ToString()));
+				row.ColorText=Color.FromArgb(SIn.Int(table.Rows[i]["colorText"].ToString()));
 				if(i==table.Rows.Count-1//last row
 					|| (DateTime)table.Rows[i]["DateTime"]!=(DateTime)table.Rows[i+1]["DateTime"])
 				{
@@ -3659,7 +3660,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["patient"];
 			decimal balance=0;
 			for(int i=0;i<table.Rows.Count;i++) {
-				if(i!=table.Rows.Count-1 && PatientLinks.WasPatientMerged(PIn.Long(table.Rows[i]["PatNum"].ToString()),_loadData.ListMergeLinks)
+				if(i!=table.Rows.Count-1 && PatientLinks.WasPatientMerged(SIn.Long(table.Rows[i]["PatNum"].ToString()),_loadData.ListMergeLinks)
 					&& _family.ListPats[i].PatNum!=_patient.PatNum && ((decimal)table.Rows[i]["balanceDouble"])==0)
 				{
 					//Hide merged patients so that new things don't get added to them. If the user really wants to find this patient, they will have to use 
@@ -3670,7 +3671,7 @@ namespace OpenDental {
 				row=new GridRow();
 				row.Cells.Add(GetPatNameFromTable(table,i));
 				row.Cells.Add(table.Rows[i]["balance"].ToString());
-				row.Tag=_family.ListPats.First(x=>x.PatNum==PIn.Long(table.Rows[i]["PatNum"].ToString()));
+				row.Tag=_family.ListPats.First(x=>x.PatNum==SIn.Long(table.Rows[i]["PatNum"].ToString()));
 				if(i==0 || i==table.Rows.Count-1) {
 					row.Bold=true;
 				}
@@ -3728,19 +3729,19 @@ namespace OpenDental {
 				return;
 			}
 			DataTable table=_dataSetMain.Tables["payplan"];
-			if(table.Rows.OfType<DataRow>().Count(x => PIn.Long(x["Guarantor"].ToString())==_patient.PatNum
-				|| PIn.Long(x["PatNum"].ToString())==_patient.PatNum)==0 && !IsFamilySelected()) //if we are looking at the entire family, show all the payplans 
+			if(table.Rows.OfType<DataRow>().Count(x => SIn.Long(x["Guarantor"].ToString())==_patient.PatNum
+				|| SIn.Long(x["PatNum"].ToString())==_patient.PatNum)==0 && !IsFamilySelected()) //if we are looking at the entire family, show all the payplans 
 			{
 				return;
 			}
-			List<long> listPayPlanNums=table.Select().Select(x => PIn.Long(x["PayPlanNum"].ToString())).ToList();
+			List<long> listPayPlanNums=table.Select().Select(x => SIn.Long(x["PayPlanNum"].ToString())).ToList();
 			List<PayPlan> listPayPlansOvercharged=PayPlans.GetOverChargedPayPlans(listPayPlanNums);
 			//do not hide payment plans that still have a balance when not on v2
 			if(!checkShowCompletePayPlans.Checked) { //Hide the payment plans grid if there are no payment plans currently visible.
 				bool existsOpenPayPlan=false;
 				for(int i=0;i<table.Rows.Count;i++) { //for every payment plan
-					if(DoShowPayPlan(checkShowCompletePayPlans.Checked,PIn.Bool(table.Rows[i]["IsClosed"].ToString()),
-						PIn.Double(table.Rows[i]["balance"].ToString())))
+					if(DoShowPayPlan(checkShowCompletePayPlans.Checked,SIn.Bool(table.Rows[i]["IsClosed"].ToString()),
+						SIn.Double(table.Rows[i]["balance"].ToString())))
 					{
 						existsOpenPayPlan=true;
 						break; //break
@@ -3786,8 +3787,8 @@ namespace OpenDental {
 			GridRow row;
 			GridCell cell;
 			for(int i=0;i<table.Rows.Count;i++) {
-				if(!DoShowPayPlan(checkShowCompletePayPlans.Checked,PIn.Bool(table.Rows[i]["IsClosed"].ToString()),
-					PIn.Double(table.Rows[i]["balance"].ToString())))
+				if(!DoShowPayPlan(checkShowCompletePayPlans.Checked,SIn.Bool(table.Rows[i]["IsClosed"].ToString()),
+					SIn.Double(table.Rows[i]["balance"].ToString())))
 				{
 					continue;//hide
 				}
@@ -3799,7 +3800,7 @@ namespace OpenDental {
 					cell.ColorText=Color.Red;
 				}
 				else {
-					long payPlanNum=PIn.Long(table.Rows[i]["PayPlanNum"].ToString());
+					long payPlanNum=SIn.Long(table.Rows[i]["PayPlanNum"].ToString());
 					PayPlan payPlan=PayPlans.GetOne(payPlanNum);
 					cell=new GridCell("");
 					//Installment Plans have no payPlanNum so we must skip this next if-statement if we do not receive one.
@@ -3810,7 +3811,7 @@ namespace OpenDental {
 				row.Cells.Add(cell);
 				row.Cells.Add(table.Rows[i]["patient"].ToString());
 				row.Cells.Add(table.Rows[i]["type"].ToString());
-				long planCategory=PIn.Long(table.Rows[i]["PlanCategory"].ToString());
+				long planCategory=SIn.Long(table.Rows[i]["PlanCategory"].ToString());
 				if(planCategory==0) {
 					row.Cells.Add(Lan.g(this,"None"));
 				}
@@ -3841,18 +3842,18 @@ namespace OpenDental {
 					}
 				}
 				row.Cells.Add(cell);
-				if(PIn.Long(table.Rows[i]["MobileAppDeviceNum"].ToString())>0) {
+				if(SIn.Long(table.Rows[i]["MobileAppDeviceNum"].ToString())>0) {
 					row.Cells.Add("X");
 				}
 				else {
 					row.Cells.Add("");
 				}
 				row.Tag=table.Rows[i];
-				if(listPayPlansOvercharged.ConvertAll(x => x.PayPlanNum).Contains(PIn.Long(table.Rows[i]["PayPlanNum"].ToString()))) {
+				if(listPayPlansOvercharged.ConvertAll(x => x.PayPlanNum).Contains(SIn.Long(table.Rows[i]["PayPlanNum"].ToString()))) {
 					row.ColorBackG=Color.FromArgb(255,255,128);
 				}
 				gridPayPlan.ListGridRows.Add(row);
-				_patientPortionBalanceTotal+=Convert.ToDecimal(PIn.Double(table.Rows[i]["balance"].ToString()));
+				_patientPortionBalanceTotal+=Convert.ToDecimal(SIn.Double(table.Rows[i]["balance"].ToString()));
 			}
 			gridPayPlan.EndUpdate();
 		}
@@ -4340,7 +4341,7 @@ namespace OpenDental {
 		private string GetPatNameFromTable(DataTable table,int index) {
 			string name=table.Rows[index]["name"].ToString();
 			if(PrefC.GetBool(PrefName.TitleBarShowSpecialty) && string.Compare(name,"Entire Family",true)!=0) {
-				long patNum=PIn.Long(table.Rows[index]["PatNum"].ToString());
+				long patNum=SIn.Long(table.Rows[index]["PatNum"].ToString());
 				string specialty=Patients.GetPatientSpecialtyDef(patNum)?.ItemName??"";
 				name+=string.IsNullOrWhiteSpace(specialty)?"":"\r\n"+specialty;
 			}
@@ -4549,7 +4550,7 @@ namespace OpenDental {
 			DataTable tableAcct=_dataSetMain.Tables["account"];
 			List<long> listProcNumsSelected=new List<long>();
 			for(int i=0;i<gridAccount.SelectedIndices.Length;i++) {
-				long procNum=PIn.Long(tableAcct.Rows[gridAccount.SelectedIndices[i]]["ProcNum"].ToString());
+				long procNum=SIn.Long(tableAcct.Rows[gridAccount.SelectedIndices[i]]["ProcNum"].ToString());
 				if(procNum==0) {
 					MsgBox.Show(this,"You can only select procedures.");
 					return;
@@ -4572,12 +4573,12 @@ namespace OpenDental {
 				adjustment.PatNum=_patient.PatNum;
 				adjustment.ClinicNum=_patient.ClinicNum;
 				if(gridAccount.SelectedGridRows.Count==1) {
-					OrthoProcLink orthoProcLink=OrthoProcLinks.GetByProcNum(PIn.Long(tableAcct.Rows[gridAccount.SelectedIndices[0]]["ProcNum"].ToString()));
+					OrthoProcLink orthoProcLink=OrthoProcLinks.GetByProcNum(SIn.Long(tableAcct.Rows[gridAccount.SelectedIndices[0]]["ProcNum"].ToString()));
 					if(orthoProcLink!=null) {
 						MsgBox.Show(this,"Procedures linked to ortho cases cannot be adjusted.");
 						return;
 					}
-					long procNum=PIn.Long(tableAcct.Rows[gridAccount.SelectedIndices[0]]["ProcNum"].ToString());
+					long procNum=SIn.Long(tableAcct.Rows[gridAccount.SelectedIndices[0]]["ProcNum"].ToString());
 					Procedure procedure=Procedures.GetOneProc(procNum,false);
 					if(!Security.IsAuthorized(EnumPermType.ProcCompleteAddAdj,Procedures.GetDateForPermCheck(procedure))) {
 						return;
@@ -4605,7 +4606,7 @@ namespace OpenDental {
 			DataTable table=_dataSetMain.Tables["account"];
 			//Guaranteed to be exactly one claim selected (among possible other selections) when called from contextMenuAcctGrid_Popup()
 			int idxClaimSelected=gridAccount.SelectedIndices.ToList().Find(x => table.Rows[x]["ClaimNum"].ToString()!="0");
-			long claimNum=PIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
+			long claimNum=SIn.Long(table.Rows[idxClaimSelected]["ClaimNum"].ToString());
 			Claim claim=Claims.GetClaim(claimNum);
 			//Finding the clearing settings for the selected claim's clinic is from ClaimConnect.cs GetClearingHouseForClaim(). This method is private so the code was copied.
 			InsPlan insPlan=InsPlans.GetPlan(claim.PlanNum,null);
@@ -4665,7 +4666,7 @@ namespace OpenDental {
 						+Lan.g(this,"Creating a payment plan for this guarantor would cause the account to be suspended in the TSI system but you are not "
 							+"authorized for")+"\r\n"
 						+GroupPermissions.GetDesc(EnumPermType.Billing);
-					MessageBox.Show(this,msg);
+					ODMessageBox.Show(this,msg);
 					return;
 				}
 				string billingType=Defs.GetName(DefCat.BillingTypes,PrefC.GetLong(PrefName.TransworldPaidInFullBillingType));
@@ -4717,7 +4718,7 @@ namespace OpenDental {
 			if(isTsiPayplan && PayPlans.GetOne(payPlan.PayPlanNum)!=null) {
 				msg=TsiTransLogs.SuspendGuar(_family.Guarantor);
 				if(!string.IsNullOrEmpty(msg)) {
-					MessageBox.Show(this,msg+"\r\n"+Lan.g(this,"The account will have to be suspended manually using the A/R Manager or the TSI web portal."));
+					ODMessageBox.Show(this,msg+"\r\n"+Lan.g(this,"The account will have to be suspended manually using the A/R Manager or the TSI web portal."));
 				}
 			}
 		}
@@ -4763,7 +4764,7 @@ namespace OpenDental {
 				Clearinghouse clearinghouseClin=Clearinghouses.OverrideFields(clearinghouseHq,Clinics.ClinicNum);
 				claimSendQueueItemsArray[0]=Eclaims.GetMissingData(clearinghouseClin,claimSendQueueItemsArray[0]);
 				if(claimSendQueueItemsArray[0].MissingData!="") {
-					MessageBox.Show("Cannot add attachments until missing data is fixed:\r\n"+claimSendQueueItemsArray[0].MissingData);
+					ODMessageBox.Show("Cannot add attachments until missing data is fixed:\r\n"+claimSendQueueItemsArray[0].MissingData);
 					return false;
 				}
 			}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;
@@ -45,9 +46,9 @@ namespace OpenDental {
 			if(program==null) {
 				return;
 			}
-			checkSignature.Checked=PIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,EdgeExpressProps.PromptSignature,ClinicNum));
-			checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,EdgeExpressProps.PrintReceipt,ClinicNum));
-			if(PIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,EdgeExpressProps.PreventSavingNewCC,ClinicNum)) || !DoShowSaveTokenBox) {
+			checkSignature.Checked=SIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,EdgeExpressProps.PromptSignature,ClinicNum));
+			checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,EdgeExpressProps.PrintReceipt,ClinicNum));
+			if(SIn.Bool(ProgramProperties.GetPropVal(program.ProgramNum,EdgeExpressProps.PreventSavingNewCC,ClinicNum)) || !DoShowSaveTokenBox) {
 				checkSaveToken.Checked=false;
 				checkSaveToken.Enabled=false;
 			}
@@ -98,7 +99,7 @@ namespace OpenDental {
 					MsgBox.Show(this,"Please fix data entry errors first.");
 					return;
 				}
-				AmtCashBack=PIn.Decimal(textCashBackAmt.Text);
+				AmtCashBack=SIn.Decimal(textCashBackAmt.Text);
 			}
 			if(textTransactionId.Visible && textTransactionId.Text=="") {
 				MsgBox.Show(this,"Transaction ID required.");

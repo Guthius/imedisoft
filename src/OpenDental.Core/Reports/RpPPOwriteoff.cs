@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpPPOwriteoff {
@@ -10,8 +11,8 @@ namespace OpenDentBusiness {
 			string queryText="";
 			//individual
 			if(isIndividual) {
-				queryText="SET @DateFrom="+POut.Date(dateStart)+", @DateTo="+POut.Date(dateEnd)
-				+", @CarrierName='%"+POut.String(carrierText)+"%';";
+				queryText="SET @DateFrom="+SOut.Date(dateStart)+", @DateTo="+SOut.Date(dateEnd)
+				+", @CarrierName='%"+SOut.String(carrierText)+"%';";
 				if(writeoffType==PPOWriteoffDateCalc.InsPayDate) {
 					queryText+=@"SELECT claimproc.DateCP,
 					CONCAT(CONCAT(CONCAT(CONCAT(patient.LName,', '),patient.FName),' '),patient.MiddleI),
@@ -84,8 +85,8 @@ namespace OpenDentBusiness {
 			else {
 				//group
 				if(writeoffType==PPOWriteoffDateCalc.InsPayDate) {
-					queryText="SET @DateFrom="+POut.Date(dateStart)+", @DateTo="+POut.Date(dateEnd)
-						+", @CarrierName='%"+POut.String(carrierText)+"%';"
+					queryText="SET @DateFrom="+SOut.Date(dateStart)+", @DateTo="+SOut.Date(dateEnd)
+						+", @CarrierName='%"+SOut.String(carrierText)+"%';"
 						+@"SELECT carrier.CarrierName,
 						SUM(claimproc.FeeBilled),
 						-SUM(claimproc.WriteOff),
@@ -103,8 +104,8 @@ namespace OpenDentBusiness {
 						ORDER BY carrier.CarrierName";
 				}
 				else if(writeoffType==PPOWriteoffDateCalc.ProcDate) {
-					queryText="SET @DateFrom="+POut.Date(dateStart)+", @DateTo="+POut.Date(dateEnd)
-						+", @CarrierName='%"+POut.String(carrierText)+"%';"
+					queryText="SET @DateFrom="+SOut.Date(dateStart)+", @DateTo="+SOut.Date(dateEnd)
+						+", @CarrierName='%"+SOut.String(carrierText)+"%';"
 						+@"SELECT carrier.CarrierName,
 						SUM(claimproc.FeeBilled),
 						-SUM(claimproc.WriteOff),
@@ -122,8 +123,8 @@ namespace OpenDentBusiness {
 						ORDER BY carrier.CarrierName";
 				}
 				else {	// writeoffType==PPOWriteoffDateCalc.ClaimPayDate
-					queryText="SET @DateFrom="+POut.Date(dateStart)+", @DateTo="+POut.Date(dateEnd)
-						+", @CarrierName='%"+POut.String(carrierText)+"%';"
+					queryText="SET @DateFrom="+SOut.Date(dateStart)+", @DateTo="+SOut.Date(dateEnd)
+						+", @CarrierName='%"+SOut.String(carrierText)+"%';"
 						+@"SELECT carrier.CarrierName,
 						SUM(claimproc.FeeBilled),
 						-SUM("+DbHelper.IfNull("NULLIF(claimsnapshot.WriteOff, -1)","0",false)+@"),

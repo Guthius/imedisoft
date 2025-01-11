@@ -313,7 +313,7 @@ namespace OpenDental{
 				return;
 			}
 			long changed=FeeScheds.CleanupAllowedScheds();
-			MessageBox.Show(changed.ToString()+" "+Lan.g(this,"unused fee schedules deleted."));
+			ODMessageBox.Show(changed.ToString()+" "+Lan.g(this,"unused fee schedules deleted."));
 			if(changed==0) {
 				return;
 			}
@@ -334,7 +334,7 @@ namespace OpenDental{
 			ODEvent.Fire(ODEventType.ProgressBar,Lans.g(this,"Hiding unused fee schedules..."));
 			long countChanged=FeeScheds.HideUnusedScheds();
 			actionProgress?.Invoke();
-			MessageBox.Show(countChanged.ToString()+" "+Lans.g(this,"unused fee schedules hidden."));
+			ODMessageBox.Show(countChanged.ToString()+" "+Lans.g(this,"unused fee schedules hidden."));
 			if(countChanged==0) {
 				return;
 			}

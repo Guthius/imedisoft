@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -22,7 +23,7 @@ namespace OpenDental {
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
-			CountCur=PIn.Int(textBox1.Text);
+			CountCur=SIn.Int(textBox1.Text);
 			DialogResult=DialogResult.OK;
 		}
 

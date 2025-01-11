@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -109,7 +110,7 @@ namespace OpenDental {
 			if((!comboClinics.IsAllSelected && comboClinics.ClinicNumSelected!=dunning.ClinicNum)
 				||(!listBill.SelectedIndices.Contains(0) && !listBill.SelectedIndices.OfType<int>().Select(x => _listDefsBillingTypes[x-1].DefNum).Contains(dunning.BillingType))
 				||(!radioAny.Checked && dunning.AgeAccount!=(byte)(30*new List<RadioButton> { radioAny,radio30,radio60,radio90 }.FindIndex(x => x.Checked)))//0, 30, 60, or 90
-				||(!string.IsNullOrWhiteSpace(textAdv.Text) && dunning.DaysInAdvance!=PIn.Int(textAdv.Text,false))//blank=0
+				||(!string.IsNullOrWhiteSpace(textAdv.Text) && dunning.DaysInAdvance!=SIn.Int(textAdv.Text,false))//blank=0
 				||(!radioU.Checked && dunning.InsIsPending!=(YN)new List<RadioButton> { radioU,radioY,radioN }.FindIndex(x => x.Checked)))//0=Unknown, 1=Yes, 2=No+
 			{
 				return false;

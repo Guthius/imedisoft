@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -33,7 +35,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				webBrowserWiki.DocumentText="";
-				MessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed.  Error message:")+" "+ex.Message);
+				ODMessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed.  Error message:")+" "+ex.Message);
 			}
 		}
 
@@ -48,7 +50,7 @@ namespace OpenDental {
 			List<string> listWikiPageTitles=WikiPages.GetForSearch(textSearch.Text,true,isDeleted:includeArchived);
 			for(int i=0;i<listWikiPageTitles.Count;i++) {
 				GridRow row=new GridRow();
-				string wikiPageTitle=PIn.String(listWikiPageTitles[i]);
+				string wikiPageTitle=SIn.String(listWikiPageTitles[i]);
 				row.Tag=wikiPageTitle;
 				row.Cells.Add(wikiPageTitle);
 				gridMain.ListGridRows.Add(row);

@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormDefEditWebSchedApptTypes:FormODBase {
@@ -89,7 +90,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Appointment Type required.");
 				return;
 			}
-			_def.ItemName=PIn.String(textName.Text);
+			_def.ItemName=SIn.String(textName.Text);
 			if(_def.IsNew) {
 				DefL.Insert(_def);
 			}
@@ -112,7 +113,7 @@ namespace OpenDental {
 				Defs.Delete(_def);				
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			//Web Sched New appointment type defs can be associated to multiple types of deflinks.  Clean them up.
 			DefLinks.DeleteAllForDef(_def.DefNum);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -11,7 +12,7 @@ namespace OpenDentBusiness.HL7 {
 	public class EcwSegmentPID {
 		///<summary>PatNum will not be altered here.  The pat passed in must either have PatNum=0, or must have a PatNum matching the segment.  The reason that isStandalone is passed in is because if using tight integration mode (isStandalone=false), then we need to store the "alternate patient id" aka Account No. that comes in on PID.4 in the ChartNumber field so we can pass it back in PID.2 of the DFT charge message.  However, if not using tight integration (isStandalone=true), the ChartNumber field is already occupied by the eCW patient ID, and we do not want to overwrite it.</summary>
 		public static void ProcessPID(Patient pat,SegmentHL7 seg,bool isStandalone,List<PatientRace> listPatRaces) {
-			long patNum=PIn.Long(seg.GetFieldFullText(2));
+			long patNum=SIn.Long(seg.GetFieldFullText(2));
 			//Standalone mode may not have found a matching patient within the database and will be inserted later in the message processing.
 			if(isStandalone && pat!=null) {
 				patNum=pat.PatNum;//Standalone mode cannot always trust the PatNum in field 2.  Always use pat.PatNum because that will the OD PatNum.
@@ -54,7 +55,7 @@ namespace OpenDentBusiness.HL7 {
 
 		///<summary>If relationship is self, this loop does nothing.  A new pat will later change guarantor to be same as patnum. </summary>
 		public static void ProcessGT1(Patient pat,SegmentHL7 seg,bool useChartNumber) {
-			long guarNum=PIn.Long(seg.GetFieldFullText(2));
+			long guarNum=SIn.Long(seg.GetFieldFullText(2));
 			if(guarNum==0) {//because we have an example where they sent us this (position 2 is empty): GT1|1||^^||^^^^||||||||
 				return;
 			}
@@ -103,7 +104,7 @@ namespace OpenDentBusiness.HL7 {
 					guar.PatNum=guarNum;
 				}
 				guar.PriProv=PrefC.GetLong(PrefName.PracticeDefaultProv);
-				guar.BillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
+				guar.BillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
 			}
 			else {
 				guarOld=guar.Copy();
@@ -148,9 +149,9 @@ namespace OpenDentBusiness.HL7 {
 			if(str.Length != 8) {
 				return DateTime.MinValue;
 			}
-			int year=PIn.Int(str.Substring(0,4));
-			int month=PIn.Int(str.Substring(4,2));
-			int day=PIn.Int(str.Substring(6));
+			int year=SIn.Int(str.Substring(0,4));
+			int month=SIn.Int(str.Substring(4,2));
+			int day=SIn.Int(str.Substring(6));
 			DateTime retVal=new DateTime(year,month,day);
 			return retVal;
 		}

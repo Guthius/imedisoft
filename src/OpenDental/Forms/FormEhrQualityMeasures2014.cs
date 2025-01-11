@@ -12,6 +12,7 @@ using System.Xml;
 using System.Xml.XPath;
 using CodeBase;
 using System.IO;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 #if EHRTEST
 using EHR;
@@ -71,8 +72,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please select a provider first.");
 				return;
 			}
-			DateTime dateStart=PIn.Date(textDateStart.Text);
-			DateTime dateEnd=PIn.Date(textDateEnd.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
+			DateTime dateEnd=SIn.Date(textDateEnd.Text);
 			if(dateStart==DateTime.MinValue || dateEnd==DateTime.MinValue) {
 				MsgBox.Show(this,"Fix date format and try again.");
 				return;
@@ -187,7 +188,7 @@ namespace OpenDental {
 				System.IO.Directory.CreateDirectory(folderPath);
 			}
 			catch(Exception ex) {
-				MessageBox.Show("Folder was not created: "+ex.Message);
+				ODMessageBox.Show("Folder was not created: "+ex.Message);
 				return;
 			}
 			Cursor=Cursors.WaitCursor;
@@ -196,7 +197,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				if(ex.InnerException != null && ex.InnerException.Message=="true") {
 					using FormOIDRegistryInternal FormOIDs=new FormOIDRegistryInternal();
 					FormOIDs.ShowDialog();

@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using CodeBase;
 
 namespace OpenDental{
 ///<summary>Lists all insurance plans for which the supplied patient is the subscriber. Lets you select an insurance plan based on a patNum. SelectedPlan will contain the plan selected.</summary>
@@ -124,7 +125,7 @@ namespace OpenDental{
 
 		private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
 			if(ViewRelat && listRelat.SelectedIndex==-1) {
-				MessageBox.Show(Lan.g(this,"Please select a relationship first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a relationship first."));
 				return;
 			}
 			if(ViewRelat) {
@@ -142,11 +143,11 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select a plan first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a plan first."));
 				return;
 			}
 			if(ViewRelat && listRelat.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select a relationship first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a relationship first."));
 				return;
 			}
 			if(ViewRelat){

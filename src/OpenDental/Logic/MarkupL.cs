@@ -52,7 +52,7 @@ namespace OpenDental
             {
                 if (showMsgBox)
                 {
-                    MessageBox.Show(ex.Message);
+                    ODMessageBox.Show(ex.Message);
                 }
 
                 return false;
@@ -70,7 +70,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(ex.Message);
+                        ODMessageBox.Show(ex.Message);
                     }
 
                     return false;
@@ -87,7 +87,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollectionTags[i].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollectionTags[i].Index) + " - "
                                         + Lans.g(_lanThis, "Tag definitions cannot contain a return line:") + " " + matchCollectionTags[i].Value.Replace("\n", ""));
                     }
 
@@ -113,7 +113,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[0].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[0].Index) + " - "
                                         + Lans.g(_lanThis, "Cannot use images in wiki if storing images in database."));
                     }
 
@@ -129,7 +129,7 @@ namespace OpenDental
                         {
                             if (showMsgBox)
                             {
-                                MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - "
+                                ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - "
                                                 + Lans.g(_lanThis, "Not allowed to save because image does not exist:") + " " + imgPath);
                             }
 
@@ -168,7 +168,7 @@ namespace OpenDental
                         {
                             if (showMsgBox)
                             {
-                                MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - "
+                                ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - "
                                                 + Lans.g(_lanThis, "Not allowed to save because image does not exist: ") + " " + imgPath);
                             }
 
@@ -186,7 +186,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
                                         + Lans.g(_lanThis, "Wiki list does not exist in database:") + " " + matchCollection[m].Value.Substring(7).Trim(']'));
                     }
 
@@ -204,7 +204,7 @@ namespace OpenDental
                     {
                         if (showMsgBox)
                         {
-                            MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
+                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
                                             + Lans.g(_lanThis, "Stars used for lists may not have a space before them."));
                         }
 
@@ -215,7 +215,7 @@ namespace OpenDental
                     {
                         if (showMsgBox)
                         {
-                            MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
+                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
                                             + Lans.g(_lanThis, "Stars used for lists may not have a space after them."));
                         }
 
@@ -229,7 +229,7 @@ namespace OpenDental
                     {
                         if (showMsgBox)
                         {
-                            MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
+                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
                                             + Lans.g(_lanThis, "Hashes used for lists may not have a space before them."));
                         }
 
@@ -240,7 +240,7 @@ namespace OpenDental
                     {
                         if (showMsgBox)
                         {
-                            MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
+                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
                                             + Lans.g(_lanThis, "Hashes used for lists may not have a space after them."));
                         }
 
@@ -259,7 +259,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
                                         + Lans.g(_lanThis, "Link cannot contain double quotes:") + " " + matchCollection[m].Value);
                     }
 
@@ -287,7 +287,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
                                         + Lans.g(_lanThis, "Internal link cannot contain a pipe character:") + " " + matchCollection[m].Value);
                     }
 
@@ -317,7 +317,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
                                         + Lans.g(_lanThis, "The second line of a table markup section must start with ! to indicate column headers."));
                     }
 
@@ -328,7 +328,7 @@ namespace OpenDental
                 {
                     if (showMsgBox)
                     {
-                        MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
+                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
                                         + Lans.g(_lanThis, "In the table, at line 2, there cannot be a space after the first !"));
                     }
 
@@ -343,7 +343,7 @@ namespace OpenDental
                         //e.g. Width="90"| 
                         if (showMsgBox)
                         {
-                            MessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
+                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
                                             + Lans.g(_lanThis, "In the table markup, each header must be formatted like this: Width=\"#\"|..."));
                         }
 
@@ -358,7 +358,7 @@ namespace OpenDental
                     {
                         if (showMsgBox)
                         {
-                            MessageBox.Show(Lans.g(_lanThis, "Table rows must start with |.  At line ") + (i + 1).ToString() + Lans.g(_lanThis, ", this was found instead:")
+                            ODMessageBox.Show(Lans.g(_lanThis, "Table rows must start with |.  At line ") + (i + 1).ToString() + Lans.g(_lanThis, ", this was found instead:")
                                             + stringArrayLines[i]);
                         }
 

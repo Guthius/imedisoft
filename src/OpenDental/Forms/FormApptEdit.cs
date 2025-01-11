@@ -17,6 +17,7 @@ using PdfSharp.Pdf;
 using CodeBase;
 using System.Collections;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -427,7 +428,7 @@ namespace OpenDental{
 				checkShowCommAuto.Checked=true;
 			}
 			else {
-				checkShowCommAuto.Checked=PIn.Bool(userOdPrefShowAutoCommlog.ValueString);
+				checkShowCommAuto.Checked=SIn.Bool(userOdPrefShowAutoCommlog.ValueString);
 			}
 			FillComm();
 			FillFields();
@@ -452,7 +453,7 @@ namespace OpenDental{
 		///<summary>Uses the UserODPref to store ShowAutomatedCommlog separately from the chart module.</summary>
 		private void checkShowCommAuto_Click(object sender,EventArgs e) {
 			UserOdPref userOdPrefShowAutoCommlog=UserOdPrefs.GetFirstOrNewByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.ShowAutomatedCommlog);
-			userOdPrefShowAutoCommlog.ValueString=POut.Bool(checkShowCommAuto.Checked);
+			userOdPrefShowAutoCommlog.ValueString=SOut.Bool(checkShowCommAuto.Checked);
 			UserOdPrefs.Upsert(userOdPrefShowAutoCommlog);
 			DataValid.SetInvalid(InvalidType.UserOdPrefs);
 			//refresh the data
@@ -578,7 +579,7 @@ namespace OpenDental{
 				ProcedureCodes.ValidateProcedureCodeEntry(stringArrayProcCodes,doAllowToothNum: true);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			List<Procedure> listProceduresAdded=ApptEdit.QuickAddProcs(_appointment,_patient,stringArrayProcCodes.ToList(),comboProv.GetSelectedProvNum(),comboProvHyg.GetSelectedProvNum(),_listInsSubs,_listInsPlans,_listPatPlans,_listBenefits);
@@ -851,7 +852,7 @@ namespace OpenDental{
 					isProcDeleted=true;
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					break;
 				}
 				if(procedure.ProcStatus.In(ProcStat.C,ProcStat.EO,ProcStat.EC)) {
@@ -883,17 +884,17 @@ namespace OpenDental{
 			CalcPatientFeeThisAppt();
 			RefreshEstPatientPortion();
 			if(skipped>0) {
-				MessageBox.Show(Lan.g(this,"Procedures skipped due to lack of permission to edit completed procedures: ")+skipped.ToString());
+				ODMessageBox.Show(Lan.g(this,"Procedures skipped due to lack of permission to edit completed procedures: ")+skipped.ToString());
 			}
 			if(skippedSecurity>0) {
-				MessageBox.Show(Lan.g(this,"Procedures skipped due to lack of permission to delete procedures: ")+skippedSecurity.ToString());
+				ODMessageBox.Show(Lan.g(this,"Procedures skipped due to lack of permission to delete procedures: ")+skippedSecurity.ToString());
 			}
 			if(skippedLinkedToOrthoCase>0) {
-				MessageBox.Show(Lan.g(this,"Procedures skipped because they are linked to one or more ortho cases: ")+skippedLinkedToOrthoCase.ToString()+"\r"
+				ODMessageBox.Show(Lan.g(this,"Procedures skipped because they are linked to one or more ortho cases: ")+skippedLinkedToOrthoCase.ToString()+"\r"
 					+"Detach the procedure(s) or delete the ortho case(s) first.");
 			}
 			if(skippedPreauth>0) {
-				MessageBox.Show(Lan.g(this,"Procedures skipped because you are not allowed to delete the last procedure attached to a preauthorization: ")+POut.Int(skippedPreauth)+"\r"
+				ODMessageBox.Show(Lan.g(this,"Procedures skipped because you are not allowed to delete the last procedure attached to a preauthorization: ")+SOut.Int(skippedPreauth)+"\r"
 					+"Detach the procedure(s) or delete the preauthorization first.");
 			}
 		}
@@ -943,7 +944,7 @@ namespace OpenDental{
 					Procedures.Delete(procedure.ProcNum);//also deletes the claimprocs
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 				return;
 			}
@@ -980,8 +981,8 @@ namespace OpenDental{
 		#region Methods - Event Handlers - ODGridClick
 		private void gridComm_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			DataRow row=((DataRow)gridComm.ListGridRows[e.Row].Tag);
-			long commNum=PIn.Long(row["CommlogNum"].ToString());
-			long msgNum=PIn.Long(row["EmailMessageNum"].ToString());
+			long commNum=SIn.Long(row["CommlogNum"].ToString());
+			long msgNum=SIn.Long(row["EmailMessageNum"].ToString());
 			if (commNum>0) {
 				Commlog commlog=Commlogs.GetOne(commNum);
 				if(commlog==null) {
@@ -1097,7 +1098,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"There are duplicate appointment field defs, go rename or delete the duplicates.");
 				return;
 			}
-			ApptField apptField=ApptFields.GetOne(PIn.Long(_tableFields.Rows[e.Row]["ApptFieldNum"].ToString()));
+			ApptField apptField=ApptFields.GetOne(SIn.Long(_tableFields.Rows[e.Row]["ApptFieldNum"].ToString()));
 			if(apptField==null) {
 				apptField=new ApptField();
 				apptField.IsNew=true;
@@ -1177,7 +1178,7 @@ namespace OpenDental{
 			List<Procedure> listProcedures=Procedures.GetProcsForSingle(_appointment.AptNum,_appointment.AptStatus==ApptStatus.Planned);
 			string duplicateProcs=ProcedureL.ProcsContainDuplicates(listProcedures);
 			if(duplicateProcs!="") {
-				MessageBox.Show(duplicateProcs);
+				ODMessageBox.Show(duplicateProcs);
 				return;
 			}
 			//Send DFT to eCW containing a dummy procedure with this appointment in a .pdf file.	
@@ -1199,7 +1200,7 @@ namespace OpenDental{
 				hl7Msg.PatNum=_patient.PatNum;
 				HL7Msgs.Insert(hl7Msg);
 				if(/* ODBuild.IsDebug() */ false) {
-					MessageBox.Show(this,messageHL7.ToString());
+					ODMessageBox.Show(this,messageHL7.ToString());
 				}
 			}
 			else {
@@ -1233,7 +1234,7 @@ namespace OpenDental{
 			List<Procedure> listProceduresForAppts=gridProc.SelectedIndices.OfType<int>().Select(x => (Procedure)gridProc.ListGridRows[x].Tag).ToList();
 			string duplicateProcs=ProcedureL.ProcsContainDuplicates(listProceduresForAppts);
 			if(duplicateProcs!="") {
-				MessageBox.Show(duplicateProcs);
+				ODMessageBox.Show(duplicateProcs);
 				return;
 			}
 			if(ProgramProperties.GetPropVal(ProgramName.eClinicalWorks,"ProcNotesNoIncomplete")=="1") {
@@ -1489,7 +1490,7 @@ namespace OpenDental{
 			for(int i = 0;i<gridProc.SelectedIndices.Length;i++) {
 				feeThisAppt+=((Procedure)(gridProc.ListGridRows[gridProc.SelectedIndices[i]].Tag)).ProcFeeTotal;
 			}
-			gridPatient.ListGridRows[gridPatient.ListGridRows.Count-1].Cells[1].Text=POut.Double(feeThisAppt);
+			gridPatient.ListGridRows[gridPatient.ListGridRows.Count-1].Cells[1].Text=SOut.Double(feeThisAppt);
 			gridPatient.Invalidate();
 		}
 
@@ -1524,12 +1525,12 @@ namespace OpenDental{
 						frequencyConflicts=Procedures.CheckFrequency(listProceduresFrequencies,_patient.PatNum,_appointment.AptDateTime);
 					}
 					catch(Exception e) {
-						MessageBox.Show(Lan.g(this,"There was an error checking frequencies."
+						ODMessageBox.Show(Lan.g(this,"There was an error checking frequencies."
 							+"  Disable the Insurance Frequency Checking feature or try to fix the following error:")
 							+"\r\n"+e.Message);
 						return false;
 					}
-					if(frequencyConflicts!="" && MessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
+					if(frequencyConflicts!="" && ODMessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
 						+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No) {
 						return false;
 					}
@@ -1539,11 +1540,11 @@ namespace OpenDental{
 						frequencyConflicts=DiscountPlans.CheckDiscountFrequencyAndValidateDiscountPlanSub(listProceduresFrequencies,_patient.PatNum,_appointment.AptDateTime);
 					}
 					catch(Exception e) {
-						MessageBox.Show(Lan.g(this,"There was an error checking discount frequencies.")
+						ODMessageBox.Show(Lan.g(this,"There was an error checking discount frequencies.")
 							+"\r\n"+e.Message);
 						return false;
 					}
-					if(frequencyConflicts!="" && MessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
+					if(frequencyConflicts!="" && ODMessageBox.Show(Lan.g(this,"This appointment will cause frequency conflicts for the following procedures")
 						+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No) {
 						return false;
 					}
@@ -1624,16 +1625,16 @@ namespace OpenDental{
 			List<Def> listDefsCommLogTypes=Defs.GetDefsForCategory(DefCat.CommLogTypes);
 			bool isCommlogAutomated;
 			for(int i=0;i<_tableComms.Rows.Count;i++) {
-				long commTypeDefNum=PIn.Long(_tableComms.Rows[i]["CommType"].ToString());
+				long commTypeDefNum=SIn.Long(_tableComms.Rows[i]["CommType"].ToString());
 				Def defCur=Defs.GetDef(DefCat.CommLogTypes,commTypeDefNum,listDefsCommLogTypes);
 				string commType=defCur==null?"":defCur.ItemValue;//EmailMessages are included in _tableComms and do not have a CommType set.
-				isCommlogAutomated=Commlogs.IsAutomated(commType,PIn.Enum<CommItemSource>(_tableComms.Rows[i]["CommSource"].ToString()));
+				isCommlogAutomated=Commlogs.IsAutomated(commType,SIn.Enum<CommItemSource>(_tableComms.Rows[i]["CommSource"].ToString()));
 				if(!checkShowCommAuto.Checked && isCommlogAutomated) { //Skip automated commlogs if not checked.
 					continue;
 				}
 				row=new GridRow();
-				if(PIn.Long(_tableComms.Rows[i]["CommlogNum"].ToString())>0) {
-					row.Cells.Add(PIn.Date(_tableComms.Rows[i]["commDateTime"].ToString()).ToShortDateString());
+				if(SIn.Long(_tableComms.Rows[i]["CommlogNum"].ToString())>0) {
+					row.Cells.Add(SIn.Date(_tableComms.Rows[i]["commDateTime"].ToString()).ToShortDateString());
 					if(isCommlogAutomated) {//If it's an automated commlog, show only the first line.
 						row.Cells.Add(Commlogs.GetNoteFirstLine(_tableComms.Rows[i]["Note"].ToString()));
 					}
@@ -1644,11 +1645,11 @@ namespace OpenDental{
 						row.ColorBackG=listDefsMiscColors[(int)DefCatMiscColors.CommlogApptRelated].ItemColor;
 					}
 				}
-				else if(PIn.Long(_tableComms.Rows[i]["EmailMessageNum"].ToString())>0) {
-					if(((HideInFlags)PIn.Int(_tableComms.Rows[i]["EmailMessageHideIn"].ToString())).HasFlag(HideInFlags.ApptEdit)) {
+				else if(SIn.Long(_tableComms.Rows[i]["EmailMessageNum"].ToString())>0) {
+					if(((HideInFlags)SIn.Int(_tableComms.Rows[i]["EmailMessageHideIn"].ToString())).HasFlag(HideInFlags.ApptEdit)) {
 						continue;
 					}
-					row.Cells.Add(PIn.Date(_tableComms.Rows[i]["commDateTime"].ToString()).ToShortDateString());
+					row.Cells.Add(SIn.Date(_tableComms.Rows[i]["commDateTime"].ToString()).ToShortDateString());
 					row.Cells.Add(_tableComms.Rows[i]["Subject"].ToString());
 				}
 				row.Tag=_tableComms.Rows[i];
@@ -2118,7 +2119,7 @@ namespace OpenDental{
 					return;
 				}
 				if(textNote.Text != "") {
-					if(MessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(textNote.Text,_appointment.AptStatus),"Question...",MessageBoxButtons.YesNo) == DialogResult.Yes) {
+					if(ODMessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(textNote.Text,_appointment.AptStatus),"Question...",MessageBoxButtons.YesNo) == DialogResult.Yes) {
 						Commlog Commlog = new Commlog();
 						Commlog.PatNum = _appointment.PatNum;
 						Commlog.CommDateTime = DateTime.Now;
@@ -2132,7 +2133,7 @@ namespace OpenDental{
 				}
 			}
 			else {//ordinary appointment
-				if(!isSkipDeletePrompt && MessageBox.Show(Lan.g(this,"Delete appointment?"),"",MessageBoxButtons.OKCancel) != DialogResult.OK) {
+				if(!isSkipDeletePrompt && ODMessageBox.Show(Lan.g(this,"Delete appointment?"),"",MessageBoxButtons.OKCancel) != DialogResult.OK) {
 					return;
 				}
 				//Only want to be able to break already scheduled appointments, this does not include new appointments in "schedule" status.
@@ -2145,7 +2146,7 @@ namespace OpenDental{
 					AppointmentL.BreakApptHelper(_appointment,_patient,frmApptBreakRequired.ProcedureCodeBrokenSelected);
 				}
 				if(textNote.Text != "") {
-					if(MessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(textNote.Text,_appointment.AptStatus),"Question...",MessageBoxButtons.YesNo) == DialogResult.Yes) {
+					if(ODMessageBox.Show(Commlogs.GetDeleteApptCommlogMessage(textNote.Text,_appointment.AptStatus),"Question...",MessageBoxButtons.YesNo) == DialogResult.Yes) {
 						Commlog Commlog=new Commlog();
 						Commlog.PatNum=_appointment.PatNum;
 						Commlog.CommDateTime=DateTime.Now;
@@ -2174,7 +2175,7 @@ namespace OpenDental{
 						hl7Msg.PatNum=_patient.PatNum;
 						HL7Msgs.Insert(hl7Msg);
 						if(/* ODBuild.IsDebug() */ false) {
-							MessageBox.Show(this,messageHL7.ToString());
+							ODMessageBox.Show(this,messageHL7.ToString());
 						}
 					}
 				}
@@ -2326,7 +2327,7 @@ namespace OpenDental{
 			}
 			if(_appointmentOld.AptStatus!=ApptStatus.UnschedList && comboStatus.GetSelected<ApptStatus>()==ApptStatus.UnschedList) {//previously not on unsched list and sending to unscheduled list
 				if(PatRestrictionL.IsRestricted(_appointment.PatNum,PatRestrict.ApptSchedule,suppressMessage: true)) {
-					MessageBox.Show(Lan.g(this,"Not allowed to send this appointment to the unscheduled list due to patient restriction")+" "
+					ODMessageBox.Show(Lan.g(this,"Not allowed to send this appointment to the unscheduled list due to patient restriction")+" "
 						+PatRestrictions.GetPatRestrictDesc(PatRestrict.ApptSchedule)+".");
 					return false;
 				}
@@ -2464,7 +2465,7 @@ namespace OpenDental{
 			if(GetApptStatusSelected()!=ApptStatus.UnschedList && GetApptStatusSelected()!=ApptStatus.Planned) {
 				string message=Providers.CheckApptProvidersTermDates(appointmentProviderCheck);
 				if(message!="") {
-					MessageBox.Show(this,message);//translated in Providers S class method
+					ODMessageBox.Show(this,message);//translated in Providers S class method
 					return false;
 				}
 			}
@@ -2603,7 +2604,7 @@ namespace OpenDental{
 				_listAppointments=apptSaveHelperResult.ListAppts;
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			if(_isInsertRequired && _appointmentOld.AptNum==0) {

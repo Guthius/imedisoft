@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using CodeBase;
 using OpenDentBusiness;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSupplyOrderEdit:FormODBase {
@@ -71,13 +72,13 @@ namespace OpenDental {
 				SupplyOrderCur.UserNum=0;//even if they had set a user, set it back because the order hasn't been placed. 
 			}
 			else{
-				SupplyOrderCur.DatePlaced=PIn.Date(textDatePlaced.Text);
+				SupplyOrderCur.DatePlaced=SIn.Date(textDatePlaced.Text);
 				SupplyOrderCur.UserNum=comboUser.GetSelectedKey<Userod>(x=>x.UserNum);
 			}
-			SupplyOrderCur.AmountTotal=PIn.Double(textAmountTotal.Text);
+			SupplyOrderCur.AmountTotal=SIn.Double(textAmountTotal.Text);
 			SupplyOrderCur.Note=textNote.Text;
-			SupplyOrderCur.ShippingCharge=PIn.Double(textShippingCharge.Text);
-			SupplyOrderCur.DateReceived=PIn.Date(textDateReceived.Text);
+			SupplyOrderCur.ShippingCharge=SIn.Double(textShippingCharge.Text);
+			SupplyOrderCur.DateReceived=SIn.Date(textDateReceived.Text);
 			if(_supplyOrderOld.IsPending() && !SupplyOrderCur.IsPending()) {
 				String supplierName=Suppliers.GetName(ListSuppliersAll,SupplyOrderCur.SupplierNum);
 				SecurityLogs.MakeLogEntry(
@@ -93,7 +94,7 @@ namespace OpenDental {
 					if(MsgBox.Show(this,MsgBoxButtons.YesNo,"There are some items not marked as received with this order. Mark them received?")){
 						for(int i=0;i<listSupplyOrderItems.Count;i++) {
 							if(listSupplyOrderItems[i].DateReceived.Year<1880) {
-								listSupplyOrderItems[i].DateReceived=PIn.Date(textDateReceived.Text);
+								listSupplyOrderItems[i].DateReceived=SIn.Date(textDateReceived.Text);
 								SupplyOrderItems.Update(listSupplyOrderItems[i]);
 							}
 						}

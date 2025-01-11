@@ -249,14 +249,14 @@ namespace OpenDental{
 		}
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
-			if(MessageBox.Show(Lan.g(this,"Delete Carrier?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+			if(ODMessageBox.Show(Lan.g(this,"Delete Carrier?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 				return;
 			}
 			try{
 				Carriers.Delete(CarrierCur);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -264,7 +264,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textCarrierName.Text==""){
-				MessageBox.Show(Lan.g(this,"Carrier Name cannot be blank."));
+				ODMessageBox.Show(Lan.g(this,"Carrier Name cannot be blank."));
 				return;
 			}
 			Carrier carrierOld=CarrierCur.Copy();
@@ -298,7 +298,7 @@ namespace OpenDental{
 					SecurityLogs.MakeLogEntry(EnumPermType.CarrierCreate,0,Lan.g(this,"Carrier ")+CarrierCur.CarrierName+Lan.g(this," manually created."));
 				}
 				catch(ApplicationException ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}
@@ -312,7 +312,7 @@ namespace OpenDental{
 					}
 				}
 				catch(ApplicationException ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}

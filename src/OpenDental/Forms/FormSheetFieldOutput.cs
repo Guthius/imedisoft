@@ -7,6 +7,7 @@ using System.Drawing.Text;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using PdfSharp.Drawing;
 
@@ -152,10 +153,10 @@ namespace OpenDental {
 			SheetFieldDefCur.FontName=comboFontName.GetSelected<string>();
 			SheetFieldDefCur.FontSize=fontSize;
 			SheetFieldDefCur.FontIsBold=checkFontIsBold.Checked;
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			SheetFieldDefCur.GrowthBehavior=comboGrowthBehavior.GetSelected<GrowthBehaviorEnum>();
 			SheetFieldDefCur.TextAlign=(System.Windows.Forms.HorizontalAlignment)comboTextAlign.SelectedIndex;
 			SheetFieldDefCur.ItemColor=butColor.BackColor;

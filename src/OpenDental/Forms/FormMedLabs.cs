@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -36,7 +38,7 @@ namespace OpenDental {
 			//One time reconcile may need to be run to create embedded PDFs for MedLabs that are not attached to a patient.
 			if(!PrefC.GetBool(PrefName.MedLabReconcileDone) && true) {
 				int countMedLabs=MedLabs.GetCountForPatient(0);
-				if(MessageBox.Show(this,Lan.g(this,"There are MedLabs in the database that have not been associated with a patient.\r\nA one time "
+				if(ODMessageBox.Show(this,Lan.g(this,"There are MedLabs in the database that have not been associated with a patient.\r\nA one time "
 					+"reconciliation must be performed that will reprocess the HL7 messages for these MedLabs.  This can take some time.\r\nDo you want to "
 					+"continue?\r\nNumber of MedLabs not associated with a patient")+": "+countMedLabs+".","",MessageBoxButtons.YesNo)==DialogResult.No)
 				{
@@ -47,7 +49,7 @@ namespace OpenDental {
 				int reconcileFailedCount=MedLabs.Reconcile();
 				Cursor=Cursors.Default;
 				if(reconcileFailedCount>0) {
-					MessageBox.Show(this,Lan.g(this,"Some of the MedLab objects in the database could not be reconciled.\r\nThis may be due to an issue "
+					ODMessageBox.Show(this,Lan.g(this,"Some of the MedLab objects in the database could not be reconciled.\r\nThis may be due to an issue "
 						+"processing the original HL7 message text file.\r\nNumber failed")+": "+reconcileFailedCount);
 				}
 				Prefs.UpdateBool(PrefName.MedLabReconcileDone,true);
@@ -110,7 +112,7 @@ namespace OpenDental {
 			}
 			gridMain.ListGridRows.Clear();
 			GridRow row;
-			DateTime dateEnd=PIn.Date(textDateEnd.Text);
+			DateTime dateEnd=SIn.Date(textDateEnd.Text);
 			if(dateEnd==DateTime.MinValue) {
 				dateEnd=DateTime.MaxValue;
 			}
@@ -126,7 +128,7 @@ namespace OpenDental {
 			else {//a single clinic was selected, either the "Unassigned" clinic or a regular clinic
 				listClinicsSelected.Add(clinic);
 			}
-			List<MedLab> listMedLabs=MedLabs.GetOrdersForPatient(_patientSelected,checkIncludeNoPat.Checked,checkOnlyNoPat.Checked,PIn.Date(textDateStart.Text),
+			List<MedLab> listMedLabs=MedLabs.GetOrdersForPatient(_patientSelected,checkIncludeNoPat.Checked,checkOnlyNoPat.Checked,SIn.Date(textDateStart.Text),
 				dateEnd,listClinicsSelected);
 			List<Patient> listPatients=Patients.GetLimForPats(listMedLabs.Select(x => x.PatNum).Where(x => x>0).Distinct().ToList());
 			for(int i = 0;i<listMedLabs.Count;i++) {
@@ -173,7 +175,7 @@ namespace OpenDental {
 			long patNum=0;
 			string[] stringArrayPatSpecimenIds=gridMain.ListGridRows[e.Row].Tag.ToString().Split(',');
 			if(stringArrayPatSpecimenIds.Length>0) {
-				patNum=PIn.Long(stringArrayPatSpecimenIds[0]);//if PatNum portion of the tag is an empty string, patNum will remain 0
+				patNum=SIn.Long(stringArrayPatSpecimenIds[0]);//if PatNum portion of the tag is an empty string, patNum will remain 0
 			}
 			formMedLabEdit.PatCur=Patients.GetPat(patNum);//could be null if PatNum=0
 			string specimenId="";

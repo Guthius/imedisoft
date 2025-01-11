@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -62,7 +63,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Invalid date.");
 				return;
 			}
-			DateEntered=PIn.Date(textDate.Text);
+			DateEntered=SIn.Date(textDate.Text);
 			IsDialogOK=true;
 		}
 	}

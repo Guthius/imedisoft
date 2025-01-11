@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 #if EHRTEST
@@ -25,7 +27,7 @@ namespace OpenDental {
 		private void FormEhrProvKeyEditCust_Load(object sender,EventArgs e) {
 			textLName.Text=KeyCur.LName;
 			textFName.Text=KeyCur.FName;
-			textCalYear.Text=POut.Long(KeyCur.YearValue);
+			textCalYear.Text=SOut.Long(KeyCur.YearValue);
 			textEhrKey.Text=KeyCur.ProvKey;
 			textFullTimeEquiv.Text=KeyCur.FullTimeEquiv.ToString();
 			textNotes.Text=KeyCur.Notes;
@@ -33,11 +35,11 @@ namespace OpenDental {
 
 		private void butGenerate_Click(object sender,EventArgs e) {
 			if(textLName.Text=="" || textFName.Text=="") {
-				MessageBox.Show("Please enter firstname and lastname.");
+				ODMessageBox.Show("Please enter firstname and lastname.");
 				return;
 			}
 			if(!textCalYear.IsValid()) {
-				MessageBox.Show("Invalid year, must be two digits.");
+				ODMessageBox.Show("Invalid year, must be two digits.");
 				return;
 			}
 			//Path for testing:
@@ -75,30 +77,30 @@ namespace OpenDental {
 			try{
 				float fte=float.Parse(textFullTimeEquiv.Text);
 				if(fte<=0) {
-					MessageBox.Show("FTE must be greater than 0.");
+					ODMessageBox.Show("FTE must be greater than 0.");
 					return;
 				}
 				if(fte>1) {
-					MessageBox.Show("FTE must be 1 or less.");
+					ODMessageBox.Show("FTE must be 1 or less.");
 					return;
 				}
 			}
 			catch{
 				//not allowed to be blank. Usually 1.
-				MessageBox.Show("Invalid FTE.");
+				ODMessageBox.Show("Invalid FTE.");
 				return;
 			}
 			if(textEhrKey.Text!="") {
-				if(!FormEHR.ProvKeyIsValid(textLName.Text,textFName.Text,PIn.Int(textCalYear.Text),textEhrKey.Text)) {
-					MessageBox.Show("Invalid provider key");
+				if(!FormEHR.ProvKeyIsValid(textLName.Text,textFName.Text,SIn.Int(textCalYear.Text),textEhrKey.Text)) {
+					ODMessageBox.Show("Invalid provider key");
 					return;
 				}
 			}
 			KeyCur.LName=textLName.Text;
 			KeyCur.FName=textFName.Text;
-			KeyCur.YearValue=PIn.Int(textCalYear.Text);
+			KeyCur.YearValue=SIn.Int(textCalYear.Text);
 			KeyCur.ProvKey=textEhrKey.Text;
-			KeyCur.FullTimeEquiv=PIn.Float(textFullTimeEquiv.Text);
+			KeyCur.FullTimeEquiv=SIn.Float(textFullTimeEquiv.Text);
 			KeyCur.Notes=textNotes.Text;
 			if(KeyCur.IsNew) {
 				EhrProvKeys.Insert(KeyCur);

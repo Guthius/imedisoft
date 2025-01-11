@@ -12,6 +12,7 @@ using System.Drawing.Printing;
 using System.Globalization;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -93,11 +94,11 @@ namespace OpenDental{
 				for(int j=0;j<queryObj.ReportTable.Rows.Count;j++) {
 					row=new GridRow();
 					row.Cells.Add(queryObj.ReportTable.Rows[j][0].ToString());//Procedure Name
-					row.Cells.Add(Lan.g("enumProcStat",PIn.String(queryObj.ReportTable.Rows[j][1].ToString())));//Stat
-					row.Cells.Add(PIn.Date(queryObj.ReportTable.Rows[j][2].ToString()).ToShortDateString());//Procedure Date
+					row.Cells.Add(Lan.g("enumProcStat",SIn.String(queryObj.ReportTable.Rows[j][1].ToString())));//Stat
+					row.Cells.Add(SIn.Date(queryObj.ReportTable.Rows[j][2].ToString()).ToShortDateString());//Procedure Date
 					row.Cells.Add(queryObj.ReportTable.Rows[j][3].ToString());//Procedure Description
 					if(true) {
-						long clinicNum=PIn.Long(queryObj.ReportTable.Rows[j][6].ToString());
+						long clinicNum=SIn.Long(queryObj.ReportTable.Rows[j][6].ToString());
 						if(clinicNum==0) {
 							row.Cells.Add("Unassigned");
 						}
@@ -105,8 +106,8 @@ namespace OpenDental{
 							row.Cells.Add(Clinics.GetAbbr(clinicNum));
 						}
 					}
-					row.Cells.Add(PIn.Double(queryObj.ReportTable.Rows[j][4].ToString()).ToString("c"));//Amount
-					_procTotalAmt+=PIn.Decimal(queryObj.ReportTable.Rows[j][4].ToString());
+					row.Cells.Add(SIn.Double(queryObj.ReportTable.Rows[j][4].ToString()).ToString("c"));//Amount
+					_procTotalAmt+=SIn.Decimal(queryObj.ReportTable.Rows[j][4].ToString());
 					row.Tag=((QueryObject)_myReport.ReportObjects[i]).ReportTable.Rows[j];
 					gridMain.ListGridRows.Add(row);
 				}
@@ -145,7 +146,7 @@ namespace OpenDental{
 			List<DataRow> listDataRows=tableNotBilled.Select().ToList();
 			for(int i=0;i<listDataRows.Count;i++) { //Filters listDataRows for specific ProcCodes
 				DataRow dataRow=listDataRows[i];	
-				ProcedureCode procedureCode=ProcedureCodes.GetFirstOrDefault(x=>x.CodeNum==PIn.Long(dataRow["CodeNum"]
+				ProcedureCode procedureCode=ProcedureCodes.GetFirstOrDefault(x=>x.CodeNum==SIn.Long(dataRow["CodeNum"]
 					.ToString()));
 				if(!listProcedureCodes.Contains(procedureCode.ProcCode) && checkOnlyProcCodes.Checked) {
 					tableNotBilled.Rows.Remove(dataRow); //ProcCodes listed in textProcedureCodes will only be shown
@@ -242,7 +243,7 @@ namespace OpenDental{
 			for(int i=0;i<gridMain.ListGridRows.Count;i++) {//Loop through every row in gridMain to construct datatable and listNotBilledProcs.
 				//Table is passed to toolBarButIns_Click(...) and must contain data for every row in the grid.
 				DataRow rowCur=(DataRow)gridMain.ListGridRows[i].Tag;
-				long procNumCur=PIn.Long(rowCur["ProcNum"].ToString());
+				long procNumCur=SIn.Long(rowCur["ProcNum"].ToString());
 				Procedure procCur=Procedures.GetOneProc(procNumCur,false);
 				if(procCur.ProcDate <= dateRestricted) {//current procedure is past or on the lock date. 
 					listProcNumsPastLockDate.Add(procNumCur);
@@ -371,13 +372,13 @@ namespace OpenDental{
 					"To set a new lock date for this report, go to Setup | Security | User Groups | Reports | Procedures Not Billed to Insurance, New Claims button.");
 				return;
 			}
-			else if(listProcNumsPastLockDate.Count>0 && !MsgBox.Show(this,MsgBoxButtons.OKCancel,POut.Int(listProcNumsPastLockDate.Count)
+			else if(listProcNumsPastLockDate.Count>0 && !MsgBox.Show(this,MsgBoxButtons.OKCancel,SOut.Int(listProcNumsPastLockDate.Count)
 				+" Claims will not be created because these procedure dates extend past the lock date for this report.\n" 
 				+ "To set a new lock date for this report, go to Setup | Security | User Groups | Reports | Procedures Not Billed to Insurance, New Claims button.")) 
 			{
 				return;
 			}
-			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Clicking OK will create up to "+POut.Int(claimCreatedCount)
+			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Clicking OK will create up to "+SOut.Int(claimCreatedCount)
 				+" claims and cannot be undone, except by manually going to each account.  "
 				+"Some claims may not be created if there are validation issues.\r\n"
 				+"Click OK to continue, otherwise click Cancel."))
@@ -415,7 +416,7 @@ namespace OpenDental{
 				using MsgBoxCopyPaste form=new MsgBoxCopyPaste(claimErrors);
 				form.ShowDialog();
 			}
-			MessageBox.Show(Lan.g(this,"Number of claims created")+": "+claimCreatedCount);
+			ODMessageBox.Show(Lan.g(this,"Number of claims created")+": "+claimCreatedCount);
 		}
 		
 		///<summary>Mimics ContrAccount.CreateClaim(...).  Removes items from listProcs until unique diagnosis code count is low enough.</summary>
@@ -453,7 +454,7 @@ namespace OpenDental{
 				return;
 			}
 			DataRow row=(DataRow)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-			long patNum=PIn.Long(row["PatNum"].ToString());
+			long patNum=SIn.Long(row["PatNum"].ToString());
 			if(patNum==0) {
 				MsgBox.Show(this,"Please select an item with a patient.");
 				return;

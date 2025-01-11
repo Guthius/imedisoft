@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental.UI {
@@ -242,7 +243,7 @@ namespace OpenDental.UI {
 
 		#region Methods
 		public DateTime GetDateTime() {//good
-			return PIn.Date(textDate.Text);
+			return SIn.Date(textDate.Text);
 		}
 
 		public void SetDateTime(DateTime dateTime) {//good
@@ -277,7 +278,7 @@ namespace OpenDental.UI {
 					monthCalendarOD.SetDateSelected(DateTime.Today);
 				}
 				else {
-					monthCalendarOD.SetDateSelected(PIn.Date(textDate.Text));
+					monthCalendarOD.SetDateSelected(SIn.Date(textDate.Text));
 				}
 			}
 			//if(!(this.Parent.Parent is FormODBase)) {//this date picker is on a sub control instead of main form

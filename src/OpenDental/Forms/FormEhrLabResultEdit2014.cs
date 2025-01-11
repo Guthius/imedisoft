@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using DataConnectionBase;
 using EhrLaboratories;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -340,7 +341,7 @@ namespace OpenDental {
 					EhrLabResultCur.ObservationValueDateTime=EhrLab.formatDateToHL7(textObsValue.Text);
 					break;
 				case HL70125.NM:
-					EhrLabResultCur.ObservationValueNumeric=PIn.Double(textObsValue.Text);
+					EhrLabResultCur.ObservationValueNumeric=SIn.Double(textObsValue.Text);
 					break;
 				case HL70125.FT:
 				case HL70125.ST:
@@ -348,7 +349,7 @@ namespace OpenDental {
 					EhrLabResultCur.ObservationValueText=textObsValue.Text;//should not contain |~^&# characters
 					break;
 				case HL70125.TM:
-					EhrLabResultCur.ObservationValueTime=PIn.TimeSpan(textObsValue.Text);
+					EhrLabResultCur.ObservationValueTime=SIn.TimeSpan(textObsValue.Text);
 					break;
 				case HL70125.SN:
 					break;//nothing to do here yet.
@@ -372,9 +373,9 @@ namespace OpenDental {
 			EhrLabResultCur.ObservationValueCodedElementTextOriginal=textObsElementOrigText.Text;
 				//Structured Numeric
 			EhrLabResultCur.ObservationValueComparator=textStructNumComp.Text;
-			EhrLabResultCur.ObservationValueNumber1=PIn.Double(textStructNumFirst.Text);
+			EhrLabResultCur.ObservationValueNumber1=SIn.Double(textStructNumFirst.Text);
 			EhrLabResultCur.ObservationValueSeparatorOrSuffix=textStructNumSeparator.Text;
-			EhrLabResultCur.ObservationValueNumber2=PIn.Double(textStructNumSecond.Text);
+			EhrLabResultCur.ObservationValueNumber2=SIn.Double(textStructNumSecond.Text);
 				//Units
 			EhrLabResultCur.UnitsID=textObsUnitsID.Text;
 			EhrLabResultCur.UnitsText=textObsUnitsText.Text;

@@ -2,6 +2,8 @@ using System;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Text.RegularExpressions;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -41,7 +43,7 @@ namespace OpenDental {
 		private void butVerifyAndSave_Click(object sender,EventArgs e) {
 			string errMsg=ValidateForm();
 			if(!string.IsNullOrEmpty(errMsg)) {
-				MessageBox.Show(errMsg);
+				ODMessageBox.Show(errMsg);
 				return;
 			}
 			GetAuthOutFromForm();
@@ -50,7 +52,7 @@ namespace OpenDental {
 				mobileSettingAuth=WebServiceMainHQProxy.GetMobileSettings2FA(_mobileSettingsAuthOut,!_isNew);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"There was an issue with sending the 2FA code:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"There was an issue with sending the 2FA code:")+" "+ex.Message);
 				return;
 			}
 			//Validate against the 2FA code
@@ -65,7 +67,7 @@ namespace OpenDental {
 				string result=WebServiceMainHQProxy.UpsertMobileSettings(password,_mobileSettingsAuthOut,!_isNew);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"There was an issue updating your account:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"There was an issue updating your account:")+" "+ex.Message);
 				return;
 			}
 			//If there isn't a clinic selector, just close the form since they're done.
@@ -88,7 +90,7 @@ namespace OpenDental {
 				_mobileSettingsAuthIn=WebServiceMainHQProxy.GetMobileSettings(_clinicNum);
 			}
 			catch (Exception e) {
-				MessageBox.Show(Lan.g(this,"There was an issue updating your account:")+" "+e.Message);
+				ODMessageBox.Show(Lan.g(this,"There was an issue updating your account:")+" "+e.Message);
 				DialogResult=DialogResult.OK;//see FormClosing
 				return;
 			}
@@ -103,7 +105,7 @@ namespace OpenDental {
 		}
 
 		private void GetAuthOutFromForm() {
-			_mobileSettingsAuthOut.Email=PIn.String(textEmail.Text);
+			_mobileSettingsAuthOut.Email=SIn.String(textEmail.Text);
 			_mobileSettingsAuthOut.PhoneNumber=textValidPhone.Text;
 			_mobileSettingsAuthOut.UserName=textUserName.Text;
 			_mobileSettingsAuthOut.ClinicNum=_clinicNum;

@@ -59,7 +59,7 @@ But to look good, don't go below 142 x 115.
 			borderDateSelected=new Border();
 			borderDateSelected.Margin=new Thickness(2,0,2,0);
 			borderDateSelected.Background=new SolidColorBrush(Color.FromRgb(70,120,180));//smokey blue to let the orange pop. (70,120,240));Pretty good. Solid pleasant blue.
-			System.Windows.Controls.Grid.SetZIndex(borderDateSelected,1);
+			System.Windows.Controls.Panel.SetZIndex(borderDateSelected,1);
 			borderDateSelected.Visibility=Visibility.Collapsed;
 			gridMain.Children.Add(borderDateSelected);
 			borderToday=new Border();
@@ -67,7 +67,7 @@ But to look good, don't go below 142 x 115.
 			borderToday.Margin=new Thickness(2,0,2,0);
 			borderToday.BorderThickness=new Thickness(1);
 			borderToday.BorderBrush=new SolidColorBrush(Color.FromRgb(255,130,0));
-			System.Windows.Controls.Grid.SetZIndex(borderToday,2);
+			System.Windows.Controls.Panel.SetZIndex(borderToday,2);
 			borderToday.Visibility=Visibility.Collapsed;
 			gridMain.Children.Add(borderToday);
 			borderHover=new Border();
@@ -228,7 +228,7 @@ But to look good, don't go below 142 x 115.
 				textBlock.HorizontalAlignment=HorizontalAlignment.Center;
 				textBlock.VerticalAlignment=VerticalAlignment.Center;
 				textBlock.TextAlignment=TextAlignment.Center;
-				System.Windows.Controls.Grid.SetZIndex(textBlock,2);
+				System.Windows.Controls.Panel.SetZIndex(textBlock,2);
 				System.Windows.Controls.Grid.SetColumn(textBlock,i);
 				gridMain.Children.Add(textBlock);
 				_listTextBlocks.Add(textBlock);
@@ -250,7 +250,7 @@ But to look good, don't go below 142 x 115.
 					else {
 						textBlock.Foreground=new SolidColorBrush(OpenDental.ColorOD.Gray_Wpf(170));
 					}
-					System.Windows.Controls.Grid.SetZIndex(textBlock,2);
+					System.Windows.Controls.Panel.SetZIndex(textBlock,2);
 					System.Windows.Controls.Grid.SetRow(textBlock,r+1);
 					System.Windows.Controls.Grid.SetColumn(textBlock,c);
 					gridMain.Children.Add(textBlock);

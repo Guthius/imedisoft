@@ -336,7 +336,7 @@ namespace OpenDental {
 				return;
 			}
 			if(_isInvalidPreview && showMsgBox) {
-				MessageBox.Show(this,_exceptionMessage);
+				ODMessageBox.Show(this,_exceptionMessage);
 				return;
 			}
 			WikiPage wikiPageDb=WikiPages.GetByTitle(WikiPageCur.PageTitle);
@@ -417,7 +417,7 @@ namespace OpenDental {
 				catch (Exception ex){
 					//should never happen due to the if Draft check above.
 					if(showMsgBox) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 					return;
 				}
@@ -587,7 +587,7 @@ namespace OpenDental {
 				wikiPath=WikiPages.GetWikiPath();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 				return;
 			}
 			using FormImagePicker formImagePicker=new FormImagePicker(wikiPath);

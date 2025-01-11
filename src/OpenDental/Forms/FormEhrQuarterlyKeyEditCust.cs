@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -29,19 +31,19 @@ namespace OpenDental {
 
 		private void butGenerate_Click(object sender,EventArgs e) {
 			if(textYear.Text==""){
-				MessageBox.Show("Please enter a year.");
+				ODMessageBox.Show("Please enter a year.");
 				return;
 			}
 			if(textQuarter.Text==""){
-				MessageBox.Show("Please enter a quarter.");
+				ODMessageBox.Show("Please enter a quarter.");
 				return;
 			}
 			if(textPracticeTitle.Text=="") {
-				MessageBox.Show("Please enter a practice title.");
+				ODMessageBox.Show("Please enter a practice title.");
 				return;
 			}
 			if(!textYear.IsValid() || !textQuarter.IsValid()) {
-				MessageBox.Show("Please fix errors first.");
+				ODMessageBox.Show("Please fix errors first.");
 				return;
 			}
 			//Path for testing:
@@ -59,23 +61,23 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(textYear.Text==""){
-				MessageBox.Show("Please enter a year.");
+				ODMessageBox.Show("Please enter a year.");
 				return;
 			}
 			if(textQuarter.Text==""){
-				MessageBox.Show("Please enter a quarter.");
+				ODMessageBox.Show("Please enter a quarter.");
 				return;
 			}
 			if(textPracticeTitle.Text=="") {
-				MessageBox.Show("Please enter a practice title.");
+				ODMessageBox.Show("Please enter a practice title.");
 				return;
 			}
 			if(!textYear.IsValid() || !textQuarter.IsValid()) {
-				MessageBox.Show("Please fix errors first.");
+				ODMessageBox.Show("Please fix errors first.");
 				return;
 			}
-			int quarterValue=PIn.Int(textQuarter.Text);
-			int yearValue=PIn.Int(textYear.Text);
+			int quarterValue=SIn.Int(textQuarter.Text);
+			int yearValue=SIn.Int(textYear.Text);
 			int monthOfQuarter=1;
 			if(quarterValue==2){
 				monthOfQuarter=4;
@@ -89,15 +91,15 @@ namespace OpenDental {
 			DateTime firstDayOfQuarter=new DateTime(2000+yearValue,monthOfQuarter,1);
 			DateTime earliestReleaseDate=firstDayOfQuarter.AddMonths(-1);
 			if(DateTime.Today<earliestReleaseDate){
-				MessageBox.Show("Quarterly keys cannot be released more than one month in advance.");
+				ODMessageBox.Show("Quarterly keys cannot be released more than one month in advance.");
 				return;
 			}
 			if(!FormEHR.QuarterlyKeyIsValid(textYear.Text,textQuarter.Text,textPracticeTitle.Text,textEhrKey.Text)) {
 				MsgBox.Show(this,"Invalid quarterly key");
 				return;
 			}
-			KeyCur.YearValue=PIn.Int(textYear.Text);
-			KeyCur.QuarterValue=PIn.Int(textQuarter.Text);
+			KeyCur.YearValue=SIn.Int(textYear.Text);
+			KeyCur.QuarterValue=SIn.Int(textQuarter.Text);
 			KeyCur.PracticeName=textPracticeTitle.Text;
 			KeyCur.KeyValue=textEhrKey.Text;
 			KeyCur.Notes=textNotes.Text;

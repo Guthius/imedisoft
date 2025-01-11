@@ -11,6 +11,7 @@ using CodeBase;
 using CDT;
 using System.Collections.Generic;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental{
 	/// <summary>
@@ -556,7 +557,7 @@ namespace OpenDental{
 			if(!textFormWidth.IsValid()) {
 				return;
 			}
-			_claimForm.Width=PIn.Int(textFormWidth.Text);
+			_claimForm.Width=SIn.Int(textFormWidth.Text);
 			Size size=new Size(LayoutManager.Scale(_claimForm.Width),LayoutManager.Scale(_claimForm.Height));
 			LayoutManager.MoveSize(pictureBoxClaimForm,size);
 		}
@@ -565,7 +566,7 @@ namespace OpenDental{
 			if(!textFormHeight.IsValid()) {
 				return;
 			}
-			_claimForm.Height=PIn.Int(textFormHeight.Text);
+			_claimForm.Height=SIn.Int(textFormHeight.Text);
 			Size size=new Size(LayoutManager.Scale(_claimForm.Width),LayoutManager.Scale(_claimForm.Height));
 			LayoutManager.MoveSize(pictureBoxClaimForm,size);
 		}
@@ -688,7 +689,7 @@ namespace OpenDental{
 				return;
 			}
 			if(fontDialog1.Font.Style!=FontStyle.Regular){
-				MessageBox.Show(Lan.g(this,"Only regular font style allowed."));
+				ODMessageBox.Show(Lan.g(this,"Only regular font style allowed."));
 			}
 			_claimForm.FontName=fontDialog1.Font.Name;
 			_claimForm.FontSize=fontDialog1.Font.Size;
@@ -948,18 +949,18 @@ namespace OpenDental{
 
 		private bool ValidateFields(){
 			if(!textOffsetX.IsValid() || !textOffsetY.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return false;
 			}
 			if(textDescription.Text=="") {
-				MessageBox.Show(Lan.g(this,"You must enter a description first."));
+				ODMessageBox.Show(Lan.g(this,"You must enter a description first."));
 				return false;
 			}
 			_claimForm.Description=textDescription.Text;
 			_claimForm.IsHidden=checkIsHidden.Checked;
 			_claimForm.PrintImages=checkPrintImages.Checked;
-			_claimForm.OffsetX=PIn.Int(textOffsetX.Text);
-			_claimForm.OffsetY=PIn.Int(textOffsetY.Text);
+			_claimForm.OffsetX=SIn.Int(textOffsetX.Text);
+			_claimForm.OffsetY=SIn.Int(textOffsetY.Text);
 			return true;
 		}
 

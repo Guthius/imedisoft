@@ -86,7 +86,7 @@ namespace OpenDental {
 				if(textClaimStatus.Text.ToUpper().Contains("ATTACHMENT ID HAS BEEN ASSOCIATED TO A DIFFERENT CLAIM")
 					|| textClaimStatus.Text.ToUpper().Contains("HAS ALREADY BEEN DELIVERED TO THE PAYER"))
 				{
-					MessageBox.Show("The attachment ID is associated to another claim. Please redo your attachments.");
+					ODMessageBox.Show("The attachment ID is associated to another claim. Please redo your attachments.");
 					ClearAttachmentID();
 					if(!ValidateClaimDXC()){
 						return;
@@ -490,7 +490,7 @@ namespace OpenDental {
 			//The filename property is the entire path of the file.
 			string selectedFile=openFileDialog.FileName;
 			if(selectedFile.EndsWith(".pdf")) {
-				MessageBox.Show(this,"PDF attachments are not supported.");
+				ODMessageBox.Show(this,"PDF attachments are not supported.");
 				return;
 			}
 			//There is purposely no validation that the user selected an image as that will be handled on the clearinghouse's end.
@@ -529,7 +529,7 @@ namespace OpenDental {
 				stringArrayFiles=ODClipboard.GetFileDropList();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return null;
 			}
 			if(stringArrayFiles==null) {
@@ -772,7 +772,7 @@ namespace OpenDental {
 			catch(ODException ex) {
 				//ODExceptions should already be Lans.g when throwing meaningful messages.
 				//If they weren't translated, the message was from a third party and shouldn't be translated anyway.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			catch(Exception ex) {

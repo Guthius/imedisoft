@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -54,14 +55,14 @@ namespace OpenDental {
 			if(textDateStart.Text=="") {
 				return DateTime.MinValue.AddDays(1);//because we don't want to include 010101
 			}
-			return PIn.Date(textDateStart.Text);
+			return SIn.Date(textDateStart.Text);
 		}
 
 		private DateTime GetDateEnd() {
 			if(textDateEnd.Text=="") {
 				return DateTime.MaxValue;
 			}
-			return PIn.Date(textDateEnd.Text);
+			return SIn.Date(textDateEnd.Text);
 		}
 
 		private void FillGrid(){

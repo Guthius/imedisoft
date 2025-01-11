@@ -4,6 +4,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -55,7 +56,7 @@ namespace OpenDental{
 				ProcApptColors.Delete(ProcApptColorCur.ProcApptColorNum);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -63,7 +64,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textCodeRange.Text.Trim()=="") {
-				MessageBox.Show(Lan.g(this,"Code range cannot be blank."));
+				ODMessageBox.Show(Lan.g(this,"Code range cannot be blank."));
 				return;
 			}
 			ProcApptColorCur.ColorText=panelColor.BackColor;
@@ -78,7 +79,7 @@ namespace OpenDental{
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

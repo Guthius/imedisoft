@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -39,10 +40,10 @@ namespace OpenDental {
 		private void textBillingElectBatchMax_Validating(object sender,CancelEventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.BillingElectBatchMax);
 			if(!textBillingElectBatchMax.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			prefValSync.PrefVal=POut.Int(textBillingElectBatchMax.Value);
+			prefValSync.PrefVal=SOut.Int(textBillingElectBatchMax.Value);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -83,7 +84,7 @@ namespace OpenDental {
 				| !textPayPlansBillInAdvanceDays.IsValid()
 				| !textBillingElectBatchMax.IsValid()) 
 			{
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return false;
 			}
 			Changed|=Prefs.UpdateBool(PrefName.StatementShowReturnAddress,checkStatementShowReturnAddress.Checked);
@@ -91,7 +92,7 @@ namespace OpenDental {
 			Changed|=Prefs.UpdateBool(PrefName.StatementShowAdjNotes,checkStatementShowAdjNotes.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.StatementShowProcBreakdown,checkStatementShowProcBreakdown.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.StatementAccountsUseChartNumber,comboUseChartNum.SelectedIndex==1);
-			Changed|=Prefs.UpdateLong(PrefName.PayPlansBillInAdvanceDays,PIn.Long(textPayPlansBillInAdvanceDays.Text));
+			Changed|=Prefs.UpdateLong(PrefName.PayPlansBillInAdvanceDays,SIn.Long(textPayPlansBillInAdvanceDays.Text));
 			Changed|=Prefs.UpdateBool(PrefName.IntermingleFamilyDefault,checkIntermingleDefault.Checked);
 			//Changed|=Prefs.UpdateInt(PrefName.BillingElectBatchMax,PIn.Int(textBillingElectBatchMax.Text));
 			//Changed|=Prefs.UpdateBool(PrefName.BillingShowSendProgress,checkBillingShowSendProgress.Checked);
@@ -102,7 +103,7 @@ namespace OpenDental {
 				}
 			} 
 			else {
-				if(Prefs.UpdateLong(PrefName.StatementsCalcDueDate,PIn.Long(textStatementsCalcDueDate.Text))) {
+				if(Prefs.UpdateLong(PrefName.StatementsCalcDueDate,SIn.Long(textStatementsCalcDueDate.Text))) {
 					Changed=true;
 				}
 			}
@@ -111,7 +112,7 @@ namespace OpenDental {
 
 		public void FillSynced() {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.BillingElectBatchMax);
-			textBillingElectBatchMax.Value=PIn.Int(prefValSync.PrefVal);
+			textBillingElectBatchMax.Value=SIn.Int(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

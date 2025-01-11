@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.Thinfinity;
@@ -74,7 +75,7 @@ namespace OpenDental
             }
 
             SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0
-                , Lans.g("Medications", "Imported") + " " + POut.Int(countImportedMedications) + " " + Lans.g("Medications", "medications.")
+                , Lans.g("Medications", "Imported") + " " + SOut.Int(countImportedMedications) + " " + Lans.g("Medications", "medications.")
             );
             return countImportedMedications;
         }
@@ -161,7 +162,7 @@ namespace OpenDental
             File.WriteAllText(filename, json); //Allow Exception to trickle up.
 
             SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0,
-                Lans.g("Medications", "Exported") + " " + POut.Int(listMedications.Count) + " " + Lans.g("Medications", "medications to:") + " " + filename
+                Lans.g("Medications", "Exported") + " " + SOut.Int(listMedications.Count) + " " + Lans.g("Medications", "medications to:") + " " + filename
             );
             return listMedications.Count;
         }
@@ -208,10 +209,10 @@ namespace OpenDental
                     }
 
                     Medication medication = new Medication();
-                    medication.MedName = PIn.String(listMedLines[i][0]).Trim(); //MedName
-                    medication.GenericName = PIn.String(listMedLines[i][1]).Trim(); //GenericName
-                    medication.Notes = PIn.String(listMedLines[i][2]).Trim(); //Notes
-                    medication.RxCui = PIn.Long(listMedLines[i][3]); //RxCui
+                    medication.MedName = SIn.String(listMedLines[i][0]).Trim(); //MedName
+                    medication.GenericName = SIn.String(listMedLines[i][1]).Trim(); //GenericName
+                    medication.Notes = SIn.String(listMedLines[i][2]).Trim(); //Notes
+                    medication.RxCui = SIn.Long(listMedLines[i][3]); //RxCui
                     listMedications.Add(medication);
                 }
 

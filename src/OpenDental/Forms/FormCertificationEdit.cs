@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -69,8 +70,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Description cannot be blank.");
 				return;
 			}
-			CertCur.Description=PIn.String(textDescription.Text);
-			CertCur.WikiPageLink=PIn.String(textWikiPage.Text);
+			CertCur.Description=SIn.String(textDescription.Text);
+			CertCur.WikiPageLink=SIn.String(textWikiPage.Text);
 			CertCur.IsHidden=checkIsHidden.Checked;
 			Def def=new Def();
 			def=(Def)listBoxCategories.Items.GetObjectAt(listBoxCategories.SelectedIndex);

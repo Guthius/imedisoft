@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 	///<summary>Summary description for FormRecallEdit.</summary>
@@ -159,7 +160,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			double disableUntilBalance=PIn.Double(textBalance.Text);
+			double disableUntilBalance=SIn.Double(textBalance.Text);
 			if(disableUntilBalance<0){
 				MsgBox.Show(this,"Disabled balance must be greater than zero.");
 				return;
@@ -167,13 +168,13 @@ namespace OpenDental{
 			RecallCur.RecallTypeNum=_listRecallTypes[comboType.SelectedIndex].RecallTypeNum;
 			RecallCur.IsDisabled=checkIsDisabled.Checked;
 			RecallCur.DisableUntilBalance=disableUntilBalance;
-			RecallCur.DisableUntilDate=PIn.Date(textDisableDate.Text);
-			RecallCur.DateDue=PIn.Date(textDateDue.Text);
-			RecallCur.RecallInterval.Years=PIn.Int(textYears.Text);
-			RecallCur.RecallInterval.Months=PIn.Int(textMonths.Text);
-			RecallCur.RecallInterval.Weeks=PIn.Int(textWeeks.Text);
-			RecallCur.RecallInterval.Days=PIn.Int(textDays.Text);
-			RecallCur.TimePatternOverride=PIn.String(textPattern.Text);
+			RecallCur.DisableUntilDate=SIn.Date(textDisableDate.Text);
+			RecallCur.DateDue=SIn.Date(textDateDue.Text);
+			RecallCur.RecallInterval.Years=SIn.Int(textYears.Text);
+			RecallCur.RecallInterval.Months=SIn.Int(textMonths.Text);
+			RecallCur.RecallInterval.Weeks=SIn.Int(textWeeks.Text);
+			RecallCur.RecallInterval.Days=SIn.Int(textDays.Text);
+			RecallCur.TimePatternOverride=SIn.String(textPattern.Text);
 			if(comboStatus.SelectedIndex==0){
 				RecallCur.RecallStatus=0;
 			}

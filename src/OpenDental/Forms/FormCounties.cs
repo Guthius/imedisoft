@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using CodeBase;
 
 namespace OpenDental{
 	/// <summary>
@@ -67,13 +68,13 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(listCounties.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			County county=_listCounties[listCounties.SelectedIndex];
 			string usedBy=Counties.UsedBy(county.CountyName);
 			if(usedBy != ""){
-				MessageBox.Show(Lan.g(this,"Cannot delete County because it is already in use by the following patients: \r")+usedBy);
+				ODMessageBox.Show(Lan.g(this,"Cannot delete County because it is already in use by the following patients: \r")+usedBy);
 				return;
 			}
 			Counties.Delete(county);

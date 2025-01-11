@@ -6,6 +6,8 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Xml;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -39,14 +41,14 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show("Error: "+ex.Message);
+				ODMessageBox.Show("Error: "+ex.Message);
 				this.Close();
 				return;
 			}
 			try{
 				string helpKeyDecrypted=OpenDentBusiness.Help.UpdateHelpKey();
 				string[] arrayHelpKeyValues=helpKeyDecrypted.Split(',');
-				bool onSupport=PIn.Bool(arrayHelpKeyValues[1]);
+				bool onSupport=SIn.Bool(arrayHelpKeyValues[1]);
 				if(onSupport){
 					labelHelpKey.Text="Yes";
 				}
@@ -62,7 +64,7 @@ namespace OpenDental {
 			xmlDocument.LoadXml(result);
 			XmlNode xmlNode=xmlDocument.SelectSingleNode("//Error");
 			if(xmlNode!=null) {
-				MessageBox.Show(xmlNode.InnerText,"Error");
+				ODMessageBox.Show(xmlNode.InnerText,"Error");
 				return;
 			}
 			xmlNode=xmlDocument.SelectSingleNode("//KeyDisabled");

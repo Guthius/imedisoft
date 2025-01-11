@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -79,7 +80,7 @@ namespace OpenDental {
 			int countPatAttach=Referrals.CountReferralAttach(_referralNumFrom);
 			warningMsg+=Lan.g(this,"The selected referrals may be different")+".  "+Lan.g(this,"This change is irreversible! The referral is attached to")+" "
 				+countPatAttach+" "+Lan.g(this,"patients")+".  "+Lan.g(this,"Continue anyways?");
-			if(MessageBox.Show(warningMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) { 
+			if(ODMessageBox.Show(warningMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) { 
 				return;
 			}
 			if(!Referrals.MergeReferrals(_referralNumInto,_referralNumFrom)) {

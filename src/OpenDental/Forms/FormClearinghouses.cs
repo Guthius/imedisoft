@@ -5,6 +5,7 @@ using System.Net;
 using System.Collections.Generic;
 using OpenDental.UI;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -50,7 +51,7 @@ namespace OpenDental{
 				textReportCheckTime.Text=fullDateTime.ToShortTimeString();
 			}
 			else {
-				textReportCheckInterval.Text=POut.Int(claimReportReceiveInterval);
+				textReportCheckInterval.Text=SOut.Int(claimReportReceiveInterval);
 				radioInterval.Checked=true;
 			}
 		}
@@ -267,7 +268,7 @@ namespace OpenDental{
 			}
 			int reportCheckIntervalMinuteCount=0;
 			try {
-				reportCheckIntervalMinuteCount=PIn.Int(textReportCheckInterval.Text);//blank=0
+				reportCheckIntervalMinuteCount=SIn.Int(textReportCheckInterval.Text);//blank=0
 			}
 			catch {
 				MsgBox.Show(this,"Please fix the check interval field.");
@@ -291,7 +292,7 @@ namespace OpenDental{
 				doInvalidateCache=true;
 			}
 			if(radioTime.Checked) {
-				if(Prefs.UpdateDateT(PrefName.ClaimReportReceiveTime,PIn.DateTime(textReportCheckTime.Text))) {
+				if(Prefs.UpdateDateT(PrefName.ClaimReportReceiveTime,SIn.DateTime(textReportCheckTime.Text))) {
 					doInvalidateCache=true;
 				}
 			}

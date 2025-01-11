@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.Bridges;
 using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;
@@ -147,9 +148,9 @@ namespace OpenDental{
 				depositCur=_depositOld.Copy();
 			}
 			//Update UI values
-			depositCur.Amount=PIn.Double(validDoubleDepositAmt.Text);
-			depositCur.DateDeposit=PIn.Date(validDepositDate.Text);
-			depositCur.Batch=PIn.String(textBoxBatchNum.Text);
+			depositCur.Amount=SIn.Double(validDoubleDepositAmt.Text);
+			depositCur.DateDeposit=SIn.Date(validDepositDate.Text);
+			depositCur.Batch=SIn.String(textBoxBatchNum.Text);
 			depositCur.DepositAccountNum=comboDepositAccountNum.GetSelectedDefNum();
 			return depositCur;
 		}
@@ -185,7 +186,7 @@ namespace OpenDental{
 			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.PaymentTypes,isShort:true);
 			//Users can have mutiple CC processing programs, so we will show every program they have enabled (and have set up).
 			if(progPayConnect.Enabled 
-				&& !PIn.Bool(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,clinicNum))) 
+				&& !SIn.Bool(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,clinicNum))) 
 			{
 				if(true) {//if clinics are enabled, PayConnect is enabled if the PaymentType is valid and the Username and Password are not blank
 					string programVersion=ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Program Version",clinicNum);
@@ -212,7 +213,7 @@ namespace OpenDental{
 				}
 			}
 			if(progXcharge.Enabled
-				&& !PIn.Bool(ProgramProperties.GetPropVal(progXcharge.ProgramNum,ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC,clinicNum)))
+				&& !SIn.Bool(ProgramProperties.GetPropVal(progXcharge.ProgramNum,ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC,clinicNum)))
 			{
 				if(true) {//if clinics are enabled, X-Charge is enabled if the PaymentType is valid and the Username and Password are not blank
 					string paymentType=ProgramProperties.GetPropVal(progXcharge.ProgramNum,"PaymentType",clinicNum);
@@ -228,7 +229,7 @@ namespace OpenDental{
 				}
 			}
 			if(progPaySimple.Enabled
-				&& !PIn.Bool(ProgramProperties.GetPropVal(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,clinicNum)))
+				&& !SIn.Bool(ProgramProperties.GetPropVal(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,clinicNum)))
 			{
 				if(true) {//if clinics are enabled, PaySimple is enabled if the PaymentType is valid and the Username and Password are not blank
 					string paymentType=ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePayTypeCC,clinicNum);
@@ -244,7 +245,7 @@ namespace OpenDental{
 				}
 			}
 			if(progEdgeExpress.Enabled
-				&& !PIn.Bool(ProgramProperties.GetPropVal(progEdgeExpress.ProgramNum,EdgeExpressProps.PreventSavingNewCC,clinicNum)))
+				&& !SIn.Bool(ProgramProperties.GetPropVal(progEdgeExpress.ProgramNum,EdgeExpressProps.PreventSavingNewCC,clinicNum)))
 			{
 				if(true) {//if clinics are enabled, EdgeExpress is enabled if the XWeb creds are not blank
 					if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(progEdgeExpress.ProgramNum,EdgeExpressProps.XWebID,clinicNum))
@@ -339,7 +340,7 @@ namespace OpenDental{
 			if(e.Button != MouseButtons.Left) {
 				return;
 			}
-			if(textAmount.Text=="" || PIn.Double(textAmount.Text)==0) {
+			if(textAmount.Text=="" || SIn.Double(textAmount.Text)==0) {
 				MsgBox.Show(this,"Please enter an amount first.");
 				textAmount.Focus();
 				return;
@@ -349,7 +350,7 @@ namespace OpenDental{
 			FormPayment formPayment=new FormPayment(new Patient(),new Family(),payment,false);
 			string tranDetail=null;
 			try {
-				tranDetail=formPayment.MakeXChargeTransaction(PIn.Double(textAmount.Text));
+				tranDetail=formPayment.MakeXChargeTransaction(SIn.Double(textAmount.Text));
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(Lan.g(this,"Error processing transaction.\r\n\r\nPlease contact support with the details of this error:")
@@ -365,7 +366,7 @@ namespace OpenDental{
 		}
 
 		private void butPayConnect_Click(object sender,EventArgs e) {
-			if(textAmount.Text=="" || PIn.Double(textAmount.Text)==0) {
+			if(textAmount.Text=="" || SIn.Double(textAmount.Text)==0) {
 				MsgBox.Show(this,"Please enter an amount first.");
 				textAmount.Focus();
 				return;
@@ -375,7 +376,7 @@ namespace OpenDental{
 			Patient patient=new Patient();
 			Family family=new Family();
 			using FormPayment formPayment=new FormPayment(patient,family,payment,doPreferCurrentPat:false);
-			string tranDetail=formPayment.MakePayConnectTransaction(PIn.Double(textAmount.Text));
+			string tranDetail=formPayment.MakePayConnectTransaction(SIn.Double(textAmount.Text));
 			if(tranDetail!=null) {
 				if(textNote.Text!="") {
 					textNote.Text+="\r\n";
@@ -388,7 +389,7 @@ namespace OpenDental{
 			if(e.Button!=MouseButtons.Left) {
 				return;
 			}
-			if(textAmount.Text=="" || PIn.Double(textAmount.Text)==0) {
+			if(textAmount.Text=="" || SIn.Double(textAmount.Text)==0) {
 				MsgBox.Show(this,"Please enter an amount first.");
 				textAmount.Focus();
 				return;
@@ -398,7 +399,7 @@ namespace OpenDental{
 			Patient patient=new Patient();
 			Family family=new Family();
 			using FormPayment formPayment=new FormPayment(patient,family,payment,doPreferCurrentPat:false);
-			string tranDetail=formPayment.MakePaySimpleTransaction(PIn.Double(textAmount.Text),textCarrierName.Text);
+			string tranDetail=formPayment.MakePaySimpleTransaction(SIn.Double(textAmount.Text),textCarrierName.Text);
 			if(tranDetail!=null) {
 				if(textNote.Text!="") {
 					textNote.Text+="\r\n";
@@ -411,7 +412,7 @@ namespace OpenDental{
 			if(e.Button!=MouseButtons.Left) {
 				return;
 			}
-			if(textAmount.Text=="" || PIn.Double(textAmount.Text)==0) {
+			if(textAmount.Text=="" || SIn.Double(textAmount.Text)==0) {
 				MsgBox.Show(this,"Please enter an amount first.");
 				textAmount.Focus();
 				return;
@@ -423,7 +424,7 @@ namespace OpenDental{
 			using FormPayment formPayment=new FormPayment(patient,family,payment,doPreferCurrentPat:false);
 			string tranDetail=null;
 			try {
-				tranDetail=formPayment.MakeEdgeExpressTransaction(PIn.Double(textAmount.Text),payment.ClinicNum);
+				tranDetail=formPayment.MakeEdgeExpressTransaction(SIn.Double(textAmount.Text),payment.ClinicNum);
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(Lan.g(this,"Error processing transaction.\r\n\r\nPlease contact support with the details of this error:")+"\r\n"+ex.Message,ex);
@@ -623,7 +624,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please enter a date.");
 				return;
 			}
-			if(PIn.Date(textDate.Text).Date > DateTime.Today.Date
+			if(SIn.Date(textDate.Text).Date > DateTime.Today.Date
 				&& !PrefC.GetBool(PrefName.FutureTransDatesAllowed) 
 				&& !PrefC.GetBool(PrefName.AllowFutureInsPayments)) 
 			{
@@ -643,7 +644,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			if(!PrefC.GetBool(PrefName.AllowFutureInsPayments) && PIn.Date(textDate.Text).Date>MiscData.GetNowDateTime().Date) {
+			if(!PrefC.GetBool(PrefName.AllowFutureInsPayments) && SIn.Date(textDate.Text).Date>MiscData.GetNowDateTime().Date) {
 				MsgBox.Show(this,"Insurance Payment Date must not be a future date.");
 				return;
 			}
@@ -688,10 +689,10 @@ namespace OpenDental{
 					+" "+Lan.g(this,"New")+" "+depositCur.Amount.ToString("c"));
 			}
 			#endregion
-			double amt=PIn.Double(textAmount.Text);
+			double amt=SIn.Double(textAmount.Text);
 			if(IsNew){
 				//prevents backdating of initial check
-				if(!Security.IsAuthorized(EnumPermType.InsPayCreate,PIn.Date(textDate.Text))){
+				if(!Security.IsAuthorized(EnumPermType.InsPayCreate,SIn.Date(textDate.Text))){
 					return;
 				}
 				//prevents attaching claimprocs with a date that is older than allowed by security.
@@ -700,12 +701,12 @@ namespace OpenDental{
 				//Editing an old entry will already be blocked if the date was too old, and user will not be able to click OK button.
 				//This catches it if user changed the date to be older.
 				if(IsFinalizePayment) {//finalizing a claim payment should use the InsPayCreate permission, not InsPayEdit
-					if(!Security.IsAuthorized(EnumPermType.InsPayCreate,PIn.Date(textDate.Text))) {
+					if(!Security.IsAuthorized(EnumPermType.InsPayCreate,SIn.Date(textDate.Text))) {
 						return;
 					}
 				}
 				else {
-					if(!Security.IsAuthorized(EnumPermType.InsPayEdit,PIn.Date(textDate.Text))) {
+					if(!Security.IsAuthorized(EnumPermType.InsPayEdit,SIn.Date(textDate.Text))) {
 						return;
 					}
 				}
@@ -728,7 +729,7 @@ namespace OpenDental{
 					}
 				}
 			}
-			if(!_isAutoDepositDeleted && _depositOld!=null && !CompareDouble.IsEqual(PIn.Double(validDoubleDepositAmt.Text),_depositOld.Amount) 
+			if(!_isAutoDepositDeleted && _depositOld!=null && !CompareDouble.IsEqual(SIn.Double(validDoubleDepositAmt.Text),_depositOld.Amount) 
 				&& ClaimPayments.HasAutoDeposit(ClaimPaymentCur)) 
 			{
 				//The autogenerated deposit needs the amounts changed before we continue. 
@@ -741,9 +742,9 @@ namespace OpenDental{
 			if(comboPayGroup.SelectedIndex!=-1) {//If they didn't select anything, leave what was originally there
 				ClaimPaymentCur.PayGroup=_listDefsClaimPaymentGroups[comboPayGroup.SelectedIndex].DefNum;
 			}
-			ClaimPaymentCur.CheckDate=PIn.Date(textDate.Text);
-			ClaimPaymentCur.DateIssued=PIn.Date(textDateIssued.Text);
-			ClaimPaymentCur.CheckAmt=PIn.Double(textAmount.Text);
+			ClaimPaymentCur.CheckDate=SIn.Date(textDate.Text);
+			ClaimPaymentCur.DateIssued=SIn.Date(textDateIssued.Text);
+			ClaimPaymentCur.CheckAmt=SIn.Double(textAmount.Text);
 			ClaimPaymentCur.CheckNum=textCheckNum.Text;
 			ClaimPaymentCur.BankBranch=textBankBranch.Text;
 			ClaimPaymentCur.CarrierName=textCarrierName.Text;
@@ -753,7 +754,7 @@ namespace OpenDental{
 					ClaimPayments.Insert(ClaimPaymentCur);//error thrown if trying to change amount and already attached to a deposit.
 				}
 				catch(ApplicationException ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate,0,
@@ -767,7 +768,7 @@ namespace OpenDental{
 					ClaimPayments.Update(ClaimPaymentCur);//error thrown if trying to change amount and already attached to a deposit.
 				}
 				catch(ApplicationException ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				if(IsCreateLogEntry) { //need a InsPayCreate Log entry because it just was pre-inserted.

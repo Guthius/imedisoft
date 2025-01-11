@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -30,7 +31,7 @@ namespace OpenDental {
 						row.Cells.Add("X");
 					}
 					else if(listPatFieldDefs[i].FieldType==PatFieldType.Currency) {
-						row.Cells.Add(PIn.Double(patField.FieldValue).ToString("c"));
+						row.Cells.Add(SIn.Double(patField.FieldValue).ToString("c"));
 					}
 					else {
 						row.Cells.Add(patField.FieldValue);

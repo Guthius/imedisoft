@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -64,7 +65,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Display Name can not be blank.");
 				return;
 			}
-			WebSchedCarrierRule.DisplayName=PIn.String(textDisplayName.Text);
+			WebSchedCarrierRule.DisplayName=SIn.String(textDisplayName.Text);
 			if(radioAllow.Checked) {
 				WebSchedCarrierRule.Rule=RuleType.Allow;
 			}
@@ -77,7 +78,7 @@ namespace OpenDental {
 			else {
 				WebSchedCarrierRule.Rule=RuleType.BlockWithMessage;
 			}
-			WebSchedCarrierRule.Message=PIn.String(textMessage.Text);
+			WebSchedCarrierRule.Message=SIn.String(textMessage.Text);
 			WebSchedCarrierRules.Update(WebSchedCarrierRule);
 			DialogResult=DialogResult.OK;
 		}

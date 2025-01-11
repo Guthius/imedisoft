@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using CodeBase;
 using Newtonsoft.Json;
 using OpenDental.Graph.Cache;
 using OpenDental.Graph.Dashboard;
@@ -1083,7 +1084,7 @@ namespace OpenDental.Graph.Base
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                ODMessageBox.Show(e.Message);
             }
         }
 

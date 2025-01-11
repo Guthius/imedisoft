@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Printing;
+using CodeBase;
 using OpenDental.UI;
 
 namespace OpenDental {
@@ -40,7 +41,7 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			if(ODMessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			LabResults.Delete(LabCur.LabResultNum);
@@ -49,14 +50,14 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(textDateTimeTest.Text=="") {
-				MessageBox.Show("Please input a valid date.");
+				ODMessageBox.Show("Please input a valid date.");
 				return;
 			}
 			try {
 				LabCur.DateTimeTest=DateTime.Parse(textDateTimeTest.Text);
 			}
 			catch {
-				MessageBox.Show("Please input a valid date.");
+				ODMessageBox.Show("Please input a valid date.");
 				return;
 			}
 			LabCur.TestID=textTestID.Text;

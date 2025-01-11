@@ -59,7 +59,7 @@ namespace OpenDental{
 			Clearinghouse clearinghouseClin=Clearinghouses.OverrideFields(clearinghouseHq,Clinics.ClinicNum);
 			string errorMessage=Clearinghouses.RetrieveAndImport(clearinghouseClin,IsAutomaticMode);
 			if(errorMessage!="") {
-				MessageBox.Show(errorMessage);
+				ODMessageBox.Show(errorMessage);
 			}
 			Cursor=Cursors.Default;
 			Close();

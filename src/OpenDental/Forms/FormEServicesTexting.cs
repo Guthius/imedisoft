@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Data;
 using System.Linq;
 using System.IO;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -98,7 +99,7 @@ namespace OpenDental {
 		private void butSaveShortCodes_Click(object sender,EventArgs e) {
 			if(string.IsNullOrWhiteSpace(textShortCodeOptInClinicTitle.Text)) {
 				string err=Lan.g(this,"Not allowed to set ")+labelShortCodeOptInClinicTitle.Text+Lan.g(this," to an empty value.");
-				MessageBox.Show(err);
+				ODMessageBox.Show(err);
 				return;
 			}
 			bool doSetInvalidClinicPrefs=false;
@@ -118,7 +119,7 @@ namespace OpenDental {
 				}
 			else {
 				doSetInvalidClinicPrefs|=ClinicPrefs.Upsert(PrefName.ShortCodeOptInOnApptComplete,comboShortCodeClinic.ClinicNumSelected
-					,POut.Bool(checkOptInPrompt.Checked));
+					,SOut.Bool(checkOptInPrompt.Checked));
 			}
 			if(doSetInvalidPrefs) {
 				DataValid.SetInvalid(InvalidType.Prefs);
@@ -166,15 +167,15 @@ namespace OpenDental {
 			DataTable tablePhones=SmsPhones.GetSmsUsageLocal(listClinics.Select(x => x.Id).ToList(),dateTimePickerSms.Value,
 				WebServiceMainHQProxy.EServiceSetup.SignupOut.SignupOutPhone.ToSmsPhones(SignupOut.Phones));
 			List<EServicesSmsPhone> listEServicesSmsPhones=tablePhones.Rows.Cast<DataRow>().Select(x => new EServicesSmsPhone {
-					ClinicNum=PIn.Long(x["ClinicNum"].ToString()),
+					ClinicNum=SIn.Long(x["ClinicNum"].ToString()),
 					PhoneNumber=x["PhoneNumber"].ToString(),
 					CountryCode=x["CountryCode"].ToString(),
-					SentMonth=PIn.Int(x["SentMonth"].ToString()),
-					SentCharge=PIn.Double(x["SentCharge"].ToString()),
-					SentDiscount=PIn.Double(x["SentDiscount"].ToString()),
-					SentPreDiscount=PIn.Double(x["SentPreDiscount"].ToString()),
-					RcvMonth=PIn.Int(x["ReceivedMonth"].ToString()),
-					RcvCharge=PIn.Double(x["ReceivedCharge"].ToString())
+					SentMonth=SIn.Int(x["SentMonth"].ToString()),
+					SentCharge=SIn.Double(x["SentCharge"].ToString()),
+					SentDiscount=SIn.Double(x["SentDiscount"].ToString()),
+					SentPreDiscount=SIn.Double(x["SentPreDiscount"].ToString()),
+					RcvMonth=SIn.Int(x["ReceivedMonth"].ToString()),
+					RcvCharge=SIn.Double(x["ReceivedCharge"].ToString())
 			}).ToList();
 			bool doShowDiscount=listEServicesSmsPhones.Any(x => CompareDouble.IsGreaterThan(x.SentDiscount,0));
 			gridSmsSummary.BeginUpdate();

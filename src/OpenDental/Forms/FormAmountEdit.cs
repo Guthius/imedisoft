@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -20,13 +21,13 @@ namespace OpenDental {
 
 		private void FormAmountEdit_Load(object sender,EventArgs e) {
 			labelText.Text=_text;
-			textAmount.Text=POut.Decimal(Amount);
+			textAmount.Text=SOut.Decimal(Amount);
 			textAmount.SelectionStart=0;
 			textAmount.SelectionLength=textAmount.Text.Length;
 		}
 
 		private void butOK_Click(object sender,EventArgs e) {
-			Amount=PIn.Decimal(textAmount.Text);
+			Amount=SIn.Decimal(textAmount.Text);
 			DialogResult=DialogResult.OK;
 		}
 

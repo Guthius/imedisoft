@@ -9,6 +9,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -85,14 +86,14 @@ namespace OpenDental {
 				if(true) {
 					row.Cells.Add(table.Rows[i]["ClinicDesc"].ToString());
 				}
-				DateTime dateTimeCreated=PIn.DateTime(table.Rows[i]["DateTimeCreated"].ToString());
-				DateTime aptDateTime=PIn.DateTime(table.Rows[i]["AptDateTime"].ToString());
-				DateTime birthdate=PIn.Date(table.Rows[i]["Birthdate"].ToString());
+				DateTime dateTimeCreated=SIn.DateTime(table.Rows[i]["DateTimeCreated"].ToString());
+				DateTime aptDateTime=SIn.DateTime(table.Rows[i]["AptDateTime"].ToString());
+				DateTime birthdate=SIn.Date(table.Rows[i]["Birthdate"].ToString());
 				row.Cells.Add(dateTimeCreated.ToShortDateString()+"  "+dateTimeCreated.ToShortTimeString());
 				row.Cells.Add(aptDateTime.ToShortDateString()+"  "+aptDateTime.ToShortTimeString());
 				row.Cells.Add(table.Rows[i]["PatName"].ToString());
 				row.Cells.Add(birthdate.Year < 1880 ? "" : birthdate.ToShortDateString());
-				row.Cells.Add(Defs.GetDef(DefCat.ApptConfirmed,PIn.Long(table.Rows[i]["Confirmed"].ToString())).ItemName);
+				row.Cells.Add(Defs.GetDef(DefCat.ApptConfirmed,SIn.Long(table.Rows[i]["Confirmed"].ToString())).ItemName);
 				row.Cells.Add(table.Rows[i]["Note"].ToString());
 				row.Tag=table.Rows[i]["AptNum"].ToString();
 				gridMain.ListGridRows.Add(row);
@@ -134,7 +135,7 @@ namespace OpenDental {
 		private void mainGridMenuItemPatChart_Click(object sender,EventArgs e) {
 			List<GridRow> listRowsSelected=gridMain.SelectedGridRows;
 			if(listRowsSelected.Count==1) {
-				long aptNum=PIn.Long(listRowsSelected[0].Tag.ToString());
+				long aptNum=SIn.Long(listRowsSelected[0].Tag.ToString());
 				Appointment appointment=Appointments.GetOneApt(aptNum);
 				GlobalFormOpenDental.GoToModule(EnumModuleType.Chart,patNum:appointment.PatNum);
 				DialogResult=DialogResult.OK;
@@ -149,7 +150,7 @@ namespace OpenDental {
 		}
 
 		private void OpenEditAppointmentWindow(GridRow row) {
-			long aptNum=PIn.Long(row.Tag.ToString());
+			long aptNum=SIn.Long(row.Tag.ToString());
 			using FormApptEdit formApptEdit=new FormApptEdit(aptNum);
 			formApptEdit.ShowDialog();
 			if(formApptEdit.DialogResult==DialogResult.OK) {

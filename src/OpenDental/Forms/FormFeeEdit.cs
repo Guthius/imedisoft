@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -33,25 +34,25 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(!textFee.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry error first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry error first."));
 				return;
 			}
 			if(textFee.Text!="" && Fees.CheckForDuplicate(FeeCur,odDatePickerEffectiveDate.GetDateTime())) {
-				MessageBox.Show(Lan.g(this,"There is already a Fee with that Effective Date. Please enter another date."));
+				ODMessageBox.Show(Lan.g(this,"There is already a Fee with that Effective Date. Please enter another date."));
 				return;
 			}
 			DateTime datePrevious=FeeCur.SecDateTEdit;
 			if(textFee.Text==""){
 				Fees.Delete(FeeCur);
 			}
-			else if(CompareDouble.IsEqual(FeeCur.Amount,PIn.Double(textFee.Text)) && DateTime.Equals(FeeCur.DateEffective,odDatePickerEffectiveDate.GetDateTime())) {
+			else if(CompareDouble.IsEqual(FeeCur.Amount,SIn.Double(textFee.Text)) && DateTime.Equals(FeeCur.DateEffective,odDatePickerEffectiveDate.GetDateTime())) {
 				DialogResult=DialogResult.OK;
 				return;
 			}
 			else{
 				Fee feeOld=FeeCur.Copy();
-				FeeCur.Amount=PIn.Double(textFee.Text);
-				FeeCur.DateEffective=PIn.Date(odDatePickerEffectiveDate.GetDateTime().ToShortDateString());
+				FeeCur.Amount=SIn.Double(textFee.Text);
+				FeeCur.DateEffective=SIn.Date(odDatePickerEffectiveDate.GetDateTime().ToShortDateString());
 				Fees.Update(FeeCur,feeOld);//Fee object always created and inserted externally first
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.ProcFeeEdit,0,Lan.g(this,"Procedure")+": "+ProcedureCodes.GetStringProcCode(FeeCur.CodeNum)

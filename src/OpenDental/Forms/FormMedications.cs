@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -192,12 +193,12 @@ namespace OpenDental {
 				return;
 			}
 			if(gridAllMedications.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"You must first highlight the generic medication from the list.  If it is not already on the list, then you must add it first."));
+				ODMessageBox.Show(Lan.g(this,"You must first highlight the generic medication from the list.  If it is not already on the list, then you must add it first."));
 				return;
 			}
 			Medication medicationSelected=(Medication)gridAllMedications.ListGridRows[gridAllMedications.GetSelectedIndex()].Tag;
 			if(medicationSelected.MedicationNum!=medicationSelected.GenericNum){
-				MessageBox.Show(Lan.g(this,"The selected medication is not generic."));
+				ODMessageBox.Show(Lan.g(this,"The selected medication is not generic."));
 				return;
 			}
 			Medication medication=new Medication();
@@ -233,7 +234,7 @@ namespace OpenDental {
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
 				string msg=Lans.g(this,"Error accessing file. Close all programs using file and try again.");
-				MessageBox.Show(this,msg+"\r\n: "+ex.Message);
+				ODMessageBox.Show(this,msg+"\r\n: "+ex.Message);
 				return;
 			}
 			//}
@@ -241,8 +242,8 @@ namespace OpenDental {
 			int countDuplicateMedications=listMedicationImports.Count-countImportedMedications;
 			DataValid.SetInvalid(InvalidType.Medications);
 			Cursor=Cursors.Default;
-			MessageBox.Show(this,POut.Int(countDuplicateMedications)+" "+Lan.g(this,"duplicate medications found.")+"\r\n"
-				+POut.Int(countImportedMedications)+" "+Lan.g(this,"medications imported."));
+			ODMessageBox.Show(this,SOut.Int(countDuplicateMedications)+" "+Lan.g(this,"duplicate medications found.")+"\r\n"
+				+SOut.Int(countImportedMedications)+" "+Lan.g(this,"medications imported."));
 			FillTab();
 		}
 
@@ -254,7 +255,7 @@ namespace OpenDental {
 				listMedicationsNew=MedicationL.GetMedicationsFromFile(MedicationL.DownloadDefaultMedicationsFile(),true);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Failed to download medications.")+"\r\n"+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Failed to download medications.")+"\r\n"+ex.Message);
 			}
 			return listMedicationsNew;
 		}
@@ -282,10 +283,10 @@ namespace OpenDental {
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
 				string msg=Lans.g(this,"Error: ");
-				MessageBox.Show(this,msg+": "+ex.Message);
+				ODMessageBox.Show(this,msg+": "+ex.Message);
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show(this,POut.Int(countExportedMeds)+" "+Lan.g(this,"medications exported to:")+" "+fileName);
+			ODMessageBox.Show(this,SOut.Int(countExportedMeds)+" "+Lan.g(this,"medications exported to:")+" "+fileName);
 		}
 
 		///<summary>When isImport is true, prompts users to select file and returns the full file path if OK clicked, otherwise an empty string.
@@ -341,7 +342,7 @@ namespace OpenDental {
 				formRxNorms.InitSearchCodeOrDescript=medication.MedName;
 				formRxNorms.ShowDialog();
 				if(formRxNorms.DialogResult==DialogResult.OK) {
-					medication.RxCui=PIn.Long(formRxNorms.RxNormSelected.RxCui);
+					medication.RxCui=SIn.Long(formRxNorms.RxNormSelected.RxCui);
 					//The following behavior mimics FormMedicationEdit OK click.
 					Medications.Update(medication);
 					MedicationPats.UpdateRxCuiForMedication(medication.MedicationNum,medication.RxCui);
@@ -482,7 +483,7 @@ namespace OpenDental {
 		private void butOK_Click(object sender, System.EventArgs e) {
 			//this button is not visible if not selection mode.
 			if(gridAllMedications.GetSelectedIndex()==-1) {
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			SelectedMedicationNum=((Medication)gridAllMedications.ListGridRows[gridAllMedications.GetSelectedIndex()].Tag).MedicationNum;

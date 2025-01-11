@@ -9,6 +9,7 @@ using OpenDental.UI;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormTaskSearch:FormODBase {
@@ -54,7 +55,7 @@ namespace OpenDental {
 					textTaskNum.Text=string.Join(",",listTaskNums);//Reflect taskNums in UI
 				}
 				if(!string.IsNullOrEmpty(TaskNum)) {
-					listTaskNums.Add(PIn.Long(TaskNum));
+					listTaskNums.Add(SIn.Long(TaskNum));
 					textTaskNum.Text=string.Join(",",listTaskNums);
 				}
 				_tableTasks=Tasks.GetDataSet(userNum,new List<long>(),listTaskNums," "," "," "," ",textIncluding.Text,textExcluding.Text,0,0,checkBoxIncludesTaskNotes.Checked,
@@ -99,7 +100,7 @@ namespace OpenDental {
 				row.Cells.Add(_tableTasks.Rows[i]["description"].ToString());
 				row.Note=_tableTasks.Rows[i]["note"].ToString();
 				row.ColorLborder=Color.Black;
-				row.ColorText=Color.FromArgb(PIn.Int(_tableTasks.Rows[i]["color"].ToString()));
+				row.ColorText=Color.FromArgb(SIn.Int(_tableTasks.Rows[i]["color"].ToString()));
 				gridTasks.ListGridRows.Add(row);
 				row.Tag=_tableTasks.Rows[i]["TaskNum"].ToString();
 			}
@@ -136,7 +137,7 @@ namespace OpenDental {
 				menuItemSetEnabled(menuItemNavJob,false);
 				return;
 			}
-			long taskNum=PIn.Long(gridTasks.ListGridRows[mouseLocationGridRow].Tag.ToString());
+			long taskNum=SIn.Long(gridTasks.ListGridRows[mouseLocationGridRow].Tag.ToString());
 			Task task=Tasks.GetOne(taskNum);
 			if(task==null) {//Verify a task exists.
 				menuItemSetEnabled(menuItemGoTo,false);
@@ -168,7 +169,7 @@ namespace OpenDental {
 		private void menuItemGoTo_Click(object sender,EventArgs e) {
 			int index=gridTasks.PointToRow(_pointLastClicked.Y);
 			string strTaskNum=(string)gridTasks.ListGridRows[index].Tag;
-			long taskNum=PIn.Long(strTaskNum);
+			long taskNum=SIn.Long(strTaskNum);
 			//not even allowed to get to this point unless a valid task
 			Task task=Tasks.GetOne(taskNum);
 			FormOpenDental.S_TaskGoTo(task.ObjectType,task.KeyNum);
@@ -217,7 +218,7 @@ namespace OpenDental {
 			List<long> listTaskNums=new List<long>() {};
 			if(textTaskNum.Text!="") {
 				try {
-					listTaskNums=textTaskNum.Text.Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x =>PIn.Long(x)).ToList();
+					listTaskNums=textTaskNum.Text.Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x =>SIn.Long(x)).ToList();
 				}
 				catch {
 					MsgBox.Show(this,"Invalid Task Num format.");
@@ -227,7 +228,7 @@ namespace OpenDental {
 			long patNum=0;
 			if(textPatNum.Text!="") {
 				try {
-					patNum=PIn.Long(textPatNum.Text);
+					patNum=SIn.Long(textPatNum.Text);
 				}
 				catch {
 					MsgBox.Show(this,"Invalid PatNum format.");
@@ -240,7 +241,7 @@ namespace OpenDental {
 		}
 
 		private void gridTasks_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			long taskNum=PIn.Long(gridTasks.ListGridRows[e.Row].Tag.ToString());
+			long taskNum=SIn.Long(gridTasks.ListGridRows[e.Row].Tag.ToString());
 			if(IsSelectionMode) {
 				TaskNumSelected=taskNum;
 				DialogResult=DialogResult.OK;

@@ -326,7 +326,7 @@ namespace OpenDental{
 			//ComputerPref computerPref=ComputerPrefs.GetForLocalComputer();
 			if(radioDirectXChart.Checked) {
 				if(!_isRemoteEdit && !TestDirectXFormat(this,_directXFormatSelected)){
-					MessageBox.Show(Lan.g(this,"Please choose a different device format, "+
+					ODMessageBox.Show(Lan.g(this,"Please choose a different device format, "+
 						"the selected device format will not support the DirectX 3D tooth chart on this computer"));
 					return;
 				}
@@ -344,7 +344,7 @@ namespace OpenDental{
 					}
 				} 
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Please choose a different pixel format, the selected pixel format will not support the 3D tooth chart on this computer: "+ex.Message));
+					ODMessageBox.Show(Lan.g(this,"Please choose a different pixel format, the selected pixel format will not support the 3D tooth chart on this computer: "+ex.Message));
 					return;
 				}
 				ComputerPrefCur.GraphicsUseHardware=checkHardwareAccel.Checked;

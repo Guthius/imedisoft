@@ -271,7 +271,7 @@ namespace OpenDentBusiness {
 
 		public static byte[] BuildNewCropPostDataBytes(Provider prov,Employee emp,Patient pat,long clinicNum,out string clickThroughXml) {
 			clickThroughXml=BuildNewCropClickThroughXml(prov,emp,pat,clinicNum,out _);
-			string xmlBase64=System.Web.HttpUtility.HtmlEncode(Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(clickThroughXml)));
+			string xmlBase64=System.Web.HttpUtility.HtmlEncode(Convert.ToBase64String(Encoding.ASCII.GetBytes(clickThroughXml)));
 			xmlBase64=xmlBase64.Replace("+","%2B");//A common base 64 character which needs to be escaped within URLs.
 			xmlBase64=xmlBase64.Replace("/","%2F");//A common base 64 character which needs to be escaped within URLs.
 			xmlBase64=xmlBase64.Replace("=","%3D");//Base 64 strings usually end in '=', but parameters also use '=' so we must escape.
@@ -282,13 +282,13 @@ namespace OpenDentBusiness {
 		///<summary>Throws exceptions for invalid Patient data.</summary>
 		public static byte[] BuildDoseSpotPostDataBytes(string clinicID,string clinicKey,string userID,string onBehalfOfUserId,Patient pat,out string queryString) {
 			queryString=DoseSpot.GetSingleSignOnQueryString(clinicID,clinicKey,userID,onBehalfOfUserId,pat);
-			return ASCIIEncoding.ASCII.GetBytes(queryString);
+			return Encoding.ASCII.GetBytes(queryString);
 		}
 
 		///<summary>Throws exceptions for invalid Patient data.</summary>
 		public static byte[] BuildDoseSpotPostDataBytesRefillsErrors(string clinicID,string clinicKey,string userID,out string queryString) {
 			queryString=DoseSpot.GetSingleSignOnQueryString(clinicID,clinicKey,userID,"",null);
-			return ASCIIEncoding.ASCII.GetBytes(queryString);
+			return Encoding.ASCII.GetBytes(queryString);
 		}
 
 		///<summary>Cleans supplied string to conform to XML standards.  Certain special characters are problematic for NewCrop even when converted

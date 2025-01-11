@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -73,7 +74,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
 				return;
 			}
-			prefValSync.PrefVal=POut.Int(textSignalInactiveMinutes.Value);
+			prefValSync.PrefVal=SOut.Int(textSignalInactiveMinutes.Value);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -84,7 +85,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
 				return;
 			}
-			prefValSync.PrefVal=POut.Int(textProcessSigsIntervalInSecs.Value);
+			prefValSync.PrefVal=SOut.Int(textProcessSigsIntervalInSecs.Value);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -99,19 +100,19 @@ namespace OpenDental {
 				}
 			}
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PatientPhoneUsePhonenumberTable);
-			prefValSync.PrefVal=POut.Bool(checkPatientPhoneUsePhonenumberTable.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkPatientPhoneUsePhonenumberTable.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkPatientSelectFilterRestrictedClinics_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PatientSelectFilterRestrictedClinics);
-			prefValSync.PrefVal=POut.Bool(checkPatientSelectFilterRestrictedClinics.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkPatientSelectFilterRestrictedClinics.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkEnterpriseAllowRefreshWhileTyping_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.EnterpriseAllowRefreshWhileTyping);
-			prefValSync.PrefVal=POut.Bool(checkEnterpriseAllowRefreshWhileTyping.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkEnterpriseAllowRefreshWhileTyping.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 		#endregion Methods - Event Handlers Sync
@@ -228,7 +229,7 @@ namespace OpenDental {
 				checkBox.Visible=false;
 				return;
 			}
-			checkBox.Checked=PIn.Bool(valueString);
+			checkBox.Checked=SIn.Bool(valueString);
 		}
 		#endregion Methods - Private
 
@@ -252,10 +253,10 @@ namespace OpenDental {
 			//long sigIntervalSeconds=PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs);
 			//textProcessSigsIntervalInSecs.Text=(sigIntervalSeconds==0 ? "" : sigIntervalSeconds.ToString());
 			string patientSelectSearchMinChars=PrefC.GetString(PrefName.PatientSelectSearchMinChars);
-			textPatientSelectSearchMinChars.Text=Math.Min(10,Math.Max(1,PIn.Int(patientSelectSearchMinChars,false))).ToString();//enforce minimum 1 maximum 10
+			textPatientSelectSearchMinChars.Text=Math.Min(10,Math.Max(1,SIn.Int(patientSelectSearchMinChars,false))).ToString();//enforce minimum 1 maximum 10
 			string patientSelectSearchPauseMs=PrefC.GetString(PrefName.PatientSelectSearchPauseMs);
-			textPatientSelectSearchPauseMs.Text=Math.Min(10000,Math.Max(1,PIn.Int(patientSelectSearchPauseMs,false))).ToString();//enforce minimum 1 maximum 10000
-			YN ynPatientSelectSearchWithEmptyParams=PIn.Enum<YN>(PrefC.GetInt(PrefName.PatientSelectSearchWithEmptyParams));
+			textPatientSelectSearchPauseMs.Text=Math.Min(10000,Math.Max(1,SIn.Int(patientSelectSearchPauseMs,false))).ToString();//enforce minimum 1 maximum 10000
+			YN ynPatientSelectSearchWithEmptyParams=SIn.Enum<YN>(PrefC.GetInt(PrefName.PatientSelectSearchWithEmptyParams));
 			if(ynPatientSelectSearchWithEmptyParams!=YN.Unknown) {
 				checkPatientSelectSearchWithEmptyParams.CheckState=CheckState.Unchecked;
 				checkPatientSelectSearchWithEmptyParams.Checked=ynPatientSelectSearchWithEmptyParams==YN.Yes;
@@ -279,18 +280,18 @@ namespace OpenDental {
 			Changed|=Prefs.UpdateBool(PrefName.PasswordsStrongIncludeSpecial,checkPasswordsStrongIncludeSpecial.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.PasswordsWeakChangeToStrong,checkPasswordsWeakChangeToStrong.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.SecurityLockIncludesAdmin,checkSecurityLockIncludesAdmin.Checked);
-			Changed|=Prefs.UpdateInt(PrefName.SecurityLogOffAfterMinutes,PIn.Int(textSecurityLogOffAfterMinutes.Text));
+			Changed|=Prefs.UpdateInt(PrefName.SecurityLogOffAfterMinutes,SIn.Int(textSecurityLogOffAfterMinutes.Text));
 			Changed|=Prefs.UpdateBool(PrefName.UserNameManualEntry,checkUserNameManualEntry.Checked);
 			//(synced) Changed|=Prefs.UpdateLong(PrefName.SignalInactiveMinutes,PIn.Long(textSignalInactiveMinutes.Text));
 			//(synced) Changed|=Prefs.UpdateLong(PrefName.ProcessSigsIntervalInSecs,PIn.Long(textProcessSigsIntervalInSecs.Text));
-			Changed|=Prefs.UpdateInt(PrefName.PatientSelectSearchMinChars,PIn.Int(textPatientSelectSearchMinChars.Text));
-			Changed|=Prefs.UpdateInt(PrefName.PatientSelectSearchPauseMs,PIn.Int(textPatientSelectSearchPauseMs.Text));
+			Changed|=Prefs.UpdateInt(PrefName.PatientSelectSearchMinChars,SIn.Int(textPatientSelectSearchMinChars.Text));
+			Changed|=Prefs.UpdateInt(PrefName.PatientSelectSearchPauseMs,SIn.Int(textPatientSelectSearchPauseMs.Text));
 			if(checkPatientSelectSearchWithEmptyParams.CheckState!=CheckState.Indeterminate) {
 				Changed|=Prefs.UpdateInt(PrefName.PatientSelectSearchWithEmptyParams,(int)(checkPatientSelectSearchWithEmptyParams.Checked ? YN.Yes : YN.No));
 			}
 			//Changed|=Prefs.UpdateBool(PrefName.PatientPhoneUsePhonenumberTable,checkPatientPhoneUsePhonenumberTable.Checked);
 			//Changed|=Prefs.UpdateBool(PrefName.PatientSelectFilterRestrictedClinics,checkPatientSelectFilterRestrictedClinics.Checked);
-			Changed|=Prefs.UpdateInt(PrefName.EnterpriseExactMatchPhoneNumDigits,PIn.Int(textEnterpriseExactMatchPhoneNumDigits.Text));
+			Changed|=Prefs.UpdateInt(PrefName.EnterpriseExactMatchPhoneNumDigits,SIn.Int(textEnterpriseExactMatchPhoneNumDigits.Text));
 			Changed|=Prefs.UpdateBool(PrefName.EnterpriseExactMatchPhone,checkEnterpriseExactMatchPhone.Checked);
 			//Changed|=Prefs.UpdateBool(PrefName.EnterpriseAllowRefreshWhileTyping,checkEnterpriseAllowRefreshWhileTyping.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.EnableEmailAddressAutoComplete,checkEnableEmailAddressAutoComplete.Checked);
@@ -302,16 +303,16 @@ namespace OpenDental {
 		public void FillSynced(){
 			//This will revert invalid Values back to the PrefVal if other prefs are updated before invalid Values are fixed
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.SignalInactiveMinutes);
-			textSignalInactiveMinutes.Value=PIn.Int(prefValSync.PrefVal);//0 shows as empty
+			textSignalInactiveMinutes.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ProcessSigsIntervalInSecs);
-			textProcessSigsIntervalInSecs.Value=PIn.Int(prefValSync.PrefVal);//0 shows as empty
+			textProcessSigsIntervalInSecs.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PatientPhoneUsePhonenumberTable);
-			_doUsePhonenumTable=PIn.Bool(prefValSync.PrefVal);
+			_doUsePhonenumTable=SIn.Bool(prefValSync.PrefVal);
 			checkPatientPhoneUsePhonenumberTable.Checked=_doUsePhonenumTable;
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PatientSelectFilterRestrictedClinics);
-			checkPatientSelectFilterRestrictedClinics.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkPatientSelectFilterRestrictedClinics.Checked=SIn.Bool(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.EnterpriseAllowRefreshWhileTyping);
-			checkEnterpriseAllowRefreshWhileTyping.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkEnterpriseAllowRefreshWhileTyping.Checked=SIn.Bool(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -147,7 +149,7 @@ namespace OpenDental{
 				ClaimPayments.Delete(ClaimPaymentCur);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			for(int i=0;i<splits.Count;i++){
@@ -167,7 +169,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please enter a date first.");
 				return;
 			}
-			if(PIn.Date(textDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed) 
+			if(SIn.Date(textDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed) 
 				&& !PrefC.GetBool(PrefName.AllowFutureInsPayments)) 
 			{
 				MsgBox.Show(this,"Payments cannot be for a date in the future.");
@@ -178,12 +180,12 @@ namespace OpenDental{
 				return;
 			}
 			if(gridMain.SelectedIndices.Length==0){
-				MessageBox.Show(Lan.g(this,"At least one item must be selected, or use the delete button."));	
+				ODMessageBox.Show(Lan.g(this,"At least one item must be selected, or use the delete button."));	
 				return;
 			}
 			if(IsNew){
 				//prevents backdating of initial check
-				if(!Security.IsAuthorized(EnumPermType.InsPayCreate,PIn.Date(textDate.Text))){
+				if(!Security.IsAuthorized(EnumPermType.InsPayCreate,SIn.Date(textDate.Text))){
 					return;
 				}
 				//prevents attaching claimprocs with a date that is older than allowed by security.
@@ -191,7 +193,7 @@ namespace OpenDental{
 			else{
 				//Editing an old entry will already be blocked if the date was too old, and user will not be able to click OK button.
 				//This catches it if user changed the date to be older.
-				if(!Security.IsAuthorized(EnumPermType.InsPayEdit,PIn.Date(textDate.Text))){
+				if(!Security.IsAuthorized(EnumPermType.InsPayEdit,SIn.Date(textDate.Text))){
 					return;
 				}
 			}
@@ -201,8 +203,8 @@ namespace OpenDental{
 			else{
 				ClaimPaymentCur.ClinicNum=_listClinics[comboClinic.SelectedIndex-1].Id;
 			}
-			ClaimPaymentCur.CheckAmt=PIn.Double(textAmount.Text);
-			ClaimPaymentCur.CheckDate=PIn.Date(textDate.Text);
+			ClaimPaymentCur.CheckAmt=SIn.Double(textAmount.Text);
+			ClaimPaymentCur.CheckDate=SIn.Date(textDate.Text);
 			ClaimPaymentCur.CheckNum=textCheckNum.Text;
 			ClaimPaymentCur.BankBranch=textBankBranch.Text;
 			ClaimPaymentCur.CarrierName=textCarrierName.Text;
@@ -211,7 +213,7 @@ namespace OpenDental{
 				ClaimPayments.Update(ClaimPaymentCur);//error thrown if trying to change amount and already attached to a deposit.
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//this could be optimized to only save changes.

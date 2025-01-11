@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -114,7 +115,7 @@ namespace OpenDental
                     HL7Msgs.Insert(hl7Msg);
                     if (/* ODBuild.IsDebug() */ false)
                     {
-                        MessageBox.Show("Appointments", messageHL7.ToString());
+                        ODMessageBox.Show("Appointments", messageHL7.ToString());
                     }
                 }
             }
@@ -359,7 +360,7 @@ namespace OpenDental
                 return false; //If websched asap is disabled
             }
 
-            if (!PIn.Bool(ClinicPrefs.GetPrefValue(PrefName.AsapPromptEnabled, clinicNum)))
+            if (!SIn.Bool(ClinicPrefs.GetPrefValue(PrefName.AsapPromptEnabled, clinicNum)))
             {
                 return false; //If the prompt is disabled
             }
@@ -543,7 +544,7 @@ namespace OpenDental
                     HL7Msgs.Insert(hl7Msg);
                     if (/* ODBuild.IsDebug() */ false)
                     {
-                        MessageBox.Show("Appointments", messageHL7.ToString());
+                        ODMessageBox.Show("Appointments", messageHL7.ToString());
                     }
                 }
             }
@@ -596,7 +597,7 @@ namespace OpenDental
             Appointment appointment = Appointments.MakeNewAppointment(patient, apptDateTime, opNum, useApptDrawingSettings);
             if (patient.AskToArriveEarly > 0 && useApptDrawingSettings)
             {
-                MessageBox.Show(Lan.g("FormApptsOther", "Ask patient to arrive") + " " + patient.AskToArriveEarly
+                ODMessageBox.Show(Lan.g("FormApptsOther", "Ask patient to arrive") + " " + patient.AskToArriveEarly
                                 + " " + Lan.g("FormApptsOther", "minutes early at") + " " + appointment.DateTimeAskedToArrive.ToShortTimeString() + ".");
             }
 
@@ -832,7 +833,7 @@ namespace OpenDental
             {
                 if (appointment is null)
                 {
-                    MessageBox.Show(Lan.g(nameof(Byod), "Unable to send for an invalid appointment."));
+                    ODMessageBox.Show(Lan.g(nameof(Byod), "Unable to send for an invalid appointment."));
                     return;
                 }
 
@@ -849,13 +850,13 @@ namespace OpenDental
                     PatComm patComm = listPatComms.Find(x => x.PatNum == appointment.PatNum);
                     if (patComm == null)
                     {
-                        MessageBox.Show(Lan.g(nameof(Byod), "Patient is not setup to receive text messages."));
+                        ODMessageBox.Show(Lan.g(nameof(Byod), "Patient is not setup to receive text messages."));
                         return;
                     }
 
                     if (!patComm.IsSmsAnOption)
                     {
-                        MessageBox.Show(Lan.g(nameof(Byod), "Patient is not setup to receive text messages."));
+                        ODMessageBox.Show(Lan.g(nameof(Byod), "Patient is not setup to receive text messages."));
                         return;
                     }
 
@@ -863,7 +864,7 @@ namespace OpenDental
                 }
                 else
                 {
-                    MessageBox.Show(err);
+                    ODMessageBox.Show(err);
                     return;
                 }
             };
@@ -876,7 +877,7 @@ namespace OpenDental
 
             if (string.IsNullOrWhiteSpace(message))
             {
-                MessageBox.Show(Lan.g(nameof(Byod), "Unable to generate links for the appointment."));
+                ODMessageBox.Show(Lan.g(nameof(Byod), "Unable to generate links for the appointment."));
                 return;
             }
 

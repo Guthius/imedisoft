@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -160,7 +161,7 @@ namespace OpenDental {
 				DiseaseDefs.Update(listDiseaseDefs[i]);
 				changeCount++;
 			}
-			MessageBox.Show(Lan.g(this,"SNOMED CT codes added: ")+changeCount);
+			ODMessageBox.Show(Lan.g(this,"SNOMED CT codes added: ")+changeCount);
 		}
 
 		private void butOK_Click(object sender,EventArgs e) {

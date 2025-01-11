@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -113,7 +114,7 @@ namespace OpenDental {
 
 		private bool SetUseDefaultCheckbox(PrefName prefName) {
 			ClinicPref clinicPref=_listClinicPrefs.FirstOrDefault(x => x.PrefName==prefName && x.ClinicNum==GetSelectedClinic().Id);
-			return clinicPref!=null && PIn.Bool(clinicPref.ValueString);
+			return clinicPref!=null && SIn.Bool(clinicPref.ValueString);
 		}
 
 		private void LoadWebFormPrefs() {
@@ -128,7 +129,7 @@ namespace OpenDental {
 		}
 
 		private void LoadDefaultPreferences() {
-			List<long> listWebSheetDefIds=_webSheetIdDefaults.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => PIn.Long(x)).ToList();
+			List<long> listWebSheetDefIds=_webSheetIdDefaults.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x)).ToList();
 			if(listWebSheetDefIds.IsNullOrEmpty()) {
 				listBoxWebForms.SetSelected(0);
 				return;
@@ -149,7 +150,7 @@ namespace OpenDental {
 			ClinicPref clinicPref=_listClinicPrefs.FirstOrDefault(x => x.PrefName==PrefName.ApptNewPatientThankYouWebSheetDefID && x.ClinicNum==clinic.Id);
 			List<long> listWebSheetDefIds=new List<long>();
 			if(clinicPref!=null) {
-				listWebSheetDefIds=clinicPref.ValueString.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => PIn.Long(x,false)).ToList();
+				listWebSheetDefIds=clinicPref.ValueString.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x,false)).ToList();
 				//If non-zero entries exist, remove all 0 entries.
 				if(listWebSheetDefIds.Any(x => x==0)) {
 					listWebSheetDefIds=listWebSheetDefIds.FindAll(x => x!=0);
@@ -170,7 +171,7 @@ namespace OpenDental {
 			clinicPref=_listClinicPrefs.FirstOrDefault(x => x.PrefName==PrefName.AutoCommUnder18SendToGuarantor && x.ClinicNum==clinic.Id);
 			bool doSendToGuarantor=false;
 			if(clinicPref!=null) {
-				doSendToGuarantor=PIn.Bool(clinicPref.ValueString);
+				doSendToGuarantor=SIn.Bool(clinicPref.ValueString);
 			}
 			checkSendToGuarantorForMinors.Checked=doSendToGuarantor;
 		}
@@ -186,13 +187,13 @@ namespace OpenDental {
 				_listClinicPrefs.Add(clinicPref);
 			}
 			//TURNING DEFAULTS OFF
-			if(!checkUseDefaultPrefs.Checked && PIn.Bool(clinicPref.ValueString)) {//Default switched off
-				clinicPref.ValueString=POut.Bool(false);
+			if(!checkUseDefaultPrefs.Checked && SIn.Bool(clinicPref.ValueString)) {//Default switched off
+				clinicPref.ValueString=SOut.Bool(false);
 				LoadClinicPreferences();
 			}
 			//TURNING DEFAULTS ON
-			else if(checkUseDefaultPrefs.Checked && !PIn.Bool(clinicPref.ValueString)) {//Default switched on
-				clinicPref.ValueString=POut.Bool(true);
+			else if(checkUseDefaultPrefs.Checked && !SIn.Bool(clinicPref.ValueString)) {//Default switched on
+				clinicPref.ValueString=SOut.Bool(true);
 				LoadDefaultPreferences();
 			}
 			bool allowEdit=Security.IsAuthorized(EnumPermType.EServicesSetup,suppressMessage:true) && !checkUseDefaultPrefs.Checked;
@@ -211,7 +212,7 @@ namespace OpenDental {
 				_listClinicPrefs.Add(clinicPref);
 				return;
 			}
-			clinicPref.ValueString=POut.Bool(checkSendToGuarantorForMinors.Checked);
+			clinicPref.ValueString=SOut.Bool(checkSendToGuarantorForMinors.Checked);
 		}
 
 		private void listBoxWebForm_SelectionChangeCommitted(object sender,EventArgs e) {
@@ -223,17 +224,17 @@ namespace OpenDental {
 			}
 			ClinicPref clinicPref=_listClinicPrefs.FirstOrDefault(x => x.ClinicNum==clinic.Id && x.PrefName==PrefName.ApptNewPatientThankYouWebSheetDefID);
 			if(clinicPref==null) {
-				clinicPref=new ClinicPref(clinic.Id,PrefName.ApptNewPatientThankYouWebSheetDefID,valueString:POut.String(webSheetDefIDs));
+				clinicPref=new ClinicPref(clinic.Id,PrefName.ApptNewPatientThankYouWebSheetDefID,valueString:SOut.String(webSheetDefIDs));
 				_listClinicPrefs.Add(clinicPref);
 				return;
 			}
-			clinicPref.ValueString=POut.String(webSheetDefIDs);
+			clinicPref.ValueString=SOut.String(webSheetDefIDs);
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
 			string error=ValidateChanges();
 			if(!string.IsNullOrWhiteSpace(error)) {
-				MessageBox.Show(Lan.g(this,error));
+				ODMessageBox.Show(Lan.g(this,error));
 				return;
 			}
 			SaveToDb();

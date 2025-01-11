@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Data;
+using DataConnectionBase;
 
 namespace OpenDentBusiness;
 
@@ -94,8 +95,8 @@ public class ProcedureLogic
                     return -1; //x is less than y. Priorities always come first.
                 }
 
-                int defOrderX = Defs.GetOrder(DefCat.TxPriorities, PIn.Long(dataRowX["Priority"].ToString()));
-                int defOrderY = Defs.GetOrder(DefCat.TxPriorities, PIn.Long(dataRowY["Priority"].ToString()));
+                int defOrderX = Defs.GetOrder(DefCat.TxPriorities, SIn.Long(dataRowX["Priority"].ToString()));
+                int defOrderY = Defs.GetOrder(DefCat.TxPriorities, SIn.Long(dataRowY["Priority"].ToString()));
                 return defOrderX.CompareTo(defOrderY);
             }
         }

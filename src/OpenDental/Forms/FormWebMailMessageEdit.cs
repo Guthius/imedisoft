@@ -360,7 +360,7 @@ namespace OpenDental {
 				FillAttachments();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -499,7 +499,7 @@ namespace OpenDental {
 					EmailMessages.SendEmail(_emailMessageInsecure,_emailAddressSender);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(this,"An error occurred sending the message. Please try again later or contact support.");
+					ODMessageBox.Show(this,"An error occurred sending the message. Please try again later or contact support.");
 					Logger.Openlog.LogMB(this,System.Reflection.MethodBase.GetCurrentMethod().Name,ex.Message,Logger.Severity.ERROR);
 					butSend.Enabled=true;
 					return;

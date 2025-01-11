@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 	/// <summary>
@@ -43,11 +45,11 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(string.IsNullOrEmpty(textDate.Text) || !textDate.IsValid()){
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			PerioExamCur.ExamDate=PIn.Date(textDate.Text);
-			PerioExamCur.Note=PIn.String(textBoxNotes.Text);
+			PerioExamCur.ExamDate=SIn.Date(textDate.Text);
+			PerioExamCur.Note=SIn.String(textBoxNotes.Text);
 			PerioExamCur.ProvNum=_listProviders[listProv.SelectedIndex].ProvNum;
 			PerioExams.Update(PerioExamCur);
 			DialogResult=DialogResult.OK;

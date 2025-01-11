@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -51,7 +53,7 @@ namespace OpenDental {
 				row=new GridRow();
 				row.Cells.Add(listKeys[i].LName);
 				row.Cells.Add(listKeys[i].FName);
-				row.Cells.Add(POut.Int(listKeys[i].YearValue));
+				row.Cells.Add(SOut.Int(listKeys[i].YearValue));
 				row.Cells.Add(listKeys[i].ProvKey);
 				fee=(decimal)(60f*listKeys[i].FullTimeEquiv);
 				feeTotal+=fee;
@@ -156,7 +158,7 @@ namespace OpenDental {
 				DateTime firstDayOfQuarter=new DateTime(2000+formK.KeyCur.YearValue,monthOfQuarter,1);
 				DateTime earliestReleaseDate=firstDayOfQuarter.AddMonths(-1);
 				if(DateTime.Today<earliestReleaseDate) {
-					MessageBox.Show("Warning!  Quarterly keys cannot be released more than one month in advance.");
+					ODMessageBox.Show("Warning!  Quarterly keys cannot be released more than one month in advance.");
 				}
 			}
 			formK.KeyCur.IsNew=true;
@@ -174,7 +176,7 @@ namespace OpenDental {
 				ImageStore.Import(bitmap,defNum,ImageType.Photo,guar);
 			}
 			catch(Exception ex) {
-				MessageBox.Show("Unable to save file: "+ex.Message);
+				ODMessageBox.Show("Unable to save file: "+ex.Message);
 				return;
 			}
 			MsgBox.Show(this,"Saved.");

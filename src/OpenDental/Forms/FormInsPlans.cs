@@ -14,6 +14,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -145,7 +146,7 @@ namespace OpenDental{
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e){
-			InsPlan insPlan=InsPlans.GetPlan(PIn.Long(_table.Rows[e.Row]["PlanNum"].ToString()),null);
+			InsPlan insPlan=InsPlans.GetPlan(SIn.Long(_table.Rows[e.Row]["PlanNum"].ToString()),null);
 			if(!InsPlanExists(insPlan)) {
 				return;
 			}
@@ -216,13 +217,13 @@ namespace OpenDental{
 				}
 			}
 			if(gridMain.SelectedIndices.Length<2) {
-				MessageBox.Show(Lan.g(this,"Please select at least two items first."));
+				ODMessageBox.Show(Lan.g(this,"Please select at least two items first."));
 				return;
 			}
 			InsPlan[] insPlanSelectedArray=new InsPlan[gridMain.SelectedIndices.Length];
 			for(int i=0;i<insPlanSelectedArray.Length;i++){
-				insPlanSelectedArray[i]=InsPlans.GetPlan(PIn.Long(_table.Rows[gridMain.SelectedIndices[i]]["PlanNum"].ToString()),null);
-				insPlanSelectedArray[i].NumberSubscribers=PIn.Int(_table.Rows[gridMain.SelectedIndices[i]]["subscribers"].ToString());
+				insPlanSelectedArray[i]=InsPlans.GetPlan(SIn.Long(_table.Rows[gridMain.SelectedIndices[i]]["PlanNum"].ToString()),null);
+				insPlanSelectedArray[i].NumberSubscribers=SIn.Int(_table.Rows[gridMain.SelectedIndices[i]]["subscribers"].ToString());
 			}
 			using FormInsPlansMerge formInsPlansMerge=new FormInsPlansMerge();
 			formInsPlansMerge.InsPlanArrayAll=insPlanSelectedArray;
@@ -320,7 +321,7 @@ namespace OpenDental{
 				return;
 			}
 			string msgText=unusedCount.ToString()+" "+Lan.g(this,"plans found that are not in use by any subscribers.  Hide all of them?");
-			if(MessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes){
+			if(ODMessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes){
 				return;
 			}
 			InsPlans.UnusedHideAll();

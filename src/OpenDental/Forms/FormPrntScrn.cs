@@ -51,7 +51,7 @@ namespace OpenDental{
 		private void FormPrntScrn_Load(object sender, System.EventArgs e) {
 			_bitmapTemp=ODClipboard.GetImage();
 			if(_bitmapTemp==null) {
-				MessageBox.Show(Lan.g(this,"Before using this tool, you must first save a screen shot by holding the Alt key down and pressing the PrntScrn button which is just above and to the right of the Backspace key.  You will not notice anything happen, but now you will have a screenshot in memory.  Then, open this tool again to view or print your screenshot."));	
+				ODMessageBox.Show(Lan.g(this,"Before using this tool, you must first save a screen shot by holding the Alt key down and pressing the PrntScrn button which is just above and to the right of the Backspace key.  You will not notice anything happen, but now you will have a screenshot in memory.  Then, open this tool again to view or print your screenshot."));	
 				butPrint.Enabled=false;
 				butExport.Enabled=false;
 				DialogResult=DialogResult.Cancel;	
@@ -112,7 +112,7 @@ namespace OpenDental{
 				}
 			}
 			catch{
-				MessageBox.Show(Lan.g(this,"Printer not available"));
+				ODMessageBox.Show(Lan.g(this,"Printer not available"));
 			}
 		}
 
@@ -144,7 +144,7 @@ namespace OpenDental{
 				_bitmapTemp.Save(saveFileDialog.FileName, ImageFormat.Jpeg);
 			}
 			catch{
-				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));  
+				ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));  
 			}
 		}
 

@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -217,7 +218,7 @@ namespace OpenDental {
 		}
 
 		private List<long> GetDefNumsFromPref(PrefName pref) {
-			return PrefC.GetString(pref).Split(',').Select(x => PIn.Long(x)).ToList();
+			return PrefC.GetString(pref).Split(',').Select(x => SIn.Long(x)).ToList();
 		}
 
 		private void SaveToDb() {
@@ -253,18 +254,18 @@ namespace OpenDental {
 				}
 			}
 			#endregion
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptReminderPremedTemplate,POut.String(textPremedTemplate.Text));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptReminderPremedTemplate,SOut.String(textPremedTemplate.Text));
 			//Update the grid
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeESend,POut.String(string.Join(",",_listDefNumsExcludeESend)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeEConfirm,POut.String(string.Join(",",_listDefNumsExcludeEConf)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeERemind,POut.String(string.Join(",",_listDefNumsExcludeERemind)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeEThankYou,POut.String(string.Join(",",_listDefNumsExcludeEThanks)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeArrivalSend,POut.String(string.Join(",",_listDefNumsExcludeArrivalSend)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeArrivalResponse,POut.String(string.Join(",",_listDefNumsExcludeArrivalResponse)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmByodEnabled,POut.String(string.Join(",",_listDefNumsByodEnabled)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeEclipboard,POut.String(string.Join(",",_listDefNumsExcludeEclipboard)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeGeneralMessage,POut.String(string.Join(",",_listDefNumsExcludeGeneralMessage)));
-			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeNewPatThankYou,POut.String(string.Join(",",_listDefNumsExcludeNewPatEThanks)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeESend,SOut.String(string.Join(",",_listDefNumsExcludeESend)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeEConfirm,SOut.String(string.Join(",",_listDefNumsExcludeEConf)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeERemind,SOut.String(string.Join(",",_listDefNumsExcludeERemind)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeEThankYou,SOut.String(string.Join(",",_listDefNumsExcludeEThanks)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeArrivalSend,SOut.String(string.Join(",",_listDefNumsExcludeArrivalSend)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeArrivalResponse,SOut.String(string.Join(",",_listDefNumsExcludeArrivalResponse)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmByodEnabled,SOut.String(string.Join(",",_listDefNumsByodEnabled)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeEclipboard,SOut.String(string.Join(",",_listDefNumsExcludeEclipboard)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeGeneralMessage,SOut.String(string.Join(",",_listDefNumsExcludeGeneralMessage)));
+			isPrefRefreshRequired|=Prefs.UpdateString(PrefName.ApptConfirmExcludeNewPatThankYou,SOut.String(string.Join(",",_listDefNumsExcludeNewPatEThanks)));
 			if(isClinicPrefRefreshRequired) {
 				DataValid.SetInvalid(InvalidType.ClinicPrefs);
 			}
@@ -314,7 +315,7 @@ namespace OpenDental {
 			}
 			ClinicPref clinicPrefThankYouUseDefault=GetClinicPrefFromList(PrefName.ThankYouTitleUseDefault,_clinicNumCur);
 			checkUseDefault.Visible=true;
-			bool useDefault=PIn.Bool(clinicPrefThankYouUseDefault.ValueString);
+			bool useDefault=SIn.Bool(clinicPrefThankYouUseDefault.ValueString);
 			checkUseDefault.Checked=useDefault;
 			if(useDefault) {
 				textCalendarIcsTitle.Enabled=false;
@@ -331,7 +332,7 @@ namespace OpenDental {
 				ParseThankYouTitle();
 			}
 			ClinicPref clinicPref=GetClinicPrefFromList(PrefName.ThankYouTitleUseDefault,_clinicNumCur);
-			clinicPref.ValueString=POut.Bool(checkUseDefault.Checked);
+			clinicPref.ValueString=SOut.Bool(checkUseDefault.Checked);
 			FillThankYouTitleAndUseDefault();
 		}
 

@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormTaskOptions:FormODBase {
@@ -32,7 +33,7 @@ namespace OpenDental {
 				checkCollapsed.Checked=false;
 			}
 			else{
-				checkCollapsed.Checked=PIn.Bool(_userOdPrefTaskCollapsed.ValueString);
+				checkCollapsed.Checked=SIn.Bool(_userOdPrefTaskCollapsed.ValueString);
 			}
 			if(!showFinishedTasks) {
 				labelStartDate.Enabled=false;
@@ -40,7 +41,7 @@ namespace OpenDental {
 			}
 			//this returns a new userodpref if none is found
 			_userOdPrefTaskSound=UserOdPrefs.GetFirstOrNewByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.TaskBlockedMakeSound);
-			checkBlockedTaskPlaySound.Checked=PIn.Bool(_userOdPrefTaskSound.ValueString); //if new will return as false, otherwise current database value
+			checkBlockedTaskPlaySound.Checked=SIn.Bool(_userOdPrefTaskSound.ValueString); //if new will return as false, otherwise current database value
 		}
 
 		private void checkShowFinished_Click(object sender,EventArgs e) {
@@ -67,19 +68,19 @@ namespace OpenDental {
 				_userOdPrefTaskCollapsed.Fkey=0;
 				_userOdPrefTaskCollapsed.FkeyType=UserOdFkeyType.TaskCollapse;
 				_userOdPrefTaskCollapsed.UserNum=Security.CurUser.UserNum;
-				_userOdPrefTaskCollapsed.ValueString=POut.Bool(checkCollapsed.Checked);
+				_userOdPrefTaskCollapsed.ValueString=SOut.Bool(checkCollapsed.Checked);
 				UserOdPrefs.Insert(_userOdPrefTaskCollapsed);
 			}
 			else { 
-				_userOdPrefTaskCollapsed.ValueString=POut.Bool(checkCollapsed.Checked);
+				_userOdPrefTaskCollapsed.ValueString=SOut.Bool(checkCollapsed.Checked);
 				UserOdPrefs.Update(_userOdPrefTaskCollapsed);
 			}
-			_userOdPrefTaskSound.ValueString=POut.Bool(checkBlockedTaskPlaySound.Checked);
+			_userOdPrefTaskSound.ValueString=SOut.Bool(checkBlockedTaskPlaySound.Checked);
 			UserOdPrefs.Upsert(_userOdPrefTaskSound);
 			DataValid.SetInvalid(InvalidType.UserOdPrefs);
 			ShowFinishedTasks=checkShowFinished.Checked;
 			ShowArchivedTaskLists=checkShowArchivedTaskLists.Checked;
-			DateTimeStartShowFinished=PIn.Date(textStartDate.Text);//Note that this may have not been enabled but we'll pass it back anyway, won't be used.
+			DateTimeStartShowFinished=SIn.Date(textStartDate.Text);//Note that this may have not been enabled but we'll pass it back anyway, won't be used.
 			DoSortApptDateTime=checkTaskSortApptDateTime.Checked;
 			DialogResult=DialogResult.OK;
 		}

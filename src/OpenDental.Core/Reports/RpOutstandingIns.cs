@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -42,13 +43,13 @@ namespace OpenDentBusiness {
 				COALESCE(
 					(SELECT claimtracking.UserNum
 					FROM claimtracking
-					WHERE claimtracking.TrackingType='{POut.String(ClaimTrackingType.ClaimUser.ToString())}'
+					WHERE claimtracking.TrackingType='{SOut.String(ClaimTrackingType.ClaimUser.ToString())}'
 					AND claimtracking.ClaimNum=claim.ClaimNum
 					AND claimtracking.DateTimeEntry=(
 						SELECT MAX(cuser.DateTimeEntry) DateTimeEntry
 						FROM claimtracking cuser
 						WHERE cuser.ClaimNum=claim.ClaimNum
-						AND cuser.TrackingType='{POut.String(ClaimTrackingType.ClaimUser.ToString())}'
+						AND cuser.TrackingType='{SOut.String(ClaimTrackingType.ClaimUser.ToString())}'
 					)
 					GROUP BY claimtracking.ClaimNum
 				),0) UserNum
@@ -58,24 +59,24 @@ namespace OpenDentBusiness {
 				AND claim.ClaimStatus='S' ";
 			if(dateFrom!=DateTime.MinValue) {
 				if(dateFilterBy==DateFilterBy.DateSentOrig) {
-					command+="AND claim.DateSentOrig >= "+POut.Date(dateFrom)+" ";
+					command+="AND claim.DateSentOrig >= "+SOut.Date(dateFrom)+" ";
 				}
 				else if(dateFilterBy==DateFilterBy.DateSent) {
-					command+="AND claim.DateSent >= "+POut.Date(dateFrom)+" ";
+					command+="AND claim.DateSent >= "+SOut.Date(dateFrom)+" ";
 				}
 				else {
-					command+="AND claim.DateService >= "+POut.Date(dateFrom)+" ";
+					command+="AND claim.DateService >= "+SOut.Date(dateFrom)+" ";
 				}
 			}
 			if(dateTo!=DateTime.MinValue) {
 				if(dateFilterBy==DateFilterBy.DateSentOrig) {
-					command+="AND claim.DateSentOrig <= "+POut.Date(dateTo)+" ";
+					command+="AND claim.DateSentOrig <= "+SOut.Date(dateTo)+" ";
 				}
 				else if(dateFilterBy==DateFilterBy.DateSent) {
-					command+="AND claim.DateSent <= "+POut.Date(dateTo)+" ";
+					command+="AND claim.DateSent <= "+SOut.Date(dateTo)+" ";
 				}
 				else {
-					command+="AND claim.DateService <= "+POut.Date(dateTo)+" ";
+					command+="AND claim.DateService <= "+SOut.Date(dateTo)+" ";
 				}
 			}
 			if(listProvNums.Count>0) {
@@ -96,11 +97,11 @@ namespace OpenDentBusiness {
 				+"LEFT JOIN claimtracking statusHistory ON statusHistory.ClaimNum=claim.ClaimNum "
 					+"AND statusHistory.TrackingDefNum=definition.DefNum "
 					+"AND statusHistory.DateTimeEntry=(SELECT MAX(ct.DateTimeEntry) FROM claimtracking ct WHERE ct.ClaimNum=claim.ClaimNum AND ct.TrackingDefNum!=0) "
-					+"AND statusHistory.TrackingType='"+POut.String(ClaimTrackingType.StatusHistory.ToString())+"' "
+					+"AND statusHistory.TrackingType='"+SOut.String(ClaimTrackingType.StatusHistory.ToString())+"' "
 				+"INNER JOIN patient ON patient.PatNum=claim.PatNum "
 				+"LEFT JOIN inssub ON claim.InsSubNum = inssub.InsSubNum "
 				+"LEFT JOIN patient sub ON inssub.Subscriber = sub.PatNum "
-				+"WHERE carrier.CarrierName LIKE '%"+POut.String(carrierName.Trim())+"%' ";
+				+"WHERE carrier.CarrierName LIKE '%"+SOut.String(carrierName.Trim())+"%' ";
 			if(listUserNums.Count>0) {
 				command+="HAVING (UserNum IN ("+String.Join(",",listUserNums)+") ";
 				if(listUserNums.Contains(0)) {
@@ -194,24 +195,24 @@ namespace OpenDentBusiness {
 				PatFName=rowCur["PatFName"].ToString();
 				PatLName=rowCur["PatLName"].ToString();
 				PatMiddleI=rowCur["PatMiddleI"].ToString();
-				PatNum=PIn.Long(rowCur["PatNum"].ToString());
-				PatDOB=PIn.DateTime(rowCur["PatDOB"].ToString());
-				DateService=PIn.DateTime(rowCur["DateService"].ToString());
-				DateSent=PIn.DateTime(rowCur["DateSent"].ToString());
-				DateOrigSent=PIn.DateTime(rowCur["DateOrigSent"].ToString());
-				ClaimFee=PIn.Decimal(rowCur["ClaimFee"].ToString());
-				ClaimNum=PIn.Long(rowCur["ClaimNum"].ToString());
-				ClinicNum=PIn.Long(rowCur["ClinicNum"].ToString());
-				DaysSuppressed=PIn.Int(rowCur["DaysSuppressed"].ToString());
-				DateLog=PIn.DateTime(rowCur["DateLog"].ToString());
-				ErrorCodeDefNum=PIn.Long(rowCur["ErrorCodeDefNum"].ToString());
-				GroupNum=PIn.String(rowCur["GroupNum"].ToString());
-				GroupName=PIn.String(rowCur["GroupName"].ToString());
-				SubName=PIn.String(rowCur["SubName"].ToString());
-				SubDOB=PIn.DateTime(rowCur["SubDOB"].ToString());
-				SubID=PIn.String(rowCur["SubID"].ToString());
-				CustomTrackingDefNum=PIn.Long(rowCur["CustomTrackingDefNum"].ToString());
-				UserNum=PIn.Long(rowCur["UserNum"].ToString());
+				PatNum=SIn.Long(rowCur["PatNum"].ToString());
+				PatDOB=SIn.DateTime(rowCur["PatDOB"].ToString());
+				DateService=SIn.DateTime(rowCur["DateService"].ToString());
+				DateSent=SIn.DateTime(rowCur["DateSent"].ToString());
+				DateOrigSent=SIn.DateTime(rowCur["DateOrigSent"].ToString());
+				ClaimFee=SIn.Decimal(rowCur["ClaimFee"].ToString());
+				ClaimNum=SIn.Long(rowCur["ClaimNum"].ToString());
+				ClinicNum=SIn.Long(rowCur["ClinicNum"].ToString());
+				DaysSuppressed=SIn.Int(rowCur["DaysSuppressed"].ToString());
+				DateLog=SIn.DateTime(rowCur["DateLog"].ToString());
+				ErrorCodeDefNum=SIn.Long(rowCur["ErrorCodeDefNum"].ToString());
+				GroupNum=SIn.String(rowCur["GroupNum"].ToString());
+				GroupName=SIn.String(rowCur["GroupName"].ToString());
+				SubName=SIn.String(rowCur["SubName"].ToString());
+				SubDOB=SIn.DateTime(rowCur["SubDOB"].ToString());
+				SubID=SIn.String(rowCur["SubID"].ToString());
+				CustomTrackingDefNum=SIn.Long(rowCur["CustomTrackingDefNum"].ToString());
+				UserNum=SIn.Long(rowCur["UserNum"].ToString());
 			}
 		}
 

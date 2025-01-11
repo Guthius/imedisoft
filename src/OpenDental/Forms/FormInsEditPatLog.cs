@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -71,7 +72,7 @@ namespace OpenDental {
 				row.Cells.Add(_listInsEditPatLogs[i].DateTStamp.ToString());
 				Userod userod = listUserods.Find(x=>x.UserNum==_listInsEditPatLogs[i].UserNum);
 				if(userod==null) {
-					row.Cells.Add(Lan.g(this,"Unknown")+"("+POut.Long(_listInsEditPatLogs[i].UserNum)+")");//Unable to find the corresponding user.  
+					row.Cells.Add(Lan.g(this,"Unknown")+"("+SOut.Long(_listInsEditPatLogs[i].UserNum)+")");//Unable to find the corresponding user.  
 				}
 				else {
 					row.Cells.Add(userod.UserName); 

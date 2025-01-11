@@ -110,7 +110,7 @@ namespace OpenDental {
 		}
 
 		private void butFix2_Click(object sender,EventArgs e) {
-			MessageBox.Show("There is not yet a fix for duplicate supplemental payments due to concern about false positives. If you have duplicates, we will need to get a copy of your database to analyze it here.");
+			ODMessageBox.Show("There is not yet a fix for duplicate supplemental payments due to concern about false positives. If you have duplicates, we will need to get a copy of your database to analyze it here.");
 		}
 
 		private void butFix3_Click(object sender,EventArgs e) {

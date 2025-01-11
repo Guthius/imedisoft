@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -297,7 +298,7 @@ namespace OpenDental {
 		#region Methods - Event Handlers Prefs Section
 		private void CheckEClipboardUseDefaults_Click(object sender, EventArgs e){
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardUseDefaults,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEClipboardUseDefaults.Checked));
+				SOut.Bool(checkEClipboardUseDefaults.Checked));
 			if(checkEClipboardUseDefaults.Checked) {//If set to true, set the behavior rules and sheets to the default
 				EClipboardSetControlsToPrefDefaults();
 				_listEClipboardSheetDefs.RemoveAll(x => GetClinicNumEClipboardTab()!=0 && x.ClinicNum==GetClinicNumEClipboardTab());
@@ -313,56 +314,56 @@ namespace OpenDental {
 		}
 
 		private void CheckEClipboardAllowCheckIn_Click(object sender, EventArgs e){
-			string strAllowCheckIn=POut.Bool(checkEClipboardAllowCheckIn.Checked);
+			string strAllowCheckIn=SOut.Bool(checkEClipboardAllowCheckIn.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardAllowSelfCheckIn,clinicPickerEClipboard.ClinicNumSelected,strAllowCheckIn);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardAllowSelfCheckIn,strAllowCheckIn);
 		}
 
 		private void CheckAllowPaymentCheckIn_Click(object sender,EventArgs e) {
-			string strAllowPayments=POut.Bool(checkEClipboardAllowPaymentCheckIn.Checked);
+			string strAllowPayments=SOut.Bool(checkEClipboardAllowPaymentCheckIn.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardAllowPaymentOnCheckin,clinicPickerEClipboard.ClinicNumSelected,strAllowPayments);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardAllowPaymentOnCheckin,strAllowPayments);
 		}
 
 		private void CheckEClipboardAllowSheets_Click(object sender, EventArgs e){
-			string strAllowSheets=POut.Bool(checkEClipboardAllowSheets.Checked);
+			string strAllowSheets=SOut.Bool(checkEClipboardAllowSheets.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardPresentAvailableFormsOnCheckIn,clinicPickerEClipboard.ClinicNumSelected,strAllowSheets);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardPresentAvailableFormsOnCheckIn,strAllowSheets);
 		}
 
 		private void CheckEClipboardCreateMissingForms_Click(object sender, EventArgs e){
 			SetUIEClipboardEnabled();
-			string strCanCreateMissingForms=POut.Bool(checkEClipboardCreateMissingForms.Checked);
+			string strCanCreateMissingForms=SOut.Bool(checkEClipboardCreateMissingForms.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardCreateMissingFormsOnCheckIn,clinicPickerEClipboard.ClinicNumSelected,strCanCreateMissingForms);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardCreateMissingFormsOnCheckIn,strCanCreateMissingForms);
 		}
 
 		private void CheckEClipboardPopupKiosk_Click(object sender, EventArgs e){
-			string strHasPopupKiosk=POut.Bool(checkEClipboardPopupKiosk.Checked);
+			string strHasPopupKiosk=SOut.Bool(checkEClipboardPopupKiosk.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardPopupKioskOnCheckIn,clinicPickerEClipboard.ClinicNumSelected,strHasPopupKiosk);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardPopupKioskOnCheckIn,strHasPopupKiosk);
 		}
 		private void checkEnableByodSms_Click(object sender,EventArgs e) {
 			SetUIEClipboardEnabled();
-			string strEnableByodSms=POut.Bool(checkEnableByodSms.Checked);
+			string strEnableByodSms=SOut.Bool(checkEnableByodSms.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardEnableByodSms,clinicPickerEClipboard.ClinicNumSelected,strEnableByodSms);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardEnableByodSms,strEnableByodSms);
 		}
 
 		private void checkAppendByodToArrivalResponseSms_Click(object sender,EventArgs e) {
-			string strByodForResponseSms=POut.Bool(checkAppendByodToArrivalResponseSms.Checked);
+			string strByodForResponseSms=SOut.Bool(checkAppendByodToArrivalResponseSms.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardAppendByodToArrivalResponseSms,clinicPickerEClipboard.ClinicNumSelected,strByodForResponseSms);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardAppendByodToArrivalResponseSms,strByodForResponseSms);
 		}
 
 		private void checkRequire2FA_Click(object sender, EventArgs e) {
-			string strRequire2FA=POut.Bool(checkRequire2FA.Checked);
+			string strRequire2FA=SOut.Bool(checkRequire2FA.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardDoTwoFactorAuth,clinicPickerEClipboard.ClinicNumSelected,strRequire2FA);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardDoTwoFactorAuth,strRequire2FA);
 		}
 
 		private void checkDisplayIndividually_Click(object sender, EventArgs e) {
-			string strChecked=POut.Bool(checkDisplayIndividually.Checked);
+			string strChecked=SOut.Bool(checkDisplayIndividually.Checked);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardHasMultiPageCheckIn,clinicPickerEClipboard.ClinicNumSelected,strChecked);
 			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardHasMultiPageCheckIn,strChecked);
 		}
@@ -431,26 +432,26 @@ namespace OpenDental {
 			textByodSmsTemplate.Text=_clinicPrefHelper.GetDefaultStringVal(PrefName.EClipboardByodSmsTemplate);
 			textEClipboardMessage.Text=_clinicPrefHelper.GetDefaultStringVal(PrefName.EClipboardMessageComplete);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardAllowSelfCheckIn,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEClipboardAllowCheckIn.Checked));
+				SOut.Bool(checkEClipboardAllowCheckIn.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardAllowPaymentOnCheckin,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEClipboardAllowPaymentCheckIn.Checked));
+				SOut.Bool(checkEClipboardAllowPaymentCheckIn.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardPresentAvailableFormsOnCheckIn,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEClipboardAllowSheets.Checked));
+				SOut.Bool(checkEClipboardAllowSheets.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardCreateMissingFormsOnCheckIn,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEClipboardCreateMissingForms.Checked));
+				SOut.Bool(checkEClipboardCreateMissingForms.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardPopupKioskOnCheckIn,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEClipboardPopupKiosk.Checked));
+				SOut.Bool(checkEClipboardPopupKiosk.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardEnableByodSms,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkEnableByodSms.Checked));
+				SOut.Bool(checkEnableByodSms.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardAppendByodToArrivalResponseSms,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkAppendByodToArrivalResponseSms.Checked && checkEnableByodSms.Checked));
+				SOut.Bool(checkAppendByodToArrivalResponseSms.Checked && checkEnableByodSms.Checked));
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardByodSmsTemplate,clinicPickerEClipboard.ClinicNumSelected,
 				textByodSmsTemplate.Text);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardMessageComplete,clinicPickerEClipboard.ClinicNumSelected,
 				textEClipboardMessage.Text);
 			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardDoTwoFactorAuth,clinicPickerEClipboard.ClinicNumSelected,
-				POut.Bool(checkRequire2FA.Checked));
-			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardHasMultiPageCheckIn,clinicPickerEClipboard.ClinicNumSelected,POut.Bool(checkDisplayIndividually.Checked));
+				SOut.Bool(checkRequire2FA.Checked));
+			_clinicPrefHelper.ValChangedByUser(PrefName.EClipboardHasMultiPageCheckIn,clinicPickerEClipboard.ClinicNumSelected,SOut.Bool(checkDisplayIndividually.Checked));
 		}
 
 		///<summary>Sets the Defaults checkbox itself.  Then sets the 5 other checkboxes and the textbox that are involved in prefs.  Sets them based on the values in the local clinicpref list.  Does not change any of those values.  Called only on startup.</summary>

@@ -7,6 +7,7 @@ using CodeBase;
 using OpenDental.UI;
 using System.Data;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -33,7 +34,7 @@ namespace OpenDental {
 			}
 			//If there is more than one recalculate charge, sort by descending charge amount. This only matters if one of the recalculated charges is 0
 			if(x.Cells[2].Text.Trim().ToLower().Contains("recalculated based on") && y.Cells[2].Text.Trim().ToLower().Contains("recalculated based on")) {
-				if(PIn.Double(x.Cells[3].Text)<PIn.Double(y.Cells[3].Text)) {
+				if(SIn.Double(x.Cells[3].Text)<SIn.Double(y.Cells[3].Text)) {
 					return 1;
 				}
 				return -1;
@@ -153,17 +154,17 @@ namespace OpenDental {
 		}
 
 		public static GridRow CreateRowForPatientPayPlanSplit(DataRow dataRowBundlePayment,PaySplit paySplit) {
-			string descript=Defs.GetName(DefCat.PaymentTypes,PIn.Long(dataRowBundlePayment["PayType"].ToString()));
+			string descript=Defs.GetName(DefCat.PaymentTypes,SIn.Long(dataRowBundlePayment["PayType"].ToString()));
 			if(dataRowBundlePayment["CheckNum"].ToString()!="") {
 				descript+=" #"+dataRowBundlePayment["CheckNum"].ToString();
 			}
 			descript+=" "+paySplit.SplitAmt.ToString("c");
-			if(PIn.Double(dataRowBundlePayment["PayAmt"].ToString())!=paySplit.SplitAmt) {
+			if(SIn.Double(dataRowBundlePayment["PayAmt"].ToString())!=paySplit.SplitAmt) {
 				descript+=Lans.g("PayPlanL","(split)");
 			}
 			GridRow row=new GridRow();
 			row.Cells.Add(paySplit.DatePay.ToShortDateString());//0 Date
-			row.Cells.Add(Providers.GetAbbr(PIn.Long(dataRowBundlePayment["ProvNum"].ToString())));//1 Prov Abbr
+			row.Cells.Add(Providers.GetAbbr(SIn.Long(dataRowBundlePayment["ProvNum"].ToString())));//1 Prov Abbr
 			row.Cells.Add(descript);//2 Descript
 			row.Cells.Add("");//3 Principal
 			row.Cells.Add("");//4 Interest
@@ -178,29 +179,29 @@ namespace OpenDental {
 
 		public static GridRow CreateRowForClaimProcs(DataRow dataRowBundleClaimProc,bool isDynamic=false) {
 			//Either a claimpayment or a bundle of claimprocs with no claimpayment that were on the same date.
-			string descript=Defs.GetName(DefCat.InsurancePaymentType,PIn.Long(dataRowBundleClaimProc["PayType"].ToString()));
+			string descript=Defs.GetName(DefCat.InsurancePaymentType,SIn.Long(dataRowBundleClaimProc["PayType"].ToString()));
 			if(dataRowBundleClaimProc["CheckNum"].ToString()!="") {
 				descript+=" #"+dataRowBundleClaimProc["CheckNum"];
 			}
-			if(PIn.Long(dataRowBundleClaimProc["ClaimPaymentNum"].ToString())==0) {
+			if(SIn.Long(dataRowBundleClaimProc["ClaimPaymentNum"].ToString())==0) {
 				descript+="No Finalized Payment";
 			}
 			else {
-				double checkAmt=PIn.Double(dataRowBundleClaimProc["CheckAmt"].ToString());
+				double checkAmt=SIn.Double(dataRowBundleClaimProc["CheckAmt"].ToString());
 				descript+=" "+checkAmt.ToString("c");
-				double insPayAmt=PIn.Double(dataRowBundleClaimProc["InsPayAmt"].ToString());
+				double insPayAmt=SIn.Double(dataRowBundleClaimProc["InsPayAmt"].ToString());
 				if(checkAmt!=insPayAmt) {
 					descript+=" "+Lans.g("PayPlanL","(split)");
 				}
 			}
 			GridRow row=new GridRow();
-			row.Cells.Add(PIn.DateTime(dataRowBundleClaimProc["DateCP"].ToString()).ToShortDateString());//0 Date
-			row.Cells.Add(Providers.GetLName(PIn.Long(dataRowBundleClaimProc["ProvNum"].ToString())));//1 Prov Abbr
+			row.Cells.Add(SIn.DateTime(dataRowBundleClaimProc["DateCP"].ToString()).ToShortDateString());//0 Date
+			row.Cells.Add(Providers.GetLName(SIn.Long(dataRowBundleClaimProc["ProvNum"].ToString())));//1 Prov Abbr
 			row.Cells.Add(descript);//2 Descript
 			row.Cells.Add("");//3 Principal
 			row.Cells.Add("");//4 Interest
 			row.Cells.Add("");//5 Due
-			row.Cells.Add(PIn.Double(dataRowBundleClaimProc["InsPayAmt"].ToString()).ToString("n"));//6 Payment
+			row.Cells.Add(SIn.Double(dataRowBundleClaimProc["InsPayAmt"].ToString()).ToString("n"));//6 Payment
 			if(!isDynamic) {
 				row.Cells.Add("");//7 Adjustment
 			}
@@ -332,12 +333,12 @@ namespace OpenDental {
 					datePrevCharge=listPayPlanCharges[i].ChargeDate;
 				}
 				for(int i=0;i<listPaySplits.Count;i++) {
-					string descript=Defs.GetName(DefCat.PaymentTypes,PIn.Long(tableBundledPayments.Rows[i]["PayType"].ToString()));
+					string descript=Defs.GetName(DefCat.PaymentTypes,SIn.Long(tableBundledPayments.Rows[i]["PayType"].ToString()));
 					if(tableBundledPayments.Rows[i]["CheckNum"].ToString()!="") {
 						descript+=" #"+tableBundledPayments.Rows[i]["CheckNum"].ToString();
 					}
 					descript+=" "+listPaySplits[i].SplitAmt.ToString("c");
-					if(PIn.Double(tableBundledPayments.Rows[i]["PayAmt"].ToString())!=listPaySplits[i].SplitAmt) {
+					if(SIn.Double(tableBundledPayments.Rows[i]["PayAmt"].ToString())!=listPaySplits[i].SplitAmt) {
 						descript+=Lans.g("PayPlanL","(split)");
 					}
 					GridRow row=new GridRow();

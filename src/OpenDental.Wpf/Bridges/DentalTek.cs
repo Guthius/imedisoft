@@ -38,7 +38,7 @@ namespace OpenDental.Bridges {
 				string response="";
 				try {
 					client.Headers[HttpRequestHeader.ContentType]="application/json";
-					client.Encoding=UnicodeEncoding.UTF8;
+					client.Encoding=Encoding.UTF8;
 					if(apiToken=="") {
 						string domainUser=System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 						request="https://extapi.dentaltek.com/v1/pbx/rest/ClickToCall?domainUser="+domainUser+"&phoneNumber="+phoneNumber;

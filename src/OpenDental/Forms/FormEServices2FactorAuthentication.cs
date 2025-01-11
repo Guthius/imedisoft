@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -18,7 +19,7 @@ namespace OpenDental {
 
 		private void butOK_Click(object sender,EventArgs e) {
 			if(text2FactorAuthCode.Text!=MobileSettingsAuth.AuthCodeEmail && text2FactorAuthCode.Text!=MobileSettingsAuth.AuthCodePhone) {
-				MessageBox.Show("The given code did not match. Enter a valid code, or hit Cancel to send a new code.");
+				ODMessageBox.Show("The given code did not match. Enter a valid code, or hit Cancel to send a new code.");
 				return;
 			}
 			DialogResult=DialogResult.OK;

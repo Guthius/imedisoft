@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -59,11 +60,11 @@ namespace OpenDental {
 					stringArrayfields[1]=stringArrayfields[1].TrimEnd(')');
 					stringArrayfields[1]=stringArrayfields[1].Insert(0,"-");
 				}
-				xChargeTransaction.Amount=PIn.Double(stringArrayfields[1]);
+				xChargeTransaction.Amount=SIn.Double(stringArrayfields[1]);
 				xChargeTransaction.CCEntry=stringArrayfields[2];
 				xChargeTransaction.PatNum=0;
 				if(!string.IsNullOrWhiteSpace(stringArrayfields[3]) && stringArrayfields[3].Length > 3) {
-					xChargeTransaction.PatNum=PIn.Long(stringArrayfields[3].Substring(3));//remove "PAT" from the beginning of the string
+					xChargeTransaction.PatNum=SIn.Long(stringArrayfields[3].Substring(3));//remove "PAT" from the beginning of the string
 				}
 				xChargeTransaction.Result=stringArrayfields[4];
 				xChargeTransaction.ClerkID=stringArrayfields[5];
@@ -73,7 +74,7 @@ namespace OpenDental {
 					stringArrayfields[6]=stringArrayfields[6].TrimEnd(')');
 					stringArrayfields[6]=stringArrayfields[6].Insert(0,"-");
 				}
-				xChargeTransaction.BatchTotal=PIn.Double(stringArrayfields[6]);
+				xChargeTransaction.BatchTotal=SIn.Double(stringArrayfields[6]);
 				xChargeTransaction.ResultCode=stringArrayfields[7];
 				xChargeTransaction.Expiration=stringArrayfields[8];
 				xChargeTransaction.CCType=stringArrayfields[9];
@@ -81,10 +82,10 @@ namespace OpenDental {
 				xChargeTransaction.BatchNum=stringArrayfields[11];
 				xChargeTransaction.ItemNum=stringArrayfields[12];
 				xChargeTransaction.ApprCode=stringArrayfields[13];
-				xChargeTransaction.TransactionDateTime=PIn.Date(stringArrayfields[14])
-					.AddHours(PIn.Double(stringArrayfields[15].Substring(0,2)))
-					.AddMinutes(PIn.Double(stringArrayfields[15].Substring(3,2)))
-					.AddSeconds(PIn.Double(stringArrayfields[15].Substring(6,2)));
+				xChargeTransaction.TransactionDateTime=SIn.Date(stringArrayfields[14])
+					.AddHours(SIn.Double(stringArrayfields[15].Substring(0,2)))
+					.AddMinutes(SIn.Double(stringArrayfields[15].Substring(3,2)))
+					.AddSeconds(SIn.Double(stringArrayfields[15].Substring(6,2)));
 				xChargeTransactionCheck=XChargeTransactions.GetOneMatch(xChargeTransaction.BatchNum,xChargeTransaction.ItemNum,xChargeTransaction.PatNum,xChargeTransaction.TransactionDateTime,xChargeTransaction.TransType);
 				if(xChargeTransactionCheck!=null && xChargeTransaction.Result!="AP DUPE" 
 					&& CompareDouble.IsEqual(xChargeTransactionCheck.Amount,xChargeTransaction.Amount)
@@ -109,7 +110,7 @@ namespace OpenDental {
 			reportSimpleGrid.Query="SELECT TransactionDateTime,TransType,ClerkID,ItemNum,PatNum,CreditCardNum,Expiration,Result,"
 				+"CASE WHEN ResultCode IN('000','010') THEN Amount ELSE 0 END AS Amount "
 				+"FROM xchargetransaction "
-				+"WHERE "+DbHelper.DtimeToDate("TransactionDateTime")+" BETWEEN "+POut.Date(date1.SelectionStart)+" AND "+POut.Date(date2.SelectionStart);
+				+"WHERE "+DbHelper.DtimeToDate("TransactionDateTime")+" BETWEEN "+SOut.Date(date1.SelectionStart)+" AND "+SOut.Date(date2.SelectionStart);
 			using FormQuery formQuery2=new FormQuery(reportSimpleGrid);
 			formQuery2.IsReport=true;
 			formQuery2.SubmitReportQuery();
@@ -136,10 +137,10 @@ namespace OpenDental {
 				+"FROM patient INNER JOIN payment ON payment.PatNum=patient.PatNum "
 				+"INNER JOIN ("
 					+"SELECT ClinicNum,PropertyValue AS PaymentType FROM programproperty "
-					+"WHERE ProgramNum="+POut.Long(Programs.GetProgramNum(ProgramName.Xcharge))+" AND PropertyDesc='PaymentType'"
+					+"WHERE ProgramNum="+SOut.Long(Programs.GetProgramNum(ProgramName.Xcharge))+" AND PropertyDesc='PaymentType'"
 				+") paytypes ON paytypes.ClinicNum=payment.ClinicNum AND paytypes.PaymentType=payment.PayType "
 				//Must be DateEntry here. PayDate will not work with recurring charges
-				+"WHERE DateEntry BETWEEN "+POut.Date(date1.SelectionStart)+" AND "+POut.Date(date2.SelectionStart)+" "
+				+"WHERE DateEntry BETWEEN "+SOut.Date(date1.SelectionStart)+" AND "+SOut.Date(date2.SelectionStart)+" "
 				+"ORDER BY Count ASC";
 			using FormQuery formQuery2=new FormQuery(reportSimpleGrid);
 			formQuery2.IsReport=true;

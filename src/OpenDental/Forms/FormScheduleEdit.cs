@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -97,8 +99,8 @@ namespace OpenDental{
 					MsgBox.Show(this,"Invalid selection of ops.");
 					return;
 				}
-				dateTStart=PIn.DateTime(comboStart.Text);
-				dateTStop=PIn.DateTime(comboStop.Text);
+				dateTStart=SIn.DateTime(comboStart.Text);
+				dateTStop=SIn.DateTime(comboStop.Text);
 				if(dateTStart==DateTime.MinValue || dateTStop==DateTime.MinValue) {
 					MsgBox.Show(this,"Incorrect time format");
 					return;
@@ -130,7 +132,7 @@ namespace OpenDental{
 				else {//Go see if there is going to be overlapping issues with this new schedule.
 					listProvNumsOverlap=Schedules.GetOverlappingSchedProvNums(ListProvNums,ScheduleCur,listSchedulesProvOnly,listOperatoryNumsSelected);
 				}
-				if(listProvNumsOverlap.Count>0 && MessageBox.Show(Lan.g(this,"Overlapping provider schedules detected, would you like to continue anyway?")+"\r\n"+Lan.g(this,"Providers affected")+":\r\n  "
+				if(listProvNumsOverlap.Count>0 && ODMessageBox.Show(Lan.g(this,"Overlapping provider schedules detected, would you like to continue anyway?")+"\r\n"+Lan.g(this,"Providers affected")+":\r\n  "
 					+string.Join("\r\n  ",listProvNumsOverlap.Select(x=>Providers.GetLongDesc(x))),"",MessageBoxButtons.YesNo)!=DialogResult.Yes) 
 				{ 
 					return;

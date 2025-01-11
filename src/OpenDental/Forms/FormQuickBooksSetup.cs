@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDental.Bridges;
 using OpenDentBusiness;
@@ -79,7 +80,7 @@ namespace OpenDental {
 			Cursor.Current=Cursors.WaitCursor;
 			string result=QuickBooks.TestConnection(textCompanyFileQB.Text);
 			Cursor.Current=Cursors.Default;
-			MessageBox.Show(result);
+			ODMessageBox.Show(result);
 		}
 
 		private void butAddDepositQB_Click(object sender,EventArgs e) {
@@ -131,7 +132,7 @@ namespace OpenDental {
 				listClasses=QuickBooks.GetListOfClasses();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			InputBoxParam inputBoxParam=new InputBoxParam();

@@ -12,6 +12,7 @@ using CodeBase;
 using OpenDental.UI;
 using SparksToothChart;
 using System.Drawing.Drawing2D;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class UserControlDashboardWidget:UserControl {
@@ -47,7 +48,7 @@ namespace OpenDental {
 			_sheetDef=sheetDefWidget;
 			float scale=LayoutManager.ScaleMy();
 			Size=new Size(LayoutManager.Scale(_sheetDef.Width),LayoutManager.Scale(_sheetDef.Height));
-			Name=POut.Long(_sheetDef.SheetDefNum);
+			Name=SOut.Long(_sheetDef.SheetDefNum);
 			ContextMenuStrip=contextMenu;
 		}
 

@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -118,7 +119,7 @@ namespace OpenDental {
 				return;
 			}
 			HL7DefSegmentCur.SegmentName=(SegmentNameHL7)comboSegmentName.SelectedIndex;
-			HL7DefSegmentCur.ItemOrder=PIn.Int(textItemOrder.Text);
+			HL7DefSegmentCur.ItemOrder=SIn.Int(textItemOrder.Text);
 			HL7DefSegmentCur.CanRepeat=checkCanRepeat.Checked;
 			HL7DefSegmentCur.IsOptional=checkIsOptional.Checked;
 			HL7DefSegmentCur.Note=textNote.Text;

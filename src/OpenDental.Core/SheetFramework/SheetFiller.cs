@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using OpenDentBusiness.SheetFramework;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -167,7 +168,7 @@ namespace OpenDentBusiness {
 			SheetParameter sheetParameterAptNum=GetParamByName(sheet,"AptNum");
 			long aptNum=0;
 			if(sheetParameterAptNum!=null && sheetParameterAptNum.ParamValue!=null) {
-				aptNum=PIn.Long(sheetParameterAptNum.ParamValue.ToString(),throwExceptions:false);
+				aptNum=SIn.Long(sheetParameterAptNum.ParamValue.ToString(),throwExceptions:false);
 			}
 			List<StaticTextReplacement> listStaticTextReplacements=GetStaticTextReplacements(listEnumStaticTextFields,patient,family,staticTextData,staticTextFieldDependency,aptNum,sheet.SheetType);
 			ReplaceStaticTextFieldsInSheet(listStaticTextReplacements,sheet,patient,family);
@@ -1283,7 +1284,7 @@ namespace OpenDentBusiness {
 					continue;
 				}
 				sheet.SheetFields[i].FieldValue="";
-				long categoryNum=PIn.Long(sheet.SheetFields[i].FieldName);
+				long categoryNum=SIn.Long(sheet.SheetFields[i].FieldName);
 				Document document=listDocuments.FindAll(x=>x.DocCategory==categoryNum && x.MountItemNum==0).LastOrDefault();
 				Mount mount=listMounts.FindAll(x=>x.DocCategory==categoryNum).LastOrDefault();
 				if(document!=null && mount!=null){
@@ -3032,7 +3033,7 @@ namespace OpenDentBusiness {
 						break;
 					case "amountDueValue":
 						try {
-							field.FieldValue=PIn.Double(SheetDataTableUtil.GetDataTableForGridType(sheet,dataSet,"StatementEnclosed",statement,null).Rows[0][0].ToString()).ToString("C");
+							field.FieldValue=SIn.Double(SheetDataTableUtil.GetDataTableForGridType(sheet,dataSet,"StatementEnclosed",statement,null).Rows[0][0].ToString()).ToString("C");
 						}
 						catch {
 							field.FieldValue=0.ToString("C");
@@ -3048,7 +3049,7 @@ namespace OpenDentBusiness {
 						if(tableMisc==null){
 							tableMisc=new DataTable();	
 						}
-						double payPlanDue=tableMisc.Select().Where(x => x["descript"].ToString()=="payPlanDue").Sum(x => PIn.Double(x["value"].ToString()));
+						double payPlanDue=tableMisc.Select().Where(x => x["descript"].ToString()=="payPlanDue").Sum(x => SIn.Double(x["value"].ToString()));
 						field.FieldValue=payPlanDue.ToString("c");
 						break;
 					case "invoicePaymentValue"://only for invoices
@@ -3857,12 +3858,12 @@ namespace OpenDentBusiness {
 					for(int p=0;p<tableAcct.Rows.Count;p++) {
 						//The procedure and adjustment amounts have already been caclulated and stored in statement.BalTotal and InsEst respectively, but the pay plan amount still needs to be calculated.
 						if(tableAcct.Rows[p]["PayPlanChargeNum"].ToString()!="0") {
-							amtPayPlan+=PIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
+							amtPayPlan+=SIn.Double(tableAcct.Rows[p]["chargesDouble"].ToString());
 						}
 					}
 				}
 				double paymentValue=SheetDataTableUtil.GetDataTableForGridType(sheet,dataSet,"StatementInvoicePayment",statement,null).Select()
-					.Sum(x => PIn.Double(x["amt"].ToString()));
+					.Sum(x => SIn.Double(x["amt"].ToString()));
 				sLine3+=(statement.BalTotal+statement.InsEst+amtPayPlan).ToString("c");
 				sLine4+=paymentValue.ToString("c");
 				sLine5+=(paymentValue+statement.BalTotal+statement.InsEst+amtPayPlan).ToString("c");
@@ -3884,7 +3885,7 @@ namespace OpenDentBusiness {
 					double amtPatInsEst=0;
 					for(int m=0;m<tableMisc.Rows.Count;m++) {
 						if(tableMisc.Rows[m]["descript"].ToString()=="patInsEst") {
-							amtPatInsEst=PIn.Double(tableMisc.Rows[m]["value"].ToString());
+							amtPatInsEst=SIn.Double(tableMisc.Rows[m]["value"].ToString());
 						}
 					}
 					sLine3+=(statement.BalTotal-statement.InsEst).ToString("c");
@@ -4839,7 +4840,7 @@ namespace OpenDentBusiness {
 						field.FieldValue=value;
 						break;
 					case "ClaimIndexNum":
-						int claimIndex=PIn.Int(GetParamByName(sheet,"ClaimIndexNum").ParamValue.ToString());
+						int claimIndex=SIn.Int(GetParamByName(sheet,"ClaimIndexNum").ParamValue.ToString());
 						if(claimIndex!=0) {//Is 0 when IsSingleClaim parameter is true.
 							field.FieldValue=claimIndex.ToString();
 						}

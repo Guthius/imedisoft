@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -32,10 +33,10 @@ namespace OpenDental {
 
 		private void FillGrid() {
 			if(comboType.SelectedIndex==0) {
-				_listEhrMeasureEvents=EhrMeasureEvents.GetAllByTypeFromDB(PIn.DateTime(textDateStart.Text),PIn.DateTime(textDateEnd.Text),(EhrMeasureEventType)comboType.SelectedIndex,true);
+				_listEhrMeasureEvents=EhrMeasureEvents.GetAllByTypeFromDB(SIn.DateTime(textDateStart.Text),SIn.DateTime(textDateEnd.Text),(EhrMeasureEventType)comboType.SelectedIndex,true);
 			}
 			else {
-				_listEhrMeasureEvents=EhrMeasureEvents.GetAllByTypeFromDB(PIn.DateTime(textDateStart.Text),PIn.DateTime(textDateEnd.Text),(EhrMeasureEventType)comboType.SelectedIndex-1,false);
+				_listEhrMeasureEvents=EhrMeasureEvents.GetAllByTypeFromDB(SIn.DateTime(textDateStart.Text),SIn.DateTime(textDateEnd.Text),(EhrMeasureEventType)comboType.SelectedIndex-1,false);
 			}
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();

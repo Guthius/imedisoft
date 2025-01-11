@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Printing;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -94,7 +95,7 @@ namespace OpenDental{
 				comboProcCode.Items.Add(Lan.g(this,"none"));
 				comboProcCode.SelectedIndex=0;
 				List <ProcedureCode> listProcedureCodes=ProcedureCodes.GetListDeep();
-				DateTime dateRx=PIn.Date(textDate.Text);
+				DateTime dateRx=SIn.Date(textDate.Text);
 				if(dateRx.Year < 1880) {
 					dateRx=DateTime.Today;
 				}
@@ -124,7 +125,7 @@ namespace OpenDental{
 					}
 				}
 				if(_rxPat.DaysOfSupply!=0) {
-					textDaysOfSupply.Text=POut.Double(_rxPat.DaysOfSupply);
+					textDaysOfSupply.Text=SOut.Double(_rxPat.DaysOfSupply);
 				}
 			}
 			else {
@@ -236,12 +237,12 @@ namespace OpenDental{
 			if(!textDate.IsValid() 
 				|| (textDaysOfSupply.Text!="" && !textDaysOfSupply.IsValid())) 
 			{
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return false;
 			}
 			long selectedProvNum=comboProv.GetSelectedProvNum();//zero if nothing selected
 			if(selectedProvNum==0) {//Happens if the patient's primary provider is not in the list of providers or the logged in user is not a provider. 
-				MessageBox.Show(Lan.g(this,"Please select a provider."));
+				ODMessageBox.Show(Lan.g(this,"Please select a provider."));
 				return false;
 			}
 			//Prevents prescriptions from being added that have a provider selected that is past their term date
@@ -251,7 +252,7 @@ namespace OpenDental{
 				return false;
 			}
 			_rxPat.ProvNum=selectedProvNum;
-			_rxPat.RxDate=PIn.Date(textDate.Text);
+			_rxPat.RxDate=SIn.Date(textDate.Text);
 			_rxPat.Drug=textDrug.Text;
 			_rxPat.IsControlled=checkControlled.Checked;
 			if(PrefC.GetBool(PrefName.RxHasProc)) {
@@ -262,7 +263,7 @@ namespace OpenDental{
 				else {
 					_rxPat.ProcNum=_listProceduresInUse[comboProcCode.SelectedIndex-1].ProcNum;
 				}
-				_rxPat.DaysOfSupply=PIn.Double(textDaysOfSupply.Text);
+				_rxPat.DaysOfSupply=SIn.Double(textDaysOfSupply.Text);
 			}
 			_rxPat.Sig=textSig.Text;
 			_rxPat.Disp=textDisp.Text;
@@ -306,7 +307,7 @@ namespace OpenDental{
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete Prescription?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			if(ODMessageBox.Show(Lan.g(this,"Delete Prescription?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.RxEdit,_rxPat.PatNum,"FROM("+_rxPatOld.RxDate.ToShortDateString()+","+_rxPatOld.Drug+","+_rxPatOld.ProvNum+","+_rxPatOld.Disp+","+_rxPatOld.Refills+")"+"\r\nTO('deleted')",_rxPat.RxNum,_rxPatOld.DateTStamp);

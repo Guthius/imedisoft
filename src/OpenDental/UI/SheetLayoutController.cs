@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -99,7 +100,7 @@ namespace OpenDental {
 					|| sheetDefNum==0) //ClinicPref did not exist
 				{
 					if(_hasUserLoggedOff) {//Currently the cache is not loaded fast enough after logging back on to trust.
-						sheetDefNum=PIn.Long(PrefC.GetStringNoCache(PrefName.SheetsDefaultChartModule));
+						sheetDefNum=SIn.Long(PrefC.GetStringNoCache(PrefName.SheetsDefaultChartModule));
 					}
 					else {
 						sheetDefNum=PrefC.GetLong(PrefName.SheetsDefaultChartModule);//Serves as our HQ default.

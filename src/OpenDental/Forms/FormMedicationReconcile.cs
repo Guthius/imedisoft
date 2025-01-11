@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -191,7 +192,7 @@ namespace OpenDental {
 
 		private void butDelete_Click(object sender,EventArgs e) {
 			if(gridReconcileEvents.SelectedIndices.Length<1) {
-				MessageBox.Show("Please select at least one record to delete.");
+				ODMessageBox.Show("Please select at least one record to delete.");
 				return;
 			}
 			for(int i=0;i<gridReconcileEvents.SelectedIndices.Length;i++) {

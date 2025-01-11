@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Intuit.Ipp.Data;
@@ -235,9 +236,9 @@ namespace OpenDental {
 				if(checkRead.Checked){
 					listSmsFromStatuses.Add(SmsFromStatus.ReceivedRead);
 				}
-				_listSmsFromMobiles=SmsFromMobiles.GetMessages(PIn.Date(textDateFrom.Text),PIn.Date(textDateTo.Text),GetListSelectedClinicNums(),_patNum,false,"",listSmsFromStatuses);
+				_listSmsFromMobiles=SmsFromMobiles.GetMessages(SIn.Date(textDateFrom.Text),SIn.Date(textDateTo.Text),GetListSelectedClinicNums(),_patNum,false,"",listSmsFromStatuses);
 				if(checkSent.Checked) {
-					_listSmsToMobiles=SmsToMobiles.GetMessages(PIn.Date(textDateFrom.Text),PIn.Date(textDateTo.Text),GetListSelectedClinicNums(),_patNum,"");
+					_listSmsToMobiles=SmsToMobiles.GetMessages(SIn.Date(textDateFrom.Text),SIn.Date(textDateTo.Text),GetListSelectedClinicNums(),_patNum,"");
 				}
 				AddPatientNames(_listSmsFromMobiles.GroupBy(x => x.PatNum).Select(x => x.Key)
 					.Union(_listSmsToMobiles.GroupBy(x => x.PatNum).Select(x => x.Key)).ToList());
@@ -785,7 +786,7 @@ namespace OpenDental {
 					question+="\r\n"+Lan.g(this,"This phone number is attached to patient")+" "+pat.GetNameFLnoPref()+".";
 				}
 			}
-			if(MessageBox.Show(question,"",MessageBoxButtons.YesNo)==DialogResult.No) {
+			if(ODMessageBox.Show(question,"",MessageBoxButtons.YesNo)==DialogResult.No) {
 				return;
 			}
 			SmsBlockPhones.Insert(new SmsBlockPhone { BlockWirelessNumber=strNumberToBlock });

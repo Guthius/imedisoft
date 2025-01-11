@@ -20,7 +20,7 @@ namespace OpenDentBusiness {
 					if(i>0) {
 						whereProv+=",";
 					}
-					whereProv+=POut.Long(listProvNums[i]);
+					whereProv+=SOut.Long(listProvNums[i]);
 				}
 				whereProv+=") ";
 			}
@@ -32,7 +32,7 @@ namespace OpenDentBusiness {
 					if(i>0) {
 						whereClin+=",";
 					}
-					whereClin+=POut.Long(listClinicNums[i]);
+					whereClin+=SOut.Long(listClinicNums[i]);
 				}
 				whereClin+=") ";
 			}
@@ -70,10 +70,10 @@ namespace OpenDentBusiness {
 			var command="SELECT COALESCE(guar.FName,pat.FName) FName,COALESCE(guar.LName,pat.LName) LName,COALESCE(guar.MiddleI,pat.MiddleI) MiddleI," 
 			            +"PlanNum,COALESCE(guar.Preferred,pat.Preferred) Preferred,PlanNum,COALESCE((SELECT SUM(Principal+Interest) FROM payplancharge " 
 			            +"WHERE payplancharge.PayPlanNum=payplan.PayPlanNum AND payplancharge.ChargeType="
-			            +POut.Int((int)PayPlanChargeType.Debit)+" "//for v1, debits are the only ChargeType.
+			            +SOut.Int((int)PayPlanChargeType.Debit)+" "//for v1, debits are the only ChargeType.
 			            +"AND ChargeDate <= "+datesql+@"),0) '_accumDue', ";
 			command+="COALESCE((SELECT SUM(Interest) FROM payplancharge WHERE payplancharge.PayPlanNum=payplan.PayPlanNum "
-				+"AND payplancharge.ChargeType="+POut.Int((int)PayPlanChargeType.Debit)+" "//for v1, debits are the only ChargeType.
+				+"AND payplancharge.ChargeType="+SOut.Int((int)PayPlanChargeType.Debit)+" "//for v1, debits are the only ChargeType.
 					+"AND ChargeDate <= "+datesql+@"),0) '_accumInt', ";
 			command+=$@"COALESCE((SELECT SUM(SplitAmt) FROM paysplit WHERE paysplit.PayPlanNum=payplan.PayPlanNum ";
 			if(listHiddenUnearnedDefNums.Count>0) {
@@ -82,22 +82,22 @@ namespace OpenDentBusiness {
 			command+=@"AND paysplit.PayPlanNum!=0),0) '_paid', 
 					COALESCE((SELECT SUM(InsPayAmt) FROM claimproc WHERE claimproc.PayPlanNum=payplan.PayPlanNum 
 					AND claimproc.Status IN("
-					+POut.Int((int)ClaimProcStatus.Received)+","
-					+POut.Int((int)ClaimProcStatus.Supplemental)+","
-					+POut.Int((int)ClaimProcStatus.CapClaim)
+					+SOut.Int((int)ClaimProcStatus.Received)+","
+					+SOut.Int((int)ClaimProcStatus.Supplemental)+","
+					+SOut.Int((int)ClaimProcStatus.CapClaim)
 					+") AND claimproc.PayPlanNum!=0),0) '_insPaid', ";
 			command+="COALESCE(CASE "
 					//When pay plan isn't dynamic, all charges are already created, so we can sum principal from them to get plans total principal.
 					+"WHEN payplan.IsDynamic=0 THEN "
 						+"(SELECT SUM(Principal) FROM payplancharge "
 						//for v1, debits are the only ChargeType.
-						+"WHERE payplancharge.PayPlanNum=payplan.PayPlanNum AND payplancharge.ChargeType="+POut.Int((int)PayPlanChargeType.Debit)+") "
+						+"WHERE payplancharge.PayPlanNum=payplan.PayPlanNum AND payplancharge.ChargeType="+SOut.Int((int)PayPlanChargeType.Debit)+") "
 					//When pay plan is dynamic, we will get it from dppprincipal, a table constructed to calculate total principal for dynamic pay plans.
 					+"WHEN payplan.IsDynamic=1 THEN dppprincipal.TotalPrincipal ELSE 0 END,0)'_principal', "
 				+"COALESCE((SELECT SUM(Principal) FROM payplancharge WHERE payplancharge.PayPlanNum=payplan.PayPlanNum "
-				+"AND payplancharge.ChargeType="+POut.Int((int)PayPlanChargeType.Credit)+"),0) '_credits', "//for v1, will always be 0.
+				+"AND payplancharge.ChargeType="+SOut.Int((int)PayPlanChargeType.Credit)+"),0) '_credits', "//for v1, will always be 0.
 				+"COALESCE((SELECT SUM(Principal) FROM payplancharge WHERE payplancharge.PayPlanNum=payplan.PayPlanNum "
-				+"AND payplancharge.ChargeType="+POut.Int((int)PayPlanChargeType.Credit)+" AND ChargeDate > "+datesql+"),0) '_notDue', "
+				+"AND payplancharge.ChargeType="+SOut.Int((int)PayPlanChargeType.Credit)+" AND ChargeDate > "+datesql+"),0) '_notDue', "
 				+"COALESCE(guar.PatNum,pat.PatNum) PatNum, "
 				+"COALESCE(payplancharge.ProvNum,dppprincipal.ProvNum) ProvNum ";//Use payplancharge for patient plan, dppprincipal for DPP.
 			if(hasClinicsEnabled) {
@@ -107,7 +107,7 @@ namespace OpenDentBusiness {
 			//Then, after the query has run, we'll add the interest up until today with the total principal for the entire payment plan.
 			//For this reason, we cannot use _accumDue which only gets the principle up until today and not the entire payment plan principle.
 			command+=",COALESCE((SELECT SUM(Interest) FROM payplancharge WHERE payplancharge.PayPlanNum=payplan.PayPlanNum "
-					+"AND payplancharge.ChargeType="+POut.Int((int)PayPlanChargeType.Debit)+" "//for v1, debits are the only ChargeType.
+					+"AND payplancharge.ChargeType="+SOut.Int((int)PayPlanChargeType.Debit)+" "//for v1, debits are the only ChargeType.
 					+"AND ChargeDate <= "+datesql+@"),0) '_interest' "
 				+"FROM payplan "
 				+"LEFT JOIN patient guar ON guar.PatNum=payplan.Guarantor "
@@ -120,8 +120,8 @@ namespace OpenDentBusiness {
 						+"ROUND(SUM(CASE "
 							+"WHEN payplanlink.AmountOverride!=0 THEN payplanlink.AmountOverride "//If override isn't zero, use it in sum
 							+"ELSE (CASE "//Otherwise, use adjustment amount or total proc fee for linked production
-								+"WHEN payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Adjustment)+" THEN adjustment.AdjAmt "
-								+"WHEN payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Procedure)+" THEN (CASE "
+								+"WHEN payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Adjustment)+" THEN adjustment.AdjAmt "
+								+"WHEN payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Procedure)+" THEN (CASE "
 									+"WHEN procedurelog.ProcStatus=1 THEN procedurelog.ProcFee-procedurelog.DiscountPlanAmt-procedurelog.Discount "//TP'd
 									+"ELSE procedurelog.ProcFee END)*GREATEST(1,procedurelog.BaseUnits+procedurelog.UnitQty)"
 								+"ELSE 0 END)"
@@ -131,34 +131,34 @@ namespace OpenDentBusiness {
 							+", COALESCE(procedurelog.ClinicNum,adjustment.ClinicNum,0) 'ClinicNum'"
 							+", COALESCE(procedurelog.ProvNum,adjustment.ProvNum) 'ProvNum'"
 					+"FROM payplanlink "
-						+"LEFT JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Adjustment)+" "
-						+"LEFT JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey AND payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Procedure)+" "
+						+"LEFT JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Adjustment)+" "
+						+"LEFT JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey AND payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Procedure)+" "
 						+"LEFT JOIN "//Table to sum all paysplits made to linked production outside of pay plan.
 							+"(SELECT paysplit.ProcNum,paysplit.AdjNum,SUM(paysplit.SplitAmt) AS 'SumSplit' "
 							+"FROM paysplit WHERE paysplit.PayPlanNum=0 AND paysplit.PayPlanChargeNum=0 GROUP BY paysplit.ProcNum,paysplit.AdjNum) "
-							+"AS sumsplit ON (payplanlink.FKey=sumsplit.ProcNum AND sumsplit.ProcNum!=0 AND payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Procedure)+") OR "
-							+"(payplanlink.FKey=sumsplit.AdjNum AND sumsplit.AdjNum!=0 AND payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Adjustment)+") "
+							+"AS sumsplit ON (payplanlink.FKey=sumsplit.ProcNum AND sumsplit.ProcNum!=0 AND payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Procedure)+") OR "
+							+"(payplanlink.FKey=sumsplit.AdjNum AND sumsplit.AdjNum!=0 AND payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Adjustment)+") "
 						+"LEFT JOIN "//Table to sum all adjustments made to linked procedures.
 							+"(SELECT adjustment.ProcNum, SUM(adjustment.AdjAmt) AS 'SumProcAdj' FROM adjustment GROUP BY adjustment.ProcNum) "
-							+"AS sumprocadj ON sumprocadj.ProcNum=procedurelog.ProcNum AND payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Procedure)+" "
+							+"AS sumprocadj ON sumprocadj.ProcNum=procedurelog.ProcNum AND payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Procedure)+" "
 						+"LEFT JOIN "//Table to sum all ins estimates, ins payments, estimated writeoffs, and writeoffs to linked procedures.
 							+"(SELECT claimproc.ProcNum, SUM(CASE "
-								+"WHEN claimproc.Status IN ("+string.Join(",",ClaimProcs.GetInsPaidStatuses().Select(x => POut.Int((int)x)))+") "
+								+"WHEN claimproc.Status IN ("+string.Join(",",ClaimProcs.GetInsPaidStatuses().Select(x => SOut.Int((int)x)))+") "
 								+"THEN claimproc.InsPayAmt+claimproc.WriteOff "
-								+"WHEN claimproc.Status IN ("+string.Join(",",ClaimProcs.GetEstimatedStatuses().Select(x => POut.Int((int)x)))+") "
+								+"WHEN claimproc.Status IN ("+string.Join(",",ClaimProcs.GetEstimatedStatuses().Select(x => SOut.Int((int)x)))+") "
 								+"THEN claimproc.InsPayEst+(CASE "
 									+"WHEN claimproc.WriteOffEstOverride!=-1 THEN claimproc.WriteOffEstOverride "
 									+"WHEN claimproc.WriteOffEst!=-1 THEN claimproc.WriteOffEst "
 									+"ELSE 0 END) "
 								+"ELSE 0 END) AS 'SumIns' "
 							+"FROM claimproc GROUP BY claimproc.ProcNum) AS sumins "
-							+"ON procedurelog.ProcNum=sumins.ProcNum AND payplanlink.LinkType="+POut.Int((int)PayPlanLinkType.Procedure)+" "
+							+"ON procedurelog.ProcNum=sumins.ProcNum AND payplanlink.LinkType="+SOut.Int((int)PayPlanLinkType.Procedure)+" "
 					//Grouped by PayPlanNum so that we can sum total principal for each dynamic pay plan.
 					+"GROUP BY payplanlink.PayPlanNum) AS dppprincipal ON dppprincipal.PayPlanNum=payplan.PayPlanNum AND payplan.IsDynamic=1 "
 				+"WHERE TRUE ";//Always include true, so that the WHERE clause may always be present.
 			if(hasDateRange) {
-				command+="AND payplan.PayPlanDate >= "+POut.Date(dateStart)+" "
-				+"AND payplan.PayPlanDate <= "+POut.Date(dateEnd)+" ";
+				command+="AND payplan.PayPlanDate >= "+SOut.Date(dateStart)+" "
+				+"AND payplan.PayPlanDate <= "+SOut.Date(dateEnd)+" ";
 			}
 			command+=whereProv
 				+whereClin;
@@ -204,16 +204,16 @@ namespace OpenDentBusiness {
 			decimal famBalTot=0;
 			var clinicAbbrOld="";
 			for(var i=0;i<raw.Rows.Count;i++) {
-				princ=PIn.Double(raw.Rows[i]["_principal"].ToString());
-				interest=PIn.Double(raw.Rows[i]["_accumInt"].ToString());
+				princ=SIn.Double(raw.Rows[i]["_principal"].ToString());
+				interest=SIn.Double(raw.Rows[i]["_accumInt"].ToString());
 				if(raw.Rows[i]["PlanNum"].ToString()=="0") {//pat payplan
-					paid=PIn.Double(raw.Rows[i]["_paid"].ToString());
+					paid=SIn.Double(raw.Rows[i]["_paid"].ToString());
 				}
 				else {//ins payplan
-					paid=PIn.Double(raw.Rows[i]["_insPaid"].ToString());
+					paid=SIn.Double(raw.Rows[i]["_insPaid"].ToString());
 				}
-				accumDue=PIn.Double(raw.Rows[i]["_accumDue"].ToString());
-				notDue=PIn.Double(raw.Rows[i]["_notDue"].ToString());
+				accumDue=SIn.Double(raw.Rows[i]["_accumDue"].ToString());
+				notDue=SIn.Double(raw.Rows[i]["_notDue"].ToString());
 				row=table.NewRow();
 				//payplanDate=PIn.PDate(raw.Rows[i]["PayPlanDate"].ToString());
 				//row["date"]=raw.Rows[i]["PayPlanDate"].ToString();//payplanDate.ToShortDateString();
@@ -222,7 +222,7 @@ namespace OpenDentBusiness {
 				pat.FName=raw.Rows[i]["FName"].ToString();
 				pat.MiddleI=raw.Rows[i]["MiddleI"].ToString();
 				pat.Preferred=raw.Rows[i]["Preferred"].ToString();
-				row["provider"]=Providers.GetLName(PIn.Long(raw.Rows[i]["ProvNum"].ToString()),listProvs);
+				row["provider"]=Providers.GetLName(SIn.Long(raw.Rows[i]["ProvNum"].ToString()),listProvs);
 				row["guarantor"]=pat.GetNameLF();
 				row["ins"]="";
 				if(raw.Rows[i]["PlanNum"].ToString()!="0") {//Is Insurance PayPlan
@@ -239,7 +239,7 @@ namespace OpenDentBusiness {
 				if(showFamilyBalance) {
 					// this could be done better, by getting a list of guarantors outside of the loop and pulling the family balance value from a list
 					// we can implement something like this if a customer experiences slowness from this.
-					var famCur=ReportsComplex.RunFuncOnReportServer(() => Patients.GetFamily(PIn.Long(raw.Rows[i]["PatNum"].ToString())));
+					var famCur=ReportsComplex.RunFuncOnReportServer(() => Patients.GetFamily(SIn.Long(raw.Rows[i]["PatNum"].ToString())));
 					//Prevents UE when attempting to assign from an empty list. This is only possible if the user selects Insurance PayPlans only while
 					//also checking the "Show Family Balance" checkbox - meaning a PayPlan exists but has not patient.
          if(famCur.ListPats.Length>0) {
@@ -252,7 +252,7 @@ namespace OpenDentBusiness {
 					}
 				}
 				if(hasClinicsEnabled) {//Using clinics
-					var clinicAbbr=Clinics.GetAbbr(PIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
+					var clinicAbbr=Clinics.GetAbbr(SIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
 					clinicAbbr=(clinicAbbr=="")?Lans.g("FormRpPayPlans","Unassigned"):clinicAbbr;
 					if(!String.IsNullOrEmpty(clinicAbbrOld) && clinicAbbr!=clinicAbbrOld) {//Reset all the total values
 						var rowTot=tableTotals.NewRow();

@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -76,13 +77,13 @@ namespace OpenDental {
 				return;
 			}
 			try {
-				Sound=POut.Sound(_tempPath);
+				Sound=SOut.Sound(_tempPath);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message+"\r\n"+ex.StackTrace);
+				ODMessageBox.Show(ex.Message+"\r\n"+ex.StackTrace);
 			}
 			DialogResult=DialogResult.OK;
 		}

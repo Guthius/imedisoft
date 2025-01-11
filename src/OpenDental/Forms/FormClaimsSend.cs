@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -540,11 +541,11 @@ namespace OpenDental{
 		private void toolBarButPreview_Click(){
 			using FormClaimPrint formClaimPrint=new FormClaimPrint();
 			if(gridMain.SelectedTags<ClaimSendQueueItem>().Count==0){
-				MessageBox.Show(Lan.g(this,"Please select a claim first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a claim first."));
 				return;
 			}
 			if(gridMain.SelectedTags<ClaimSendQueueItem>().Count>1){
-				MessageBox.Show(Lan.g(this,"Please select only one claim."));
+				ODMessageBox.Show(Lan.g(this,"Please select only one claim."));
 				return;
 			}
 			formClaimPrint.PatNum=gridMain.SelectedTag<ClaimSendQueueItem>().PatNum;
@@ -605,7 +606,7 @@ namespace OpenDental{
 
 		private void toolBarButLabels_Click(){
 			if(gridMain.SelectedTags<ClaimSendQueueItem>().Count==0){
-				MessageBox.Show(Lan.g(this,"Please select a claim first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a claim first."));
 				return;
 			}
 			//PrintDocument pd=new PrintDocument();//only used to pass printerName
@@ -818,7 +819,7 @@ namespace OpenDental{
 			//Now, the cool part.  Highlight all the claims that were just sent in the history grid
 			for(int i=0;i<listClaimSendQueueItems.Count;i++){
 				for(int j=0;j<_tableHistory.Rows.Count;j++){
-					long claimNum=PIn.Long(_tableHistory.Rows[j]["ClaimNum"].ToString());
+					long claimNum=SIn.Long(_tableHistory.Rows[j]["ClaimNum"].ToString());
 					if(claimNum==listClaimSendQueueItems[i].ClaimNum){
 						gridHistory.SetSelected(j,true);
 						break;
@@ -1031,7 +1032,7 @@ namespace OpenDental{
 					row.Cells.Add(_tableHistory.Rows[i]["ack"].ToString());
 					row.Cells.Add(_tableHistory.Rows[i]["Note"].ToString());
 					row.Cells.Add(_tableHistory.Rows[i]["OfficeSequenceNumber"].ToString());
-					Userod user=Userods.GetUser(PIn.Long(_tableHistory.Rows[i]["UserNum"].ToString()));
+					Userod user=Userods.GetUser(SIn.Long(_tableHistory.Rows[i]["UserNum"].ToString()));
 					row.Cells.Add(user==null ? "" : user.UserName);
 					row.Cells.Add(_tableHistory.Rows[i]["CarrierTransCounter"].ToString());
 					gridHistory.ListGridRows.Add(row);
@@ -1065,7 +1066,7 @@ namespace OpenDental{
 					row.Cells.Add(_tableHistory.Rows[i]["dateTimeTrans"].ToString());
 					row.Cells.Add(_tableHistory.Rows[i]["etype"].ToString());
 					row.Cells.Add(_tableHistory.Rows[i]["ack"].ToString());
-					Userod user=Userods.GetUser(PIn.Long(_tableHistory.Rows[i]["UserNum"].ToString()));
+					Userod user=Userods.GetUser(SIn.Long(_tableHistory.Rows[i]["UserNum"].ToString()));
 					row.Cells.Add(user==null ? "" : user.UserName);
 					row.Cells.Add(_tableHistory.Rows[i]["Note"].ToString());
 					gridHistory.ListGridRows.Add(row);
@@ -1145,7 +1146,7 @@ namespace OpenDental{
 				//then they must all be Claim_Ren, ClaimSent, or ClaimPrinted
 				EtransType etransType;
 				for(int i=0;i<gridHistory.SelectedIndices.Length;i++) {
-					etransType=(EtransType)PIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[i]]["Etype"].ToString());
+					etransType=(EtransType)SIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[i]]["Etype"].ToString());
 					if(etransType!=EtransType.Claim_Ren && etransType!=EtransType.ClaimSent && etransType!=EtransType.ClaimPrinted){
 						MsgBox.Show(this,"That type of transaction cannot be undone as a group.  Please undo one at a time.");
 						return;
@@ -1155,7 +1156,7 @@ namespace OpenDental{
 			//loop through each selected item, and see if they are allowed to be "undone".
 			//at this point, 
 			for(int i=0;i<gridHistory.SelectedIndices.Length;i++) {
-				if((EtransType)PIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[i]]["Etype"].ToString())==EtransType.Claim_CA){
+				if((EtransType)SIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[i]]["Etype"].ToString())==EtransType.Claim_CA){
 					//if a 
 				}
 				//else if(){
@@ -1167,7 +1168,7 @@ namespace OpenDental{
 				return;
 			}
 			for(int i=0;i<gridHistory.SelectedIndices.Length;i++){
-				Etranss.Undo(PIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[i]]["EtransNum"].ToString()));
+				Etranss.Undo(SIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[i]]["EtransNum"].ToString()));
 			}
 			FillGrid();
 			FillHistory();
@@ -1191,21 +1192,21 @@ namespace OpenDental{
 				return;
 			}
 			DataRow row=_tableHistory.Rows[gridHistory.GetSelectedIndex()];			
-			long patNum=PIn.Long(row["PatNum"].ToString());
+			long patNum=SIn.Long(row["PatNum"].ToString());
 			if(patNum==0) {
 				MsgBox.Show(this,"Please select an item with a patient.");
 				return;
 			}
 			ClaimSendQueueItem claimSendQueueItem=new ClaimSendQueueItem();
-			claimSendQueueItem.PatNum=PIn.Long(row["PatNum"].ToString());
-			claimSendQueueItem.ClaimNum=PIn.Long(row["ClaimNum"].ToString());
+			claimSendQueueItem.PatNum=SIn.Long(row["PatNum"].ToString());
+			claimSendQueueItem.ClaimNum=SIn.Long(row["ClaimNum"].ToString());
 			ODEvent.Fire(ODEventType.FormClaimSend_GoTo,claimSendQueueItem);
 			SendToBack();
 		}
 
 		private void gridHistory_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			Cursor=Cursors.WaitCursor;
-			Etrans etrans=Etranss.GetEtrans(PIn.Long(_tableHistory.Rows[e.Row]["EtransNum"].ToString()));
+			Etrans etrans=Etranss.GetEtrans(SIn.Long(_tableHistory.Rows[e.Row]["EtransNum"].ToString()));
 			if(etrans.Etype==EtransType.StatusNotify_277) {
 				using FormEtrans277Edit formEtrans277Edit=new FormEtrans277Edit();
 				formEtrans277Edit.EtransCur=etrans;
@@ -1291,7 +1292,7 @@ namespace OpenDental{
 				}
 			}
 			//does not yet handle multiple selections
-			Etrans etrans=Etranss.GetEtrans(PIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[0]]["EtransNum"].ToString()));
+			Etrans etrans=Etranss.GetEtrans(SIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[0]]["EtransNum"].ToString()));
 			new FormCCDPrint(etrans,EtransMessageTexts.GetMessageText(etrans.EtransMessageTextNum),false);//Show the form and allow the user to print manually if desired.
 			//MessageBox.Show(etrans.MessageText);
 		}

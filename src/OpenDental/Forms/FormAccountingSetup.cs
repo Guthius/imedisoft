@@ -9,6 +9,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -35,7 +36,7 @@ namespace OpenDental{
 			List<string> listStrings=strAccountingDepositAccounts.Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
 			_listDepAccountNums=new List<long>();
 			for(int i=0;i<listStrings.Count;i++) {
-				_listDepAccountNums.Add(PIn.Long(listStrings[i]));
+				_listDepAccountNums.Add(SIn.Long(listStrings[i]));
 			}
 			FillDepList();
 			_selectedDepAccountNum=PrefC.GetLong(PrefName.AccountingIncomeAccount);

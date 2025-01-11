@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -158,7 +159,7 @@ namespace OpenDental{
 
 		private void butUp_Click(object sender, System.EventArgs e) {
 			if(listViews.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select a category first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a category first."));
 				return;
 			}
 			if(listViews.SelectedIndex==0){
@@ -179,7 +180,7 @@ namespace OpenDental{
 
 		private void butDown_Click(object sender, System.EventArgs e) {
 			if(listViews.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select a category first."));
+				ODMessageBox.Show(Lan.g(this,"Please select a category first."));
 				return;
 			}
 			if(listViews.SelectedIndex==listViews.Items.Count-1){

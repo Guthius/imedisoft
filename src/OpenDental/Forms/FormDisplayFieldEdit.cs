@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -82,7 +83,7 @@ namespace OpenDental{
 			}
 			DisplayFieldCur.Description=textDescription.Text;
 			DisplayFieldCur.DescriptionOverride=textDescriptionOverride.Text;
-			DisplayFieldCur.ColumnWidth=PIn.Int(textWidth.Text);
+			DisplayFieldCur.ColumnWidth=SIn.Int(textWidth.Text);
 			DialogResult=DialogResult.OK;
 		}
 

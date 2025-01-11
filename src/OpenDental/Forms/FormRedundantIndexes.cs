@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -44,7 +45,7 @@ namespace OpenDental {
 			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Redundant Of"),615));
 			gridMain.ListGridRows.Clear();
 			gridMain.ListGridRows.AddRange(table.Select().Select(x =>
-				new GridRow(new[] { "TABLE_NAME","INDEX_NAME","INDEX_COLS","REDUNDANT_OF" }.Select(y => PIn.String(x[y].ToString())).ToArray()) { Tag=x }));
+				new GridRow(new[] { "TABLE_NAME","INDEX_NAME","INDEX_COLS","REDUNDANT_OF" }.Select(y => SIn.String(x[y].ToString())).ToArray()) { Tag=x }));
 			gridMain.EndUpdate();
 		}
 

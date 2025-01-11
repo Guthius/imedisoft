@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDentBusiness.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -44,7 +45,7 @@ namespace OpenDental {
 			}
 			//Fill the BlockoutTypes list.
 			List<string> listBlockoutTypes=AppointmentTypeCur.BlockoutTypes.Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
-			List<long> listDefNums=listBlockoutTypes.Select(x => PIn.Long(x,throwExceptions:false)).ToList();
+			List<long> listDefNums=listBlockoutTypes.Select(x => SIn.Long(x,throwExceptions:false)).ToList();
 			List<Def> listDefsBlockoutTypes=Defs.GetDefsForCategory(DefCat.BlockoutTypes);
 			List<Def> listDefsBlockoutTypesUnrestricted=listDefsBlockoutTypes.FindAll(x => !x.ItemValue.Contains(BlockoutType.NoSchedule.GetDescription()));
 			listBoxBlockoutTypes.Items.AddList(listDefsBlockoutTypesUnrestricted,x => x.ItemName);

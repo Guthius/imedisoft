@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental;
 using OpenDental.Bridges;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using xBridges=Bridges;//Bridges is ambiguous with OpenDental.Bridges
@@ -567,7 +568,7 @@ namespace WpfControls {
 				}
 				ToolBarButton toolBarButton=new ToolBarButton(listToolButItems[i].ButtonText,eventHandlerClick:eventHandlerClick,tag:program);
 				if(program.ButtonImage!="") {
-					System.Drawing.Bitmap bitmap=PIn.Bitmap(program.ButtonImage);
+					System.Drawing.Bitmap bitmap=SIn.Bitmap(program.ButtonImage);
 					toolBarButton.SetBitmap(bitmap);
 				}
 				//Add a drop down menu if this program requires it-----------------------------------------------------
@@ -591,7 +592,7 @@ namespace WpfControls {
 						List<ProgramProperty> listProgProps=ProgramProperties.GetForProgram(program.ProgramNum);
 						for(int i=0;i<listProgProps.Count;i++){
 							if(listProgProps[i].PropertyDesc==ProgramProperties.PropertyDescs.CareCredit.CareCreditDoDisableAdvertising){ 
-								listProgProps[i].PropertyValue=POut.Bool(true);
+								listProgProps[i].PropertyValue=SOut.Bool(true);
 							}
 						}
 						ProgramProperties.Sync(listProgProps,program.ProgramNum);

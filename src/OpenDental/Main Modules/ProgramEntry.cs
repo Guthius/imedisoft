@@ -92,11 +92,11 @@ namespace OpenDental {
 						registryKey.SetValue("EnablePerProcessSystemDPI",1);
 					}
 					catch{
-						MessageBox.Show("Unable to change registry entry.  You should go to Windows Settings, System, Display. Click on Advanced scaling settings about halfway down in blue.  Uncheck the option for 'Let Windows try to fix apps so they're not blurry'.");
+						ODMessageBox.Show("Unable to change registry entry.  You should go to Windows Settings, System, Display. Click on Advanced scaling settings about halfway down in blue.  Uncheck the option for 'Let Windows try to fix apps so they're not blurry'.");
 						Application.Exit();
 						return;
 					}
-					MessageBox.Show("Registry updated to EnablePerProcessSystemDPI. Please restart Open Dental.");
+					ODMessageBox.Show("Registry updated to EnablePerProcessSystemDPI. Please restart Open Dental.");
 					Application.Exit();
 					return;
 				}

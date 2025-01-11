@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental;
 using OpenDental.UI;
@@ -74,7 +76,7 @@ namespace OpenDental {
 
 		private void butAttach_Click(object sender,EventArgs e) {
 			if(IsNew){
-				MessageBox.Show("Cannot attach lab panels to a brand new order.  Please save order first.");
+				ODMessageBox.Show("Cannot attach lab panels to a brand new order.  Please save order first.");
 				return;
 			}
 			using FormEhrLabPanels formL=new FormEhrLabPanels();
@@ -93,7 +95,7 @@ namespace OpenDental {
 
 		private void butRemove_Click(object sender,EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1) {
-				MessageBox.Show("Please select a lab panel first.");
+				ODMessageBox.Show("Please select a lab panel first.");
 				return;
 			}
 			LabPanel panel=listPanels[gridMain.GetSelectedIndex()];
@@ -107,14 +109,14 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(MessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+			if(ODMessageBox.Show("Delete?","Delete?",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 				return;
 			}
 			try {
 				MedicalOrders.Delete(MedOrderCur.MedicalOrderNum);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -122,14 +124,14 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			if(textDescription.Text=="") {
-				MessageBox.Show(this,"Please enter a description.");
+				ODMessageBox.Show(this,"Please enter a description.");
 				return;
 			} 
 			try {
-				MedOrderCur.DateTimeOrder=PIn.DateTime(textDateTime.Text);
+				MedOrderCur.DateTimeOrder=SIn.DateTime(textDateTime.Text);
 			}
 			catch {
-				MessageBox.Show(this,"Please enter a Date Time with format DD/MM/YYYY HH:mm AM/PM");
+				ODMessageBox.Show(this,"Please enter a Date Time with format DD/MM/YYYY HH:mm AM/PM");
 			}
 			MedOrderCur.Description=textDescription.Text;
 			MedOrderCur.IsDiscontinued=checkIsDiscontinued.Checked;

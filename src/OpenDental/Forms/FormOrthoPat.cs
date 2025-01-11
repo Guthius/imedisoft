@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -53,7 +54,7 @@ namespace OpenDental {
 		private void textDateNextClaim_Validated(object sender,EventArgs e) {
 			DateTime dateTimeEntered;
 			try { 
-				dateTimeEntered=PIn.Date(textDateNextClaim.Text);
+				dateTimeEntered=SIn.Date(textDateNextClaim.Text);
 			}
 			catch {
 				return;//do nothing
@@ -86,10 +87,10 @@ namespace OpenDental {
 				_patPlan.OrthoAutoFeeBilledOverride = -1;
 			}
 			else {
-				_patPlan.OrthoAutoFeeBilledOverride = PIn.Double(textFee.Text);
+				_patPlan.OrthoAutoFeeBilledOverride = SIn.Double(textFee.Text);
 			}
 			if(textDateNextClaim.Visible) {
-				_patPlan.OrthoAutoNextClaimDate = PIn.Date(textDateNextClaim.Text); //MinValue if blank.
+				_patPlan.OrthoAutoNextClaimDate = SIn.Date(textDateNextClaim.Text); //MinValue if blank.
 			}
 			DialogResult=DialogResult.OK;
 		}

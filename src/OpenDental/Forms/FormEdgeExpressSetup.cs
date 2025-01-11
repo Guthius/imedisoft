@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using EdgeExpressProps=OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;
@@ -68,11 +69,11 @@ namespace OpenDental {
 			//Other text boxes and check boxes
 			textXWebID.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.XWebID,clinicNum);
 			textTerminalID.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.TerminalID,clinicNum);
-			checkPromptSig.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.PromptSignature,clinicNum));
-			checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.PrintReceipt,clinicNum));
-			checkForceDuplicate.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.ForceRecurringCharge,clinicNum));
-			checkPreventSavingNewCC.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.PreventSavingNewCC,clinicNum));
-			checkWebPayEnabled.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.IsOnlinePaymentsEnabled,clinicNum));
+			checkPromptSig.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.PromptSignature,clinicNum));
+			checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.PrintReceipt,clinicNum));
+			checkForceDuplicate.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.ForceRecurringCharge,clinicNum));
+			checkPreventSavingNewCC.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.PreventSavingNewCC,clinicNum));
+			checkWebPayEnabled.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,EdgeExpressProps.IsOnlinePaymentsEnabled,clinicNum));
 		}
 
 		private void comboClinic_SelectionChangeCommitted(object sender,EventArgs e) {
@@ -223,15 +224,15 @@ namespace OpenDental {
 			if(comboPaymentType.SelectedIndex>-1) {
 				strPayTypeDefNum=_listDefs[comboPaymentType.SelectedIndex].DefNum.ToString();
 			}
-			UpdateProperty(clinicNum,EdgeExpressProps.PromptSignature,POut.Bool(checkPromptSig.Checked));
-			UpdateProperty(clinicNum,EdgeExpressProps.PrintReceipt,POut.Bool(checkPrintReceipt.Checked));
+			UpdateProperty(clinicNum,EdgeExpressProps.PromptSignature,SOut.Bool(checkPromptSig.Checked));
+			UpdateProperty(clinicNum,EdgeExpressProps.PrintReceipt,SOut.Bool(checkPrintReceipt.Checked));
 			UpdateProperty(clinicNum,EdgeExpressProps.XWebID,textXWebID.Text.Trim());
 			UpdateProperty(clinicNum,EdgeExpressProps.AuthKey,textAuthKey.Text.Trim());
 			UpdateProperty(clinicNum,EdgeExpressProps.TerminalID,textTerminalID.Text.Trim());
 			UpdateProperty(clinicNum,EdgeExpressProps.PaymentType,strPayTypeDefNum);
-			UpdateProperty(clinicNum,EdgeExpressProps.ForceRecurringCharge,POut.Bool(checkForceDuplicate.Checked));
-			UpdateProperty(clinicNum,EdgeExpressProps.PreventSavingNewCC,POut.Bool(checkPreventSavingNewCC.Checked));
-			UpdateProperty(clinicNum,EdgeExpressProps.IsOnlinePaymentsEnabled,POut.Bool(checkWebPayEnabled.Checked));
+			UpdateProperty(clinicNum,EdgeExpressProps.ForceRecurringCharge,SOut.Bool(checkForceDuplicate.Checked));
+			UpdateProperty(clinicNum,EdgeExpressProps.PreventSavingNewCC,SOut.Bool(checkPreventSavingNewCC.Checked));
+			UpdateProperty(clinicNum,EdgeExpressProps.IsOnlinePaymentsEnabled,SOut.Bool(checkWebPayEnabled.Checked));
 		}
 
 		private void checkWebPayEnabled_Click(object sender,EventArgs e) {
@@ -246,7 +247,7 @@ namespace OpenDental {
 			string msg=Lan.g(this,"Online payments is already enabled for another processor and must be disabled in order to use EdgeExpress online payments. "
 				+"Would you like to disable the other processor for online payments?");
 			if(programProperty!=null) {
-				if(MessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+				if(ODMessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 					checkWebPayEnabled.Checked=false;
 					return;
 				}
@@ -291,14 +292,14 @@ namespace OpenDental {
 			string strEdgeExpressOnlinePaymentsEnabled=EdgeExpressProps.IsOnlinePaymentsEnabled;
 			//Find all clinics that have EdgeExpress online payments enabled
 			List<ProgramProperty> listEdgeExpressOnlinePayments=_listProgramProperties.FindAll(x => x.PropertyDesc==strEdgeExpressOnlinePaymentsEnabled &&
-				PIn.Bool(x.PropertyValue));
+				SIn.Bool(x.PropertyValue));
 			for(int i=0;i < listEdgeExpressOnlinePayments.Count;i++) {
 				//Find all online payment enabled program properties that we saved in this session. Only clinics that have changes will have an 
 				//IsOnlinePaymentsEnabled property in memory. This is needed to ensure that we don't disable other processors if someone
 				//checks to use EdgeExpress online payments and then decides to keep it disabled during the same session.
 				ProgramProperty programProperty=_listProgramPropertiesWebPay.FirstOrDefault(y => y.ClinicNum==listEdgeExpressOnlinePayments[i].ClinicNum);
 				if(programProperty!=null) {
-					ProgramProperties.UpdateProgramPropertyWithValue(programProperty,POut.Bool(false));
+					ProgramProperties.UpdateProgramPropertyWithValue(programProperty,SOut.Bool(false));
 				}
 			}
 			DataValid.SetInvalid(InvalidType.Programs);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -91,7 +92,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter a date first.");
 				return;
 			}
-			if(_procedure.ProcStatus==ProcStat.C && PIn.Date(textProcDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
+			if(_procedure.ProcStatus==ProcStat.C && SIn.Date(textProcDate.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
 				MsgBox.Show(this,"Completed procedures cannot be set for future dates.");
 				return;
 			}
@@ -109,8 +110,8 @@ namespace OpenDental {
 					return;
 				}
 			}
-			_procedure.ProcDate=PIn.Date(textProcDate.Text);
-			_procedure.ProcFee=PIn.Double(textAmount.Text);
+			_procedure.ProcDate=SIn.Date(textProcDate.Text);
+			_procedure.ProcFee=SIn.Double(textAmount.Text);
 			_procedure.Note=textChartNotes.Text;
 			_procedure.BillingNote=textAccountNotes.Text;
 			_procedure.ProvNum=comboProv.GetSelectedProvNum();

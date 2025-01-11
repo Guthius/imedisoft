@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Globalization;
+using CodeBase;
 
 namespace OpenDental{
 	
@@ -54,7 +55,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender,System.EventArgs e) {
 			if(textADA.Text=="") {
-				MessageBox.Show(Lan.g(this,"Code cannot be left blank."));
+				ODMessageBox.Show(Lan.g(this,"Code cannot be left blank."));
 				listConditions.SelectedIndex=-1;
 				FillList();
 				return;
@@ -89,7 +90,7 @@ namespace OpenDental{
 			{
 				//This section is a fix for an old bug that did not cause items to get deleted properly
 				if(AutoCodes.GetContainsKey(AutoCodeItems.GetOne(formProcCodes.CodeNumSelected).AutoCodeNum)) {
-					MessageBox.Show(Lan.g(this,"That procedure code is already in use in a different Auto Code.  Not allowed to use it here."));
+					ODMessageBox.Show(Lan.g(this,"That procedure code is already in use in a different Auto Code.  Not allowed to use it here."));
 					textADA.Text=ProcedureCodes.GetStringProcCode(AutoCodeItemCur.CodeNum);
 				}
 				else {

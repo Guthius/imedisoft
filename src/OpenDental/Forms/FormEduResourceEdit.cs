@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental;
 using OpenDentBusiness;
 
@@ -141,32 +142,32 @@ namespace OpenDental {
 			if(EduResourceCur.DiseaseDefNum==0 && EduResourceCur.MedicationNum==0 && EduResourceCur.SmokingSnoMed==""
 				&& textLabResultsID.Text=="" && textLabTestName.Text=="" && textCompareValue.Text=="")
 			{
-				MessageBox.Show("Please Select a valid problem, medication, or lab result.");
+				ODMessageBox.Show("Please Select a valid problem, medication, or lab result.");
 				return;
 			}
 			if(EduResourceCur.DiseaseDefNum==0 && EduResourceCur.MedicationNum==0 && EduResourceCur.SmokingSnoMed=="") {
 				if(textLabTestName.Text=="") {
-					MessageBox.Show("Invalid test name for lab result.");
+					ODMessageBox.Show("Invalid test name for lab result.");
 					return;
 				}
 				if(textCompareValue.Text.Length<2) {
-					MessageBox.Show("Compare value must be comparator followed by a number. eg. \">120\".");
+					ODMessageBox.Show("Compare value must be comparator followed by a number. eg. \">120\".");
 					return;
 				}
 				if(textCompareValue.Text[0]!='<' && textCompareValue.Text[0]!='>') {
-					MessageBox.Show("Compare value must begin with either \"<\" or \">\".");
+					ODMessageBox.Show("Compare value must begin with either \"<\" or \">\".");
 					return;
 				}
 				try {
 					int.Parse(textCompareValue.Text.Substring(1));
 				}
 				catch {
-					MessageBox.Show("Compare value is not a valid number.");
+					ODMessageBox.Show("Compare value is not a valid number.");
 					return;
 				}
 			}
 			if(textUrl.Text=="") {
-				MessageBox.Show("Please input a valid recource URL.");
+				ODMessageBox.Show("Please input a valid recource URL.");
 				return;
 			}
 			//done validating

@@ -155,7 +155,7 @@ namespace OpenDental{
 				return;
 			}
 			if(listLetters.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			using FormLetterEdit formLetterEdit=new FormLetterEdit();
@@ -166,10 +166,10 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(listLetters.SelectedIndex==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete letter permanently for all patients?"),"",MessageBoxButtons.OKCancel)
+			if(ODMessageBox.Show(Lan.g(this,"Delete letter permanently for all patients?"),"",MessageBoxButtons.OKCancel)
 				!=DialogResult.OK){
 				return;
 			}

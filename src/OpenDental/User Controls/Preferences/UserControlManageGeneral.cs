@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -44,7 +45,7 @@ namespace OpenDental {
 				Process.Start("https://opendental.com/manual/claimedit.html");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/claimedit.html"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/claimedit.html"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}
@@ -54,7 +55,7 @@ namespace OpenDental {
 				Process.Start("https://www.opendental.com/manual/claimpaymentbatch.html");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/claimpaymentbatch.html"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/claimpaymentbatch.html"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}
@@ -64,7 +65,7 @@ namespace OpenDental {
 				Process.Start("https://opendental.com/manual/claimpayfinalize.html");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/claimpayfinalize.html"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/claimpayfinalize.html"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}
@@ -147,7 +148,7 @@ namespace OpenDental {
 			Changed|=Prefs.UpdateBool(PrefName.ScheduleProvEmpSelectAll,checkScheduleProvEmpSelectAll.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.ClockEventAllowBreak,checkClockEventAllowBreak.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.EraAllowTotalPayments,checkEraAllowTotalPayment.Checked);
-			Changed|=Prefs.UpdateInt(PrefName.ClaimPaymentNoShowZeroDate,(textClaimsReceivedDays.Text=="")?-1:(PIn.Int(textClaimsReceivedDays.Text)-1));
+			Changed|=Prefs.UpdateInt(PrefName.ClaimPaymentNoShowZeroDate,(textClaimsReceivedDays.Text=="")?-1:(SIn.Int(textClaimsReceivedDays.Text)-1));
 			Changed|=Prefs.UpdateBool(PrefName.ClaimPaymentBatchOnly,checkClaimPaymentBatchOnly.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.EraPrintOneClaimPerPage,checkEraOneClaimPerPage.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.EraIncludeWOPercCoPay,checkIncludeEraWOPercCoPay.Checked);

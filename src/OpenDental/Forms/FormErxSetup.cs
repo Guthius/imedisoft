@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -46,7 +48,7 @@ namespace OpenDental {
 				}
 				_listProgramProperties=ProgramProperties.GetForProgram(_program.ProgramNum);
 				checkEnabled.Checked=_program.Enabled;
-				_erxOption=PIn.Enum<ErxOption>(ErxOptionPP.PropertyValue);
+				_erxOption=SIn.Enum<ErxOption>(ErxOptionPP.PropertyValue);
 				if(_erxOption==ErxOption.NewCrop) {
 					radioNewCrop.Checked=true;
 				}
@@ -105,7 +107,7 @@ namespace OpenDental {
 				SetRadioButtonChecked(_erxOption);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error loading the eRx program: ")+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error loading the eRx program: ")+ex.Message);
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
@@ -282,7 +284,7 @@ namespace OpenDental {
 				MsgBox.Show(err);
 				return;
 			}
-			ErxOptionPP.PropertyValue=POut.Int((int)_erxOption);
+			ErxOptionPP.PropertyValue=SOut.Int((int)_erxOption);
 			_program.Enabled=checkEnabled.Checked;
 			Programs.Update(_program);
 			ProgramProperties.Sync(_listProgramProperties,_program.ProgramNum);

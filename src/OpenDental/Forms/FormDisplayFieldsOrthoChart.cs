@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -118,7 +120,7 @@ namespace OpenDental{
 				if(orthoChartTabLink!=null && orthoChartTabLink.ColumnWidthOverride>0) {
 					columnWidth=orthoChartTabLink.ColumnWidthOverride;
 				}
-				row.Cells.Add(POut.Int(columnWidth));
+				row.Cells.Add(SOut.Int(columnWidth));
 				gridMain.ListGridRows.Add(row);
 			}
 			gridMain.EndUpdate();
@@ -445,7 +447,7 @@ namespace OpenDental{
 			//Get all fields associated to a tab in order to sync with the database later.
 			List<DisplayField> listDisplayFieldsAll=GetAllFields(false);
 			if(listDisplayFieldsAll.Count(x=>x.InternalName=="Signature") > 1) {
-				MessageBox.Show(Lan.g(this,"Only one display field can be a signature field.  Fields that have the signature field checkbox checked:")+" "
+				ODMessageBox.Show(Lan.g(this,"Only one display field can be a signature field.  Fields that have the signature field checkbox checked:")+" "
 					+string.Join(", ",listDisplayFieldsAll.FindAll(x => x.InternalName=="Signature").Select(x => x.Description)));
 				return;
 			}

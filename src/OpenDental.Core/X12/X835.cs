@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Newtonsoft.Json;
 using static PdfSharp.Pdf.PdfArray;
@@ -670,7 +671,7 @@ namespace OpenDentBusiness {
 			X12Segment segAMT=_listSegments[segNum];
 			Hx835_Info info=new Hx835_Info();
 			info.FieldName=GetDescriptForAmountQualifierCode(segAMT.Get(1));
-			info.FieldValue=PIn.Decimal(segAMT.Get(2)).ToString("f2");
+			info.FieldValue=SIn.Decimal(segAMT.Get(2)).ToString("f2");
 			return info;
 		}
 
@@ -680,7 +681,7 @@ namespace OpenDentBusiness {
 			//BPR01 Transaction Handling Code.  Required.
 			_transactionHandlingDescript=this.GetDescriptForTransactionHandlingCode(segBPR.Get(1));
 			//BPR02 Total Actual Provider Payment Amount.  Required.
-			_insPaid=PIn.Decimal(segBPR.Get(2));
+			_insPaid=SIn.Decimal(segBPR.Get(2));
 			//BPR03 Credit/Debit Flag Code.  Required.
 			_isCredit=false;
 			if(segBPR.Get(3)=="C") {
@@ -727,7 +728,7 @@ namespace OpenDentBusiness {
 				if(strAdjReasonCode=="" && strAmt=="") {
 					continue;
 				}
-				adj.AdjAmt=PIn.Decimal(strAmt);
+				adj.AdjAmt=SIn.Decimal(strAmt);
 				if(adj.AdjAmt==0) {
 					continue;
 				}
@@ -779,9 +780,9 @@ namespace OpenDentBusiness {
 			retVal.IsPreauth=(clp02=="25");
 			retVal.IsReversal=(clp02=="22");
 			retVal.StatusCodeDescript=GetDescriptForClaimStatusCode(clp02);//CLP02 Claim Status Code Description
-			retVal.ClaimFee=PIn.Decimal(segCLP.Get(3));//CLP03 Total Claim Charge Amount
-			retVal.InsPaid=PIn.Decimal(segCLP.Get(4));//CLP04 Claim Payment Amount
-			retVal.PatientRespAmt=PIn.Decimal(segCLP.Get(5));//CLP05 Patient Responsibility Amount
+			retVal.ClaimFee=SIn.Decimal(segCLP.Get(3));//CLP03 Total Claim Charge Amount
+			retVal.InsPaid=SIn.Decimal(segCLP.Get(4));//CLP04 Claim Payment Amount
+			retVal.PatientRespAmt=SIn.Decimal(segCLP.Get(5));//CLP05 Patient Responsibility Amount
 			retVal.DateReceived=DateReceived;
 			segNum++;
 			retVal.ListClaimAdjustments=new List<Hx835_Adj>();
@@ -1028,7 +1029,7 @@ namespace OpenDentBusiness {
 				}
 				else if(i==2) {
 					info.FieldName="PPS Operating Outlier Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(2)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(2)).ToString("f2");
 				}
 				else if(i==3) {
 					info.FieldName="Lifetime Psychiatric Days Count";
@@ -1036,7 +1037,7 @@ namespace OpenDentBusiness {
 				}
 				else if(i==4) {
 					info.FieldName="Claim Diagnosis Related Group Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(4)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(4)).ToString("f2");
 				}
 				else if(i==5) {
 					info.FieldName="Claim Payment Remark";
@@ -1045,39 +1046,39 @@ namespace OpenDentBusiness {
 				}
 				else if(i==6) {
 					info.FieldName="Disproportionate Share Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(6)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(6)).ToString("f2");
 				}
 				else if(i==7) {
 					info.FieldName="Medicare Secondary Payer (MSP) Pass-Through Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(7)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(7)).ToString("f2");
 				}
 				else if(i==8) {
 					info.FieldName="Prospective Payment System (PPS) Capital Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(8)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(8)).ToString("f2");
 				}
 				else if(i==9) {
 					info.FieldName="Prospectice Payment System (PPS) Capital, Federal Specific Portion, Diagnosis Related Group (DRG) Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(9)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(9)).ToString("f2");
 				}
 				else if(i==10) {
 					info.FieldName="Prospective Payment System (PPS) Capital, Hospital Specific Portion, Diagnosis Related Group (DRG) Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(10)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(10)).ToString("f2");
 				}
 				else if(i==11) {
 					info.FieldName="Prospective Payment System (PPS) Capital, Disproportionate Share, Hospital Diagnosis Related Group (DRG) Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(11)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(11)).ToString("f2");
 				}
 				else if(i==12) {
 					info.FieldName="Old Capital Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(12)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(12)).ToString("f2");
 				}
 				else if(i==13) {
 					info.FieldName="Prospective Payment System (PPS) Capital Indirect Medical Education Claim Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(13)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(13)).ToString("f2");
 				}
 				else if(i==14) {
 					info.FieldName="Hospital Specific Diagnosis Related Group (DRG) Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(14)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(14)).ToString("f2");
 				}
 				else if(i==15) {
 					info.FieldName="Cost Report Day Count";
@@ -1085,19 +1086,19 @@ namespace OpenDentBusiness {
 				}
 				else if(i==16) {
 					info.FieldName="Federal Specific Diagnosis Related Group (DRG) Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(16)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(16)).ToString("f2");
 				}
 				else if(i==17) {
 					info.FieldName="Prospective Payment System (PPS) Capital Outlier Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(17)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(17)).ToString("f2");
 				}
 				else if(i==18) {
 					info.FieldName="Indirect Teaching Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(18)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(18)).ToString("f2");
 				}
 				else if(i==19) {
 					info.FieldName="Professional Component Amount Billed But Not Payable";
-					info.FieldValue=PIn.Decimal(segMIA.Get(19)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(19)).ToString("f2");
 				}
 				else if(i==20) {
 					info.FieldName="Claim Payment Remark";
@@ -1121,7 +1122,7 @@ namespace OpenDentBusiness {
 				}
 				else if(i==24) {
 					info.FieldName="Prospective Payment System (PPS) Capital Exception Amount";
-					info.FieldValue=PIn.Decimal(segMIA.Get(24)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMIA.Get(24)).ToString("f2");
 				}
 				listAdjudicationInfo.Add(info);
 			}
@@ -1141,11 +1142,11 @@ namespace OpenDentBusiness {
 				info.IsRemarkCode=false;
 				if(i==1) {
 					info.FieldName="Reimbursement Rate";
-					info.FieldValue=((PIn.Decimal(segMOA.Get(1))*100).ToString()+"%");
+					info.FieldValue=((SIn.Decimal(segMOA.Get(1))*100).ToString()+"%");
 				}
 				else if(i==2) {
 					info.FieldName="Claim Health Care Financing Administration Common Procedural Coding System (HCPCS) Payable Amount";
-					info.FieldValue=PIn.Decimal(segMOA.Get(2)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMOA.Get(2)).ToString("f2");
 				}
 				else if(i==3) {
 					info.FieldName="Claim Payment Remark";
@@ -1174,11 +1175,11 @@ namespace OpenDentBusiness {
 				}
 				else if(i==8) {
 					info.FieldName="End Stage Renal Disease (ESRD) Payment Amount";
-					info.FieldValue=PIn.Decimal(segMOA.Get(8)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMOA.Get(8)).ToString("f2");
 				}
 				else if(i==9) {
 					info.FieldName="Professional Component Amount Billed But Not Payable";
-					info.FieldValue=PIn.Decimal(segMOA.Get(9)).ToString("f2");
+					info.FieldValue=SIn.Decimal(segMOA.Get(9)).ToString("f2");
 				}
 				listAdjudicationInfo.Add(info);
 			}
@@ -1319,7 +1320,7 @@ namespace OpenDentBusiness {
 					provAdj.RefIdentification=segPLB.Get(3,2);
 				}
 				//For each adjustment reason code, an amount is required.
-				provAdj.AdjAmt=PIn.Decimal(segPLB.Get(segNumAdjCode+1));
+				provAdj.AdjAmt=SIn.Decimal(segPLB.Get(segNumAdjCode+1));
 				retVal.Add(provAdj);
 				segNumAdjCode+=2;
 			}
@@ -1331,8 +1332,8 @@ namespace OpenDentBusiness {
 			X12Segment segSVC=_listSegments[segNum];
 			Hx835_Proc proc=new Hx835_Proc();
 			proc.ProcCodeAdjudicated=segSVC.Get(1).Split(new string[] { Separators.Subelement },StringSplitOptions.None)[1];//SVC1-2
-			proc.ProcFee=PIn.Decimal(segSVC.Get(2));//SVC2
-			proc.InsPaid=PIn.Decimal(segSVC.Get(3));//SVC3
+			proc.ProcFee=SIn.Decimal(segSVC.Get(2));//SVC2
+			proc.InsPaid=SIn.Decimal(segSVC.Get(3));//SVC3
 			if(segSVC.Get(6)=="") {
 				proc.ProcCodeBilled=proc.ProcCodeAdjudicated;
 			}
@@ -1409,9 +1410,9 @@ namespace OpenDentBusiness {
 					if(strRef02.StartsWith("y")) {
 						string[] arrayIdFields=strRef02.Split('/');
 						if(arrayIdFields.Length==3) {
-							proc.ProcNum=PIn.Long(arrayIdFields[0].Substring(1));//Ignores leading 'y'
-							proc.PlanOrdinal=PIn.Long(arrayIdFields[1]);
-							proc.PartialPlanNum=PIn.Long(arrayIdFields[2]);
+							proc.ProcNum=SIn.Long(arrayIdFields[0].Substring(1));//Ignores leading 'y'
+							proc.PlanOrdinal=SIn.Long(arrayIdFields[1]);
+							proc.PartialPlanNum=SIn.Long(arrayIdFields[2]);
 						}
 						else {
 							//Can not trust format, all fields will default to 0.
@@ -1420,9 +1421,9 @@ namespace OpenDentBusiness {
 					if(strRef02.StartsWith("x")) {
 						string[] arrayIdFields=strRef02.Split('/');
 						if(arrayIdFields.Length==3) {
-							proc.ProcNum=PIn.Long(arrayIdFields[0].Substring(1));//Ignores leading 'x'
-							proc.PlanOrdinal=PIn.Long(arrayIdFields[1]);
-							proc.PlanNum=PIn.Long(arrayIdFields[2]);
+							proc.ProcNum=SIn.Long(arrayIdFields[0].Substring(1));//Ignores leading 'x'
+							proc.PlanOrdinal=SIn.Long(arrayIdFields[1]);
+							proc.PlanNum=SIn.Long(arrayIdFields[2]);
 						}
 						else {
 							//Can not trust format, all fields will default to 0.
@@ -1431,7 +1432,7 @@ namespace OpenDentBusiness {
 					else if(strRef02.StartsWith("p")) {
 						//If the control number is prefixed with a "p", then it is a ProcNum.
 						//Otherwise, for older versions, it will be the Line Counter from LX01 in the 837, which is basically an index.  We will ignore these older index based values.
-						proc.ProcNum=PIn.Long(strRef02.Substring(1));//The entire value excluding the leading "p".
+						proc.ProcNum=SIn.Long(strRef02.Substring(1));//The entire value excluding the leading "p".
 					}	
 				}
 				segNum++;
@@ -4518,12 +4519,12 @@ namespace OpenDentBusiness {
 			Hx835_ShortClaim claim;
 			foreach(DataRow row in table.Rows) {
 				claim=new Hx835_ShortClaim();
-				claim.ClaimNum                      = PIn.Long  (row["ClaimNum"].ToString());
-				claim.ClaimStatus                   = PIn.String(row["ClaimStatus"].ToString());
-				claim.ClinicNum                     = PIn.Long  (row["ClinicNum"].ToString());
-				claim.PlanNum                       = PIn.Long	(row["PlanNum"].ToString());
-				claim.DateSent                      = PIn.DateTime	(row["DateSent"].ToString());
-				claim.ClaimType                     = PIn.String(row["ClaimType"].ToString());
+				claim.ClaimNum                      = SIn.Long  (row["ClaimNum"].ToString());
+				claim.ClaimStatus                   = SIn.String(row["ClaimStatus"].ToString());
+				claim.ClinicNum                     = SIn.Long  (row["ClinicNum"].ToString());
+				claim.PlanNum                       = SIn.Long	(row["PlanNum"].ToString());
+				claim.DateSent                      = SIn.DateTime	(row["DateSent"].ToString());
+				claim.ClaimType                     = SIn.String(row["ClaimType"].ToString());
 				retVal.Add(claim);
 			}
 			return retVal;
@@ -4590,7 +4591,7 @@ namespace OpenDentBusiness {
 			
 			string command="SELECT claimproc.* FROM claimproc "
 				+"INNER JOIN claim ON claimproc.ClaimNum=claim.ClaimNum AND claim.ClaimStatus IN('U','H','I','W') "//Only unsent, hold, or waiting to send statuses.
-				+$"WHERE claimproc.ProcNum IN({string.Join(",",listProcNums.Select(x => POut.Long(x)))})";
+				+$"WHERE claimproc.ProcNum IN({string.Join(",",listProcNums.Select(x => SOut.Long(x)))})";
 			return SelectMany(command);
 		}
 
@@ -4600,7 +4601,7 @@ namespace OpenDentBusiness {
 			if(listClaimNums.Count==0) {
 				return new List<Hx835_ShortClaimProc>();
 			}
-			List <string> listClaimNumStrs=listClaimNums.Select(x => POut.Long(x)).ToList();
+			List <string> listClaimNumStrs=listClaimNums.Select(x => SOut.Long(x)).ToList();
 			string command=
 				"SELECT ClaimProcNum,ProcNum,ClaimNum,FeeBilled,InsPayEst,DedApplied,Status,InsPayAmt,WriteOff,"
 				+"WriteOffEst,WriteOffEstOverride,CodeSent,AllowedOverride,SecDateEntry "
@@ -4622,20 +4623,20 @@ namespace OpenDentBusiness {
 			Hx835_ShortClaimProc claimProc;
 			foreach(DataRow row in table.Rows) {
 				claimProc=new Hx835_ShortClaimProc();
-				claimProc.ClaimProcNum        = PIn.Long  (row["ClaimProcNum"].ToString());
-				claimProc.ProcNum             = PIn.Long  (row["ProcNum"].ToString());
-				claimProc.ClaimNum            = PIn.Long  (row["ClaimNum"].ToString());
-				claimProc.FeeBilled           = PIn.Double(row["FeeBilled"].ToString());
-				claimProc.InsPayEst           = PIn.Double(row["InsPayEst"].ToString());
-				claimProc.DedApplied          = PIn.Double(row["DedApplied"].ToString());
-				claimProc.Status              = (OpenDentBusiness.ClaimProcStatus)PIn.Int(row["Status"].ToString());
-				claimProc.InsPayAmt           = PIn.Double(row["InsPayAmt"].ToString());
-				claimProc.WriteOff            = PIn.Double(row["WriteOff"].ToString());
-				claimProc.WriteOffEst         = PIn.Double(row["WriteOffEst"].ToString());
-				claimProc.WriteOffEstOverride = PIn.Double(row["WriteOffEstOverride"].ToString());
-				claimProc.CodeSent            = PIn.String(row["CodeSent"].ToString());
-				claimProc.AllowedOverride     = PIn.Double(row["AllowedOverride"].ToString());
-				claimProc.SecDateEntry        = PIn.Date  (row["SecDateEntry"].ToString());
+				claimProc.ClaimProcNum        = SIn.Long  (row["ClaimProcNum"].ToString());
+				claimProc.ProcNum             = SIn.Long  (row["ProcNum"].ToString());
+				claimProc.ClaimNum            = SIn.Long  (row["ClaimNum"].ToString());
+				claimProc.FeeBilled           = SIn.Double(row["FeeBilled"].ToString());
+				claimProc.InsPayEst           = SIn.Double(row["InsPayEst"].ToString());
+				claimProc.DedApplied          = SIn.Double(row["DedApplied"].ToString());
+				claimProc.Status              = (OpenDentBusiness.ClaimProcStatus)SIn.Int(row["Status"].ToString());
+				claimProc.InsPayAmt           = SIn.Double(row["InsPayAmt"].ToString());
+				claimProc.WriteOff            = SIn.Double(row["WriteOff"].ToString());
+				claimProc.WriteOffEst         = SIn.Double(row["WriteOffEst"].ToString());
+				claimProc.WriteOffEstOverride = SIn.Double(row["WriteOffEstOverride"].ToString());
+				claimProc.CodeSent            = SIn.String(row["CodeSent"].ToString());
+				claimProc.AllowedOverride     = SIn.Double(row["AllowedOverride"].ToString());
+				claimProc.SecDateEntry        = SIn.Date  (row["SecDateEntry"].ToString());
 				retVal.Add(claimProc);
 			}
 			return retVal;

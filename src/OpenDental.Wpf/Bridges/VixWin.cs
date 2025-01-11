@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental.Bridges {
@@ -23,7 +24,7 @@ namespace OpenDental.Bridges {
 			}
 			//Example: c:\vixwin\vixwin -I 123ABC -N Bill^Smith -P X:\VXImages\
 			string info="-I ";
-			bool isChartNum=PIn.Bool(ProgramProperties.GetPropVal(ProgramCur.ProgramNum,"Enter 0 to use PatientNum, or 1 to use ChartNum"));
+			bool isChartNum=SIn.Bool(ProgramProperties.GetPropVal(ProgramCur.ProgramNum,"Enter 0 to use PatientNum, or 1 to use ChartNum"));
 			string ppImagePath=ProgramProperties.GetPropVal(ProgramCur.ProgramNum,"Optional Image Path");
 			if(isChartNum) {
 				info+=pat.ChartNumber;//max 64 char

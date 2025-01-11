@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -103,7 +104,7 @@ namespace OpenDental {
 				return;
 			}
 			ProviderClinic providerClinic=(ProviderClinic)rowSelected.Tag;
-			string strNewValue=PIn.String(rowSelected.Cells[e.Col].Text);
+			string strNewValue=SIn.String(rowSelected.Cells[e.Col].Text);
 			if(e.Col==1) {
 				providerClinic.DEANum=strNewValue;
 			}

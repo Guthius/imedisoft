@@ -124,7 +124,7 @@ namespace OpenDental{
 			catch(Exception ex) {
 				//Change it back to what the db has.
 				RestoreClinicCheckBox();
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}	
 			//Create an alert for the user to know they may need to restart the eConnector if they are subscribed to eServices

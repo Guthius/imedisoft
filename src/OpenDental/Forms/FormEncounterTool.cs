@@ -4,6 +4,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -150,8 +152,8 @@ namespace OpenDental {
 			else {
 				codeValue=comboEncCodes.SelectedItem.ToString();
 			}
-			long insertedEncs=Encounters.InsertEncsFromProcDates(PIn.Date(textDateStart.Text),PIn.Date(textDateEnd.Text),codeValue,EncCodeSystem);
-			MessageBox.Show(Lan.g("FormEncounterTool","Number of encounters inserted:")+" "+insertedEncs.ToString());
+			long insertedEncs=Encounters.InsertEncsFromProcDates(SIn.Date(textDateStart.Text),SIn.Date(textDateEnd.Text),codeValue,EncCodeSystem);
+			ODMessageBox.Show(Lan.g("FormEncounterTool","Number of encounters inserted:")+" "+insertedEncs.ToString());
 			if(PrefC.GetString(PrefName.CQMDefaultEncounterCodeValue)=="none") {
 				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Do you want to set this code as the default encounter code?")) {
 					Prefs.UpdateString(PrefName.CQMDefaultEncounterCodeValue,codeValue);

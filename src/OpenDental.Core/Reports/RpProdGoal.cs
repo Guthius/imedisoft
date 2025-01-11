@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -75,9 +76,9 @@ namespace OpenDentBusiness {
 			//Sum up a schedule for the day. 
 			Dictionary<Tuple<DateTime,long,long>,List<DataRow>> dictDates=new Dictionary<Tuple<DateTime,long,long>,List<DataRow>>();//We are grouping data rows by day, provnum, and clinicnum
 			for(int j=0;j<tableProdGoal.Rows.Count;j++) {
-				DateTime date=PIn.Date(tableProdGoal.Rows[j]["SchedDate"].ToString());
-				long provNum=PIn.Long(tableProdGoal.Rows[j]["ProvNum"].ToString());
-				long clinicNum=(!hasAllClinics && listClinics.Count==0) ? 0 : PIn.Long(tableProdGoal.Rows[j]["ClinicNum"].ToString());
+				DateTime date=SIn.Date(tableProdGoal.Rows[j]["SchedDate"].ToString());
+				long provNum=SIn.Long(tableProdGoal.Rows[j]["ProvNum"].ToString());
+				long clinicNum=(!hasAllClinics && listClinics.Count==0) ? 0 : SIn.Long(tableProdGoal.Rows[j]["ClinicNum"].ToString());
 				if(!dictDates.ContainsKey(Tuple.Create(date,provNum,clinicNum))) {
 					dictDates.Add(Tuple.Create(date,provNum,clinicNum),new List<DataRow>() { tableProdGoal.Rows[j] });
 					continue;//It's added, no need to do more.
@@ -93,8 +94,8 @@ namespace OpenDentBusiness {
 				double hours=0;
 				List<SchedRange> listRangeForDay=new List<SchedRange>();
 				foreach(DataRow row in kvp.Value) {//Add all schedule ranges to the list
-					TimeSpan stopTime=PIn.TimeSpan(row["StopTime"].ToString());
-					TimeSpan startTime=PIn.TimeSpan(row["StartTime"].ToString());
+					TimeSpan stopTime=SIn.TimeSpan(row["StopTime"].ToString());
+					TimeSpan startTime=SIn.TimeSpan(row["StartTime"].ToString());
 					SchedRange range=new SchedRange() {StartTime=startTime,EndTime=stopTime};
 					listRangeForDay.Add(range);
 				}
@@ -131,7 +132,7 @@ namespace OpenDentBusiness {
 					TimeSpan timeDiff=sched.EndTime.Subtract(sched.StartTime);
 					hours+=timeDiff.TotalHours;
 				}
-				listProdGoal.Add(new ProvProdGoal() {ClinicNum=kvp.Key.Item3,ProvNum=kvp.Key.Item2,Date=kvp.Key.Item1,Hours=hours,ProdGoal=PIn.Double(kvp.Value[0]["ProvProdGoal"].ToString())});
+				listProdGoal.Add(new ProvProdGoal() {ClinicNum=kvp.Key.Item3,ProvNum=kvp.Key.Item2,Date=kvp.Key.Item1,Hours=hours,ProdGoal=SIn.Double(kvp.Value[0]["ProvProdGoal"].ToString())});
 			}			
 			//Get a list of clinics so that we have access to their descriptions for the report.
 			for(int it=0;it<listClinics.Count;it++) {//For each clinic
@@ -150,50 +151,50 @@ namespace OpenDentBusiness {
 						if(listClinics[it].Id==0 && tableProduction.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;//Only counting unassigned this time around.
 						}
-						else if(listClinics[it].Id!=0 && tableProduction.Rows[j]["ClinicNum"].ToString()!=POut.Long(listClinics[it].Id)) {
+						else if(listClinics[it].Id!=0 && tableProduction.Rows[j]["ClinicNum"].ToString()!=SOut.Long(listClinics[it].Id)) {
 							continue;
 						}
-						if(dates[i].Date==PIn.Date(tableProduction.Rows[j]["ProcDate"].ToString()).Date) {
-							productionForDay+=PIn.Decimal(tableProduction.Rows[j]["Production"].ToString());
+						if(dates[i].Date==SIn.Date(tableProduction.Rows[j]["ProcDate"].ToString()).Date) {
+							productionForDay+=SIn.Decimal(tableProduction.Rows[j]["Production"].ToString());
 						}
 					}
 					for(int j=0;j<tableAdj.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableAdj.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;
 						}
-						else if(listClinics[it].Id!=0 && tableAdj.Rows[j]["ClinicNum"].ToString()!=POut.Long(listClinics[it].Id)) {
+						else if(listClinics[it].Id!=0 && tableAdj.Rows[j]["ClinicNum"].ToString()!=SOut.Long(listClinics[it].Id)) {
 							continue;
 						}
-						if(dates[i].Date==PIn.Date(tableAdj.Rows[j]["AdjDate"].ToString()).Date) {
-							adjustsForDay+=PIn.Decimal(tableAdj.Rows[j]["Adjustment"].ToString());
+						if(dates[i].Date==SIn.Date(tableAdj.Rows[j]["AdjDate"].ToString()).Date) {
+							adjustsForDay+=SIn.Decimal(tableAdj.Rows[j]["Adjustment"].ToString());
 						}
 					}
 					for(int j=0;j<tableInsWriteoff.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableInsWriteoff.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;
 						}
-						else if(listClinics[it].Id!=0 && tableInsWriteoff.Rows[j]["ClinicNum"].ToString()!=POut.Long(listClinics[it].Id)) {
+						else if(listClinics[it].Id!=0 && tableInsWriteoff.Rows[j]["ClinicNum"].ToString()!=SOut.Long(listClinics[it].Id)) {
 							continue;
 						}
-						if(dates[i].Date==PIn.Date(tableInsWriteoff.Rows[j]["Date"].ToString()).Date) {
-							inswriteoffsForDay-=PIn.Decimal(tableInsWriteoff.Rows[j]["Writeoff"].ToString());					
+						if(dates[i].Date==SIn.Date(tableInsWriteoff.Rows[j]["Date"].ToString()).Date) {
+							inswriteoffsForDay-=SIn.Decimal(tableInsWriteoff.Rows[j]["Writeoff"].ToString());					
 						}			
 					}
 					foreach(DataRow rowCur in tableWriteoffAdj.Rows) {
-						if(rowCur["ClinicNum"].ToString()!=POut.Long(listClinics[it].Id) || dates[i].Date!=PIn.Date(rowCur["Date"].ToString()).Date) {
+						if(rowCur["ClinicNum"].ToString()!=SOut.Long(listClinics[it].Id) || dates[i].Date!=SIn.Date(rowCur["Date"].ToString()).Date) {
 							continue;
 						}
-						insWriteoffAdjsForDay-=PIn.Decimal(rowCur["WriteOffEst"].ToString())+PIn.Decimal(rowCur["WriteOff"].ToString());
+						insWriteoffAdjsForDay-=SIn.Decimal(rowCur["WriteOffEst"].ToString())+SIn.Decimal(rowCur["WriteOff"].ToString());
 					}
 					for(int j=0;j<tableSched.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableSched.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;
 						}
-						else if(listClinics[it].Id!=0 && tableSched.Rows[j]["ClinicNum"].ToString()!=POut.Long(listClinics[it].Id)) {
+						else if(listClinics[it].Id!=0 && tableSched.Rows[j]["ClinicNum"].ToString()!=SOut.Long(listClinics[it].Id)) {
 							continue;
 						}
-						if(dates[i].Date==PIn.Date(tableSched.Rows[j]["SchedDate"].ToString()).Date) {
-							scheduledForDay+=PIn.Decimal(tableSched.Rows[j]["Amount"].ToString());
+						if(dates[i].Date==SIn.Date(tableSched.Rows[j]["SchedDate"].ToString()).Date) {
+							scheduledForDay+=SIn.Decimal(tableSched.Rows[j]["Amount"].ToString());
 						}
 					}
 					for(int j = 0;j<listProdGoal.Count;j++) {
@@ -240,28 +241,28 @@ namespace OpenDentBusiness {
 				insWriteoffAdjsForDay=0;
 				prodGoalForDay=0;
 				for(int j=0;j<tableProduction.Rows.Count;j++) {
-					if(dates[i].Date==PIn.Date(tableProduction.Rows[j]["ProcDate"].ToString()).Date) {
-						productionForDay+=PIn.Decimal(tableProduction.Rows[j]["Production"].ToString());
+					if(dates[i].Date==SIn.Date(tableProduction.Rows[j]["ProcDate"].ToString()).Date) {
+						productionForDay+=SIn.Decimal(tableProduction.Rows[j]["Production"].ToString());
 					}
 				}
 				for(int j=0;j<tableAdj.Rows.Count;j++) {
-					if(dates[i].Date==PIn.Date(tableAdj.Rows[j]["AdjDate"].ToString()).Date) {
-						adjustsForDay+=PIn.Decimal(tableAdj.Rows[j]["Adjustment"].ToString());
+					if(dates[i].Date==SIn.Date(tableAdj.Rows[j]["AdjDate"].ToString()).Date) {
+						adjustsForDay+=SIn.Decimal(tableAdj.Rows[j]["Adjustment"].ToString());
 					}
 				}
 				for(int j=0;j<tableInsWriteoff.Rows.Count;j++) {
-					if(dates[i].Date==PIn.Date(tableInsWriteoff.Rows[j]["Date"].ToString()).Date) {
-						inswriteoffsForDay-=PIn.Decimal(tableInsWriteoff.Rows[j]["Writeoff"].ToString());
+					if(dates[i].Date==SIn.Date(tableInsWriteoff.Rows[j]["Date"].ToString()).Date) {
+						inswriteoffsForDay-=SIn.Decimal(tableInsWriteoff.Rows[j]["Writeoff"].ToString());
 					}
 				}
 				foreach(DataRow rowCur in tableWriteoffAdj.Rows) {
-					if(dates[i].Date==PIn.Date(rowCur["Date"].ToString()).Date) {
-						insWriteoffAdjsForDay-=PIn.Decimal(rowCur["WriteOffEst"].ToString())+PIn.Decimal(rowCur["WriteOff"].ToString());
+					if(dates[i].Date==SIn.Date(rowCur["Date"].ToString()).Date) {
+						insWriteoffAdjsForDay-=SIn.Decimal(rowCur["WriteOffEst"].ToString())+SIn.Decimal(rowCur["WriteOff"].ToString());
 					}
 				}
 				for(int j=0;j<tableSched.Rows.Count;j++) {
-					if(dates[i].Date==PIn.Date(tableSched.Rows[j]["SchedDate"].ToString()).Date) {
-						scheduledForDay+=PIn.Decimal(tableSched.Rows[j]["Amount"].ToString());
+					if(dates[i].Date==SIn.Date(tableSched.Rows[j]["SchedDate"].ToString()).Date) {
+						scheduledForDay+=SIn.Decimal(tableSched.Rows[j]["Amount"].ToString());
 					}
 				}
 				for(int j = 0;j<listProdGoal.Count;j++) {
@@ -317,8 +318,8 @@ namespace OpenDentBusiness {
 				+"WHERE procedurelog.ProcStatus = 2 "
 				+whereProv
 				+whereClin
-				+"AND procedurelog.ProcDate >= " +POut.Date(dateFrom)+" "
-				+"AND procedurelog.ProcDate <= " +POut.Date(dateTo)+" "
+				+"AND procedurelog.ProcDate >= " +SOut.Date(dateFrom)+" "
+				+"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
 				+"GROUP BY ClinicNum,YEAR(procedurelog.ProcDate),MONTH(procedurelog.ProcDate),DAY(procedurelog.ProcDate)";//Does not work for Oracle. Consider enhancing with DbHelper.Year(),DbHelper.Month()
 			command+=" ORDER BY ClinicNum,ProcDate";
 			DataTable tableProduction=new DataTable();
@@ -350,8 +351,8 @@ namespace OpenDentBusiness {
 				+"adjustment.ClinicNum,"
 				+"adjustment.AdjAmt Adjustment "
 				+"FROM adjustment "
-				+"WHERE AdjDate >= "+POut.Date(dateFrom)+" "
-				+"AND AdjDate <= "+POut.Date(dateTo)+" "
+				+"WHERE AdjDate >= "+SOut.Date(dateFrom)+" "
+				+"AND AdjDate <= "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin
 				+"UNION ALL "
@@ -360,8 +361,8 @@ namespace OpenDentBusiness {
 				+"procedurelog.ClinicNum, "
 				+"-(procedurelog.Discount + procedurelog.DiscountPlanAmt) Adjustment "
 				+"FROM appointment "
-				+"INNER JOIN procedurelog ON appointment.AptNum = procedurelog.AptNum AND procedurelog.ProcStatus="+POut.Int((int)ProcStat.TP)+" "
-				+"WHERE appointment.AptStatus = "+POut.Int((int)ApptStatus.Scheduled)+" "
+				+"INNER JOIN procedurelog ON appointment.AptNum = procedurelog.AptNum AND procedurelog.ProcStatus="+SOut.Int((int)ProcStat.TP)+" "
+				+"WHERE appointment.AptStatus = "+SOut.Int((int)ApptStatus.Scheduled)+" "
 				+"AND "+DbHelper.BetweenDates("appointment.AptDateTime",dateFrom,dateTo)+" "
 				+whereProcProv
 				+whereProcClin
@@ -390,8 +391,8 @@ namespace OpenDentBusiness {
 				+"claimproc.ClinicNum,"
 				+"SUM(claimproc.WriteOff) WriteOff "
 				+"FROM claimproc "
-				+"WHERE claimproc.DateCP >= "+POut.Date(dateFrom)+" "
-				+"AND claimproc.DateCP <= "+POut.Date(dateTo)+" "
+				+"WHERE claimproc.DateCP >= "+SOut.Date(dateFrom)+" "
+				+"AND claimproc.DateCP <= "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin
 				+"AND claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+") "//received or supplemental
@@ -404,8 +405,8 @@ namespace OpenDentBusiness {
 				+"claimproc.ClinicNum,"
 				+"SUM(claimproc.WriteOff) WriteOff "
 				+"FROM claimproc "
-				+"WHERE claimproc.ProcDate >= "+POut.Date(dateFrom)+" "
-				+"AND claimproc.ProcDate <= "+POut.Date(dateTo)+" "
+				+"WHERE claimproc.ProcDate >= "+SOut.Date(dateFrom)+" "
+				+"AND claimproc.ProcDate <= "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin
 				+"AND claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+","+(int)ClaimProcStatus.NotReceived+") "//received or supplemental or notreceived
@@ -453,17 +454,17 @@ namespace OpenDentBusiness {
 			else {
 				//Always subtract CapEstimate writeoffs from scheduled production. This is so that the scheduled production will match actual production
 				//when the procedures are set complete. Nathan decided this 01/05/2017.
-				command+="SUM(IFNULL((CASE WHEN claimproc.Status="+POut.Int((int)ClaimProcStatus.Estimate)+" THEN 0 "
+				command+="SUM(IFNULL((CASE WHEN claimproc.Status="+SOut.Int((int)ClaimProcStatus.Estimate)+" THEN 0 "
 					+"WHEN WriteOffEstOverride != -1 THEN WriteOffEstOverride ELSE WriteOffEst END),0)) WriteoffEstimate ";
 			}
 			command+="FROM appointment "
-				+"LEFT JOIN procedurelog ON appointment.AptNum = procedurelog.AptNum AND procedurelog.ProcStatus="+POut.Int((int)ProcStat.TP)+" "
+				+"LEFT JOIN procedurelog ON appointment.AptNum = procedurelog.AptNum AND procedurelog.ProcStatus="+SOut.Int((int)ProcStat.TP)+" "
 				+"LEFT JOIN claimproc ON procedurelog.ProcNum = claimproc.ProcNum "
-					+"AND claimproc.Status IN("+POut.Int((int)ClaimProcStatus.Estimate)+","+POut.Int((int)ClaimProcStatus.CapEstimate)+") "
+					+"AND claimproc.Status IN("+SOut.Int((int)ClaimProcStatus.Estimate)+","+SOut.Int((int)ClaimProcStatus.CapEstimate)+") "
 					+" AND (WriteOffEst != -1 OR WriteOffEstOverride != -1) "
-				+"WHERE appointment.AptStatus = "+POut.Int((int)ApptStatus.Scheduled)+" "
-				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" >= "+POut.Date(dateFrom)+" "
-				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" <= "+POut.Date(dateTo)+" "
+				+"WHERE appointment.AptStatus = "+SOut.Int((int)ApptStatus.Scheduled)+" "
+				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" >= "+SOut.Date(dateFrom)+" "
+				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" <= "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin
 				+" GROUP BY procedurelog.ProcNum) t "//without this, there can be duplicate proc rows due to the claimproc join with dual insurance.
@@ -499,8 +500,8 @@ namespace OpenDentBusiness {
 				LEFT JOIN scheduleop ON scheduleop.ScheduleNum=schedule.ScheduleNum 
 				LEFT JOIN operatory ON scheduleop.OperatoryNum=operatory.OperatoryNum) S
 				LEFT JOIN operatory ON S.ProvNum=operatory.ProvDentist OR S.ProvNum=operatory.ProvHygienist 
-				WHERE S.SchedType="+POut.Int((int)ScheduleType.Provider)+" "
-				+"AND S.Status="+POut.Int((int)SchedStatus.Open)+" "
+				WHERE S.SchedType="+SOut.Int((int)ScheduleType.Provider)+" "
+				+"AND S.Status="+SOut.Int((int)SchedStatus.Open)+" "
 				+"AND S."+DbHelper.BetweenDates("SchedDate",dateFrom,dateTo)+" "
 				+whereProv
 				+whereClin;
@@ -528,7 +529,7 @@ namespace OpenDentBusiness {
 					claimproc.ClaimNum
 					FROM claimproc
 					LEFT JOIN claimsnapshot ON claimsnapshot.ClaimProcNum=claimproc.ClaimProcNum
-					WHERE claimproc.DateCP BETWEEN {POut.Date(dateFrom)} AND {POut.Date(dateTo)}
+					WHERE claimproc.DateCP BETWEEN {SOut.Date(dateFrom)} AND {SOut.Date(dateTo)}
 					AND claimproc.Status IN ({(int)ClaimProcStatus.Received},{(int)ClaimProcStatus.Supplemental})
 					{whereProv}
 					{whereClin}

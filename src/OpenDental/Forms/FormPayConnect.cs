@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using DentalXChange.Dps.Pos;
 using Imedisoft.Core.Caching;
 using MigraDoc.DocumentObjectModel;
@@ -62,7 +63,7 @@ namespace OpenDental {
 			if(/* ODEnvironment.IsCloudServer */ false){
 				sigBoxWrapper.Enabled=false;
 			}
-			if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,"TerminalProcessingEnabled",_clinicNum))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,"TerminalProcessingEnabled",_clinicNum))) {
 				try {
 					//If the config file for the DentalXChange credit card processing .dll doesn't exist, construct it from the included resource.
 					ODFileUtils.WriteAllText("DpsPos.dll.config",Properties.Resources.DpsPos_dll_config,false);
@@ -72,7 +73,7 @@ namespace OpenDental {
 					//We will still allow them to run the transaction. Probably the worse that will happen is the timeout variable will be less than desired.
 				}
 			}
-			textAmount.Text=POut.Decimal(_amountInit);
+			textAmount.Text=SOut.Decimal(_amountInit);
 			if(_patient==null) {//Prepaid card
 				radioAuthorization.Enabled=false;
 				radioVoid.Enabled=false;
@@ -91,7 +92,7 @@ namespace OpenDental {
 				}
 				FillFieldsFromCard();
 			}
-			if(!PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,"TerminalProcessingEnabled",_clinicNum))
+			if(!SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,"TerminalProcessingEnabled",_clinicNum))
 				|| _isAddingCard) //When adding a card, the web service must be used.
 			{
 				groupProcessMethod.Visible=false;
@@ -118,7 +119,7 @@ namespace OpenDental {
 				checkForceDuplicate.Checked=true;
 				checkForceDuplicate.Enabled=false;
 			}
-			if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum))) {
 				textCardNumber.ReadOnly=true;
 			}
 		}
@@ -245,7 +246,7 @@ namespace OpenDental {
 			checkForceDuplicate.Enabled=true;
 			FillFieldsFromCard();
 			textNameOnCard.Text=_patient.GetNameFL();
-			if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum))) {
+			if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum))) {
 				textCardNumber.ReadOnly=true;
 			}
 		}
@@ -289,7 +290,7 @@ namespace OpenDental {
 				_magstripCardParser=new MagstripCardParser(data);
 			}
 			catch(MagstripCardParseException) {
-				MessageBox.Show(this,"Could not read card, please try again.","Card Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+				ODMessageBox.Show(this,"Could not read card, please try again.","Card Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
 			}
 			if(_magstripCardParser!=null) {
 				textCardNumber.Text=_magstripCardParser.AccountNumber;
@@ -337,12 +338,12 @@ namespace OpenDental {
 			}
 			try {//PIn.Int will throw an exception if not a valid format
 				if(Regex.IsMatch(textExpDate.Text,@"^\d\d[/\- ]\d\d$")) {//08/07 or 08-07 or 08 07
-					_expYear=PIn.Int("20"+textExpDate.Text.Substring(3,2));
-					_expMonth=PIn.Int(textExpDate.Text.Substring(0,2));
+					_expYear=SIn.Int("20"+textExpDate.Text.Substring(3,2));
+					_expMonth=SIn.Int(textExpDate.Text.Substring(0,2));
 				}
 				else if(Regex.IsMatch(textExpDate.Text,@"^\d{4}$")) {//0807
-					_expYear=PIn.Int("20"+textExpDate.Text.Substring(2,2));
-					_expMonth=PIn.Int(textExpDate.Text.Substring(0,2));
+					_expYear=SIn.Int("20"+textExpDate.Text.Substring(2,2));
+					_expMonth=SIn.Int(textExpDate.Text.Substring(0,2));
 				}
 				else {
 					MsgBox.Show(this,"Expiration format invalid.");
@@ -359,7 +360,7 @@ namespace OpenDental {
 					MsgBox.Show(this,"Invalid card number.");
 					return false;
 				}
-				if(!PayConnect.IsValidCardAndExp(textCardNumber.Text,_expYear,_expMonth,x => MessageBox.Show(x))) {//if exception happens, a message box will show with the error
+				if(!PayConnect.IsValidCardAndExp(textCardNumber.Text,_expYear,_expMonth,x => ODMessageBox.Show(x))) {//if exception happens, a message box will show with the error
 					MsgBox.Show(this,"Card number or expiration date failed validation with PayConnect.");
 					return false;
 				}
@@ -399,7 +400,7 @@ namespace OpenDental {
 				byte[] byteArrayImageBytes=memoryStream.ToArray();
 				signatureRequest.SignatureData=Convert.ToBase64String(byteArrayImageBytes);
 			}
-			return PayConnect.ProcessSignature(signatureRequest,_clinicNum,x => MessageBox.Show(x));
+			return PayConnect.ProcessSignature(signatureRequest,_clinicNum,x => ODMessageBox.Show(x));
 		}
 
 		///<summary>Processes a PayConnect payment via the PayConnect web service.</summary>
@@ -446,7 +447,7 @@ namespace OpenDental {
 				}
 				cardNumber=_creditCard.PayConnectToken;
 			}
-			else if(PIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum))) {
+			else if(SIn.Bool(ProgramProperties.GetPropVal(_program.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,_clinicNum))) {
 				MsgBox.Show(this,"Cannot add a new credit card.");
 				return false;
 			}
@@ -454,10 +455,10 @@ namespace OpenDental {
 			if(TransType==PayConnectService.transType.FORCE) {
 				authCode=textRefNumber.Text;
 			}
-			CreditCardRequest=PayConnect.BuildSaleRequest(PIn.Decimal(textAmount.Text),cardNumber,expYear,
+			CreditCardRequest=PayConnect.BuildSaleRequest(SIn.Decimal(textAmount.Text),cardNumber,expYear,
 				expMonth,textNameOnCard.Text,textSecurityCode.Text,textZipCode.Text,magData,TransType,refNumber,
 				checkSaveToken.Checked,authCode,checkForceDuplicate.Checked);
-			_transResponse=PayConnect.ProcessCreditCard(CreditCardRequest,_clinicNum,x => MessageBox.Show(x));
+			_transResponse=PayConnect.ProcessCreditCard(CreditCardRequest,_clinicNum,x => ODMessageBox.Show(x));
 			if(_transResponse==null || _transResponse.Status.code!=0) {//error in transaction
 				return false;
 			}
@@ -526,20 +527,20 @@ namespace OpenDental {
 			PosRequest posRequest=null;
 			try {
 				if(radioSale.Checked) {
-					posRequest=PosRequest.CreateSale(PIn.Decimal(textAmount.Text));
+					posRequest=PosRequest.CreateSale(SIn.Decimal(textAmount.Text));
 				}
 				else if(radioAuthorization.Checked) {
-					posRequest=PosRequest.CreateAuth(PIn.Decimal(textAmount.Text));
+					posRequest=PosRequest.CreateAuth(SIn.Decimal(textAmount.Text));
 				}
 				else if(radioVoid.Checked) {
 					posRequest=PosRequest.CreateVoidByReference(textRefNumber.Text);
 				}
 				else if(radioReturn.Checked) {
 					if(textRefNumber.Text=="") {
-						posRequest=PosRequest.CreateRefund(PIn.Decimal(textAmount.Text));
+						posRequest=PosRequest.CreateRefund(SIn.Decimal(textAmount.Text));
 					}
 					else {
-						posRequest=PosRequest.CreateRefund(PIn.Decimal(textAmount.Text),textRefNumber.Text);
+						posRequest=PosRequest.CreateRefund(SIn.Decimal(textAmount.Text),textRefNumber.Text);
 					}
 				}
 				else {//Shouldn't happen
@@ -549,7 +550,7 @@ namespace OpenDental {
 				posRequest.ForceDuplicate=checkForceDuplicate.Checked;
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error creating request:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error creating request:")+" "+ex.Message);
 				return false;
 			}
 			UI.ProgressWin progressOD=new UI.ProgressWin();
@@ -562,7 +563,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex){
 				SecurityLogs.MakeLogEntry(EnumPermType.CreditCardTerminal,_patient.PatNum,"No response received.");
-				MessageBox.Show(Lan.g(this,"A payment was initiated but no response was received. The payment may or may not have processed."
+				ODMessageBox.Show(Lan.g(this,"A payment was initiated but no response was received. The payment may or may not have processed."
 					+" Verify payment with your Credit Card merchant."),ex.Message);
 				return false;
 			}
@@ -570,11 +571,11 @@ namespace OpenDental {
 				return false;
 			}
 			if(_payConnectResponse==null) {
-				MessageBox.Show(Lan.g(this,"Error processing card"));
+				ODMessageBox.Show(Lan.g(this,"Error processing card"));
 				return false;
 			}
 			if(_payConnectResponse.StatusCode!="0") {//"0" indicates success. May need to check the AuthCode field too to determine if this was a success.
-				MessageBox.Show(Lan.g(this,"Error message from Pay Connect:")+"\r\n"+_payConnectResponse.Description);
+				ODMessageBox.Show(Lan.g(this,"Error message from Pay Connect:")+"\r\n"+_payConnectResponse.Description);
 				return false;
 			}
 			PayConnectService.signatureResponse signatureResponse=null;
@@ -585,7 +586,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(Lan.g(this,"Card successfully charged. Error processing signature:")+" "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Card successfully charged. Error processing signature:")+" "+ex.Message);
 			}
 			textCardNumber.Text=_payConnectResponse.CardNumber;
 			textAmount.Text=_payConnectResponse.Amount.ToString("f");
@@ -628,9 +629,9 @@ namespace OpenDental {
 		///<summary>Only call after the form is closed and the DialogResult is DialogResult.OK.</summary>
 		public string GetAmountCharged() {
 			if(TransType==PayConnectService.transType.RETURN) {
-				return PIn.Decimal("-"+textAmount.Text).ToString("F");
+				return SIn.Decimal("-"+textAmount.Text).ToString("F");
 			}
-			return PIn.Decimal(textAmount.Text).ToString("F");
+			return SIn.Decimal(textAmount.Text).ToString("F");
 		}
 
 		///<summary>Only call after the form is closed and the DialogResult is DialogResult.OK.</summary>

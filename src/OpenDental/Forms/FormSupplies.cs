@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using System.Drawing.Printing;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSupplies:FormODBase {
@@ -452,13 +453,13 @@ namespace OpenDental {
 			float onHandOld=_listSupplies[e.Row].LevelOnHand;
 			float onHandNew=0;
 			try {
-				onHandNew=PIn.Float(gridMain.ListGridRows[e.Row].Cells[6].Text);
+				onHandNew=SIn.Float(gridMain.ListGridRows[e.Row].Cells[6].Text);
 			}
 			catch { }
 			int qtyOld=_listSupplies[e.Row].OrderQty;
 			int qtyNew=0;
 			try {
-				qtyNew=PIn.Int(gridMain.ListGridRows[e.Row].Cells[7].Text);//0 if not valid input
+				qtyNew=SIn.Int(gridMain.ListGridRows[e.Row].Cells[7].Text);//0 if not valid input
 			}
 			catch { }
 			if(qtyOld==qtyNew){
@@ -522,7 +523,7 @@ namespace OpenDental {
 			for(int i=0;i<listSupplyOrders.Count;i++){
 				SupplyOrders.UpdateOrderPrice(listSupplyOrders[i].SupplyOrderNum);
 			}
-			MessageBox.Show(Lan.g(this,"Done. Added ")+listSupplyOrders.Count.ToString()+Lan.g(this," orders.  Manage orders from Orders window"));
+			ODMessageBox.Show(Lan.g(this,"Done. Added ")+listSupplyOrders.Count.ToString()+Lan.g(this," orders.  Manage orders from Orders window"));
 			DialogResult=DialogResult.OK;
 		}
 
@@ -564,7 +565,7 @@ namespace OpenDental {
 			for(int i=0;i<listSupplyOrders.Count;i++){
 				SupplyOrders.UpdateOrderPrice(listSupplyOrders[i].SupplyOrderNum);
 			}
-			MessageBox.Show(Lan.g(this,"Done. Added ")+listSupplyOrders.Count.ToString()+Lan.g(this," orders.  Manage orders from Orders window"));
+			ODMessageBox.Show(Lan.g(this,"Done. Added ")+listSupplyOrders.Count.ToString()+Lan.g(this," orders.  Manage orders from Orders window"));
 			DialogResult=DialogResult.OK;
 		}
 

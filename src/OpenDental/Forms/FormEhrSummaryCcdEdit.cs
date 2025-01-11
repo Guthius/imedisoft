@@ -41,7 +41,7 @@ namespace OpenDental {
 				xmlDocCcd.LoadXml(strXmlText);				
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error reading file")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error reading file")+": "+ex.Message);
 				return;
 			}
 			using FormReconcileMedication formRM=new FormReconcileMedication(_patCur);
@@ -58,7 +58,7 @@ namespace OpenDental {
 				xmlDocCcd.LoadXml(strXmlText);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error reading file")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error reading file")+": "+ex.Message);
 				return;
 			}
 			using FormReconcileProblem formRP=new FormReconcileProblem(_patCur);
@@ -76,7 +76,7 @@ namespace OpenDental {
 				xmlDocCcd.LoadXml(strXmlText);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error reading file")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error reading file")+": "+ex.Message);
 				return;
 			}
 			using FormReconcileAllergy formRA=new FormReconcileAllergy(_patCur);

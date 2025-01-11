@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
@@ -67,7 +68,7 @@ namespace OpenDental{
 			DateTime dateFrom=datePickerStart.GetDateTime();
 			DateTime dateTo=datePickerEnd.GetDateTime();
 			int monthStart=comboMonthStart.SelectedIndex;
-			double aboveAmount=PIn.Double(textOverAmount.Text);
+			double aboveAmount=SIn.Double(textOverAmount.Text);
 			Stopwatch sw=new Stopwatch();
 			if(/* ODBuild.IsDebug() */ false) {
 				sw=Stopwatch.StartNew();
@@ -100,13 +101,13 @@ namespace OpenDental{
 				GridRow row;
 				foreach(DataRow rowCur in table.Rows) {
 					for(int i=8;i<=16;i++) {
-						if(PIn.Double(rowCur[i].ToString())<0) {//checks all numeric based fields value and if value is less then 0, change to 0.00
-							rowCur[i]=POut.Double(0.00);
+						if(SIn.Double(rowCur[i].ToString())<0) {//checks all numeric based fields value and if value is less then 0, change to 0.00
+							rowCur[i]=SOut.Double(0.00);
 						}
 					}
 					row=new GridRow() { Tag=rowCur };
-					double indMax=PIn.Double(rowCur[8].ToString());
-					double famMax=PIn.Double(rowCur[9].ToString());
+					double indMax=SIn.Double(rowCur[8].ToString());
+					double famMax=SIn.Double(rowCur[9].ToString());
 					//Temporary filter just showing columns wanted. Probably it will become user defined.
 					for(int j=0;j<table.Columns.Count;j++) {
 						//0- PatNum,4-address,5-city,6-State,7-Zip are just for the export, 9-AnnualMaxFam,11-AmtUsedFam,13-AmtPendingFam,15-AmtRemainingFam on new line
@@ -134,7 +135,7 @@ namespace OpenDental{
 			if(gridMain.SelectedGridRows.Count==0) {//When deselecting with CTR+Click.
 				return;
 			}
-			GlobalFormOpenDental.GoToModule(EnumModuleType.Chart,patNum:PIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString()));
+			GlobalFormOpenDental.GoToModule(EnumModuleType.Chart,patNum:SIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString()));
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
@@ -176,8 +177,8 @@ namespace OpenDental{
 				string filePathAndName="";
 				for(int j=0;j<gridMain.SelectedIndices.Length;j++) {
 					sheetDef=frmSheetPicker.ListSheetDefsSelected[i];
-					sheet=SheetUtil.CreateSheet(sheetDef,PIn.Long(((DataRow)gridMain.SelectedGridRows[j].Tag)["PatNum"].ToString()));
-					SheetParameter.SetParameter(sheet,"PatNum",PIn.Long(((DataRow)gridMain.SelectedGridRows[j].Tag)["PatNum"].ToString()));
+					sheet=SheetUtil.CreateSheet(sheetDef,SIn.Long(((DataRow)gridMain.SelectedGridRows[j].Tag)["PatNum"].ToString()));
+					SheetParameter.SetParameter(sheet,"PatNum",SIn.Long(((DataRow)gridMain.SelectedGridRows[j].Tag)["PatNum"].ToString()));
 					//Purposefully not setting the optional "AptNum" SheetParameter here (AptNum is required for StaticTextFields like apptDateMonthSpelled).
 					//Allen - 02/25/2021 14:01 via Job #26156:
 					//We do not need to consider any place that does automation or mass sheet creation at this time.
@@ -300,7 +301,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please select a patient first.");
 				return;
 			}
-			long patNum=PIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
+			long patNum=SIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Family, patNum:patNum);
 		}
 
@@ -312,7 +313,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please select a patient first.");
 				return;
 			}
-			long patNum=PIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
+			long patNum=SIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 		}
 
@@ -325,7 +326,7 @@ namespace OpenDental{
 				return;
 			}
 			WindowState=FormWindowState.Minimized;
-			long patNum=PIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
+			long patNum=SIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Family, patNum:patNum);
 		}
 
@@ -338,7 +339,7 @@ namespace OpenDental{
 				return;
 			}
 			WindowState=FormWindowState.Minimized;
-			long patNum=PIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
+			long patNum=SIn.Long(gridMain.SelectedTag<DataRow>()["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 		}
 
@@ -400,11 +401,11 @@ namespace OpenDental{
 				}
       }
       catch{
-        MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+        ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
 
-			MessageBox.Show(Lan.g(this,"File created successfully"));
+			ODMessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		private void butPrint_Click(object sender,EventArgs e) {

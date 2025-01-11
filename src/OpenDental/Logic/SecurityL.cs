@@ -33,7 +33,7 @@ namespace OpenDental {
 				Userods.UpdatePassword(Security.CurUser,formUserPassword.PasswordContainer_,isPasswordStrong);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			Security.CurUser.PasswordIsStrong=formUserPassword.IsPasswordStrong;

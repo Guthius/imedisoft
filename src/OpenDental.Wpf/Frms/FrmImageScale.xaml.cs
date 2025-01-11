@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -57,7 +58,7 @@ namespace OpenDental {
 		private void butCalculate_Click(object sender,EventArgs e) {
 			float lengthKnown=0;
 			try{
-				lengthKnown=PIn.Float(textKnownLength.Text);
+				lengthKnown=SIn.Float(textKnownLength.Text);
 			}
 			catch{
 				MsgBox.Show(this,"Please fix known length.");

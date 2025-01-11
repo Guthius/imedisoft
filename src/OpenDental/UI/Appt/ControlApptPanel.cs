@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -975,7 +976,7 @@ namespace OpenDental.UI{
 			_dayClicked=XPosToDay(e.X);
 			long clickedAptNum=-1;
 			if(dataRow!=null){
-				clickedAptNum=PIn.Long(dataRow["AptNum"].ToString());
+				clickedAptNum=SIn.Long(dataRow["AptNum"].ToString());
 			}
 			if(IsWeeklyView) {
 				DateSelected=DateStart.AddDays(_dayClicked);
@@ -983,7 +984,7 @@ namespace OpenDental.UI{
 			DateTime dateTimeClicked=DateSelected+_timeClicked;
 			long aptNumOld=SelectedAptNum;
 			if(clickedAptNum>0) {//if clicked on an appt
-				long patNumNew=PIn.Long(dataRow["PatNum"].ToString());
+				long patNumNew=SIn.Long(dataRow["PatNum"].ToString());
 				if(e.Button==MouseButtons.Right) {
 					SelectedAptNum=clickedAptNum;
 					OnSelectedApptChanged(patNumNew,aptNumOld,SelectedAptNum);//this must be raised prior to OnApptRightClicked in order for patient to change.
@@ -1116,7 +1117,7 @@ namespace OpenDental.UI{
 					}
 					TimeSpan timeSpanBottomRounded=RoundTimeToNearestIncrement(timeSpanBottom.Value,MinPerIncr);					
 					//subtract to get the new length of appt
-					DateTime dateTimeTempAppt=PIn.DateTime(_dataRowTempAppt["AptDateTime"].ToString());
+					DateTime dateTimeTempAppt=SIn.DateTime(_dataRowTempAppt["AptDateTime"].ToString());
 					TimeSpan newspan=timeSpanBottomRounded-dateTimeTempAppt.TimeOfDay;
 					//check if the appointment is being dragged to the next day
 					if(dateTimeTempAppt.Day!=(dateTimeTempAppt+newspan).Day) {//I don't think this can get hit
@@ -1130,7 +1131,7 @@ namespace OpenDental.UI{
 					else if(newpatternL>78) {//max length of 390 minutes. Not sure why.  I want to increase this to 9 hours.
 						newpatternL=78;
 					}
-					string pattern=PIn.String(_dataRowTempAppt["Pattern"].ToString());
+					string pattern=SIn.String(_dataRowTempAppt["Pattern"].ToString());
 					if(newpatternL<pattern.Length) {//shorten to match new pattern length
 						pattern=pattern.Substring(0,newpatternL);
 					}
@@ -1139,17 +1140,17 @@ namespace OpenDental.UI{
 					}
 					//Now, check for overlap with other appts.
 					//Loop through all other appts in the op and make sure the new pattern will not overlap.
-					long aptNumTemp=PIn.Long(_dataRowTempAppt["AptNum"].ToString());
+					long aptNumTemp=SIn.Long(_dataRowTempAppt["AptNum"].ToString());
 					if(!PrefC.GetBool(PrefName.ApptsAllowOverlap)){
-						long opNumTemp=PIn.Long(_dataRowTempAppt["Op"].ToString());
+						long opNumTemp=SIn.Long(_dataRowTempAppt["Op"].ToString());
 						for(int i=0;i<TableAppointments.Rows.Count;i++){
-							if(PIn.Long(TableAppointments.Rows[i]["Op"].ToString())!=opNumTemp){
+							if(SIn.Long(TableAppointments.Rows[i]["Op"].ToString())!=opNumTemp){
 								continue;
 							}
-							if(PIn.Long(TableAppointments.Rows[i]["AptNum"].ToString())==aptNumTemp){
+							if(SIn.Long(TableAppointments.Rows[i]["AptNum"].ToString())==aptNumTemp){
 								continue;
 							}
-							DateTime dateTimeApptInSameOp=PIn.DateTime(TableAppointments.Rows[i]["AptDateTime"].ToString());
+							DateTime dateTimeApptInSameOp=SIn.DateTime(TableAppointments.Rows[i]["AptDateTime"].ToString());
 							if(IsWeeklyView && dateTimeApptInSameOp.Date!=dateTimeTempAppt.Date) {
 								continue;
 							}
@@ -1200,11 +1201,11 @@ namespace OpenDental.UI{
 				}
 				if(contrTempAppt.Location.X>this.Right) { //Dragging to pinboard, so place a copy there.
 					#region Dragging to pinboard
-					long patNum=PIn.Long(_dataRowTempAppt["PatNum"].ToString());
+					long patNum=SIn.Long(_dataRowTempAppt["PatNum"].ToString());
 					if(!Security.IsAuthorized(EnumPermType.AppointmentMove) || PatRestrictionL.IsRestricted(patNum,PatRestrict.ApptSchedule)){
 						return;
 					}
-					if((ApptStatus)PIn.Int(_dataRowTempAppt["AptStatus"].ToString())==ApptStatus.Complete) {//could cause completed procs to change date
+					if((ApptStatus)SIn.Int(_dataRowTempAppt["AptStatus"].ToString())==ApptStatus.Complete) {//could cause completed procs to change date
 						MsgBox.Show(this,"Not allowed to move completed appointments.");
 						return;
 					}
@@ -1761,14 +1762,14 @@ namespace OpenDental.UI{
 			int indexProv;
 			foreach(DataRow dataRow in listDataRows){//TableAppointments.Rows){
 				//Skip planned appointments, so that their production does not get added to daily production
-				if(dataRow["AptStatus"].ToString()==POut.Enum<ApptStatus>(ApptStatus.Planned)) {
+				if(dataRow["AptStatus"].ToString()==SOut.Enum<ApptStatus>(ApptStatus.Planned)) {
 					continue;
 				}
 				indexProv=-1;
-				bool isHygiene=PIn.Bool(dataRow["IsHygiene"].ToString());
-				long provNum=PIn.Long(dataRow["ProvNum"].ToString());
-				long provHyg=PIn.Long(dataRow["ProvHyg"].ToString());
-				long opNum=PIn.Long(dataRow["Op"].ToString());
+				bool isHygiene=SIn.Bool(dataRow["IsHygiene"].ToString());
+				long provNum=SIn.Long(dataRow["ProvNum"].ToString());
+				long provHyg=SIn.Long(dataRow["ProvHyg"].ToString());
+				long opNum=SIn.Long(dataRow["Op"].ToString());
 				if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
 					if(isHygiene){
 						if(provHyg==0) {//if no hyg prov set.
@@ -1798,11 +1799,11 @@ namespace OpenDental.UI{
 				if(indexProv==-1) {
 					continue;
 				}
-				ApptStatus aptStatus=(ApptStatus)(PIn.Int(dataRow["AptStatus"].ToString()));
-				long clinicNum=PIn.Long(dataRow["ClinicNum"].ToString());
-				decimal productionVal=PIn.Decimal(dataRow["productionVal"].ToString());
-				decimal netProductionVal=PIn.Decimal(dataRow["netProductionVal"].ToString());
-				decimal writeoffPPO=PIn.Decimal(dataRow["writeoffPPO"].ToString());
+				ApptStatus aptStatus=(ApptStatus)(SIn.Int(dataRow["AptStatus"].ToString()));
+				long clinicNum=SIn.Long(dataRow["ClinicNum"].ToString());
+				decimal productionVal=SIn.Decimal(dataRow["productionVal"].ToString());
+				decimal netProductionVal=SIn.Decimal(dataRow["netProductionVal"].ToString());
+				decimal writeoffPPO=SIn.Decimal(dataRow["writeoffPPO"].ToString());
 				if(aptStatus!=ApptStatus.Broken
 					&& aptStatus!=ApptStatus.UnschedList
 					&& aptStatus!=ApptStatus.PtNote
@@ -1850,8 +1851,8 @@ namespace OpenDental.UI{
 					.Distinct().ToList();
 				//From the current week's schedule, adds dayOfWeeks that have appointments scheduled.
 				for(int i=0;i<TableAppointments.Rows.Count;i++){
-					DayOfWeek dayOfWeek=PIn.Date(TableAppointments.Rows[i]["AptDateTime"].ToString()).DayOfWeek;
-					long operatoryNum=PIn.Long(TableAppointments.Rows[i]["Op"].ToString());
+					DayOfWeek dayOfWeek=SIn.Date(TableAppointments.Rows[i]["AptDateTime"].ToString()).DayOfWeek;
+					long operatoryNum=SIn.Long(TableAppointments.Rows[i]["Op"].ToString());
 					if(!listDayOfWeeksScheduled.Contains(dayOfWeek) && ListOpsVisible.Exists(x => x.OperatoryNum==operatoryNum)) {
 						listDayOfWeeksScheduled.Add(dayOfWeek);
 					}
@@ -1986,7 +1987,7 @@ namespace OpenDental.UI{
 			for(int i=0;i<tableAppointments.Rows.Count;i++){
 				DataRow dataRow=tableAppointments.Rows[i];
 				string strAptDateTime=dataRow["AptDateTime"].ToString();
-				DateTime aptDateTime=PIn.Date(strAptDateTime);
+				DateTime aptDateTime=SIn.Date(strAptDateTime);
 				apptLayoutInfo=new ApptLayoutInfo();
 				if(aptDateTime.Date < dateStart || aptDateTime.Date > dateEnd){
 					//Appointment is outside of our date range
@@ -1995,14 +1996,14 @@ namespace OpenDental.UI{
 					listApptLayoutInfos.Add(apptLayoutInfo);
 					continue;
 				}
-				apptLayoutInfo.IdxOp=listOperatories.FindIndex(x=>x.OperatoryNum==PIn.Long(dataRow["Op"].ToString()));
+				apptLayoutInfo.IdxOp=listOperatories.FindIndex(x=>x.OperatoryNum==SIn.Long(dataRow["Op"].ToString()));
 				if(apptLayoutInfo.IdxOp==-1){//op not visible
 					apptLayoutInfo.idxInTableAppointments=i;
 					apptLayoutInfo.RectangleBounds=new RectangleF(0,0,0,0);
 					listApptLayoutInfos.Add(apptLayoutInfo);
 					continue;
 				}
-				apptLayoutInfo.DayOfWeek=(int)PIn.DateTime(dataRow["AptDateTime"].ToString()).DayOfWeek;
+				apptLayoutInfo.DayOfWeek=(int)SIn.DateTime(dataRow["AptDateTime"].ToString()).DayOfWeek;
 				PointF pointF=new PointF();
 				if(isWeeklyView) {
 					pointF.X=widthWeekDay*listDayOfWeeks.IndexOf((DayOfWeek)apptLayoutInfo.DayOfWeek)+widthWeekAppt*apptLayoutInfo.IdxOp;
@@ -2011,7 +2012,7 @@ namespace OpenDental.UI{
 					pointF.X=widthCol*apptLayoutInfo.IdxOp;
 				}
 				pointF.Y=(aptDateTime.Hour*60/minPerIncr+aptDateTime.Minute/minPerIncr)*heightLine*rowsPerIncr;
-				string pattern=PIn.String(dataRow["Pattern"].ToString());
+				string pattern=SIn.String(dataRow["Pattern"].ToString());
 				//copied from SetSize(pattern):
 				SizeF sizeF=new SizeF();
 				if(widthCol<5){
@@ -2230,7 +2231,7 @@ namespace OpenDental.UI{
 			}
 			List<long> listAptNums=new List<long>();
 			for(int i=0;i<TableAppointments.Rows.Count;i++){
-				listAptNums.Add(PIn.Long(TableAppointments.Rows[i]["AptNum"].ToString()));
+				listAptNums.Add(SIn.Long(TableAppointments.Rows[i]["AptNum"].ToString()));
 			}
 			List<Procedure> procsMultApts=Procedures.GetProcsMultApts(listAptNums);
 			List<Procedure> listProceduresForOne=Procedures.GetProcsOneApt(appt.AptNum,procsMultApts);
@@ -2240,7 +2241,7 @@ namespace OpenDental.UI{
 			}
 			//if some codes would be double booked
 			if(AppointmentRules.IsBlocked(listProcCodesDoubleBooked)) {
-				MessageBox.Show(Lan.g(this,"Not allowed to double book: ")
+				ODMessageBox.Show(Lan.g(this,"Not allowed to double book: ")
 					+AppointmentRules.GetBlockedDescription(listProcCodesDoubleBooked));
 				return true;
 			}
@@ -3217,7 +3218,7 @@ namespace OpenDental.UI{
 				if(_listApptLayoutInfos[i].RectangleBounds.Width==0){
 					continue;//Appointment is outside of our date range.
 				}
-				string pattern=PIn.String(dataRow["Pattern"].ToString());
+				string pattern=SIn.String(dataRow["Pattern"].ToString());
 				string patternShowing=GetPatternShowing(pattern);
 				RectangleF rect=_listApptLayoutInfos[i].RectangleBounds;
 				//When printing, there's already a clip in place for the section of the background we are grabbing.
@@ -3237,12 +3238,12 @@ namespace OpenDental.UI{
 			Color provColor2;
 			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AppointmentColors);
 			if(dataRoww["ProvNum"].ToString()!="0" && dataRoww["IsHygiene"].ToString()=="0") {//dentist
-				provColor=Providers.GetColor(PIn.Long(dataRoww["ProvNum"].ToString()));
-				provColor2=Providers.GetColor(PIn.Long(dataRoww["ProvHyg"].ToString()));
+				provColor=Providers.GetColor(SIn.Long(dataRoww["ProvNum"].ToString()));
+				provColor2=Providers.GetColor(SIn.Long(dataRoww["ProvHyg"].ToString()));
 			}
 			else if(dataRoww["ProvHyg"].ToString()!="0" && dataRoww["IsHygiene"].ToString()=="1") {//hygienist
-				provColor=Providers.GetColor(PIn.Long(dataRoww["ProvHyg"].ToString()));
-				provColor2=Providers.GetColor(PIn.Long(dataRoww["ProvNum"].ToString()));
+				provColor=Providers.GetColor(SIn.Long(dataRoww["ProvHyg"].ToString()));
+				provColor2=Providers.GetColor(SIn.Long(dataRoww["ProvNum"].ToString()));
 			}
 			else {//unknown
 				provColor=Color.White;
@@ -3251,26 +3252,26 @@ namespace OpenDental.UI{
 			using SolidBrush brushProvBackground=new SolidBrush(provColor);
 			using SolidBrush brushProvBackground2=new SolidBrush(provColor2);
 			backColor=provColor;//Default the appointment to the primary provider's color.
-			if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
+			if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
 				backColor=listDefs[2].ItemColor;
 			}
-			else if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.PtNote) {
+			else if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.PtNote) {
 				backColor=listDefs[5].ItemColor;
-				if(PIn.Int(dataRoww["ColorOverride"].ToString()) != 0) {//Patient note has an override.
-					backColor=Color.FromArgb(PIn.Int(dataRoww["ColorOverride"].ToString()));
+				if(SIn.Int(dataRoww["ColorOverride"].ToString()) != 0) {//Patient note has an override.
+					backColor=Color.FromArgb(SIn.Int(dataRoww["ColorOverride"].ToString()));
 				}
 			}
-			else if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.PtNoteCompleted) {
+			else if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.PtNoteCompleted) {
 				backColor=listDefs[6].ItemColor;
 			}
-			else if(PIn.Int(dataRoww["ColorOverride"].ToString()) != 0) {
-				backColor=Color.FromArgb(PIn.Int(dataRoww["ColorOverride"].ToString()));
+			else if(SIn.Int(dataRoww["ColorOverride"].ToString()) != 0) {
+				backColor=Color.FromArgb(SIn.Int(dataRoww["ColorOverride"].ToString()));
 			}
 			//Check to see if the patient is late for their appointment. 
-			DateTime aptDateTime=PIn.DateTime(dataRoww["AptDateTime"].ToString());
-			DateTime aptDateTimeArrived=PIn.DateTime(dataRoww["AptDateTimeArrived"].ToString());
+			DateTime aptDateTime=SIn.DateTime(dataRoww["AptDateTime"].ToString());
+			DateTime aptDateTimeArrived=SIn.DateTime(dataRoww["AptDateTimeArrived"].ToString());
 			//If the appointment is scheduled and the patient was late for the appointment.
-			if((PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Scheduled)
+			if((SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Scheduled)
 				&& ((aptDateTimeArrived.TimeOfDay==TimeSpan.FromHours(0) && DateTime.Now>aptDateTime) 
 					|| (aptDateTimeArrived.TimeOfDay>TimeSpan.FromHours(0) && aptDateTimeArrived>aptDateTime))) 
 			{
@@ -3285,7 +3286,7 @@ namespace OpenDental.UI{
 			SolidBrush brushBack=new SolidBrush(backColor);
 			if(widthAppt<14){//Narrow appointments will look very simple, with no rounded corners or text
 				if(_isPrinting && PrintColorBehavior==ApptPrintColorBehavior.LessColor) {
-					if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
+					if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
 						using HatchBrush hatchBrush=new HatchBrush(HatchStyle.WideUpwardDiagonal,brushBack.Color,Color.White);
 						g.FillRectangle(hatchBrush,0,0,widthAppt,heightAppt);
 					}
@@ -3294,7 +3295,7 @@ namespace OpenDental.UI{
 					}
 				}
 				else if(_isPrinting && PrintColorBehavior==ApptPrintColorBehavior.Grayscale) {
-					if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
+					if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
 						Color color=DesaturateColor(brushBack.Color);
 						using HatchBrush hatchBrush=new HatchBrush(HatchStyle.WideUpwardDiagonal,color,Color.White);
 						g.FillRectangle(hatchBrush,0,0,widthAppt,heightAppt);
@@ -3331,7 +3332,7 @@ namespace OpenDental.UI{
 			graphicsPathLeftSide.AddArc(0,0,radiusCorn*2,radiusCorn*2,180,90);//UL
 			graphicsPathLeftSide.AddLine(radiusCorn,0,WidthProvOnAppt,0);//top
 			if(_isPrinting && PrintColorBehavior==ApptPrintColorBehavior.LessColor) {
-				if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
+				if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
 					using HatchBrush hatchBrush=new HatchBrush(HatchStyle.WideUpwardDiagonal,brushBack.Color,Color.White);
 					g.FillPath(hatchBrush,graphicsPathRightSide);
 				}
@@ -3340,7 +3341,7 @@ namespace OpenDental.UI{
 				}
 			}
 			else if(_isPrinting && PrintColorBehavior==ApptPrintColorBehavior.Grayscale) {
-				if(PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
+				if(SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete) {
 					Color color=DesaturateColor(_brushClosed.Color);
 					using HatchBrush hatchBrush=new HatchBrush(HatchStyle.WideUpwardDiagonal,color,Color.White);
 					g.FillPath(hatchBrush,graphicsPathRightSide);
@@ -3378,7 +3379,7 @@ namespace OpenDental.UI{
 				}
 			}
 			//Get the second provider time pattern
-			string pattern2=PIn.String(dataRoww["PatternSecondary"].ToString());
+			string pattern2=SIn.String(dataRoww["PatternSecondary"].ToString());
 			string pattern2Showing=GetPatternShowing(pattern2);
 			for(int i=0;i<patternShowing.Length;i++) {
 				float heightOverflow=0;
@@ -3486,8 +3487,8 @@ namespace OpenDental.UI{
 			bool isNote=false;
 			bool isInsuranceColor=false;
 			#region Fill Text
-			if(PIn.Long(dataRoww["AptStatus"].ToString()) == (int)ApptStatus.PtNote
-				|| PIn.Long(dataRoww["AptStatus"].ToString()) == (int)ApptStatus.PtNoteCompleted) {
+			if(SIn.Long(dataRoww["AptStatus"].ToString()) == (int)ApptStatus.PtNote
+				|| SIn.Long(dataRoww["AptStatus"].ToString()) == (int)ApptStatus.PtNoteCompleted) {
 				isNote=true;
 			}
 			bool isConfirmedCircle=false;
@@ -3560,13 +3561,13 @@ namespace OpenDental.UI{
 							text="";
 						}
 						else {
-							if(PIn.Long(dataRoww["Priority"].ToString())==(int)ApptPriority.ASAP) {
+							if(SIn.Long(dataRoww["Priority"].ToString())==(int)ApptPriority.ASAP) {
 								text=Lan.g("ContrAppt","ASAP");
 							}
 						}
 						break;
 					case EnumApptViewElement.ASAP_A:
-						if(PIn.Long(dataRoww["Priority"].ToString())==(int)ApptPriority.ASAP) {
+						if(SIn.Long(dataRoww["Priority"].ToString())==(int)ApptPriority.ASAP) {
 							text=Lan.g("ContrAppt","A");
 						}
 						break;
@@ -3652,11 +3653,11 @@ namespace OpenDental.UI{
 						text=dataRoww["insToSend[!]"].ToString();
 						break;
 					case EnumApptViewElement.IsLate_L:
-						DateTime aptDateTime=PIn.DateTime(dataRoww["AptDateTime"].ToString());
-						DateTime aptDateTimeArrived=PIn.DateTime(dataRoww["AptDateTimeArrived"].ToString());
+						DateTime aptDateTime=SIn.DateTime(dataRoww["AptDateTime"].ToString());
+						DateTime aptDateTimeArrived=SIn.DateTime(dataRoww["AptDateTimeArrived"].ToString());
 						//If the appointment is scheduled, complete, or ASAP and the patient was late for the appointment.
-						if((PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Scheduled
-							|| PIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete)
+						if((SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Scheduled
+							|| SIn.Long(dataRoww["AptStatus"].ToString())==(int)ApptStatus.Complete)
 							&& ((aptDateTimeArrived.TimeOfDay==TimeSpan.FromHours(0) && DateTime.Now>aptDateTime) 
 								|| (aptDateTimeArrived.TimeOfDay>TimeSpan.FromHours(0) && aptDateTimeArrived>aptDateTime))) 
 						{
@@ -3756,7 +3757,7 @@ namespace OpenDental.UI{
 							if(string.IsNullOrEmpty(rgbInt)) {
 								rgbInt=listApptViewItems[idxItem].ElementColorXml.ToString();
 							}
-							Color c=Color.FromArgb(PIn.Int(rgbInt,false));
+							Color c=Color.FromArgb(SIn.Int(rgbInt,false));
 							SizeF procSize=new Size(1,lastH);//Use the last height measured, otherwise it will draw procs on top of each other if the appt is narrow
 							if(!proc.IsNullOrEmpty()) {
 								procSize=g.MeasureString(proc,_font,(int)widthAppt-(int)WidthProvOnAppt-1,new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
@@ -3897,7 +3898,7 @@ namespace OpenDental.UI{
 						}
 						SizeF size1=g.MeasureString(ins1,_font,sizeLayoutArea);
 						if(dataRoww["insColor1"].ToString()!="") {
-							Color color=Color.FromArgb(PIn.Int(dataRoww["insColor1"].ToString()));
+							Color color=Color.FromArgb(SIn.Int(dataRoww["insColor1"].ToString()));
 							if(color!=Color.Black && color!=Color.FromArgb(255,Color.Black)) {
 								PointF pt=new PointF(pointDraw.X,pointDraw.Y-1);
 								size1.Height-=1;
@@ -3914,7 +3915,7 @@ namespace OpenDental.UI{
 							}
 						}
 						if(dataRoww["insColor2"].ToString()!="" && ins2!="") {
-							Color color=Color.FromArgb(PIn.Int(dataRoww["insColor2"].ToString()));
+							Color color=Color.FromArgb(SIn.Int(dataRoww["insColor2"].ToString()));
 							if(color!=Color.Black && color!=Color.FromArgb(255,Color.Black)) {
 								PointF pt=new PointF(pointDraw.X,pointDraw.Y-1+size1.Height);
 								SizeF size=g.MeasureString(ins2,_font,sizeLayoutArea);
@@ -4189,7 +4190,7 @@ namespace OpenDental.UI{
 		///<summary>This is used to draw the ConfirmedColor icon or the CareCreditApprovalStatus icons</summary>
 		private Bitmap DrawElementGetIcon(Size sizeDesired, DataRow dataRow, string careCreditStatus="") {
 			//The default color is the color of the confirmed icon, because that will always be drawn if present
-			Color color=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));
+			Color color=Defs.GetColor(DefCat.ApptConfirmed,SIn.Long(dataRow["Confirmed"].ToString()));
 			Pen penOutline=new Pen(Color.FromArgb(00,00,00));//Black
 			string careCreditStatusLower=careCreditStatus.ToLower();
 			if(careCreditStatusLower.ToLower().In(CareCreditWebStatus.PreApproved.GetDescription().ToLower())) 
@@ -4273,16 +4274,16 @@ namespace OpenDental.UI{
 			}
 			for(int i=0;i<TableAppointments.Rows.Count;i++) {
 				DataRow dataRow=TableAppointments.Rows[i];
-				long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+				long aptNum=SIn.Long(dataRow["AptNum"].ToString());
 				if(aptNum!=SelectedAptNum){
 					continue;
 				}
 				Pen penProvOutline;
 				if(dataRow["ProvNum"].ToString()!="0" && dataRow["IsHygiene"].ToString()=="0") {//dentist
-					penProvOutline=new Pen(Providers.GetOutlineColor(PIn.Long(dataRow["ProvNum"].ToString())),3f);
+					penProvOutline=new Pen(Providers.GetOutlineColor(SIn.Long(dataRow["ProvNum"].ToString())),3f);
 				}
 				else if(dataRow["ProvHyg"].ToString()!="0" && dataRow["IsHygiene"].ToString()=="1") {//hygienist
-					penProvOutline=new Pen(Providers.GetOutlineColor(PIn.Long(dataRow["ProvHyg"].ToString())),3f);
+					penProvOutline=new Pen(Providers.GetOutlineColor(SIn.Long(dataRow["ProvHyg"].ToString())),3f);
 				}
 				else {//unknown
 					penProvOutline=new Pen(Color.Black,3f);
@@ -4459,7 +4460,7 @@ namespace OpenDental.UI{
 					&& (true || false))//Do not use patient image when A to Z folders are disabled.
 				{
 					try {
-						long patNum=PIn.Long(dataRow["PatNum"].ToString());
+						long patNum=SIn.Long(dataRow["PatNum"].ToString());
 						bitmapPatPict=Documents.GetPatPict(patNum,
 							ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),
 								imageFolder.Substring(0,1).ToUpper(),
@@ -4555,13 +4556,13 @@ namespace OpenDental.UI{
 						y+=h;
 						continue;
 					case "Confirmed":
-						s=Defs.GetName(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));
+						s=Defs.GetName(DefCat.ApptConfirmed,SIn.Long(dataRow["Confirmed"].ToString()));
 						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
 						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
 						y+=h;
 						continue;
 					case "ASAP":
-						ApptPriority priority=(ApptPriority)PIn.Int(dataRow["Priority"].ToString());
+						ApptPriority priority=(ApptPriority)SIn.Int(dataRow["Priority"].ToString());
 						if(priority==ApptPriority.ASAP) {
 							h=g.MeasureString("ASAP",font,widthBubble-(int)x).Height;
 							g.DrawString("ASAP",font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
@@ -4781,14 +4782,14 @@ namespace OpenDental.UI{
 						}
 						continue;
 					case "Estimated Patient Portion":
-						decimal decimalPatPort=PIn.Decimal(dataRow["estPatientPortionRaw"].ToString());
+						decimal decimalPatPort=SIn.Decimal(dataRow["estPatientPortionRaw"].ToString());
 						s=Lan.g(this,"Est Patient Portion: ")+decimalPatPort.ToString("c");
 						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
 						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
 						y+=h;
 						continue;					
 					case "Net Production":
-						decimal decimalPort=PIn.Decimal(dataRow["netProductionVal"].ToString());
+						decimal decimalPort=SIn.Decimal(dataRow["netProductionVal"].ToString());
 						s=Lan.g(this,"Net Production:")+" "+decimalPort.ToString("c");
 						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
 						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
@@ -5012,12 +5013,12 @@ namespace OpenDental.UI{
 			int indexProv=-1;
 			int indexProv2=-1;
 			if(dataRow["IsHygiene"].ToString()=="1") {
-				indexProv=GetIndexProv(PIn.Long(dataRow["ProvHyg"].ToString()));
-				indexProv2=GetIndexProv(PIn.Long(dataRow["ProvNum"].ToString()));
+				indexProv=GetIndexProv(SIn.Long(dataRow["ProvHyg"].ToString()));
+				indexProv2=GetIndexProv(SIn.Long(dataRow["ProvNum"].ToString()));
 			}
 			else {
-				indexProv=GetIndexProv(PIn.Long(dataRow["ProvNum"].ToString()));
-				indexProv2=GetIndexProv(PIn.Long(dataRow["ProvHyg"].ToString()));
+				indexProv=GetIndexProv(SIn.Long(dataRow["ProvNum"].ToString()));
+				indexProv2=GetIndexProv(SIn.Long(dataRow["ProvHyg"].ToString()));
 			}
 			if(indexProv==-1){
 				return;
@@ -5026,7 +5027,7 @@ namespace OpenDental.UI{
 				return;
 			}
 			//was originally from ConvertToY:
-			DateTime aptDateTime=PIn.DateTime(dataRow["AptDateTime"].ToString());
+			DateTime aptDateTime=SIn.DateTime(dataRow["AptDateTime"].ToString());
 			//this is not really a yPos because it's ignoring RowsPerIncr
 			float yPos=(aptDateTime.Hour*60/MinPerIncr+aptDateTime.Minute/MinPerIncr)*_heightLine;//*RowsPerIncr;
 			int startIndex=(int)(yPos/_heightLine);//rounds down
@@ -5167,7 +5168,7 @@ namespace OpenDental.UI{
 				return "";
 			}
 			return "Production: "+GetProduction(
-				TableAppointments.Rows.OfType<DataRow>().ToList().FindAll(x=>PIn.Long(x["Op"].ToString())==operatoryNum),
+				TableAppointments.Rows.OfType<DataRow>().ToList().FindAll(x=>SIn.Long(x["Op"].ToString())==operatoryNum),
 				new List<long> { operatoryNum },new List<long>(),DateStart,DateEnd);
 		}
 

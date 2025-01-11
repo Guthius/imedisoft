@@ -104,7 +104,7 @@ namespace OpenDental {
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g("PayConnectL","Printer not available.")+"\r\n"+Lan.g("PayConnectL","Original error")+": "+ex.Message);
+					ODMessageBox.Show(Lan.g("PayConnectL","Printer not available.")+"\r\n"+Lan.g("PayConnectL","Original error")+": "+ex.Message);
 				}
 			}
 		}

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormEClipboardSheetRule:FormODBase {
@@ -80,7 +81,7 @@ namespace OpenDental {
 			SheetDef sheetDef=SheetDefs.GetFirstOrDefault(x=>x.SheetDefNum==EClipboardSheetDefCur.SheetDefNum);
 			//Add any sheet defs that are ignoring this sheet def. We don't want to allow chaining ignores.
 			frmSheetPicker.ListSheetDefNumsExclude=ListEClipboardSheetDefs
-				.Where(x => x.IgnoreSheetDefNums!=null && x.IgnoreSheetDefNums.Contains(POut.Long(EClipboardSheetDefCur.SheetDefNum)))
+				.Where(x => x.IgnoreSheetDefNums!=null && x.IgnoreSheetDefNums.Contains(SOut.Long(EClipboardSheetDefCur.SheetDefNum)))
 				.Select(x => x.SheetDefNum)
 				.ToList();
 			//Add this sheet def too, the rule shouldn't be able to ignore itself.
@@ -238,7 +239,7 @@ namespace OpenDental {
 				EClipboardSheetDefCur.ResubmitInterval=timeSpan;
 			}
 			if(EClipboardSheetDefCur.SheetDefNum!=0){
-				EClipboardSheetDefCur.IgnoreSheetDefNums=string.Join(",",_listSheetDefs.Select(x => POut.Long(x.SheetDefNum)));
+				EClipboardSheetDefCur.IgnoreSheetDefNums=string.Join(",",_listSheetDefs.Select(x => SOut.Long(x.SheetDefNum)));
 			}
 			EClipboardSheetDefCur.MinAge=minAge;
 			EClipboardSheetDefCur.MaxAge=maxAge;

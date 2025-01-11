@@ -1,5 +1,7 @@
 using System;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -40,7 +42,7 @@ namespace OpenDental {
 		private void butClearDay_Click(object sender,EventArgs e) {
 			if(true) {
 				string clinicAbbr=(Clinics.ClinicNum==0?Lan.g(this,"Headquarters"):Clinics.GetAbbr(Clinics.ClinicNum));
-				if(MessageBox.Show(Lan.g(this,"Clear all blockouts for day for clinic: ")+clinicAbbr+Lan.g(this,"?")+"\r\n"
+				if(ODMessageBox.Show(Lan.g(this,"Clear all blockouts for day for clinic: ")+clinicAbbr+Lan.g(this,"?")+"\r\n"
 					+Lan.g(this,"(This may include blockouts not shown in the current appointment view)")
 					,Lan.g(this,"Clear Blockouts"),MessageBoxButtons.OKCancel)!=DialogResult.OK) 
 				{ 
@@ -106,7 +108,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix number box first.");
 				return;
 			}
-			CopyOverBlockouts(PIn.Int(textRepeat.Text));
+			CopyOverBlockouts(SIn.Int(textRepeat.Text));
 		}
 
 		private void CopyOverBlockouts(int numRepeat) {
@@ -149,7 +151,7 @@ namespace OpenDental {
 				dateSelectedStart,dateSelectedEnd,numRepeat);
 			Cursor=Cursors.Default;
 			if(!string.IsNullOrEmpty(errors)) {
-				MessageBox.Show(errors);//Error was translated inside of the S class method.
+				ODMessageBox.Show(errors);//Error was translated inside of the S class method.
 				return;
 			}
 			Close();

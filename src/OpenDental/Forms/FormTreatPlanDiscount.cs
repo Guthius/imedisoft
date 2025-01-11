@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using CodeBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -69,7 +70,7 @@ namespace OpenDental {
 			}
 			if(countProcsLinkedToOrthoCase>0) {
 				string countProcsSkipped=countProcsLinkedToOrthoCase.ToString();
-				MessageBox.Show(this,Lans.g(this,"Procedures attached to ortho cases cannot have discounts. Procedures skipped:")+" "+countProcsSkipped);
+				ODMessageBox.Show(this,Lans.g(this,"Procedures attached to ortho cases cannot have discounts. Procedures skipped:")+" "+countProcsSkipped);
 			}
 			DialogResult=DialogResult.OK;
 		}

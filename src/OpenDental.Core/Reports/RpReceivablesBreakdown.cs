@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -35,7 +36,7 @@ namespace OpenDentBusiness {
 										+ "FROM procedurelog "
 										+ "WHERE procedurelog.ProcDate >= '" + bDate + "' "
 										+ "AND procedurelog.ProcDate < '" + eDate + "' "
-										+ "AND procedurelog.ProcStatus = "+POut.Int((int)ProcStat.C)+" "
+										+ "AND procedurelog.ProcStatus = "+SOut.Int((int)ProcStat.C)+" "
 										+ whereProv
 										+ "GROUP BY procedurelog.ProcDate ";
 					query += "UNION ALL "
@@ -44,7 +45,7 @@ namespace OpenDentBusiness {
 										+ "FROM payplancharge "
 										+ "WHERE payplancharge.ChargeDate >= '" + bDate + "' "
 										+ "AND payplancharge.ChargeDate < '" + eDate + "' "
-										+ "AND payplancharge.ChargeType = "+POut.Int((int)PayPlanChargeType.Credit)+" "
+										+ "AND payplancharge.ChargeType = "+SOut.Int((int)PayPlanChargeType.Credit)+" "
 										+ whereProv
 										+ "GROUP BY payplancharge.ChargeDate ";
 					if(payPlanVersionCur==PayPlanVersions.AgeCreditsAndDebits || payPlanVersionCur==PayPlanVersions.AgeCreditsOnly) {
@@ -69,7 +70,7 @@ namespace OpenDentBusiness {
 						}
 						query="SELECT payplancharge.ChargeDate, SUM(payplancharge.Principal + payplancharge.Interest) Amt "
 						+ "FROM payplancharge "
-						+ "WHERE payplancharge.ChargeType = " +POut.Int((int)PayPlanChargeType.Debit) +" "
+						+ "WHERE payplancharge.ChargeType = " +SOut.Int((int)PayPlanChargeType.Debit) +" "
 						+ "AND payplancharge.ChargeDate >= '" + bDate + "' "
 						+ "AND payplancharge.ChargeDate < '" + eDate + "' "
 						+ whereProv
@@ -226,7 +227,7 @@ namespace OpenDentBusiness {
 						+"FROM procedurelog "
 						+"WHERE procedurelog.ProcDate >= '" + bDate + "' "
 						+"AND procedurelog.ProcDate < '" + eDate + "' "
-						+"AND procedurelog.ProcStatus = "+POut.Int((int)ProcStat.C)+" "
+						+"AND procedurelog.ProcStatus = "+SOut.Int((int)ProcStat.C)+" "
 						+whereProv
 						+"GROUP BY procedurelog.ProcDate "
 						+")tran "
@@ -243,7 +244,7 @@ namespace OpenDentBusiness {
 						+"FROM payplancharge "
 						+"WHERE payplancharge.ChargeDate >= '" + bDate + "' "
 						+"AND payplancharge.ChargeDate < '" + eDate + "' "
-						+"AND payplancharge.ChargeType = "+POut.Int((int)PayPlanChargeType.Credit)+" "
+						+"AND payplancharge.ChargeType = "+SOut.Int((int)PayPlanChargeType.Credit)+" "
 						+whereProv
 						+"GROUP BY payplancharge.ChargeDate "
 						+"ORDER BY payplancharge.ChargeDate ";

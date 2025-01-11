@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -37,7 +38,7 @@ namespace OpenDentBusiness {
 				// because there might be an edge case where the registration key for this office got moved to a new PatNum,
 				// and that would hide every DoseSpot OID link.
 				try {
-					patNum=PIn.Long(rootExternal.Substring(rootExternal.LastIndexOf(".")+1));
+					patNum=SIn.Long(rootExternal.Substring(rootExternal.LastIndexOf(".")+1));
 				}
 				catch(Exception ex) {
 				}
@@ -63,7 +64,7 @@ namespace OpenDentBusiness {
 		///<summary>Gets the OIDExternal corresponding to Dose Spot and the patnum given.  Returns null if no match found.</summary>
 		public static OIDExternal GetDoseSpotPatID(long patNum) {
 			//No remoting role check needed
-			return OIDExternals.GetOidExternal(GetDoseSpotRoot()+"."+POut.Int((int)IdentifierType.Patient),patNum,IdentifierType.Patient);
+			return OIDExternals.GetOidExternal(GetDoseSpotRoot()+"."+SOut.Int((int)IdentifierType.Patient),patNum,IdentifierType.Patient);
 		}
 
 		///<summary>Gets the OIDExternal corresponding to Dose Spot oid given.  Returns null if no match found.
@@ -176,7 +177,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Creates a unique account id for DoseSpot.  Uses the same generation logic as NewCrop, with DS; preceeding it.</summary>
 		public static string GenerateAccountId(long patNum) {
-			string accountId="DS;"+POut.Long(patNum);
+			string accountId="DS;"+SOut.Long(patNum);
 			accountId+="-"+CodeBase.MiscUtils.CreateRandomAlphaNumericString(3);
 			long checkSum=patNum;
 			checkSum+=Convert.ToByte(accountId[accountId.IndexOf('-')+1])*3;
@@ -258,7 +259,7 @@ namespace OpenDentBusiness {
 				}
 				RxPat rxPat=new RxPat();
 				long rxCui=doseSpotMedicationWrapper.RxCUI;//If this is zero either DoseSpot didn't send the value or there was an issue casting from string to long.
-				rxPat.IsControlled=(PIn.Int(doseSpotMedicationWrapper.Schedule)!=0);//Controlled if Schedule is I,II,III,IV,V
+				rxPat.IsControlled=(SIn.Int(doseSpotMedicationWrapper.Schedule)!=0);//Controlled if Schedule is I,II,III,IV,V
 				rxPat.DosageCode="";
 				rxPat.SendStatus=RxSendStatus.Unsent;
 				switch(doseSpotMedicationWrapper.PrescriptionStatus) {
@@ -553,14 +554,14 @@ namespace OpenDentBusiness {
 			DoseSpotService.SingleSignOn singleSignOn=GetSingleSignOn(clinicID,clinicKey,userID,false);
 			StringBuilder stringBuilder=new StringBuilder();
 			QueryStringAddParameter(stringBuilder,"SingleSignOnCode",singleSignOn.SingleSignOnCode);
-			QueryStringAddParameter(stringBuilder,"SingleSignOnUserId",POut.Int(singleSignOn.SingleSignOnUserId));
+			QueryStringAddParameter(stringBuilder,"SingleSignOnUserId",SOut.Int(singleSignOn.SingleSignOnUserId));
 			QueryStringAddParameter(stringBuilder,"SingleSignOnUserIdVerify",singleSignOn.SingleSignOnUserIdVerify);
-			QueryStringAddParameter(stringBuilder,"SingleSignOnClinicId",POut.Int(singleSignOn.SingleSignOnClinicId));
+			QueryStringAddParameter(stringBuilder,"SingleSignOnClinicId",SOut.Int(singleSignOn.SingleSignOnClinicId));
 			if(!String.IsNullOrWhiteSpace(onBehalfOfUserId)) {
-				QueryStringAddParameter(stringBuilder,"OnBehalfOfUserId",POut.String(onBehalfOfUserId));
+				QueryStringAddParameter(stringBuilder,"OnBehalfOfUserId",SOut.String(onBehalfOfUserId));
 			}
 			if(patient==null) {
-				QueryStringAddParameter(stringBuilder,"RefillsErrors",POut.Int(1));//Request transmission errors
+				QueryStringAddParameter(stringBuilder,"RefillsErrors",SOut.Int(1));//Request transmission errors
 			}
 			else {
 				OIDExternal oIDExternal=DoseSpotV2.GetDoseSpotPatID(patient.PatNum);
@@ -787,7 +788,7 @@ namespace OpenDentBusiness {
 							clinicDesc=xmlAttribute.Value;
 						}
 						else if(xmlAttribute.Name=="EnabledStatus") {
-							erxStatus=PIn.Enum<ErxStatus>(PIn.Int(xmlAttribute.Value));
+							erxStatus=SIn.Enum<ErxStatus>(SIn.Int(xmlAttribute.Value));
 						}
 						else if(xmlAttribute.Name=="ClinicId") {
 							clinicId=xmlAttribute.Value;
@@ -827,7 +828,7 @@ namespace OpenDentBusiness {
 
 		public static OIDExternal CreateOIDForPatient(int doseSpotPatID,long patNum) {
 			OIDExternal oIDExternal=new OIDExternal();
-			oIDExternal.rootExternal=DoseSpotV2.GetDoseSpotRoot()+"."+POut.Int((int)IdentifierType.Patient);
+			oIDExternal.rootExternal=DoseSpotV2.GetDoseSpotRoot()+"."+SOut.Int((int)IdentifierType.Patient);
 			oIDExternal.IDExternal=doseSpotPatID.ToString();
 			oIDExternal.IDInternal=patNum;
 			oIDExternal.IDType=IdentifierType.Patient;
@@ -931,8 +932,8 @@ namespace OpenDentBusiness {
 			string singleSignOnCode=CreateSsoCode(clinicKey,isQueryString);
 			string singleSignOnUserIdVerify=CreateSsoUserIdVerify(clinicKey,userID,isQueryString);
 			DoseSpotService.SingleSignOn dSSSingleSignOn=new DoseSpotService.SingleSignOn();
-			dSSSingleSignOn.SingleSignOnClinicId=PIn.Int(clinicID);
-			dSSSingleSignOn.SingleSignOnUserId=PIn.Int(userID);
+			dSSSingleSignOn.SingleSignOnClinicId=SIn.Int(clinicID);
+			dSSSingleSignOn.SingleSignOnUserId=SIn.Int(userID);
 			dSSSingleSignOn.SingleSignOnPhraseLength=32;
 			dSSSingleSignOn.SingleSignOnCode=singleSignOnCode;
 			dSSSingleSignOn.SingleSignOnUserIdVerify=singleSignOnUserIdVerify;
@@ -1142,7 +1143,7 @@ namespace OpenDentBusiness {
 			OIDExternal oIDExternal=GetDoseSpotPatID(patient.PatNum);
 			if(oIDExternal==null) {
 				//Create a DoseSpot patient and save it for future uses with this patient.
-				oIDExternal=CreateOIDForPatient(PIn.Int(DoseSpotRESTV2.AddPatient(token,patient)),patient.PatNum);
+				oIDExternal=CreateOIDForPatient(SIn.Int(DoseSpotRESTV2.AddPatient(token,patient)),patient.PatNum);
 			}
 			else {
 				DoseSpotRESTV2.EditPatient(token,patient,oIDExternal.IDExternal);
@@ -1781,7 +1782,7 @@ namespace OpenDentBusiness {
 					}
 				}
 				webClient.Headers.Add("Subscription-Key",doseSpotSubscriptionKeyDecrypted);
-				webClient.Encoding=UnicodeEncoding.UTF8;
+				webClient.Encoding=Encoding.UTF8;
 				//Post with Authorization headers and a body comprised of a JSON serialized anonymous type.
 				try {
 					string response="";

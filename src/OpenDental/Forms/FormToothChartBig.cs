@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using SparksToothChart;
@@ -167,15 +168,15 @@ namespace OpenDental {
 					continue;
 				}
 				if(ProcedureCodes.GetProcCode(ListDataRowsProcs[i]["ProcCode"].ToString()).PaintType==ToothPaintingType.Extraction && (
-					PIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString())==(int)ProcStat.C
-					|| PIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString())==(int)ProcStat.EC
-					|| PIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString())==(int)ProcStat.EO
+					SIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString())==(int)ProcStat.C
+					|| SIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString())==(int)ProcStat.EC
+					|| SIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString())==(int)ProcStat.EO
 					)) {
 					continue;//prevents the red X. Missing teeth already handled.
 				}
 				ProcedureCode procedureCode = ProcedureCodes.GetProcCode(ListDataRowsProcs[i]["ProcCode"].ToString());
-				ProcStat procStat = (ProcStat)PIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString());
-				long provNum=PIn.Long(ListDataRowsProcs[i]["ProvNum"].ToString());
+				ProcStat procStat = (ProcStat)SIn.Long(ListDataRowsProcs[i]["ProcStatus"].ToString());
+				long provNum=SIn.Long(ListDataRowsProcs[i]["ProvNum"].ToString());
 				bool doApplyColorPref=_toothChartRelay.DoesToothColorPrefApply(listProvNums,provNum);
 				_toothChartRelay.GetToothColors(procedureCode,procStat,doApplyColorPref,out Color cDark,out Color cLight);
 				switch(ProcedureCodes.GetProcCode(ListDataRowsProcs[i]["ProcCode"].ToString()).PaintType) {

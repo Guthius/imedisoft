@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using CodeBase;
 
 namespace OpenDental.Graph.Dashboard
 {
@@ -26,7 +27,7 @@ namespace OpenDental.Graph.Dashboard
 
             if (string.IsNullOrEmpty(TabName))
             {
-                MessageBox.Show("Tab Name is empty.");
+                ODMessageBox.Show("Tab Name is empty.");
                 e.Cancel = true;
             }
 

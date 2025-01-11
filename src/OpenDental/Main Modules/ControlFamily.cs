@@ -1423,7 +1423,7 @@ namespace OpenDental{
 				if(hasProblems) {
 					message+=Lan.g(this,"Problems")+"\r";
 				}
-				MessageBox.Show(message);
+				ODMessageBox.Show(message);
 				return;
 			}
 			Patient patientOld=_patient.Copy();
@@ -1452,7 +1452,7 @@ namespace OpenDental{
 					//does not delete notes or plans, etc.
 				}
 				else {
-					MessageBox.Show(Lan.g(this,"You cannot delete the guarantor if there are other family members. You would have to make a different family member the guarantor first."));
+					ODMessageBox.Show(Lan.g(this,"You cannot delete the guarantor if there are other family members. You would have to make a different family member the guarantor first."));
 				}
 				PatientL.RemoveFromMenu(patientOld.PatNum);//Always remove deleted patients from the dropdown menu.
 				return;
@@ -1485,10 +1485,10 @@ namespace OpenDental{
 
 		private void ToolButGuarantor_Click() {
 			if(_patient.PatNum==_patient.Guarantor) {
-				MessageBox.Show(Lan.g(this,"Patient is already the guarantor.  Please select a different family member."));
+				ODMessageBox.Show(Lan.g(this,"Patient is already the guarantor.  Please select a different family member."));
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Make the selected patient the guarantor?")
+			if(ODMessageBox.Show(Lan.g(this,"Make the selected patient the guarantor?")
 				,"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
@@ -1519,7 +1519,7 @@ namespace OpenDental{
 						}
 						List<PatientLink> listPatientLinks=PatientLinks.GetLinks(_family.ListPats[i].PatNum,PatientLinkType.Merge);//If there is another family member, make sure it is merged.  
 						if(listPatientLinks.Count==0 || !listPatientLinks.Exists(x => x.PatNumFrom==_family.ListPats[i].PatNum)) {//If it's not merged, user can't move guarantor.
-							MessageBox.Show(Lan.g(this,"You cannot move the guarantor.  If you wish to move the guarantor, you must make another family member the guarantor first."));
+							ODMessageBox.Show(Lan.g(this,"You cannot move the guarantor.  If you wish to move the guarantor, you must make another family member the guarantor first."));
 							return;
 						}
 					}
@@ -1539,7 +1539,7 @@ namespace OpenDental{
 			if(IsGuarantorTSI()) {
 				return;
 			}
-			switch(MessageBox.Show(Lan.g(this,"Create new family instead of moving to an existing family?"),"",MessageBoxButtons.YesNoCancel)) {
+			switch(ODMessageBox.Show(Lan.g(this,"Create new family instead of moving to an existing family?"),"",MessageBoxButtons.YesNoCancel)) {
 				case DialogResult.Cancel:
 					return;
 				case DialogResult.Yes://new family (split)
@@ -1785,7 +1785,7 @@ namespace OpenDental{
 				patPlanNew.PatPlanNum=PatPlans.Insert(patPlanNew);
 				listPatPlansForPat.Add(patPlanNew.Copy());
 				if(string.IsNullOrWhiteSpace(insSub1.SubscriberID)) {
-					MessageBox.Show(this,Lan.g(this,"Enter the SubscriberID for")+" "+family.ListPats[i].GetNameFL()+".");
+					ODMessageBox.Show(this,Lan.g(this,"Enter the SubscriberID for")+" "+family.ListPats[i].GetNameFL()+".");
 					using FormInsPlan formInsPlan=new FormInsPlan(InsPlans.GetPlan(insSub1.PlanNum,listInsPlansForFam),patPlanNew,insSub1);
 					formInsPlan.IsNewPlan=false;
 					formInsPlan.IsNewPatPlan=true;
@@ -1993,7 +1993,7 @@ namespace OpenDental{
 					+Lans.g(this,"No - The selected patient's current super family will be disbanded and only the selected patient's family will be added to "
 						+"this super family.")+"\r\n\r\n"
 					+Lans.g(this,"Cancel - Do nothing.");
-				diagResult=MessageBox.Show(this,msgTxt,"",MessageBoxButtons.YesNoCancel);
+				diagResult=ODMessageBox.Show(this,msgTxt,"",MessageBoxButtons.YesNoCancel);
 			}
 			if(diagResult==DialogResult.Cancel) {
 				return;//don't need to do ModuleSelected, just return
@@ -2610,7 +2610,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Cannot add insurance if patient has a discount plan.");
 				return;
 			}
-			DialogResult result=MessageBox.Show(Lan.g(this,"Is this patient the subscriber?"),"",MessageBoxButtons.YesNoCancel);
+			DialogResult result=ODMessageBox.Show(Lan.g(this,"Is this patient the subscriber?"),"",MessageBoxButtons.YesNoCancel);
 			if(result==DialogResult.Cancel) {
 				return;
 			}

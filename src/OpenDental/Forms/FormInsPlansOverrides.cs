@@ -4,6 +4,7 @@ using System.Data;
 using System.Globalization;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -45,7 +46,7 @@ namespace OpenDental {
 				textGroupName.Text,textGroupNum.Text,textPlanNum.Text,textTrojanID.Text,checkShowHidden.Checked,isGetAll);
 			List<long> listPlanNums=new List<long>();
 			for(int i=0;i<_table.Rows.Count;i++) {
-				listPlanNums.Add(PIn.Long(_table.Rows[i]["PlanNum"].ToString()));
+				listPlanNums.Add(SIn.Long(_table.Rows[i]["PlanNum"].ToString()));
 			}
 			string groupNum="Group#";
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canada
@@ -91,15 +92,15 @@ namespace OpenDental {
 					row.Cells.Add(_table.Rows[i]["TrojanID"].ToString());
 				}
 				string noBillInsOverride="";
-				InsPlanPreference insPlanPreference=listInsPlanPreferencesNoBillIns.Find(x => x.PlanNum==PIn.Long(_table.Rows[i]["PlanNum"].ToString()));
+				InsPlanPreference insPlanPreference=listInsPlanPreferencesNoBillIns.Find(x => x.PlanNum==SIn.Long(_table.Rows[i]["PlanNum"].ToString()));
 				if(insPlanPreference==null) {
 					noBillInsOverride=""; // If the current insurance plan does not have a NoBillInsOverride, leave the cell blank.
 				}
 				else {
-					noBillInsOverride=PIn.Enum<NoBillInsOverride>(insPlanPreference.ValueString).GetDescription(); // Otherwise, populate with the description of the override
+					noBillInsOverride=SIn.Enum<NoBillInsOverride>(insPlanPreference.ValueString).GetDescription(); // Otherwise, populate with the description of the override
 				}
 				row.Cells.Add(noBillInsOverride);
-				row.Tag=PIn.Long(_table.Rows[i]["PlanNum"].ToString());//Tag the row with the PlanNum to easily get list of selected PlanNums later on
+				row.Tag=SIn.Long(_table.Rows[i]["PlanNum"].ToString());//Tag the row with the PlanNum to easily get list of selected PlanNums later on
 				gridMain.ListGridRows.Add(row);
 			}
 			gridMain.EndUpdate();
@@ -179,7 +180,7 @@ namespace OpenDental {
 				return;
 			}
 			//Inserts or updates the NoBillIns override for the selected PlanNums. Does not delete. User must click butDelete to delete any overrides. 
-			InsPlanPreferences.UpsertMany(_codeNum,InsPlanPrefFKeyType.ProcCodeNoBillIns,listPlanNums,POut.Enum<NoBillInsOverride>(noBillInsOverride));
+			InsPlanPreferences.UpsertMany(_codeNum,InsPlanPrefFKeyType.ProcCodeNoBillIns,listPlanNums,SOut.Enum<NoBillInsOverride>(noBillInsOverride));
 			FillGrid();
 			MsgBox.Show(this,"Done");
 		}

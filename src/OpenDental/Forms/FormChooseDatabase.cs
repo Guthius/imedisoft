@@ -163,7 +163,7 @@ namespace OpenDental {
 			}
 			catch(ApplicationException aex) {
 				//This error was thrown by Open Dental an has already been formatted to be shown directly to the user. E.g. invalid credentials were entered.
-				MessageBox.Show(aex.Message);
+				ODMessageBox.Show(aex.Message);
 				return false;
 			}
 			catch(Exception ex) {

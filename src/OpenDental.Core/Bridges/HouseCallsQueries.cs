@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class HouseCallsQueries {
@@ -40,8 +41,8 @@ namespace OpenDentBusiness {
 				FROM patient,appointment 
 				WHERE patient.PatNum=appointment.PatNum "
 				+"AND (appointment.AptStatus=1 OR appointment.AptStatus=4) "//sched or ASAP
-				+"AND appointment.AptDateTime > "+POut.Date(FromDate)//> midnight
-				+" AND appointment.AptDateTime < "+POut.Date(ToDate.AddDays(1));//< midnight
+				+"AND appointment.AptDateTime > "+SOut.Date(FromDate)//> midnight
+				+" AND appointment.AptDateTime < "+SOut.Date(ToDate.AddDays(1));//< midnight
 			return DataCore.GetTable(command);
 		}
 

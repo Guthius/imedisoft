@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -60,7 +61,7 @@ namespace OpenDental {
 			}
 			try{
 				if(sheetField.FieldValue.StartsWith("MountNum:")) {
-					long mountNum=PIn.Long(sheetField.FieldValue.Substring(9));
+					long mountNum=SIn.Long(sheetField.FieldValue.Substring(9));
 					Mount mount=Mounts.GetByNum(mountNum);
 					List<MountItem> listMountItems=MountItems.GetItemsForMount(mountNum);
 					List<Document> listDocuments=Documents.GetDocumentsForMountItems(listMountItems)
@@ -70,7 +71,7 @@ namespace OpenDental {
 					_docPatPicture=listDocuments.FirstOrDefault();
 				}
 				else {
-					_docPatPicture=Documents.GetByNum(PIn.Long(sheetField.FieldValue),true);
+					_docPatPicture=Documents.GetByNum(SIn.Long(sheetField.FieldValue),true);
 				}
 				if(_docPatPicture is null) {
 					Clear();

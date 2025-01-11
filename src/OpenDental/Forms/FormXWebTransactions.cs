@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDental.UI;
@@ -75,8 +76,8 @@ namespace OpenDental {
 			else {
 				//Send an empty list of clinics to get all transactions
 			}
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=PIn.Date(textDateTo.Text);
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=SIn.Date(textDateTo.Text);
 			_tableTrans=XWebResponses.GetApprovedTransactions(listClinicNums,dateFrom,dateTo);
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
@@ -105,10 +106,10 @@ namespace OpenDental {
 				bool isXWeb=IsXWebTransaction(i); //Only other option at the moment is PayConnect. This will need to be refactored if we add more payment options
 				row=new GridRow();
 				row.Cells.Add(_tableTrans.Rows[i]["Patient"].ToString());
-				row.Cells.Add(PIn.Double(_tableTrans.Rows[i]["Amount"].ToString()).ToString("f"));
-				row.Cells.Add(PIn.Date(_tableTrans.Rows[i]["DateTUpdate"].ToString()).ToShortDateString());
+				row.Cells.Add(SIn.Double(_tableTrans.Rows[i]["Amount"].ToString()).ToString("f"));
+				row.Cells.Add(SIn.Date(_tableTrans.Rows[i]["DateTUpdate"].ToString()).ToShortDateString());
 				if(isXWeb) {
-					XWebTransactionStatus tranStatus=(XWebTransactionStatus)PIn.Int(_tableTrans.Rows[i]["TransactionStatus"].ToString());
+					XWebTransactionStatus tranStatus=(XWebTransactionStatus)SIn.Int(_tableTrans.Rows[i]["TransactionStatus"].ToString());
 					row.Cells.Add(GetXWebTranTypeByStatus(tranStatus));
 				}
 				else {
@@ -150,7 +151,7 @@ namespace OpenDental {
 		}
 
 		private bool IsXWebTransaction(int selectedIndex) {
-			return PIn.Int(_tableTrans.Rows[selectedIndex]["isXWeb"].ToString())==1;
+			return SIn.Int(_tableTrans.Rows[selectedIndex]["isXWeb"].ToString())==1;
 		}
 
 		private void butRefresh_Click(object sender,EventArgs e) {
@@ -190,11 +191,11 @@ namespace OpenDental {
 			if(idxSelected<0) {
 				return;
 			}
-			openPaymentToolStripMenuItem.Visible=PIn.Bool(_tableTrans.Rows[idxSelected]["doesPaymentExist"].ToString());
+			openPaymentToolStripMenuItem.Visible=SIn.Bool(_tableTrans.Rows[idxSelected]["doesPaymentExist"].ToString());
 			voidPaymentToolStripMenuItem.Visible=false;
 			processReturnToolStripMenuItem.Visible=false;
 			if(IsXWebTransaction(idxSelected)) {
-				switch((XWebTransactionStatus)PIn.Int(_tableTrans.Rows[idxSelected]["TransactionStatus"].ToString())) {
+				switch((XWebTransactionStatus)SIn.Int(_tableTrans.Rows[idxSelected]["TransactionStatus"].ToString())) {
 					case XWebTransactionStatus.DtgPaymentApproved:
 					case XWebTransactionStatus.HpfCompletePaymentApproved:
 					case XWebTransactionStatus.HpfCompletePaymentApprovedPartial:
@@ -207,7 +208,7 @@ namespace OpenDental {
 				}
 				return;
 			}
-			switch(PIn.String(_tableTrans.Rows[idxSelected]["TransactionStatus"].ToString())) {
+			switch(SIn.String(_tableTrans.Rows[idxSelected]["TransactionStatus"].ToString())) {
 				case "SALE":
 					voidPaymentToolStripMenuItem.Visible=true;
 					processReturnToolStripMenuItem.Visible=true;
@@ -219,7 +220,7 @@ namespace OpenDental {
 			if(e.Row<0 || !Security.IsAuthorized(EnumPermType.AccountModule)) {
 				return;
 			}
-			long patNum=PIn.Long(_tableTrans.Rows[e.Row]["PatNum"].ToString());
+			long patNum=SIn.Long(_tableTrans.Rows[e.Row]["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 		}
 
@@ -227,7 +228,7 @@ namespace OpenDental {
 			if(gridMain.SelectedIndices.Length<1 || !Security.IsAuthorized(EnumPermType.AccountModule)) {
 				return;
 			}
-			long patNum=PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PatNum"].ToString());
+			long patNum=SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PatNum"].ToString());
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Account,patNum:patNum);
 		}
 
@@ -235,7 +236,7 @@ namespace OpenDental {
 			if(gridMain.SelectedIndices.Length<1) {
 				return;
 			}
-			Payment payment=Payments.GetPayment(PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PaymentNum"].ToString()));
+			Payment payment=Payments.GetPayment(SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PaymentNum"].ToString()));
 			if(payment==null) {//The payment has been deleted
 				MsgBox.Show(this,"This payment no longer exists.");
 				return;
@@ -260,10 +261,10 @@ namespace OpenDental {
 			}
 			Cursor=Cursors.WaitCursor;
 			if(IsXWebTransaction(gridMain.SelectedIndices[0])) {
-				long patNum=PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PatNum"].ToString());
-				long responseNum=PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["ResponseNum"].ToString());
+				long patNum=SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PatNum"].ToString());
+				long responseNum=SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["ResponseNum"].ToString());
 				string payNote=Lan.g(this,"Void XWeb payment made from within Open Dental")+"\r\n"
-					+Lan.g(this,"Amount:")+" "+PIn.Double(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString()).ToString("f")+"\r\n"
+					+Lan.g(this,"Amount:")+" "+SIn.Double(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString()).ToString("f")+"\r\n"
 					+Lan.g(this,"Transaction ID:")+" "+_tableTrans.Rows[gridMain.SelectedIndices[0]]["TransactionID"].ToString()+"\r\n"
 					+Lan.g(this,"Card Number:")+" "+_tableTrans.Rows[gridMain.SelectedIndices[0]]["MaskedAcctNum"].ToString()+"\r\n"
 					+Lan.g(this,"Processed:")+" "+DateTime.Now.ToShortDateString()+" "+DateTime.Now.ToShortTimeString();
@@ -272,14 +273,14 @@ namespace OpenDental {
 				}
 				catch(ODException ex) {
 					Cursor=Cursors.Default;
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}
 			else {
-				Payment payment=Payments.GetPayment(PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PaymentNum"].ToString()));
-				PayConnectResponseWeb payConnectResponseWeb=PayConnectResponseWebs.GetOne(PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["ResponseNum"].ToString()));
-				decimal amt=PIn.Decimal(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
+				Payment payment=Payments.GetPayment(SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PaymentNum"].ToString()));
+				PayConnectResponseWeb payConnectResponseWeb=PayConnectResponseWebs.GetOne(SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["ResponseNum"].ToString()));
+				decimal amt=SIn.Decimal(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
 				string refNum=_tableTrans.Rows[gridMain.SelectedIndices[0]]["TransactionID"].ToString(); //This is actually PayConnectResponseWeb.RefNumber, it's just stored in the TransactionID column
 				if(!PayConnectL.VoidOrRefundPayConnectPortalTransaction(payConnectResponseWeb,payment,PayConnectService.transType.VOID,refNum,amt)) {
 					Cursor=Cursors.Default;
@@ -299,9 +300,9 @@ namespace OpenDental {
 			if(gridMain.SelectedIndices.Length<1) {
 				return;
 			}
-			Payment payment=Payments.GetPayment(PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PaymentNum"].ToString()));
+			Payment payment=Payments.GetPayment(SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PaymentNum"].ToString()));
 			if(IsXWebTransaction(gridMain.SelectedIndices[0])) {
-				long patNum=PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PatNum"].ToString());
+				long patNum=SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["PatNum"].ToString());
 				string alias=_tableTrans.Rows[gridMain.SelectedIndices[0]]["Alias"].ToString();
 				List<CreditCard> listCreditCards=CreditCards.GetCardsByToken(alias,
 					new List<CreditCardSource> { CreditCardSource.XWeb, CreditCardSource.XWebPortalLogin, CreditCardSource.XWebPaymentPortal, CreditCardSource.XWebPaymentPortalGuest });
@@ -314,7 +315,7 @@ namespace OpenDental {
 						"incorrect card.");
 					return;
 				}
-				double amt=PIn.Double(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
+				double amt=SIn.Double(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
 				using FormXWeb formXWeb=new FormXWeb(patNum,listCreditCards.FirstOrDefault(),XWebTransactionType.CreditReturnTransaction,createPayment:false,amt);
 				formXWeb.LockCardInfo=true;
 				if(formXWeb.ShowDialog()==DialogResult.OK) {
@@ -327,8 +328,8 @@ namespace OpenDental {
 				}
 				return;
 			}
-			PayConnectResponseWeb payConnectResponseWeb=PayConnectResponseWebs.GetOne(PIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["ResponseNum"].ToString()));
-			decimal amount=PIn.Decimal(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
+			PayConnectResponseWeb payConnectResponseWeb=PayConnectResponseWebs.GetOne(SIn.Long(_tableTrans.Rows[gridMain.SelectedIndices[0]]["ResponseNum"].ToString()));
+			decimal amount=SIn.Decimal(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
 			string refNum=_tableTrans.Rows[gridMain.SelectedIndices[0]]["TransactionID"].ToString(); //This is actually PayConnectResponseWeb.RefNumber, it's just stored in the TransactionID column
 			if(!PayConnectL.VoidOrRefundPayConnectPortalTransaction(payConnectResponseWeb,payment,PayConnectService.transType.RETURN,refNum,amount)) {
 				return;

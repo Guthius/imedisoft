@@ -6,6 +6,7 @@ using System.Drawing.Printing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -121,10 +122,10 @@ namespace OpenDental{
 			gridToFill.Columns.Add(col);
 			col=new GridColumn(Lan.g("TableJournal","Clear"),40,HorizontalAlignment.Center);
 			gridToFill.Columns.Add(col);
-			DateTime dateFrom=PIn.Date(textDateFrom.Text);
-			DateTime dateTo=string.IsNullOrEmpty(textDateTo.Text)?DateTime.MaxValue:PIn.Date(textDateTo.Text);
-			double filterAmtFrom=textAmountFrom.IsValid()?PIn.Double(textAmountFrom.Text):0;
-			double filterAmtTo=textAmountTo.IsValid()?PIn.Double(textAmountTo.Text):0;
+			DateTime dateFrom=SIn.Date(textDateFrom.Text);
+			DateTime dateTo=string.IsNullOrEmpty(textDateTo.Text)?DateTime.MaxValue:SIn.Date(textDateTo.Text);
+			double filterAmtFrom=textAmountFrom.IsValid()?SIn.Double(textAmountFrom.Text):0;
+			double filterAmtTo=textAmountTo.IsValid()?SIn.Double(textAmountTo.Text):0;
 			if(!isPrinting//we don't refresh when printing
 				|| _listJournalEntries==null) 
 			{
@@ -310,13 +311,13 @@ namespace OpenDental{
 					calendarFrom.SetDate(DateTime.Today);
 				}
 				else{
-					calendarFrom.SetDate(PIn.Date(textDateFrom.Text));
+					calendarFrom.SetDate(SIn.Date(textDateFrom.Text));
 				}
 				if(textDateTo.Text=="") {
 					calendarTo.SetDate(DateTime.Today);
 				}
 				else {
-					calendarTo.SetDate(PIn.Date(textDateTo.Text));
+					calendarTo.SetDate(SIn.Date(textDateTo.Text));
 				}
 			}
 			//show the calendars

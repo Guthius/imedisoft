@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -113,7 +114,7 @@ namespace OpenDental {
 						stringBuilder.AppendLine("  "+listFailedUserUpdates[i].ListUserods[j].UserName+" - "+listFailedUserUpdates[i].ExceptionMessage);
 					}
 				}
-				MessageBox.Show(this,Lans.g(this,"The following users could not be updated:\r\n")+stringBuilder.ToString());
+				ODMessageBox.Show(this,Lans.g(this,"The following users could not be updated:\r\n")+stringBuilder.ToString());
 			}
 			if(hasChanged){
 				DataValid.SetInvalid(InvalidType.Security);

@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness.Remoting;
 
@@ -40,13 +41,13 @@ namespace OpenDental {
 				return;
 			}
 			//Less than one session
-			if(PIn.Int(validNumNewSessions.Text) <= 0) {
+			if(SIn.Int(validNumNewSessions.Text) <= 0) {
 				MsgBox.Show(Lan.g(this,"You cannot have less than 1 session."));
 				return;
 			}
 			//Check against hidden pref
-			int cloudSessionCap=PIn.Int(GetHiddenPrefString(PrefName.CloudSessionLimitCap));
-			if(cloudSessionCap>0 && PIn.Int(validNumNewSessions.Text) > cloudSessionCap) {
+			int cloudSessionCap=SIn.Int(GetHiddenPrefString(PrefName.CloudSessionLimitCap));
+			if(cloudSessionCap>0 && SIn.Int(validNumNewSessions.Text) > cloudSessionCap) {
 				MsgBox.Show(Lan.g(this,"Please contact support to increase the concurrent sessions above")+" "+cloudSessionCap+".");
 				return;
 			}
@@ -60,7 +61,7 @@ namespace OpenDental {
 				return;
 			}
 			//Send data
-			string officeData=PayloadHelper.CreatePayload(PayloadHelper.CreatePayloadContent(PIn.Int(validNumNewSessions.Text),"MaxSessions"),eServiceCode.Undefined);
+			string officeData=PayloadHelper.CreatePayload(PayloadHelper.CreatePayloadContent(SIn.Int(validNumNewSessions.Text),"MaxSessions"),eServiceCode.Undefined);
 			string result;
 			Cursor=Cursors.WaitCursor;
 			try {

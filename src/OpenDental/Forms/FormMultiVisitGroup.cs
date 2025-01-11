@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -69,7 +70,7 @@ namespace OpenDental {
 			long[] longArrayProcNumsAll=new long[gridGroupedProcs.ListGridRows.Count];
 			for(int i=0;i<gridGroupedProcs.ListGridRows.Count;i++) {
 				DataRow row=(DataRow)gridGroupedProcs.ListGridRows[i].Tag;
-				longArrayProcNumsAll[i]=PIn.Long(row["ProcNum"].ToString());
+				longArrayProcNumsAll[i]=SIn.Long(row["ProcNum"].ToString());
 			}
 			List<ProcMultiVisit> listProcMultiVisitsForGroup=ProcMultiVisits.GetGroupsForProcsFromDb(longArrayProcNumsAll);
 			bool isGroupInProcessOld=ProcMultiVisits.IsGroupInProcess(listProcMultiVisitsForGroup);
@@ -78,7 +79,7 @@ namespace OpenDental {
 			long[] longArrayProcNumsSelected=new long[gridGroupedProcs.SelectedIndices.Length];
 			for(int i=0;i<gridGroupedProcs.SelectedIndices.Length;i++) {
 				DataRow row=(DataRow)gridGroupedProcs.ListGridRows[gridGroupedProcs.SelectedIndices[i]].Tag;
-				longArrayProcNumsSelected[i]=PIn.Long(row["ProcNum"].ToString());
+				longArrayProcNumsSelected[i]=SIn.Long(row["ProcNum"].ToString());
 			}
 			bool isInvalid=false;
 			//Get the ProcMultiVisit associated with each procedure
@@ -91,7 +92,7 @@ namespace OpenDental {
 					isInvalid=true;
 				}
 				//Remove the procedure rows from this form
-				ListDataRows.RemoveAll(row => PIn.Long(row["ProcNum"].ToString())==longArrayProcNumsSelected[i]);
+				ListDataRows.RemoveAll(row => SIn.Long(row["ProcNum"].ToString())==longArrayProcNumsSelected[i]);
 			}
 			//Check to see if the group is still in process after removals, updating the pmvs if so
 			bool isGroupInProcess=ProcMultiVisits.IsGroupInProcess(listProcMultiVisitsForGroup);

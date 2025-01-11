@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -321,7 +322,7 @@ namespace OpenDental{
 				if(_listMissingTeeth[i].CompareTo("A") >= 0 && _listMissingTeeth[i].CompareTo("Z") <= 0) {//if is a letter (not a number)
 					continue;//Skipped teeth are only recorded by tooth number within the perio exam.
 				}
-				int toothNum=PIn.Int(_listMissingTeeth[i]);
+				int toothNum=SIn.Int(_listMissingTeeth[i]);
 				//Check if this tooth has had an implant done AND the office has the preference to SHOW implants
 				if(PrefC.GetBool(PrefName.PerioTreatImplantsAsNotMissing) && ContrPerio.IsImplant(toothNum)) {
 					listSkippedTeeth.RemoveAll(x => x==toothNum);//Remove the tooth from the list of skipped teeth if it exists.
@@ -405,7 +406,7 @@ namespace OpenDental{
 		///<summary>The only valid numbers are 0 through 9</summary>
 		private void NumberClicked(int number){
 			if(contrPerio.IdxExamSelected==-1) {
-				MessageBox.Show(Lan.g(this,"Please add or select an exam first in the list to the left."));
+				ODMessageBox.Show(Lan.g(this,"Please add or select an exam first in the list to the left."));
 				return;
 			}
 			if(_isTenDown) {
@@ -478,21 +479,21 @@ namespace OpenDental{
 				perioMeasureUpper.SequenceType=PerioSequenceType.Probing;
 				if(i<8) {//Right side.
 					//Upper tooth default values.
-					perioMeasureUpper.DBvalue=PIn.Int(rowF1[i*3].ToString());
-					perioMeasureUpper.Bvalue= PIn.Int(rowF1[i*3+1].ToString());
-					perioMeasureUpper.MBvalue=PIn.Int(rowF1[i*3+2].ToString());
-					perioMeasureUpper.DLvalue=PIn.Int(rowL1[i*3].ToString());
-					perioMeasureUpper.Lvalue= PIn.Int(rowL1[i*3+1].ToString());
-					perioMeasureUpper.MLvalue=PIn.Int(rowL1[i*3+2].ToString());
+					perioMeasureUpper.DBvalue=SIn.Int(rowF1[i*3].ToString());
+					perioMeasureUpper.Bvalue= SIn.Int(rowF1[i*3+1].ToString());
+					perioMeasureUpper.MBvalue=SIn.Int(rowF1[i*3+2].ToString());
+					perioMeasureUpper.DLvalue=SIn.Int(rowL1[i*3].ToString());
+					perioMeasureUpper.Lvalue= SIn.Int(rowL1[i*3+1].ToString());
+					perioMeasureUpper.MLvalue=SIn.Int(rowL1[i*3+2].ToString());
 				}
 				else {//Left side.
 					//Upper tooth default values.
-					perioMeasureUpper.MBvalue=PIn.Int(rowF1[i*3].ToString());
-					perioMeasureUpper.Bvalue= PIn.Int(rowF1[i*3+1].ToString());
-					perioMeasureUpper.DBvalue=PIn.Int(rowF1[i*3+2].ToString());
-					perioMeasureUpper.MLvalue=PIn.Int(rowL1[i*3].ToString());
-					perioMeasureUpper.Lvalue= PIn.Int(rowL1[i*3+1].ToString());
-					perioMeasureUpper.DLvalue=PIn.Int(rowL1[i*3+2].ToString());
+					perioMeasureUpper.MBvalue=SIn.Int(rowF1[i*3].ToString());
+					perioMeasureUpper.Bvalue= SIn.Int(rowF1[i*3+1].ToString());
+					perioMeasureUpper.DBvalue=SIn.Int(rowF1[i*3+2].ToString());
+					perioMeasureUpper.MLvalue=SIn.Int(rowL1[i*3].ToString());
+					perioMeasureUpper.Lvalue= SIn.Int(rowL1[i*3+1].ToString());
+					perioMeasureUpper.DLvalue=SIn.Int(rowL1[i*3+2].ToString());
 				}
 				listPerioMeasures.Add(perioMeasureUpper);
 			}
@@ -506,20 +507,20 @@ namespace OpenDental{
 				perioMeasureLower.SequenceType=PerioSequenceType.Probing;
 				if(i<8) {
 					//Lower tooth default values.
-					perioMeasureLower.DBvalue=PIn.Int(rowF32[i*3].ToString());
-					perioMeasureLower.Bvalue= PIn.Int(rowF32[i*3+1].ToString());
-					perioMeasureLower.MBvalue=PIn.Int(rowF32[i*3+2].ToString());
-					perioMeasureLower.DLvalue=PIn.Int(rowL32[i*3].ToString());
-					perioMeasureLower.Lvalue= PIn.Int(rowL32[i*3+1].ToString());
-					perioMeasureLower.MLvalue=PIn.Int(rowL32[i*3+2].ToString());
+					perioMeasureLower.DBvalue=SIn.Int(rowF32[i*3].ToString());
+					perioMeasureLower.Bvalue= SIn.Int(rowF32[i*3+1].ToString());
+					perioMeasureLower.MBvalue=SIn.Int(rowF32[i*3+2].ToString());
+					perioMeasureLower.DLvalue=SIn.Int(rowL32[i*3].ToString());
+					perioMeasureLower.Lvalue= SIn.Int(rowL32[i*3+1].ToString());
+					perioMeasureLower.MLvalue=SIn.Int(rowL32[i*3+2].ToString());
 				}
 				else {
-					perioMeasureLower.MBvalue=PIn.Int(rowF32[i*3].ToString());
-					perioMeasureLower.Bvalue= PIn.Int(rowF32[i*3+1].ToString());
-					perioMeasureLower.DBvalue=PIn.Int(rowF32[i*3+2].ToString());
-					perioMeasureLower.MLvalue=PIn.Int(rowL32[i*3].ToString());
-					perioMeasureLower.Lvalue= PIn.Int(rowL32[i*3+1].ToString());
-					perioMeasureLower.DLvalue=PIn.Int(rowL32[i*3+2].ToString());
+					perioMeasureLower.MBvalue=SIn.Int(rowF32[i*3].ToString());
+					perioMeasureLower.Bvalue= SIn.Int(rowF32[i*3+1].ToString());
+					perioMeasureLower.DBvalue=SIn.Int(rowF32[i*3+2].ToString());
+					perioMeasureLower.MLvalue=SIn.Int(rowL32[i*3].ToString());
+					perioMeasureLower.Lvalue= SIn.Int(rowL32[i*3+1].ToString());
+					perioMeasureLower.DLvalue=SIn.Int(rowL32[i*3+2].ToString());
 				}
 				listPerioMeasures.Add(perioMeasureLower);
 			}
@@ -613,13 +614,13 @@ namespace OpenDental{
 				UserOdPrefs.Insert(new UserOdPref() {
 					UserNum=Security.CurUser.UserNum,
 					FkeyType=UserOdFkeyType.PerioCurrentExamOnly,
-					ValueString=POut.Bool(checkShowCurrent.Checked)
+					ValueString=SOut.Bool(checkShowCurrent.Checked)
 				});
 				DataValid.SetInvalid(InvalidType.UserOdPrefs);
 			}
 			else {
 				UserOdPref userOdPrefOld=_userOdPrefCurrentOnly.Clone();
-				_userOdPrefCurrentOnly.ValueString=POut.Bool(checkShowCurrent.Checked);
+				_userOdPrefCurrentOnly.ValueString=SOut.Bool(checkShowCurrent.Checked);
 				if(UserOdPrefs.Update(_userOdPrefCurrentOnly,userOdPrefOld)) {
 					//Only need to signal cache refresh on change.
 					DataValid.SetInvalid(InvalidType.UserOdPrefs);
@@ -630,13 +631,13 @@ namespace OpenDental{
 				UserOdPrefs.Insert(new UserOdPref() {
 					UserNum=Security.CurUser.UserNum,
 					FkeyType=UserOdFkeyType.PerioAutoAdvanceFacialsFirst,
-					ValueString=POut.Bool(radioFacialsFirst.Checked)
+					ValueString=SOut.Bool(radioFacialsFirst.Checked)
 				});
 				DataValid.SetInvalid(InvalidType.UserOdPrefs);
 			}
 			else {
 				UserOdPref userOdPrefOld=userOdPrefAdvance.Clone();
-				userOdPrefAdvance.ValueString=POut.Bool(radioFacialsFirst.Checked);//0=MaxFirst, 1=FacialsFirst
+				userOdPrefAdvance.ValueString=SOut.Bool(radioFacialsFirst.Checked);//0=MaxFirst, 1=FacialsFirst
 				if(UserOdPrefs.Update(userOdPrefAdvance,userOdPrefOld)) {
 					//Only need to signal cache refresh on change.
 					DataValid.SetInvalid(InvalidType.UserOdPrefs);
@@ -687,11 +688,11 @@ namespace OpenDental{
 			RefreshListExams();
 			gridODExam.SetSelected(contrPerio.ListPerioExams.Count-1,true);//this works even if no items.
 			_userOdPrefCurrentOnly=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.PerioCurrentExamOnly).FirstOrDefault();
-			if(_userOdPrefCurrentOnly != null && PIn.Bool(_userOdPrefCurrentOnly.ValueString)) {
+			if(_userOdPrefCurrentOnly != null && SIn.Bool(_userOdPrefCurrentOnly.ValueString)) {
 				checkShowCurrent.Checked=true;
 			}
 			UserOdPref userOdPrefAdvance=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.PerioAutoAdvanceFacialsFirst).FirstOrDefault();
-			if(userOdPrefAdvance!=null && PIn.Bool(userOdPrefAdvance.ValueString)) {
+			if(userOdPrefAdvance!=null && SIn.Bool(userOdPrefAdvance.ValueString)) {
 				radioFacialsFirst.Checked=true;
 				contrPerio.EnumAdvanceSequence_=EnumAdvanceSequence.FacialsFirst;
 			}
@@ -1124,13 +1125,13 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(gridODExam.GetSelectedIndex()==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			if(!Security.IsAuthorized(EnumPermType.PerioEdit,contrPerio.ListPerioExams[gridODExam.GetSelectedIndex()].ExamDate)) {
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete Exam?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+			if(ODMessageBox.Show(Lan.g(this,"Delete Exam?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 				return;
 			}
 			int selectedIndex=gridODExam.GetSelectedIndex();
@@ -1257,7 +1258,7 @@ namespace OpenDental{
 
 		private void butSaveImage_Click(object sender,EventArgs e) {
 			if(this.gridODExam.GetSelectedIndex()<0){
-				MessageBox.Show(Lan.g(this,"Please select an exam first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an exam first."));
 				return;
 			}
 			contrPerio.SaveCurExam(_perioExam);
@@ -1325,7 +1326,7 @@ namespace OpenDental{
 				ImageStore.Import(bitmapPerioPrintImage,defNumCategory,ImageType.Photo,_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Unable to save file. ") + ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to save file. ") + ex.Message);
 				return;
 			}
 			MsgBox.Show(this,"Saved.");
@@ -1358,7 +1359,7 @@ namespace OpenDental{
 
 		private void butSkip_Click(object sender, System.EventArgs e) {
 			if(gridODExam.GetSelectedIndex()<0){//PerioExamCur could still be set to a deleted exam and would not be null even if there is no exam.
-				MessageBox.Show(Lan.g(this,"Please select an exam first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an exam first."));
 				return;
 			}
 			contrPerio.ToggleSkip(_perioExam.PerioExamNum);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
@@ -60,7 +61,7 @@ public class Arrivals
         foreach (long clinicNum in listClinicNums)
         {
             ClinicPref clinicPref = ClinicPrefs.GetPref(PrefName.ApptArrivalUseDefaults, clinicNum);
-            if (clinicPref != null && PIn.Bool(clinicPref.ValueString))
+            if (clinicPref != null && SIn.Bool(clinicPref.ValueString))
             {
                 listRules.AddRange(listRulesDefault.Select(x => x.CopyWithClinicNum(clinicNum)));
             }
@@ -313,7 +314,7 @@ public class Arrivals
         List<ApptResponse> listResponses = new List<ApptResponse>();
         List<long> listConfirmStatusToSkip = PrefC.GetString(PrefName.ApptConfirmExcludeArrivalResponse)
             .Split(",", StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => PIn.Long(x))
+            .Select(x => SIn.Long(x))
             .ToList();
         //It is expected here that all Appointments are for the same clinic.
         var clinic = (listAppts.Any(x => x.ClinicNum == 0)) ? Clinics.GetPracticeAsClinicZero() : Clinics.GetClinic(listAppts.First().ClinicNum);

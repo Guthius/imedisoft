@@ -97,7 +97,7 @@ namespace OpenDental {
 				return;//Since this exception is due to validation failure, do not close the form.  Let the user manually click Cancel so they know what happened.
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show(Lan.g(this,"Count of Subscribers Moved")+": "+countInsSubModified);
+			ODMessageBox.Show(Lan.g(this,"Count of Subscribers Moved")+": "+countInsSubModified);
 			SecurityLogs.MakeLogEntry(EnumPermType.InsPlanChangeSubsc,0,Lan.g(this,"Subscribers Moved from")+" "+_insPlanFrom.PlanNum+" "+Lan.g(this,"to")+" "+_insPlanInto.PlanNum);
 			DialogResult=DialogResult.OK;//Closes the form.
 		}

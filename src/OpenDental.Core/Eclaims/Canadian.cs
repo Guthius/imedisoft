@@ -13,6 +13,7 @@ using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
 using System.Xml;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness.Eclaims {
@@ -562,7 +563,7 @@ namespace OpenDentBusiness.Eclaims {
 					strb.Append(claim.ClaimType=="S"?primaryClaimData.GetFieldById("E16").valuestr:(subscriber2.Language=="fr"?"F":"E"));
 					//E07 sec card sequence/version num 2 N
 					//todo Not validated yet.
-					strb.Append(TidyN(claim.ClaimType=="S"?PIn.Int(primaryClaimData.GetFieldById("E07").valuestr):insPlan2.DentaideCardSequence,2));
+					strb.Append(TidyN(claim.ClaimType=="S"?SIn.Int(primaryClaimData.GetFieldById("E07").valuestr):insPlan2.DentaideCardSequence,2));
 				}
 				//End of secondary subscriber fields---------------------------------------------------------------------------
 			}
@@ -711,8 +712,8 @@ namespace OpenDentBusiness.Eclaims {
 						int lastPredeterminationPageNumber=1;
 						if(claim.PreAuthString!="") {
 							string[] predetermNums=claim.PreAuthString.Split(new char[] { ',' });
-							currentPredeterminationPageNumber=PIn.Int(predetermNums[0]);
-							lastPredeterminationPageNumber=PIn.Int(predetermNums[1]);
+							currentPredeterminationPageNumber=SIn.Int(predetermNums[0]);
+							lastPredeterminationPageNumber=SIn.Int(predetermNums[1]);
 						}
 						//G46 Current Predetermination Page Number N 1
 						strb.Append(Canadian.TidyN(currentPredeterminationPageNumber,1));
@@ -735,10 +736,10 @@ namespace OpenDentBusiness.Eclaims {
 							if(claim.PreAuthString!="") {
 								string[] preauthData=claim.PreAuthString.Split(new char[] { ',' });
 								if(preauthData.Length>2) {
-									firstExamFee=PIn.Double(preauthData[2]);
+									firstExamFee=SIn.Double(preauthData[2]);
 								}
 								if(preauthData.Length>3) {
-									diagnosticPhaseFee=PIn.Double(preauthData[3]);
+									diagnosticPhaseFee=SIn.Double(preauthData[3]);
 								}
 							}
 						}
@@ -977,7 +978,7 @@ namespace OpenDentBusiness.Eclaims {
 				EOBImportHelper(fieldInputter,claimProcsClaim,procListAll,claimProcList,claim,false,showProviderTransferWindow,clearinghouseClin.IsEraDownloadAllowed
 					,planList,benefitList,subList,patient,isAdditive:hasImportedPrimaryEmbeddedEOB);
 				SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate,claim.PatNum
-					,"Claim for service date "+POut.Date(claim.DateService)+" amounts overwritten using received EOB amounts."
+					,"Claim for service date "+SOut.Date(claim.DateService)+" amounts overwritten using received EOB amounts."
 					,LogSources.CanadaEobAutoImport);
 			}
 			CCDField fieldTransRefNum=fieldInputter.GetFieldById("G01");
@@ -1124,7 +1125,7 @@ namespace OpenDentBusiness.Eclaims {
 							EOBImportHelper(fieldInputter2,claimProcsClaim2,procListAll,claimProcList,claim2,false,showProviderTransferWindow,clearinghouseClin.IsEraDownloadAllowed
 								,planList,benefitList,subList,patient);
 							SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate,claim2.PatNum
-								,"Claim for service date "+POut.Date(claim2.DateService)+" amounts overwritten using received EOB amounts."
+								,"Claim for service date "+SOut.Date(claim2.DateService)+" amounts overwritten using received EOB amounts."
 								,LogSources.CanadaEobAutoImport);
 						}
 						if(doPrint && formCCDPrint!=null) {
@@ -1249,23 +1250,23 @@ namespace OpenDentBusiness.Eclaims {
 							break;
 						case "G13"://Deductible Amount
 							if(isPreEob) {
-								SetAmt(ref claimProcCur.DedEst,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+								SetAmt(ref claimProcCur.DedEst,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 							}
 							else {
-								SetAmt(ref claimProcCur.DedApplied,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+								SetAmt(ref claimProcCur.DedApplied,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 							}
 							break;
 						case "G14"://Eligible Percentage
-							SetAmt(ref claimProcCur.Percentage,PIn.Int(RawPercentToDisplayPercent(field.valuestr)),isAdditive);
+							SetAmt(ref claimProcCur.Percentage,SIn.Int(RawPercentToDisplayPercent(field.valuestr)),isAdditive);
 							break;
 						case "G15"://Benefit Amount for the Procedure
 							if(isPreEob) {
-								SetAmt(ref claimProcCur.InsEstTotal,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+								SetAmt(ref claimProcCur.InsEstTotal,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 							}
 							else {
-								SetAmt(ref claimProcCur.InsEstTotalOverride,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);//Set this so if it's not marked received, pat port is still reflected correctly
+								SetAmt(ref claimProcCur.InsEstTotalOverride,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);//Set this so if it's not marked received, pat port is still reflected correctly
 								if(eobBehavior==EraBehaviors.DownloadAndReceive) {
-									SetAmt(ref claimProcCur.InsPayAmt,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcCur.InsPayAmt,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 								}
 							}
 							break;
@@ -1274,32 +1275,32 @@ namespace OpenDentBusiness.Eclaims {
 						case "G56"://Deductible Amount for Lab Proc #1
 							if(claimProcLabOne!=null) {
 								if(isPreEob) {
-									SetAmt(ref claimProcLabOne.DedEst,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcLabOne.DedEst,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 								}
 								else {
-									SetAmt(ref claimProcLabOne.DedApplied,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcLabOne.DedApplied,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 								}
 								continue;
 							}
 							break;
 						case "G57"://Eligible Percentage for Lab Proc #1
 							if(claimProcLabOne!=null) {
-								SetAmt(ref claimProcLabOne.Percentage,PIn.Int(RawPercentToDisplayPercent(field.valuestr)),isAdditive);
+								SetAmt(ref claimProcLabOne.Percentage,SIn.Int(RawPercentToDisplayPercent(field.valuestr)),isAdditive);
 								continue;
 							}
 							break;
 						case "G58"://Benefit Amount for Lab Proc #1
 							if(claimProcLabOne!=null) {
 								if(isPreEob) {
-									SetAmt(ref claimProcLabOne.InsEstTotal,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcLabOne.InsEstTotal,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 									//The following 2 commented out lines should not be necessary as they were taken care of before calling this function.
 									//ClaimProcs.CanadianLabBaseEstHelper(...) ensures that lab procs and parent procs have the same status.
 									//claimProcLabOne.Status=ClaimProcStatus.Preauth;
 								}
 								else {
-									SetAmt(ref claimProcLabOne.InsEstTotalOverride,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);//Set this so if it's not marked received, pat port is still reflected correctly
+									SetAmt(ref claimProcLabOne.InsEstTotalOverride,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);//Set this so if it's not marked received, pat port is still reflected correctly
 									if(eobBehavior==EraBehaviors.DownloadAndReceive){
-										SetAmt(ref claimProcLabOne.InsPayAmt,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+										SetAmt(ref claimProcLabOne.InsPayAmt,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 										claimProcLabOne.Status=ClaimProcStatus.Received;
 										claimProcLabOne.DateCP=DateTime.Today;
 										claimProcLabOne.DateEntry=DateTime.Now;//date it was set rec'd
@@ -1315,32 +1316,32 @@ namespace OpenDentBusiness.Eclaims {
 						case "G59"://Deductible Amount for Lab Proc #2
 							if(claimProcLabTwo!=null) {
 								if(isPreEob) {
-									SetAmt(ref claimProcLabTwo.DedEst,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcLabTwo.DedEst,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 								}
 								else {
-									SetAmt(ref claimProcLabTwo.DedApplied,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcLabTwo.DedApplied,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 								}
 								continue;
 							}
 							break;
 						case "G60"://Eligible Percentage for Lab Proc #2
 							if(claimProcLabTwo!=null) {
-								SetAmt(ref claimProcLabTwo.Percentage,PIn.Int(RawPercentToDisplayPercent(field.valuestr)),isAdditive);
+								SetAmt(ref claimProcLabTwo.Percentage,SIn.Int(RawPercentToDisplayPercent(field.valuestr)),isAdditive);
 								continue;
 							}
 							break;
 						case "G61"://Benefit Amount for Lab Proc #2
 							if(claimProcLabTwo!=null) {
 								if(isPreEob) {
-									SetAmt(ref claimProcLabTwo.InsEstTotal,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+									SetAmt(ref claimProcLabTwo.InsEstTotal,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 									//The following 2 commented out lines should not be necessary as they were taken care of before calling this function.
 									//ClaimProcs.CanadianLabBaseEstHelper(...) ensures that lab procs and parent procs have the same status.
 									//claimProcLabOne.Status=ClaimProcStatus.Preauth;
 								}
 								else {
-									SetAmt(ref claimProcLabTwo.InsEstTotalOverride,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);//Set this so if it's not marked received, pat port is still reflected correctly
+									SetAmt(ref claimProcLabTwo.InsEstTotalOverride,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);//Set this so if it's not marked received, pat port is still reflected correctly
 									if(eobBehavior==EraBehaviors.DownloadAndReceive){
-										SetAmt(ref claimProcLabTwo.InsPayAmt,PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
+										SetAmt(ref claimProcLabTwo.InsPayAmt,SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr)),isAdditive);
 										claimProcLabTwo.Status=ClaimProcStatus.Received;
 										claimProcLabTwo.DateCP=DateTime.Today;
 										claimProcLabTwo.DateEntry=DateTime.Now;//date it was set rec'd
@@ -1353,7 +1354,7 @@ namespace OpenDentBusiness.Eclaims {
 							break;
 						case "G16"://Explanation Note Number 1
 						case "G17"://Explanation Note Number 2
-							int noteNumber=PIn.Int(field.valuestr);
+							int noteNumber=SIn.Int(field.valuestr);
 							if(listNoteFields.ContainsKey(noteNumber)) {
 								if(claimProcCur.Remarks!="") {
 									claimProcCur.Remarks+=",";
@@ -1379,7 +1380,7 @@ namespace OpenDentBusiness.Eclaims {
 			//The fields directly related to the 11114 procedure were all zeroed out (E.g. the Benefit Amount).
 			//However, the 2 carrier issued procedures had fields with value which were linked back to the procedure that was zeroed out.
 			//The G10 section is where the carrier will indicate how many of these new procedures are present within the response.
-			if(PIn.Int(fieldInputter.GetFieldById("G10").valuestr,false)!=0) {//Number of Carrier Issued Procedure Codes
+			if(SIn.Int(fieldInputter.GetFieldById("G10").valuestr,false)!=0) {//Number of Carrier Issued Procedure Codes
 				List<CarrierIssuedProcedure> listCarrierIssuedProcs=new List<CarrierIssuedProcedure>();
 				foreach(List<CCDField> listFieldsCur in fieldInputter.GetCarrierIssuedProcs()) {
 					listCarrierIssuedProcs.Add(new CarrierIssuedProcedure(listFieldsCur,claim,
@@ -1665,7 +1666,7 @@ namespace OpenDentBusiness.Eclaims {
 				}
 			}
 			string officeSequenceNumber=msgText.Substring(12,6);//Field A02. Office Sequence Number is always part of every message type and is always in the same place.
-			int fileNum=PIn.Int(officeSequenceNumber)%1000;
+			int fileNum=SIn.Int(officeSequenceNumber)%1000;
 			//first, delete the result file from previous communication so that no such files can affect the loop logic below.
 			string outputFile=ODFileUtils.CombinePaths(saveFolder,"output."+fileNum.ToString().PadLeft(3,'0'));
 			if(File.Exists(outputFile)) {
@@ -2919,7 +2920,7 @@ namespace OpenDentBusiness.Eclaims {
 						case "G18"://Reference to Line Number of the Submitted Procedure
 							//The value of this field will typically be '0000002' but it has been sent to us like '      2' by some carriers.
 							//The only helpful information from this field are the references to actual line numbers, 1-7.
-							ArrayLineNumbers=Regex.Replace(field.valuestr,"[^1-7]","").Select(x => PIn.Byte(x.ToString())).ToArray();
+							ArrayLineNumbers=Regex.Replace(field.valuestr,"[^1-7]","").Select(x => SIn.Byte(x.ToString())).ToArray();
 							break;
 						case "G19"://Additional Procedure Code
 							listClaimProcNotes.Add(Lans.g("Canadian","Additional Procedure Code")+": "+field.valuestr);
@@ -2927,11 +2928,11 @@ namespace OpenDentBusiness.Eclaims {
 						case "G20"://Eligible Amount
 							break;
 						case "G44"://Eligible Amount for additional Lab procedure
-							double eligibleAmount=PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr));
+							double eligibleAmount=SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr));
 							listClaimProcNotes.Add(Lans.g("Canadian","Lab Procedure Eligible Amount")+": "+eligibleAmount.ToString("N"));
 							break;
 						case "G21"://Deductible
-							Deductible=PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr));
+							Deductible=SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr));
 							listClaimProcNotes.Add(Lans.g("Canadian","Deductible")+": "+Deductible.ToString("N"));
 							if(isPreEob) {
 								ClaimProcByTotal.DedEst=Deductible;
@@ -2941,10 +2942,10 @@ namespace OpenDentBusiness.Eclaims {
 							}
 							break;
 						case "G22"://Eligible percentage
-							ClaimProcByTotal.Percentage=PIn.Int(RawPercentToDisplayPercent(field.valuestr));
+							ClaimProcByTotal.Percentage=SIn.Int(RawPercentToDisplayPercent(field.valuestr));
 							break;
 						case "G23"://Benefit Amount
-							BenefitAmount=PIn.Double(RawMoneyStrToDisplayMoney(field.valuestr));
+							BenefitAmount=SIn.Double(RawMoneyStrToDisplayMoney(field.valuestr));
 							listClaimProcNotes.Add(Lans.g("Canadian","Benefit Amount")+": "+BenefitAmount.ToString("N"));
 							if(isPreEob) {
 								ClaimProcByTotal.InsPayEst=BenefitAmount;
@@ -2958,7 +2959,7 @@ namespace OpenDentBusiness.Eclaims {
 							break;
 						case "G24"://Explanation Note Number 1
 						case "G25"://Explanation Note Number 2
-							int noteNumber=PIn.Int(field.valuestr);
+							int noteNumber=SIn.Int(field.valuestr);
 							if(listNoteFields.ContainsKey(noteNumber)) {
 								listClaimProcNotes.Add(listNoteFields[noteNumber]);//Guarenteed 1 item in list
 							}

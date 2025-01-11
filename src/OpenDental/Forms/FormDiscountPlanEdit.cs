@@ -7,6 +7,7 @@ using CodeBase;
 using OpenDental.UI;
 using System.Drawing;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormDiscountPlanEdit:FormODBase {
@@ -101,7 +102,7 @@ namespace OpenDental {
 				return;
 			}
 			string msgText=Lan.g(this,"Specified Discount Plan will be hidden.  It will no longer be available for assigning, but existing patients on plan will remain.");
-			if(MessageBox.Show(this,msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+			if(ODMessageBox.Show(this,msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 				checkHidden.Checked=false;
 			}
 		}
@@ -117,7 +118,7 @@ namespace OpenDental {
 			if(string.IsNullOrWhiteSpace(textBoxValue)) {
 				return -1;
 			}
-			return PIn.Int(textBoxValue);
+			return SIn.Int(textBoxValue);
 		}
 
 		private string FormatUnlimitedValueToString(int value) {
@@ -200,7 +201,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			DiscountPlanCur.AnnualMax=PIn.Double(textAnnualMax.Text);
+			DiscountPlanCur.AnnualMax=SIn.Double(textAnnualMax.Text);
 			if(string.IsNullOrWhiteSpace(textAnnualMax.Text)) {
 				DiscountPlanCur.AnnualMax=-1;
 			}

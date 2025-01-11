@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -36,7 +38,7 @@ namespace OpenDental {
 			UserOdPref userOdPref=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.WikiSearchIncludeContent).FirstOrDefault();
 			bool doIncludeContent=DO_INCLUDE_CONTENT_DEFAULT;
 			if(userOdPref!=null) {
-				doIncludeContent=PIn.Bool(userOdPref.ValueString);
+				doIncludeContent=SIn.Bool(userOdPref.ValueString);
 			}
 			checkIgnoreContent.Checked=!doIncludeContent;
 			if(string.IsNullOrWhiteSpace(PrefC.GetString(PrefName.ReportingServerDbName))
@@ -76,7 +78,7 @@ namespace OpenDental {
 			catch(Exception ex) {
 				webBrowserWiki.DocumentText="";
 				FriendlyException.Show("This page is broken and cannot be viewed.",ex);
-				if(MessageBox.Show(this,Lan.g(this,"Would you like to edit this wiki page?"),
+				if(ODMessageBox.Show(this,Lan.g(this,"Would you like to edit this wiki page?"),
 					Lan.g(this,"Wiki page content error"),MessageBoxButtons.YesNo)==DialogResult.No)
 				{
 					return;
@@ -202,14 +204,14 @@ namespace OpenDental {
 					UserOdPrefs.Insert(new UserOdPref {
 						UserNum=Security.CurUser.UserNum,
 						FkeyType=UserOdFkeyType.WikiSearchIncludeContent,
-						ValueString=POut.Bool(doIncludeContent),
+						ValueString=SOut.Bool(doIncludeContent),
 					});
 					DataValid.SetInvalid(InvalidType.UserOdPrefs);
 				}
 				return;
 			}
 			UserOdPref userOdPrefOld=userOdPref.Clone();
-			userOdPref.ValueString=POut.Bool(doIncludeContent);
+			userOdPref.ValueString=SOut.Bool(doIncludeContent);
 			if(UserOdPrefs.Update(userOdPref,userOdPrefOld)) {
 				//Only need to signal cache refresh on change.
 				DataValid.SetInvalid(InvalidType.UserOdPrefs);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpInsOverpaid {
@@ -22,7 +23,7 @@ namespace OpenDentBusiness {
 							,SUM(claimproc.InsPayAmt+claimproc.Writeoff) PayAmt
 						FROM claimproc
 						WHERE claimproc.Status IN (1,4,5,7)
-						AND claimproc.ProcDate BETWEEN DATE({POut.Date(dateStart)}) AND DATE({POut.Date(dateEnd)}) ";
+						AND claimproc.ProcDate BETWEEN DATE({SOut.Date(dateStart)}) AND DATE({SOut.Date(dateEnd)}) ";
 			if(listClinicNums.Count>0) {
 				query+=$"AND claimproc.ClinicNum IN({string.Join(",",listClinicNums)}) ";
 			}
@@ -44,7 +45,7 @@ namespace OpenDentBusiness {
 			}
 			query+=$@"
 					INNER JOIN patient ON patient.PatNum=procedurelog.PatNum
-					WHERE procedurelog.ProcDate BETWEEN DATE({POut.Date(dateStart)}) AND DATE({POut.Date(dateEnd)})
+					WHERE procedurelog.ProcDate BETWEEN DATE({SOut.Date(dateStart)}) AND DATE({SOut.Date(dateEnd)})
 						AND procedurelog.ProcStatus=2
 						AND procedurelog.ProcFee>=0 ";
 			if(listClinicNums.Count>0) {

@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -185,8 +186,8 @@ namespace OpenDental {
 			CreditCard creditCard=(CreditCard)gridMain.ListGridRows[e.Row].Tag;
 			using FormCreditCardManage formCreditCardManage=new FormCreditCardManage(Patients.GetPat(creditCard.PatNum));
 			formCreditCardManage.ShowDialog();
-			int totalCCs=PIn.Int(textTotal.Text);
-			int invalidCCs=PIn.Int(textInvalid.Text);
+			int totalCCs=SIn.Int(textTotal.Text);
+			int invalidCCs=SIn.Int(textInvalid.Text);
 			List<CreditCard> listCreditCardsPatNums=CreditCards.Refresh(creditCard.PatNum);
 			gridMain.BeginUpdate();
 			for(int i=gridMain.ListGridRows.Count-1;i>-1;i--) {//loop through backwards and remove any cards that are no longer in the list

@@ -624,7 +624,7 @@ namespace OpenDental {
 				gridForField.Children.Add(borderOverlayFieldHover);
 				if(IsSetupMode){
 					//borderOverlayFieldHover.BorderThickness=new Thickness(1);//not sure why this is here. Probably a mistake.
-					Grid.SetZIndex(borderOverlayFieldHover,2);//in front of the others
+					Panel.SetZIndex(borderOverlayFieldHover,2);//in front of the others
 				}
 				//end of GridForField-----------------------------------------------------------------------------------------------------------------------
 				Border borderBox=new Border();
@@ -644,7 +644,7 @@ namespace OpenDental {
 				}
 				borderBox.Background=Brushes.White;//The drop shadow includes the contents of the border. This hides all of that.
 				borderBox.CornerRadius=new CornerRadius(3);
-				Grid.SetZIndex(borderBox,1);//in front of drop shadow
+				Panel.SetZIndex(borderBox,1);//in front of drop shadow
 				//DropShadowEffect dropShadowEffect=new DropShadowEffect();
 				//dropShadowEffect.ShadowDepth=3;
 				//dropShadowEffect.BlurRadius=7;
@@ -733,7 +733,7 @@ namespace OpenDental {
 				borderDropShadow.Background=//Brushes.Black;
 					linearGradientBrush;
 				//borderDropShadow.CornerRadius=new CornerRadius(topLeft:0,topRight:0,bottomRight:5,bottomLeft:5);
-				Grid.SetZIndex(borderDropShadow,0);
+				Panel.SetZIndex(borderDropShadow,0);
 				if(ListEFormFields[i].Border==EnumEFormBorder.ThreeD
 					&& ListEFormFields[i].FieldType!=EnumEFormFieldType.PageBreak)
 				{
@@ -2180,7 +2180,7 @@ namespace OpenDental {
 			//add a button to delete
 			WpfControls.UI.Button button = new WpfControls.UI.Button();
 			gridForPageBreak.Children.Add(button);//2
-			Grid.SetZIndex(button,3);//bring it in front of the hover border so it's clickable
+			Panel.SetZIndex(button,3);//bring it in front of the hover border so it's clickable
 			//button.Margin=new Thickness(15,0,0,0);
 			button.Icon=WpfControls.UI.EnumIcons.DeleteX;
 			button.Height=24;

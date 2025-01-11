@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Drawing.Printing;
+using DataConnectionBase;
 using OpenDental.UI;
 
 namespace OpenDental {
@@ -140,7 +141,7 @@ namespace OpenDental {
 			}
 			selectedPatNum=0;
 			try {
-				selectedPatNum=PIn.Long(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
+				selectedPatNum=SIn.Long(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
 			}
 			catch { }
 			if(selectedPatNum==0) {

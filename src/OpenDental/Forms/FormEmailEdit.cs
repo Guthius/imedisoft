@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -318,7 +319,7 @@ namespace OpenDental {
 				return fileNameUrl.Url;
 			}
 			string imagePath=ImageStore.GetEmailImagePath();
-			string fullPath=FileAtoZ.CombinePaths(imagePath,POut.String(selectedImgName));
+			string fullPath=FileAtoZ.CombinePaths(imagePath,SOut.String(selectedImgName));
 			byte[] byteArray;
 			byteArray=File.ReadAllBytes(fullPath);
 			IAccountApi iAccountApi=EmailHostingTemplates.GetAccountApi(Clinics.ClinicNum);

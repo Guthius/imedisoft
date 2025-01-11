@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness
 {
@@ -138,15 +139,15 @@ namespace OpenDentBusiness
 				return new Patient();
 			}
 			Patient Lim=new Patient();
-			Lim.PatNum     = PIn.Long  (table.Rows[0][0].ToString());
-			Lim.LName      = PIn.String(table.Rows[0][1].ToString());
-			Lim.FName      = PIn.String(table.Rows[0][2].ToString());
-			Lim.MiddleI    = PIn.String(table.Rows[0][3].ToString());
-			Lim.Preferred  = PIn.String(table.Rows[0][4].ToString());
-			Lim.CreditType = PIn.String(table.Rows[0][5].ToString());
-			Lim.Guarantor  = PIn.Long  (table.Rows[0][6].ToString());
-			Lim.HasIns     = PIn.String(table.Rows[0][7].ToString());
-			Lim.SSN        = PIn.String(table.Rows[0][8].ToString());
+			Lim.PatNum     = SIn.Long  (table.Rows[0][0].ToString());
+			Lim.LName      = SIn.String(table.Rows[0][1].ToString());
+			Lim.FName      = SIn.String(table.Rows[0][2].ToString());
+			Lim.MiddleI    = SIn.String(table.Rows[0][3].ToString());
+			Lim.Preferred  = SIn.String(table.Rows[0][4].ToString());
+			Lim.CreditType = SIn.String(table.Rows[0][5].ToString());
+			Lim.Guarantor  = SIn.Long  (table.Rows[0][6].ToString());
+			Lim.HasIns     = SIn.String(table.Rows[0][7].ToString());
+			Lim.SSN        = SIn.String(table.Rows[0][8].ToString());
 			return Lim;
 		}
 

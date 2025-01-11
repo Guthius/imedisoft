@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
+using CodeBase;
 
 namespace OpenDental {
 	public partial class FormBenefitElectHistory:FormODBase {
@@ -79,7 +80,7 @@ namespace OpenDental {
 			else {
 				string settingErrors271=X271.ValidateSettings();
 				if(settingErrors271!="") {
-					MessageBox.Show(settingErrors271);
+					ODMessageBox.Show(settingErrors271);
 					return;
 				}
 				bool isDependent=(etrans.PatNum!=0 && _subPatNum!=etrans.PatNum);//Old rows will be 0, but when 0 then request was for subscriber.

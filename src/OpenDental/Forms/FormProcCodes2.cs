@@ -795,7 +795,7 @@ namespace OpenDental {
 				}
 				catch {
 					gridMain.ListGridRows[e.Row].Cells[e.Col].Text=feeAmtOld;
-					MessageBox.Show(Lan.g(this,"Please fix data entry error first."));
+					ODMessageBox.Show(Lan.g(this,"Please fix data entry error first."));
 					return;
 				}
 			}
@@ -1188,11 +1188,11 @@ namespace OpenDental {
 				rowsInserted=ImportProcCodes(importFilePath,null,"");
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				FillGrid();
 				return;
 			}
-			MessageBox.Show(Lan.g(this,"Procedure codes inserted")+": "+rowsInserted);
+			ODMessageBox.Show(Lan.g(this,"Procedure codes inserted")+": "+rowsInserted);
 			DataValid.SetInvalid(InvalidType.Defs,InvalidType.ProcCodes);
 			ProcedureCodes.RefreshCache();
 			FillCats();

@@ -4,6 +4,7 @@ using System.Data;
 using System.Reflection;
 using System.Text;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpProcCodes {
@@ -48,7 +49,7 @@ namespace OpenDentBusiness {
 				for(int j=0;j<data.Rows.Count;j++){
 					if(data.Rows[j]["ProcCode"].ToString()==listProcCodes[i].ProcCode) {
 						isFound=true;
-						double amt=PIn.Double(data.Rows[j]["Amount"].ToString());
+						double amt=SIn.Double(data.Rows[j]["Amount"].ToString());
 						if(isCategories) {
 							if(amt==-1) {
 								row[4]="";
@@ -86,9 +87,9 @@ namespace OpenDentBusiness {
 			string command="SELECT procedurecode.ProcCode,fee.Amount,procedurecode.Descript,"
 				+"procedurecode.AbbrDesc FROM procedurecode,fee "
 				+"WHERE procedurecode.CodeNum=fee.CodeNum "
-				+"AND fee.FeeSched='"+POut.Long(feeSchedNum)+"' "
-				+"AND fee.ClinicNum='"+POut.Long(clinicNum)+"' "
-				+"AND fee.ProvNum='"+POut.Long(provNum)+"' "
+				+"AND fee.FeeSched='"+SOut.Long(feeSchedNum)+"' "
+				+"AND fee.ClinicNum='"+SOut.Long(clinicNum)+"' "
+				+"AND fee.ProvNum='"+SOut.Long(provNum)+"' "
 				+"ORDER BY procedurecode.ProcCode";
 			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
 		}

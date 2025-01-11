@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls.UI;
@@ -134,7 +135,7 @@ namespace OpenDental {
 			if(gridMain.GetSelectedIndex()<0 || gridMain.GetSelectedIndex()>=gridMain.ListGridRows.Count) {//adding this check to fix an Index out of Range UE per tasknum:6313708
 				return;
 			}
-			ProvNumSelected=PIn.Long(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
+			ProvNumSelected=SIn.Long(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
 			IsDialogOK=true;
 		}
 
@@ -154,7 +155,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please select a provider first.");
 				return;
 			}
-			ProvNumSelected=PIn.Long(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
+			ProvNumSelected=SIn.Long(gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag.ToString());
 			IsDialogOK=true;
 		}
 

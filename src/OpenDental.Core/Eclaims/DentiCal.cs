@@ -19,6 +19,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.XPath;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using Tamir.SharpSsh.jsch;
 
@@ -60,7 +61,7 @@ namespace OpenDentBusiness.Eclaims {
 				if(!string.IsNullOrEmpty(clearinghouseClin.ClientProgram)) {
 					if(clearinghouseClin.ClientProgram.Contains(":")) {//if the user included the port number
 						remoteHost=clearinghouseClin.ClientProgram.Split(':')[0];
-						remotePort=PIn.Int(clearinghouseClin.ClientProgram.Split(':')[1],false);
+						remotePort=SIn.Int(clearinghouseClin.ClientProgram.Split(':')[1],false);
 						if(remotePort==0) {
 							remotePort=2222;
 						}

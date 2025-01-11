@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormOrthoCase:FormODBase {
@@ -179,19 +180,19 @@ namespace OpenDental {
 				totalCompleted+=_procedureDebond.ProcFeeTotal;
 			}
 			textTotalCompleted.Text=totalCompleted.ToString("f");
-			textTotalRemaining.Text=(_orthoCase.Fee-PIn.Double(textTotalCompleted.Text)).ToString("f");
+			textTotalRemaining.Text=(_orthoCase.Fee-SIn.Double(textTotalCompleted.Text)).ToString("f");
 			textPrimaryInsCompleted.Text=(totalCompleted*_orthoCase.FeeInsPrimary/_orthoCase.Fee).ToString("f");
-			textPrimaryInsRemaining.Text=(_orthoCase.FeeInsPrimary-PIn.Double(textPrimaryInsCompleted.Text)).ToString("f");
+			textPrimaryInsRemaining.Text=(_orthoCase.FeeInsPrimary-SIn.Double(textPrimaryInsCompleted.Text)).ToString("f");
 			textSecondaryInsCompleted.Text=(totalCompleted*_orthoCase.FeeInsSecondary/_orthoCase.Fee).ToString("f");
-			textSecondaryInsRemaining.Text=(_orthoCase.FeeInsSecondary-PIn.Double(textSecondaryInsCompleted.Text)).ToString("f");
-			double insTotalCompleted=PIn.Double(textPrimaryInsCompleted.Text)+PIn.Double(textSecondaryInsCompleted.Text);
+			textSecondaryInsRemaining.Text=(_orthoCase.FeeInsSecondary-SIn.Double(textSecondaryInsCompleted.Text)).ToString("f");
+			double insTotalCompleted=SIn.Double(textPrimaryInsCompleted.Text)+SIn.Double(textSecondaryInsCompleted.Text);
 			textPatCompleted.Text=(totalCompleted-insTotalCompleted).ToString("f");
-			textPatRemaining.Text=(_orthoCase.FeePat-PIn.Double(textPatCompleted.Text)).ToString("f");
+			textPatRemaining.Text=(_orthoCase.FeePat-SIn.Double(textPatCompleted.Text)).ToString("f");
 			//Procedure Breakdown
 			textDebondAmount.Text=_orthoSchedule.DebondAmount.ToString("f");
 			textAllVisitsAmount.Text=(_orthoCase.Fee-_orthoSchedule.BandingAmount-_orthoSchedule.DebondAmount).ToString("f");
 			textDebondPercent.Text=(_orthoSchedule.DebondAmount/_orthoCase.Fee*100).ToString("f");
-			textAllVisitsPercent.Text=(PIn.Double(textAllVisitsAmount.Text)/_orthoCase.Fee*100).ToString("f");
+			textAllVisitsPercent.Text=(SIn.Double(textAllVisitsAmount.Text)/_orthoCase.Fee*100).ToString("f");
 			//Visit Details
 			textVisitAmount.Text=_orthoSchedule.VisitAmount.ToString("f");
 			textVisitPercent.Text=(_orthoSchedule.VisitAmount/_orthoCase.Fee*100).ToString("f");
@@ -211,7 +212,7 @@ namespace OpenDental {
 				labelExpectedDebondDate.Text=Lans.g(this,"Debond Date");
 				labelTreatmentLength.Text=Lans.g(this,"Days of treatment");
 			}
-			textTreatmentLength.Text=(PIn.Date(textExpectedDebondDate.Text)-PIn.Date(textBandingDate.Text)).Days.ToString();
+			textTreatmentLength.Text=(SIn.Date(textExpectedDebondDate.Text)-SIn.Date(textBandingDate.Text)).Days.ToString();
 			EnableControls();
 			_doPreventTextChangedEvent=false;
 		}
@@ -279,17 +280,17 @@ namespace OpenDental {
 				gridOrthoSchedule.ListGridRows.Add(row);
 			}
 			//Add Visits
-			int visitRowCount=Math.Max(PIn.Int(textVisitCountPlanned.Text,false),_listProceduresVisit.Count);
+			int visitRowCount=Math.Max(SIn.Int(textVisitCountPlanned.Text,false),_listProceduresVisit.Count);
 			for(int i=0;i<visitRowCount;i++) {
 				row=new GridRow();
 				row.Cells.Add(Lans.g("TableOrthoSchedule","Visit"));
-				if(i+1<PIn.Int(textVisitCountPlanned.Text,false)) {
-					row.Cells.Add(PIn.Double(textVisitPercent.Text).ToString("f"));
-					row.Cells.Add(PIn.Double(textVisitAmount.Text).ToString("f"));
+				if(i+1<SIn.Int(textVisitCountPlanned.Text,false)) {
+					row.Cells.Add(SIn.Double(textVisitPercent.Text).ToString("f"));
+					row.Cells.Add(SIn.Double(textVisitAmount.Text).ToString("f"));
 				}
-				else if(i+1==PIn.Int(textVisitCountPlanned.Text,false)) {
-					double lastVisitAmount=PIn.Double(textAllVisitsAmount.Text)-i*PIn.Double(textVisitAmount.Text);
-					double lastVisitPercent=lastVisitAmount/PIn.Double(textTotalFee.Text)*100;
+				else if(i+1==SIn.Int(textVisitCountPlanned.Text,false)) {
+					double lastVisitAmount=SIn.Double(textAllVisitsAmount.Text)-i*SIn.Double(textVisitAmount.Text);
+					double lastVisitPercent=lastVisitAmount/SIn.Double(textTotalFee.Text)*100;
 					row.Cells.Add(lastVisitPercent.ToString("f"));
 					row.Cells.Add(lastVisitAmount.ToString("f"));
 				}
@@ -369,55 +370,55 @@ namespace OpenDental {
 
 		#region Leave Methods
 		private void TextTotalFee_Leave(object sender,EventArgs e) {
-			textTotalFee.Text=PIn.Double(textTotalFee.Text).ToString("f");
+			textTotalFee.Text=SIn.Double(textTotalFee.Text).ToString("f");
 		}
 
 		private void TextPrimaryInsuranceFee_Leave(object sender,EventArgs e) {
-			textPrimaryInsuranceFee.Text=PIn.Double(textPrimaryInsuranceFee.Text).ToString("f");
+			textPrimaryInsuranceFee.Text=SIn.Double(textPrimaryInsuranceFee.Text).ToString("f");
 		}
 
 		private void TextSecondaryInsuranceFee_Leave(object sender,EventArgs e) {
-			textSecondaryInsuranceFee.Text=PIn.Double(textSecondaryInsuranceFee.Text).ToString("f");
+			textSecondaryInsuranceFee.Text=SIn.Double(textSecondaryInsuranceFee.Text).ToString("f");
 		}
 
 		private void TextPatientFee_Leave(object sender,EventArgs e) {
-			textPatientFee.Text=PIn.Double(textPatientFee.Text).ToString("f");
+			textPatientFee.Text=SIn.Double(textPatientFee.Text).ToString("f");
 		}
 
 		private void TextBandingAmount_Leave(object sender,EventArgs e) {
-			textBandingAmount.Text=PIn.Double(textBandingAmount.Text).ToString("f");
+			textBandingAmount.Text=SIn.Double(textBandingAmount.Text).ToString("f");
 		}
 
 		private void TextDebondAmount_Leave(object sender,EventArgs e) {
-			textDebondAmount.Text=PIn.Double(textDebondAmount.Text).ToString("f");
+			textDebondAmount.Text=SIn.Double(textDebondAmount.Text).ToString("f");
 		}
 
 		private void TextAllVisitsAmount_Leave(object sender,EventArgs e) {
-			textAllVisitsAmount.Text=PIn.Double(textAllVisitsAmount.Text).ToString("f");
+			textAllVisitsAmount.Text=SIn.Double(textAllVisitsAmount.Text).ToString("f");
 		}
 
 		private void TextBandingPercent_Leave(object sender,EventArgs e) {
-			textBandingPercent.Text=PIn.Double(textBandingPercent.Text).ToString("f");
+			textBandingPercent.Text=SIn.Double(textBandingPercent.Text).ToString("f");
 		}
 
 		private void TextDebondPercent_Leave(object sender,EventArgs e) {
-			textDebondPercent.Text=PIn.Double(textDebondPercent.Text).ToString("f");
+			textDebondPercent.Text=SIn.Double(textDebondPercent.Text).ToString("f");
 		}
 
 		private void TextAllVisitsPercent_Leave(object sender,EventArgs e) {
-			textAllVisitsPercent.Text=PIn.Double(textAllVisitsPercent.Text).ToString("f");
+			textAllVisitsPercent.Text=SIn.Double(textAllVisitsPercent.Text).ToString("f");
 		}
 
 		private void TextVisitCountPlanned_Leave(object sender,EventArgs e) {
-			textVisitCountPlanned.Text=PIn.Int(textVisitCountPlanned.Text,false).ToString();
+			textVisitCountPlanned.Text=SIn.Int(textVisitCountPlanned.Text,false).ToString();
 		}
 
 		private void TextVisitPercent_Leave(object sender,EventArgs e) {
-			textVisitPercent.Text=PIn.Double(textVisitPercent.Text).ToString("f");
+			textVisitPercent.Text=SIn.Double(textVisitPercent.Text).ToString("f");
 		}
 
 		private void TextVisitAmount_Leave(object sender,EventArgs e) {
-			textVisitAmount.Text=PIn.Double(textVisitAmount.Text).ToString("f");
+			textVisitAmount.Text=SIn.Double(textVisitAmount.Text).ToString("f");
 		}
 		#endregion Leave Methods
 
@@ -432,15 +433,15 @@ namespace OpenDental {
 		}
 
 		private void TextPrimaryInsuranceFee_TextChanged(object sender,EventArgs e) {
-			TextFieldChangedHelper(textPrimaryInsuranceFee,PIn.Double(textTotalFee.Text),textPatientFee,FieldType.Fee,textSecondaryInsuranceFee);
+			TextFieldChangedHelper(textPrimaryInsuranceFee,SIn.Double(textTotalFee.Text),textPatientFee,FieldType.Fee,textSecondaryInsuranceFee);
 		}
 
 		private void TextSecondaryInsuranceFee_TextChanged(object sender,EventArgs e) {
-			TextFieldChangedHelper(textSecondaryInsuranceFee,PIn.Double(textTotalFee.Text),textPatientFee,FieldType.Fee,textPrimaryInsuranceFee);
+			TextFieldChangedHelper(textSecondaryInsuranceFee,SIn.Double(textTotalFee.Text),textPatientFee,FieldType.Fee,textPrimaryInsuranceFee);
 		}
 
 		private void TextPatientFee_TextChanged(object sender,EventArgs e) {
-			TextFieldChangedHelper(textPatientFee,PIn.Double(textTotalFee.Text),textPrimaryInsuranceFee,FieldType.Fee,textSecondaryInsuranceFee);
+			TextFieldChangedHelper(textPatientFee,SIn.Double(textTotalFee.Text),textPrimaryInsuranceFee,FieldType.Fee,textSecondaryInsuranceFee);
 		}
 
 		private void TextBandingPercent_TextChanged(object sender,EventArgs e) {
@@ -456,15 +457,15 @@ namespace OpenDental {
 		}
 
 		private void TextBandingAmount_TextChanged(object sender,EventArgs e) {
-			TextFieldChangedHelper(textBandingAmount,PIn.Double(textTotalFee.Text),textBandingPercent,FieldType.Percent);
+			TextFieldChangedHelper(textBandingAmount,SIn.Double(textTotalFee.Text),textBandingPercent,FieldType.Percent);
 		}
 
 		private void TextDebondAmount_TextChanged(object sender,EventArgs e) {
-			TextFieldChangedHelper(textDebondAmount,PIn.Double(textTotalFee.Text),textDebondPercent,FieldType.Percent);
+			TextFieldChangedHelper(textDebondAmount,SIn.Double(textTotalFee.Text),textDebondPercent,FieldType.Percent);
 		}
 
 		private void TextAllVisitsAmount_TextChanged(object sender,EventArgs e) {
-			TextFieldChangedHelper(textAllVisitsAmount,PIn.Double(textTotalFee.Text),textAllVisitsPercent,FieldType.Percent);
+			TextFieldChangedHelper(textAllVisitsAmount,SIn.Double(textTotalFee.Text),textAllVisitsPercent,FieldType.Percent);
 		}
 
 		private void TextVisitCountPlanned_TextChanged(object sender,EventArgs e) {
@@ -472,7 +473,7 @@ namespace OpenDental {
 				return;
 			}
 			_doPreventTextChangedEvent=true;
-			int visitCount=PIn.Int(textVisitCountPlanned.Text,false);
+			int visitCount=SIn.Int(textVisitCountPlanned.Text,false);
 			if(visitCount<0) {
 				textVisitPercent.Text="";
 				textVisitAmount.Text="";
@@ -482,16 +483,16 @@ namespace OpenDental {
 				textVisitPercent.Text=0.ToString();
 				textVisitAmount.Text=0.ToString("f");
 				SetVisitFieldColors(Color.Black);
-				if(PIn.Double(textAllVisitsAmount.Text)!=0) {
+				if(SIn.Double(textAllVisitsAmount.Text)!=0) {
 					textVisitCountPlanned.ForeColor=Color.Red;
 				}
 			}
 			else {
-				double allVisitsAmount=PIn.Double(textAllVisitsAmount.Text);
+				double allVisitsAmount=SIn.Double(textAllVisitsAmount.Text);
 				textVisitAmount.Text=(allVisitsAmount/visitCount).ToString("f");
-				textVisitPercent.Text=(PIn.Double(textVisitAmount.Text)/PIn.Double(textTotalFee.Text)*100).ToString("f");
+				textVisitPercent.Text=(SIn.Double(textVisitAmount.Text)/SIn.Double(textTotalFee.Text)*100).ToString("f");
 				SetVisitFieldColors(Color.Black);
-				if(CompareDouble.IsZero(PIn.Double(textVisitAmount.Text))) {
+				if(CompareDouble.IsZero(SIn.Double(textVisitAmount.Text))) {
 					textVisitPercent.Text="";
 					textVisitAmount.Text="";
 					textVisitCountPlanned.ForeColor=Color.Red;
@@ -506,8 +507,8 @@ namespace OpenDental {
 				return;
 			}
 			_doPreventTextChangedEvent=true;
-			double visitPercent=PIn.Double(textVisitPercent.Text);
-			double allVisitsPercent=PIn.Double(textAllVisitsPercent.Text);
+			double visitPercent=SIn.Double(textVisitPercent.Text);
+			double allVisitsPercent=SIn.Double(textAllVisitsPercent.Text);
 			if(CompareDouble.IsLessThan(visitPercent,0) || CompareDouble.IsGreaterThan(visitPercent,allVisitsPercent)) {
 				textVisitCountPlanned.Text="";
 				textVisitAmount.Text="";
@@ -517,15 +518,15 @@ namespace OpenDental {
 				textVisitCountPlanned.Text="0";
 				textVisitAmount.Text=0.ToString("f");
 				SetVisitFieldColors(Color.Black);
-				if(PIn.Double(textAllVisitsAmount.Text)!=0) {
+				if(SIn.Double(textAllVisitsAmount.Text)!=0) {
 					textVisitPercent.ForeColor=Color.Red;
 				}
 			}
 			else {
-				double totalFee=PIn.Double(textTotalFee.Text);
+				double totalFee=SIn.Double(textTotalFee.Text);
 				textVisitAmount.Text=(totalFee*visitPercent/100).ToString("f");
-				textVisitCountPlanned.Text=OrthoSchedules.CalculatePlannedVisitsCount(PIn.Double(textBandingAmount.Text),PIn.Double(textDebondAmount.Text)
-					,PIn.Double(textVisitAmount.Text),PIn.Double(textTotalFee.Text)).ToString();
+				textVisitCountPlanned.Text=OrthoSchedules.CalculatePlannedVisitsCount(SIn.Double(textBandingAmount.Text),SIn.Double(textDebondAmount.Text)
+					,SIn.Double(textVisitAmount.Text),SIn.Double(textTotalFee.Text)).ToString();
 				SetVisitFieldColors(Color.Black);
 			}
 			RefreshGridOrthoScheduleRows();
@@ -537,8 +538,8 @@ namespace OpenDental {
 				return;
 			}
 			_doPreventTextChangedEvent=true;
-			double visitAmount=PIn.Double(textVisitAmount.Text);
-			double allVisitsAmount=PIn.Double(textAllVisitsAmount.Text);
+			double visitAmount=SIn.Double(textVisitAmount.Text);
+			double allVisitsAmount=SIn.Double(textAllVisitsAmount.Text);
 			if(CompareDouble.IsLessThan(visitAmount,0) || CompareDouble.IsGreaterThan(visitAmount,allVisitsAmount)) {
 				textVisitCountPlanned.Text="";
 				textVisitPercent.Text="";
@@ -548,15 +549,15 @@ namespace OpenDental {
 				textVisitCountPlanned.Text="0";
 				textVisitPercent.Text=0.ToString();
 				SetVisitFieldColors(Color.Black);
-				if(PIn.Double(textAllVisitsAmount.Text)!=0) {
+				if(SIn.Double(textAllVisitsAmount.Text)!=0) {
 					textVisitAmount.ForeColor=Color.Red;
 				}
 			}
 			else {
-				double totalFee=PIn.Double(textTotalFee.Text);
+				double totalFee=SIn.Double(textTotalFee.Text);
 				textVisitPercent.Text=(visitAmount/totalFee*100).ToString("f");
-				textVisitCountPlanned.Text=OrthoSchedules.CalculatePlannedVisitsCount(PIn.Double(textBandingAmount.Text),PIn.Double(textDebondAmount.Text)
-					,PIn.Double(textVisitAmount.Text),PIn.Double(textTotalFee.Text)).ToString();
+				textVisitCountPlanned.Text=OrthoSchedules.CalculatePlannedVisitsCount(SIn.Double(textBandingAmount.Text),SIn.Double(textDebondAmount.Text)
+					,SIn.Double(textVisitAmount.Text),SIn.Double(textTotalFee.Text)).ToString();
 				SetVisitFieldColors(Color.Black);
 			}
 			RefreshGridOrthoScheduleRows();
@@ -580,8 +581,8 @@ namespace OpenDental {
 				return;
 			}
 			_doPreventTextChangedEvent=true;
-			double totalFee=PIn.Double(textTotalFee.Text);
-			double changedFieldNumber=PIn.Double(validDoubleChangedField.Text);
+			double totalFee=SIn.Double(textTotalFee.Text);
+			double changedFieldNumber=SIn.Double(validDoubleChangedField.Text);
 			if(CompareDecimal.IsGreaterThanOrEqualToZero(changedFieldNumber) && changedFieldNumber<=changedFieldLimit) {
 				switch(fieldTypeLinked){
 					case FieldType.Fee:
@@ -699,19 +700,19 @@ namespace OpenDental {
 		}
 
 		private void SetDateFieldColors() {
-			if(PIn.Date(textBandingDate.Text)>PIn.Date(textExpectedDebondDate.Text)) {
+			if(SIn.Date(textBandingDate.Text)>SIn.Date(textExpectedDebondDate.Text)) {
 				textBandingDate.ForeColor=Color.Red;
 				textExpectedDebondDate.ForeColor=Color.Red;
 				return;
 			}
 			textBandingDate.ForeColor=Color.Black;
 			textExpectedDebondDate.ForeColor=Color.Black;
-			textTreatmentLength.Text=(PIn.Date(textExpectedDebondDate.Text)-PIn.Date(textBandingDate.Text)).Days.ToString();
+			textTreatmentLength.Text=(SIn.Date(textExpectedDebondDate.Text)-SIn.Date(textBandingDate.Text)).Days.ToString();
 		}
 
 		private void SetAmountAndFeeFieldColors() {
-			double sumAmountFields=PIn.Double(textBandingAmount.Text)+PIn.Double(textDebondAmount.Text)+PIn.Double(textAllVisitsAmount.Text);
-			if(CompareDouble.IsEqual(sumAmountFields,PIn.Double(textTotalFee.Text))) {
+			double sumAmountFields=SIn.Double(textBandingAmount.Text)+SIn.Double(textDebondAmount.Text)+SIn.Double(textAllVisitsAmount.Text);
+			if(CompareDouble.IsEqual(sumAmountFields,SIn.Double(textTotalFee.Text))) {
 				textBandingAmount.ForeColor=Color.Black;
 				textDebondAmount.ForeColor=Color.Black;
 				textAllVisitsAmount.ForeColor=Color.Black;
@@ -721,8 +722,8 @@ namespace OpenDental {
 				textDebondAmount.ForeColor=Color.Red;
 				textAllVisitsAmount.ForeColor=Color.Red;
 			}
-			double sumFeeFields=PIn.Double(textPrimaryInsuranceFee.Text)+PIn.Double(textSecondaryInsuranceFee.Text)+PIn.Double(textPatientFee.Text);
-			if(CompareDouble.IsEqual(sumFeeFields,PIn.Double(textTotalFee.Text))) {
+			double sumFeeFields=SIn.Double(textPrimaryInsuranceFee.Text)+SIn.Double(textSecondaryInsuranceFee.Text)+SIn.Double(textPatientFee.Text);
+			if(CompareDouble.IsEqual(sumFeeFields,SIn.Double(textTotalFee.Text))) {
 				textPrimaryInsuranceFee.ForeColor=Color.Black;
 				textSecondaryInsuranceFee.ForeColor=Color.Black;
 				textPatientFee.ForeColor=Color.Black;
@@ -814,22 +815,22 @@ namespace OpenDental {
 		}
 
 		private bool HasErrors() {
-			if(PIn.Date(textBandingDate.Text) > PIn.Date(textExpectedDebondDate.Text) && (textBandingDate.Enabled || textExpectedDebondDate.Enabled)) {
+			if(SIn.Date(textBandingDate.Text) > SIn.Date(textExpectedDebondDate.Text) && (textBandingDate.Enabled || textExpectedDebondDate.Enabled)) {
 				MsgBox.Show(this,"Expected Debond Date cannot be earlier than Banding Date.");
 				return true;
 			}
-			double sumFeeFields=PIn.Double(textPrimaryInsuranceFee.Text)+PIn.Double(textSecondaryInsuranceFee.Text)+PIn.Double(textPatientFee.Text);
-			if(!CompareDouble.IsEqual(sumFeeFields,PIn.Double(textTotalFee.Text))) {
+			double sumFeeFields=SIn.Double(textPrimaryInsuranceFee.Text)+SIn.Double(textSecondaryInsuranceFee.Text)+SIn.Double(textPatientFee.Text);
+			if(!CompareDouble.IsEqual(sumFeeFields,SIn.Double(textTotalFee.Text))) {
 				MsgBox.Show(this,"Sum of Patient Portion and insurance fees must equal Total Fee.");
 				return true;
 			}
-			double amountFieldsTotal=PIn.Double(textBandingAmount.Text)+PIn.Double(textDebondAmount.Text)+PIn.Double(textAllVisitsAmount.Text);
-			if(!(CompareDouble.IsEqual(amountFieldsTotal,PIn.Double(textTotalFee.Text)))) {
+			double amountFieldsTotal=SIn.Double(textBandingAmount.Text)+SIn.Double(textDebondAmount.Text)+SIn.Double(textAllVisitsAmount.Text);
+			if(!(CompareDouble.IsEqual(amountFieldsTotal,SIn.Double(textTotalFee.Text)))) {
 				MsgBox.Show(this,"Sum of Banding, Debond, and All Visits amounts must equal the Total Fee.");
 				return true;
 			}
-			if(CompareDouble.IsGreaterThan(PIn.Double(textVisitAmount.Text),PIn.Double(textAllVisitsAmount.Text)) 
-				|| PIn.Double(textVisitPercent.Text)>PIn.Double(textAllVisitsPercent.Text)) 
+			if(CompareDouble.IsGreaterThan(SIn.Double(textVisitAmount.Text),SIn.Double(textAllVisitsAmount.Text)) 
+				|| SIn.Double(textVisitPercent.Text)>SIn.Double(textAllVisitsPercent.Text)) 
 			{
 				MsgBox.Show(this,"Percent or amount per visit cannot exceed percent or amount for all visits.");
 				return true;
@@ -857,7 +858,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return true;
 			}
-			if(PIn.Int(textVisitCountPlanned.Text,false)<1 && PIn.Double(textAllVisitsAmount.Text)!=0) {
+			if(SIn.Int(textVisitCountPlanned.Text,false)<1 && SIn.Double(textAllVisitsAmount.Text)!=0) {
 				MsgBox.Show(this,"Number of Visits cannot be zero if an amount is entered for All Visits.");
 				return true;
 			}
@@ -908,7 +909,7 @@ namespace OpenDental {
 					_orthoPlanLinkPatPayPlan=null;
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}
@@ -960,15 +961,15 @@ namespace OpenDental {
 
 		private void UpdateOrthoCase() {
 			//OrthoCase
-			_orthoCase.Fee=PIn.Double(textTotalFee.Text);
-			_orthoCase.FeeInsPrimary=PIn.Double(textPrimaryInsuranceFee.Text);
-			_orthoCase.FeeInsSecondary=PIn.Double(textSecondaryInsuranceFee.Text);
-			_orthoCase.FeePat=PIn.Double(textPatientFee.Text);
-			_orthoCase.BandingDate=PIn.Date(textBandingDate.Text);
+			_orthoCase.Fee=SIn.Double(textTotalFee.Text);
+			_orthoCase.FeeInsPrimary=SIn.Double(textPrimaryInsuranceFee.Text);
+			_orthoCase.FeeInsSecondary=SIn.Double(textSecondaryInsuranceFee.Text);
+			_orthoCase.FeePat=SIn.Double(textPatientFee.Text);
+			_orthoCase.BandingDate=SIn.Date(textBandingDate.Text);
 			_orthoCase.IsTransfer=checkIsTransfer.Checked;
 			//If we don't have a debond proc, user may have updated the expected debond date and we may need to set debond date back to min value.
 			if(_procedureDebond==null) {
-				_orthoCase.DebondDateExpected=PIn.Date(textExpectedDebondDate.Text);
+				_orthoCase.DebondDateExpected=SIn.Date(textExpectedDebondDate.Text);
 				_orthoCase.DebondDate=DateTime.MinValue;
 			}
 			if(checkIsTransfer.Checked && _orthoProcLinkBanding!=null) {//OrthoCase has been changed to a transfer. Delete banding proc link if it exists.
@@ -995,9 +996,9 @@ namespace OpenDental {
 			}
 			OrthoCases.Update(_orthoCase,_orthoCaseOld);
 			//OrthoSchedule
-			_orthoSchedule.BandingAmount=PIn.Double(textBandingAmount.Text);
-			_orthoSchedule.DebondAmount=PIn.Double(textDebondAmount.Text);
-			_orthoSchedule.VisitAmount=PIn.Double(textVisitAmount.Text);
+			_orthoSchedule.BandingAmount=SIn.Double(textBandingAmount.Text);
+			_orthoSchedule.DebondAmount=SIn.Double(textDebondAmount.Text);
+			_orthoSchedule.VisitAmount=SIn.Double(textVisitAmount.Text);
 			OrthoSchedules.Update(_orthoSchedule,_orthoScheduleOld);
 			OrthoPlanLinks.Update(_orthoPlanLinkSchedule,_orthoPlanLinkScheduleOld);
 		}
@@ -1010,12 +1011,12 @@ namespace OpenDental {
 				//Ortho Case
 				OrthoCase orthoCaseNew=new OrthoCase();
 				orthoCaseNew.PatNum=_patient.PatNum;
-				orthoCaseNew.Fee=PIn.Double(textTotalFee.Text);
-				orthoCaseNew.FeeInsPrimary=PIn.Double(textPrimaryInsuranceFee.Text);
-				orthoCaseNew.FeeInsSecondary=PIn.Double(textSecondaryInsuranceFee.Text);
-				orthoCaseNew.FeePat=PIn.Double(textPatientFee.Text);
-				orthoCaseNew.BandingDate=PIn.Date(textBandingDate.Text);
-				orthoCaseNew.DebondDateExpected=PIn.Date(textExpectedDebondDate.Text);
+				orthoCaseNew.Fee=SIn.Double(textTotalFee.Text);
+				orthoCaseNew.FeeInsPrimary=SIn.Double(textPrimaryInsuranceFee.Text);
+				orthoCaseNew.FeeInsSecondary=SIn.Double(textSecondaryInsuranceFee.Text);
+				orthoCaseNew.FeePat=SIn.Double(textPatientFee.Text);
+				orthoCaseNew.BandingDate=SIn.Date(textBandingDate.Text);
+				orthoCaseNew.DebondDateExpected=SIn.Date(textExpectedDebondDate.Text);
 				orthoCaseNew.IsTransfer=checkIsTransfer.Checked;
 				orthoCaseNew.SecUserNumEntry=Security.CurUser.UserNum;
 				orthoCaseNew.IsActive=true;//New Ortho Cases can only be added if there are no other active ones. So we automatically set a new ortho case as active.
@@ -1026,9 +1027,9 @@ namespace OpenDental {
 				_orthoCase=orthoCaseNew;
 				//Ortho Schedule
 				OrthoSchedule orthoScheduleNew=new OrthoSchedule();
-				orthoScheduleNew.BandingAmount=PIn.Double(textBandingAmount.Text);
-				orthoScheduleNew.DebondAmount=PIn.Double(textDebondAmount.Text);
-				orthoScheduleNew.VisitAmount=PIn.Double(textVisitAmount.Text);
+				orthoScheduleNew.BandingAmount=SIn.Double(textBandingAmount.Text);
+				orthoScheduleNew.DebondAmount=SIn.Double(textDebondAmount.Text);
+				orthoScheduleNew.VisitAmount=SIn.Double(textVisitAmount.Text);
 				orthoScheduleNew.IsActive=true;
 				long orthoScheduleNum=OrthoSchedules.Insert(orthoScheduleNew);
 				//Ortho Plan Link
@@ -1077,7 +1078,7 @@ namespace OpenDental {
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}

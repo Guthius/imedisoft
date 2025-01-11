@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -466,7 +467,7 @@ namespace OpenDental {
 				textAdjPaidHere.Text="";
 			}
 			else{
-				textAdjPaidHere.Text=PIn.Double(textAmount.Text).ToString("F");//How much is used here
+				textAdjPaidHere.Text=SIn.Double(textAmount.Text).ToString("F");//How much is used here
 			}
 			ComputeTotals();
 			butAttachAdjust.Enabled=false;
@@ -496,8 +497,8 @@ namespace OpenDental {
 			double procPaidHere=0;
 			double adjPaidHere=0;
 			if(textAmount.IsValid()){
-				procPaidHere=-PIn.Double(textAmount.Text);
-				adjPaidHere=+PIn.Double(textAmount.Text);	
+				procPaidHere=-SIn.Double(textAmount.Text);
+				adjPaidHere=+SIn.Double(textAmount.Text);	
 			}
 			if(procPaidHere==0){
 				textProcPaidHere.Text="";
@@ -511,7 +512,7 @@ namespace OpenDental {
 			labelProcRemain.Text="";
 			_remainAmt=0;
 			if(_procedure!=null) {
-				_remainAmt=_patPort+(decimal)procPaidHere+PIn.Decimal(textProcPrevPaid.Text);
+				_remainAmt=_patPort+(decimal)procPaidHere+SIn.Decimal(textProcPrevPaid.Text);
 				labelProcRemain.Text=_remainAmt.ToString("c");
 			}
 			else if(_adjustment!=null) {
@@ -582,7 +583,7 @@ namespace OpenDental {
 		private void butAttachAdjust_Click(object sender,EventArgs e) {
 			List<Adjustment> listAdjustmentsPat=Adjustments.GetAdjustForPats(new List<long>() { PaySplitCur.PatNum });
 			List<PaySplit> listPaySplitsAdj=PaySplits.GetForAdjustments(listAdjustmentsPat.Select(x => x.AdjNum).ToList());
-			using FormAdjustSelect formAdjustSelect=new FormAdjustSelect(PIn.Double(textAmount.Text),PaySplitCur,ListPaySplits,listAdjustmentsPat,listPaySplitsAdj);
+			using FormAdjustSelect formAdjustSelect=new FormAdjustSelect(SIn.Double(textAmount.Text),PaySplitCur,ListPaySplits,listAdjustmentsPat,listPaySplitsAdj);
 			if(formAdjustSelect.ShowDialog()!=DialogResult.OK) {
 				return;
 			}
@@ -774,7 +775,7 @@ namespace OpenDental {
 					PaySplitCur.ProvNum=0;
 				}
 			}
-			double amount=PIn.Double(textAmount.Text);
+			double amount=SIn.Double(textAmount.Text);
 			if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully && PaySplitCur.UnearnedType!=0 && _procedure!=null 
 				&& !_isEditAnyway && _procedure.ProcStatus!=ProcStat.TP) 
 			{
@@ -827,8 +828,8 @@ namespace OpenDental {
 			if(!IsValid()) {
 				return;
 			}
-			double amount=PIn.Double(textAmount.Text);
-			PaySplitCur.DatePay=PIn.Date(textDatePay.Text);//gets overwritten anyway
+			double amount=SIn.Double(textAmount.Text);
+			PaySplitCur.DatePay=SIn.Date(textDatePay.Text);//gets overwritten anyway
 			PaySplitCur.SplitAmt=amount;
 			PaySplitCur.ProcNum=_procedure == null ? 0 : _procedure.ProcNum;
 			PaySplitCur.AdjNum=_adjustment == null ? 0 : _adjustment.AdjNum;

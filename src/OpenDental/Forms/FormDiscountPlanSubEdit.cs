@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -107,8 +108,8 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			DiscountPlanSubCur.DateEffective=PIn.Date(textDateEffective.Text);
-			DiscountPlanSubCur.DateTerm=PIn.Date(textDateTerm.Text);
+			DiscountPlanSubCur.DateEffective=SIn.Date(textDateEffective.Text);
+			DiscountPlanSubCur.DateTerm=SIn.Date(textDateTerm.Text);
 			DiscountPlanSubCur.DiscountPlanNum=DiscountPlanCur.DiscountPlanNum;
 			if(DiscountPlanSubCur.DiscountPlanNum==0) {//some customers have been getting discountplansub rows with a discountplannum of 0, this should never happen.
 				MsgBox.Show(this,"Invald plan. Please select another plan.");

@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -103,10 +104,10 @@ namespace OpenDental {
 				MessageBox.Show(ex.Message);
 				return;
 			}
-			MountItemCur.Xpos=PIn.Int(textXpos.Text);
-			MountItemCur.Ypos=PIn.Int(textYpos.Text);
-			MountItemCur.Width=PIn.Int(textWidth.Text);
-			MountItemCur.Height=PIn.Int(textHeight.Text);
+			MountItemCur.Xpos=SIn.Int(textXpos.Text);
+			MountItemCur.Ypos=SIn.Int(textYpos.Text);
+			MountItemCur.Width=SIn.Int(textWidth.Text);
+			MountItemCur.Height=SIn.Int(textHeight.Text);
 			MountItemCur.RotateOnAcquire=textRotate.Value;
 			MountItemCur.TextShowing=textTextShowing.Text;
 			MountItemCur.FontSize=(float)textFontSize.Value;

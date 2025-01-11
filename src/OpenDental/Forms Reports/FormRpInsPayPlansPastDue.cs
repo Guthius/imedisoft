@@ -10,6 +10,7 @@ using OpenDental.UI;
 using System.Drawing.Printing;
 using System.IO;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.Thinfinity;
 
@@ -81,7 +82,7 @@ namespace OpenDental {
 		///<summary>Actually fill the grid with the data. Filtering based on the user-defined criteria gets done here.</summary>
 		private void FillGrid() {
 			//get the user-entered filter values.
-			int daysPassedFilter=PIn.Int(textDaysPastDue.Text,false); //returns 0 if exceptions are thrown.
+			int daysPassedFilter=SIn.Int(textDaysPastDue.Text,false); //returns 0 if exceptions are thrown.
 			List<long> listProvNums=comboProvs.GetSelectedProvNums();
 			//fill the grid
 			gridMain.BeginUpdate();
@@ -247,11 +248,11 @@ namespace OpenDental {
 				}
 			}
 			catch {
-				MessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
+				ODMessageBox.Show(Lan.g(this,"File in use by another program.  Close and try again."));
 				return;
 			}
 
-			MessageBox.Show(Lan.g(this,"File created successfully"));
+			ODMessageBox.Show(Lan.g(this,"File created successfully"));
 		}
 
 		///<summary>Class that contains a singular payment plan and all relevant information to be displayed in the grid.

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -95,7 +96,7 @@ namespace OpenDentBusiness.HL7 {
 				else if(hl7defmsg.ListHL7DefSegments[pidDefOrder].hl7DefFields[f].FieldName=="pat.PatNum") {
 					int patNumOrdinal=hl7defmsg.ListHL7DefSegments[pidDefOrder].hl7DefFields[f].OrdinalPos;
 					try {
-						patNum=PIn.Long(msg.Segments[pidOrder].GetField(patNumOrdinal).ToString());
+						patNum=SIn.Long(msg.Segments[pidOrder].GetField(patNumOrdinal).ToString());
 					}
 					catch(Exception ex) {
 						//do nothing, patNum will remain 0
@@ -135,7 +136,7 @@ namespace OpenDentBusiness.HL7 {
 					{
 						int checkDigit=-1;
 						try {
-							checkDigit=PIn.Int(fieldPatIds.GetComponentVal(1));
+							checkDigit=SIn.Int(fieldPatIds.GetComponentVal(1));
 						}
 						catch(Exception ex) {
 							//checkDigit will remain -1
@@ -152,7 +153,7 @@ namespace OpenDentBusiness.HL7 {
 						{
 							if(arrayPatIdSubComps[1].ToLower()==patOIDRoot.ToLower()) {
 								try {
-									patNumFromIds=PIn.Long(fieldPatIds.GetComponentVal(0));
+									patNumFromIds=SIn.Long(fieldPatIds.GetComponentVal(0));
 								}
 								catch(Exception ex) {
 									//do nothing, patNumFromList will remain 0
@@ -182,7 +183,7 @@ namespace OpenDentBusiness.HL7 {
 						}
 						int checkDigit=-1;
 						try {
-							checkDigit=PIn.Int(fieldPatIds.ListRepeatFields[r].GetComponentVal(1));
+							checkDigit=SIn.Int(fieldPatIds.ListRepeatFields[r].GetComponentVal(1));
 						}
 						catch(Exception ex) {
 							//checkDigit will remain -1
@@ -201,7 +202,7 @@ namespace OpenDentBusiness.HL7 {
 						if(arrayPatIdSubComps[1]==patOIDRoot.ToLower()) {
 							if(patNumFromIds==0) {
 								try {
-									patNumFromIds=PIn.Long(fieldPatIds.ListRepeatFields[r].GetComponentVal(0));
+									patNumFromIds=SIn.Long(fieldPatIds.ListRepeatFields[r].GetComponentVal(0));
 								}
 								catch(Exception ex) {
 									//do nothing, patNumFromList will remain 0
@@ -314,7 +315,7 @@ namespace OpenDentBusiness.HL7 {
 					pat.Guarantor=patNumFromExtIds;
 				}
 				pat.PriProv=PrefC.GetLong(PrefName.PracticeDefaultProv);
-				pat.BillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
+				pat.BillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
 			}
 			else {
 				patOld=pat.Copy();
@@ -337,7 +338,7 @@ namespace OpenDentBusiness.HL7 {
 					if(hl7defmsg.ListHL7DefSegments[i].hl7DefFields[j].FieldName=="apt.AptNum") {
 						int aptNumOrdinal=hl7defmsg.ListHL7DefSegments[i].hl7DefFields[j].OrdinalPos;
 						try {
-							aptNum=PIn.Long(msg.Segments[segOrder].GetFieldComponent(aptNumOrdinal,0).ToString());
+							aptNum=SIn.Long(msg.Segments[segOrder].GetFieldComponent(aptNumOrdinal,0).ToString());
 						}
 						catch(Exception ex) {//PIn.Long will throw an exception if a value is not able to be parsed into a long
 							//do nothing, aptNum will remain 0
@@ -740,7 +741,7 @@ namespace OpenDentBusiness.HL7 {
 							return;
 						}
 						try {
-							rxnorm=PIn.Long(seg.GetFieldComponent(intItemOrder,0));
+							rxnorm=SIn.Long(seg.GetFieldComponent(intItemOrder,0));
 						}
 						catch(Exception ex) {//PIn.Long throws an exception if converting to an Int64 fails
 							//do nothing, rxnorm will remain 0
@@ -794,7 +795,7 @@ namespace OpenDentBusiness.HL7 {
 						continue;
 					case "apt.AptNum":
 						try {
-							aptNum=PIn.Long(seg.GetFieldComponent(intItemOrder,0));
+							aptNum=SIn.Long(seg.GetFieldComponent(intItemOrder,0));
 						}
 						catch(Exception ex) {
 							//do nothing, aptNum will remain 0
@@ -907,7 +908,7 @@ namespace OpenDentBusiness.HL7 {
 			List<OIDExternal> listOids=new List<OIDExternal>();
 			if(guarPatNumOrdinal!=-1) {
 				try {
-					guarPatNum=PIn.Long(seg.GetFieldFullText(guarPatNumOrdinal));
+					guarPatNum=SIn.Long(seg.GetFieldFullText(guarPatNumOrdinal));
 				}
 				catch(Exception ex) {
 					//do nothing, guarPatNum will remain 0
@@ -926,7 +927,7 @@ namespace OpenDentBusiness.HL7 {
 				{
 					int intCheckDigit=-1;
 					try {
-						intCheckDigit=PIn.Int(fieldGuarIds.GetComponentVal(1));
+						intCheckDigit=SIn.Int(fieldGuarIds.GetComponentVal(1));
 					}
 					catch(Exception ex) {
 						//checkDigit will remain -1
@@ -944,7 +945,7 @@ namespace OpenDentBusiness.HL7 {
 					{
 						if(arrayGuarIdSubComps[1].ToLower()==patOidRoot.ToLower()) {
 							try {
-								guarPatNumFromIds=PIn.Long(fieldGuarIds.GetComponentVal(0));
+								guarPatNumFromIds=SIn.Long(fieldGuarIds.GetComponentVal(0));
 							}
 							catch(Exception ex) {
 								//do nothing, guarPatNumFromList will remain 0
@@ -970,7 +971,7 @@ namespace OpenDentBusiness.HL7 {
 					}
 					int intCheckDigit=-1;
 					try {
-						intCheckDigit=PIn.Int(fieldGuarIds.ListRepeatFields[r].GetComponentVal(1));
+						intCheckDigit=SIn.Int(fieldGuarIds.ListRepeatFields[r].GetComponentVal(1));
 					}
 					catch(Exception ex) {
 						//checkDigit will remain -1
@@ -988,7 +989,7 @@ namespace OpenDentBusiness.HL7 {
 					//if not using the M10 or M11 check digit scheme or if the check digit is good, trust the ID in component 0 to be valid and attempt to use
 					if(arrayGuarIdSubComps[1].ToLower()==patOidRoot.ToLower()) {
 						try {
-							guarPatNumFromIds=PIn.Long(fieldGuarIds.ListRepeatFields[r].GetComponentVal(0));
+							guarPatNumFromIds=SIn.Long(fieldGuarIds.ListRepeatFields[r].GetComponentVal(0));
 						}
 						catch(Exception ex) {
 							//do nothing, guarPatNumFromList will remain 0
@@ -1090,7 +1091,7 @@ namespace OpenDentBusiness.HL7 {
 					guar.Guarantor=guarExtPatNum;
 				}
 				guar.PriProv=PrefC.GetLong(PrefName.PracticeDefaultProv);
-				guar.BillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
+				guar.BillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,Clinics.ClinicNum));
 			}
 			else {
 				guarOld=guar.Copy();
@@ -1329,7 +1330,7 @@ namespace OpenDentBusiness.HL7 {
 							return;
 						}
 						try {
-							rxnorm=PIn.Long(seg.GetFieldComponent(intItemOrder,0));
+							rxnorm=SIn.Long(seg.GetFieldComponent(intItemOrder,0));
 						}
 						catch(Exception ex) {//PIn.Long throws an exception if converting to an Int64 fails
 							//do nothing, rxnorm will remain 0
@@ -1483,7 +1484,7 @@ namespace OpenDentBusiness.HL7 {
 						//if field component is a valid number and the patient located is not the same as the patient with the PatNum in the segment, then throw the exception, message will fail.
 						long patNumFromPid=0;
 						try {
-							patNumFromPid=PIn.Long(seg.GetFieldComponent(itemOrder));
+							patNumFromPid=SIn.Long(seg.GetFieldComponent(itemOrder));
 						}
 						catch(Exception ex) {
 							//do nothing, patNumFromPID will remain 0
@@ -1567,7 +1568,7 @@ namespace OpenDentBusiness.HL7 {
 						{
 							int intCheckDigit=-1;
 							try {
-								intCheckDigit=PIn.Int(fieldCur.GetComponentVal(1));
+								intCheckDigit=SIn.Int(fieldCur.GetComponentVal(1));
 							}
 							catch(Exception ex) {
 								//checkDigit will remain -1
@@ -1609,7 +1610,7 @@ namespace OpenDentBusiness.HL7 {
 							}
 							int intCheckDigit=-1;
 							try {
-								intCheckDigit=PIn.Int(fieldCur.ListRepeatFields[r].GetComponentVal(1));
+								intCheckDigit=SIn.Int(fieldCur.ListRepeatFields[r].GetComponentVal(1));
 							}
 							catch(Exception ex) {
 								//checkDigit will remain -1
@@ -1920,7 +1921,7 @@ namespace OpenDentBusiness.HL7 {
 				EventLog.WriteEntry("OpenDentHL7","The PRB segment was not processed.  The action codes supported are 'AD' for add or 'UP' for update.",EventLogEntryType.Information);
 				return;
 			}
-			long probDefNum=DiseaseDefs.GetNumFromSnomed(PIn.String(seg.GetFieldComponent(probCodeOrder,0)));
+			long probDefNum=DiseaseDefs.GetNumFromSnomed(SIn.String(seg.GetFieldComponent(probCodeOrder,0)));
 			//The problem must be a SNOMEDCT code, identified by the coding system table 0396 value "SNM" in component 3 of the CWE problem code field
 			//There must be a disease def setup with the SNOMEDCT code in the problem list or we will ignore this problem
 			if(seg.GetFieldComponent(probCodeOrder,2).ToLower()!="snm" || probDefNum==0) {
@@ -2030,7 +2031,7 @@ namespace OpenDentBusiness.HL7 {
 					case "pat.GradeLevel":
 						int intGradeLevel=0;
 						try {
-							intGradeLevel=PIn.Int(seg.GetFieldComponent(itemOrder));
+							intGradeLevel=SIn.Int(seg.GetFieldComponent(itemOrder));
 						}
 						catch(Exception ex) {
 							//if parsing field to int fails, do nothing
@@ -2092,7 +2093,7 @@ namespace OpenDentBusiness.HL7 {
 					case "pat.Urgency":
 						int intPatUrgency=-1;
 						try {
-							intPatUrgency=PIn.Int(seg.GetFieldComponent(itemOrder));//if field is empty, PIn.Int will return 0 which will be the Unknown default urgency
+							intPatUrgency=SIn.Int(seg.GetFieldComponent(itemOrder));//if field is empty, PIn.Int will return 0 which will be the Unknown default urgency
 						}
 						catch(Exception ex) {
 							//do nothing, patUrgency will remain -1
@@ -2142,7 +2143,7 @@ namespace OpenDentBusiness.HL7 {
 				switch(segDef.hl7DefFields[i].FieldName) {
 					case "apt.AptNum":
 						try {
-							aptNum=PIn.Long(seg.GetFieldComponent(itemOrder));
+							aptNum=SIn.Long(seg.GetFieldComponent(itemOrder));
 						}
 						catch(Exception ex) {
 							//do nothing, aptNum will remain 0
@@ -2253,7 +2254,7 @@ namespace OpenDentBusiness.HL7 {
 			int[] arrayIds=new int[objectId.Length];
 			for(int i=0;i<objectId.Length;i++) {
 				try {
-					arrayIds[objectId.Length-(1+i)]=PIn.Int(objectId[i].ToString());
+					arrayIds[objectId.Length-(1+i)]=SIn.Int(objectId[i].ToString());
 				}
 				catch {
 					//if a character in the patId is not an integer, return false
@@ -2302,7 +2303,7 @@ namespace OpenDentBusiness.HL7 {
 						idIntsOddPos+=arrayPatIdCharsReversed[i];
 					}
 					else {//if i is odd then even positioned digit. e.g. patId=1234, patIdCharsReversed=4321, if i=1, digit=3 which is the second digit from the right, so even positioned
-						step4Tot+=PIn.Int(arrayPatIdCharsReversed[i].ToString());
+						step4Tot+=SIn.Int(arrayPatIdCharsReversed[i].ToString());
 					}
 				}
 				catch {
@@ -2311,7 +2312,7 @@ namespace OpenDentBusiness.HL7 {
 			}
 			string oddDigitsDoubled;
 			try {
-				oddDigitsDoubled=(PIn.Long(idIntsOddPos)*2).ToString();
+				oddDigitsDoubled=(SIn.Long(idIntsOddPos)*2).ToString();
 			}
 			catch {
 				//if unable to convert the odd positioned chars to a long or any other error in above calculation and translation, return false.
@@ -2319,7 +2320,7 @@ namespace OpenDentBusiness.HL7 {
 			}
 			for(int i=0;i<oddDigitsDoubled.Length;i++) {
 				try {
-					step4Tot+=PIn.Int(oddDigitsDoubled[i].ToString());
+					step4Tot+=SIn.Int(oddDigitsDoubled[i].ToString());
 				}
 				catch {
 					//if any of the chars can't be converted to integers (shouldn't be possible) return false.

@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSheetFieldPatImage:FormODBase {
@@ -70,10 +71,10 @@ namespace OpenDental {
 				return;
 			}
 			SheetFieldDefCur.FieldName=_listDefsImageCat[comboImageCategory.SelectedIndex].DefNum.ToString();
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			//don't save to database here.
 			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;

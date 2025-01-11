@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -61,7 +62,7 @@ namespace OpenDental {
 				checkAsapPromptEnabled.Checked=PrefC.GetBool(PrefName.AsapPromptEnabled);
 			}
 			else {
-				checkAsapPromptEnabled.Checked=PIn.Bool(clinicPref.ValueString);
+				checkAsapPromptEnabled.Checked=SIn.Bool(clinicPref.ValueString);
 				checkUseDefaults.Checked=false;
 			}
 		}
@@ -138,7 +139,7 @@ namespace OpenDental {
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			PrefName prefName=(PrefName)gridMain.ListGridRows[e.Row].Tag;
 			string curPrefValue=GetClinicPrefValue(prefName);
-			EmailType emailType=PIn.Enum<EmailType>(GetClinicPrefValue(PrefName.WebSchedAsapEmailTemplateType));
+			EmailType emailType=SIn.Enum<EmailType>(GetClinicPrefValue(PrefName.WebSchedAsapEmailTemplateType));
 			string newPrefValue;
 			bool isHtmlTemplate=prefName==PrefName.WebSchedAsapEmailTemplate;
 			if(isHtmlTemplate) {
@@ -215,7 +216,7 @@ namespace OpenDental {
 				}
 			}
 			else {
-				if(ClinicPrefs.Upsert(PrefName.AsapPromptEnabled,comboClinic.ClinicNumSelected,POut.Bool(checkAsapPromptEnabled.Checked))) {
+				if(ClinicPrefs.Upsert(PrefName.AsapPromptEnabled,comboClinic.ClinicNumSelected,SOut.Bool(checkAsapPromptEnabled.Checked))) {
 					DataValid.SetInvalid(InvalidType.ClinicPrefs);
 				}
 			}

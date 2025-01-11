@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DataConnectionBase;
 
 namespace OpenDentBusiness{
 	
@@ -19,7 +20,7 @@ namespace OpenDentBusiness{
 			}
 			string num=seg.Get(2);
 			try{
-				return PIn.Int(num);
+				return SIn.Int(num);
 			}
 			catch{
 				return 0;
@@ -36,7 +37,7 @@ namespace OpenDentBusiness{
 				if(seg.SegmentID=="AK2"){
 					transNum=0;
 					try{
-						transNum=PIn.Int(seg.Get(2));
+						transNum=SIn.Int(seg.Get(2));
 					}
 					catch{
 						transNum=0;
@@ -73,7 +74,7 @@ namespace OpenDentBusiness{
 				if(seg.SegmentID=="AK2"){
 					thisTransNum=0;
 					try {
-						thisTransNum=PIn.Int(seg.Get(2));
+						thisTransNum=SIn.Int(seg.Get(2));
 					}
 					catch {
 						thisTransNum=0;

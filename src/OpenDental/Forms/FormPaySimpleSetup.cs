@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using System.Linq;
 using System.Diagnostics;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -155,19 +156,19 @@ namespace OpenDental {
 			textKey.Text=ProgramProperties.GetPropValFromList(_listProgramProperties,PaySimple.PropertyDescs.PaySimpleApiKey,clinicNum);
 			string payTypeDefNumCC=ProgramProperties.GetPropValFromList(_listProgramProperties,PaySimple.PropertyDescs.PaySimplePayTypeCC,clinicNum);
 			string payTypeDefNumACH=ProgramProperties.GetPropValFromList(_listProgramProperties,PaySimple.PropertyDescs.PaySimplePayTypeACH,clinicNum);
-			checkPreventSavingNewCC.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkPreventSavingNewCC.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,clinicNum));
-			checkPrintReceipt.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkPrintReceipt.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				PaySimple.PropertyDescs.PaySimplePrintReceipt,clinicNum));
-			checkAllowOnlinePayments.Checked=PIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
+			checkAllowOnlinePayments.Checked=SIn.Bool(ProgramProperties.GetPropValFromList(_listProgramProperties,
 				PaySimple.PropertyDescs.PaySimpleIsOnlinePaymentsEnabled,clinicNum));
 			_listDefsPaymentType=Defs.GetDefsForCategory(DefCat.PaymentTypes,true);
 			comboPaymentTypeCC.Items.Clear();
 			comboPaymentTypeCC.Items.AddDefs(_listDefsPaymentType);
-			comboPaymentTypeCC.SetSelectedDefNum(PIn.Long(payTypeDefNumCC));
+			comboPaymentTypeCC.SetSelectedDefNum(SIn.Long(payTypeDefNumCC));
 			comboPaymentTypeACH.Items.Clear();
 			comboPaymentTypeACH.Items.AddDefs(_listDefsPaymentType);
-			comboPaymentTypeACH.SetSelectedDefNum(PIn.Long(payTypeDefNumACH));
+			comboPaymentTypeACH.SetSelectedDefNum(SIn.Long(payTypeDefNumACH));
 		}
 
 		private string GetUsernameForClinic(long clinicNum) {
@@ -205,10 +206,10 @@ namespace OpenDental {
 				.ForEach(x => x.PropertyValue=comboPaymentTypeACH.GetSelected<Def>().DefNum.ToString());//always 1 item selected
 			_listProgramProperties.FindAll(x => x.ClinicNum==_listUserClinicNums[_indexClinicRevert]
 				&& x.PropertyDesc==PaySimple.PropertyDescs.PaySimplePreventSavingNewCC)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkPreventSavingNewCC.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkPreventSavingNewCC.Checked));
 			_listProgramProperties.FindAll(x => x.ClinicNum==_listUserClinicNums[_indexClinicRevert]
 				&& x.PropertyDesc==PaySimple.PropertyDescs.PaySimplePrintReceipt)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkPrintReceipt.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkPrintReceipt.Checked));
 			_indexClinicRevert=comboClinic.SelectedIndex;//now that we've updated the values for the clinic we're switching from, update _indexClinicRevert
 			FillFields();
 		}
@@ -350,7 +351,7 @@ namespace OpenDental {
 			if(programProperty!=null) {
 				string msg=Lan.g(this,"Online payments is already enabled for another processor and must be disabled in order to use PaySimple online payments. "
 					+"Would you like to disable the other processor for online payments?");
-				if(MessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+				if(ODMessageBox.Show(msg,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 					checkAllowOnlinePayments.Checked=false;
 					return;
 				}
@@ -395,11 +396,11 @@ namespace OpenDental {
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PaySimple.PropertyDescs.PaySimplePayTypeACH)
 				.ForEach(x => x.PropertyValue=payTypeACHSelected);//always 1 item
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PaySimple.PropertyDescs.PaySimplePreventSavingNewCC)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkPreventSavingNewCC.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkPreventSavingNewCC.Checked));
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PaySimple.PropertyDescs.PaySimplePrintReceipt)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkPrintReceipt.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkPrintReceipt.Checked));
 			_listProgramProperties.FindAll(x => x.ClinicNum==clinicNum && x.PropertyDesc==PaySimple.PropertyDescs.PaySimpleIsOnlinePaymentsEnabled)
-				.ForEach(x => x.PropertyValue=POut.Bool(checkAllowOnlinePayments.Checked));
+				.ForEach(x => x.PropertyValue=SOut.Bool(checkAllowOnlinePayments.Checked));
 			string payTypeCC;
 			string payTypeACH;
 			//make sure any other clinics with PaySimple enabled also have a payment type selected
@@ -423,7 +424,7 @@ namespace OpenDental {
 			}
 			//Every program property that was saved in this list belongs to another merchant service. They must all be set to false.
 			for(int i = 0;i<_listOnlinePaymentProgramProperties.Count;i++) {
-				ProgramProperties.UpdateProgramPropertyWithValue(_listOnlinePaymentProgramProperties[i],POut.Bool(false));
+				ProgramProperties.UpdateProgramPropertyWithValue(_listOnlinePaymentProgramProperties[i],SOut.Bool(false));
 			}
 			#endregion Validation
 			#region Save

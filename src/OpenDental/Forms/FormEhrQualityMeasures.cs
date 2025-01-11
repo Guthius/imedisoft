@@ -11,6 +11,7 @@ using OpenDental.UI;
 using System.Xml;
 using System.Xml.XPath;
 using CodeBase;
+using DataConnectionBase;
 #if EHRTEST
 using EHR;
 #endif
@@ -45,7 +46,7 @@ namespace OpenDental {
 			}
 			if(listProvsKeyed.Count==0) {
 				Cursor=Cursors.Default;
-				MessageBox.Show("No providers found with ehr keys.");
+				ODMessageBox.Show("No providers found with ehr keys.");
 				return;
 			}
 			for(int i=0;i<listProvsKeyed.Count;i++) {
@@ -71,8 +72,8 @@ namespace OpenDental {
 			catch {
 				return;
 			}
-			DateTime dateStart=PIn.Date(textDateStart.Text);
-			DateTime dateEnd=PIn.Date(textDateEnd.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
+			DateTime dateEnd=SIn.Date(textDateEnd.Text);
 			long provNum=listProvsKeyed[comboProv.SelectedIndex].ProvNum;
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
@@ -111,8 +112,8 @@ namespace OpenDental {
 		public string GeneratePQRS_xml() {
 			//provider and dates already validated at button push
 			Provider prov=listProvsKeyed[comboProv.SelectedIndex];
-			DateTime dateStart=PIn.Date(textDateStart.Text);
-			DateTime dateEnd=PIn.Date(textDateEnd.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
+			DateTime dateEnd=SIn.Date(textDateEnd.Text);
 			List<QualityType> typesToReport=new List<QualityType>();
 			typesToReport.Add(QualityType.WeightOver65);
 			typesToReport.Add(QualityType.Hypertension);
@@ -194,12 +195,12 @@ namespace OpenDental {
 				DateTime.Parse(textDateEnd.Text);
 			}
 			catch {
-				MessageBox.Show("Please fix dates first.");
+				ODMessageBox.Show("Please fix dates first.");
 				return;
 			}
 			using FormEhrQualityMeasureEdit formQe=new FormEhrQualityMeasureEdit();
-			formQe.DateStart=PIn.Date(textDateStart.Text);
-			formQe.DateEnd=PIn.Date(textDateEnd.Text);
+			formQe.DateStart=SIn.Date(textDateStart.Text);
+			formQe.DateEnd=SIn.Date(textDateEnd.Text);
 			formQe.ProvNum=listProvsKeyed[comboProv.SelectedIndex].ProvNum;
 			formQe.Qcur=listQ[e.Row];
 			formQe.ShowDialog();
@@ -211,7 +212,7 @@ namespace OpenDental {
 
 		private void butShow_Click(object sender,EventArgs e) {
 			if(comboProv.SelectedIndex==-1) {
-				MessageBox.Show("Please select a provider first.");
+				ODMessageBox.Show("Please select a provider first.");
 				return;
 			}
 			try {
@@ -219,11 +220,11 @@ namespace OpenDental {
 				DateTime.Parse(textDateEnd.Text);
 			}
 			catch {
-				MessageBox.Show("Invalid dates.");
+				ODMessageBox.Show("Invalid dates.");
 				return;
 			}
 			if(listQ==null) {
-				MessageBox.Show("Click Refresh first.");
+				ODMessageBox.Show("Click Refresh first.");
 				return;
 			}
 			using MsgBoxCopyPaste MsgBoxCP = new MsgBoxCopyPaste(GeneratePQRS_xml());
@@ -232,7 +233,7 @@ namespace OpenDental {
 
 		private void butSubmit_Click(object sender,EventArgs e) {
 			if(comboProv.SelectedIndex==-1) {
-				MessageBox.Show("Please select a provider first.");
+				ODMessageBox.Show("Please select a provider first.");
 				return;
 			}
 			try {
@@ -240,11 +241,11 @@ namespace OpenDental {
 				DateTime.Parse(textDateEnd.Text);
 			}
 			catch {
-				MessageBox.Show("Invalid dates.");
+				ODMessageBox.Show("Invalid dates.");
 				return;
 			}
 			if(listQ==null) {
-				MessageBox.Show("Click Refresh first.");
+				ODMessageBox.Show("Click Refresh first.");
 				return;
 			}
 			Cursor=Cursors.WaitCursor;
@@ -253,11 +254,11 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show("Sent");
+			ODMessageBox.Show("Sent");
 		}
 
 	}

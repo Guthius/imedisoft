@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental.UI {
@@ -232,7 +233,7 @@ namespace OpenDental.UI {
 					newPage=(_pageCur+1);//Safe even if value is not valid page.;
 					break;
 				case Keys.Enter:
-					newPage=PIn.Int(textJumpToPage.Text,false);//Safe even if value is not valid page.
+					newPage=SIn.Int(textJumpToPage.Text,false);//Safe even if value is not valid page.
 					break;
 				default:
 				return;
@@ -243,7 +244,7 @@ namespace OpenDental.UI {
 		
 		public void PagingChangeEventHandler(object sender, ODGridPageEventArgs e) {
 			_pageCur=e.PageCur;
-			textJumpToPage.Text=POut.Int(e.PageCur);
+			textJumpToPage.Text=SOut.Int(e.PageCur);
 			//We reuse the same controls and just change thier text and data to avoid flicker in UI.
 			for(int i=0;i<panelPageLinks.Controls.Count;i++) {
 				LinkLabel pageLink=(LinkLabel)panelPageLinks.Controls[i];

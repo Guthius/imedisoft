@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -61,7 +62,7 @@ namespace OpenDental {
 			if(!textTobaccoStartDate.IsValid()) {
 				return;
 			}
-			DateTime startDate=PIn.Date(textTobaccoStartDate.Text);
+			DateTime startDate=SIn.Date(textTobaccoStartDate.Text);
 			if(startDate>DateTime.Today || startDate.Year<1880) {
 				return;
 			}
@@ -98,7 +99,7 @@ namespace OpenDental {
 				return;
 			}
 			string logEntry=Lan.g(this,"Ehr Measure Event was deleted.")+"  "
-				+Lan.g(this,"Date")+": "+PIn.DateTime(textDateTime.Text)+"  "
+				+Lan.g(this,"Date")+": "+SIn.DateTime(textDateTime.Text)+"  "
 				+Lan.g(this,"Type")+": "+_measureEventCur.EventType.ToString()+"  "
 				+Lan.g(this,"Patient")+": "+textPatient.Text;
 			SecurityLogs.MakeLogEntry(EnumPermType.EhrMeasureEventEdit,_measureEventCur.PatNum,logEntry);
@@ -108,7 +109,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			//inserts never happen here.  Only updates.
-			DateTime dateTEvent=PIn.DateTime(textDateTime.Text);
+			DateTime dateTEvent=SIn.DateTime(textDateTime.Text);
 			if(dateTEvent==DateTime.MinValue) {
 				MsgBox.Show(this,"Please enter a valid date time.");//because this must always be valid
 				return;
@@ -135,8 +136,8 @@ namespace OpenDental {
 				_measureEventCur.DateTEvent=dateTEvent;
 			}
 			if(textTobaccoStartDate.Visible && textTobaccoDesireToQuit.Visible) {
-				_measureEventCur.DateStartTobacco=PIn.Date(textTobaccoStartDate.Text);
-				_measureEventCur.TobaccoCessationDesire=PIn.Byte(textTobaccoDesireToQuit.Text);
+				_measureEventCur.DateStartTobacco=SIn.Date(textTobaccoStartDate.Text);
+				_measureEventCur.TobaccoCessationDesire=SIn.Byte(textTobaccoDesireToQuit.Text);
 			}
 			if(listLogEdits.Count>0) {
 				listLogEdits.Insert(0,Lan.g(this,"EHR Measure Event was edited."));

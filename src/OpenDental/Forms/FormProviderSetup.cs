@@ -9,6 +9,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental
@@ -183,7 +184,7 @@ namespace OpenDental
                     row.Cells.Add(_tableProvs.Rows[i]["PatCountSec"].ToString());
                 }
 
-                long provNumCur = PIn.Long(_tableProvs.Rows[i]["ProvNum"].ToString());
+                long provNumCur = SIn.Long(_tableProvs.Rows[i]["ProvNum"].ToString());
                 row.Tag = _listProviders.Find(x => x.ProvNum == provNumCur);
                 gridMain.ListGridRows.Add(row);
             }
@@ -426,7 +427,7 @@ namespace OpenDental
                 DataTable table = Patients.GetPatNumsByPriProvs(listProvNums);
                 DataRow[] dataRowArray = table.Select();
                 //key=ProvNum, gives list of PatNums
-                lookupPriProvPats = (Lookup<long, long>) dataRowArray.ToLookup(x => PIn.Long(x["PriProv"].ToString()), x => PIn.Long(x["PatNum"].ToString()));
+                lookupPriProvPats = (Lookup<long, long>) dataRowArray.ToLookup(x => SIn.Long(x["PriProv"].ToString()), x => SIn.Long(x["PatNum"].ToString()));
             };
             progressOD.StartingMessage = Lan.g(this, "Gathering patient data") + "...";
             progressOD.ShowDialog();
@@ -451,7 +452,7 @@ namespace OpenDental
             string strProvFromDesc = string.Join(", ", listProvidersFrom.FindAll(x => lookupPriProvPats.Contains(x.ProvNum)).Select(x => x.Abbr));
             string strProvToDesc = provider.Abbr;
             string msg = Lan.g(this, "Move all primary patients to") + " " + strProvToDesc + " " + Lan.g(this, "from the following providers") + ": " + strProvFromDesc + "?";
-            if (MessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+            if (ODMessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
             {
                 return;
             }
@@ -506,7 +507,7 @@ namespace OpenDental
                 msg = Lan.g(this, "Move all secondary patients to") + " " + provider.Abbr + " " + Lan.g(this, "from the following providers") + ": " + strProvsFrom + "?";
             }
 
-            if (MessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+            if (ODMessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
             {
                 return;
             }
@@ -568,8 +569,8 @@ namespace OpenDental
             for (int i = 0; i < tablePatNums.Rows.Count; i++)
             {
                 PatProv patProv = new PatProv();
-                patProv.PatNum = PIn.Long(tablePatNums.Rows[i]["PatNum"].ToString());
-                patProv.ProvNum = PIn.Long(tablePatNums.Rows[i]["PriProv"].ToString());
+                patProv.PatNum = SIn.Long(tablePatNums.Rows[i]["PatNum"].ToString());
+                patProv.ProvNum = SIn.Long(tablePatNums.Rows[i]["PriProv"].ToString());
                 listPatProvsFrom.Add(patProv);
             }
 
@@ -586,8 +587,8 @@ namespace OpenDental
                 for (int i = 0; i < table.Rows.Count; i++)
                 {
                     PatProv patProv = new PatProv();
-                    patProv.PatNum = PIn.Long(table.Rows[i]["PatNum"].ToString());
-                    patProv.ProvNum = PIn.Long(table.Rows[i]["ProvNum"].ToString());
+                    patProv.PatNum = SIn.Long(table.Rows[i]["PatNum"].ToString());
+                    patProv.ProvNum = SIn.Long(table.Rows[i]["ProvNum"].ToString());
                     if (listPatProvsSeen.Any(x => x.PatNum == patProv.PatNum))
                     {
                         continue; // exclude Patients already added
@@ -613,7 +614,7 @@ namespace OpenDental
             }
 
             string msg = Lan.g(this, "You are about to reassign") + " " + listPatProvsSeen.Count + " " + Lan.g(this, "patients to different providers.  Continue?");
-            if (MessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+            if (ODMessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
             {
                 return;
             }
@@ -682,7 +683,7 @@ namespace OpenDental
                 }
                 catch (ApplicationException ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    ODMessageBox.Show(ex.Message);
                     _hasChanged = true;
                     return;
                 }
@@ -789,7 +790,7 @@ namespace OpenDental
             string duplicates = Providers.GetDuplicateAbbrs();
             if (duplicates != "" && true)
             {
-                if (MessageBox.Show(Lan.g(this, "Warning.  The following abbreviations are duplicates.  Continue anyway?\r\n") + duplicates,
+                if (ODMessageBox.Show(Lan.g(this, "Warning.  The following abbreviations are duplicates.  Continue anyway?\r\n") + duplicates,
                         "", MessageBoxButtons.OKCancel) != DialogResult.OK)
                 {
                     e.Cancel = true;

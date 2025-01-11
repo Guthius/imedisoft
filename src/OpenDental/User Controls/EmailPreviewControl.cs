@@ -544,7 +544,7 @@ namespace OpenDental {
 				FileAtoZ.OpenFile(FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -705,7 +705,7 @@ namespace OpenDental {
 				butShowImages.Visible=false;
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.ToString());
+				ODMessageBox.Show(ex.ToString());
 			}
 		}
 

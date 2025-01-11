@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -41,7 +42,7 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					sheetDef.SheetFieldDefs[j].ImageData="";
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				string fileName=sheetDef.SheetFieldDefs[j].FieldName;
@@ -62,7 +63,7 @@ namespace OpenDental {
 					}
 					catch(Exception ex) {
 						sheetDef.SheetFieldDefs[j].ImageData="";
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}
 					imageFormat=image.RawFormat;
@@ -70,7 +71,7 @@ namespace OpenDental {
 
 				if(image==null) {//Image is missing
 					sheetDef.SheetFieldDefs[j].ImageData="";
-					MessageBox.Show($"The file {fileName} could not be found in {filePath}");
+					ODMessageBox.Show($"The file {fileName} could not be found in {filePath}");
 					return;
 				}
 				//sheetDefCur.SheetFieldDefs[j].ImageData=POut.Bitmap(new Bitmap(img),ImageFormat.Png);//Because that's what we did before. Review this later. 
@@ -80,10 +81,10 @@ namespace OpenDental {
 				lengthFileBytes=memoryStreamFileSize.Length;
 				if(lengthFileBytes>2000000) {
 					//for large images greater that ~2MB use jpeg format for compression. Large images in the 4MB + range have difficulty being displayed. It could b a issue with MYSQL or ASP.NET
-					sheetDef.SheetFieldDefs[j].ImageData=POut.Bitmap((Bitmap)image,ImageFormat.Jpeg);
+					sheetDef.SheetFieldDefs[j].ImageData=SOut.Bitmap((Bitmap)image,ImageFormat.Jpeg);
 				}
 				else {
-					sheetDef.SheetFieldDefs[j].ImageData=POut.Bitmap((Bitmap)image,imageFormat);
+					sheetDef.SheetFieldDefs[j].ImageData=SOut.Bitmap((Bitmap)image,imageFormat);
 				}
 				image.Dispose();
 			}
@@ -109,7 +110,7 @@ namespace OpenDental {
 				}
 			}
 			if(!hasFName || !hasLName || !hasBirthdate) {
-				MessageBox.Show(Lan.g("WebForms","The sheet called")+" \""+sheetDef.Description+"\" "
+				ODMessageBox.Show(Lan.g("WebForms","The sheet called")+" \""+sheetDef.Description+"\" "
 					+Lan.g("WebForms","does not contain all three required fields: LName, FName, and Birthdate."));
 				return false;
 			}
@@ -528,7 +529,7 @@ namespace OpenDental {
 			else {
 				patientNew.ClinicNum=sheet.ClinicNum;
 			}
-			patientNew.BillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,patientNew.ClinicNum));
+			patientNew.BillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,patientNew.ClinicNum));
 			if(!true) {
 				//Set the patients primary provider to the practice default provider.
 				patientNew.PriProv=Providers.GetDefaultProvider().ProvNum;
@@ -590,7 +591,7 @@ namespace OpenDental {
 					hl7Msg.PatNum=patientNew.PatNum;
 					HL7Msgs.Insert(hl7Msg);
 					if(/* ODBuild.IsDebug() */ false) {
-						MessageBox.Show("FormWebForms",messageHl7.ToString());
+						ODMessageBox.Show("FormWebForms",messageHl7.ToString());
 					}
 				}
 			}
@@ -748,7 +749,7 @@ namespace OpenDental {
 				}//switch case
 			}
 			catch(Exception e) {
-				MessageBox.Show(fieldInfo.Name+e.Message);
+				ODMessageBox.Show(fieldInfo.Name+e.Message);
 			}
 		}
 

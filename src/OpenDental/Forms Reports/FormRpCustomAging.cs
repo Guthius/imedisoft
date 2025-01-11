@@ -9,6 +9,7 @@ using CodeBase;
 using System.Linq;
 using OpenDental.UI;
 using System.Drawing.Printing;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -225,7 +226,7 @@ namespace OpenDental {
 			//refresh aging list
 			//refill the grid
 			_agingOptions = new AgingOptions {
-				DateAsOf = PIn.Date(textDate.Text),
+				DateAsOf = SIn.Date(textDate.Text),
 				AgingInc = GetAgingIncludes(),
 				WriteoffOptions = GetWriteoffOptions(),
 				FamGroup = GetFamilyGrouping(),

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -318,7 +319,7 @@ namespace OpenDental {
 			//Create an ImageAttachment object to send to ClaimConnect.
 			_claimConnectImageAttachment=ClaimConnect.ImageAttachment.Create(
 				fileName:textFileName.Text,
-				createdDate:PIn.Date(textDateCreated.Text),
+				createdDate:SIn.Date(textDateCreated.Text),
 				typeCodeImage:listBoxImageType.GetSelected<ClaimConnect.ImageTypeCode>(),
 				imageClaim:bitmap,
 				rightOrientation:!checkIsXrayMirrored.Checked);
@@ -375,7 +376,7 @@ namespace OpenDental {
 				return false;
 			}
 			_claimConnectImageAttachment.ImageFileNameDisplay=textFileName.Text;
-			_claimConnectImageAttachment.ImageDate=PIn.Date(textDateCreated.Text);
+			_claimConnectImageAttachment.ImageDate=SIn.Date(textDateCreated.Text);
 			_claimConnectImageAttachment.ImageType=listBoxImageType.GetSelected<ClaimConnect.ImageTypeCode>();
 			_claimConnectImageAttachment.ImageOrientationType="right";
 			if(checkIsXrayMirrored.Checked) {
@@ -387,7 +388,7 @@ namespace OpenDental {
 			catch(ODException ex) {
 				//ODExceptions should already be Lans.g when throwing meaningful messages.
 				//If they weren't translated, the message was from a third party and shouldn't be translated anyway.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			catch(Exception ex) {

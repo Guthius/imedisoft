@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -371,7 +372,7 @@ namespace OpenDental {
 				listUserMsgs.Add(Lan.g(this,"There are no appointments to send to the pinboard."));
 			}
 			if(listUserMsgs.Count>0) {
-				MessageBox.Show(string.Join("\r\n",listUserMsgs));
+				ODMessageBox.Show(string.Join("\r\n",listUserMsgs));
 				if(listAptNums.Count==0) {
 					return;
 				}
@@ -389,13 +390,13 @@ namespace OpenDental {
 				dateFrom=DateTime.MinValue;
 			}
 			else{
-				dateFrom=PIn.Date(textDateStart.Text);
+				dateFrom=SIn.Date(textDateStart.Text);
 			}
 			if(textDateEnd.Text=="") {
 				dateTo=DateTime.MaxValue;
 			}
 			else {
-				dateTo=PIn.Date(textDateEnd.Text);
+				dateTo=SIn.Date(textDateEnd.Text);
 			}
 			long siteNum=0;
 			if(!PrefC.GetBool(PrefName.EasyHidePublicHealth)) {
@@ -413,7 +414,7 @@ namespace OpenDental {
 			progressOD.ActionMain=() => { 
 				tableRecalls=Recalls.GetRecallList(dateFrom,dateTo,checkGroupFamilies.Checked,comboProv.GetSelectedProvNum(),clinicNum,
 					siteNum,RecallListSort.DueDate,recallListShowNumberReminders,maxReminders,isAsap: true,codeRangeFilter.StartRange,codeRangeFilter.EndRange);
-				listRecalls=Recalls.GetMultRecalls(tableRecalls.Rows.OfType<DataRow>().Select(x => PIn.Long(x["RecallNum"].ToString())).ToList());
+				listRecalls=Recalls.GetMultRecalls(tableRecalls.Rows.OfType<DataRow>().Select(x => SIn.Long(x["RecallNum"].ToString())).ToList());
 			};
 			progressOD.ShowDialog();
 			if(progressOD.IsCancelled){
@@ -479,10 +480,10 @@ namespace OpenDental {
 							break;
 					}
 				}
-				row.Tag=listRecalls.FirstOrDefault(x => x.RecallNum==PIn.Long(tableRecalls.Rows[i]["RecallNum"].ToString()));
+				row.Tag=listRecalls.FirstOrDefault(x => x.RecallNum==SIn.Long(tableRecalls.Rows[i]["RecallNum"].ToString()));
 				Patients.PatientName patientName=new Patients.PatientName();
-				patientName.PatNum=PIn.Long(tableRecalls.Rows[i]["PatNum"].ToString());
-				patientName.Name=PIn.String(tableRecalls.Rows[i]["patientName"].ToString());
+				patientName.PatNum=SIn.Long(tableRecalls.Rows[i]["PatNum"].ToString());
+				patientName.Name=SIn.String(tableRecalls.Rows[i]["patientName"].ToString());
 				if(_listPatientNames.Count==0 || !_listPatientNames.Any(x => x.PatNum==patientName.PatNum)) {
 					_listPatientNames.Add(patientName);
 				}
@@ -680,7 +681,7 @@ namespace OpenDental {
 				grid.SetSelected(grid.SelectedIndices[i],false);
 			}
 			if(listPatsSkipped.Count > 0) {
-				MessageBox.Show(listPatsSkipped.Count+" "+Lan.g(this,"of the")+" "+numRowsSelected+" "
+				ODMessageBox.Show(listPatsSkipped.Count+" "+Lan.g(this,"of the")+" "+numRowsSelected+" "
 					+Lan.g(this,"selected patients cannot receive text messages and have been deselected:")+"\r\n"+string.Join("\r\n",listPatsSkipped));
 			}
 			return listPatCommsToSend;

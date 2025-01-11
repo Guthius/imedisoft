@@ -6,6 +6,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -92,7 +93,7 @@ namespace OpenDental {
 			GridRow row;
 			for(int i=0;i<listPatients.Count;i++) {
 				row=new GridRow();
-				row.Cells.Add(POut.Long(listPatients[i].PatNum));
+				row.Cells.Add(SOut.Long(listPatients[i].PatNum));
 				row.Cells.Add(listPatients[i].PatStatus.GetDescription());
 				row.Cells.Add(listPatients[i].LName);
 				row.Cells.Add(listPatients[i].FName);
@@ -143,7 +144,7 @@ namespace OpenDental {
 				+Lans.g(this,"to")+" "
 				+patientStatusTo+".\r\n"+
 				Lan.g(this,"Do you wish to continue?");
-			if(MessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+			if(ODMessageBox.Show(msgText,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 				return;//The user chose not to change the statuses.
 			}
 			StringBuilder stringBuilder=new StringBuilder();
@@ -156,7 +157,7 @@ namespace OpenDental {
 				Patients.UpdateRecalls(patient,patientOld,"Patient Status Tool");
 				Patients.Update(patient,patientOld);
 				stringBuilder.AppendLine(
-					Lans.g(this,"Patient")+" "+POut.Long(patient.PatNum)+": "+patient.GetNameLF()+" "
+					Lans.g(this,"Patient")+" "+SOut.Long(patient.PatNum)+": "+patient.GetNameLF()+" "
 					+Lans.g(this,"patient status changed from")+" "+patientStatusFrom+" "
 					+Lans.g(this,"to")+" "+patientStatusTo
 				);//Like "Patient 123: John Doe patient status changed from X to Y"

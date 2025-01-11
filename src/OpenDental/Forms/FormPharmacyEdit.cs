@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -51,7 +52,7 @@ namespace OpenDental {
 				Pharmacies.DeleteObject(PharmacyCur.PharmacyNum);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -59,16 +60,16 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textStoreName.Text==""){
-				MessageBox.Show(Lan.g(this,"Store name cannot be blank."));
+				ODMessageBox.Show(Lan.g(this,"Store name cannot be blank."));
 				return;
 			}
 			if(CultureInfo.CurrentCulture.Name=="en-US"){
 				if(textPhone.Text!="" && TelephoneNumbers.FormatNumbersExactTen(textPhone.Text)==""){
-					MessageBox.Show(Lan.g(this,"Phone number must be in a 10-digit format."));
+					ODMessageBox.Show(Lan.g(this,"Phone number must be in a 10-digit format."));
 					return;
 				}
 				if(textFax.Text!="" && TelephoneNumbers.FormatNumbersExactTen(textFax.Text)==""){
-					MessageBox.Show(Lan.g(this,"Fax number must be in a 10-digit format."));
+					ODMessageBox.Show(Lan.g(this,"Fax number must be in a 10-digit format."));
 					return;
 				}
 			}

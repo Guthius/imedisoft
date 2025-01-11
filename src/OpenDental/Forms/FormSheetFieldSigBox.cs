@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -61,10 +62,10 @@ namespace OpenDental {
 				MsgBox.Show(this,"You may not require signature boxes that are restricted to providers.");
 				return;
 			}
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			SheetFieldDefCur.IsRequired=checkRequired.Checked;
 			SheetFieldDefCur.CanElectronicallySign=checkAllowElectronicSig.Checked;
 			SheetFieldDefCur.IsSigProvRestricted=checkRestrictSigProvider.Checked;

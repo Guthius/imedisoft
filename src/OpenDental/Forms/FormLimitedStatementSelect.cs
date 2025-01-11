@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -90,9 +91,9 @@ namespace OpenDental {
 		private void ConstructListFromTable() {
 			for(int i=0;i<TableAccount.Rows.Count;i++){
 				LimitedRow limitedRow=new LimitedRow();
-				limitedRow.PatNum=PIn.Long(TableAccount.Rows[i]["PatNum"].ToString());
+				limitedRow.PatNum=SIn.Long(TableAccount.Rows[i]["PatNum"].ToString());
 				limitedRow.PatientName=TableAccount.Rows[i]["patient"].ToString();
-				limitedRow.DateTime=PIn.DateTime(TableAccount.Rows[i]["DateTime"].ToString());
+				limitedRow.DateTime=SIn.DateTime(TableAccount.Rows[i]["DateTime"].ToString());
 				limitedRow.Description=TableAccount.Rows[i]["description"].ToString();
 				limitedRow.ProcCode=TableAccount.Rows[i]["ProcCode"].ToString();//isn't just a proc code. Can be "Claim" etc...
 				limitedRow.Charges=TableAccount.Rows[i]["charges"].ToString();
@@ -101,26 +102,26 @@ namespace OpenDental {
 				limitedRow.Abbr=TableAccount.Rows[i]["AbbrDesc"].ToString();
 				limitedRow.Signed=TableAccount.Rows[i]["signed"].ToString();
 				limitedRow.Tooth=Tooth.Display(TableAccount.Rows[i]["ToothNum"].ToString());
-				limitedRow.ColorText=Color.FromArgb(PIn.Int(TableAccount.Rows[i]["colorText"].ToString()));
+				limitedRow.ColorText=Color.FromArgb(SIn.Int(TableAccount.Rows[i]["colorText"].ToString()));
 				if(true) {
-					limitedRow.ClinicNum=PIn.Long(TableAccount.Rows[i]["ClinicNum"].ToString());
+					limitedRow.ClinicNum=SIn.Long(TableAccount.Rows[i]["ClinicNum"].ToString());
 				}
 				if(TableAccount.Rows[i]["AdjNum"].ToString()!="0") {
-					limitedRow.PrimaryKey=PIn.Long(TableAccount.Rows[i]["AdjNum"].ToString());
+					limitedRow.PrimaryKey=SIn.Long(TableAccount.Rows[i]["AdjNum"].ToString());
 					limitedRow.AccountEntryType_=AccountEntryType.Adjustment;
 				}
 				else if(TableAccount.Rows[i]["ProcNum"].ToString()!="0") {
-					limitedRow.PrimaryKey=PIn.Long(TableAccount.Rows[i]["ProcNum"].ToString());
+					limitedRow.PrimaryKey=SIn.Long(TableAccount.Rows[i]["ProcNum"].ToString());
 					limitedRow.AccountEntryType_=AccountEntryType.Procedure;
 				}
 				else if(TableAccount.Rows[i]["PayNum"].ToString()!="0") {
-					limitedRow.PrimaryKey=PIn.Long(TableAccount.Rows[i]["PayNum"].ToString());
+					limitedRow.PrimaryKey=SIn.Long(TableAccount.Rows[i]["PayNum"].ToString());
 					limitedRow.AccountEntryType_=AccountEntryType.Payment;
 				}
 				else if(TableAccount.Rows[i]["ClaimNum"].ToString()!="0") {
 					//can mean that this is either a claim or a claim payment.
 					//we really only care about claim payments, but we need procedure from the claim.
-					limitedRow.PrimaryKey=PIn.Long(TableAccount.Rows[i]["ClaimNum"].ToString());
+					limitedRow.PrimaryKey=SIn.Long(TableAccount.Rows[i]["ClaimNum"].ToString());
 					limitedRow.AccountEntryType_=AccountEntryType.Claim;
 					if(TableAccount.Rows[i]["ClaimPaymentNum"].ToString()=="1") {
 						limitedRow.AccountEntryType_=AccountEntryType.ClaimPayment;
@@ -130,10 +131,10 @@ namespace OpenDental {
 					//type is not one that is currently supported, skip it.
 					continue;
 				}
-				limitedRow.ListProcsOnObject=TableAccount.Rows[i]["procsOnObj"].ToString().Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => PIn.Long(x)).ToList();
-				limitedRow.ListAdjustsOnObj=TableAccount.Rows[i]["adjustsOnObj"].ToString().Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => PIn.Long(x)).ToList();
-				limitedRow.ListPaymentsOnObj=TableAccount.Rows[i]["paymentsOnObj"].ToString().Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => PIn.Long(x)).ToList();
-				limitedRow.ProcNumLab=PIn.Long(TableAccount.Rows[i]["ProcNumLab"].ToString());
+				limitedRow.ListProcsOnObject=TableAccount.Rows[i]["procsOnObj"].ToString().Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x)).ToList();
+				limitedRow.ListAdjustsOnObj=TableAccount.Rows[i]["adjustsOnObj"].ToString().Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x)).ToList();
+				limitedRow.ListPaymentsOnObj=TableAccount.Rows[i]["paymentsOnObj"].ToString().Split(new[] { ',' },StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x)).ToList();
+				limitedRow.ProcNumLab=SIn.Long(TableAccount.Rows[i]["ProcNumLab"].ToString());
 				_listLimitedRows.Add(limitedRow);
 			}
 		}

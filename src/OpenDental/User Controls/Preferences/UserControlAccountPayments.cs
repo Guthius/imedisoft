@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -55,20 +56,20 @@ namespace OpenDental {
 				checkHideDueNow.Checked=false;
 			}
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PayPlansVersion);
-			prefValSync.PrefVal=POut.Int(comboPayPlansVersion.SelectedIndex+1);//PrefVal is the enum which starts at 1 so add 1 to SelectedIndex to get Enum
+			prefValSync.PrefVal=SOut.Int(comboPayPlansVersion.SelectedIndex+1);//PrefVal is the enum which starts at 1 so add 1 to SelectedIndex to get Enum
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		#region Methods - Event Handlers Sync
 		private void comboPaymentClinicSetting_ChangeCommitted(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentClinicSetting);
-			prefValSync.PrefVal=POut.Int(comboPaymentClinicSetting.SelectedIndex);
+			prefValSync.PrefVal=SOut.Int(comboPaymentClinicSetting.SelectedIndex);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkPaymentsPromptForPayType_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentsPromptForPayType);
-			prefValSync.PrefVal=POut.Bool(checkPaymentsPromptForPayType.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkPaymentsPromptForPayType.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -127,7 +128,7 @@ namespace OpenDental {
 			//(synced) Changed|=Prefs.UpdateInt(PrefName.PayPlansVersion,comboPayPlansVersion.SelectedIndex+1);
 			Changed|=Prefs.UpdateBool(PrefName.PayPlansExcludePastActivity,checkPayPlansExcludePastActivity.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.PayPlanHideDueNow,checkHideDueNow.Checked);
-			Changed|=Prefs.UpdateDateT(PrefName.DynamicPayPlanRunTime,PIn.DateTime(textDynamicPayPlan.Text));
+			Changed|=Prefs.UpdateDateT(PrefName.DynamicPayPlanRunTime,SIn.DateTime(textDynamicPayPlan.Text));
 			Changed|=Prefs.UpdateLong(PrefName.DynamicPayPlanPrepaymentUnearnedType,comboDppUnearnedType.GetSelectedDefNum());
 			Changed|=Prefs.UpdateBool(PrefName.PayPlanSaveSignedToPdf,checkPayPlanSaveSignedPdf.Checked);
 			Changed|=Prefs.UpdateString(PrefName.PayPlanTermsAndConditions,_payPlanTermsAndConditions);
@@ -150,11 +151,11 @@ namespace OpenDental {
 
 		public void FillSynced(){
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentClinicSetting);
-			comboPaymentClinicSetting.SelectedIndex=PIn.Int(prefValSync.PrefVal);
+			comboPaymentClinicSetting.SelectedIndex=SIn.Int(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PaymentsPromptForPayType);
-			checkPaymentsPromptForPayType.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkPaymentsPromptForPayType.Checked=SIn.Bool(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.PayPlansVersion);
-			comboPayPlansVersion.SelectedIndex=PIn.Int(prefValSync.PrefVal)-1;//PrefVal is the enum which starts at 1 so subtract 1 for SelectedIndex
+			comboPayPlansVersion.SelectedIndex=SIn.Int(prefValSync.PrefVal)-1;//PrefVal is the enum which starts at 1 so subtract 1 for SelectedIndex
 			if(comboPayPlansVersion.SelectedIndex==(int)PayPlanVersions.AgeCreditsAndDebits-1) {//Minus 1 because the enum starts at 1.
 				checkHideDueNow.Visible=true;
 				checkHideDueNow.Checked=PrefC.GetBool(PrefName.PayPlanHideDueNow);

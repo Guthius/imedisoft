@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.Bridges;
 
 namespace OpenDental{
@@ -51,7 +52,7 @@ namespace OpenDental{
 					textEmp.Text=Iap.ReadField(Iap.Employer);
 				}
 				catch(ApplicationException ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					textCarrier.Text="";
 					textEmp.Text="";
 					textPlanNum.Text="";
@@ -65,7 +66,7 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(listPlans.SelectedIndex==-1){
-				MessageBox.Show("Please select a plan first.");
+				ODMessageBox.Show("Please select a plan first.");
 				return;
 			}
 			selectedPlan=list[listPlans.SelectedIndex*2].ToString();

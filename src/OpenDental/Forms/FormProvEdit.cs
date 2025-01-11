@@ -12,6 +12,7 @@ using System.Linq;
 using CodeBase;
 using System.Data;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -293,10 +294,10 @@ namespace OpenDental{
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			int rowSelected=gridProvIdent.GetSelectedIndex();
 			if(rowSelected==-1){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete the selected Provider Identifier?"),"",
+			if(ODMessageBox.Show(Lan.g(this,"Delete the selected Provider Identifier?"),"",
 				MessageBoxButtons.OKCancel)!=DialogResult.OK)
 			{
 				return;
@@ -395,7 +396,7 @@ namespace OpenDental{
 				return;
 			}
 			if(textAbbr.Text=="") {
-				MessageBox.Show(Lan.g(this,"Abbreviation not allowed to be blank."));
+				ODMessageBox.Show(Lan.g(this,"Abbreviation not allowed to be blank."));
 				return;
 			}
 			if(textSSN.Text.Contains("-")) {
@@ -545,9 +546,9 @@ namespace OpenDental{
 			}
 			ProviderCur.CustomID=textCustomID.Text;
 			ProviderCur.SchedNote=textSchedRules.Text;
-			ProviderCur.Birthdate=PIn.Date(textBirthdate.Text);
+			ProviderCur.Birthdate=SIn.Date(textBirthdate.Text);
 			ProviderCur.WebSchedDescript=textWebSchedDescript.Text;
-			ProviderCur.HourlyProdGoalAmt=PIn.Double(textProdGoalHr.Text);
+			ProviderCur.HourlyProdGoalAmt=SIn.Double(textProdGoalHr.Text);
 			ProviderCur.DateTerm=dateTerm.GetDateTime();
 			if(listFeeSched.SelectedIndex!=-1) {
 				ProviderCur.FeeSched=listFeeSched.GetSelected<FeeSched>().FeeSchedNum;
@@ -580,7 +581,7 @@ namespace OpenDental{
 					}
 					catch(Exception ex) {
 						Providers.Delete(ProviderCur);
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						return;
 					}
 				}
@@ -594,7 +595,7 @@ namespace OpenDental{
 					}
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				Providers.Update(ProviderCur);
@@ -604,7 +605,7 @@ namespace OpenDental{
 					StringBuilder stringBuilderClaimMessage=new StringBuilder(Lan.g(this,"Clinic\tPatNum\tPatient Name\tDate of Service\tClaim Status\tFee\tCarrier")+"\r\n");
 					for(int i=0; i<listClaimPaySplits.Count;i++) {
 						stringBuilderClaimMessage.Append(listClaimPaySplits[i].ClinicDesc+"\t"
-							+POut.Long(listClaimPaySplits[i].PatNum)+"\t"
+							+SOut.Long(listClaimPaySplits[i].PatNum)+"\t"
 							+listClaimPaySplits[i].PatName+"\t"
 							+listClaimPaySplits[i].DateClaim.ToShortDateString()+"\t");
 						switch(listClaimPaySplits[i].ClaimStatus) {

@@ -20,6 +20,7 @@ using MigraDoc.Rendering.Printing;
 using Document=OpenDentBusiness.Document;
 using OpenDentBusiness.WebTypes;
 using System.Text.RegularExpressions;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -1974,16 +1975,16 @@ namespace OpenDental{
 				procTP.ProcCode=ProcedureCodes.GetStringProcCode(procedure.CodeNum);
 				procTP.Descript=_listTpRowsMain[gridMain.SelectedIndices[i]].Description;
 				if(checkShowFees.Checked) {
-					procTP.FeeAmt=PIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].Fee.ToString());
+					procTP.FeeAmt=SIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].Fee.ToString());
 				}
 				if(checkShowIns.Checked) {
-					procTP.PriInsAmt=PIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].PriIns.ToString());
-					procTP.SecInsAmt=PIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].SecIns.ToString());
+					procTP.PriInsAmt=SIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].PriIns.ToString());
+					procTP.SecInsAmt=SIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].SecIns.ToString());
 				}
 				if(checkShowDiscount.Checked) {
-					procTP.Discount=PIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].Discount.ToString());
+					procTP.Discount=SIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].Discount.ToString());
 				}
-				procTP.PatAmt=PIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].Pat.ToString());
+				procTP.PatAmt=SIn.Double(_listTpRowsMain[gridMain.SelectedIndices[i]].Pat.ToString());
 				procTP.Prognosis=_listTpRowsMain[gridMain.SelectedIndices[i]].Prognosis;
 				procTP.Dx=_listTpRowsMain[gridMain.SelectedIndices[i]].Dx;
 				treatPlanRetVal.ListProcTPs.Add(procTP);
@@ -2651,7 +2652,7 @@ namespace OpenDental{
 				List<Procedure> listProcedures=Procedures.GetProcsForSingle(Bridges.ECW.AptNum,false);
 				string duplicateProcs=ProcedureL.ProcsContainDuplicates(listProcedures);
 				if(duplicateProcs!="") {
-					MessageBox.Show(duplicateProcs);
+					ODMessageBox.Show(duplicateProcs);
 					return;
 				}
 			}
@@ -2668,7 +2669,7 @@ namespace OpenDental{
 						//If the file has (#) at the end, get the number to increment later.
 						string headingEndingNum=Regex.Match(treatPlanHeading,@"\([0-9]+\)").ToString();
 						if(!headingEndingNum.IsNullOrEmpty()) {
-							fileNum=PIn.Int(Regex.Replace(headingEndingNum,@"[\(\)]",""));
+							fileNum=SIn.Int(Regex.Replace(headingEndingNum,@"[\(\)]",""));
 						}
 						//Remove all (#)'s from heading and any whitespace that may be present, before post-pending (#)
 						treatPlanHeading=Regex.Replace(treatPlanHeading,@"\([0-9]+\)","").TrimEnd();
@@ -2681,7 +2682,7 @@ namespace OpenDental{
 					return;
 				}
 				if(inputBoxHeadingName.StringResult.Trim()=="") {
-					MessageBox.Show("Heading Name cannot be empty.");
+					ODMessageBox.Show("Heading Name cannot be empty.");
 					return;
 				}
 				treatPlanHeading=inputBoxHeadingName.StringResult;
@@ -2907,7 +2908,7 @@ namespace OpenDental{
 				return;
 			}
 			if(gridMain.SelectedIndices.All(x => gridMain.ListGridRows[x].Tag==null)) {
-				MessageBox.Show(Lan.g(this,"Please select procedures first."));
+				ODMessageBox.Show(Lan.g(this,"Please select procedures first."));
 				return;
 			}
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canada
@@ -3005,7 +3006,7 @@ namespace OpenDental{
 					return;
 				}
 			}
-			switch(PIn.Enum<ClaimZeroDollarProcBehavior>(PrefC.GetInt(PrefName.ClaimZeroDollarProcBehavior))) {
+			switch(SIn.Enum<ClaimZeroDollarProcBehavior>(PrefC.GetInt(PrefName.ClaimZeroDollarProcBehavior))) {
 				case ClaimZeroDollarProcBehavior.Warn:
 					if(listProceduresSelected.FirstOrDefault(x => CompareDouble.IsZero(x.ProcFee))!=null
 						&& !MsgBox.Show("ContrTreat",MsgBoxButtons.OKCancel,"You are about to make a claim that will include a $0 procedure.  Continue?"))
@@ -3249,7 +3250,7 @@ namespace OpenDental{
 			{
 				return;
 			}
-			_listTreatPlans[gridPlans.SelectedIndices[0]].Note=PIn.String(textNote.Text);
+			_listTreatPlans[gridPlans.SelectedIndices[0]].Note=SIn.String(textNote.Text);
 			TreatPlans.Update(_listTreatPlans[gridPlans.SelectedIndices[0]]);
 			HasNoteChanged=false;
 		}
@@ -3452,7 +3453,7 @@ namespace OpenDental{
 				Clearinghouse clearinghouseClin=Clearinghouses.OverrideFields(clearinghouseHq,Clinics.ClinicNum);
 				claimSendQueueItemsArray[0]=OpenDentBusiness.Eclaims.Eclaims.GetMissingData(clearinghouseClin,claimSendQueueItemsArray[0]);
 				if(claimSendQueueItemsArray[0].MissingData!="") {
-					MessageBox.Show("Cannot add attachments until missing data is fixed:\r\n"+claimSendQueueItemsArray[0].MissingData);
+					ODMessageBox.Show("Cannot add attachments until missing data is fixed:\r\n"+claimSendQueueItemsArray[0].MissingData);
 					return false;
 				}
 			}

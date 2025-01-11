@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -23,7 +24,7 @@ namespace OpenDentBusiness {
 						FROM claimpayment 
 						LEFT JOIN claimproc ON claimproc.ClaimPaymentNum=claimpayment.ClaimPaymentNum
 						WHERE claimpayment.IsPartial = 1 
-						AND claimpayment.CarrierName LIKE '%"+POut.String(carrierName.Trim())+"%' "+@"
+						AND claimpayment.CarrierName LIKE '%"+SOut.String(carrierName.Trim())+"%' "+@"
 						GROUP BY claimpayment.ClaimPaymentNum	
 						UNION ALL	
 						SELECT 'UnfinalizedPayment' PayType,MAX(claimproc.PatNum) PatNum,0 ClaimPaymentNum,1 CountPats,MAX(claimproc.ClinicNum) ClinicNum,
@@ -32,31 +33,31 @@ namespace OpenDentBusiness {
 						FROM claimproc
 						INNER JOIN insplan ON insplan.PlanNum=claimproc.PlanNum
 						INNER JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum	
-							AND carrier.CarrierName LIKE '%"+POut.String(carrierName.Trim())+"%' "
+							AND carrier.CarrierName LIKE '%"+SOut.String(carrierName.Trim())+"%' "
 						//Filter logic here mimics batch payments in ClaimProcs.AttachAllOutstandingToPayment().
 						+@"WHERE claimproc.ClaimPaymentNum = 0 AND claimproc.InsPayAmt != 0 
-							AND claimproc.Status IN("+POut.Int((int)ClaimProcStatus.Received)+","
-							+POut.Int((int)ClaimProcStatus.Supplemental)+","+POut.Int((int)ClaimProcStatus.CapClaim)+@") 
+							AND claimproc.Status IN("+SOut.Int((int)ClaimProcStatus.Received)+","
+							+SOut.Int((int)ClaimProcStatus.Supplemental)+","+SOut.Int((int)ClaimProcStatus.CapClaim)+@") 
 							AND claimproc.IsTransfer=0 
 						GROUP BY claimproc.ClaimNum	
 			) partialpay";
 			DataTable table=ReportsComplex.RunFuncOnReportServer(()=> DataCore.GetTable(command));
-			List<Patient> listPats=Patients.GetMultPats(table.Select().Select(x => PIn.Long(x["PatNum"].ToString())).ToList()).ToList();
-			List<Claim> listClaims=Claims.GetClaimsFromClaimNums(table.Select().Select(x => PIn.Long(x["ClaimNum"].ToString())).ToList());
-			List<ClaimPayment> listPayments=ClaimPayments.GetByClaimPaymentNums(table.Select().Select(x => PIn.Long(x["ClaimPaymentNum"].ToString()))
+			List<Patient> listPats=Patients.GetMultPats(table.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList()).ToList();
+			List<Claim> listClaims=Claims.GetClaimsFromClaimNums(table.Select().Select(x => SIn.Long(x["ClaimNum"].ToString())).ToList());
+			List<ClaimPayment> listPayments=ClaimPayments.GetByClaimPaymentNums(table.Select().Select(x => SIn.Long(x["ClaimPaymentNum"].ToString()))
 				.ToList());
 			List<UnfinalizedInsPay> listUnfinalizedInsPay=new List<UnfinalizedInsPay>();
 			for(int i=0;i<table.Rows.Count;i++) {
 				listUnfinalizedInsPay.Add(new UnfinalizedInsPay(table.Rows[i]["PayType"].ToString(),
-					listPats.FirstOrDefault(x => x.PatNum==PIn.Long(table.Rows[i]["PatNum"].ToString())),
-					PIn.Long(table.Rows[i]["ClinicNum"].ToString()),
+					listPats.FirstOrDefault(x => x.PatNum==SIn.Long(table.Rows[i]["PatNum"].ToString())),
+					SIn.Long(table.Rows[i]["ClinicNum"].ToString()),
 					table.Rows[i]["CarrierName"].ToString(),
-					PIn.Date(table.Rows[i]["Date"].ToString()),
-					PIn.Date(table.Rows[i]["DOS"].ToString()),
-					PIn.Double(table.Rows[i]["Amount"].ToString()),
-					listPayments.FirstOrDefault(x => x.ClaimPaymentNum==PIn.Long(table.Rows[i]["ClaimPaymentNum"].ToString())),
-					listClaims.FirstOrDefault(x => x.ClaimNum==PIn.Long(table.Rows[i]["ClaimNum"].ToString())),
-					PIn.Int(table.Rows[i]["CountPats"].ToString())
+					SIn.Date(table.Rows[i]["Date"].ToString()),
+					SIn.Date(table.Rows[i]["DOS"].ToString()),
+					SIn.Double(table.Rows[i]["Amount"].ToString()),
+					listPayments.FirstOrDefault(x => x.ClaimPaymentNum==SIn.Long(table.Rows[i]["ClaimPaymentNum"].ToString())),
+					listClaims.FirstOrDefault(x => x.ClaimNum==SIn.Long(table.Rows[i]["ClaimNum"].ToString())),
+					SIn.Int(table.Rows[i]["CountPats"].ToString())
 				));
 			}
 			return listUnfinalizedInsPay;

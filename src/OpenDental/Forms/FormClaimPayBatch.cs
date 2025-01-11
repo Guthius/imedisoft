@@ -10,6 +10,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -495,9 +496,9 @@ namespace OpenDental{
 				+"Date of Service | PatNum | Patient Name";
 			for(int i=0;i<tableSecondaryClaims.Rows.Count;i++) {
 				//claimProc=secondaryClaims[i];
-				message+="\r\n"+PIn.Date(tableSecondaryClaims.Rows[i]["ProcDate"].ToString()).ToShortDateString()
+				message+="\r\n"+SIn.Date(tableSecondaryClaims.Rows[i]["ProcDate"].ToString()).ToShortDateString()
 					+" | "+tableSecondaryClaims.Rows[i]["PatNum"].ToString()
-					+" | "+Patients.GetPat(PIn.Long(tableSecondaryClaims.Rows[i]["PatNum"].ToString())).GetNameLF();
+					+" | "+Patients.GetPat(SIn.Long(tableSecondaryClaims.Rows[i]["PatNum"].ToString())).GetNameLF();
 			}
 			message+="\r\n\r\nPrint this list, then use it to review and send secondary claims.";
 			using MsgBoxCopyPaste msgBox=new MsgBoxCopyPaste(message);
@@ -585,7 +586,7 @@ namespace OpenDental{
 				ClaimPayments.Delete(_claimPayment);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			_isDeleting=true;
@@ -644,7 +645,7 @@ namespace OpenDental{
 						ClaimPayments.Update(_claimPayment);
 					}
 					catch(ApplicationException ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 						e.Cancel=true;
 						return;
 					}

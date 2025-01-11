@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -70,7 +71,7 @@ namespace OpenDental{
 				QuestionDefs.MoveUp(selected,_questionDefArray);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FillGrid();
@@ -88,7 +89,7 @@ namespace OpenDental{
 				QuestionDefs.MoveDown(selected,_questionDefArray);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FillGrid();

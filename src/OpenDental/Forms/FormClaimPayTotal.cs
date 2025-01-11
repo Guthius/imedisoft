@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -271,8 +272,8 @@ namespace OpenDental {
 					procFee=0;
 				}
 				//Read in the values from the cells on the grid that are editable.
-				double insPayAmt=PIn.Double(gridRowSelected.Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Ins Pay"))].Text);
-				double writeOff=PIn.Double(gridRowSelected.Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Write-off"))].Text);
+				double insPayAmt=SIn.Double(gridRowSelected.Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Ins Pay"))].Text);
+				double writeOff=SIn.Double(gridRowSelected.Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Write-off"))].Text);
 				//Calculate the new Pat Resp value and update the text in the corresponding cell.
 				double patResp=procFee-insPayAmt-writeOff;
 				gridRowSelected.Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Pat Resp"))].Text=patResp.ToString("F");
@@ -294,13 +295,13 @@ namespace OpenDental {
 			for(int i=0;i<gridMain.ListGridRows.Count;i++){
 				claimFee+=ClaimProcArray[i].FeeBilled;//5
 				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-					labFees+=PIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Labs"))].Text);
+					labFees+=SIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Labs"))].Text);
 				}
-				dedApplied+=PIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Deduct"))].Text);
-				insPayAmtAllowed+=PIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Allowed"))].Text);
-				double insPayAmtCur=PIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Ins Pay"))].Text);
+				dedApplied+=SIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Deduct"))].Text);
+				insPayAmtAllowed+=SIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Allowed"))].Text);
+				double insPayAmtCur=SIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Ins Pay"))].Text);
 				insPayAmt+=insPayAmtCur;
-				double writeOffCur=PIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Write-off"))].Text);
+				double writeOffCur=SIn.Double(gridMain.ListGridRows[i].Cells[gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Write-off"))].Text);
 				writeOff+=writeOffCur;
 				if(_doShowPatResp) {
 					double procFeeCur=Procedures.GetProcFromList(_listProcedures,ClaimProcArray[i].ProcNum).ProcFeeTotal;
@@ -364,15 +365,15 @@ namespace OpenDental {
 				return false;
 			}
 			for(int i=0;i<ClaimProcArray.Length;i++) {
-				ClaimProcArray[i].DedApplied=PIn.Double(gridMain.ListGridRows[i].Cells[idxDeduct].Text);
+				ClaimProcArray[i].DedApplied=SIn.Double(gridMain.ListGridRows[i].Cells[idxDeduct].Text);
 				if(gridMain.ListGridRows[i].Cells[idxAllowed].Text=="") {
 					ClaimProcArray[i].AllowedOverride=-1;
 				}
 				else {
-					ClaimProcArray[i].AllowedOverride=PIn.Double(gridMain.ListGridRows[i].Cells[idxAllowed].Text);
+					ClaimProcArray[i].AllowedOverride=SIn.Double(gridMain.ListGridRows[i].Cells[idxAllowed].Text);
 				}
-				ClaimProcArray[i].InsPayAmt=PIn.Double(gridMain.ListGridRows[i].Cells[idxInsPay].Text);
-				ClaimProcArray[i].WriteOff=PIn.Double(gridMain.ListGridRows[i].Cells[idxWriteOff].Text);
+				ClaimProcArray[i].InsPayAmt=SIn.Double(gridMain.ListGridRows[i].Cells[idxInsPay].Text);
+				ClaimProcArray[i].WriteOff=SIn.Double(gridMain.ListGridRows[i].Cells[idxWriteOff].Text);
 				if(PrefC.GetBool(PrefName.ClaimEditShowPayTracking)) {
 					int idxCol=gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Pay Tracking"));
 					if(idxCol>-1 && idxCol<gridMain.ListGridRows[i].Cells.Count) {
@@ -400,8 +401,8 @@ namespace OpenDental {
 				ClaimProc claimProc=ClaimProcArray[i].Copy();
 				int idxInsPay=gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Ins Pay"));
 				int idxWriteOff=gridMain.Columns.GetIndex(Lan.g("TableClaimProc","Write-off"));
-				claimProc.InsPayAmt=PIn.Double(gridMain.ListGridRows[i].Cells[idxInsPay].Text);
-				claimProc.WriteOff=PIn.Double(gridMain.ListGridRows[i].Cells[idxWriteOff].Text); 
+				claimProc.InsPayAmt=SIn.Double(gridMain.ListGridRows[i].Cells[idxInsPay].Text);
+				claimProc.WriteOff=SIn.Double(gridMain.ListGridRows[i].Cells[idxWriteOff].Text); 
 				listClaimProcsHypothetical.Add(claimProc);
 			}
 			return listClaimProcsHypothetical;
@@ -439,7 +440,7 @@ namespace OpenDental {
 		public void butWriteOff_Click(object sender,EventArgs e) {
 			DialogResult dialogResult=DialogResult.Cancel;
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-				dialogResult=MessageBox.Show(
+				dialogResult=ODMessageBox.Show(
 					 Lan.g(this,"Write off unpaid amounts on labs and procedures?")+"\r\n"
 					+Lan.g(this,"Choose Yes to write off unpaid amounts on both labs and procedures.")+"\r\n"
 					+Lan.g(this,"Choose No to write off unpaid amounts on procedures only."),"",MessageBoxButtons.YesNoCancel);
@@ -448,7 +449,7 @@ namespace OpenDental {
 				}
 			}
 			else {//United States
-				if(MessageBox.Show(Lan.g(this,"Write off unpaid amount on each procedure?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show(Lan.g(this,"Write off unpaid amount on each procedure?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}

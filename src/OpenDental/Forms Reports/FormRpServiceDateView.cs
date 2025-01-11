@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -61,8 +62,8 @@ namespace OpenDental {
 			DataRow lastRow=table.Select().LastOrDefault();
 			foreach(DataRow row in table.Rows) {
 				GridRow newRow=new GridRow();
-				DateTime serviceDate=PIn.Date(row["Date"].ToString());
-				DateTime transDate=PIn.Date(row["Trans Date"].ToString());
+				DateTime serviceDate=SIn.Date(row["Date"].ToString());
+				DateTime transDate=SIn.Date(row["Trans Date"].ToString());
 				newRow.Cells.Add((serviceDate.Year<1880) ? "" : serviceDate.ToShortDateString());
 				newRow.Cells.Add((transDate.Year<1880) ? "" : transDate.ToShortDateString());
 				newRow.Cells.Add(row["Patient"].ToString());
@@ -77,11 +78,11 @@ namespace OpenDental {
 				}
 				newRow.Cells.Add(strReference);
 				bool isUnallocated=strReference.ToLower().Contains("unallocated");
-				newRow.Cells.Add(isUnallocated ? "" : PIn.Decimal(row["Charge"].ToString()).ToString("f"));
-				newRow.Cells.Add(isUnallocated ? "" : PIn.Decimal(row["Credit"].ToString()).ToString("f"));
+				newRow.Cells.Add(isUnallocated ? "" : SIn.Decimal(row["Charge"].ToString()).ToString("f"));
+				newRow.Cells.Add(isUnallocated ? "" : SIn.Decimal(row["Credit"].ToString()).ToString("f"));
 				newRow.Cells.Add(row["Pvdr"].ToString());
-				decimal insBal=PIn.Decimal(row["InsBal"].ToString());
-				decimal acctBal=PIn.Decimal(row["AcctBal"].ToString());
+				decimal insBal=SIn.Decimal(row["InsBal"].ToString());
+				decimal acctBal=SIn.Decimal(row["AcctBal"].ToString());
 				bool isTotalsRow=row==lastRow || strReference.ToLower().Contains("Total for Date".ToLower());
 				//Show insBal and acctBal when not on totals row and detailed is checked and either of the amounts are not zero.
 				bool showDetailedRow=isTotalsRow || (isProc && checkDetailedView.Checked)

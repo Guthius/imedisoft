@@ -7,6 +7,7 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using MigraDoc.DocumentObjectModel;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -64,7 +65,7 @@ namespace OpenDental {
 			double amtFind=0.00;
 			if(this.textFindAmount.Text.Length>0){
 				hasAmountFind=true;
-				amtFind=PIn.Double(textFindAmount.Text);
+				amtFind=SIn.Double(textFindAmount.Text);
 			}
 			for(int i=0;i<_listJournalEntries.Count;i++) {
 				row=new GridRow();
@@ -131,14 +132,14 @@ namespace OpenDental {
 			if(!textStart.IsValid() || !textEnd.IsValid()) {
 				return;
 			}
-			textTarget.Text=(PIn.Double(textEnd.Text)-PIn.Double(textStart.Text)).ToString("n");
+			textTarget.Text=(SIn.Double(textEnd.Text)-SIn.Double(textStart.Text)).ToString("n");
 		}
 
 		private void textEnd_TextChanged(object sender,EventArgs e) {
 			if(!textStart.IsValid() || !textEnd.IsValid()) {
 				return;
 			}
-			textTarget.Text=(PIn.Double(textEnd.Text)-PIn.Double(textStart.Text)).ToString("n");
+			textTarget.Text=(SIn.Double(textEnd.Text)-SIn.Double(textStart.Text)).ToString("n");
 		}
 
 		private void checkLocked_Click(object sender,EventArgs e) {
@@ -176,7 +177,7 @@ namespace OpenDental {
 			}
 			List<JournalEntry> listJournalEntries=JournalEntries.GetForReconcile(ReconcileCur.AccountNum,includeUncleared:false,ReconcileCur.ReconcileNum);
 			if(listJournalEntries.Count>0) {
-				if(MessageBox.Show(this,"This entire Reconcile will be deleted.  Are you sure you want to delete?","Reconcile Delete Warning",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+				if(ODMessageBox.Show(this,"This entire Reconcile will be deleted.  Are you sure you want to delete?","Reconcile Delete Warning",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 					return;
 				}
 			}
@@ -196,9 +197,9 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			ReconcileCur.DateReconcile=PIn.Date(textDate.Text);
-			ReconcileCur.StartingBal=PIn.Double(textStart.Text);
-			ReconcileCur.EndingBal=PIn.Double(textEnd.Text);
+			ReconcileCur.DateReconcile=SIn.Date(textDate.Text);
+			ReconcileCur.StartingBal=SIn.Double(textStart.Text);
+			ReconcileCur.EndingBal=SIn.Double(textEnd.Text);
 			ReconcileCur.IsLocked=checkLocked.Checked;
 			Reconciles.Update(ReconcileCur);
 			SaveList();
@@ -227,7 +228,7 @@ namespace OpenDental {
 		private void textFindAmount_Leave(object sender,EventArgs e) {
 			if(this.textFindAmount.Text!="" && 
 				!Regex.IsMatch(this.textFindAmount.Text,"[0-9]+(\\.[0-9]+)?")){
-				MessageBox.Show("Invalid amount format in text search amount field.");
+				ODMessageBox.Show("Invalid amount format in text search amount field.");
 			}
 		}
 
@@ -314,11 +315,11 @@ namespace OpenDental {
 			paragraph.AddLineBreak();
 			paragraph.AddText(MiscData.GetNowDateTime().ToShortDateString());
 			paragraph.AddLineBreak();
-			paragraph.AddText(Lan.g(this,"Reconcile Date")+": "+PIn.Date(textDate.Text).ToShortDateString());
+			paragraph.AddText(Lan.g(this,"Reconcile Date")+": "+SIn.Date(textDate.Text).ToShortDateString());
 			paragraph.AddLineBreak();
-			paragraph.AddText(labelStart.Text+": "+PIn.Double(textStart.Text).ToString("n"));
+			paragraph.AddText(labelStart.Text+": "+SIn.Double(textStart.Text).ToString("n"));
 			paragraph.AddLineBreak();
-			paragraph.AddText(labelEnd.Text+": "+PIn.Double(textEnd.Text).ToString("n"));
+			paragraph.AddText(labelEnd.Text+": "+SIn.Double(textEnd.Text).ToString("n"));
 			MigraDocHelper.InsertSpacer(section,10);
 			MigraDocHelper.DrawGrid(section,gridMain);
 			return document;

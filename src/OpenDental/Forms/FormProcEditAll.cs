@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -198,7 +199,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return false;
 			}
-			DateTime dateProc=PIn.Date(textDate.Text);
+			DateTime dateProc=SIn.Date(textDate.Text);
 			if(textDate.Text!="" && ListProcedures.Any(x => x.ProcDate!=dateProc)){
 				if(!IsUserAuthorizedForProcDate(dateProc)) {//Do not allow new ProcDate outside of date limitations.  Mimics behavior in FormProcEdit.
 					return false;
@@ -219,7 +220,7 @@ namespace OpenDental {
 					if(ListProcedures[i].ProcDate.Date!=appointment.AptDateTime.Date) {
 						string error=Lan.g(this,"Date does not match appointment date for a procedure dated:")+" "+ListProcedures[i].ProcDate.ToShortDateString()
 							+"\r\n"+Lan.g(this,"Continue anyway?");
-						if(MessageBox.Show(error,"",MessageBoxButtons.YesNo)==DialogResult.No) {
+						if(ODMessageBox.Show(error,"",MessageBoxButtons.YesNo)==DialogResult.No) {
 							return false;
 						}
 						break;
@@ -247,8 +248,8 @@ namespace OpenDental {
 		private string ConstructSecurityLogForProcType(Procedure procedure,Procedure procedureOld) {
 			string logTextForProc="";
 			string code=ProcedureCodes.GetProcCode(procedure.CodeNum).ProcCode;
-			string procDateStrOld=POut.Date(procedureOld.ProcDate);
-			string procDateStrNew=POut.Date(procedure.ProcDate);
+			string procDateStrOld=SOut.Date(procedureOld.ProcDate);
+			string procDateStrNew=SOut.Date(procedure.ProcDate);
 			logTextForProc+=SecurityLogEntryHelper(code,SecurityLogFields.ProcDate,procDateStrOld,procDateStrNew);
 			string provNumStrOld=Providers.GetAbbr(procedureOld.ProvNum);
 			string provNumStrNew=Providers.GetAbbr(procedure.ProvNum);
@@ -310,8 +311,8 @@ namespace OpenDental {
 			//This list can only contain a single patNum.
 			long patNum=ListProcedures[0].PatNum;
 			DateTime dateProc=DateTime.MinValue;
-			if(textDate.Text!="" && ListProcedures.Any(x => x.ProcDate!=PIn.Date(textDate.Text))) {
-				dateProc=PIn.Date(textDate.Text);
+			if(textDate.Text!="" && ListProcedures.Any(x => x.ProcDate!=SIn.Date(textDate.Text))) {
+				dateProc=SIn.Date(textDate.Text);
 			}
 			#region Update ProcList and DB to reflect selections
 			List<ClaimProc> listClaimProcsAll=ClaimProcs.RefreshForProcs(ListProcedures.Select(x => x.ProcNum).ToList());

@@ -50,7 +50,7 @@ namespace OpenDental {
 
 		public DialogResult ShowDialog() {
 			if(/* ODEnvironment.IsCloudServer */ false) {
-				MessageBox.Show(Lans.g(this,"Folder browsing not allowed in web mode."));
+				ODMessageBox.Show(Lans.g(this,"Folder browsing not allowed in web mode."));
 				return DialogResult.Cancel;
 			}
 			return _folderBrowserDialog.ShowDialog();

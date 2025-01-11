@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 using OpenDental.Drawing;
@@ -128,7 +129,7 @@ Someday, I will eliminate all the ctor overloads.
 				if(textVDate is null){
 					return DateTime.MinValue;
 				}
-				return PIn.Date(textVDate.Text);
+				return SIn.Date(textVDate.Text);
 			}
 		}
 
@@ -212,7 +213,7 @@ Someday, I will eliminate all the ctor overloads.
 				if(textVTime is null){
 					return TimeSpan.Zero;
 				}
-				DateTime dateTime=PIn.DateTime(textVTime.Text);
+				DateTime dateTime=SIn.DateTime(textVTime.Text);
 				return dateTime.TimeOfDay;
 			}
 		}

@@ -57,7 +57,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FolderBrowserDialog dlg=new FolderBrowserDialog();
@@ -67,7 +67,7 @@ namespace OpenDental {
 				return;
 			}
 			if(File.Exists(Path.Combine(dlg.SelectedPath,"ccd.xml"))){
-				if(MessageBox.Show("Overwrite existing ccd.xml?","",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+				if(ODMessageBox.Show("Overwrite existing ccd.xml?","",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 					return;
 				}
 			}
@@ -79,19 +79,19 @@ namespace OpenDental {
 			newMeasureEvent.PatNum = PatCur.PatNum;
 			EhrMeasureEvents.Insert(newMeasureEvent);
 			FillGridEHRMeasureEvents();
-			MessageBox.Show("Exported");	
+			ODMessageBox.Show("Exported");	
 		}
 
 		private void butSendToPortal_Click(object sender,EventArgs e) {
 			//Validate
 			string strCcdValidationErrors=EhrCCD.ValidateSettings();
 			if(strCcdValidationErrors!="") {//Do not even try to export if global settings are invalid.
-				MessageBox.Show(strCcdValidationErrors);//We do not want to use translations here, because the text is dynamic. The errors are generated in the business layer, and Lan.g() is not available there.
+				ODMessageBox.Show(strCcdValidationErrors);//We do not want to use translations here, because the text is dynamic. The errors are generated in the business layer, and Lan.g() is not available there.
 				return;
 			}
 			strCcdValidationErrors=EhrCCD.ValidatePatient(PatCur);//Patient cannot be null, because a patient must be selected before the EHR dashboard will open.
 			if(strCcdValidationErrors!="") {
-				MessageBox.Show(strCcdValidationErrors);//We do not want to use translations here, because the text is dynamic. The errors are generated in the business layer, and Lan.g() is not available there.
+				ODMessageBox.Show(strCcdValidationErrors);//We do not want to use translations here, because the text is dynamic. The errors are generated in the business layer, and Lan.g() is not available there.
 				return;
 			}
 			Provider prov=null;
@@ -140,7 +140,7 @@ namespace OpenDental {
 				EmailMessages.Insert(msgWebMail);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			EhrMeasureEvent newMeasureEvent=new EhrMeasureEvent();
@@ -165,7 +165,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			bool didPrint=FormEhrSummaryOfCare.DisplayCCD(ccd);
@@ -193,7 +193,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			using MsgBoxCopyPaste msgbox=new MsgBoxCopyPaste(ccd);
@@ -202,7 +202,7 @@ namespace OpenDental {
 
 		private void butDelete_Click(object sender,EventArgs e) {
 			if(gridEHRMeasureEvents.SelectedIndices.Length < 1) {
-				MessageBox.Show("Please select at least one record to delete.");
+				ODMessageBox.Show("Please select at least one record to delete.");
 				return;
 			}
 			for(int i=0;i<gridEHRMeasureEvents.SelectedIndices.Length;i++) {

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -33,7 +34,7 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(textTitle.Text==""){
-				MessageBox.Show(Lan.g(this,"Please enter a title first."));
+				ODMessageBox.Show(Lan.g(this,"Please enter a title first."));
 				return;
 			}
 			UserQueryCur.Description=textTitle.Text;

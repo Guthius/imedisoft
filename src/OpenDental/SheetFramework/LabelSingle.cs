@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -36,7 +37,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -49,7 +50,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -62,7 +63,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -75,7 +76,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -88,7 +89,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -101,7 +102,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -116,7 +117,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -136,7 +137,7 @@ namespace OpenDental{
 				SheetPrinting.PrintBatch(sheetBatch);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -158,7 +159,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -180,7 +181,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -202,7 +203,7 @@ namespace OpenDental{
 				SheetPrinting.Print(sheet);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 

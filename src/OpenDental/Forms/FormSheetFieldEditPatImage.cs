@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSheetFieldEditPatImage:FormODBase {
@@ -39,12 +40,12 @@ namespace OpenDental {
 			textFieldValueDoc.Text="";
 			textFieldValueMount.Text="";
 			if(SheetFieldCur.FieldValue.StartsWith("MountNum:")){
-				long mountNum=PIn.Long(SheetFieldCur.FieldValue.Substring(9));
+				long mountNum=SIn.Long(SheetFieldCur.FieldValue.Substring(9));
 				Mount mount=Mounts.GetByNum(mountNum);
 				textFieldValueMount.Text=mount.DateCreated.ToShortDateString()+" "+mount.Description;
 			}
 			else if(SheetFieldCur.FieldValue!=""){
-				long docNum=PIn.Long(SheetFieldCur.FieldValue);
+				long docNum=SIn.Long(SheetFieldCur.FieldValue);
 				Document document=Documents.GetByNum(docNum);
 				textFieldValueDoc.Text=document.DateCreated.ToShortDateString()+" "+document.Description;
 			}
@@ -56,11 +57,11 @@ namespace OpenDental {
 			Patient patient=Patients.GetPat(SheetCur.PatNum);
 			formImagePickerPatient.PatientCur=patient;
 			if(SheetFieldCur.FieldValue.StartsWith("MountNum:")){
-				long mountNum=PIn.Long(SheetFieldCur.FieldValue.Substring(9));
+				long mountNum=SIn.Long(SheetFieldCur.FieldValue.Substring(9));
 				formImagePickerPatient.MountNumSelected=mountNum;
 			}
 			else if(SheetFieldCur.FieldValue!=""){
-				long docNum=PIn.Long(SheetFieldCur.FieldValue);
+				long docNum=SIn.Long(SheetFieldCur.FieldValue);
 				formImagePickerPatient.DocNumSelected=docNum;
 			}
 			formImagePickerPatient.ShowDialog();
@@ -90,7 +91,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender,EventArgs e) {
 			//The maximum y-value of the sheet field must be within the sheet vertically.
-			textYPos.MaxVal=BottomYLimit-PIn.Int(textHeight.Text);
+			textYPos.MaxVal=BottomYLimit-SIn.Int(textHeight.Text);
 			if(!textXPos.IsValid()
 				|| !textYPos.IsValid()
 				|| !textWidth.IsValid()
@@ -99,10 +100,10 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			SheetFieldCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldCur.Height=SIn.Int(textHeight.Text);
 			//don't save to database here.
 			SheetFieldCur.IsNew=false;
 			DialogResult=DialogResult.OK;

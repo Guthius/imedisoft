@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Linq;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -563,7 +565,7 @@ namespace OpenDental{
 				DateTime.Parse(textScreenDate.Text);
 			}
 			catch{
-				MessageBox.Show("Date invalid");
+				ODMessageBox.Show("Date invalid");
 				e.Cancel=true;
 			}
 		}
@@ -713,7 +715,7 @@ namespace OpenDental{
 				textDescription.Focus();
 				return;
 			}
-			_screenGroup.SGDate=PIn.Date(textScreenDate.Text);
+			_screenGroup.SGDate=SIn.Date(textScreenDate.Text);
 			_screenGroup.Description=textDescription.Text;
 			_screenGroup.ProvName=textProvName.Text;
 			if (comboProv.SelectedIndex==-1) {

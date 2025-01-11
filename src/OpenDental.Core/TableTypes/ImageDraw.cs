@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using DataConnectionBase;
 
 namespace OpenDentBusiness{
 
@@ -202,7 +203,7 @@ namespace OpenDentBusiness{
 			}
 			string[] stringArray=DrawingSegment.Split(' ');
 			if(stringArray.Length>0){
-				return PIn.Float(stringArray[0]);
+				return SIn.Float(stringArray[0]);
 			}
 			return 0;
 		}
@@ -213,7 +214,7 @@ namespace OpenDentBusiness{
 			}
 			string[] stringArray=DrawingSegment.Split(' ');
 			if(stringArray.Length>1){
-				return PIn.Int(stringArray[1]);
+				return SIn.Int(stringArray[1]);
 			}
 			return 0;
 		}

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -210,14 +211,14 @@ namespace OpenDental {
 							condVal=Lan.g(this,"Unassigned");
 						}
 						else {
-							condVal=Clinics.GetDesc(PIn.Long(condVal));
+							condVal=Clinics.GetDesc(SIn.Long(condVal));
 						}
 						break;
 					case RequiredFieldName.BillingType:
-						condVal=Defs.GetName(DefCat.BillingTypes,PIn.Long(condVal));
+						condVal=Defs.GetName(DefCat.BillingTypes,SIn.Long(condVal));
 						break;
 					case RequiredFieldName.PrimaryProvider:
-						condVal=Providers.GetLongDesc(PIn.Long(condVal));
+						condVal=Providers.GetLongDesc(SIn.Long(condVal));
 						break;
 				}
 				allCondValues+=condVal;

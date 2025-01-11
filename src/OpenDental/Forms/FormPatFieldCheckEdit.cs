@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -31,7 +32,7 @@ namespace OpenDental{
 
 		private void FormPatFieldCheckEdit_Load(object sender, System.EventArgs e) {
 			labelName.Text=_patField.FieldName;
-			checkFieldValue.Checked=PIn.Bool(_patField.FieldValue);
+			checkFieldValue.Checked=SIn.Bool(_patField.FieldValue);
 		}
 
 		private void butSave_Click(object sender, System.EventArgs e) {

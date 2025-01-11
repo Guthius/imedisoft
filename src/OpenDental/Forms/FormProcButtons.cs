@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 
@@ -135,7 +136,7 @@ namespace OpenDental{
 				if(_procButtonArray[i].ButtonImage!=""){
 					//image keys are simply the ProcButtonNum
 					try {
-						imageListProcButtons.Images.Add(_procButtonArray[i].ProcButtonNum.ToString(),PIn.Bitmap(_procButtonArray[i].ButtonImage));
+						imageListProcButtons.Images.Add(_procButtonArray[i].ProcButtonNum.ToString(),SIn.Bitmap(_procButtonArray[i].ButtonImage));
 					}
 					catch {
 						imageListProcButtons.Images.Add(new Bitmap(20,20));//Add a blank image so the list stays in synch
@@ -243,7 +244,7 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(listViewButtons.SelectedIndices.Count==0){
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			ProcButtons.Delete(_procButtonArray[listViewButtons.SelectedIndices[0]]);

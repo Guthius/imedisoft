@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -74,7 +75,7 @@ namespace OpenDental {
 		private bool IsValid() {
 			int index=listRestriction.SelectedIndex;
 			if(textCompareString.Text.Trim()=="" && index!=4) {//4-Gender
-				MessageBox.Show(Lans.g(this,"Please enter a value."));
+				ODMessageBox.Show(Lans.g(this,"Please enter a value."));
 				return false;
 			}
 			if(index==0) {//Birthdate
@@ -82,7 +83,7 @@ namespace OpenDental {
 						System.Convert.ToInt32(textCompareString.Text);//Must be number.
 					}
 					catch {
-						MessageBox.Show("Please enter a valid age.");
+						ODMessageBox.Show("Please enter a valid age.");
 						return false;
 					}
 			}
@@ -91,7 +92,7 @@ namespace OpenDental {
 					System.Convert.ToDecimal(textCompareString.Text);//Must be number.
 				}
 				catch {
-					MessageBox.Show("Please enter a valid number ICD9 code.");
+					ODMessageBox.Show("Please enter a valid number ICD9 code.");
 					return false;
 				}
 			}
@@ -100,7 +101,7 @@ namespace OpenDental {
 					System.Convert.ToDecimal(textLabValue.Text);//Must be number.
 				}
 				catch {
-					MessageBox.Show("Please enter a valid number for Lab value.");
+					ODMessageBox.Show("Please enter a valid number for Lab value.");
 					return false;
 				}
 			}

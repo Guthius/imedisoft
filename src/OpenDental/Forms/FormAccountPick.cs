@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.Bridges;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -97,7 +98,7 @@ namespace OpenDental{
 				listAccounts=QuickBooks.GetListOfAccounts();
 			}
 			catch(Exception e) {
-				MessageBox.Show(e.Message);
+				ODMessageBox.Show(e.Message);
 			}
 			Cursor.Current=Cursors.Default;
 			for(int i=0;i<listAccounts.Count;i++){

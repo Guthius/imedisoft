@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDentBusiness.Remoting;
@@ -25,7 +26,7 @@ namespace OpenDental {
 				System.Diagnostics.Process.Start(url);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error:")+"  "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error:")+"  "+ex.Message);
 			}
 		}
 
@@ -36,7 +37,7 @@ namespace OpenDental {
 				ProgramPropertyAccessToken.PropertyValue=accessTokenFinal;
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Error:")+"  "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Error:")+"  "+ex.Message);
 				return;
 			}
 			ProgramProperties.Update(ProgramPropertyAccessToken);

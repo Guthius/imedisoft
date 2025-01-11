@@ -80,7 +80,7 @@ namespace OpenDental{
 				stringArrayFiles=ODClipboard.GetFileDropList();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return null;
 			}
 			if(stringArrayFiles==null) {
@@ -119,7 +119,7 @@ namespace OpenDental{
 					document=ImageStore.Import(path,defNumCategory,_patient);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				SaveAttachment(document);
@@ -137,7 +137,7 @@ namespace OpenDental{
 				document=ImageStore.Import(bitmap,defNumCategory,ImageType.Attachment,_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			bitmap.Dispose();
@@ -193,7 +193,7 @@ namespace OpenDental{
 					File.Copy(oldPath,newPath); 
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				ClaimAttachNew=new ClaimAttach();
@@ -216,7 +216,7 @@ namespace OpenDental{
 					File.Copy(oldPath,newPath); 
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				ClaimAttachNew=new ClaimAttach();
@@ -228,7 +228,7 @@ namespace OpenDental{
 			//this does result in a significantly larger images size if jpg.  A later optimization would recompress it.
 			Bitmap bitmapold=null;
 			if(false) {
-				bitmapold=(Bitmap)Bitmap.FromFile(oldPath);  
+				bitmapold=(Bitmap)Image.FromFile(oldPath);  
 				Bitmap bitmapnew=ImageHelper.ApplyDocumentSettingsToImage(document,bitmapold,ImageSettingFlags.ALL);
 				bitmapnew.Save(newPath); 
 				ClaimAttachNew=new ClaimAttach();

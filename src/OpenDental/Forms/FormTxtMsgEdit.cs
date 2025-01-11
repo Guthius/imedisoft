@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -82,7 +83,7 @@ namespace OpenDental {
 				else if(true && !Clinics.IsTextingEnabled(clinicNum)) { //Checking for specific clinic.
 					//This is likely to happen a few times per office until they setup texting properly.
 					if(clinicNum!=0) {
-						MessageBox.Show(Lans.g(this,"Integrated Texting has not been enabled for the following clinic")+":\r\n"+Clinics.GetClinic(clinicNum).Description+".");
+						ODMessageBox.Show(Lans.g(this,"Integrated Texting has not been enabled for the following clinic")+":\r\n"+Clinics.GetClinic(clinicNum).Description+".");
 						return false;
 					}
 					//Should never happen. This message is precautionary.
@@ -105,7 +106,7 @@ namespace OpenDental {
 			List<string> listShortURLs=PrefC.GetListShortURLs(message).Except(_listShortURLsAllowed).ToList();
 			if(listShortURLs.Count>0) {
 				string errorMessage=Lan.g(this,"Message cannot contain the URL")+$" {listShortURLs[0]} "+Lan.g(this,"as these are only allowed for eServices.");
-				MessageBox.Show(errorMessage);
+				ODMessageBox.Show(errorMessage);
 				return false;
 			}
 			if(SmsPhones.IsIntegratedTextingEnabled()) {

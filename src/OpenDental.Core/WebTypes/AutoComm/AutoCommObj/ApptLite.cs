@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.WebTypes.AutoComm;
 
@@ -64,26 +65,26 @@ public class ApptLite : AutoCommObj
 
     public ApptLite(DataRow row)
     {
-        PrimaryKey = PIn.Long(row["AptNum"].ToString());
+        PrimaryKey = SIn.Long(row["AptNum"].ToString());
         //For most AutoCommApptAbs, this will be AptDateTime, but for ApptThankYous, SecDateTEntry is used.
-        DateTimeEvent = PIn.DateTime(row["DateTimeEvent"].ToString());
-        AptDateTime = PIn.DateTime(row["AptDateTime"].ToString());
-        DateTimeAskedToArrive = PIn.DateTime(row["DateTimeAskedToArrive"].ToString());
+        DateTimeEvent = SIn.DateTime(row["DateTimeEvent"].ToString());
+        AptDateTime = SIn.DateTime(row["AptDateTime"].ToString());
+        DateTimeAskedToArrive = SIn.DateTime(row["DateTimeAskedToArrive"].ToString());
         if (DateTimeAskedToArrive.Year < 1880)
         {
             DateTimeAskedToArrive = AptDateTime;
         }
 
-        AptStatus = (ApptStatus) PIn.Int(row["AptStatus"].ToString());
-        ClinicNum = PIn.Long(row["ClinicNum"].ToString());
-        PatNum = PIn.Long(row["PatNum"].ToString());
-        if (PIn.Bool(row["IsHygiene"].ToString()) && PIn.Long(row["ProvHyg"].ToString()) > 0)
+        AptStatus = (ApptStatus) SIn.Int(row["AptStatus"].ToString());
+        ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+        PatNum = SIn.Long(row["PatNum"].ToString());
+        if (SIn.Bool(row["IsHygiene"].ToString()) && SIn.Long(row["ProvHyg"].ToString()) > 0)
         {
-            ProvNum = PIn.Long(row["ProvHyg"].ToString());
+            ProvNum = SIn.Long(row["ProvHyg"].ToString());
         }
         else
         {
-            ProvNum = PIn.Long(row["ProvNum"].ToString());
+            ProvNum = SIn.Long(row["ProvNum"].ToString());
         }
 
         var clinic = (ClinicNum == 0) ? Clinics.GetPracticeAsClinicZero() : Clinics.GetClinic(ClinicNum);
@@ -91,7 +92,7 @@ public class ApptLite : AutoCommObj
         OfficePhone = Clinics.GetOfficePhone(clinic);
         OfficeEmail = EmailAddresses.GetByClinic(clinic.Id).EmailUsername;
         OfficeAddress = Clinics.GetOfficeAddress(clinic);
-        Length = PIn.Int(row["AptLength"].ToString());
+        Length = SIn.Int(row["AptLength"].ToString());
     }
 
     ///<summary>Creates CalendarIcsInfo using the current ApptLite.</summary>

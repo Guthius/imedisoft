@@ -11,6 +11,8 @@ using OpenDentBusiness;
 using OpenDental.Bridges;
 using System.Linq;
 using System.Text;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -204,7 +206,7 @@ namespace OpenDental{
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			Carrier carrier=Carriers.GetCarrier(PIn.Long(_table.Rows[e.Row]["CarrierNum"].ToString()));
+			Carrier carrier=Carriers.GetCarrier(SIn.Long(_table.Rows[e.Row]["CarrierNum"].ToString()));
 			if(IsSelectMode) {
 				CarrierSelected=carrier;
 				DialogResult=DialogResult.OK;
@@ -309,17 +311,17 @@ namespace OpenDental{
 				return;
 			}
 			if(gridMain.SelectedIndices.Length<2){
-				MessageBox.Show(Lan.g(this,"Please select multiple items first while holding down the control key."));
+				ODMessageBox.Show(Lan.g(this,"Please select multiple items first while holding down the control key."));
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Combine all these carriers into a single carrier? This will affect all patients using these carriers.  The next window will let you select which carrier to keep when combining."),""
+			if(ODMessageBox.Show(Lan.g(this,"Combine all these carriers into a single carrier? This will affect all patients using these carriers.  The next window will let you select which carrier to keep when combining."),""
 				,MessageBoxButtons.OKCancel)!=DialogResult.OK)
 			{
 				return;
 			}
 			List<long> pickedCarrierNums=new List<long>();
 			for(int i=0;i<gridMain.SelectedIndices.Length;i++) {
-				pickedCarrierNums.Add(PIn.Long(_table.Rows[gridMain.SelectedIndices[i]]["CarrierNum"].ToString()));
+				pickedCarrierNums.Add(SIn.Long(_table.Rows[gridMain.SelectedIndices[i]]["CarrierNum"].ToString()));
 			}
 			using FormCarrierCombine formCarrierCombine=new FormCarrierCombine();
 			formCarrierCombine.ListCarrierNums=pickedCarrierNums;
@@ -337,7 +339,7 @@ namespace OpenDental{
 				Carriers.Combine(pickedCarrierNums,formCarrierCombine.PickedCarrierNum);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DataValid.SetInvalid(InvalidType.Carriers);
@@ -419,7 +421,7 @@ namespace OpenDental{
 				string warningMessage=Lan.g(this,"WARNING!")+" "+Lan.g(this,"Mismatched data has been detected between selected carriers")+":\r\n\r\n"
 					+string.Join("\r\n",listWarnings)+"\r\n\r\n"
 					+Lan.g(this,"Would you like to continue combining carriers anyway?");
-				if(MessageBox.Show(warningMessage,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(warningMessage,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return false;
 				}
 			}
@@ -433,14 +435,14 @@ namespace OpenDental{
 		private void butOK_Click(object sender, System.EventArgs e) {
 			//only visible if IsSelectMode
 			if(gridMain.SelectedIndices.Length==0) {
-				MessageBox.Show(Lan.g(this,"Please select an item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select an item first."));
 				return;
 			}
 			if(gridMain.SelectedIndices.Length>1) {
-				MessageBox.Show(Lan.g(this,"Please select only one item first."));
+				ODMessageBox.Show(Lan.g(this,"Please select only one item first."));
 				return;
 			}
-			CarrierSelected=Carriers.GetCarrier(PIn.Long(_table.Rows[gridMain.SelectedIndices[0]]["CarrierNum"].ToString()));
+			CarrierSelected=Carriers.GetCarrier(SIn.Long(_table.Rows[gridMain.SelectedIndices[0]]["CarrierNum"].ToString()));
 			DialogResult=DialogResult.OK;
 		}
 

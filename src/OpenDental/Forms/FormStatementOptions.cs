@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDentBusiness.WebTypes;
@@ -400,7 +401,7 @@ namespace OpenDental{
 						StatementCur.DocNum=0;
 					}
 					catch(Exception ex) {  //Image could not be deleted, in use.
-						MessageBox.Show(this,ex.Message);
+						ODMessageBox.Show(this,ex.Message);
 						return;
 					}
 				}
@@ -792,7 +793,7 @@ namespace OpenDental{
 			Document document=Documents.GetByNum(StatementCur.DocNum);
 			string fileName=ImageStore.GetFilePath(document,filePathPatFolder);
 			if(!FileAtoZ.Exists(fileName)) {
-				MessageBox.Show(Lan.g(this,"File not found:")+" "+document.FileName);
+				ODMessageBox.Show(Lan.g(this,"File not found:")+" "+document.FileName);
 				return;
 			}
 			try {
@@ -1280,7 +1281,7 @@ namespace OpenDental{
 					StatementCur.PatNum=_patientSuperHead.PatNum;
 					StatementCur.SuperFamily=_patientSuperHead.PatNum;
 				}
-				StatementCur.DateSent=PIn.Date(textDate.Text);
+				StatementCur.DateSent=SIn.Date(textDate.Text);
 				StatementCur.IsSent=checkIsSent.Checked;
 				StatementCur.Mode_=listMode.GetSelected<StatementMode>();
 				StatementCur.HidePayment=checkHidePayment.Checked;
@@ -1289,13 +1290,13 @@ namespace OpenDental{
 				StatementCur.IsReceipt=checkIsReceipt.Checked;
 				StatementCur.IsInvoice=checkIsInvoice.Checked;
 				StatementCur.StatementType=checkLimited.Checked?StmtType.LimitedStatement:StmtType.NotSet;//right now only either LimitedStatement or NotSet
-				StatementCur.DateRangeFrom=PIn.Date(textDateStart.Text);//handles blank
+				StatementCur.DateRangeFrom=SIn.Date(textDateStart.Text);//handles blank
 				if(checkBoxBillShowTransSinceZero.Checked) {
 					Patient patient=Patients.GetPat(StatementCur.PatNum);
 					List<PatAging> listPatAgings=Patients.GetAgingListSimple(new List<long> {}, new List<long> { patient.Guarantor },true);
 					DataTable tableBals=Ledgers.GetDateBalanceBegan(listPatAgings,checkSuperStatement.Checked);
 					if(tableBals.Rows.Count > 0) {
-						DateTime dateFrom=PIn.Date(tableBals.Rows[0]["DateZeroBal"].ToString());
+						DateTime dateFrom=SIn.Date(tableBals.Rows[0]["DateZeroBal"].ToString());
 						if(dateFrom==DateTime.MinValue) {//patient has a zero or credit balance.
 							StatementCur.DateRangeFrom=DateTime.Now;
 						}
@@ -1308,7 +1309,7 @@ namespace OpenDental{
 					StatementCur.DateRangeTo=new DateTime(2200,1,1);//max val
 				}
 				else{
-					StatementCur.DateRangeTo=PIn.Date(textDateEnd.Text);
+					StatementCur.DateRangeTo=SIn.Date(textDateEnd.Text);
 				}
 				StatementCur.Note=textNote.Text;
 				StatementCur.NoteBold=textNoteBold.Text;
@@ -1341,7 +1342,7 @@ namespace OpenDental{
 			}
 			for(int i=0;i<ListStatements.Count;i++){
 				if(textDate.Text!=""){
-					ListStatements[i].DateSent=PIn.Date(textDate.Text);
+					ListStatements[i].DateSent=SIn.Date(textDate.Text);
 				}
 				if(checkIsSent.CheckState!=CheckState.Indeterminate){
 					ListStatements[i].IsSent=checkIsSent.Checked;
@@ -1362,14 +1363,14 @@ namespace OpenDental{
 					ListStatements[i].IsReceipt=checkIsReceipt.Checked;
 				}
 				if(textDateStart.Text!="?"){
-					ListStatements[i].DateRangeFrom=PIn.Date(textDateStart.Text);//handles blank
+					ListStatements[i].DateRangeFrom=SIn.Date(textDateStart.Text);//handles blank
 				}
 				if(textDateStart.Text!="?"){
 					if(textDateEnd.Text==""){
 						ListStatements[i].DateRangeTo=new DateTime(2200,1,1);//max val
 					}
 					else{
-						ListStatements[i].DateRangeTo=PIn.Date(textDateEnd.Text);
+						ListStatements[i].DateRangeTo=SIn.Date(textDateEnd.Text);
 					}
 				}
 				if(textNote.Text!="?"){
@@ -1382,7 +1383,7 @@ namespace OpenDental{
 					DateTime dateFrom=DateTime.MinValue;
 					DataRow[] dataRowArray=tablePatsDates.Select("PatNum='"+ListStatements[i].PatNum.ToString()+"'");
 					if(dataRowArray.Length>0){
-						dateFrom=PIn.DateTime(dataRowArray[0]["DateZeroBal"].ToString());
+						dateFrom=SIn.DateTime(dataRowArray[0]["DateZeroBal"].ToString());
 					}
 					ListStatements[i].DateRangeFrom=DateTime.Now;
 					if(dateFrom!=DateTime.MinValue) {//patient does not have a zero or credit balance.

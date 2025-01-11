@@ -210,7 +210,7 @@ namespace OpenDental {
 				appointment=AppointmentL.CreateRecallApt(_patient,listInsPlans,-1,listInsSubs,dateTimeApt);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DateTime datePrevious=appointment.DateTStamp;
@@ -219,7 +219,7 @@ namespace OpenDental {
 				Appointment appointmentOld=appointment.Copy();
 				if(_patient.AskToArriveEarly>0) {
 					appointment.DateTimeAskedToArrive=appointment.AptDateTime.AddMinutes(-_patient.AskToArriveEarly);
-					MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+_patient.AskToArriveEarly
+					ODMessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+_patient.AskToArriveEarly
 						+" "+Lan.g(this,"minutes early at")+" "+appointment.DateTimeAskedToArrive.ToShortTimeString()+".");
 				}
 				appointment.AptStatus=ApptStatus.Scheduled;
@@ -247,7 +247,7 @@ namespace OpenDental {
 						hl7Msg.PatNum=_patient.PatNum;
 						HL7Msgs.Insert(hl7Msg);
 						if(/* ODBuild.IsDebug() */ false) {
-							MessageBox.Show(this,messageHL7.ToString());
+							ODMessageBox.Show(this,messageHL7.ToString());
 						}
 					}
 				}
@@ -350,7 +350,7 @@ namespace OpenDental {
 				listUserMsgs.Add(Lan.g(this,"There are no recall appointments to schedule."));
 			}
 			if(listUserMsgs.Count > 0) {
-				MessageBox.Show(string.Join("\r\n",listUserMsgs));
+				ODMessageBox.Show(string.Join("\r\n",listUserMsgs));
 				if(ListAptNumsSelected.Count==0) {
 					return;
 				}
@@ -397,7 +397,7 @@ namespace OpenDental {
 				Appointments.Insert(appointment);
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			using FormApptEdit formApptEdit=new FormApptEdit(appointment.AptNum);

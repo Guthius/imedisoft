@@ -225,7 +225,7 @@ namespace OpenDental{
 			int apptCount=listAppointmentsToMerge.FindAll(x => x.Op!=opNumMaster).Count;
 			if(apptCount>0) {
 				string selectedOpName=_listOperatories.First(x => x.OperatoryNum==opNumMaster).Abbrev;//Safe
-				if(MessageBox.Show(Lan.g(this,"Would you like to move")+" "+apptCount+" "
+				if(ODMessageBox.Show(Lan.g(this,"Would you like to move")+" "+apptCount+" "
 					+Lan.g(this,"appointments from their current operatories to")+" "+selectedOpName+"?\r\n\r\n"
 					+Lan.g(this,"You cannot undo this!")
 					,"WARNING"
@@ -245,10 +245,10 @@ namespace OpenDental{
 				Operatories.MergeOperatoriesIntoMaster(opNumMaster,listOpNumsSelected,listAppointmentsToMerge);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
-			MessageBox.Show(Lan.g("Operatories","The following operatories and all of their appointments were merged into the")
+			ODMessageBox.Show(Lan.g("Operatories","The following operatories and all of their appointments were merged into the")
 					+" "+_listOperatories.FirstOrDefault(x => x.OperatoryNum==opNumMaster).Abbrev+" "+Lan.g("Operatories","operatory:")+"\r\n"
 					+string.Join(", ",_listOperatories.FindAll(x => x.OperatoryNum!=opNumMaster && listOpNumsSelected.Contains(x.OperatoryNum)).Select(x => x.Abbrev)));
 			RefreshList();
@@ -320,7 +320,7 @@ namespace OpenDental{
 				+Lan.g(this,"with Clinic")+" '"+comboClinic.GetSelectedAbbr()+"' "
 				+Lan.g(this,"selected because it is also a member of a Headquarters Appointment View.") +" "
 				+Lan.g(this,"You must set your clinic selection to 'All' to reorder these operatories.");
-			MessageBox.Show(strErr); //already translated
+			ODMessageBox.Show(strErr); //already translated
 			return false;
 		}
 

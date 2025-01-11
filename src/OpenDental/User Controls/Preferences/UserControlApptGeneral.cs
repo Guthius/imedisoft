@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -52,7 +53,7 @@ namespace OpenDental {
 
 		private void checkApptsRequireProc_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ApptsRequireProc);	
-			prefValSync.PrefVal=POut.Bool(checkApptsRequireProc.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkApptsRequireProc.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -122,7 +123,7 @@ namespace OpenDental {
 			if(!textApptWithoutProcsDefaultLength.IsValid()
 				| !textApptAutoRefreshRange.IsValid())
 			{
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return false;
 			}
 			Changed|=Prefs.UpdateBool(PrefName.BrokenApptAdjustment,checkBrokenApptAdjustment.Checked);
@@ -151,7 +152,7 @@ namespace OpenDental {
 
 		public void FillSynced() {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ApptsRequireProc);
-			checkApptsRequireProc.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkApptsRequireProc.Checked=SIn.Bool(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

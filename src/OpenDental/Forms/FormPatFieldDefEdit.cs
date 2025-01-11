@@ -106,7 +106,7 @@ namespace OpenDental {
 				HasChanged=true;
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FieldDefLinks.DeleteForFieldDefNum(PatFieldDefCur.PatFieldDefNum,FieldDefTypes.Patient);//Delete any FieldDefLinks to this PatFieldDef

@@ -10,6 +10,7 @@ using OpenDentBusiness.HL7;
 using System.Diagnostics;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -256,7 +257,7 @@ End of Checklist================================================================
 			/*Show checkDoseSpotConsent if DoseSpot is enabled. Currently, consent cannot be revoked with DoseSpot,
 			so the check box is checked and disabled if consent was previously given.*/
 			Program programErx=Programs.GetCur(ProgramName.eRx);
-			ErxOption erxOption=PIn.Enum<ErxOption>(ProgramProperties.GetPropForProgByDesc(programErx.ProgramNum,Erx.PropertyDescs.ErxOption).PropertyValue);
+			ErxOption erxOption=SIn.Enum<ErxOption>(ProgramProperties.GetPropForProgByDesc(programErx.ProgramNum,Erx.PropertyDescs.ErxOption).PropertyValue);
 			if(programErx.Enabled && (erxOption==ErxOption.DoseSpot || erxOption==ErxOption.DoseSpotWithNewCrop)) {
 				checkDoseSpotConsent.Visible=true;
 				checkDoseSpotConsent.Checked=_patientNote.Consent.HasFlag(PatConsentFlags.ShareMedicationHistoryErx);
@@ -1091,7 +1092,7 @@ End of Checklist================================================================
 						//There should be no more than 2 conditions of type Birthdate
 						List<bool> listAreCondsMet=new List<bool>();
 						for(int j=0;j<listRequiredFieldConditionsAge.Count;j++) {
-							listAreCondsMet.Add(RequiredFieldConditions.CondOpComparer(ageEntered,listRequiredFieldConditionsAge[j].Operator,PIn.Int(listRequiredFieldConditionsAge[j].ConditionValue)));
+							listAreCondsMet.Add(RequiredFieldConditions.CondOpComparer(ageEntered,listRequiredFieldConditionsAge[j].Operator,SIn.Int(listRequiredFieldConditionsAge[j].ConditionValue)));
 						}
 						if(listAreCondsMet.Count<2 || listRequiredFieldConditionsAge[1].ConditionRelationship==LogicalOperator.And) {
 							areConditionsMet=!listAreCondsMet.Contains(false);
@@ -1280,12 +1281,12 @@ End of Checklist================================================================
 				return;
 			}
 			Def defBillingTypeSelected=comboBillType.GetSelected<Def>();
-			long defNumClinicDefaultBillingType=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,comboClinic.ClinicNumSelected));
+			long defNumClinicDefaultBillingType=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,comboClinic.ClinicNumSelected));
 			//If patient is new and the selected billing type is not the selected clinics default billing type.
 			if(IsNew && defBillingTypeSelected.DefNum!=defNumClinicDefaultBillingType) {
 				string clinicDefaultBillingTypeName=_listDefsBillingType.Find(x => x.DefNum==defNumClinicDefaultBillingType)?.ItemName;
 				//Ask if the user would like to set the patients billing type to the clinics default.
-				if(!clinicDefaultBillingTypeName.IsNullOrEmpty() && MessageBox.Show(Lan.g(this,"The selected billing type does not match the selected clinic's default billing type. "+
+				if(!clinicDefaultBillingTypeName.IsNullOrEmpty() && ODMessageBox.Show(Lan.g(this,"The selected billing type does not match the selected clinic's default billing type. "+
 						"Would you like to change this patient's billing type from ")+defBillingTypeSelected.ItemName+" to "+clinicDefaultBillingTypeName+"?","",
 						MessageBoxButtons.YesNo)==DialogResult.Yes)
 				{
@@ -1527,7 +1528,7 @@ End of Checklist================================================================
 
 		private void butEditZip_Click(object sender, System.EventArgs e) {
 			if(textZip.Text.Length==0){
-				MessageBox.Show(Lan.g(this,"Please enter a zipcode first."));
+				ODMessageBox.Show(Lan.g(this,"Please enter a zipcode first."));
 				return;
 			}
 			List<ZipCode> listZipCodes=ZipCodes.GetALMatches(textZip.Text);
@@ -1622,7 +1623,7 @@ End of Checklist================================================================
 				textChartNumber.Text=Patients.GetNextChartNum();
 			}
 			catch(ApplicationException ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			_errorProvider.SetError(textChartNumber,"");
@@ -2561,7 +2562,7 @@ End of Checklist================================================================
 				}
 			}
 			try{
-				PIn.Int(textAskToArriveEarly.Text);
+				SIn.Int(textAskToArriveEarly.Text);
 			}
 			catch{
 				MsgBox.Show(this,"Ask To Arrive Early invalid.");
@@ -2582,7 +2583,7 @@ End of Checklist================================================================
 				&& !textSSN.ReadOnly && Patients.SSNRemoveDashes(textSSN.Text)!=_patientOld.SSN)//If SSN isn't masked, it isn't readonly, might have changed. Only validate if changed
 			{
 				if(!Regex.IsMatch(textSSN.Text,@"^\d\d\d-\d\d-\d\d\d\d$")) {
-					if(MessageBox.Show("SSN not valid. Continue anyway?","",MessageBoxButtons.OKCancel)
+					if(ODMessageBox.Show("SSN not valid. Continue anyway?","",MessageBoxButtons.OKCancel)
 						!=DialogResult.OK) {
 						_errorProvider.SetError(textSSN, "Invalid social security number.");
 						return;
@@ -2618,7 +2619,7 @@ End of Checklist================================================================
 					if(listAppointmentsFuture.Count>10) {
 						apptDates+="(...)";
 					}
-					if(MessageBox.Show(Lan.g(this,"This patient has scheduled appointments in the future")+":\r\n"
+					if(ODMessageBox.Show(Lan.g(this,"This patient has scheduled appointments in the future")+":\r\n"
 							+apptDates+"\r\n"
 							+Lan.g(this,"Would you like to delete them and set the patient to Deceased?"),Lan.g(this,"Delete future appointments?"),MessageBoxButtons.YesNo)==DialogResult.Yes) 
 					{
@@ -2730,7 +2731,7 @@ End of Checklist================================================================
 					DoseSpot.SetMedicationHistConsent(patientForDoseSpot,clinicNum);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(Lan.g(this,"Unable to set patient medication access consent for DoseSpot: ")+ex.Message);
+					ODMessageBox.Show(Lan.g(this,"Unable to set patient medication access consent for DoseSpot: ")+ex.Message);
 					return;
 				}
 				_patientNote.Consent=PatConsentFlags.ShareMedicationHistoryErx;
@@ -2785,8 +2786,8 @@ End of Checklist================================================================
 				Patient.Language=_listLanguages[comboLanguage.SelectedIndex-1];
 			}
 			Patient.AddrNote=textAddrNotes.Text;
-			Patient.DateFirstVisit=PIn.Date(odDatePickerDateFirstVisit.GetDateTime().ToString());
-			Patient.AskToArriveEarly=PIn.Int(textAskToArriveEarly.Text);
+			Patient.DateFirstVisit=SIn.Date(odDatePickerDateFirstVisit.GetDateTime().ToString());
+			Patient.AskToArriveEarly=SIn.Int(textAskToArriveEarly.Text);
 			Patient.PriProv=comboPriProv.GetSelectedProvNum();
 			Patient.SecProv=comboSecProv.GetSelectedProvNum();
 			if(comboFeeSched.SelectedIndex==0){
@@ -2880,9 +2881,9 @@ End of Checklist================================================================
 				}
 			}
 			if(!PrefC.GetBool(PrefName.EasyHideHospitals)) { //Only update if Hospital tab is showing
-				Patient.AdmitDate=PIn.Date(odDatePickerAdmitDate.GetDateTime().ToString());
+				Patient.AdmitDate=SIn.Date(odDatePickerAdmitDate.GetDateTime().ToString());
 				Patient.Ward=textWard.Text;
-				_ehrPatient.DischargeDate=PIn.Date(odDatePickerDischargeDate.GetDateTime().ToString());
+				_ehrPatient.DischargeDate=SIn.Date(odDatePickerDischargeDate.GetDateTime().ToString());
 			}
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 				Patient.CanadianEligibilityCode=(byte)comboCanadianEligibilityCode.SelectedIndex;

@@ -38,7 +38,7 @@ namespace OpenDental {
 					password=Authentication.HashPasswordMD5(password,true);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}
@@ -55,7 +55,7 @@ namespace OpenDental {
 				userodEntered=Userods.CheckUserAndPassword(username,password,useEcwAlgorithm);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			//successful login.

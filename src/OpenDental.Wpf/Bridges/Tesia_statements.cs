@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -91,7 +92,7 @@ namespace OpenDental.Bridges {
 			//add payplan due amt:
 			for(int m=0;m<dataSet.Tables["misc"].Rows.Count;m++) {
 				if(dataSet.Tables["misc"].Rows[m]["descript"].ToString()=="payPlanDue") {
-					amountDue+=PIn.Double(dataSet.Tables["misc"].Rows[m]["value"].ToString());
+					amountDue+=SIn.Double(dataSet.Tables["misc"].Rows[m]["value"].ToString());
 				}
 			}
 			if(PrefC.GetBool(PrefName.BalancesDontSubtractIns)) {

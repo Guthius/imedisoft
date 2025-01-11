@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using WpfControls.UI;
@@ -41,7 +42,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix error first.");
 				return;
 			}
-			if(Prefs.UpdateString(PrefName.AccountingLockDate,POut.Date(PIn.Date(textVDate.Text),false))){
+			if(Prefs.UpdateString(PrefName.AccountingLockDate,SOut.Date(SIn.Date(textVDate.Text),false))){
 				DataValid.SetInvalid(InvalidType.Prefs);
 			}
 			IsDialogOK=true;

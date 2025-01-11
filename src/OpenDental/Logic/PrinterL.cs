@@ -354,7 +354,7 @@ namespace OpenDental {
 			if(ex!=null) {
 				message+="\r\n"+ex.Message;
 			}
-			MessageBox.Show(message);//Message is translated above.
+			ODMessageBox.Show(message);//Message is translated above.
 		}
 
 		private static bool IsControlPreviewOverrideValid(ODprintout printout) {

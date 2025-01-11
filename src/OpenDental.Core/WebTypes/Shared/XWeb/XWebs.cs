@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using CodeBase;
+using DataConnectionBase;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness.WebTypes.Shared.XWeb;
@@ -527,7 +528,7 @@ public class XWebs
                 //We will use Alias so all other forms of credit card identification are NOT required.
                 ret.Add("Alias", CreditCards.GetXWebToken(_cc));
                 //Amount is required for DTG alias payment.
-                ret.Add("Amount", POut.Double(_amount));
+                ret.Add("Amount", SOut.Double(_amount));
                 //No partial payments. Payment will either be full approved or declined.
                 ret.Add("EnablePartialApprovals", "FALSE");
                 //Allows duplicate transactions within 15 minutes of each other when CHECKING_OFF.

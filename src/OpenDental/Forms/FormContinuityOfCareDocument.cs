@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -19,7 +20,7 @@ namespace OpenDental {
 				continuityOfCareText=EhrCCD.GenerateClinicalSummary(PatCur,true,true,true,true,true,true,true,true,true,true,true,true,
 					textInstructions.Text,DateTime.MinValue,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}
@@ -45,7 +46,7 @@ namespace OpenDental {
 				continuityOfCareText=EhrCCD.GenerateClinicalSummary(PatCur,true,true,true,true,true,true,true,true,true,true,true,true,
 					textInstructions.Text,DateTime.MinValue,out string warnings);
 				if(!string.IsNullOrEmpty(warnings)) {
-					if(MessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
+					if(ODMessageBox.Show(warnings,"Warnings",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
 						return;
 					}
 				}

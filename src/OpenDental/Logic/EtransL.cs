@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -112,13 +113,13 @@ namespace OpenDental
             decimal insPaidMin = -1;
             if (amountMin != "")
             {
-                insPaidMin = PIn.Decimal(amountMin);
+                insPaidMin = SIn.Decimal(amountMin);
             }
 
             decimal insPaidMax = -1;
             if (amountMax != "")
             {
-                insPaidMax = PIn.Decimal(amountMax);
+                insPaidMax = SIn.Decimal(amountMax);
             }
 
             EraData eraData = new EraData();
@@ -209,7 +210,7 @@ namespace OpenDental
 
             if (tablePt.Rows.Count == 1)
             {
-                GlobalFormOpenDental.GoToModule(EnumModuleType.Account, patNum: PIn.Long(tablePt.Rows[0]["PatNum"].ToString()));
+                GlobalFormOpenDental.GoToModule(EnumModuleType.Account, patNum: SIn.Long(tablePt.Rows[0]["PatNum"].ToString()));
                 return;
             }
 
@@ -379,7 +380,7 @@ namespace OpenDental
                         msg += "".PadRight(patNumColumnLength) + "\t" //Blank PatNum because unknown.
                                                                + hx835_Claim.PatientName.ToString().PadRight(maxColumnLength) + "\t"
                                                                + hx835_Claim.DateServiceStart.ToShortDateString() + "\t"
-                                                               + POut.Decimal(hx835_Claim.ClaimFee) + "\r\n";
+                                                               + SOut.Decimal(hx835_Claim.ClaimFee) + "\r\n";
                         continue;
                     }
 
@@ -394,7 +395,7 @@ namespace OpenDental
                     msg += claim.PatNum.ToString().PadRight(patNumColumnLength).Substring(0, patNumColumnLength) + "\t" //and especially why the useless substring? 
                                                                                                                  + name.Substring(0, maxColumnLength) + "\t"
                                                                                                                  + claim.DateService.ToShortDateString() + "\t"
-                                                                                                                 + POut.Double(claim.ClaimFee) + "\r\n";
+                                                                                                                 + SOut.Double(claim.ClaimFee) + "\r\n";
                 }
 
                 #endregion
@@ -441,7 +442,7 @@ namespace OpenDental
                     msg += listClaims[i].PatNum.ToString().PadRight(patNumColumnLength).Substring(0, patNumColumnLength) + "\t"
                                                                                                                          + name.Substring(0, maxNamesLength) + "\t"
                                                                                                                          + listClaims[i].DateService.ToShortDateString() + "\t"
-                                                                                                                         + POut.Double(listClaims[i].ClaimFee) + "\r\n";
+                                                                                                                         + SOut.Double(listClaims[i].ClaimFee) + "\r\n";
                 }
 
                 #endregion
@@ -586,7 +587,7 @@ namespace OpenDental
                         Patients.Insert(hx834_Member.Pat, false);
                         Patient patientOldMember = hx834_Member.Pat.Copy();
                         hx834_Member.Pat.PatStatus = PatientStatus.Patient;
-                        hx834_Member.Pat.BillingType = PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType, Clinics.ClinicNum));
+                        hx834_Member.Pat.BillingType = SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType, Clinics.ClinicNum));
                         if (!PrefC.GetBool(PrefName.PriProvDefaultToSelectProv))
                         {
                             //Set the patients primary provider to the practice default provider.
@@ -853,7 +854,7 @@ namespace OpenDental
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
+                    ODMessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
                                     + Lan.g("FormEtrans834Preview", "to archive, probably due to a permission issue.") + "  " + ex.Message);
 
                     return false;
@@ -877,7 +878,7 @@ namespace OpenDental
             }
             catch (Exception ex)
             {
-                MessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
+                ODMessageBox.Show(Lan.g("FormEtrans834Preview", "Failed to move file") + " '" + x834.FilePath + "' "
                                 + Lan.g("FormEtrans834Preview", "to archive, probably due to a permission issue.") + "  " + ex.Message);
 
                 return false;

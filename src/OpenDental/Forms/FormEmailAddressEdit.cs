@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using OpenDental.UI;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -196,7 +197,7 @@ namespace OpenDental{
 			}
 			var clinic=Clinics.GetFirstOrDefault(x => x.EmailAddressId==_emailAddress.EmailAddressNum);
 			if(clinic!=null) {
-				MessageBox.Show(Lan.g(this,"Cannot delete the email address because it is used by clinic")+" "+clinic.Description);
+				ODMessageBox.Show(Lan.g(this,"Cannot delete the email address because it is used by clinic")+" "+clinic.Description);
 				return;
 			}
 			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Delete this email address?")) {
@@ -338,14 +339,14 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			try {
-				PIn.Int(textPort.Text);
+				SIn.Int(textPort.Text);
 			}
 			catch {
 				MsgBox.Show(this,"Invalid outgoing port number.");
 				return;
 			}
 			try {
-				PIn.Int(textPortIncoming.Text);
+				SIn.Int(textPortIncoming.Text);
 			}
 			catch {
 				MsgBox.Show(this,"Invalid incoming port number.");
@@ -360,18 +361,18 @@ namespace OpenDental{
 				MsgBox.Show(this,"This email address already exists.");
 				return;
 			}
-			_emailAddress.SMTPserver=PIn.String(textSMTPserver.Text);
-			_emailAddress.EmailUsername=PIn.String(textUsername.Text);
+			_emailAddress.SMTPserver=SIn.String(textSMTPserver.Text);
+			_emailAddress.EmailUsername=SIn.String(textUsername.Text);
 			_emailAddress.EmailPassword="";
-			_emailAddress.ServerPort=PIn.Int(textPort.Text);
+			_emailAddress.ServerPort=SIn.Int(textPort.Text);
 			_emailAddress.UseSSL=checkSSL.Checked;
-			_emailAddress.SenderAddress=PIn.String(textSender.Text);
-			_emailAddress.Pop3ServerIncoming=PIn.String(textSMTPserverIncoming.Text);
-			_emailAddress.ServerPortIncoming=PIn.Int(textPortIncoming.Text);
+			_emailAddress.SenderAddress=SIn.String(textSender.Text);
+			_emailAddress.Pop3ServerIncoming=SIn.String(textSMTPserverIncoming.Text);
+			_emailAddress.ServerPortIncoming=SIn.Int(textPortIncoming.Text);
 			_emailAddress.UserNum=((Userod)(textUserod.Tag))?.UserNum??0;
 			_emailAddress.AuthenticationType=_authenticationType;
 			if(_authenticationType==OAuthType.None) {
-				_emailAddress.EmailPassword=PIn.String(MiscUtils.Encrypt(textPassword.Text));
+				_emailAddress.EmailPassword=SIn.String(MiscUtils.Encrypt(textPassword.Text));
 				_emailAddress.AccessToken="";
 				_emailAddress.RefreshToken="";
 				_emailAddress.DownloadInbox=false;

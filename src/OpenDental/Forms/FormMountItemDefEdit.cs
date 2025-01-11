@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -77,13 +78,13 @@ namespace OpenDental {
 				MountItemDefCur.ToothNumbers=Tooth.ParseRange(textToothNumbers.Text);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
-			MountItemDefCur.Xpos=PIn.Int(textXpos.Text);
-			MountItemDefCur.Ypos=PIn.Int(textYpos.Text);
-			MountItemDefCur.Width=PIn.Int(textWidth.Text);
-			MountItemDefCur.Height=PIn.Int(textHeight.Text);
+			MountItemDefCur.Xpos=SIn.Int(textXpos.Text);
+			MountItemDefCur.Ypos=SIn.Int(textYpos.Text);
+			MountItemDefCur.Width=SIn.Int(textWidth.Text);
+			MountItemDefCur.Height=SIn.Int(textHeight.Text);
 			MountItemDefCur.RotateOnAcquire=textRotate.Value;
 			MountItemDefCur.TextShowing=textTextShowing.Text;
 			MountItemDefCur.FontSize=(float)textFontSize.Value;

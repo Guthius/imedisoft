@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -382,7 +383,7 @@ namespace OpenDental {
 				}
 			}
 			if(skipCount>0) {
-				MessageBox.Show(Lan.g(this," Row(s) skipped because problem already present in the reconcile list")+": "+skipCount);
+				ODMessageBox.Show(Lan.g(this," Row(s) skipped because problem already present in the reconcile list")+": "+skipCount);
 			}
 			FillReconcileGrid();
 		}
@@ -425,7 +426,7 @@ namespace OpenDental {
 				}
 			}
 			if(skipCount>0) {
-				MessageBox.Show(Lan.g(this," Row(s) skipped because problem already present in the reconcile list")+": "+skipCount);
+				ODMessageBox.Show(Lan.g(this," Row(s) skipped because problem already present in the reconcile list")+": "+skipCount);
 			}
 			FillReconcileGrid();
 		}

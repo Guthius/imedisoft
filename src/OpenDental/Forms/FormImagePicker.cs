@@ -39,7 +39,7 @@ namespace OpenDental {
 				listFileNames=FileAtoZ.GetFilesInDirectory(_imageFolder);//All files from the wiki file path, including images and other files.
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,ex.Message);
+				ODMessageBox.Show(this,ex.Message);
 				DialogResult=DialogResult.Cancel;
 				return;
 			}

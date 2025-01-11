@@ -10,6 +10,7 @@ using OpenDental.UI;
 using System.Drawing.Printing;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -55,9 +56,9 @@ namespace OpenDental{
 			}
 			DateTime dateMax = new DateTime(2100,1,1);
 			if(textDateTo.Text!="") {
-				dateMax=PIn.Date(textDateTo.Text);
+				dateMax=SIn.Date(textDateTo.Text);
 			}
-			_table=LabCases.Refresh(PIn.Date(textDateFrom.Text),dateMax,checkShowAll.Checked,checkShowUnattached.Checked);
+			_table=LabCases.Refresh(SIn.Date(textDateFrom.Text),dateMax,checkShowAll.Checked,checkShowUnattached.Checked);
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
 			GridColumn col;
@@ -93,11 +94,11 @@ namespace OpenDental{
 				if(!Enum.TryParse(_table.Rows[i]["aptStatus"].ToString(),out ApptStatus aptStatus)) {
 					aptStatus=ApptStatus.None;
 				}
-				long clinicNum=PIn.Long(_table.Rows[i]["ClinicNum"].ToString());
+				long clinicNum=SIn.Long(_table.Rows[i]["ClinicNum"].ToString());
 				if(true //no filtering for non clinics.
 					&& operatoryNums!=null //we don't have "All" selected for an unrestricted user.
 					&& _table.Rows[i]["AptNum"].ToString()!="0" //show unattached for any clinic 
-					&& !operatoryNums.Contains(PIn.Long(_table.Rows[i]["OpNum"].ToString())) //Attached appointment is scheduled in an Op for another clinic
+					&& !operatoryNums.Contains(SIn.Long(_table.Rows[i]["OpNum"].ToString())) //Attached appointment is scheduled in an Op for another clinic
 					&& (aptStatus!=ApptStatus.Planned || !comboClinic.ListClinicNumsSelected.Contains(clinicNum))) //Attached planned appointment is not under selected clinic
 				{
 					continue;//appointment scheduled in an operatory for another clinic.
@@ -120,7 +121,7 @@ namespace OpenDental{
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			DataRow row=(DataRow)gridMain.ListGridRows[e.Row].Tag;
-			long selectedLabCase=PIn.Long(row["LabCaseNum"].ToString());
+			long selectedLabCase=SIn.Long(row["LabCaseNum"].ToString());
 			using FormLabCaseEdit formLabCaseEdit=new FormLabCaseEdit();
 			formLabCaseEdit.LabCaseCur=LabCases.GetOne(selectedLabCase);
 			formLabCaseEdit.ShowDialog();
@@ -166,7 +167,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"There are no appointments for unattached lab cases.");
 				return;
 			}
-			Appointment appointment=Appointments.GetOneApt(PIn.Long(row["AptNum"].ToString()));
+			Appointment appointment=Appointments.GetOneApt(SIn.Long(row["AptNum"].ToString()));
 			if(appointment.AptStatus==ApptStatus.UnschedList){
 				MsgBox.Show(this,"Cannot go to an unscheduled appointment");
 				return;

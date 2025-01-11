@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness;
@@ -41,7 +42,7 @@ public class LetterMergesQueries
         //	FROM treatplan
         //	WHERE PatNum="+POut.PInt(PatCur.PatNum)+";";
         //Db.NonQ(command);
-        command = "SET @maxTpDate=(SELECT MAX(treatplan.DateTP) FROM treatplan WHERE PatNum=" + POut.Long(PatCur.PatNum) + ");";
+        command = "SET @maxTpDate=(SELECT MAX(treatplan.DateTP) FROM treatplan WHERE PatNum=" + SOut.Long(PatCur.PatNum) + ");";
         command += "SELECT ";
         for (int i = 0; i < letter.Fields.Count; i++)
         {
@@ -126,7 +127,7 @@ public class LetterMergesQueries
             else if (letter.Fields[i] == "Race")
             {
                 //This is to accomodate the deprecated patient.Race column that no longer exists
-                command += "'" + POut.String(string.Join(",", PatientRaces.GetForPatient(PatCur.PatNum).Select(x => x.Description))) + "'" + " Race";
+                command += "'" + SOut.String(string.Join(",", PatientRaces.GetForPatient(PatCur.PatNum).Select(x => x.Description))) + "'" + " Race";
             }
             else
             {
@@ -135,25 +136,25 @@ public class LetterMergesQueries
         }
 
         command += " FROM patient "
-                   + "LEFT JOIN refattach ON patient.PatNum=refattach.PatNum AND refattach.RefType=" + POut.Int((int) ReferralType.RefFrom) + " "
+                   + "LEFT JOIN refattach ON patient.PatNum=refattach.PatNum AND refattach.RefType=" + SOut.Int((int) ReferralType.RefFrom) + " "
                    + "LEFT JOIN referral ON refattach.ReferralNum=referral.ReferralNum "
-                   + "LEFT JOIN appointment a ON a.PatNum=patient.PatNum AND a.ItemOrderPlanned=1 AND a.AptStatus=" + POut.Int((int) ApptStatus.Planned) + " "
+                   + "LEFT JOIN appointment a ON a.PatNum=patient.PatNum AND a.ItemOrderPlanned=1 AND a.AptStatus=" + SOut.Int((int) ApptStatus.Planned) + " "
                    + "LEFT JOIN site ON patient.SiteNum=site.SiteNum "
                    + "LEFT JOIN treatplan ON patient.PatNum=treatplan.PatNum AND DateTP=@maxTpDate "
                    + "LEFT JOIN patient patResp ON treatplan.ResponsParty=patResp.PatNum "
                    + "LEFT JOIN recall ON recall.PatNum=patient.PatNum "
-                   + "AND (recall.RecallTypeNum=" + POut.Long(PrefC.GetLong(PrefName.RecallTypeSpecialProphy))
-                   + " OR recall.RecallTypeNum=" + POut.Long(PrefC.GetLong(PrefName.RecallTypeSpecialPerio)) + ") "
+                   + "AND (recall.RecallTypeNum=" + SOut.Long(PrefC.GetLong(PrefName.RecallTypeSpecialProphy))
+                   + " OR recall.RecallTypeNum=" + SOut.Long(PrefC.GetLong(PrefName.RecallTypeSpecialPerio)) + ") "
                    + "LEFT JOIN patplan ON patplan.PatNum=patient.PatNum AND Ordinal=1 "
                    + "LEFT JOIN inssub ON patplan.InsSubNum=inssub.InsSubNum "
                    + "LEFT JOIN insplan ON inssub.PlanNum=insplan.PlanNum "
                    + "LEFT JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum "
                    + "LEFT JOIN patient patSubsc ON patSubsc.PatNum=inssub.Subscriber "
                    + "LEFT JOIN appointment ON appointment.PatNum=patient.PatNum "
-                   + "AND appointment.AptStatus=" + POut.Long((int) ApptStatus.Scheduled) + " "
+                   + "AND appointment.AptStatus=" + SOut.Long((int) ApptStatus.Scheduled) + " "
                    + "AND appointment.AptDateTime > " + DbHelper.Now() + " "
                    + "LEFT JOIN patient patGuar ON patGuar.PatNum=patient.Guarantor "
-                   + "WHERE patient.PatNum=" + POut.Long(PatCur.PatNum)
+                   + "WHERE patient.PatNum=" + SOut.Long(PatCur.PatNum)
                    + " GROUP BY patient.PatNum "
                    + "ORDER BY refattach.ItemOrder";
         return DataCore.GetTable(command);

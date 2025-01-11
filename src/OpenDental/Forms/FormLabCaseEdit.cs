@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental{
 	/// <summary></summary>
@@ -236,7 +238,7 @@ namespace OpenDental{
 				DialogResult=DialogResult.OK;
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -334,7 +336,7 @@ namespace OpenDental{
 				LabCaseCur.DateTimeDue=DateTime.Parse(textDateDue.Text);
 			}
 			LabCaseCur.Instructions=textInstructions.Text;
-			LabCaseCur.LabFee=PIn.Double(textLabFee.Text);
+			LabCaseCur.LabFee=SIn.Double(textLabFee.Text);
 			LabCaseCur.InvoiceNum=textInvoiceNumber.Text;
 			object[] objectArrayParameters= { true };
 			if(!(bool)objectArrayParameters[0]) {
@@ -345,7 +347,7 @@ namespace OpenDental{
 				LabCases.Update(LabCaseCur);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			return true;

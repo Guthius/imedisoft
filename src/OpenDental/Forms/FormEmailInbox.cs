@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -563,8 +564,8 @@ namespace OpenDental {
 		private void FillSearch() {
 			string searchBody=textSearchBody.Text;
 			string searchEmail=textSearchEmail.Text;
-			DateTime dateSearchFrom=PIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
-			DateTime dateSearchTo=PIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
+			DateTime dateSearchFrom=SIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
+			DateTime dateSearchTo=SIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
 			List<EmailMessage> listEmailMessagesInboxSearched=new List<EmailMessage>();
 			List<EmailMessage> listEmailMessagesSentSearched=new List<EmailMessage>();
 			if(searchBody!="") {
@@ -790,7 +791,7 @@ namespace OpenDental {
 			FillInboxOrSent();
 			Signalods.SetInvalid(InvalidType.EmailMessages); //will refresh for other users.
 			Cursor=Cursors.Default;
-			MessageBox.Show(Lan.g(this,"Email messages moved successfully")+": "+countMsgsMoved);
+			ODMessageBox.Show(Lan.g(this,"Email messages moved successfully")+": "+countMsgsMoved);
 		}
 
 		private void butRefresh_Click(object sender,EventArgs e) {
@@ -802,7 +803,7 @@ namespace OpenDental {
 					}
 					else {//Insert a signal that will cause the Open Dental Service to retrieve emails when using the inbox feature.
 						if(!AlertItems.IsODServiceRunning()) {
-							MessageBox.Show(Lans.g("Alerts","No instance of Open Dental Service is running."));
+							ODMessageBox.Show(Lans.g("Alerts","No instance of Open Dental Service is running."));
 							return;
 						}
 						Text="Email Client for "+GetSelectedAddress().EmailUsername+" - Receiving new email...";
@@ -830,23 +831,23 @@ namespace OpenDental {
 
 		///<summary>Refreshes the local list of inbox emails.</summary>
 		private void RefreshInboxEmailList() {
-			DateTime dateFrom=PIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
-			DateTime dateTo=PIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
+			DateTime dateFrom=SIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
+			DateTime dateTo=SIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
 			_listEmailMessagesInbox=EmailMessages.GetMailboxForAddress(GetSelectedAddress(),dateFrom,dateTo,MailboxType.Inbox);
 			_isRefreshInbox=false;
 		}
 
 		///<summary>Refreshes the local list of sent emails.</summary>
 		private void RefreshSentEmailList() {
-			DateTime dateFrom=PIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
-			DateTime dateTo=PIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
+			DateTime dateFrom=SIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
+			DateTime dateTo=SIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
 			_listEmailMessagesSent=EmailMessages.GetMailboxForAddress(GetSelectedAddress(),dateFrom,dateTo,MailboxType.Sent);
 			_isRefreshSent=false;
 		}
 
 		private void RefreshLists() {
-			DateTime dateFrom=PIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
-			DateTime dateTo=PIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
+			DateTime dateFrom=SIn.Date(textDateFrom.Text); //returns MinVal if empty or invalid.
+			DateTime dateTo=SIn.Date(textDateTo.Text); //returns MinVal if empty or invalid.
 			List<EmailMessage> listEmailsForSelection=EmailMessages.GetMailboxForAddress(GetSelectedAddress(),dateFrom,dateTo,MailboxType.Inbox,MailboxType.Sent);
 			_listEmailMessagesInbox=listEmailsForSelection.Where(x => EmailMessages.IsReceived(x.SentOrReceived)).ToList();
 			_listEmailMessagesSent=listEmailsForSelection.Where(x => !EmailMessages.IsReceived(x.SentOrReceived)).ToList();

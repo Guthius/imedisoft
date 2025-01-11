@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.Graph.Base;
 using OpenDental.Graph.Cache;
 using OpenDental.Graph.Concrete;
@@ -129,7 +130,7 @@ Double-click tab header to rename tab.";
         {
             if (dashboardTabControl.HasUnsavedChanges)
             {
-                if (MessageBox.Show("You have unsaved changes. Click OK to continue and discard changes.", "Discard Changes?", MessageBoxButtons.OKCancel) == DialogResult.Cancel)
+                if (ODMessageBox.Show("You have unsaved changes. Click OK to continue and discard changes.", "Discard Changes?", MessageBoxButtons.OKCancel) == DialogResult.Cancel)
                 {
                     return;
                 }
@@ -164,7 +165,7 @@ Double-click tab header to rename tab.";
 
             RefreshData(false);
 
-            MessageBox.Show("Graphic Report group saved: " + DashboardGroupName + ".");
+            ODMessageBox.Show("Graphic Report group saved: " + DashboardGroupName + ".");
         }
 
         private void FormDashboardEditTab_FormClosing(object sender, FormClosingEventArgs e)
@@ -174,7 +175,7 @@ Double-click tab header to rename tab.";
                 return;
             }
 
-            if (MessageBox.Show("You have unsaved changes. Click OK to continue and discard changes.", "Discard Changes?", MessageBoxButtons.OKCancel) != DialogResult.Cancel)
+            if (ODMessageBox.Show("You have unsaved changes. Click OK to continue and discard changes.", "Discard Changes?", MessageBoxButtons.OKCancel) != DialogResult.Cancel)
             {
                 return;
             }
@@ -210,14 +211,14 @@ Double-click tab header to rename tab.";
 
         private void menuItemResetAR_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to refresh your AR reports? This could take a long time.", "Continue?", MessageBoxButtons.OKCancel) == DialogResult.Cancel)
+            if (ODMessageBox.Show("Are you sure you want to refresh your AR reports? This could take a long time.", "Continue?", MessageBoxButtons.OKCancel) == DialogResult.Cancel)
             {
                 return;
             }
 
             if (dashboardTabControl.HasUnsavedChanges)
             {
-                if (MessageBox.Show("You have unsaved changes. Click OK to continue and discard changes.", "Discard Changes?",
+                if (ODMessageBox.Show("You have unsaved changes. Click OK to continue and discard changes.", "Discard Changes?",
                         MessageBoxButtons.OKCancel) == DialogResult.Cancel)
                 {
                     return;

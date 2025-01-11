@@ -1,4 +1,5 @@
 ﻿using System;
+using DataConnectionBase;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>Parses a single incoming MedLab HL7 field.</summary>
@@ -16,16 +17,16 @@ namespace OpenDentBusiness.HL7 {
 			int hour=0;
 			int minute=0;
 			try {
-				year=PIn.Int(str.Substring(0,4));
-				month=PIn.Int(str.Substring(4,2));
-				day=PIn.Int(str.Substring(6,2));
+				year=SIn.Int(str.Substring(0,4));
+				month=SIn.Int(str.Substring(4,2));
+				day=SIn.Int(str.Substring(6,2));
 			}
 			catch(Exception ex) {//PIn.Int could fail if not able to parse into an Int32
 				return DateTime.MinValue;
 			}
 			if(str.Length>=10) {
 				try {
-					hour=PIn.Int(str.Substring(8,2));
+					hour=SIn.Int(str.Substring(8,2));
 				}
 				catch(Exception ex) {
 					//do nothing, hour will remain 0
@@ -33,7 +34,7 @@ namespace OpenDentBusiness.HL7 {
 			}
 			if(str.Length>=12) {
 				try {
-					minute=PIn.Int(str.Substring(10,2));
+					minute=SIn.Int(str.Substring(10,2));
 				}
 				catch(Exception ex) {
 					//do nothing, minute will remain 0

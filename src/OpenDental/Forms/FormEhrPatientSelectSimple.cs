@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -56,13 +58,13 @@ namespace OpenDental {
 		}
 
 		private void PatSelected() {
-			SelectedPatNum=PIn.Long(table.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
+			SelectedPatNum=SIn.Long(table.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
 			DialogResult=DialogResult.OK;
 		}
 
 		private void butOK_Click(object sender,EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1) {
-				MessageBox.Show("Please select a patient first.");
+				ODMessageBox.Show("Please select a patient first.");
 				return;
 			}
 			PatSelected();

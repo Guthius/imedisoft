@@ -5,12 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
 	public class RpServiceDateView {
 		public static DataTable GetData(long patNum,bool isFamily,bool isDetailed) {
-			int payPlanVersion=PIn.Int(PrefC.GetStringNoCache(PrefName.PayPlansVersion));
+			int payPlanVersion=SIn.Int(PrefC.GetStringNoCache(PrefName.PayPlansVersion));
 			if(payPlanVersion==0) {
 				payPlanVersion=1;
 			}
@@ -184,7 +185,7 @@ namespace OpenDentBusiness {
 		///<summary>Get core data ordered by procedure date and transactions attached to procs first, with specific ordering for transaction type. 
 		///Using aging preference to get payment plan info. Defining transaction type separate from reference for specific ordering.</summary>
 		private static string GetCoreQuery(long patNum,bool isFamily,int payPlanVersion) {
-			string wherePatOrFam=isFamily ? $"patient.Guarantor={POut.Long(patNum)}":$"patient.PatNum={POut.Long(patNum)}";
+			string wherePatOrFam=isFamily ? $"patient.Guarantor={SOut.Long(patNum)}":$"patient.PatNum={SOut.Long(patNum)}";
 			#region Procedures
 			//Get all completed procedures for patient/family with charges and credits. Also includes separate column for insurance credits only.
 			string command=$@"SELECT 'Proc' AS 'Type', 
@@ -196,7 +197,7 @@ namespace OpenDentBusiness {
 				procedurelog.ProcNum, 
 				CONCAT(procedurecode.ProcCode,':',COALESCE(NULLIF(CONCAT('#',procedurelog.ToothNum,'-'),'#-'),NULLIF(CONCAT(IF(LENGTH(procedurelog.ToothRange)>0,'Tth Rng',''),'-'),'-'),''),COALESCE(NULLIF(CONCAT(procedurelog.Surf,'-'),'-'),''),procedurecode.AbbrDesc) AS 'Reference', 
 				procedurelog.ProcFee*(procedurelog.BaseUnits+procedurelog.UnitQty)- 
-				COALESCE((SELECT SUM(claimproc.WriteOff) FROM claimproc WHERE claimproc.Status={POut.Int((int)ClaimProcStatus.CapComplete)} AND claimproc.ProcNum=procedurelog.ProcNum),0) AS 'Charge', 
+				COALESCE((SELECT SUM(claimproc.WriteOff) FROM claimproc WHERE claimproc.Status={SOut.Int((int)ClaimProcStatus.CapComplete)} AND claimproc.ProcNum=procedurelog.ProcNum),0) AS 'Charge', 
 				0 AS 'Credit', 
 				0 AS 'InsPayEst', 
 				(SELECT Abbr FROM provider WHERE provider.ProvNum=procedurelog.ProvNum) AS Prov, 
@@ -204,15 +205,15 @@ namespace OpenDentBusiness {
 					COALESCE((SELECT SUM(SplitAmt) FROM paysplit WHERE paysplit.ProcNum=procedurelog.ProcNum),0)+ 
 					COALESCE((SELECT SUM(WriteOff) + SUM(InsPayAmt) FROM claimproc 
 						WHERE claimproc.ProcNum=procedurelog.ProcNum 
-						AND claimproc.Status IN({POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapClaim)})),0) 
+						AND claimproc.Status IN({SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapClaim)})),0) 
 				) AS 'ProcCredits', 
-				COALESCE((SELECT SUM(WriteOff) + SUM(InsPayEst) FROM claimproc WHERE claimproc.Status={POut.Int((int)ClaimProcStatus.NotReceived)} 
+				COALESCE((SELECT SUM(WriteOff) + SUM(InsPayEst) FROM claimproc WHERE claimproc.Status={SOut.Int((int)ClaimProcStatus.NotReceived)} 
 					AND claimproc.ProcNum=procedurelog.ProcNum 
 				),0) AS 'InsCredits' 
 				FROM procedurelog 
 				INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum 
 				INNER JOIN patient ON patient.PatNum=procedurelog.PatNum 
-				WHERE procedurelog.ProcStatus={POut.Int((int)ProcStat.C)} 
+				WHERE procedurelog.ProcStatus={SOut.Int((int)ProcStat.C)} 
 				AND {wherePatOrFam} ";
 			#endregion
 			#region Adjustment
@@ -286,7 +287,7 @@ namespace OpenDentBusiness {
 				0 AS 'InsCredits' 
 				FROM claimproc 
 				INNER JOIN patient ON patient.PatNum=claimproc.PatNum 
-				WHERE claimproc.Status IN({POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapClaim)}) 
+				WHERE claimproc.Status IN({SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapClaim)}) 
 				AND claimproc.PayPlanNum=0 
 				AND claimproc.InsPayAmt!=0 
 				AND {wherePatOrFam} ";
@@ -302,22 +303,22 @@ namespace OpenDentBusiness {
 				claimproc.PatNum, 
 				patient.FName AS Patient, 
 				claimproc.ProcNum, 
-				(CASE WHEN claimproc.Status={POut.Int((int)ClaimProcStatus.NotReceived)} AND claimproc.InsPayEst > 0  
+				(CASE WHEN claimproc.Status={SOut.Int((int)ClaimProcStatus.NotReceived)} AND claimproc.InsPayEst > 0  
 					THEN CONCAT('Ins Pay Est:',claimproc.InsPayEst,IF(claimproc.WriteOff>0,CONCAT(' WriteOff:',claimproc.WriteOff),'')) 
-					WHEN claimproc.Status={POut.Int((int)ClaimProcStatus.NotReceived)} AND claimproc.Writeoff > 0 AND claimproc.InsPayEst <= 0 
+					WHEN claimproc.Status={SOut.Int((int)ClaimProcStatus.NotReceived)} AND claimproc.Writeoff > 0 AND claimproc.InsPayEst <= 0 
 					THEN CONCAT('WriteOff Est:',claimproc.WriteOff) 
 					ELSE CONCAT('W/O- ',COALESCE((SELECT ItemName FROM claimpayment INNER JOIN definition ON definition.DefNum=claimpayment.PayType 
 						WHERE claimpayment.ClaimPaymentNum=claimproc.ClaimPaymentNum),'')) END) AS 'Reference', 
 				0 AS 'Charge', 
-				IF(claimproc.Status IN({POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)}),claimproc.WriteOff,0) AS 'Credit', 
+				IF(claimproc.Status IN({SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)}),claimproc.WriteOff,0) AS 'Credit', 
 				IF(claimproc.Status = 0,claimproc.InsPayEst,0) AS 'InsPayEst', 
 				(SELECT Abbr FROM provider WHERE provider.ProvNum = claimproc.ProvNum) AS Prov, 
 				0 AS 'ProcCredits', 
 				0 AS 'InsCredits' 
 				FROM claimproc 
 				INNER JOIN patient ON patient.PatNum=claimproc.PatNum 
-				WHERE IF(claimproc.Status IN ({POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)}),ABS(claimproc.WriteOff) > 0.005,(ABS(claimproc.WriteOff) > 0.005 OR claimproc.InsPayEst > 0)) 
-				AND claimproc.Status IN({POut.Int((int)ClaimProcStatus.NotReceived)},{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)}) 
+				WHERE IF(claimproc.Status IN ({SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)}),ABS(claimproc.WriteOff) > 0.005,(ABS(claimproc.WriteOff) > 0.005 OR claimproc.InsPayEst > 0)) 
+				AND claimproc.Status IN({SOut.Int((int)ClaimProcStatus.NotReceived)},{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)}) 
 				AND {wherePatOrFam} ";
 			#endregion
 			#region PayPlan Version 1
@@ -351,20 +352,20 @@ namespace OpenDentBusiness {
 				//get all pay plan credits and debits for pay plan version 2
 				command+=$@"
 					UNION ALL
-					SELECT (CASE WHEN payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum > 0 THEN 'PayPlan Charge Att.' 
-					WHEN payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum=0 THEN 'PayPlan Charge' 
-					WHEN payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Credit)} THEN 'PayPlan Credit' END) AS 'Type', 
+					SELECT (CASE WHEN payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum > 0 THEN 'PayPlan Charge Att.' 
+					WHEN payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum=0 THEN 'PayPlan Charge' 
+					WHEN payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Credit)} THEN 'PayPlan Credit' END) AS 'Type', 
 					payplancharge.PayPlanChargeNum AS 'TranNum', 
 					payplancharge.ChargeDate AS 'ProcDate', 
 					payplancharge.ChargeDate AS 'TranDate', 
 					payplancharge.PatNum, 
 					patient.FName AS Patient, 
 					payplancharge.ProcNum, 
-					(CASE WHEN payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum > 0 THEN 'PayPlan Charge Att.' 
-						WHEN payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum=0 THEN 'PayPlan Charge' 
-						WHEN payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Credit)} THEN 'PayPlan Credit'END) AS 'Reference', 
-					IF(payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Debit)},payplancharge.Principal+payplancharge.Interest,0) AS 'Charge', 
-					IF(payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Credit)},payplancharge.Principal,0) AS 'Credit', 
+					(CASE WHEN payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum > 0 THEN 'PayPlan Charge Att.' 
+						WHEN payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Debit)} AND payplancharge.ProcNum=0 THEN 'PayPlan Charge' 
+						WHEN payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Credit)} THEN 'PayPlan Credit'END) AS 'Reference', 
+					IF(payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Debit)},payplancharge.Principal+payplancharge.Interest,0) AS 'Charge', 
+					IF(payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Credit)},payplancharge.Principal,0) AS 'Credit', 
 					0 AS 'InsPayEst', 
 					(SELECT Abbr FROM provider WHERE provider.ProvNum=payplancharge.ProvNum) AS Prov, 
 					0 AS 'ProcCredits', 
@@ -373,7 +374,7 @@ namespace OpenDentBusiness {
 					LEFT JOIN payplan ON payplan.PayplanNum=payplancharge.PayPlanNum 
 					INNER JOIN patient ON patient.PatNum=payplancharge.PatNum 
 					WHERE payplancharge.ChargeDate <= CURDATE() 
-					AND IF(payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Debit)},payplan.PlanNum=0,TRUE) 
+					AND IF(payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Debit)},payplan.PlanNum=0,TRUE) 
 					AND {wherePatOrFam} ";
 			}
 			#endregion
@@ -391,14 +392,14 @@ namespace OpenDentBusiness {
 					payplancharge.ProcNum, 
 					'PayPlan Credit' AS 'Reference', 
 					0 AS 'Charge', 
-					IF(payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Credit)},payplancharge.Principal,0) AS 'Credit', 
+					IF(payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Credit)},payplancharge.Principal,0) AS 'Credit', 
 					0 AS 'InsPayEst', 
 					(SELECT Abbr FROM provider WHERE provider.ProvNum=payplancharge.ProvNum) AS Prov, 
 					0 AS 'ProcCredits', 
 					0 AS 'InsCredits' 
 					FROM payplancharge 
 					INNER JOIN patient ON patient.PatNum=payplancharge.PatNum 
-					WHERE payplancharge.ChargeType={POut.Int((int)PayPlanChargeType.Credit)} 
+					WHERE payplancharge.ChargeType={SOut.Int((int)PayPlanChargeType.Credit)} 
 					AND {wherePatOrFam} ";
 			}
 			#endregion
@@ -438,7 +439,7 @@ namespace OpenDentBusiness {
 								) Fee,
 								procedurelog.ProcNum Num,payplanlink.LinkType,payplanlink.PayPlanLinkNum,procedurelog.ClinicNum,procedurelog.ProvNum 
 						FROM payplanlink 
-						INNER JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Procedure)} 
+						INNER JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Procedure)} 
 						LEFT JOIN (
 							SELECT SUM(adjustment.AdjAmt) AdjAmt,adjustment.ProcNum
 							FROM adjustment
@@ -447,17 +448,17 @@ namespace OpenDentBusiness {
 						)procAdj ON procAdj.ProcNum=procedurelog.ProcNum
 						LEFT JOIN (
 							SELECT SUM(COALESCE((CASE WHEN claimproc.Status IN (
-									{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+									{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 								) THEN claimproc.InsPayAmt 
 								WHEN claimproc.InsEstTotalOverride!=-1 THEN claimproc.InsEstTotalOverride ELSE claimproc.InsPayEst END),0)*-1) InsPay
 							,SUM(COALESCE((CASE WHEN claimproc.Status IN (
-									{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+									{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 								)	THEN claimproc.WriteOff 
 								WHEN claimproc.WriteOffEstOverride!=-1 THEN claimproc.WriteOffEstOverride 
 								WHEN claimproc.WriteOffEst!=-1 THEN claimproc.WriteOffEst ELSE 0 END),0)*-1) WriteOff
 							,claimproc.ProcNum
 							FROM claimproc 
-							WHERE claimproc.Status!={POut.Int((int)ClaimProcStatus.Preauth)}
+							WHERE claimproc.Status!={SOut.Int((int)ClaimProcStatus.Preauth)}
 							AND claimproc.PatNum IN ({patNum})
 							GROUP BY claimproc.ProcNum
 						)procClaimProc ON procClaimProc.ProcNum=procedurelog.ProcNum 
@@ -473,7 +474,7 @@ namespace OpenDentBusiness {
 							,payplanlink.PayPlanLinkNum,adjustment.ClinicNum,adjustment.ProvNum
 							FROM payplanlink 
 							INNER JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey 
-								AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Adjustment)}
+								AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Adjustment)}
 								AND adjustment.ProcNum=0
 							LEFT JOIN (
 								SELECT SUM(COALESCE(paysplit.SplitAmt,0))*-1 SplitAmt,paysplit.AdjNum

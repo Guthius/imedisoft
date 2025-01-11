@@ -10,6 +10,8 @@ using OpenDentBusiness;
 using OpenDental;
 using OpenDental.UI;
 using System.Diagnostics;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -44,7 +46,7 @@ namespace OpenDental {
 			groupInterventions.Visible=false;
 			_patient=Patients.GetPat(VitalsignCur.PatNum);
 			textDateTaken.Text=VitalsignCur.DateTaken.ToShortDateString();
-			AgeBeforeJanFirst=PIn.Date(textDateTaken.Text).Year-_patient.Birthdate.Year-1;
+			AgeBeforeJanFirst=SIn.Date(textDateTaken.Text).Year-_patient.Birthdate.Year-1;
 			if(VitalsignCur.Height!=0) {
 				textHeight.Text=VitalsignCur.Height.ToString();
 			}
@@ -136,7 +138,7 @@ namespace OpenDental {
 			string descript="";
 			Disease disease=null;
 			DiseaseDef diseaseDef=null;
-			DateTime dateExam=PIn.Date(textDateTaken.Text);//this may be different than the saved Vitalsign.DateTaken if user edited
+			DateTime dateExam=SIn.Date(textDateTaken.Text);//this may be different than the saved Vitalsign.DateTaken if user edited
 			#region Get DiseaseDefNum from attached pregnancy problem
 			if(VitalsignCur.PregDiseaseNum>0) {//already pointing to a disease, get that one
 				disease=Diseases.GetOne(VitalsignCur.PregDiseaseNum);//get disease this vital sign is pointing to, see if it exists
@@ -302,7 +304,7 @@ namespace OpenDental {
 			labelWeightCode.Text=CalcOverUnderBMIHelper(bmi);
 			int bmiPercentile=-1;
 			if(AgeBeforeJanFirst<17 && AgeBeforeJanFirst>2) {//calc and show BMI percentile if patient is >= 3 and < 17 on 01/01 of the year of the exam
-				bmiPercentile=Vitalsigns.GetBMIPercentile(bmi,_patient,PIn.Date(textDateTaken.Text),_listGenderAge_LMSs);
+				bmiPercentile=Vitalsigns.GetBMIPercentile(bmi,_patient,SIn.Date(textDateTaken.Text),_listGenderAge_LMSs);
 			}
 			if(bmiPercentile>-1) {
 				labelBMIPercentile.Visible=true;
@@ -361,7 +363,7 @@ namespace OpenDental {
 		}
 
 		private void FillGridInterventions(bool isChild) {
-			DateTime dateExam=PIn.Date(textDateTaken.Text);//this may be different than the saved VitalsignCur.DateTaken if user edited and has not hit ok to save
+			DateTime dateExam=SIn.Date(textDateTaken.Text);//this may be different than the saved VitalsignCur.DateTaken if user edited and has not hit ok to save
 			#region GetInterventionsThatApply
 			List<Intervention> listInterventions=new List<Intervention>();
 			if(isChild) {
@@ -527,7 +529,7 @@ namespace OpenDental {
 
 		///<summary>If they change the date of the exam and it is attached to a pregnancy problem and the date is now outside the active dates of the problem, tell them you are removing the problem and unchecking the pregnancy box.</summary>
 		private void textDateTaken_Leave(object sender,EventArgs e) {
-			DateTime dateExam=PIn.Date(textDateTaken.Text);
+			DateTime dateExam=SIn.Date(textDateTaken.Text);
 			AgeBeforeJanFirst=dateExam.Year-_patient.Birthdate.Year-1;//This is how old this patient was before any birthday in the year the vital sign was taken, can be negative if patient born the year taken or if value in textDateTaken is empty or not a valid date
 			if(!checkPregnant.Checked || VitalsignCur.PregDiseaseNum==0) {
 				CalcBMI();//This will use new year taken to determine age at start of that year to show over/underweight if applicable using age specific criteria
@@ -608,7 +610,7 @@ Do you want to remove the pregnancy diagnosis?"))
 				return;
 			}
 			if(DiseaseDefs.GetItem(disease.DiseaseDefNum)==null) {
-				MessageBox.Show(Lan.g(this,"Invalid disease.  Please run database maintenance method")+" "
+				ODMessageBox.Show(Lan.g(this,"Invalid disease.  Please run database maintenance method")+" "
 					+nameof(DatabaseMaintenances.DiseaseWithInvalidDiseaseDef));
 				return;
 			}
@@ -646,7 +648,7 @@ Do you want to remove the pregnancy diagnosis?"))
 				formEhrNotPerformedEdit.EhrNotPerfCur.PatNum=_patient.PatNum;
 				formEhrNotPerformedEdit.EhrNotPerfCur.ProvNum=_patient.PriProv;
 				formEhrNotPerformedEdit.SelectedItemIndex=(int)EhrNotPerformedItem.BMIExam;//The code and code value will be set in FormEhrNotPerformedEdit, set the selected index to the EhrNotPerformedItem enum index for BMIExam
-				formEhrNotPerformedEdit.EhrNotPerfCur.DateEntry=PIn.Date(textDateTaken.Text);
+				formEhrNotPerformedEdit.EhrNotPerfCur.DateEntry=SIn.Date(textDateTaken.Text);
 				formEhrNotPerformedEdit.IsDateReadOnly=true;//if this not performed item will be linked to this exam, force the dates to match.  User can change exam date and recheck the box to affect the not performed item date, but forcing them to be the same will allow us to avoid other complications.
 			}
 			else {
@@ -678,7 +680,7 @@ Do you want to remove the pregnancy diagnosis?"))
 			formInterventionEdit.InterventionCur.IsNew=true;
 			formInterventionEdit.InterventionCur.PatNum=_patient.PatNum;
 			formInterventionEdit.InterventionCur.ProvNum=_patient.PriProv;
-			formInterventionEdit.InterventionCur.DateEntry=PIn.Date(textDateTaken.Text);
+			formInterventionEdit.InterventionCur.DateEntry=SIn.Date(textDateTaken.Text);
 			formInterventionEdit.InterventionCur.CodeSet=_interventionCodeSet;
 			formInterventionEdit.IsAllTypes=false;
 			formInterventionEdit.IsSelectionMode=true;
@@ -816,7 +818,7 @@ Do you want to remove the pregnancy diagnosis?"))
 			}
 			#endregion
 			#region Save
-			VitalsignCur=Vitalsigns.SetFields(VitalsignCur,date,pulse,height,weight,bpDia,bpSys,PIn.Int(textBMIPercentile.Text),loincSelectedHeightCode,loincSelectedWeightCode);
+			VitalsignCur=Vitalsigns.SetFields(VitalsignCur,date,pulse,height,weight,bpDia,bpSys,SIn.Int(textBMIPercentile.Text),loincSelectedHeightCode,loincSelectedWeightCode);
 			VitalsignCur.WeightCode=Vitalsigns.SetWeightCodes(_interventionCodeSet);
 			#region PregnancyDx
 			if(checkPregnant.Checked) {//pregnant, add pregnant dx if necessary

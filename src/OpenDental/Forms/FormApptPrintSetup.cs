@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -78,8 +79,8 @@ namespace OpenDental {
 		}
 
 		private bool ValidEntries() {
-			DateTime dateStart=PIn.DateTime(comboStart.GetSelected<string>());
-			DateTime dateStop=PIn.DateTime(comboStop.GetSelected<string>());
+			DateTime dateStart=SIn.DateTime(comboStart.GetSelected<string>());
+			DateTime dateStop=SIn.DateTime(comboStop.GetSelected<string>());
 			if(dateStart.Minute>0 || dateStop.Minute>0) {
 				MsgBox.Show(this,"Please use hours only, no minutes.");
 				return false;
@@ -105,7 +106,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return false;
 			}
-			if(PIn.Int(textColumnsPerPage.Text)<1) {
+			if(SIn.Int(textColumnsPerPage.Text)<1) {
 				MsgBox.Show(this,"Columns per page cannot be 0 or less.");
 				return false;
 			}
@@ -114,10 +115,10 @@ namespace OpenDental {
 
 		private void SaveChanges(bool suppressMessage) {
 			if(ValidEntries()) {
-				Prefs.UpdateDateT(PrefName.ApptPrintTimeStart,PIn.DateTime(comboStart.GetSelected<string>()));
-				Prefs.UpdateDateT(PrefName.ApptPrintTimeStop,PIn.DateTime(comboStop.GetSelected<string>()));
+				Prefs.UpdateDateT(PrefName.ApptPrintTimeStart,SIn.DateTime(comboStart.GetSelected<string>()));
+				Prefs.UpdateDateT(PrefName.ApptPrintTimeStop,SIn.DateTime(comboStop.GetSelected<string>()));
 				Prefs.UpdateString(PrefName.ApptPrintFontSize,textFontSize.Text);
-				Prefs.UpdateInt(PrefName.ApptPrintColumnsPerPage,PIn.Int(textColumnsPerPage.Text));
+				Prefs.UpdateInt(PrefName.ApptPrintColumnsPerPage,SIn.Int(textColumnsPerPage.Text));
 				IsLandscape=radioLandscape.Checked;
 				Prefs.UpdateBool(PrefName.ApptPrintIsLandscape,IsLandscape);
 				if(radioFullColor.Checked) {
@@ -143,8 +144,8 @@ namespace OpenDental {
 			if(!ValidEntries()) {
 				return false;
 			}
-			if(PIn.DateTime(comboStart.GetSelected<string>()).Hour!=PrefC.GetDateT(PrefName.ApptPrintTimeStart).Hour
-				|| PIn.DateTime(comboStop.GetSelected<string>()).Hour!=PrefC.GetDateT(PrefName.ApptPrintTimeStop).Hour
+			if(SIn.DateTime(comboStart.GetSelected<string>()).Hour!=PrefC.GetDateT(PrefName.ApptPrintTimeStart).Hour
+				|| SIn.DateTime(comboStop.GetSelected<string>()).Hour!=PrefC.GetDateT(PrefName.ApptPrintTimeStop).Hour
 				|| textFontSize.Text!=PrefC.GetString(PrefName.ApptPrintFontSize)
 				|| textColumnsPerPage.Text!=PrefC.GetInt(PrefName.ApptPrintColumnsPerPage).ToString())
 			{
@@ -167,10 +168,10 @@ namespace OpenDental {
 					SaveChanges(true);
 				}
 			}
-			DateTimeApptPrintStart=PIn.DateTime(comboStart.GetSelected<string>());
-			DateTimeApptPrintStop=PIn.DateTime(comboStop.GetSelected<string>());
-			ApptPrintFontSize=PIn.Int(textFontSize.Text);
-			ApptPrintColsPerPage=PIn.Int(textColumnsPerPage.Text);
+			DateTimeApptPrintStart=SIn.DateTime(comboStart.GetSelected<string>());
+			DateTimeApptPrintStop=SIn.DateTime(comboStop.GetSelected<string>());
+			ApptPrintFontSize=SIn.Int(textFontSize.Text);
+			ApptPrintColsPerPage=SIn.Int(textColumnsPerPage.Text);
 			IsLandscape=radioLandscape.Checked;
 			ApptPrintColorBehavior_=ApptPrintColorBehavior.FullColor;
 			if(radioLessColor.Checked) {

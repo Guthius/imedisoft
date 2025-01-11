@@ -11,6 +11,7 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Thinfinity;
@@ -232,8 +233,8 @@ namespace OpenDental {
 		private GridOD GetGridForPrinting(Employee employee) {
 			GridOD gridTimeCard=new GridOD();
 			gridTimeCard.TranslationName="";
-			List<ClockEvent> listClockEvents=ClockEvents.Refresh(employee.EmployeeNum,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text),false);
-			List<TimeAdjust> listTimeAdjusts=TimeAdjusts.Refresh(employee.EmployeeNum,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+			List<ClockEvent> listClockEvents=ClockEvents.Refresh(employee.EmployeeNum,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text),false);
+			List<TimeAdjust> listTimeAdjusts=TimeAdjusts.Refresh(employee.EmployeeNum,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 			#region Hide time card note (we will show it at the top of the printout above the grid)
 			DateTime datePayPeriodStart=_listPayPeriods[_idxPayPeriodSelected].DateStart.Date;
 			DateTime dateTimeMidnightFirstDayOfPeriod=new DateTime(datePayPeriodStart.Year,datePayPeriodStart.Month,datePayPeriodStart.Day,0,0,0);
@@ -810,7 +811,7 @@ namespace OpenDental {
 			}
 			string errorAllEmployees=TimeCardRules.ValidateOvertimeRules(new List<long>{0});//Validates the "all employees" timecard rules first.
 			if(errorAllEmployees.Length>0) {
-				MessageBox.Show(errorAllEmployees);
+				ODMessageBox.Show(errorAllEmployees);
 				return;
 			}
 			if(gridMain.SelectedIndices.Length==0) {
@@ -824,7 +825,7 @@ namespace OpenDental {
 			for(int i=0;i<gridMain.SelectedIndices.Length;i++) {
 				try {
 					Employee employee=gridMain.SelectedTag<EmployeeTimeCard>().Employee;
-					TimeCardRules.CalculateDailyOvertime(employee,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+					TimeCardRules.CalculateDailyOvertime(employee,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 				}
 				catch(Exception ex) {
 					aggregateErrors+=ex.Message+"\r\n";
@@ -844,7 +845,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Done.");
 			}
 			else {
-				MessageBox.Show(this,Lan.g(this,"Time cards were not calculated for some Employees for the following reasons")+":\r\n"+aggregateErrors);
+				ODMessageBox.Show(this,Lan.g(this,"Time cards were not calculated for some Employees for the following reasons")+":\r\n"+aggregateErrors);
 			}
 		}
 
@@ -884,7 +885,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Done.");
 			}
 			else {
-				MessageBox.Show(this,Lan.g(this,"Time cards were not calculated for some Employees for the following reasons")+":\r\n"+aggregateErrors);
+				ODMessageBox.Show(this,Lan.g(this,"Time cards were not calculated for some Employees for the following reasons")+":\r\n"+aggregateErrors);
 			}
 		}
 
@@ -895,10 +896,10 @@ namespace OpenDental {
 			List<EmployeeTimeCard> listEmployeeTimeCards=gridMain.SelectedTags<EmployeeTimeCard>();
 			for(int i=0;i<listEmployeeTimeCards.Count;i++) {
 				try {
-					TimeCardRules.ClearManual(listEmployeeTimeCards[i].Employee.EmployeeNum,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+					TimeCardRules.ClearManual(listEmployeeTimeCards[i].Employee.EmployeeNum,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 			}
 			//Cach selected indicies, fill grid, reselect indicies.
@@ -919,10 +920,10 @@ namespace OpenDental {
 			List<EmployeeTimeCard> listEmployeeTimeCards=gridMain.SelectedTags<EmployeeTimeCard>();
 			for(int i=0;i<listEmployeeTimeCards.Count;i++) {
 				try {
-					TimeCardRules.ClearAuto(listEmployeeTimeCards[i].Employee.EmployeeNum,PIn.Date(textDateStart.Text),PIn.Date(textDateStop.Text));
+					TimeCardRules.ClearAuto(listEmployeeTimeCards[i].Employee.EmployeeNum,SIn.Date(textDateStart.Text),SIn.Date(textDateStop.Text));
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 			}
 			//Cach selected indicies, fill grid, reselect indicies.
@@ -1036,10 +1037,10 @@ namespace OpenDental {
 			}
 			try {
 				System.IO.File.WriteAllText(folderBrowserDialog.SelectedPath+"\\"+fileName,stringBuilder.ToString());
-				MessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\"+fileName);
+				ODMessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\"+fileName);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,"File not created:\r\n"+ex.Message);
+				ODMessageBox.Show(this,"File not created:\r\n"+ex.Message);
 			}
 		}
 
@@ -1075,7 +1076,7 @@ namespace OpenDental {
 				string errorsForEmployee="";
 				string warningsForEmployee="";
 				string fileNum=listEmployeeTimeCards[i].Employee.PayrollID;
-				if(PIn.Int(fileNum,throwExceptions:false)<51 || PIn.Int(fileNum,throwExceptions:false)>999999) {
+				if(SIn.Int(fileNum,throwExceptions:false)<51 || SIn.Int(fileNum,throwExceptions:false)>999999) {
 					errorsForEmployee+=errorIndent+"Payroll ID must be between 51 and 999999.\r\n";
 				}
 				else if(fileNum.Length>6) {
@@ -1183,10 +1184,10 @@ namespace OpenDental {
 						"The following warnings were detected:\r\n"+warnings);
 					msgBox.Show(this);
 				}
-				MessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\EPI"+coCode+fileSuffix+".CSV");
+				ODMessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\EPI"+coCode+fileSuffix+".CSV");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,"File not created:\r\n"+ex.Message);
+				ODMessageBox.Show(this,"File not created:\r\n"+ex.Message);
 			}
 		}
 
@@ -1268,7 +1269,7 @@ namespace OpenDental {
 				}
 			}
 			catch(Exception ex) {
-				MessageBox.Show(this,"File not created:\r\n"+ex.Message);
+				ODMessageBox.Show(this,"File not created:\r\n"+ex.Message);
 				return;
 			}
 			if(!errors.IsNullOrEmpty()) {
@@ -1276,7 +1277,7 @@ namespace OpenDental {
 					"The following errors will prevent ADP from properly processing this export:\r\n"+errors);
 				msgBox.Show(this);
 			}
-			MessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\"+fileName+".CSV");
+			ODMessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\"+fileName+".CSV");
 		}
 
 		///<summary>Creates a suffix for a file if the passed fileName already exists in the directory. Returns a two character alphanumeric string if a file already exists with that name, or an empty string if not. Will return an error message if all 1296 two character alphanumeric strings are already used as suffixes. </summary>
@@ -1315,8 +1316,8 @@ namespace OpenDental {
 
 		///<summary>Checks to see if the pay period interval matches the date range of the current pay period.</summary>
 		private bool PayFrequencyMatchesDateRange(PayPeriodInterval payPeriodInterval) {
-			DateTime dateStart=PIn.Date(textDateStart.Text);
-			DateTime dateEnd=PIn.Date(textDateStop.Text);
+			DateTime dateStart=SIn.Date(textDateStart.Text);
+			DateTime dateEnd=SIn.Date(textDateStop.Text);
 			TimeSpan timeSpan=dateEnd-dateStart;
 			//Weekly, BiWeekly, Monthly, and SemiMonthly pay intervals.
 			if(  (payPeriodInterval==PayPeriodInterval.Weekly && dateStart.AddDays(6)==dateEnd)

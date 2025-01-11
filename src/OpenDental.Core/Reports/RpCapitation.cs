@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpCapitation {
@@ -21,16 +22,16 @@ namespace OpenDentBusiness {
 				AND claimproc.InsSubNum = inssub.InsSubNum
 				AND procedurelog.ProcNum = claimproc.ProcNum
 				AND claimproc.PlanNum = insplan.PlanNum
-				AND claimproc.Status = "+POut.Int((int)ClaimProcStatus.CapComplete)+@"
+				AND claimproc.Status = "+SOut.Int((int)ClaimProcStatus.CapComplete)+@"
 				AND claimproc.NoBillIns = 0 
 				AND inssub.Subscriber = patSub.PatNum
 				AND insplan.CarrierNum = carrier.CarrierNum	
 				AND procedurelog.CodeNum = procedurecode.CodeNum "
-				+"AND carrier.CarrierName LIKE '%"+POut.String(textCarrier)+"%' "
-				+"AND procedurelog.ProcDate >= "+POut.Date(dateStart)+" "
-				+"AND procedurelog.ProcDate <= "+POut.Date(dateEnd)+" "
+				+"AND carrier.CarrierName LIKE '%"+SOut.String(textCarrier)+"%' "
+				+"AND procedurelog.ProcDate >= "+SOut.Date(dateStart)+" "
+				+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
 				+"AND insplan.PlanType = 'c' "
-				+"AND procedurelog.ProcStatus = "+POut.Int((int)ProcStat.C);
+				+"AND procedurelog.ProcStatus = "+SOut.Int((int)ProcStat.C);
 			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(queryString));
 		}	
 	}

@@ -112,10 +112,10 @@ namespace OpenDentBusiness {
 				+"LEFT JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum "
 				+"LEFT JOIN provider ON provider.ProvNum=procedurelog.ProvNum "
 				+"LEFT JOIN appointment ON appointment.AptNum=procedurelog.AptNum "
-				+"AND (appointment.AptStatus="+POut.Long((int)ApptStatus.Scheduled)
-				+" OR appointment.AptStatus="+POut.Long((int)ApptStatus.Broken)
-				+" OR appointment.AptStatus="+POut.Long((int)ApptStatus.Complete)
-				+") WHERE procedurelog.PatNum="+POut.Long(patNum);
+				+"AND (appointment.AptStatus="+SOut.Long((int)ApptStatus.Scheduled)
+				+" OR appointment.AptStatus="+SOut.Long((int)ApptStatus.Broken)
+				+" OR appointment.AptStatus="+SOut.Long((int)ApptStatus.Complete)
+				+") WHERE procedurelog.PatNum="+SOut.Long(patNum);
 				if(!isAuditMode) {//regular mode
 					command+=" AND (ProcStatus !=6"//not deleted
 						+" OR IsLocked=1)";//Any locked proc should show.  This forces invalidated (deleted locked) procs to show.
@@ -124,30 +124,30 @@ namespace OpenDentBusiness {
 				DataTable rawProcs=dcon.GetTable(command);
 				command="SELECT ProcNum,EntryDateTime,UserNum,Note,"
 				+"CASE WHEN Signature!='' THEN 1 ELSE 0 END AS SigPresent "
-				+"FROM procnote WHERE PatNum="+POut.Long(patNum)
+				+"FROM procnote WHERE PatNum="+SOut.Long(patNum)
 				+" ORDER BY EntryDateTime";// but this helps when looping for notes
 				DataTable rawNotes=dcon.GetTable(command);
 				Dictionary<string,List<DataRow>> dictNotes=rawNotes.Select().GroupBy(x => x["ProcNum"].ToString())
-					.ToDictionary(x => x.Key,x => x.OrderByDescending(y => PIn.DateTime(y["EntryDateTime"].ToString())).ToList());
+					.ToDictionary(x => x.Key,x => x.OrderByDescending(y => SIn.DateTime(y["EntryDateTime"].ToString())).ToList());
 				Dictionary<string,ProcedureCode> dictProcCodes=ProcedureCodes.GetAllCodes().GroupBy(x => x.CodeNum)
 					.ToDictionary(x => x.Key.ToString(),x => x.First());
 				foreach(DataRow rowProc in rawProcs.Rows) {
 					ProcedureCode procCode;
 					if(!dictProcCodes.TryGetValue(rowProc["CodeNum"].ToString(),out procCode)) {
-						procCode=ProcedureCodes.GetProcCode(PIn.Long(rowProc["CodeNum"].ToString()));
+						procCode=ProcedureCodes.GetProcCode(SIn.Long(rowProc["CodeNum"].ToString()));
 					}
 					row=table.NewRow();
 					row["AbbrDesc"]=rowProc["AbbrDesc"].ToString();
-					row["aptDateTime"]=PIn.DateTime(rowProc["AptDateTime"].ToString());
+					row["aptDateTime"]=SIn.DateTime(rowProc["AptDateTime"].ToString());
 					row["AptNum"]=0;
-					row["clinic"]=Clinics.GetDesc(PIn.Long(rowProc["ClinicNum"].ToString()));
-					row["ClinicNum"]=PIn.Long(rowProc["ClinicNum"].ToString());
+					row["clinic"]=Clinics.GetDesc(SIn.Long(rowProc["ClinicNum"].ToString()));
+					row["ClinicNum"]=SIn.Long(rowProc["ClinicNum"].ToString());
 					row["CodeNum"]=rowProc["CodeNum"].ToString();
 					row["colorBackG"]=Color.White.ToArgb();
 					if(((DateTime)row["aptDateTime"]).Date==DateTime.Today) {
 						row["colorBackG"]=listMiscColorDefs[(int)DefCatMiscColors.ChartTodaysProcs].ItemColor.ToArgb().ToString();
 					}
-					switch((ProcStat)PIn.Long(rowProc["ProcStatus"].ToString())) {
+					switch((ProcStat)SIn.Long(rowProc["ProcStatus"].ToString())) {
 						case ProcStat.TP:
 						case ProcStat.TPi:
 							row["colorText"]=listProgNoteColorDefs[0].ItemColor.ToArgb().ToString();
@@ -174,7 +174,7 @@ namespace OpenDentBusiness {
 					row["CommlogNum"]=0;
 					row["CommSource"]="";
 					row["commType"]="";
-					dateT=PIn.DateTime(rowProc["DateEntryC"].ToString());
+					dateT=SIn.DateTime(rowProc["DateEntryC"].ToString());
 					if(dateT.Year<1880) {
 						row["dateEntryC"]="";
 					}
@@ -182,7 +182,7 @@ namespace OpenDentBusiness {
 						row["dateEntryC"]=dateT.ToString(Lans.GetShortDateTimeFormat());
 					}
 					row["DateEntryC"]=dateT.ToShortDateString();
-					dateT=PIn.DateTime(rowProc["DateTP"].ToString());
+					dateT=SIn.DateTime(rowProc["DateTP"].ToString());
 					if(dateT.Year<1880) {
 						row["dateTP"]="";
 					}
@@ -200,7 +200,7 @@ namespace OpenDentBusiness {
 						row["description"]+=" #"+Tooth.DisplayRange(rowProc["ToothRange"].ToString());
 					}
 					row["DocNum"]=0;
-					row["dx"]=Defs.GetValue(DefCat.Diagnosis,PIn.Long(rowProc["Dx"].ToString()));
+					row["dx"]=Defs.GetValue(DefCat.Diagnosis,SIn.Long(rowProc["Dx"].ToString()));
 					row["Dx"]=rowProc["Dx"].ToString();
 					row["EFormNum"]=0;
 					row["EmailMessageNum"]=0;
@@ -212,7 +212,7 @@ namespace OpenDentBusiness {
 					else {
 						row["hl7Sent"]="X";
 					}
-					row["isLocked"]=PIn.Bool(rowProc["isLocked"].ToString())?"X":"";
+					row["isLocked"]=SIn.Bool(rowProc["isLocked"].ToString())?"X":"";
 					row["LabCaseNum"]=0;
 					row["length"]="";
 					row["signature"]="";
@@ -228,10 +228,10 @@ namespace OpenDentBusiness {
 									if(row["note"].ToString()!="") {//if there is an existing note
 										row["note"]+="\r\n------------------------------------------------------\r\n";//start a new line
 									}
-									row["note"]+=PIn.DateTime(rowCur["EntryDateTime"].ToString()).ToString();
+									row["note"]+=SIn.DateTime(rowCur["EntryDateTime"].ToString()).ToString();
 									string userName;
 									if(!dictUserNames.TryGetValue(rowCur["UserNum"].ToString(),out userName)) {
-										userName=Userods.GetName(PIn.Long(rowCur["UserNum"].ToString()));
+										userName=Userods.GetName(SIn.Long(rowCur["UserNum"].ToString()));
 									}
 									row["note"]+=string.IsNullOrEmpty(userName)?"":("  "+userName);
 									if(rowCur["SigPresent"].ToString()=="1") {
@@ -251,16 +251,16 @@ namespace OpenDentBusiness {
 						DataRow noteRowCur=tableRawNotesForProc[0];
 						string userName;
 						if(!dictUserNames.TryGetValue(noteRowCur["UserNum"].ToString(),out userName)) {
-							userName=Userods.GetName(PIn.Long(noteRowCur["UserNum"].ToString()));
+							userName=Userods.GetName(SIn.Long(noteRowCur["UserNum"].ToString()));
 						}
 						row["user"]=userName;
 						row["signature"]=(noteRowCur["SigPresent"].ToString()=="1")?Lans.g("ChartModule","Signed"):"";
 					}
 					row["PatNum"]="";
 					row["Priority"]=rowProc["Priority"].ToString();
-					row["priority"]=Defs.GetName(DefCat.TxPriorities,PIn.Long(rowProc["Priority"].ToString()));
+					row["priority"]=Defs.GetName(DefCat.TxPriorities,SIn.Long(rowProc["Priority"].ToString()));
 					row["ProcCode"]=rowProc["ProcCode"].ToString();
-					dateT=PIn.DateTime(rowProc["ProcDate"].ToString());
+					dateT=SIn.DateTime(rowProc["ProcDate"].ToString());
 					if(dateT.Year<1880) {
 						row["procDate"]="";
 					}
@@ -268,15 +268,15 @@ namespace OpenDentBusiness {
 						row["procDate"]=dateT.ToString(Lans.GetShortDateTimeFormat());
 					}
 					row["ProcDate"]=dateT;
-					double amt = PIn.Double(rowProc["ProcFee"].ToString());
-					int qty = PIn.Int(rowProc["UnitQty"].ToString()) + PIn.Int(rowProc["BaseUnits"].ToString());
+					double amt = SIn.Double(rowProc["ProcFee"].ToString());
+					int qty = SIn.Int(rowProc["UnitQty"].ToString()) + SIn.Int(rowProc["BaseUnits"].ToString());
 					if(qty>0) {
 						amt *= qty;
 					}
 					row["procFee"]=amt.ToString("F");
 					row["ProcNum"]=rowProc["ProcNum"].ToString();
 					row["ProcNumLab"]=rowProc["ProcNumLab"].ToString();
-					row["procStatus"]=Lans.g("enumProcStat",((ProcStat)PIn.Long(rowProc["ProcStatus"].ToString())).ToString());
+					row["procStatus"]=Lans.g("enumProcStat",((ProcStat)SIn.Long(rowProc["ProcStatus"].ToString())).ToString());
 					if(row["procStatus"].ToString()=="D") {
 						if(row["isLocked"].ToString()=="X") {
 							row["procStatus"]=Lans.g("enumProcStat",ProcStatExt.Invalid);
@@ -285,16 +285,16 @@ namespace OpenDentBusiness {
 					}
 					row["ProcStatus"]=rowProc["ProcStatus"].ToString();
 					row["procTime"]="";
-					dateT=PIn.DateTime(rowProc["ProcTime"].ToString());
+					dateT=SIn.DateTime(rowProc["ProcTime"].ToString());
 					if(dateT.TimeOfDay!=TimeSpan.Zero) {
 						row["procTime"]=dateT.ToString("h:mm")+dateT.ToString("%t").ToLower();
 					}
 					row["procTimeEnd"]="";
-					dateT=PIn.DateTime(rowProc["ProcTimeEnd"].ToString());
+					dateT=SIn.DateTime(rowProc["ProcTimeEnd"].ToString());
 					if(dateT.TimeOfDay!=TimeSpan.Zero) {
 						row["procTimeEnd"]=dateT.ToString("h:mm")+dateT.ToString("%t").ToLower();
 					}
-					row["prognosis"]=Defs.GetName(DefCat.Prognosis,PIn.Long(rowProc["Prognosis"].ToString()));
+					row["prognosis"]=Defs.GetName(DefCat.Prognosis,SIn.Long(rowProc["Prognosis"].ToString()));
 					row["prov"]=rowProc["Abbr"].ToString();
 					row["ProvNum"]=rowProc["ProvNum"].ToString();
 					row["quadrant"]="";
@@ -358,11 +358,11 @@ namespace OpenDentBusiness {
 				#region Commlog
 				List<Def> listCommLogTypeDefs=Defs.GetDefsForCategory(DefCat.CommLogTypes);
 				long podiumProgramNum=Programs.GetCur(ProgramName.Podium).ProgramNum;
-				bool showPodiumCommlogs=PIn.Bool(ProgramProperties.GetPropVal(podiumProgramNum,Podium.PropertyDescs.ShowCommlogsInChartAndAccount));
+				bool showPodiumCommlogs=SIn.Bool(ProgramProperties.GetPropVal(podiumProgramNum,Podium.PropertyDescs.ShowCommlogsInChartAndAccount));
 				string wherePodiumCommlog="";
 				if(!showPodiumCommlogs) {
-					wherePodiumCommlog="AND (commlog.CommSource!="+POut.Int((int)CommItemSource.ProgramLink)
-						+" OR (commlog.CommSource="+POut.Int((int)CommItemSource.ProgramLink)+" AND commlog.ProgramNum!="+POut.Long(podiumProgramNum)+")) ";
+					wherePodiumCommlog="AND (commlog.CommSource!="+SOut.Int((int)CommItemSource.ProgramLink)
+						+" OR (commlog.CommSource="+SOut.Int((int)CommItemSource.ProgramLink)+" AND commlog.ProgramNum!="+SOut.Long(podiumProgramNum)+")) ";
 				}
 				string whereFamilyCommLog="AND p1.PatNum=p2.PatNum ";
 				if(componentsToLoad.ShowSuperFamilyCommLog) {
@@ -376,7 +376,7 @@ namespace OpenDentBusiness {
 				+"FROM patient p1,patient p2,commlog "
 				+"WHERE commlog.PatNum=p1.PatNum "
 				+whereFamilyCommLog
-				+"AND p2.PatNum="+POut.Long(patNum)+" "
+				+"AND p2.PatNum="+SOut.Long(patNum)+" "
 				+wherePodiumCommlog
 				+"ORDER BY CommDateTime";
 				DataTable rawComm=dcon.GetTable(command);
@@ -389,7 +389,7 @@ namespace OpenDentBusiness {
 					row["ClinicNum"]=0;
 					row["CodeNum"]="";
 					row["colorBackG"]=Color.White.ToArgb();
-					long commTypeDefNum=PIn.Long(rawComm.Rows[i]["CommType"].ToString());
+					long commTypeDefNum=SIn.Long(rawComm.Rows[i]["CommType"].ToString());
 					Def commlogType=listCommLogTypeDefs.FirstOrDefault(x => x.DefNum==commTypeDefNum);
 					if(commlogType!=null && commlogType.ItemColor.ToArgb()!=Color.Empty.ToArgb()) {//Def exists and not an empty color.
 						row["colorText"]=commlogType.ItemColor.ToArgb().ToString();
@@ -426,9 +426,9 @@ namespace OpenDentBusiness {
 					row["isLocked"]="";
 					row["LabCaseNum"]=0;
 					row["length"]="";
-					if(PIn.DateTime(rawComm.Rows[i]["DateTimeEnd"].ToString()).Year>1880) {
-						DateTime startTime=PIn.DateTime(rawComm.Rows[i]["CommDateTime"].ToString());
-						DateTime endTime=PIn.DateTime(rawComm.Rows[i]["DateTimeEnd"].ToString());
+					if(SIn.DateTime(rawComm.Rows[i]["DateTimeEnd"].ToString()).Year>1880) {
+						DateTime startTime=SIn.DateTime(rawComm.Rows[i]["CommDateTime"].ToString());
+						DateTime endTime=SIn.DateTime(rawComm.Rows[i]["DateTimeEnd"].ToString());
 						row["length"]=(endTime-startTime).ToStringHmm();
 					}
 					row["note"]=rawComm.Rows[i]["Note"].ToString();
@@ -436,7 +436,7 @@ namespace OpenDentBusiness {
 					row["Priority"]="";
 					row["priority"]="";
 					row["ProcCode"]="";
-					dateT=PIn.DateTime(rawComm.Rows[i]["CommDateTime"].ToString());
+					dateT=SIn.DateTime(rawComm.Rows[i]["CommDateTime"].ToString());
 					if(dateT.Year<1880) {
 						row["procDate"]="";
 					}
@@ -468,7 +468,7 @@ namespace OpenDentBusiness {
 					row["toothNum"]="";
 					row["ToothNum"]="";
 					row["ToothRange"]="";
-					row["user"]=Userods.GetName(PIn.Long(rawComm.Rows[i]["UserNum"].ToString()));
+					row["user"]=Userods.GetName(SIn.Long(rawComm.Rows[i]["UserNum"].ToString()));
 					row["WebChatSessionNum"]=0;
 					row["EmailMessageHideIn"]="0";
 					row["EmailMessageHtmlType"]="0";
@@ -479,7 +479,7 @@ namespace OpenDentBusiness {
 			if(componentsToLoad.ShowFormPat) {
 				#region formpat
 				command = "SELECT FormDateTime,FormPatNum "
-					+ "FROM formpat WHERE PatNum =" + POut.Long(patNum) + " ORDER BY FormDateTime";
+					+ "FROM formpat WHERE PatNum =" + SOut.Long(patNum) + " ORDER BY FormDateTime";
 				DataTable rawForm = dcon.GetTable(command);
 				for(int i = 0;i < rawForm.Rows.Count;i++) {
 					row = table.NewRow();
@@ -512,7 +512,7 @@ namespace OpenDentBusiness {
 					row["Priority"] = "";
 					row["priority"]="";
 					row["ProcCode"] = "";
-					dateT = PIn.DateTime(rawForm.Rows[i]["FormDateTime"].ToString());
+					dateT = SIn.DateTime(rawForm.Rows[i]["FormDateTime"].ToString());
 					row["ProcDate"] = dateT.ToShortDateString();
 					if(dateT.TimeOfDay != TimeSpan.Zero) {
 						row["procTime"] = dateT.ToString("h:mm") + dateT.ToString("%t").ToLower();
@@ -553,7 +553,7 @@ namespace OpenDentBusiness {
 			}
 			if(componentsToLoad.ShowRX) {
 				#region Rx
-				command="SELECT RxNum,RxDate,Drug,Disp,ProvNum,Notes,PharmacyNum,UserNum,RxType,DateTStamp FROM rxpat WHERE PatNum="+POut.Long(patNum)
+				command="SELECT RxNum,RxDate,Drug,Disp,ProvNum,Notes,PharmacyNum,UserNum,RxType,DateTStamp FROM rxpat WHERE PatNum="+SOut.Long(patNum)
 				+" ORDER BY RxDate";
 				DataTable rawRx=dcon.GetTable(command);
 				for(int i=0;i<rawRx.Rows.Count;i++) {
@@ -573,7 +573,7 @@ namespace OpenDentBusiness {
 					row["dateTP"]="";
 					row["description"]=Lans.g("ChartModule","Rx - ")+rawRx.Rows[i]["Drug"].ToString()+" - #"+rawRx.Rows[i]["Disp"].ToString();
 					if(rawRx.Rows[i]["PharmacyNum"].ToString()!="0") {
-						row["description"]+="\r\n"+Pharmacies.GetDescription(PIn.Long(rawRx.Rows[i]["PharmacyNum"].ToString()));
+						row["description"]+="\r\n"+Pharmacies.GetDescription(SIn.Long(rawRx.Rows[i]["PharmacyNum"].ToString()));
 					}
 					row["DocNum"]=0;
 					row["dx"]="";
@@ -590,7 +590,7 @@ namespace OpenDentBusiness {
 					row["Priority"]="";
 					row["priority"]="";
 					row["ProcCode"]="";
-					dateT=PIn.Date(rawRx.Rows[i]["RxDate"].ToString());
+					dateT=SIn.Date(rawRx.Rows[i]["RxDate"].ToString());
 					if(dateT.Year<1880) {
 						row["procDate"]="";
 					}
@@ -605,7 +605,7 @@ namespace OpenDentBusiness {
 					row["ProcStatus"]="";
 					row["procTime"]="";
 					row["procTimeEnd"]="";
-					row["prov"]=Providers.GetAbbr(PIn.Long(rawRx.Rows[i]["ProvNum"].ToString()));
+					row["prov"]=Providers.GetAbbr(SIn.Long(rawRx.Rows[i]["ProvNum"].ToString()));
 					row["ProvNum"]=rawRx.Rows[i]["ProvNum"];
 					row["quadrant"]="";
 					row["RxNum"]=rawRx.Rows[i]["RxNum"].ToString();
@@ -620,14 +620,14 @@ namespace OpenDentBusiness {
 					row["WebChatSessionNum"]=0;
 					row["EmailMessageHideIn"]="0";
 					row["EmailMessageHtmlType"]="0";
-					RxTypes rxType=PIn.Enum<RxTypes>(rawRx.Rows[i]["RxType"].ToString());
+					RxTypes rxType=SIn.Enum<RxTypes>(rawRx.Rows[i]["RxType"].ToString());
 					row["RxType"]=rxType;
 					//If RxPat entry is a log of pdmp bridge access
 					if(rxType!=RxTypes.Rx) {
-						DateTime timeAccessed=PIn.DateTime(rawRx.Rows[i]["DateTStamp"].ToString());
+						DateTime timeAccessed=SIn.DateTime(rawRx.Rows[i]["DateTStamp"].ToString());
 						row["Description"]="PDMP Access: "+rxType.GetDescription()+"\nTime Accessed: "+timeAccessed.ToShortTimeString();
 						row["colorText"]=Color.Black.ToArgb();
-						row["user"]=Userods.GetName(PIn.Long(rawRx.Rows[i]["UserNum"].ToString()));
+						row["user"]=Userods.GetName(SIn.Long(rawRx.Rows[i]["UserNum"].ToString()));
 					}
 					rows.Add(row);
 				}
@@ -637,7 +637,7 @@ namespace OpenDentBusiness {
 				#region LabCase
 				command="SELECT labcase.*,Description,Phone FROM labcase,laboratory "
 				+"WHERE labcase.LaboratoryNum=laboratory.LaboratoryNum "
-				+"AND PatNum="+POut.Long(patNum)
+				+"AND PatNum="+SOut.Long(patNum)
 				+" ORDER BY DateTimeCreated";
 				DataTable rawLab=dcon.GetTable(command);
 				DateTime duedate;
@@ -658,18 +658,18 @@ namespace OpenDentBusiness {
 					row["dateTP"]="";
 					row["description"]=Lans.g("ChartModule","LabCase - ")+rawLab.Rows[i]["Description"].ToString()+" "
 					+rawLab.Rows[i]["Phone"].ToString();
-					if(PIn.Date(rawLab.Rows[i]["DateTimeDue"].ToString()).Year>1880) {
-						duedate=PIn.DateTime(rawLab.Rows[i]["DateTimeDue"].ToString());
+					if(SIn.Date(rawLab.Rows[i]["DateTimeDue"].ToString()).Year>1880) {
+						duedate=SIn.DateTime(rawLab.Rows[i]["DateTimeDue"].ToString());
 						row["description"]+="\r\n"+Lans.g("ChartModule","Due")+" "+duedate.ToString("ddd")+" "
 						+duedate.ToShortDateString()+" "+duedate.ToShortTimeString();
 					}
-					if(PIn.Date(rawLab.Rows[i]["DateTimeChecked"].ToString()).Year>1880) {
+					if(SIn.Date(rawLab.Rows[i]["DateTimeChecked"].ToString()).Year>1880) {
 						row["description"]+="\r\n"+Lans.g("ChartModule","Quality Checked");
 					}
-					else if(PIn.Date(rawLab.Rows[i]["DateTimeRecd"].ToString()).Year>1880) {
+					else if(SIn.Date(rawLab.Rows[i]["DateTimeRecd"].ToString()).Year>1880) {
 						row["description"]+="\r\n"+Lans.g("ChartModule","Received");
 					}
-					else if(PIn.Date(rawLab.Rows[i]["DateTimeSent"].ToString()).Year>1880) {
+					else if(SIn.Date(rawLab.Rows[i]["DateTimeSent"].ToString()).Year>1880) {
 						row["description"]+="\r\n"+Lans.g("ChartModule","Sent");
 					}
 					row["DocNum"]=0;
@@ -687,7 +687,7 @@ namespace OpenDentBusiness {
 					row["Priority"]="";
 					row["priority"]="";
 					row["ProcCode"]="";
-					dateT=PIn.DateTime(rawLab.Rows[i]["DateTimeCreated"].ToString());
+					dateT=SIn.DateTime(rawLab.Rows[i]["DateTimeCreated"].ToString());
 					if(dateT.Year<1880) {
 						row["procDate"]="";
 					}
@@ -729,15 +729,15 @@ namespace OpenDentBusiness {
 				command="SELECT task.*,COALESCE(tasklist.Descript,'') ListDisc,fampat.FName,fampat.PatNum, COUNT(taskattachment.TaskNum) attachmentCount "
 				+"FROM patient pat "
 				+"INNER JOIN patient fampat ON fampat.Guarantor=pat.Guarantor "
-				+"INNER JOIN task ON task.KeyNum=fampat.PatNum AND task.ObjectType="+POut.Int((int)TaskObjectType.Patient)+" "
+				+"INNER JOIN task ON task.KeyNum=fampat.PatNum AND task.ObjectType="+SOut.Int((int)TaskObjectType.Patient)+" "
 				+"LEFT JOIN tasklist ON task.TaskListNum=tasklist.TaskListNum "
 				+"LEFT JOIN taskattachment ON task.TaskNum=taskattachment.TaskNum "
-				+"WHERE pat.PatNum="+POut.Long(patNum)+" "
+				+"WHERE pat.PatNum="+SOut.Long(patNum)+" "
 				+"GROUP BY task.TaskNum "
 				+"UNION ALL "
 				+"SELECT task.*,COALESCE(tasklist.Descript,'') ListDisc,patient.FName,patient.PatNum, COUNT(taskattachment.TaskNum) attachmentCount "
 				+"FROM task "
-				+"INNER JOIN appointment ON appointment.AptNum=task.KeyNum AND task.ObjectType="+POut.Int((int)TaskObjectType.Appointment)+" "
+				+"INNER JOIN appointment ON appointment.AptNum=task.KeyNum AND task.ObjectType="+SOut.Int((int)TaskObjectType.Appointment)+" "
 				+"LEFT JOIN tasklist ON task.TaskListNum=tasklist.TaskListNum "
 				+"LEFT JOIN patient ON patient.PatNum=appointment.PatNum "
 				+"LEFT JOIN taskattachment ON task.TaskNum=taskattachment.TaskNum "
@@ -745,14 +745,14 @@ namespace OpenDentBusiness {
 				+"GROUP BY task.TaskNum "
 				+"ORDER BY DateTimeEntry";
 				DataTable rawTask=dcon.GetTable(command);
-				List<long> taskNums=rawTask.Select().Select(x => PIn.Long(x["TaskNum"].ToString())).ToList();
+				List<long> taskNums=rawTask.Select().Select(x => SIn.Long(x["TaskNum"].ToString())).ToList();
 				List<TaskList> listTaskLists=TaskLists.GetAll();
 				Dictionary<long,List<TaskNote>> dictTaskNotes=TaskNotes.RefreshForTasks(taskNums).GroupBy(x => x.TaskNum).ToDictionary(x => x.Key,x => x.ToList());
 				for(int i=0;i<rawTask.Rows.Count;i++) {
 					DataRow rawTaskRow=rawTask.Rows[i];
 					row=table.NewRow();
 					row["AbbrDesc"]="";
-					row["attachmentCount"]=PIn.Int(rawTaskRow["attachmentCount"].ToString());
+					row["attachmentCount"]=SIn.Int(rawTaskRow["attachmentCount"].ToString());
 					row["aptDateTime"]=DateTime.MinValue;
 					row["AptNum"]=0;
 					row["clinic"]="";
@@ -768,7 +768,7 @@ namespace OpenDentBusiness {
 					row["dateEntryC"]="";
 					row["dateTP"]="";
 					txt="";
-					switch(PIn.Enum<TaskObjectType>(rawTaskRow["ObjectType"].ToString())) {
+					switch(SIn.Enum<TaskObjectType>(rawTaskRow["ObjectType"].ToString())) {
 						case TaskObjectType.Patient:
 						case TaskObjectType.Appointment:
 							//Prepend the name of the family member so that it is apparent that this task is not for this specific patient.
@@ -788,7 +788,7 @@ namespace OpenDentBusiness {
 						row["colorText"] = listProgNoteColorDefs[20].ItemColor.ToArgb().ToString();
 						row["colorBackG"] = listProgNoteColorDefs[21].ItemColor.ToArgb().ToString();
 					}
-					long taskListNum=PIn.Long(rawTaskRow["TaskListNum"].ToString());
+					long taskListNum=SIn.Long(rawTaskRow["TaskListNum"].ToString());
 					row["description"]=txt+Lans.g("ChartModule","Task - In List: ")+TaskLists.GetFullPath(taskListNum,listTaskLists);
 					row["DocNum"]=0;
 					row["dx"]="";
@@ -804,12 +804,12 @@ namespace OpenDentBusiness {
 					string username;
 					if(!rawTaskRow["Descript"].ToString().StartsWith("==") && rawTaskRow["UserNum"].ToString()!="") {
 						if(!dictUserNames.TryGetValue(rawTaskRow["UserNum"].ToString(),out username)) {
-							username=Userods.GetName(PIn.Long(rawTaskRow["UserNum"].ToString()));
+							username=Userods.GetName(SIn.Long(rawTaskRow["UserNum"].ToString()));
 						}
 						txt+=username+" - ";
 					}
 					txt+=rawTaskRow["Descript"].ToString();
-					long taskNum=PIn.Long(rawTaskRow["TaskNum"].ToString());
+					long taskNum=SIn.Long(rawTaskRow["TaskNum"].ToString());
 					List<TaskNote> listNotesCur;
 					if(dictTaskNotes.TryGetValue(taskNum,out listNotesCur)) {
 						foreach(TaskNote noteCur in listNotesCur) {
@@ -829,10 +829,10 @@ namespace OpenDentBusiness {
 					row["Priority"]="";
 					row["priority"]="";
 					row["ProcCode"]="";
-					dateT = PIn.DateTime(rawTaskRow["DateTask"].ToString());
+					dateT = SIn.DateTime(rawTaskRow["DateTask"].ToString());
 					row["procTime"]="";
 					if(dateT.Year < 1880) {//check if due date set for task or note
-						dateT = PIn.DateTime(rawTaskRow["DateTimeEntry"].ToString());
+						dateT = SIn.DateTime(rawTaskRow["DateTimeEntry"].ToString());
 						if(dateT.Year < 1880) {//since dateT was just redefined, check it now
 							row["procDate"] = "";
 						}
@@ -878,13 +878,13 @@ namespace OpenDentBusiness {
 				#endregion Task
 			}
 			#region Appointments
-			command="SELECT * FROM appointment WHERE PatNum="+POut.Long(patNum);
+			command="SELECT * FROM appointment WHERE PatNum="+SOut.Long(patNum);
 			if(componentsToLoad.ShowAppointments) {//we will need this table later for planned appts, so always need to get.
 				//get all appts
 			}
 			else{
 				//only include planned appts.  We will need those later, but not in this grid.
-				command+=" AND AptStatus = "+POut.Int((int)ApptStatus.Planned);
+				command+=" AND AptStatus = "+SOut.Int((int)ApptStatus.Planned);
 			}
 			command+=" ORDER BY AptDateTime";
 			rawApt=dcon.GetTable(command);
@@ -897,8 +897,8 @@ namespace OpenDentBusiness {
 				row["clinic"]="";
 				row["ClinicNum"]=rawApt.Rows[i]["ClinicNum"].ToString();
 				row["colorBackG"]=Color.White.ToArgb();
-				dateT=PIn.DateTime(rawApt.Rows[i]["AptDateTime"].ToString());
-				apptStatus=PIn.Long(rawApt.Rows[i]["AptStatus"].ToString());
+				dateT=SIn.DateTime(rawApt.Rows[i]["AptDateTime"].ToString());
+				apptStatus=SIn.Long(rawApt.Rows[i]["AptStatus"].ToString());
 				row["colorBackG"]="";
 				row["colorText"]=listProgNoteColorDefs[8].ItemColor.ToArgb().ToString();
 				row["CommlogNum"]=0;
@@ -1004,12 +1004,12 @@ namespace OpenDentBusiness {
 			if(componentsToLoad.ShowEmail) {
 				#region email
 				List<EmailSentOrReceived> listAckTypes=EmailMessages.GetUnsentTypes(EmailPlatform.Ack).Concat(EmailMessages.GetSentTypes(EmailPlatform.Ack)).ToList();
-				string ackTypesStr=string.Join(",",listAckTypes.Select(x => POut.Int((int)x)));
+				string ackTypesStr=string.Join(",",listAckTypes.Select(x => SOut.Int((int)x)));
 				//Get emails for patient
 				//If a user creates an email that is attached to a patient, it will show up here for everyone.
 				command="SELECT EmailMessageNum,MsgDateTime,Subject,BodyText,PatNum,SentOrReceived,UserNum,emailmessage.HideIn,emailmessage.HtmlType "
 				+"FROM emailmessage "
-				+"WHERE PatNum="+POut.Long(patNum)+" AND SentOrReceived NOT IN ("+ackTypesStr+") "//Do not show Direct message acknowledgements in Chart progress notes
+				+"WHERE PatNum="+SOut.Long(patNum)+" AND SentOrReceived NOT IN ("+ackTypesStr+") "//Do not show Direct message acknowledgements in Chart progress notes
 				+"ORDER BY MsgDateTime";
 				DataTable rawEmail=dcon.GetTable(command);
 				for(int i=0;i<rawEmail.Rows.Count;i++) {
@@ -1048,7 +1048,7 @@ namespace OpenDentBusiness {
 					row["priority"]="";
 					row["ProcCode"]="";
 					//row["PatNum"]=rawEmail.Rows[i]["PatNum"].ToString();
-					dateT=PIn.DateTime(rawEmail.Rows[i]["msgDateTime"].ToString());
+					dateT=SIn.DateTime(rawEmail.Rows[i]["msgDateTime"].ToString());
 					if(dateT.Year<1880) {
 						row["procDate"]="";
 					}
@@ -1077,7 +1077,7 @@ namespace OpenDentBusiness {
 					row["toothNum"]="";
 					row["ToothNum"]="";
 					row["ToothRange"]="";
-					row["user"]=Userods.GetName(PIn.Long(rawEmail.Rows[i]["UserNum"].ToString()));
+					row["user"]=Userods.GetName(SIn.Long(rawEmail.Rows[i]["UserNum"].ToString()));
 					row["WebChatSessionNum"]=0;
 					row["EmailMessageHideIn"]=rawEmail.Rows[i]["HideIn"].ToString();
 					row["EmailMessageHtmlType"]=rawEmail.Rows[i]["HtmlType"].ToString();
@@ -1091,8 +1091,8 @@ namespace OpenDentBusiness {
 					+"AVG(CASE WHEN FieldValue!='' THEN 1 ELSE 0 END) AS SigPresent "
 					+"FROM sheet "
 					+"LEFT JOIN sheetfield ON sheet.SheetNum=sheetfield.SheetNum "
-					+"AND sheetfield.FieldType="+POut.Long((int)SheetFieldType.SigBox)+" "
-					+"WHERE (sheet.PatNum="+POut.Long(patNum);
+					+"AND sheetfield.FieldType="+SOut.Long((int)SheetFieldType.SigBox)+" "
+					+"WHERE (sheet.PatNum="+SOut.Long(patNum);
 				List<Patient> listPatientClonesAll=new List<Patient>();
 				if(PrefC.GetBool(PrefName.ShowFeaturePatientClone)) {
 					List<long> listPatientClonePatNums=Patients.GetClonePatNumsAll(patNum);
@@ -1101,8 +1101,8 @@ namespace OpenDentBusiness {
 					//Now go get the patient object for each clone which might be used below.
 					listPatientClonesAll=Patients.GetLimForPats(listPatientClonePatNums);
 				}
-				command+=") AND SheetType!="+POut.Long((int)SheetTypeEnum.Rx)+" "//rx are only accesssible from within Rx edit window.
-					+"AND SheetType!="+POut.Long((int)SheetTypeEnum.LabSlip)+" ";//labslips are only accesssible from within the labslip edit window.
+				command+=") AND SheetType!="+SOut.Long((int)SheetTypeEnum.Rx)+" "//rx are only accesssible from within Rx edit window.
+					+"AND SheetType!="+SOut.Long((int)SheetTypeEnum.LabSlip)+" ";//labslips are only accesssible from within the labslip edit window.
 				if(!isAuditMode) {
 					command+="AND IsDeleted=0 ";//Don't show deleted sheets unless it's audit mode.
 				}
@@ -1123,7 +1123,7 @@ namespace OpenDentBusiness {
 					row["CommlogNum"]=0;
 					row["CommSource"]="";
 					row["commType"]="";
-					dateT=PIn.DateTime(rawSheet.Rows[i]["DateTimeSheet"].ToString());
+					dateT=SIn.DateTime(rawSheet.Rows[i]["DateTimeSheet"].ToString());
 					if(dateT.Year<1880) {
 						row["dateEntryC"]="";
 						row["dateTP"]="";
@@ -1134,7 +1134,7 @@ namespace OpenDentBusiness {
 					}
 					//Add patient name if using clone feature and the sheet belongs to the clone.
 					if(PrefC.GetBool(PrefName.ShowFeaturePatientClone) && rawSheet.Rows[i]["PatNum"].ToString()!=patNum.ToString()) {
-						Patient patientClone=listPatientClonesAll.FirstOrDefault(x => x.PatNum==PIn.Long(rawSheet.Rows[i]["PatNum"].ToString()));
+						Patient patientClone=listPatientClonesAll.FirstOrDefault(x => x.PatNum==SIn.Long(rawSheet.Rows[i]["PatNum"].ToString()));
 						if(patientClone!=null && !string.IsNullOrWhiteSpace(patientClone.FName)) {
 							row["description"]="("+patientClone.FName+") ";
 						}
@@ -1181,10 +1181,10 @@ namespace OpenDentBusiness {
 					row["RxNum"]=0;
 					row["SheetNum"]=rawSheet.Rows[i]["SheetNum"].ToString();
 					row["signature"]="";
-					if(PIn.Double(rawSheet.Rows[i]["SigPresent"].ToString())==1) {
+					if(SIn.Double(rawSheet.Rows[i]["SigPresent"].ToString())==1) {
 						row["signature"]=Lans.g("ChartModule","Signed");
 					}
-					else if(PIn.Double(rawSheet.Rows[i]["SigPresent"].ToString())==0) {
+					else if(SIn.Double(rawSheet.Rows[i]["SigPresent"].ToString())==0) {
 						row["signature"]="";
 					}
 					else {
@@ -1207,8 +1207,8 @@ namespace OpenDentBusiness {
 					+"AVG(CASE WHEN ValueString!='' THEN 1 ELSE 0 END) AS SigPresent "
 					+"FROM eform "
 					+"LEFT JOIN eformfield ON eform.EFormNum=eformfield.EFormNum "
-					+"AND eformfield.FieldType="+POut.Long((int)EnumEFormFieldType.SigBox)+" "
-					+"WHERE (eform.PatNum="+POut.Long(patNum);
+					+"AND eformfield.FieldType="+SOut.Long((int)EnumEFormFieldType.SigBox)+" "
+					+"WHERE (eform.PatNum="+SOut.Long(patNum);
 				//List<Patient> listPatientClonesAll=new List<Patient>();
 				if(PrefC.GetBool(PrefName.ShowFeaturePatientClone)) {
 					List<long> listPatientClonePatNums=Patients.GetClonePatNumsAll(patNum);
@@ -1234,7 +1234,7 @@ namespace OpenDentBusiness {
 					row["CommlogNum"]=0;
 					row["CommSource"]="";
 					row["commType"]="";
-					dateT=PIn.DateTime(rawEForm.Rows[i]["DateTimeShown"].ToString());
+					dateT=SIn.DateTime(rawEForm.Rows[i]["DateTimeShown"].ToString());
 					if(dateT.Year<1880) {
 						row["dateEntryC"]="";
 						row["dateTP"]="";
@@ -1245,7 +1245,7 @@ namespace OpenDentBusiness {
 					}
 					//Add patient name if using clone feature and the eForm belongs to the clone.
 					if(PrefC.GetBool(PrefName.ShowFeaturePatientClone) && rawEForm.Rows[i]["PatNum"].ToString()!=patNum.ToString()) {
-						Patient patientClone=listPatientClonesAll.FirstOrDefault(x => x.PatNum==PIn.Long(rawEForm.Rows[i]["PatNum"].ToString()));
+						Patient patientClone=listPatientClonesAll.FirstOrDefault(x => x.PatNum==SIn.Long(rawEForm.Rows[i]["PatNum"].ToString()));
 						if(patientClone!=null && !string.IsNullOrWhiteSpace(patientClone.FName)) {
 							row["description"]="("+patientClone.FName+") ";
 						}
@@ -1289,10 +1289,10 @@ namespace OpenDentBusiness {
 					row["RxNum"]=0;
 					row["SheetNum"]=0;
 					row["signature"]="";
-					if(PIn.Double(rawEForm.Rows[i]["SigPresent"].ToString())==1) {
+					if(SIn.Double(rawEForm.Rows[i]["SigPresent"].ToString())==1) {
 						row["signature"]=Lans.g("ChartModule","Signed");
 					}
-					else if(PIn.Double(rawEForm.Rows[i]["SigPresent"].ToString())==0) {
+					else if(SIn.Double(rawEForm.Rows[i]["SigPresent"].ToString())==0) {
 						row["signature"]="";
 					}
 					else {
@@ -1316,12 +1316,12 @@ namespace OpenDentBusiness {
 				command="SELECT Description,DateCreated,ChartLetterStatus,PatNum,DocNum,ProvNum,UserNum, "
 					+"CASE WHEN Signature='' THEN 0 ELSE 1 END SigPresent "
 					+"FROM document "
-					+"WHERE document.PatNum="+POut.Long(patNum)+" ";
+					+"WHERE document.PatNum="+SOut.Long(patNum)+" ";
 				if(isAuditMode) {
 					command+="AND ChartLetterStatus > 0 ";
 				}
 				else{//normal
-					command+="AND ChartLetterStatus = "+POut.Enum(EnumDocChartLetterStatus.Active)+" ";
+					command+="AND ChartLetterStatus = "+SOut.Enum(EnumDocChartLetterStatus.Active)+" ";
 				}
 				command+="ORDER BY DateCreated";//we'll just have to reorder it anyway
 				DataTable rawDocs = dcon.GetTable(command);
@@ -1338,7 +1338,7 @@ namespace OpenDentBusiness {
 					row["CommlogNum"]=0;
 					row["CommSource"]="";
 					row["commType"]="";
-					dateT=PIn.DateTime(rawDocs.Rows[i]["DateCreated"].ToString());
+					dateT=SIn.DateTime(rawDocs.Rows[i]["DateCreated"].ToString());
 					if(dateT.Year<1880) {
 						row["dateEntryC"]="";
 						row["dateTP"]="";
@@ -1348,7 +1348,7 @@ namespace OpenDentBusiness {
 						row["dateTP"]=dateT.ToString(Lans.GetShortDateTimeFormat());
 					}
 					row["description"]=rawDocs.Rows[i]["Description"].ToString();
-					EnumDocChartLetterStatus enumDocChartLetterStatus=PIn.Enum<EnumDocChartLetterStatus>(rawDocs.Rows[i]["ChartLetterStatus"].ToString());
+					EnumDocChartLetterStatus enumDocChartLetterStatus=SIn.Enum<EnumDocChartLetterStatus>(rawDocs.Rows[i]["ChartLetterStatus"].ToString());
 					switch(enumDocChartLetterStatus){
 						case EnumDocChartLetterStatus.None://not possible
 						case EnumDocChartLetterStatus.Active:
@@ -1406,7 +1406,7 @@ namespace OpenDentBusiness {
 					row["toothNum"]="";
 					row["ToothNum"]="";
 					row["ToothRange"]="";
-					row["user"]=Userods.GetName(PIn.Long(rawDocs.Rows[i]["UserNum"].ToString()));
+					row["user"]=Userods.GetName(SIn.Long(rawDocs.Rows[i]["UserNum"].ToString()));
 					row["WebChatSessionNum"]=0;
 					row["EmailMessageHideIn"]="0";
 					row["EmailMessageHtmlType"]="0";
@@ -1482,20 +1482,20 @@ namespace OpenDentBusiness {
 			string command="SELECT appointment.AptNum,ItemOrderPlanned,"
 				+"COUNT(DISTINCT procedurelog.ProcNum) someAreComplete "
 				+"FROM appointment "
-				+"LEFT JOIN procedurelog ON procedurelog.PlannedAptNum=appointment.AptNum AND procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+" AND procedurelog.PatNum = appointment.PatNum "
-				+"WHERE appointment.AptStatus="+POut.Int((int)ApptStatus.Planned)+" AND appointment.PatNum="+POut.Long(patNum)+" "
+				+"LEFT JOIN procedurelog ON procedurelog.PlannedAptNum=appointment.AptNum AND procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+" AND procedurelog.PatNum = appointment.PatNum "
+				+"WHERE appointment.AptStatus="+SOut.Int((int)ApptStatus.Planned)+" AND appointment.PatNum="+SOut.Long(patNum)+" "
 				+"GROUP BY appointment.AptNum "
 				+"ORDER BY ItemOrderPlanned";
 			//plannedappt.AptNum does refer to the planned appt, but the other fields in the result are for the linked scheduled appt.
 			DataTable rawPlannedAppts=dcon.GetTable(command);
-			command="SELECT * FROM appointment WHERE PatNum="+POut.Long(patNum)+" AND NextAptNum!=0 ORDER BY AptStatus";
+			command="SELECT * FROM appointment WHERE PatNum="+SOut.Long(patNum)+" AND NextAptNum!=0 ORDER BY AptStatus";
 			List<Appointment> listAppointmentsLinkedToPlanned=Crud.AppointmentCrud.SelectMany(command);
 			DataRow aptRow;
 			int itemOrder=1;
 			DateTime dateSched;
 			ApptStatus aptStatus;
 			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.ProgNoteColors);
-			command="SELECT AptNum FROM appointment WHERE PatNum="+POut.Long(patNum)+" AND AptStatus="+POut.Int((int)ApptStatus.Planned);
+			command="SELECT AptNum FROM appointment WHERE PatNum="+SOut.Long(patNum)+" AND AptStatus="+SOut.Int((int)ApptStatus.Planned);
 			List<long> listAptNumsPlanned=Db.GetListLong(command);
 			List<Procedure> listProcedures=Procedures.GetProcsMultApts(listAptNumsPlanned);
 			Appointment appointmentLinkToPlanned;
@@ -1512,14 +1512,14 @@ namespace OpenDentBusiness {
 				}
 				//repair any item orders here rather than in dbmaint. It's really fast.
 				if(itemOrder.ToString()!=rawPlannedAppts.Rows[i]["ItemOrderPlanned"].ToString()) {
-					command="UPDATE appointment SET ItemOrderPlanned="+POut.Long(itemOrder)
+					command="UPDATE appointment SET ItemOrderPlanned="+SOut.Long(itemOrder)
 						+" WHERE AptNum="+rawPlannedAppts.Rows[i]["AptNum"].ToString();
 					dcon.NonQ(command);
 				}
 				//end of repair
 				row=table.NewRow();
 				//PlannedAppt----------------------------------------------------------------------------
-				long aptNum=PIn.Long(aptRow["AptNum"].ToString());
+				long aptNum=SIn.Long(aptRow["AptNum"].ToString());
 				appointmentLinkToPlanned=listAppointmentsLinkedToPlanned.Find(x => x.NextAptNum==aptNum);
 				dateSched=DateTime.MinValue;
 				if(appointmentLinkToPlanned!=null) {
@@ -1879,18 +1879,18 @@ namespace OpenDentBusiness {
 			string command="SELECT appointment.AptNum,appointment.ItemOrderPlanned,appointment.AptDateTime,appointment.Pattern,appointment.AptStatus,"
 				+"COUNT(DISTINCT procedurelog.ProcNum) someAreComplete "
 				+"FROM appointment "
-				+"LEFT JOIN procedurelog ON procedurelog.PlannedAptNum=appointment.AptNum	AND procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+" "
-				+"WHERE appointment.AptStatus="+POut.Int((int)ApptStatus.Planned)+" AND appointment.PatNum="+POut.Long(patNum)+" ";
+				+"LEFT JOIN procedurelog ON procedurelog.PlannedAptNum=appointment.AptNum	AND procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+" "
+				+"WHERE appointment.AptStatus="+SOut.Int((int)ApptStatus.Planned)+" AND appointment.PatNum="+SOut.Long(patNum)+" ";
 			command+="GROUP BY appointment.AptNum ";
 			command+="ORDER BY appointment.ItemOrderPlanned";
 			DataTable rawPlannedAppts=dcon.GetTable(command);
-			command="SELECT * FROM appointment WHERE PatNum="+POut.Long(patNum)+" AND NextAptNum!=0 ORDER BY AptStatus";
+			command="SELECT * FROM appointment WHERE PatNum="+SOut.Long(patNum)+" AND NextAptNum!=0 ORDER BY AptStatus";
 			List<Appointment> listAppointmentsLinkedToPlanned=Crud.AppointmentCrud.SelectMany(command);
 			DataRow aptRow;
 			int itemOrder=1;
 			ApptStatus aptStatus;
 			DateTime dateSched;
-			command="SELECT AptNum FROM appointment WHERE PatNum="+POut.Long(patNum)+" AND AptStatus="+POut.Int((int)ApptStatus.Planned);
+			command="SELECT AptNum FROM appointment WHERE PatNum="+SOut.Long(patNum)+" AND AptStatus="+SOut.Int((int)ApptStatus.Planned);
 			List<long> listAptNumsPlanned=Db.GetListLong(command);
 			List<Procedure> listProcedures=Procedures.GetProcsMultApts(listAptNumsPlanned);
 			Appointment appointmentLinkToPlanned;
@@ -1907,14 +1907,14 @@ namespace OpenDentBusiness {
 				}
 				//repair any item orders here rather than in dbmaint. It's really fast.
 				if(itemOrder.ToString()!=rawPlannedAppts.Rows[i]["ItemOrderPlanned"].ToString()) {
-					command="UPDATE appointment SET ItemOrderPlanned="+POut.Long(itemOrder)
+					command="UPDATE appointment SET ItemOrderPlanned="+SOut.Long(itemOrder)
 						+" WHERE AptNum="+rawPlannedAppts.Rows[i]["AptNum"].ToString();
 					dcon.NonQ(command);
 				}
 				//end of repair
 				row=table.NewRow();
 				//PlannedAppt----------------------------------------------------------------------------
-				long aptNum=PIn.Long(aptRow["AptNum"].ToString());
+				long aptNum=SIn.Long(aptRow["AptNum"].ToString());
 				appointmentLinkToPlanned=listAppointmentsLinkedToPlanned.Find(x => x.NextAptNum==aptNum);
 				dateSched=DateTime.MinValue;
 				if(appointmentLinkToPlanned!=null) {
@@ -1926,8 +1926,8 @@ namespace OpenDentBusiness {
 				row["Note"]=aptRow["Note"].ToString();
 				row["ProcDescript"]=GetProcDescriptPlanned(appointmentLinkToPlanned,listProceduresPlannedAppt,dateSched,aptRow["ProcDescript"].ToString());
 				row["ItemOrder"]=itemOrder.ToString();
-				row["ProvNum"]=PIn.Long(aptRow["ProvNum"].ToString());
-				aptStatus=(ApptStatus)PIn.Long(aptRow["AptStatus"].ToString());
+				row["ProvNum"]=SIn.Long(aptRow["ProvNum"].ToString());
+				aptStatus=(ApptStatus)SIn.Long(aptRow["AptStatus"].ToString());
 				row["AptStatus"]=aptStatus.ToString();
 				row["dateSched"]="";
 				if(appointmentLinkToPlanned!=null) {
@@ -2057,7 +2057,7 @@ namespace OpenDentBusiness {
 				if(pkColumnName==null){
 					throw new ApplicationException("Please set the rows ProgNotesRowAttribute.PKColumnName");
 				}
-				pk=PIn.Long(dataRow[pkColumnName].ToString());
+				pk=SIn.Long(dataRow[pkColumnName].ToString());
 				if(pk==0){
 					continue;
 				}

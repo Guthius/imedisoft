@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 #endregion using
@@ -1332,7 +1333,7 @@ namespace OpenDental{
 					Process.Start(filePath);
 				}
 				catch(Exception ex) {
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 				}
 			}
 		}
@@ -1489,12 +1490,12 @@ namespace OpenDental{
 
 		private void FormImageFloat_WindowDockThis(object sender, EventArgs e){
 			if(sender is ControlImageDock){
-				MessageBox.Show(this,Lan.g(this,"Already docked."));//must specify different owner because FormImageFloatWindows will close.
+				ODMessageBox.Show(this,Lan.g(this,"Already docked."));//must specify different owner because FormImageFloatWindows will close.
 				return;
 			}
 			FormImageFloat formImageFloat=(FormImageFloat)sender;
 			if(controlImageDock.ControlImageDisplay_!=null){
-				if(MessageBox.Show(this,Lan.g(this,"Another image is already docked. Dock this one instead?"),"",MessageBoxButtons.YesNo)!=DialogResult.Yes){
+				if(ODMessageBox.Show(this,Lan.g(this,"Another image is already docked. Dock this one instead?"),"",MessageBoxButtons.YesNo)!=DialogResult.Yes){
 					return;
 				}
 			}
@@ -1599,7 +1600,7 @@ namespace OpenDental{
 			catch(Exception ex) {
 				panelImportAuto.Visible=false;
 				_fileSystemWatcher.EnableRaisingEvents=false;//will never be null
-				MessageBox.Show(Lan.g(this,"Unable to import ")+e.FullPath+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to import ")+e.FullPath+": "+ex.Message);
 				return;
 			}
 			if(!IsMountShowing()){//single
@@ -1620,7 +1621,7 @@ namespace OpenDental{
 				return;//user can take another single
 			}
 			//From here down is mount-----------------------------------------------------------------------------
-			Bitmap bitmap=(Bitmap)Bitmap.FromFile(e.FullPath);
+			Bitmap bitmap=(Bitmap)Image.FromFile(e.FullPath);
 			ControlImageDisplay controlImageDisplay=GetControlImageDisplaySelected();//will always succeed because we verified floater idxSelected in IsMountShowing()
 			if(IsMountItemSelected()){
 				//They shouldn't have selected an item, but we will try to find an unoccupied spot.
@@ -1698,7 +1699,7 @@ namespace OpenDental{
 				document=ImageStore.Import(bitmap,defNumCategory,ImageType.Photo,_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Unable to save")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to save")+": "+ex.Message);
 				return;
 			}
 			//mount selected
@@ -1718,7 +1719,7 @@ namespace OpenDental{
 				doc=ImageStore.ImportForm(formName,GetCurrentCategory(),_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			FillImageSelector(false);
@@ -1927,7 +1928,7 @@ namespace OpenDental{
 		private void pearl_EventClickDeleteAnnotations(object sender,EventArgs e) {
 			ControlImageDisplay controlImageDisplay=GetControlImageDisplaySelected();
 			if(controlImageDisplay==null) {
-				MessageBox.Show("No image selected.","Pearl AI");
+				ODMessageBox.Show("No image selected.","Pearl AI");
 				return;
 			}
 			long docNum=-1;
@@ -1941,10 +1942,10 @@ namespace OpenDental{
 				docNum=GetDocumentShowing(0).DocNum;
 			}
 			if(docNum==-1) {
-				MessageBox.Show("No image selected.","Pearl AI");
+				ODMessageBox.Show("No image selected.","Pearl AI");
 				return;
 			}
-			DialogResult dialogResult=MessageBox.Show("Delete annotations for the currently selected "+(isMountShowing ? "mount item" : "document")+"?","Pearl AI",MessageBoxButtons.YesNo);
+			DialogResult dialogResult=ODMessageBox.Show("Delete annotations for the currently selected "+(isMountShowing ? "mount item" : "document")+"?","Pearl AI",MessageBoxButtons.YesNo);
 			if(dialogResult!=DialogResult.Yes) {
 				return;//User clicked 'No' or closed the popup
 			}
@@ -2569,7 +2570,7 @@ namespace OpenDental{
 			//	patient=Patients.GetOriginalPatientForClone(patient);//not sure if this is needed for Imaging. Doesn't seem right.
 			//}
 			if(!Programs.IsEnabledByHq(program,out string err)) {
-				MessageBox.Show(err);
+				ODMessageBox.Show(err);
 				return;
 			}
 			if(false && Programs.GetListDisabledForWeb().Contains(program.ProgName)) {
@@ -2701,7 +2702,7 @@ namespace OpenDental{
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_JPEG_DLL) {//22
-					MessageBox.Show("Missing dll\r\n\r\nRequired file EZJpeg.dll is missing.");
+					ODMessageBox.Show("Missing dll\r\n\r\nRequired file EZJpeg.dll is missing.");
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_0_PAGES) {//38
@@ -2709,11 +2710,11 @@ namespace OpenDental{
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_NO_PDF) {//43
-					MessageBox.Show("Missing dll\r\n\r\nRequired file EZPdf.dll is missing.");
+					ODMessageBox.Show("Missing dll\r\n\r\nRequired file EZPdf.dll is missing.");
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_DEVICE_PAPERJAM) {//76
-					MessageBox.Show("Paper jam\r\n\r\nPlease check the scanner document feeder and ensure there path is clear of any paper jams.");
+					ODMessageBox.Show("Paper jam\r\n\r\nPlease check the scanner document feeder and ensure there path is clear of any paper jams.");
 					return;
 				}
 				//else if(errorCode==(int)EZTwainErrorCode.EZTEC_DS_FAILURE) {//5
@@ -2730,7 +2731,7 @@ namespace OpenDental{
 			double ydpi=EZTwain.DIB_XResolution(handleDIB);
 			IntPtr handleBitmap=EZTwain.DIB_ToDibSection(handleDIB);
 			try {
-				bitmapScanned=Bitmap.FromHbitmap(handleBitmap);//Sometimes throws 'A generic error occurred in GDI+.'
+				bitmapScanned=Image.FromHbitmap(handleBitmap);//Sometimes throws 'A generic error occurred in GDI+.'
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(Lan.g(this,"Error scanning")+": "+ex.Message,ex);
@@ -2755,7 +2756,7 @@ namespace OpenDental{
 			catch(Exception ex) {
 				saved=false;
 				Cursor=Cursors.Default;
-				MessageBox.Show(Lan.g(this,"Unable to save document")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to save document")+": "+ex.Message);
 			}
 			if(bitmapScanned!=null) {
 				bitmapScanned.Dispose();
@@ -2830,7 +2831,7 @@ namespace OpenDental{
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_JPEG_DLL) {//22
-					MessageBox.Show("Missing dll\r\n\r\nRequired file EZJpeg.dll is missing.");
+					ODMessageBox.Show("Missing dll\r\n\r\nRequired file EZJpeg.dll is missing.");
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_0_PAGES) {//38
@@ -2838,18 +2839,18 @@ namespace OpenDental{
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_NO_PDF) {//43
-					MessageBox.Show("Missing dll\r\n\r\nRequired file EZPdf.dll is missing.");
+					ODMessageBox.Show("Missing dll\r\n\r\nRequired file EZPdf.dll is missing.");
 					return;
 				}
 				else if(errorCode==(int)EZTwainErrorCode.EZTEC_DEVICE_PAPERJAM) {//76
-					MessageBox.Show("Paper jam\r\n\r\nPlease check the scanner document feeder and ensure the path is clear of any paper jams.");
+					ODMessageBox.Show("Paper jam\r\n\r\nPlease check the scanner document feeder and ensure the path is clear of any paper jams.");
 					return;
 				}
 				//else if(errorCode==(int)EZTwainErrorCode.EZTEC_DS_FAILURE) {//5
 					//message="Duplex failure\r\n\r\nDuplex mode without scanner options window failed. Try enabling the scanner options window or disabling duplex mode.";
 					//The error message above is flat out wrong, at least sometimes.  In many cases, it's a harmless failure to disable, and scan was actually successful.
 				//}
-				MessageBox.Show(Lan.g(this,"Unable to scan. Please make sure you can scan using other software. Error: "+errorCode+" "+EZTwain.LastErrorText()));
+				ODMessageBox.Show(Lan.g(this,"Unable to scan. Please make sure you can scan using other software. Error: "+errorCode+" "+EZTwain.LastErrorText()));
 				//return;//Error messages should not normally block continuation.
 			}
 			NodeTypeAndKey nodeTypeAndKey=null;
@@ -2859,7 +2860,7 @@ namespace OpenDental{
 				doc=ImageStore.Import(tempFile,GetCurrentCategory(),_patient);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
+				ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ") + ex.Message + ": " + tempFile);
 				copied = false;
 			}
 			if(copied) {
@@ -3442,7 +3443,7 @@ namespace OpenDental{
 				_widthTree96=228;
 			}
 			else{
-				_widthTree96=PIn.Float(userOdPref.ValueString);
+				_widthTree96=SIn.Float(userOdPref.ValueString);
 			}
 			LayoutControls();//to handle dpi changes
 			toolBarPaint.Invalidate();
@@ -3696,7 +3697,7 @@ namespace OpenDental{
 			//Below here was previously in the Start button--------------------------------------------------------------------
 			if(imagingDevice.DeviceType==EnumImgDeviceType.TwainMulti){
 				if(!IsMountShowing()){
-					MessageBox.Show(Lan.g(this,"Please create an empty mount first."));
+					ODMessageBox.Show(Lan.g(this,"Please create an empty mount first."));
 					return;
 				}
 			}
@@ -3729,7 +3730,7 @@ namespace OpenDental{
 				}
 				catch(ImagingDeviceException ex){
 					if(ex.Message!=""){//If user cancels, there is no text.  We could test e.DeviceStatus instead
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 					//when user cancels, we will keep panelUnmounted open so that they can do things like retake
 					break;
@@ -3809,7 +3810,7 @@ namespace OpenDental{
 			}
 			catch(Exception ex) {
 				bitmap?.Dispose();
-				MessageBox.Show(Lan.g(this,"Unable to save")+": "+ex.Message);
+				ODMessageBox.Show(Lan.g(this,"Unable to save")+": "+ex.Message);
 				return false;
 			}
 			if(!IsMountShowing()){//single

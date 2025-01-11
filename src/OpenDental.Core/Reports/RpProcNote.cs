@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpProcNote {
@@ -23,8 +24,8 @@ namespace OpenDentBusiness {
 						INNER JOIN procnote ON procnote.ProcNum=procedurelog.ProcNum
 						INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum
 							AND procedurecode.ProcCode NOT IN ('D9986','D9987')
-						WHERE procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+@"
-						AND (procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)+" OR (procedurelog.ProcStatus="+POut.Int((int)ProcStat.EC)
+						WHERE procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+@"
+						AND (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+" OR (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.EC)
 						+@" AND procedurecode.ProcCode='~GRP~'))"
 						+@" AND procnote.EntryDateTime=(SELECT MAX(lastnote.EntryDateTime) 
 							FROM procnote lastnote 
@@ -45,8 +46,8 @@ namespace OpenDentBusiness {
 						INNER JOIN procnote ON procnote.ProcNum=procedurelog.ProcNum
 						INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum
 							AND procedurecode.ProcCode NOT IN ('D9986','D9987')
-						WHERE procedurelog.ProcDate BETWEEN " + POut.Date(dateStart) + " AND " + POut.Date(dateEnd) + @"
-						AND (procedurelog.ProcStatus=" + POut.Int((int)ProcStat.C) + " OR (procedurelog.ProcStatus=" + POut.Int((int)ProcStat.EC)
+						WHERE procedurelog.ProcDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + @"
+						AND (procedurelog.ProcStatus=" + SOut.Int((int)ProcStat.C) + " OR (procedurelog.ProcStatus=" + SOut.Int((int)ProcStat.EC)
 						+ @" AND procedurecode.ProcCode='~GRP~'))"
 						+ @" AND procnote.EntryDateTime=(SELECT MAX(lastnote.EntryDateTime) 
 							FROM procnote lastnote 
@@ -96,9 +97,9 @@ namespace OpenDentBusiness {
 				WHERE n1.ProcNum = n2.ProcNum) "
 				+whereNoNote+" "
 				+whereUnsignedNote+@"
-				WHERE procedurelog.ProcDate BETWEEN "+POut.Date(dateStart)+" AND "+POut.Date(dateEnd)+@"
-				AND (procedurelog.ProcStatus="+POut.Int((int)ProcStat.C)
-				+" OR (procedurelog.ProcStatus="+POut.Int((int)ProcStat.EC)+" "
+				WHERE procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+@"
+				AND (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)
+				+" OR (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.EC)+" "
 				+@" AND procedurecode.ProcCode='~GRP~')) ";
 				if(!showExcludedCodes) {
 					command+=$"AND procedurecode.ProcCode NOT IN ('{string.Join("','",arrayExcludedCodes)}') ";

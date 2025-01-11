@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -49,8 +50,8 @@ namespace OpenDental {
 					return;
 				}
 			}
-			int w=PIn.Int(textWidth.Text);
-			int h=PIn.Int(textHeight.Text);
+			int w=SIn.Int(textWidth.Text);
+			int h=SIn.Int(textHeight.Text);
 			int rows=textRows.Value;
 			int cols=textColumns.Value;
 			if(h>w){

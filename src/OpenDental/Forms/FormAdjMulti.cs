@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Media.TextFormatting;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -47,7 +48,7 @@ namespace OpenDental {
 
 		private void FormMultiAdj_Load(object sender,EventArgs e) {
 			if(!Security.IsAuthorized(EnumPermType.AdjustmentCreate,true) && !Security.IsAuthorized(EnumPermType.AdjustmentEditZero,true)) {
-				MessageBox.Show(Lans.g("Security","Not authorized for")
+				ODMessageBox.Show(Lans.g("Security","Not authorized for")
 					+"\r\n"+GroupPermissions.GetDesc(EnumPermType.AdjustmentCreate)+" "+Lan.g(this,"and")+" "+GroupPermissions.GetDesc(EnumPermType.AdjustmentEditZero));
 				DialogResult=DialogResult.Cancel;
 				return;
@@ -65,7 +66,7 @@ namespace OpenDental {
 			if(!true || listProgramPropertiesForClinicExcludedAdjTypes.Count==0){
 				listProgramPropertiesForClinicExcludedAdjTypes=listProgramPropertiesExcludedAdjTypes.FindAll(x=>x.ClinicNum==0);
 			}
-			_listExcludedAdjTypeNums=listProgramPropertiesForClinicExcludedAdjTypes.Select(x=>PIn.Long(x.PropertyValue,false)).ToList();
+			_listExcludedAdjTypeNums=listProgramPropertiesForClinicExcludedAdjTypes.Select(x=>SIn.Long(x.PropertyValue,false)).ToList();
 			if(_program.Enabled && Patients.IsGuarCollections(_patientGuar.PatNum) && _listExcludedAdjTypeNums.Any(x => x>0)) { //Transworld program link is enabled and the patient is part of a family where the guarantor has been sent to TSI
 				checkOnlyTsiExcludedAdjTypes.Checked=true;
 			}
@@ -238,7 +239,7 @@ namespace OpenDental {
 					ProcAdjs procAdjs=_listProcAdjs.First(x => x.ProcedureCur==listProcedures[i]);
 					Adjustment adjustment=GetAdjFromUI(procedureSelected: listProcedures[i],
 						listAdjustmentsRelated: procAdjs.ListAccountEntryAdjustments.Select(x => (Adjustment)x.Tag).ToList());//Get the new adjustment to be added from the UI.
-					if(((double)procAdjs.AccountEntryProc.AmountEnd<=0 && adjustment.AdjAmt>0 && listTypeNeg.SelectedIndices.Count>0 && PIn.Decimal(textAmt.Text)>0)
+					if(((double)procAdjs.AccountEntryProc.AmountEnd<=0 && adjustment.AdjAmt>0 && listTypeNeg.SelectedIndices.Count>0 && SIn.Decimal(textAmt.Text)>0)
 						|| adjustment.AdjNum!=0)//only enforce for brand new adjustments
 					{
 						continue;
@@ -281,8 +282,8 @@ namespace OpenDental {
 				adjustment=new Adjustment();
 			}
 			adjustment.AdjType=defAdjType.DefNum;
-			adjustment.AdjDate=PIn.Date(dateAdjustment.Text);
-			adjustment.AdjNote=PIn.String(textNote.Text);
+			adjustment.AdjDate=SIn.Date(dateAdjustment.Text);
+			adjustment.AdjNote=SIn.String(textNote.Text);
 			long clinicNumSelected=0;
 			if(true) {
 				if(comboClinic.IsUnassignedSelected) {//Inherit
@@ -311,7 +312,7 @@ namespace OpenDental {
 				}
 			}
 			adjustment.ProvNum=provNum;
-			double adjAmtOrPerc=PIn.Double(textAmt.Text);
+			double adjAmtOrPerc=SIn.Double(textAmt.Text);
 			ProcAdjs procAdjs=null;
 			if(procedureSelected!=null) {
 				procAdjs=_listProcAdjs.First(x => x.ProcedureCur==procedureSelected);
@@ -409,7 +410,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter a valid date.");
 				return false;
 			}
-			if(PIn.Date(dateAdjustment.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
+			if(SIn.Date(dateAdjustment.Text).Date > DateTime.Today.Date && !PrefC.GetBool(PrefName.FutureTransDatesAllowed)) {
 				MsgBox.Show(this,"Adjustments cannot be made for future dates");
 				return false;
 			}
@@ -583,7 +584,7 @@ namespace OpenDental {
 				listPatNums:ListTools.FromSingle(_patient.PatNum),
 				isIncomeTxfr:!radioIncludeAll.Checked,
 				loadData:loadData,hasInsOverpay:true);
-			if(!Security.IsAuthorized(EnumPermType.AdjustmentCreate,PIn.Date(dateAdjustment.Text),true) 
+			if(!Security.IsAuthorized(EnumPermType.AdjustmentCreate,SIn.Date(dateAdjustment.Text),true) 
 				||_listAdjustments.Any(x =>!Security.IsAuthorized(EnumPermType.AdjustmentCreate,x.AdjDate,true))) {//User does not have full edit permission.
 				//Therefore the user only has the ability to edit $0 adjustments (see Load()).
 				if(_listAdjustments.Any(x => !CompareDouble.IsZero(x.AdjAmt))) {

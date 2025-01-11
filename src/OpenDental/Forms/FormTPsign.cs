@@ -297,7 +297,7 @@ namespace OpenDental{
 				PrintDocumentCur.Print();
 			}
 			catch(Exception e){
-				MessageBox.Show(Lan.g(this,"Error: ")+e.Message);
+				ODMessageBox.Show(Lan.g(this,"Error: ")+e.Message);
 			}
 			DialogResult=DialogResult.OK;
 		}

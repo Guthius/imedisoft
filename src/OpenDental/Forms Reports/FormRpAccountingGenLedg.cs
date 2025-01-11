@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -42,8 +43,8 @@ namespace OpenDental{
 			decimal credit;
 			//Cannot read debitAmt and creditAmt as decimals because it makes the general ledger detail report fail.  Simply cast as decimals when doing mathematical operations.
 			try {
-				debit=PIn.Decimal(debitAmt);
-				credit=PIn.Decimal(creditAmt);
+				debit=SIn.Decimal(debitAmt);
+				credit=SIn.Decimal(creditAmt);
 			}
 			catch {
 				return 0;
@@ -72,8 +73,8 @@ namespace OpenDental{
 			ReportComplex report=new ReportComplex(true,false);
 			DataTable data=Accounts.GetGeneralLedger(monthCalendarStart.GetDateSelected(),monthCalendarEnd.GetDateSelected());
 			for(int i=0;i<data.Rows.Count;i++) {
-				long accountNum=PIn.Long(data.Rows[i]["AccountNum"].ToString());
-				AccountType accountType=PIn.Enum<AccountType>(data.Rows[i]["AcctType"].ToString());
+				long accountNum=SIn.Long(data.Rows[i]["AccountNum"].ToString());
+				AccountType accountType=SIn.Enum<AccountType>(data.Rows[i]["AcctType"].ToString());
 				decimal balance=CalcRunningSum(accountNum,
 					data.Rows[i]["DebitAmt"].ToString(),
 					data.Rows[i]["CreditAmt"].ToString(),

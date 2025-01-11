@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSheetFieldImage:FormODBase {
@@ -188,7 +189,7 @@ namespace OpenDental {
 			}
 			float w;
 			try{
-				w=PIn.Float(textWidth.Text);
+				w=SIn.Float(textWidth.Text);
 			}
 			catch{
 				return;
@@ -207,7 +208,7 @@ namespace OpenDental {
 			}
 			float h;
 			try{
-				h=PIn.Float(textHeight.Text);
+				h=SIn.Float(textHeight.Text);
 			}
 			catch{
 				return;
@@ -258,10 +259,10 @@ namespace OpenDental {
 			SheetFieldDefCur.FieldName=comboFieldName.Text;
 			SheetFieldDefCur.ImageField?.Dispose();//To prevent memory leaks
 			//Make a copy of pictureBox.Image using the intended dimensions, to conserve memory.
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			SheetFieldDefCur.ImageField=new Bitmap(pictureBox.Image,SheetFieldDefCur.Width,SheetFieldDefCur.Height);
 			//don't save to database here.
 			SheetFieldDefCur.IsNew=false;

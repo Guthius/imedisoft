@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness
 {
@@ -107,14 +108,14 @@ namespace OpenDentBusiness
 			}
 			//if quantity is larger than the largest quantity we support, then ignore.
 			//we have only seen 1 case ever where the quantity reported was "2000" procedure limitation per calendar year.
-			if(PIn.Double(Segment.Get(10)) > (double)byte.MaxValue) {
+			if(SIn.Double(Segment.Get(10)) > (double)byte.MaxValue) {
 				Benefitt=null;
 				return;
 			}
 			//If quantity is larger than the largest quantity we support, then ignore.
 			//This is handled above for the EB section, but the HSD section needs it's own quantity validation too.
 			//Example 999 days
-			if(segHsd!=null && (PIn.Double(segHsd.Get(2)) > (double)byte.MaxValue)){
+			if(segHsd!=null && (SIn.Double(segHsd.Get(2)) > (double)byte.MaxValue)){
 				Benefitt=null;
 				return;
 			}
@@ -138,17 +139,17 @@ namespace OpenDentBusiness
 			}
 			//7-Monetary amount. Situational
 			if(Segment.Get(7)!="") {
-				Benefitt.MonetaryAmt=PIn.Double(Segment.Get(7));
+				Benefitt.MonetaryAmt=SIn.Double(Segment.Get(7));
 			}
 			//8-Percent
 			if(Segment.Get(8)!="") {
 				if(isCoinsuranceInverted && Benefitt.BenefitType==InsBenefitType.CoInsurance) {//Some carriers incorrectly send insurance percentage.
-					Benefitt.Percent=(int)(PIn.Double(Segment.Get(8))*100);//Came to us inverted, do Not Invert.
+					Benefitt.Percent=(int)(SIn.Double(Segment.Get(8))*100);//Came to us inverted, do Not Invert.
 				}
 				else {
 					//OD shows the percentage paid by Insurance by default.
 					//Some carriers submit 271s to us showing percentage paid by Patient, so we need to invert this case to match OD expectations.
-					Benefitt.Percent=100-(int)(PIn.Double(Segment.Get(8))*100);//Percent. Invert.	
+					Benefitt.Percent=100-(int)(SIn.Double(Segment.Get(8))*100);//Percent. Invert.	
 				}
 				Benefitt.CoverageLevel=BenefitCoverageLevel.None;
 			}
@@ -158,7 +159,7 @@ namespace OpenDentBusiness
 			}
 			//10-Quantity
 			if(Segment.Get(10)!="") {
-				Benefitt.Quantity=(byte)PIn.Double(Segment.Get(10));//Example: "19.0" with Quantity qualifier "S7" (age).
+				Benefitt.Quantity=(byte)SIn.Double(Segment.Get(10));//Example: "19.0" with Quantity qualifier "S7" (age).
 			}
 			//11-Authorization. Ignored.
 			//12-In network. Ignored.
@@ -175,7 +176,7 @@ namespace OpenDentBusiness
 					Benefitt=null;
 					return;
 				}
-				Benefitt.Quantity=PIn.Byte(segHsd.Elements[2]);//HSD02: Quantity.
+				Benefitt.Quantity=SIn.Byte(segHsd.Elements[2]);//HSD02: Quantity.
 				Benefitt.TimePeriod=eb06.FirstOrDefault(x => x.Code==segHsd.Elements[5]).TimePeriod;//HSD05: Frequency.
 			}
 			//14-Comp Diag Code Point. Ignored.
@@ -375,17 +376,17 @@ namespace OpenDentBusiness
 					}
 					return eb06val.Descript;
 				case 7:
-					return PIn.Double(elementCode).ToString("c");//Monetary amount. Situational
+					return SIn.Double(elementCode).ToString("c");//Monetary amount. Situational
 				case 8:
 					if(isMessageMode) {//delta sends 80% instead of 20% like they should
-						return (PIn.Double(elementCode)*100).ToString()+"%";//Percent.
+						return (SIn.Double(elementCode)*100).ToString()+"%";//Percent.
 					}
 					else {
 						string leadingStr="Patient pays ";
 						if(!isCoinsurancePatPays) { 
 							leadingStr="Insurance pays ";
 						}
-						return leadingStr+(PIn.Double(elementCode)*100).ToString()+"%";//Percent. Situational						
+						return leadingStr+(SIn.Double(elementCode)*100).ToString()+"%";//Percent. Situational						
 					}
 				case 9://Quantity qualifier. Situational
 					EB09 eb09val=eb09.Find(EB09MatchesCode);

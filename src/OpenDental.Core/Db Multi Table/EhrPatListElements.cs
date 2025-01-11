@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	///<summary>Used in Ehr patient lists.</summary>
@@ -19,7 +20,7 @@ namespace OpenDentBusiness {
 					case EhrRestrictionType.Birthdate://---------------------------------------------------------------------------------------------------------------------------
 						select+=",patient.BirthDate, ((YEAR(CURDATE())-YEAR(DATE(patient.Birthdate))) - (RIGHT(CURDATE(),5)<RIGHT(DATE(patient.Birthdate),5))) AS Age";
 						from+="";//only selecting from patient table
-						where+="AND ((YEAR(CURDATE())-YEAR(DATE(patient.Birthdate))) - (RIGHT(CURDATE(),5)<RIGHT(DATE(patient.Birthdate),5)))"+GetOperandText(elementList[i].Operand)+""+PIn.String(elementList[i].CompareString)+" ";
+						where+="AND ((YEAR(CURDATE())-YEAR(DATE(patient.Birthdate))) - (RIGHT(CURDATE(),5)<RIGHT(DATE(patient.Birthdate),5)))"+GetOperandText(elementList[i].Operand)+""+SIn.String(elementList[i].CompareString)+" ";
 						break;
 					case EhrRestrictionType.Gender://------------------------------------------------------------------------------------------------------------------------------
 						select+=",patient.Gender";//will look odd if user adds multiple gender columns, enum needs to be "decoded" when filling grid.
@@ -31,10 +32,10 @@ namespace OpenDentBusiness {
 						where+="AND ('"+elementList[i].CompareString+"'=ehrlabresult"+i+".ObservationIdentifierID OR '" 
 							+elementList[i].CompareString+"'=ehrlabresult"+i+".ObservationIdentifierIDAlt) ";//filter, LOINC of lab observation
 						if(elementList[i].StartDate!=null && elementList[i].StartDate.Year>1880) {
-							where+="AND ehrlabresult"+i+".ObservationDateTime >="+POut.Date(elementList[i].StartDate)+" ";//on or after this date
+							where+="AND ehrlabresult"+i+".ObservationDateTime >="+SOut.Date(elementList[i].StartDate)+" ";//on or after this date
 						}
 						if(elementList[i].EndDate!=null && elementList[i].EndDate.Year>1880) {
-							where+="AND ehrlabresult"+i+".ObservationDateTime <="+POut.Date(elementList[i].EndDate)+" ";//on or before this date
+							where+="AND ehrlabresult"+i+".ObservationDateTime <="+SOut.Date(elementList[i].EndDate)+" ";//on or before this date
 						}
 						switch(elementList[i].LabValueType) {
 							//CE and CWE should be SNOMEDCT codes, string compare elementList[i].LabValue to ehrlabresult.ObservationValueCodedElementID or ObservationValueCodedElementIDAlt
@@ -49,20 +50,20 @@ namespace OpenDentBusiness {
 							case HL70125.DT:
 								select+=",ehrlabresult"+i+".ObservationValueDateTime ";//+DbHelper.DateFormatColumn("RPAD(ehrlabresult"+i+".ObservationValueDateTime,8,'01')","%m/%d/%Y");
 								where+="AND "+DbHelper.DtimeToDate("RPAD(ehrlabresult"+i+".ObservationValueDateTime,8,'01')")
-									+GetOperandText(elementList[i].Operand)+"'"+POut.String(elementList[i].LabValue)+"' "
+									+GetOperandText(elementList[i].Operand)+"'"+SOut.String(elementList[i].LabValue)+"' "
 									+"AND ehrlabresult"+i+".ValueType='DT' ";
 								break;
 							//TS is YYYYMMDDHHMMSS, string compare
 							case HL70125.TS:
 								select+=",ehrlabresult"+i+".ObservationValueDateTime ";//+DbHelper.DateTFormatColumn("ehrlabresult"+i+".ObservationValueDateTime","%m/%d/%Y %H:%i:%s");
 								where+="AND ehrlabresult"+i+".ObservationValueDateTime "//+POut.DateT(PIn.DateT(DbHelper.DateTFormatColumn("ehrlabresult"+i+".ObservationValueDateTime","%m/%d/%Y %H:%i:%s")))
-									+GetOperandText(elementList[i].Operand)+"'"+POut.String(elementList[i].LabValue)+"' "
+									+GetOperandText(elementList[i].Operand)+"'"+SOut.String(elementList[i].LabValue)+"' "
 									+"AND ehrlabresult"+i+".ValueType='TS' ";
 								break;
 							//00:00:00
 							case HL70125.TM:
 								select+=",ehrlabresult"+i+".ObservationValueTime";
-								where+="AND ehrlabresult"+i+".ObservationValueTime"+GetOperandText(elementList[i].Operand)+"'"+POut.TimeSpan(PIn.TimeSpan(elementList[i].LabValue))+"' "
+								where+="AND ehrlabresult"+i+".ObservationValueTime"+GetOperandText(elementList[i].Operand)+"'"+SOut.TimeSpan(SIn.TimeSpan(elementList[i].LabValue))+"' "
 									+"AND ehrlabresult"+i+".ValueType='TM' ";
 								break;
 							case HL70125.SN:
@@ -71,7 +72,7 @@ namespace OpenDentBusiness {
 								break;
 							case HL70125.NM:
 								select+=",ehrlabresult"+i+".ObservationValueNumeric";
-								where+="AND ehrlabresult"+i+".ObservationValueNumeric"+GetOperandText(elementList[i].Operand)+POut.Double(PIn.Double(elementList[i].LabValue))+" "
+								where+="AND ehrlabresult"+i+".ObservationValueNumeric"+GetOperandText(elementList[i].Operand)+SOut.Double(SIn.Double(elementList[i].LabValue))+" "
 									+"AND ehrlabresult"+i+".ValueType='NM' ";
 								break;
 							case HL70125.FT:
@@ -101,43 +102,43 @@ namespace OpenDentBusiness {
 						from+=",medication AS medication"+i+", medicationpat AS medicationpat"+i;
 						where+="AND medicationpat"+i+".PatNum=patient.PatNum ";//join
 						//This is unusual.  Part of the join logic is in the code below because medicationPat.MedicationNum might be 0 if it came from newcrop.
-						where+="AND ((medication"+i+".MedicationNum=MedicationPat"+i+".MedicationNum AND medication"+i+".MedName LIKE '%"+PIn.String(elementList[i].CompareString)+"%') "
-						      +"  OR (medication"+i+".MedicationNum=0 AND medicationpat"+i+".MedDescript LIKE '%"+PIn.String(elementList[i].CompareString)+"%')) ";
+						where+="AND ((medication"+i+".MedicationNum=MedicationPat"+i+".MedicationNum AND medication"+i+".MedName LIKE '%"+SIn.String(elementList[i].CompareString)+"%') "
+						      +"  OR (medication"+i+".MedicationNum=0 AND medicationpat"+i+".MedDescript LIKE '%"+SIn.String(elementList[i].CompareString)+"%')) ";
 						if(elementList[i].StartDate!=null && elementList[i].StartDate.Year>1880) {
-							where+="AND medicationpat"+i+".DateStart>"+POut.Date(elementList[i].StartDate)+" ";//after this date
+							where+="AND medicationpat"+i+".DateStart>"+SOut.Date(elementList[i].StartDate)+" ";//after this date
 						}
 						if(elementList[i].EndDate!=null && elementList[i].EndDate.Year>1880) {
-							where+="AND medicationpat"+i+".DateStart<"+POut.Date(elementList[i].EndDate)+" ";//before this date
+							where+="AND medicationpat"+i+".DateStart<"+SOut.Date(elementList[i].EndDate)+" ";//before this date
 						}
 						break;
 					case EhrRestrictionType.Problem://-----------------------------------------------------------------------------------------------------------------------------
 						select+=",disease"+i+".DateStart";//Name of problem will be in column title.
 						from+=",disease AS disease"+i+", diseasedef AS diseasedef"+i;
 						where+="AND diseasedef"+i+".DiseaseDefNum=disease"+i+".DiseaseDefNum AND disease"+i+".PatNum=patient.PatNum ";//join
-						where+="AND (diseasedef"+i+".ICD9Code='"+PIn.String(elementList[i].CompareString)+"' OR diseasedef"+i+".SnomedCode='"+PIn.String(elementList[i].CompareString)+"') ";//filter
+						where+="AND (diseasedef"+i+".ICD9Code='"+SIn.String(elementList[i].CompareString)+"' OR diseasedef"+i+".SnomedCode='"+SIn.String(elementList[i].CompareString)+"') ";//filter
 						if(elementList[i].StartDate!=null && elementList[i].StartDate.Year>1880) {
-							where+="AND disease"+i+".DateStart>"+POut.Date(elementList[i].StartDate)+" ";//after this date
+							where+="AND disease"+i+".DateStart>"+SOut.Date(elementList[i].StartDate)+" ";//after this date
 						}
 						if(elementList[i].EndDate!=null && elementList[i].EndDate.Year>1880) {
-							where+="AND disease"+i+".DateStart<"+POut.Date(elementList[i].EndDate)+" ";//before this date
+							where+="AND disease"+i+".DateStart<"+SOut.Date(elementList[i].EndDate)+" ";//before this date
 						}
 						break;
 					case EhrRestrictionType.Allergy://-----------------------------------------------------------------------------------------------------------------------------
 						select+=",allergy"+i+".DateAdverseReaction";//Name of allergy will be in column title.
 						from+=",allergy AS allergy"+i+", allergydef AS allergydef"+i;
 						where+="AND allergydef"+i+".AllergyDefNum=allergy"+i+".AllergyDefNum AND allergy"+i+".PatNum=patient.PatNum ";//join
-						where+="AND allergydef"+i+".Description='"+PIn.String(elementList[i].CompareString)+"' ";//filter
+						where+="AND allergydef"+i+".Description='"+SIn.String(elementList[i].CompareString)+"' ";//filter
 						if(elementList[i].StartDate!=null && elementList[i].StartDate.Year>1880) {
-							where+="AND allergy"+i+".DateAdverseReaction>"+POut.Date(elementList[i].StartDate)+" ";//after this date
+							where+="AND allergy"+i+".DateAdverseReaction>"+SOut.Date(elementList[i].StartDate)+" ";//after this date
 						}
 						if(elementList[i].EndDate!=null && elementList[i].EndDate.Year>1880) {
-							where+="AND allergy"+i+".DateAdverseReaction<"+POut.Date(elementList[i].EndDate)+" ";//before this date
+							where+="AND allergy"+i+".DateAdverseReaction<"+SOut.Date(elementList[i].EndDate)+" ";//before this date
 						}
 						break;
 					case EhrRestrictionType.CommPref://----------------------------------------------------------------------------------------------------------------------------
 						select+=",patient.PreferContactConfidential";
 						from+="";//only selecting from patient table
-						where+="AND patient.PreferContactConfidential="+PIn.Int(contactMethodHelper(elementList[i].CompareString))+" ";
+						where+="AND patient.PreferContactConfidential="+SIn.Int(contactMethodHelper(elementList[i].CompareString))+" ";
 						break;
 					default:
 						//should never happen.
@@ -159,7 +160,7 @@ namespace OpenDentBusiness {
 					case EhrRestrictionType.Birthdate://---------------------------------------------------------------------------------------------------------------------------
 						select+=",patient.BirthDate ";
 						from+="";//only selecting from patient table
-						where+="AND ((YEAR(CURDATE())-YEAR(DATE(patient.Birthdate))) - (RIGHT(CURDATE(),5)<RIGHT(DATE(patient.Birthdate),5)))"+GetOperandText(elementList[i].Operand)+""+PIn.String(elementList[i].CompareString)+" ";
+						where+="AND ((YEAR(CURDATE())-YEAR(DATE(patient.Birthdate))) - (RIGHT(CURDATE(),5)<RIGHT(DATE(patient.Birthdate),5)))"+GetOperandText(elementList[i].Operand)+""+SIn.String(elementList[i].CompareString)+" ";
 						break;
 					case EhrRestrictionType.Gender://------------------------------------------------------------------------------------------------------------------------------
 						select+=",patient.Gender";//will look odd if user adds multiple gender columns, enum needs to be "decoded" when filling grid.
@@ -169,21 +170,21 @@ namespace OpenDentBusiness {
 						from+=",labresult AS labresult"+i+", labpanel AS labpanel"+i;
 						where+="AND labpanel"+i+".LabpanelNum=labresult"+i+".LabpanelNum AND patient.PatNum=labpanel"+i+".PatNum ";//join
 						where+="AND labresult"+i+".TestId='"+elementList[i].CompareString+"' "
-									+"AND labresult"+i+".ObsValue"+GetOperandText(elementList[i].Operand)+"'"+PIn.String(elementList[i].LabValue)+"' ";//filter
+									+"AND labresult"+i+".ObsValue"+GetOperandText(elementList[i].Operand)+"'"+SIn.String(elementList[i].LabValue)+"' ";//filter
 						break;
 					case EhrRestrictionType.Medication://--------------------------------------------------------------------------------------------------------------------------
 						select+=",'X'";//select+=",medicationpat"+i+".DateStart";
 						from+=",medication AS medication"+i+", medicationpat AS medicationpat"+i;
 						where+="AND medicationpat"+i+".PatNum=patient.PatNum ";//join
 						//This is unusual.  Part of the join logic is in the code below because medicationPat.MedicationNum might be 0 if it came from newcrop.
-						where+="AND ((medication"+i+".MedicationNum=MedicationPat"+i+".MedicationNum AND medication"+i+".MedName LIKE '%"+PIn.String(elementList[i].CompareString)+"%') "
-						      +"  OR (medication"+i+".MedicationNum=0 AND medicationpat"+i+".MedDescript LIKE '%"+PIn.String(elementList[i].CompareString)+"%')) ";
+						where+="AND ((medication"+i+".MedicationNum=MedicationPat"+i+".MedicationNum AND medication"+i+".MedName LIKE '%"+SIn.String(elementList[i].CompareString)+"%') "
+						      +"  OR (medication"+i+".MedicationNum=0 AND medicationpat"+i+".MedDescript LIKE '%"+SIn.String(elementList[i].CompareString)+"%')) ";
 						break;
 					case EhrRestrictionType.Problem://-----------------------------------------------------------------------------------------------------------------------------
 						select+=",Concat('(',diseasedef"+i+".ICD9Code,') - ',diseasedef"+i+".DiseaseName) as Disease"+i+" ";//Name of problem will be in column title.
 						from+=",disease AS disease"+i+", diseasedef AS diseasedef"+i;
 						where+="AND diseasedef"+i+".DiseaseDefNum=disease"+i+".DiseaseDefNum AND disease"+i+".PatNum=patient.PatNum ";//join
-						where+="AND diseasedef"+i+".ICD9Code='"+PIn.String(elementList[i].CompareString)+"' ";//filter
+						where+="AND diseasedef"+i+".ICD9Code='"+SIn.String(elementList[i].CompareString)+"' ";//filter
 						break;
 					default:
 						//Can happen because EhrRestrictionType was expanded for 2014.
@@ -373,8 +374,8 @@ namespace OpenDentBusiness {
 		///<summary>Returns text used in WHERE clause of query for tempehrlist.</summary>
 		private static string GetFilteringText(EhrPatListElement element) {
 			string filter="";
-			string compStr=POut.String(element.CompareString);
-			string labStr=POut.String(element.LabValue);
+			string compStr=SOut.String(element.CompareString);
+			string labStr=SOut.String(element.LabValue);
 			switch(element.Restriction) {
 				case EhrRestrictionType.Birthdate:
 					filter="DATE_SUB(CURDATE(),INTERVAL "+compStr+" YEAR)"+GetOperandText(element.Operand)+"Birthdate ";

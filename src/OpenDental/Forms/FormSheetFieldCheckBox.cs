@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 
 namespace OpenDental {
@@ -481,10 +482,10 @@ namespace OpenDental {
 			}
 			SheetFieldDefCur.FieldName=fieldNameSelected;
 			SheetFieldDefCur.ReportableName=textReportableName.Text;//always safe even if not a misc field or if textReportableName is blank.
-			SheetFieldDefCur.XPos=PIn.Int(textXPos.Text);
-			SheetFieldDefCur.YPos=PIn.Int(textYPos.Text);
-			SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
-			SheetFieldDefCur.Height=PIn.Int(textHeight.Text);
+			SheetFieldDefCur.XPos=SIn.Int(textXPos.Text);
+			SheetFieldDefCur.YPos=SIn.Int(textYPos.Text);
+			SheetFieldDefCur.Width=SIn.Int(textWidth.Text);
+			SheetFieldDefCur.Height=SIn.Int(textHeight.Text);
 			//We will set these below where applicable.
 			SheetFieldDefCur.RadioButtonGroup="";
 			SheetFieldDefCur.UiLabelMobile="";
@@ -545,7 +546,7 @@ namespace OpenDental {
 				SheetFieldDefCur.UiLabelMobileRadioButton=textUiLabelMobileCheckBoxNonMisc.Text;
 			}
 			SheetFieldDefCur.IsRequired=checkRequired.Checked;
-			SheetFieldDefCur.TabOrder=PIn.Int(textTabOrder.Text);
+			SheetFieldDefCur.TabOrder=SIn.Int(textTabOrder.Text);
 			//don't save to database here.
 			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;

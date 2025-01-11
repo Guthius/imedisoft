@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -180,7 +181,7 @@ namespace OpenDental {
 				patient=Patients.GetPat(SheetCur.PatNum);
 				if(SheetCur.SheetType==SheetTypeEnum.LabSlip) {
 					SheetParameter sheetParamLabCaseNum=SheetParameter.GetParamByName(SheetCur.Parameters,"LabCaseNum");//auto populate lab email.
-					LabCase labCase=LabCases.GetOne(PIn.Long(sheetParamLabCaseNum.ParamValue.ToString()));
+					LabCase labCase=LabCases.GetOne(SIn.Long(sheetParamLabCaseNum.ParamValue.ToString()));
 					strEmailAddress=Laboratories.GetOne(labCase.LaboratoryNum).Email;
 				}
 				else if(patient.Email!="") {
@@ -193,13 +194,13 @@ namespace OpenDental {
 					strEmailAddress="";//This would be rare, but we would not want to send a referral to the patient when normally it is sent to the doctor.
 				}
 				else {
-					long referralNum=PIn.Long(sheetParameter.ParamValue.ToString());
+					long referralNum=SIn.Long(sheetParameter.ParamValue.ToString());
 					Referral referral=null;
 					try {
 						referral=Referrals.GetReferral(referralNum);
 					}
 					catch (ApplicationException ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 					if(referral !=null && referral.EMail!="") {
 						strEmailAddress=referral.EMail;
@@ -368,7 +369,7 @@ namespace OpenDental {
 				if(SheetCur.SheetType==SheetTypeEnum.LabSlip) {
 					formSheetOutputFormat.IsForLab=true;//Changes label to "E-mail to Lab:"
 					SheetParameter sheetParamLabCaseNum=SheetParameter.GetParamByName(SheetCur.Parameters,"LabCaseNum");//auto populate lab email.
-					LabCase labCase=LabCases.GetOne(PIn.Long(sheetParamLabCaseNum.ParamValue.ToString()));
+					LabCase labCase=LabCases.GetOne(SIn.Long(sheetParamLabCaseNum.ParamValue.ToString()));
 					formSheetOutputFormat.EmailPatOrLabAddress=Laboratories.GetOne(labCase.LaboratoryNum).Email;
 				}
 				else if(patient.Email!="") {
@@ -393,12 +394,12 @@ namespace OpenDental {
 					formSheetOutputFormat.IsEmail2Visible=false;//prevents trying to attach email to nonexistent referral.
 				}
 				else{
-					long referralNum=PIn.Long(parameter.ParamValue.ToString());
+					long referralNum=SIn.Long(parameter.ParamValue.ToString());
 					try{
 						referral=Referrals.GetReferral(referralNum);
 					}
 					catch (Exception ex) {
-						MessageBox.Show(ex.Message);
+						ODMessageBox.Show(ex.Message);
 					}
 					if(referral!=null && referral.EMail!="") {
 						formSheetOutputFormat.Email2Address=referral.EMail;
@@ -921,8 +922,8 @@ namespace OpenDental {
 					for(int p=0;p<stringArrayPoints.Length;p++){
 						stringArrayXy=stringArrayPoints[p].Split(',');
 						if(stringArrayXy.Length==2){
-							x=PIn.Float(stringArrayXy[0]);
-							y=PIn.Float(stringArrayXy[1]);
+							x=SIn.Float(stringArrayXy[0]);
+							y=SIn.Float(stringArrayXy[1]);
 							dist=(float)Math.Sqrt(Math.Pow(Math.Abs(x-pointFEraser.X),2)+Math.Pow(Math.Abs(y-pointFEraser.Y),2));
 							if(dist<=radius){//testing circle intersection here
 								SheetCur.SheetFields.Remove(SheetCur.SheetFields[i]);
@@ -1169,7 +1170,7 @@ namespace OpenDental {
 				for(int p=0;p<stringArrayPoints.Length;p++){
 					string[] stringArrayXy=stringArrayPoints[p].Split(',');
 					if(stringArrayXy.Length==2){
-						Point point=new Point(PIn.Int(stringArrayXy[0]),PIn.Int(stringArrayXy[1]));
+						Point point=new Point(SIn.Int(stringArrayXy[0]),SIn.Int(stringArrayXy[1]));
 						listPoints.Add(point);
 					}
 				}
@@ -1855,11 +1856,11 @@ namespace OpenDental {
 				return;
 			}
 			if(sheetField.FieldValue.StartsWith("MountNum:")){
-				long mountNum=PIn.Long(sheetField.FieldValue.Substring(9));
+				long mountNum=SIn.Long(sheetField.FieldValue.Substring(9));
 				sheetField.BitmapLoaded=MountHelper.GetBitmapOfMountFromDb(mountNum);
 				return;
 			}
-			long docNum=PIn.Long(sheetField.FieldValue);
+			long docNum=SIn.Long(sheetField.FieldValue);
 			sheetField.BitmapLoaded=ImageHelper.GetBitmapOfDocumentFromDb(docNum);
 		}
 		
@@ -2016,7 +2017,7 @@ namespace OpenDental {
 			SheetCur.DateTimeSheet=dateTimeSheet;
 			SheetCur.Description=textDescription.Text;
 			SheetCur.InternalNote=textNote.Text;
-			SheetCur.ShowInTerminal=PIn.Byte(textShowInTerminal.Text);
+			SheetCur.ShowInTerminal=SIn.Byte(textShowInTerminal.Text);
 			SheetCur.DateTSheetEdited=DateTime.Now;//Will get overwritten on insert, but used for update.  Fill even if user did not make changes.
 			FillFieldsFromControls(isSave:true);//this does nothing
 			FillFieldsFromScreenings();
@@ -2100,7 +2101,7 @@ namespace OpenDental {
 					//at least one of these definitions is not hidden.
 					Def def=Defs.GetCatList((int)DefCat.ImageCats).FirstOrDefault(x => !x.IsHidden);
 					defNum=def.DefNum;
-					MessageBox.Show(this,Lan.g(this,"The Image Category Definition \"Letters\" could not be found.  Referral letter saved to:\r\n")+def.ItemName);
+					ODMessageBox.Show(this,Lan.g(this,"The Image Category Definition \"Letters\" could not be found.  Referral letter saved to:\r\n")+def.ItemName);
 				}
 				Document doc=ImageStore.Import(_tempPdfFile,defNum,patient);
 				//Update sheetCur with the docnum
@@ -2281,10 +2282,10 @@ namespace OpenDental {
 					SheetField sheetField=SheetCur.SheetFields[i];
 					if(string.IsNullOrWhiteSpace(sheetField.FieldValue)){
 						if(sheetField.FieldName=="misc" && !string.IsNullOrWhiteSpace(sheetField.ReportableName)) {
-							MessageBox.Show(Lan.g(this,"You must enter a value for")+" "+sheetField.ReportableName+" "+Lan.g(this,"before continuing."));
+							ODMessageBox.Show(Lan.g(this,"You must enter a value for")+" "+sheetField.ReportableName+" "+Lan.g(this,"before continuing."));
 						}
 						else {
-							MessageBox.Show(Lan.g(this,"You must enter a value for")+" "+sheetField.FieldName+" "+Lan.g(this,"before continuing."));
+							ODMessageBox.Show(Lan.g(this,"You must enter a value for")+" "+sheetField.FieldName+" "+Lan.g(this,"before continuing."));
 						}
 						return false;
 					}	
@@ -2300,7 +2301,7 @@ namespace OpenDental {
 							//int widthActual=(SheetCur.IsLandscape?SheetCur.Height:SheetCur.Width);
 							//int heightActual=(SheetCur.IsLandscape?SheetCur.Width:SheetCur.Height);
 							//int topMidBottom=(heightActual/3)
-							MessageBox.Show(Lan.g(this,"You must check the required checkbox."));
+							ODMessageBox.Show(Lan.g(this,"You must check the required checkbox."));
 							return false;
 						}
 						else{//then radiobuttons (of both kinds)
@@ -2327,10 +2328,10 @@ namespace OpenDental {
 							}
 							if(numGroupButtons>0 && !isValueSet){//there is not at least one radiobutton in the group that's checked.
 								if(sheetField.RadioButtonGroup!="") {//if they are in a custom group
-									MessageBox.Show(Lan.g(this,"You must select a value for radio button group")+" '"+sheetField.RadioButtonGroup+"'. ");
+									ODMessageBox.Show(Lan.g(this,"You must select a value for radio button group")+" '"+sheetField.RadioButtonGroup+"'. ");
 								}
 								else {
-									MessageBox.Show(Lan.g(this,"You must select a value for radio button group")+" '"+sheetField.FieldName+"'. ");
+									ODMessageBox.Show(Lan.g(this,"You must select a value for radio button group")+" '"+sheetField.FieldName+"'. ");
 								}
 								return false;
 							}

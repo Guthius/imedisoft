@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental{
@@ -102,11 +103,11 @@ namespace OpenDental{
 			ProcTPCur.Surf=textSurf.Text;
 			ProcTPCur.ProcCode=textCode.Text;
 			ProcTPCur.Descript=textDescript.Text;
-			ProcTPCur.FeeAmt=PIn.Double(textFeeAmt.Text);
-			ProcTPCur.PriInsAmt=PIn.Double(textPriInsAmt.Text);
-			ProcTPCur.SecInsAmt=PIn.Double(textSecInsAmt.Text);
-			ProcTPCur.Discount=PIn.Double(textDiscount.Text);
-			ProcTPCur.PatAmt=PIn.Double(textPatAmt.Text);
+			ProcTPCur.FeeAmt=SIn.Double(textFeeAmt.Text);
+			ProcTPCur.PriInsAmt=SIn.Double(textPriInsAmt.Text);
+			ProcTPCur.SecInsAmt=SIn.Double(textSecInsAmt.Text);
+			ProcTPCur.Discount=SIn.Double(textDiscount.Text);
+			ProcTPCur.PatAmt=SIn.Double(textPatAmt.Text);
 			ProcTPCur.Prognosis=textPrognosis.Text;
 			ProcTPCur.Dx=textDx.Text;
 			ProcTPCur.ProcAbbr=textProcAbbr.Text;
@@ -114,7 +115,7 @@ namespace OpenDental{
 				ProcTPCur.FeeAllowed=-1;
 			}
 			else {
-				ProcTPCur.FeeAllowed=PIn.Double(textFeeAllowed.Text);
+				ProcTPCur.FeeAllowed=SIn.Double(textFeeAllowed.Text);
 			}
 			ProcTPs.InsertOrUpdate(ProcTPCur,false);//IsNew not applicable here
 			SecurityLogs.MakeLogEntry(EnumPermType.TreatPlanEdit,ProcTPCur.PatNum,"Edit proc: "+ProcTPCur.Descript);

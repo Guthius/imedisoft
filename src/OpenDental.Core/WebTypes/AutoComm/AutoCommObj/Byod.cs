@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -98,7 +99,7 @@ public class Byod : ApptLite
         StringBuilder errBldr = new StringBuilder();
         if (IsSetup(clinicNum, out err))
         {
-            List<long> listDefNums = PrefC.GetString(PrefName.ApptConfirmByodEnabled).Split(',').Select(x => PIn.Long(x)).ToList();
+            List<long> listDefNums = PrefC.GetString(PrefName.ApptConfirmByodEnabled).Split(',').Select(x => SIn.Long(x)).ToList();
             listDefNums.Remove(0);
             if (!listDefNums.Contains(confirmed))
             {

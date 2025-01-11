@@ -8,6 +8,7 @@ using System.ServiceModel.Configuration;
 using System.Text;
 using System.Web.UI;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -159,8 +160,8 @@ namespace OpenDental {
 			double overpayTotal=0;
 			double underpayTotal=0;
 			for(int i=0;i<gridMain.ListGridRows.Count;i++){
-				overpayTotal+=PIn.Double(gridMain.ListGridRows[i].Cells[_colInsOverpaidIndex].Text);
-				underpayTotal+=PIn.Double(gridMain.ListGridRows[i].Cells[_colInsUnderpaidIndex].Text);
+				overpayTotal+=SIn.Double(gridMain.ListGridRows[i].Cells[_colInsOverpaidIndex].Text);
+				underpayTotal+=SIn.Double(gridMain.ListGridRows[i].Cells[_colInsUnderpaidIndex].Text);
 			}
 			textOverpayTotal.Text=overpayTotal.ToString("F");
 			textUnderpayTotal.Text=underpayTotal.ToString("F");
@@ -172,8 +173,8 @@ namespace OpenDental {
 				return false;
 			}
 			for(int i=0;i<gridMain.ListGridRows.Count;i++){
-				double insOverpaidAmount=PIn.Double(gridMain.ListGridRows[i].Cells[_colInsOverpaidIndex].Text);
-				double insUnderpaidAmount=PIn.Double(gridMain.ListGridRows[i].Cells[_colInsUnderpaidIndex].Text);
+				double insOverpaidAmount=SIn.Double(gridMain.ListGridRows[i].Cells[_colInsOverpaidIndex].Text);
+				double insUnderpaidAmount=SIn.Double(gridMain.ListGridRows[i].Cells[_colInsUnderpaidIndex].Text);
 				if(insOverpaidAmount!=0 && insUnderpaidAmount!=0) {
 					MsgBox.Show(this,"The same procedure cannot be both overpaid and underpaid.","Error");
 					return false;
@@ -194,8 +195,8 @@ namespace OpenDental {
 			for(int i=0;i<gridMain.ListGridRows.Count;i++){
 				ClaimProc claimProc=(ClaimProc)gridMain.ListGridRows[i].Tag;
 				ClaimProc claimProcOverpay=_listClaimProcs.Find(x => x.ClaimNum==claimProc.ClaimNum && x.ProcNum==claimProc.ProcNum && x.IsOverpay);
-				double overpaidAmt=PIn.Double(gridMain.ListGridRows[i].Cells[_colInsOverpaidIndex].Text);
-				double underpaidAmt=PIn.Double(gridMain.ListGridRows[i].Cells[_colInsUnderpaidIndex].Text);
+				double overpaidAmt=SIn.Double(gridMain.ListGridRows[i].Cells[_colInsOverpaidIndex].Text);
+				double underpaidAmt=SIn.Double(gridMain.ListGridRows[i].Cells[_colInsUnderpaidIndex].Text);
 				if(overpaidAmt==0 && underpaidAmt==0) {
 					if(claimProcOverpay!=null) {
 						listDeleteClaimProcs.Add(claimProcOverpay);

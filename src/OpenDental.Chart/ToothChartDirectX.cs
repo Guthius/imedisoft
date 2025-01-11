@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using DataConnectionBase;
 using SharpDX.Direct3D9;
 using OpenDentBusiness;
 
@@ -1434,9 +1435,9 @@ namespace SparksToothChart {
 					return;
 				}
 				string[] settings=directXFormat.Split(new char[] {';'});
-				adapterIndex=PIn.Int(settings[0]);
+				adapterIndex=SIn.Int(settings[0]);
 				IsHardware=(settings[1]=="Hardware");
-				createFlags=(CreateFlags)PIn.Int(settings[2]);
+				createFlags=(CreateFlags)SIn.Int(settings[2]);
 				DepthStencilFormat=settings[3];
 				BackBufferFormat=settings[4];
 				MultiSampleCount=(int)Enum.Parse(typeof(MultisampleType),settings[5]);

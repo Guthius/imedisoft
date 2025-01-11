@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;
@@ -93,7 +94,7 @@ namespace OpenDental {
 			_filterControlsAndAction.FuncDb=RefreshFromDb;
 			//Using PrefC.GetString on the following prefs so that we can call PIn.Int with hasExceptions=false.
 			//We are guaranteed to get a valid number from these prefs.
-			_filterControlsAndAction.SetMinChars(PIn.Int(PrefC.GetString(PrefName.PatientSelectSearchMinChars)));
+			_filterControlsAndAction.SetMinChars(SIn.Int(PrefC.GetString(PrefName.PatientSelectSearchMinChars)));
 			_filterControlsAndAction.SetInterval(Int32.Parse(PrefC.GetString(PrefName.PatientSelectSearchPauseMs)));
 			_filterControlsAndAction.ActionComplete=FillGrid;
 			#endregion
@@ -311,7 +312,7 @@ namespace OpenDental {
 		///<summary>Returns false if either checkRefresh is not checked or PatientSelectSearchWithEmptyParams is Yes or Unknown and all of the textboxes 
 		///are empty. Otherwise returns true.</summary>
 		private bool DoRefreshGrid() {
-			return checkRefresh.Checked==true && (PIn.Enum<YN>(PrefC.GetInt(PrefName.PatientSelectSearchWithEmptyParams))!=YN.No || TextBoxCharCount()>0);
+			return checkRefresh.Checked==true && (SIn.Enum<YN>(PrefC.GetInt(PrefName.PatientSelectSearchWithEmptyParams))!=YN.No || TextBoxCharCount()>0);
 		}
 
 		///<summary>Just prior to displaying the context menu, enable or disables the UnmaskSSN option</summary>
@@ -376,7 +377,7 @@ namespace OpenDental {
 			//Guaranteed to be clicking on a valid row & column.
 			int idxColClick = gridMain.PointToCol(_pointLastClicked.X);
 			int idxRowClick = gridMain.PointToRow(_pointLastClicked.Y);
-			long patNumClicked=PIn.Long(_tablePats.Rows[idxRowClick]["PatNum"].ToString());
+			long patNumClicked=SIn.Long(_tablePats.Rows[idxRowClick]["PatNum"].ToString());
 			gridMain.BeginUpdate();
 			gridMain.ListGridRows[idxRowClick].Cells[idxColClick].Text=Patients.SSNFormatHelper(Patients.GetPat(patNumClicked).SSN,false);
 			gridMain.EndUpdate();
@@ -396,8 +397,8 @@ namespace OpenDental {
 			//Guaranteed to be clicking on a valid row & column.
 			int idxColClick = gridMain.PointToCol(_pointLastClicked.X);
 			int idxRowClick = gridMain.PointToRow(_pointLastClicked.Y);
-			long patNumClicked=PIn.Long(_tablePats.Rows[idxRowClick]["PatNum"].ToString());
-			DateTime dateBirth=PIn.Date(_tablePats.Rows[idxRowClick]["Birthdate"].ToString());
+			long patNumClicked=SIn.Long(_tablePats.Rows[idxRowClick]["PatNum"].ToString());
+			DateTime dateBirth=SIn.Date(_tablePats.Rows[idxRowClick]["Birthdate"].ToString());
 			gridMain.BeginUpdate();
 			gridMain.ListGridRows[idxRowClick].Cells[idxColClick].Text=Patients.DOBFormatHelper(dateBirth,false);
 			gridMain.EndUpdate();
@@ -473,7 +474,7 @@ namespace OpenDental {
 			}
 			string birthdate="";
 			Dispatcher.Invoke(()=>birthdate=textBirthdate.Text);
-			DateTime dateBirth=PIn.Date(birthdate); //this will frequently be minval.
+			DateTime dateBirth=SIn.Date(birthdate); //this will frequently be minval.
 			string clinicNums="";
 			if(true) {
 				if(comboClinic.IsAllSelected) {
@@ -508,33 +509,33 @@ namespace OpenDental {
 				doShowMerged=checkShowMerged.Checked==true;
 			}
 			string LastName="";
-			Dispatcher.Invoke(()=>LastName=PIn.String(textLName.Text));
+			Dispatcher.Invoke(()=>LastName=SIn.String(textLName.Text));
 			string FirstName="";
-			Dispatcher.Invoke(()=>FirstName=PIn.String(textFName.Text));
+			Dispatcher.Invoke(()=>FirstName=SIn.String(textFName.Text));
 			string Phone="";
-			Dispatcher.Invoke(()=>Phone=PIn.String(textPhone.Text));
+			Dispatcher.Invoke(()=>Phone=SIn.String(textPhone.Text));
 			string Address="";
-			Dispatcher.Invoke(()=>Address=PIn.String(textAddress.Text));
+			Dispatcher.Invoke(()=>Address=SIn.String(textAddress.Text));
 			string City="";
-			Dispatcher.Invoke(()=>City=PIn.String(textCity.Text));
+			Dispatcher.Invoke(()=>City=SIn.String(textCity.Text));
 			string State="";
-			Dispatcher.Invoke(()=>State=PIn.String(textState.Text));
+			Dispatcher.Invoke(()=>State=SIn.String(textState.Text));
 			string SSN="";
-			Dispatcher.Invoke(()=>SSN=PIn.String(textSSN.Text));
+			Dispatcher.Invoke(()=>SSN=SIn.String(textSSN.Text));
 			string PatNum="";
-			Dispatcher.Invoke(()=>PatNum=PIn.String(textPatNum.Text));
+			Dispatcher.Invoke(()=>PatNum=SIn.String(textPatNum.Text));
 			string ChartNum="";
-			Dispatcher.Invoke(()=>ChartNum=PIn.String(textChartNumber.Text));
+			Dispatcher.Invoke(()=>ChartNum=SIn.String(textChartNumber.Text));
 			string SubID="";
-			Dispatcher.Invoke(()=>SubID=PIn.String(textSubscriberID.Text));
+			Dispatcher.Invoke(()=>SubID=SIn.String(textSubscriberID.Text));
 			string Email="";
-			Dispatcher.Invoke(()=>Email=PIn.String(textEmail.Text));
+			Dispatcher.Invoke(()=>Email=SIn.String(textEmail.Text));
 			string Country="";
-			Dispatcher.Invoke(()=>Country=PIn.String(textCountry.Text));
+			Dispatcher.Invoke(()=>Country=SIn.String(textCountry.Text));
 			string RegKey="";
-			Dispatcher.Invoke(()=>RegKey=PIn.String(textRegKey.Text));
+			Dispatcher.Invoke(()=>RegKey=SIn.String(textRegKey.Text));
 			string InvoiceNum="";
-			Dispatcher.Invoke(()=>InvoiceNum=PIn.String(textInvoiceNumber.Text));
+			Dispatcher.Invoke(()=>InvoiceNum=SIn.String(textInvoiceNumber.Text));
 			PtTableSearchParams ptTableSearchParams=new PtTableSearchParams(_doLimitOnePage,LastName,FirstName,Phone,Address,
 				checkShowInactive.Checked==false,City,State,SSN,PatNum,ChartNum,billingType,
 				checkGuarantors.Checked==true,checkShowArchived.Checked==true,dateBirth,siteNum,SubID,Email,
@@ -678,7 +679,7 @@ namespace OpenDental {
 							row.Cells.Add(_tablePats.Rows[i]["clinic"].ToString());
 							break;
 						case "Birthdate":
-							row.Cells.Add(Patients.DOBFormatHelper(PIn.Date(_tablePats.Rows[i]["Birthdate"].ToString())
+							row.Cells.Add(Patients.DOBFormatHelper(SIn.Date(_tablePats.Rows[i]["Birthdate"].ToString())
 								,(PrefC.GetBool(PrefName.PatientDOBMasked) || !Security.IsAuthorized(EnumPermType.PatientDOBView,true)))
 							);
 							break;
@@ -735,7 +736,7 @@ namespace OpenDental {
 			gridMain.EndUpdate();
 			gridMain.SetSelected(0,true);
 			for(int i=0;i<_tablePats.Rows.Count;i++) {
-				if(PIn.Long(_tablePats.Rows[i][0].ToString())==PatNumInitial) {
+				if(SIn.Long(_tablePats.Rows[i][0].ToString())==PatNumInitial) {
 					gridMain.SetSelected(i,true);
 					break;
 				}
@@ -771,9 +772,9 @@ namespace OpenDental {
 		}
 
 		private void PatSelected(){
-			long patNumSelected=PIn.Long(_tablePats.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
+			long patNumSelected=SIn.Long(_tablePats.Rows[gridMain.GetSelectedIndex()]["PatNum"].ToString());
 			if(true){
-				long patClinicNum=PIn.Long(_tablePats.Rows[gridMain.GetSelectedIndex()]["ClinicNum"].ToString());
+				long patClinicNum=SIn.Long(_tablePats.Rows[gridMain.GetSelectedIndex()]["ClinicNum"].ToString());
 				List<long> listClinicNumsUser=comboClinic.ListClinics.Select(x => x.Id).ToList();
 				if(!Security.CurUser.ClinicIsRestricted) {
 					listClinicNumsUser.Add(0);
@@ -919,7 +920,7 @@ namespace OpenDental {
 					}
 				}
 			}
-			Patient patient=Patients.CreateNewPatient(textLName.Text,textFName.Text,PIn.Date(textBirthdate.Text),priProv,Clinics.ClinicNum
+			Patient patient=Patients.CreateNewPatient(textLName.Text,textFName.Text,SIn.Date(textBirthdate.Text),priProv,Clinics.ClinicNum
 				,Lang.g(this,"Created from Select Patient window."),patStatus:PatientStatus.Deleted);
 			Family family=Patients.GetFamily(patient.PatNum);
 			FormLauncher formLauncher=new FormLauncher(EnumFormName.FormPatientEdit);
@@ -958,7 +959,7 @@ namespace OpenDental {
 				frmPatientAddAll.FName=textFName.Text.Substring(0,1).ToUpper()+textFName.Text.Substring(1);
 			}
 			if(textBirthdate.Text.Length>1) {
-				frmPatientAddAll.Birthdate=PIn.Date(textBirthdate.Text);
+				frmPatientAddAll.Birthdate=SIn.Date(textBirthdate.Text);
 			}
 			frmPatientAddAll.ShowDialog();
 			if(frmPatientAddAll.IsDialogCancel){

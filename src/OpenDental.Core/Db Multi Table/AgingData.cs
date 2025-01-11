@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDentBusiness {
@@ -42,27 +43,27 @@ namespace OpenDentBusiness {
 				if(excludeIfUnsentProcs) {
 					command+=$@"LEFT JOIN claimproc ON claimproc.ProcNum = procedurelog.ProcNum
 						AND claimproc.NoBillIns=0
-						AND claimproc.Status = {POut.Int((int)ClaimProcStatus.Estimate)}
+						AND claimproc.Status = {SOut.Int((int)ClaimProcStatus.Estimate)}
 						AND procedurelog.ProcDate > CURDATE()-INTERVAL 6 MONTH
 					LEFT JOIN insplan ON insplan.PlanNum=claimproc.PlanNum ";
 				}
 				command+=$@"WHERE procedurelog.ProcFee > 0
-					AND procedurelog.ProcStatus = {POut.Int((int)ProcStat.C)}
+					AND procedurelog.ProcStatus = {SOut.Int((int)ProcStat.C)}
 					{whereAndClinNum}
 					GROUP BY {guarOrPat}.PatNum
 					ORDER BY NULL";
 				using(DataTable tableChangedAndUnsent=DataCore.GetTable(command)) {
 					foreach(DataRow row in tableChangedAndUnsent.Rows) {
-						long patNum=PIn.Long(row["PatNum"].ToString());
+						long patNum=SIn.Long(row["PatNum"].ToString());
 						if(!dictPatAgingData.ContainsKey(patNum)) {
-							dictPatAgingData[patNum]=new PatAgingData(PIn.Long(row["ClinicNum"].ToString()));
+							dictPatAgingData[patNum]=new PatAgingData(SIn.Long(row["ClinicNum"].ToString()));
 						}
 						if(includeChanged) {
 							dictPatAgingData[patNum].ListPatAgingTransactions
-								.Add(new PatAgingTransaction(PatAgingTransaction.TransactionTypes.Procedure,PIn.Date(row["MaxProcDate"].ToString())));
+								.Add(new PatAgingTransaction(PatAgingTransaction.TransactionTypes.Procedure,SIn.Date(row["MaxProcDate"].ToString())));
 						}
 						if(excludeIfUnsentProcs) {
-							dictPatAgingData[patNum].HasUnsentProcs=PIn.Bool(row["HasUnsentProcs"].ToString());
+							dictPatAgingData[patNum].HasUnsentProcs=SIn.Bool(row["HasUnsentProcs"].ToString());
 						}
 					}
 				}
@@ -77,12 +78,12 @@ namespace OpenDentBusiness {
 					GROUP BY {guarOrPat}.PatNum";
 				using(DataTable tableMaxPayDate=DataCore.GetTable(command)) {
 					foreach(DataRow row in tableMaxPayDate.Rows) {
-						long patNum=PIn.Long(row["PatNum"].ToString());
+						long patNum=SIn.Long(row["PatNum"].ToString());
 						if(!dictPatAgingData.ContainsKey(patNum)) {
-							dictPatAgingData[patNum]=new PatAgingData(PIn.Long(row["ClinicNum"].ToString()));
+							dictPatAgingData[patNum]=new PatAgingData(SIn.Long(row["ClinicNum"].ToString()));
 						}
 						dictPatAgingData[patNum].ListPatAgingTransactions
-							.Add(new PatAgingTransaction(PatAgingTransaction.TransactionTypes.ClaimProc,PIn.Date(row["maxDateCP"].ToString())));
+							.Add(new PatAgingTransaction(PatAgingTransaction.TransactionTypes.ClaimProc,SIn.Date(row["maxDateCP"].ToString())));
 					}
 				}
 				command=$@"SELECT {guarOrPat}.PatNum,{guarOrPat}.ClinicNum,MAX(payplancharge.ChargeDate) maxDatePPC,
@@ -95,20 +96,20 @@ namespace OpenDentBusiness {
 					+$@"WHERE payplancharge.Principal + payplancharge.Interest>0
 					AND payplancharge.ChargeType = {(int)PayPlanChargeType.Debit} "
 					//include all charges in the past or due 'PayPlanBillInAdvance' days into the future.
-					+$@"AND payplancharge.ChargeDate <= {POut.Date(DateTime.Today.AddDays(PrefC.GetDouble(PrefName.PayPlansBillInAdvanceDays)))}
+					+$@"AND payplancharge.ChargeDate <= {SOut.Date(DateTime.Today.AddDays(PrefC.GetDouble(PrefName.PayPlansBillInAdvanceDays)))}
 					{whereAndClinNum}
 					GROUP BY {guarOrPat}.PatNum";
 				using(DataTable tableMaxPPCDate=DataCore.GetTable(command)) {
 					foreach(DataRow row in tableMaxPPCDate.Rows) {
-						long patNum=PIn.Long(row["PatNum"].ToString());
+						long patNum=SIn.Long(row["PatNum"].ToString());
 						if(!dictPatAgingData.ContainsKey(patNum)) {
-							dictPatAgingData[patNum]=new PatAgingData(PIn.Long(row["ClinicNum"].ToString()));
+							dictPatAgingData[patNum]=new PatAgingData(SIn.Long(row["ClinicNum"].ToString()));
 						}
 						dictPatAgingData[patNum].ListPatAgingTransactions
 							.Add(new PatAgingTransaction(
 								PatAgingTransaction.TransactionTypes.PayPlanCharge,
-								PIn.Date(row["maxDatePPC"].ToString()),
-								secDateTEntryTrans:PIn.Date(row["maxDatePPCSDTE"].ToString()))
+								SIn.Date(row["maxDatePPC"].ToString()),
+								secDateTEntryTrans:SIn.Date(row["maxDatePPCSDTE"].ToString()))
 							);
 					}
 				}
@@ -125,9 +126,9 @@ namespace OpenDentBusiness {
 					GROUP BY {guarOrPat}.PatNum";
 				using(DataTable tableInsPending=DataCore.GetTable(command)) {
 					foreach(DataRow row in tableInsPending.Rows) {
-						long patNum=PIn.Long(row["PatNum"].ToString());
+						long patNum=SIn.Long(row["PatNum"].ToString());
 						if(!dictPatAgingData.ContainsKey(patNum)) {
-							dictPatAgingData[patNum]=new PatAgingData(PIn.Long(row["ClinicNum"].ToString()));
+							dictPatAgingData[patNum]=new PatAgingData(SIn.Long(row["ClinicNum"].ToString()));
 						}
 						dictPatAgingData[patNum].HasPendingIns=true;
 					}
@@ -136,14 +137,14 @@ namespace OpenDentBusiness {
 			List<PatComm> listPatComms=new List<PatComm>();
 			using(DataTable tableDateBalsBegan=Ledgers.GetDateBalanceBegan(null,isSuperBills,listClinicNums)) {
 				foreach(DataRow row in tableDateBalsBegan.Rows) {
-					long patNum=PIn.Long(row["PatNum"].ToString());
+					long patNum=SIn.Long(row["PatNum"].ToString());
 					if(!dictPatAgingData.ContainsKey(patNum)) {
-						dictPatAgingData[patNum]=new PatAgingData(PIn.Long(row["ClinicNum"].ToString()));
+						dictPatAgingData[patNum]=new PatAgingData(SIn.Long(row["ClinicNum"].ToString()));
 					}
-					dictPatAgingData[patNum].DateBalBegan=PIn.Date(row["DateAccountAge"].ToString());
-					dictPatAgingData[patNum].DateBalZero=PIn.Date(row["DateZeroBal"].ToString());
+					dictPatAgingData[patNum].DateBalBegan=SIn.Date(row["DateAccountAge"].ToString());
+					dictPatAgingData[patNum].DateBalZero=SIn.Date(row["DateZeroBal"].ToString());
 				}
-				listPatComms=Patients.GetPatComms(tableDateBalsBegan.Select().Select(x => PIn.Long(x["PatNum"].ToString())).ToList(),null);
+				listPatComms=Patients.GetPatComms(tableDateBalsBegan.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList(),null);
 			}
 			foreach(PatComm pComm in listPatComms) {
 				if(!dictPatAgingData.ContainsKey(pComm.PatNum)) {

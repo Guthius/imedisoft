@@ -10,6 +10,7 @@ using OpenDentBusiness;
 using System.Data;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -145,10 +146,10 @@ namespace OpenDental{
 				userNum=_listUserods[comboUser.SelectedIndex-2].UserNum; //Subtract 2 to accomodate for "None" and "All", since they dont exist in _listUserods.
 			}
 			SecurityLog[] securityLogArray=null;
-			DateTime datePreviousFrom=PIn.Date(textDateEditedFrom.Text);
+			DateTime datePreviousFrom=SIn.Date(textDateEditedFrom.Text);
 			DateTime datePreviousTo=DateTime.Today;
 			if(textDateEditedTo.Text!="") { 
-				datePreviousTo=PIn.Date(textDateEditedTo.Text);
+				datePreviousTo=SIn.Date(textDateEditedTo.Text);
 			}
 			//LogSource filter
 			int logSource=-1;
@@ -158,13 +159,13 @@ namespace OpenDental{
 			try {
 				//Permission filter
 				if(comboPermission.SelectedIndex==0) {
-					securityLogArray=ReportsComplex.RunFuncOnReportServer(() => SecurityLogs.Refresh(PIn.Date(textDateFrom.Text),PIn.Date(textDateTo.Text),
-						EnumPermType.None,_patNum,datePreviousFrom,datePreviousTo,PIn.Int(textRows.Text),userNum,logSource));
+					securityLogArray=ReportsComplex.RunFuncOnReportServer(() => SecurityLogs.Refresh(SIn.Date(textDateFrom.Text),SIn.Date(textDateTo.Text),
+						EnumPermType.None,_patNum,datePreviousFrom,datePreviousTo,SIn.Int(textRows.Text),userNum,logSource));
 				}
 				else {
-					securityLogArray=ReportsComplex.RunFuncOnReportServer(() => SecurityLogs.Refresh(PIn.Date(textDateFrom.Text),PIn.Date(textDateTo.Text),
+					securityLogArray=ReportsComplex.RunFuncOnReportServer(() => SecurityLogs.Refresh(SIn.Date(textDateFrom.Text),SIn.Date(textDateTo.Text),
 						(EnumPermType)Enum.Parse(typeof(EnumPermType),comboPermission.SelectedItem.ToString()),_patNum,
-						datePreviousFrom,datePreviousTo,PIn.Int(textRows.Text),userNum,logSource));
+						datePreviousFrom,datePreviousTo,SIn.Int(textRows.Text),userNum,logSource));
 				}
 			}
 			catch(Exception ex) {
@@ -190,7 +191,7 @@ namespace OpenDental{
 				row.Cells.Add(securityLogArray[i].LogDateTime.ToShortTimeString());
 				row.Cells.Add(securityLogArray[i].PatientName);
 				//user might be null due to old bugs.
-				row.Cells.Add(Userods.GetUser(securityLogArray[i].UserNum)?.UserName??(Lan.g(this,"Unknown")+"("+POut.Long(securityLogArray[i].UserNum)+")"));
+				row.Cells.Add(Userods.GetUser(securityLogArray[i].UserNum)?.UserName??(Lan.g(this,"Unknown")+"("+SOut.Long(securityLogArray[i].UserNum)+")"));
 				if(securityLogArray[i].PermType==EnumPermType.ChartModule) {
 					row.Cells.Add("ChartModuleViewed");
 				}

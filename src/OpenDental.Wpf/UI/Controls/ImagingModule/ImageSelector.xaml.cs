@@ -19,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 using OpenDental.UI;//even though they are in this project
@@ -1360,14 +1361,14 @@ Only used once in Imaging module.
 
 			public NodeObjTag(DataRow dataRow){
 				DataRow=dataRow;
-				DocNum=PIn.Long(dataRow["DocNum"].ToString());
-				MountNum=PIn.Long(dataRow["MountNum"].ToString());
-				DocCategory=PIn.Long(dataRow["DocCategory"].ToString());
-				DateCreated=PIn.DateTime(dataRow["DateCreated"].ToString());
-				Description=PIn.String(dataRow["Description"].ToString());
+				DocNum=SIn.Long(dataRow["DocNum"].ToString());
+				MountNum=SIn.Long(dataRow["MountNum"].ToString());
+				DocCategory=SIn.Long(dataRow["DocCategory"].ToString());
+				DateCreated=SIn.DateTime(dataRow["DateCreated"].ToString());
+				Description=SIn.String(dataRow["Description"].ToString());
 				if(DocNum!=0){
 					NodeType=EnumImageNodeType.Document;
-					ImgType=(ImageType)PIn.Int(dataRow["ImgType"].ToString());
+					ImgType=(ImageType)SIn.Int(dataRow["ImgType"].ToString());
 				}
 				else{//assume mount
 					NodeType=EnumImageNodeType.Mount;

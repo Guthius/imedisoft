@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -194,7 +195,7 @@ namespace OpenDental {
 					}
 					continue;
 				}
-				DateTime dateEntered=PIn.Date(textBox.Text);
+				DateTime dateEntered=SIn.Date(textBox.Text);
 				List<ClaimProc> listClaimProcs=new List<ClaimProc>();
 				if(procedure!=null) {
 					//Get all of the claimprocs for this procedure.

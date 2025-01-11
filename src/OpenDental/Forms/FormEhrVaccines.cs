@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -76,7 +77,7 @@ namespace OpenDental {
 
 		private void butExport_Click(object sender,EventArgs e) {
 			if(gridVaccine.SelectedIndices.Length==0) {
-				MessageBox.Show("Please select at least one vaccine.");
+				ODMessageBox.Show("Please select at least one vaccine.");
 				return;
 			}
 			List<VaccinePat> vaccines=new List<VaccinePat>();
@@ -88,7 +89,7 @@ namespace OpenDental {
 				vxu=new OpenDentBusiness.HL7.EhrVXU(PatCur,vaccines);
 			}
 			catch(Exception ex) {//Exception happens when validation fails.
-				MessageBox.Show(ex.Message);//Show validation error messages.
+				ODMessageBox.Show(ex.Message);//Show validation error messages.
 				return;
 			}
 			string outputStr=vxu.GenerateMessage();
@@ -99,17 +100,17 @@ namespace OpenDental {
 				return;
 			}
 			if(File.Exists(dlg.FileName)) {
-				if(MessageBox.Show("Overwrite existing file?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+				if(ODMessageBox.Show("Overwrite existing file?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 					return;
 				}
 			}
 			File.WriteAllText(dlg.FileName,outputStr);
-			MessageBox.Show("Saved");
+			ODMessageBox.Show("Saved");
 		}
 
 		private void butSubmitImmunization_Click(object sender,EventArgs e) {
 			if(gridVaccine.SelectedIndices.Length==0) {
-				MessageBox.Show("Please select at least one vaccine.");
+				ODMessageBox.Show("Please select at least one vaccine.");
 				return;
 			}
 			List<VaccinePat> vaccines=new List<VaccinePat>();
@@ -121,7 +122,7 @@ namespace OpenDental {
 				vxu=new OpenDentBusiness.HL7.EhrVXU(PatCur,vaccines);
 			}
 			catch(Exception ex) {//Exception happens when validation fails.
-				MessageBox.Show(ex.Message);//Show validation error messages.
+				ODMessageBox.Show(ex.Message);//Show validation error messages.
 				return;
 			}
 			string outputStr=vxu.GenerateMessage();
@@ -131,11 +132,11 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show("Sent");
+			ODMessageBox.Show("Sent");
 		}
 
 		private void listVacShareOk_MouseClick(object sender,MouseEventArgs e) {

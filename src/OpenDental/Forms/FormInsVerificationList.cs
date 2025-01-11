@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -67,15 +68,15 @@ namespace OpenDental {
 					_dictionaryDefsStatus.Add(listDefsVerifyStatuses[i].DefNum,listDefsVerifyStatuses[i]);
 				}
 			}
-			textAppointmentScheduledDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDays));
-			textInsBenefitEligibilityDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDays));
-			textPatientEnrollmentDaysStandard.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDays));
-			textAppointmentScheduledDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDaysMedicaid));
-			textInsBenefitEligibilityDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDaysMedicaid));
-			textPatientEnrollmentDaysMedicaid.Text=POut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDaysMedicaid));
+			textAppointmentScheduledDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDays));
+			textInsBenefitEligibilityDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDays));
+			textPatientEnrollmentDaysStandard.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDays));
+			textAppointmentScheduledDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDaysMedicaid));
+			textInsBenefitEligibilityDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDaysMedicaid));
+			textPatientEnrollmentDaysMedicaid.Text=SOut.Int(PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDaysMedicaid));
 			InsVerifies.CleanupInsVerifyRows(DateTime.Today,
-				DateTime.Today.AddDays(PIn.Int(textAppointmentScheduledDaysStandard.Text)),
-				DateTime.Today.AddDays(PIn.Int(textAppointmentScheduledDaysMedicaid.Text))
+				DateTime.Today.AddDays(SIn.Int(textAppointmentScheduledDaysStandard.Text)),
+				DateTime.Today.AddDays(SIn.Int(textAppointmentScheduledDaysMedicaid.Text))
 			);
 		}
 
@@ -321,19 +322,19 @@ namespace OpenDental {
 			bool excludePatVerifyWhenNoIns=PrefC.GetBool(PrefName.InsVerifyExcludePatVerify);
 			bool excludePatClones=(PrefC.GetBool(PrefName.ShowFeaturePatientClone)==true) && PrefC.GetBool(PrefName.InsVerifyExcludePatientClones);
 			DateTime dateStartStandard=DateTime.Today;
-			DateTime dateEndStandard=DateTime.Today.AddDays(PIn.Int(textAppointmentScheduledDaysStandard.Text));//Don't need to add 1 because we will be getting only the date portion of this datetime.
+			DateTime dateEndStandard=DateTime.Today.AddDays(SIn.Int(textAppointmentScheduledDaysStandard.Text));//Don't need to add 1 because we will be getting only the date portion of this datetime.
 			DateTime dateStartMedicaid=DateTime.Today;
-			DateTime dateEndMedicaid=DateTime.Today.AddDays(PIn.Int(textAppointmentScheduledDaysMedicaid.Text));
+			DateTime dateEndMedicaid=DateTime.Today.AddDays(SIn.Int(textAppointmentScheduledDaysMedicaid.Text));
 			if(grid==gridPastDue) {
 				dateStartStandard=DateTime.Today.AddDays(-PrefC.GetInt(PrefName.InsVerifyDaysFromPastDueAppt));
 				dateEndStandard=DateTime.Today.AddDays(-1);
 				dateStartMedicaid=DateTime.Today.AddDays(-PrefC.GetInt(PrefName.InsVerifyDaysFromPastDueApptMedicaid));
 				dateEndMedicaid=DateTime.Today.AddDays(-1);
 			}
-			DateTime dateLastPatEligibilityStandard=DateTime.Today.AddDays(-PIn.Int(textPatientEnrollmentDaysStandard.Text));
-			DateTime dateLastPlanBenefitsStandard=DateTime.Today.AddDays(-PIn.Int(textInsBenefitEligibilityDaysStandard.Text));
-			DateTime dateLastPatEligibilityMedicaid=DateTime.Today.AddDays(-PIn.Int(textPatientEnrollmentDaysMedicaid.Text));
-			DateTime dateLastPlanBenefitsMedicaid=DateTime.Today.AddDays(-PIn.Int(textInsBenefitEligibilityDaysMedicaid.Text));
+			DateTime dateLastPatEligibilityStandard=DateTime.Today.AddDays(-SIn.Int(textPatientEnrollmentDaysStandard.Text));
+			DateTime dateLastPlanBenefitsStandard=DateTime.Today.AddDays(-SIn.Int(textInsBenefitEligibilityDaysStandard.Text));
+			DateTime dateLastPatEligibilityMedicaid=DateTime.Today.AddDays(-SIn.Int(textPatientEnrollmentDaysMedicaid.Text));
+			DateTime dateLastPlanBenefitsMedicaid=DateTime.Today.AddDays(-SIn.Int(textInsBenefitEligibilityDaysMedicaid.Text));
 			InsVerifyListType insVerifyListType=new InsVerifyListType();
 			if(grid.In(gridMain,gridPastDue)) {
 				insVerifyListType=InsVerifyListType.Both;
@@ -526,13 +527,13 @@ namespace OpenDental {
 			}
 			if(planToVerifyEnum==PlanToVerify.Both || planToVerifyEnum==PlanToVerify.PatientEligibility) {
 				insVerifyGridObject.InsVerifyPat=InsVerifies.SetTimeAvailableForVerify(insVerifyGridObject.InsVerifyPat,PlanToVerify.PatientEligibility,
-					PIn.Int(appointmentScheduledDays),PIn.Int(patientEnrollmentDays),PIn.Int(insBenefitEligibilityDays));
+					SIn.Int(appointmentScheduledDays),SIn.Int(patientEnrollmentDays),SIn.Int(insBenefitEligibilityDays));
 				insVerifyGridObject.InsVerifyPat.DateLastVerified=DateTime.Today;
 				InsVerifyHists.InsertFromInsVerify(insVerifyGridObject.InsVerifyPat);
 			}
 			if(planToVerifyEnum==PlanToVerify.Both || planToVerifyEnum==PlanToVerify.InsuranceBenefits) {
 				insVerifyGridObject.InsVerifyPlan=InsVerifies.SetTimeAvailableForVerify(insVerifyGridObject.InsVerifyPlan,PlanToVerify.InsuranceBenefits,
-					PIn.Int(appointmentScheduledDays),PIn.Int(patientEnrollmentDays),PIn.Int(insBenefitEligibilityDays));
+					SIn.Int(appointmentScheduledDays),SIn.Int(patientEnrollmentDays),SIn.Int(insBenefitEligibilityDays));
 				insVerifyGridObject.InsVerifyPlan.DateLastVerified=DateTime.Today;
 				InsVerifyHists.InsertFromInsVerify(insVerifyGridObject.InsVerifyPlan);
 			}

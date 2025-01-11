@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -186,10 +187,10 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			checkUseService.Checked=PIn.Bool(_programPropertyUseService.PropertyValue);
-			checkShowCommlogsInChart.Checked=PIn.Bool(_programPropertyShowCommlogsInChartAndAccount.PropertyValue);
+			checkUseService.Checked=SIn.Bool(_programPropertyUseService.PropertyValue);
+			checkShowCommlogsInChart.Checked=SIn.Bool(_programPropertyShowCommlogsInChartAndAccount.PropertyValue);
 			checkEnabled.Checked=_program.Enabled;
-			checkHideButtons.Checked=PIn.Bool(_programPropertyDisableAdvertising.PropertyValue);
+			checkHideButtons.Checked=SIn.Bool(_programPropertyDisableAdvertising.PropertyValue);
 			textApptSetComplete.Text=_programPropertyApptSetCompleteMins.PropertyValue;
 			textApptTimeArrived.Text=_programPropertyApptTimeArrivedMins.PropertyValue;
 			textApptTimeDismissed.Text=_programPropertyApptTimeDismissedMins.PropertyValue;
@@ -202,8 +203,8 @@ namespace OpenDental {
 			else {
 				textLocationID.Text=programProperty.PropertyValue;
 			}
-			_reviewInvitationTriggerExistingPat=PIn.Enum<ReviewInvitationTrigger>(_programPropertyExistingPatTriggerType.PropertyValue);
-			_reviewInvitationTriggerNewPat=PIn.Enum<ReviewInvitationTrigger>(_programPropertyNewPatTriggerType.PropertyValue);
+			_reviewInvitationTriggerExistingPat=SIn.Enum<ReviewInvitationTrigger>(_programPropertyExistingPatTriggerType.PropertyValue);
+			_reviewInvitationTriggerNewPat=SIn.Enum<ReviewInvitationTrigger>(_programPropertyNewPatTriggerType.PropertyValue);
 			switch(_reviewInvitationTriggerExistingPat) {
 				case ReviewInvitationTrigger.AppointmentCompleted:
 					radioSetCompleteExistingPat.Checked=true;
@@ -278,16 +279,16 @@ namespace OpenDental {
 		private void SaveProgram() {
 			SaveClinicCurProgramPropertiesToList();
 			_program.Enabled=checkEnabled.Checked;
-			UpdateProgramProperty(_programPropertyUseService,POut.Bool(checkUseService.Checked));
-			UpdateProgramProperty(_programPropertyShowCommlogsInChartAndAccount,POut.Bool(checkShowCommlogsInChart.Checked));
-			UpdateProgramProperty(_programPropertyDisableAdvertising,POut.Bool(checkHideButtons.Checked));
+			UpdateProgramProperty(_programPropertyUseService,SOut.Bool(checkUseService.Checked));
+			UpdateProgramProperty(_programPropertyShowCommlogsInChartAndAccount,SOut.Bool(checkShowCommlogsInChart.Checked));
+			UpdateProgramProperty(_programPropertyDisableAdvertising,SOut.Bool(checkHideButtons.Checked));
 			UpdateProgramProperty(_programPropertyApptSetCompleteMins,textApptSetComplete.Text);
 			UpdateProgramProperty(_programPropertyApptTimeArrivedMins,textApptTimeArrived.Text);
 			UpdateProgramProperty(_programPropertyApptTimeDismissedMins,textApptTimeDismissed.Text);
 			UpdateProgramProperty(_programPropertyCompName,textCompNameOrIP.Text);
 			UpdateProgramProperty(_programPropertyAPIToken,textAPIToken.Text);
-			UpdateProgramProperty(_programPropertyNewPatTriggerType,POut.Int((int)_reviewInvitationTriggerNewPat));
-			UpdateProgramProperty(_programPropertyExistingPatTriggerType,POut.Int((int)_reviewInvitationTriggerExistingPat));
+			UpdateProgramProperty(_programPropertyNewPatTriggerType,SOut.Int((int)_reviewInvitationTriggerNewPat));
+			UpdateProgramProperty(_programPropertyExistingPatTriggerType,SOut.Int((int)_reviewInvitationTriggerExistingPat));
 			UpsertProgramPropertiesForClinics();
 			Programs.Update(_program);
 		}

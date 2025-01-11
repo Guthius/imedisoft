@@ -13,6 +13,7 @@ using System.Xml.XPath;
 using System.IO;
 using OpenDental.UI;
 using System.Net;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -180,7 +181,7 @@ namespace OpenDental {
 			}
 			else {
 				try {
-					PatientCur.Birthdate=PIn.Date(textPatBirth.Text);
+					PatientCur.Birthdate=SIn.Date(textPatBirth.Text);
 				}
 				catch {
 
@@ -277,7 +278,7 @@ namespace OpenDental {
 			}
 			if(message!="") {
 				message+=Lan.g(this,"Would you like to continue anyways?");
-				if(MessageBox.Show(message,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
 					return false;
 				}
 			}

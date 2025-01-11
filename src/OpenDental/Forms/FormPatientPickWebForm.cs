@@ -9,6 +9,8 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using OpenDentBusiness.WebTypes.WebForms;
 using System.Linq;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -48,7 +50,7 @@ namespace OpenDental {
 			if(HasMoreThanOneMatch) {
 				labelExplanation.Text=Lan.g(this,"More than one matching patient was found for this submitted web form.");
 			}
-			if(SheetCemt!=null && SheetCemt.SheetFields.Any(x => x.FieldName=="isTransfer" && PIn.Bool(x.FieldValue))) {
+			if(SheetCemt!=null && SheetCemt.SheetFields.Any(x => x.FieldName=="isTransfer" && SIn.Bool(x.FieldValue))) {
 				string strCemtSendClinic=SheetCemt.SheetFields.FirstOrDefault(x => x.FieldName=="sendClinicCEMT")?.FieldValue??"";
 				if(!string.IsNullOrEmpty(strCemtSendClinic)) {
 					labelExplanation.Text+="\r\n"+Lan.g(this,"Patient was transferred from clinic:")+"  "+strCemtSendClinic;
@@ -172,7 +174,7 @@ namespace OpenDental {
 				msg+="? "+Lan.g(this,"There are no other matching forms for this patient")+".";
 			}
 			msg+=Lan.g(this," Discarded webforms will not be able to be accessed later.");
-			if(MessageBox.Show(this,msg,Lan.g(this,"Discard WebForms?"),MessageBoxButtons.YesNo)==DialogResult.Yes) {
+			if(ODMessageBox.Show(this,msg,Lan.g(this,"Discard WebForms?"),MessageBoxButtons.YesNo)==DialogResult.Yes) {
 				_isDiscardAll=true;
 				DialogResult=DialogResult.Ignore;
 			}

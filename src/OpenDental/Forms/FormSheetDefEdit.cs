@@ -22,6 +22,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using System.Xml;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -289,7 +290,7 @@ namespace OpenDental {
 			inputBoxParam.Text=_gridSnapDistance.ToString();
 			listInputBoxParams.Add(inputBoxParam);
 			Func<string,bool> funcOkClick=new Func<string, bool>((inputVal)=> { 
-				int val=PIn.Int(inputVal,false);
+				int val=SIn.Int(inputVal,false);
 				if(val!=0 && !val.Between(10,100)) {
 					MsgBox.Show("Please enter a value between 10 and 100, or 0 to disable.");
 					return false;
@@ -304,7 +305,7 @@ namespace OpenDental {
 			}
 			_listSnapXVals.Clear();
 			_listSnapYVals.Clear();
-			_gridSnapDistance=PIn.Int(inputBox.StringResult);
+			_gridSnapDistance=SIn.Int(inputBox.StringResult);
 			panelMain.Invalidate();
 		}
 
@@ -343,7 +344,7 @@ namespace OpenDental {
 				DialogResult=DialogResult.OK;
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 
@@ -930,7 +931,7 @@ namespace OpenDental {
 			tips+="\r\n";
 			tips+="\r\n";
 			tips+="If you are editing foreign language fields, then they will turn green once you have changed them to be different from default language..\r\n";
-			MessageBox.Show(Lan.g(this,tips));
+			ODMessageBox.Show(Lan.g(this,tips));
 		}
 
 		private void listFields_MouseDoubleClick(object sender,MouseEventArgs e) {
@@ -1884,7 +1885,7 @@ namespace OpenDental {
 						txt=Lan.g(this,"Image:")+SheetDef_.SheetFieldDefs[i].FieldName;
 						break;
 					case SheetFieldType.PatImage:
-						txt=Lan.g(this,"PatImg:")+Defs.GetName(DefCat.ImageCats,PIn.Long(SheetDef_.SheetFieldDefs[i].FieldName));
+						txt=Lan.g(this,"PatImg:")+Defs.GetName(DefCat.ImageCats,SIn.Long(SheetDef_.SheetFieldDefs[i].FieldName));
 						break;
 					case SheetFieldType.Line:
 						txt=Lan.g(this,"Line:")+SheetDef_.SheetFieldDefs[i].XPos.ToString()+","+SheetDef_.SheetFieldDefs[i].YPos.ToString()+","+"W:"+SheetDef_.SheetFieldDefs[i].Width.ToString()+","+"H:"+SheetDef_.SheetFieldDefs[i].Height.ToString();
@@ -2639,7 +2640,7 @@ namespace OpenDental {
 				return true; // save the sheet but don't update override
 			}
 			message = "Are you sure you want to force all patients to fill out this form again? Clicking 'No' will not update the eClipboard version of this sheet.";
-			if(MessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.No) {
+			if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.No) {
 				return true; // save sheet, but don't update override
 			}
 			//got to here, user wants to update eClipboard sheets and force patients to refill them.
@@ -2776,7 +2777,7 @@ namespace OpenDental {
 			string message=Lan.g(this,"This Sheet Def is used by the following web "+(_listWebForms_SheetDefs.Count==1?"form":"forms"))+":\r\n"
 				+string.Join("\r\n",_listWebForms_SheetDefs.Select(x => x.Description))+"\r\n"
 				+Lan.g(this,"Do you want to update "+(_listWebForms_SheetDefs.Count==1?"that web form":"those web forms")+"?");
-			if(MessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.No) {
+			if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.No) {
 				return true;
 			}
 			if(!WebFormL.VerifyRequiredFieldsPresent(SheetDef_)) {
@@ -2849,7 +2850,7 @@ namespace OpenDental {
 						if(sheetFieldDef2.FieldType==SheetFieldType.CheckBox && !sheetFieldDef2.IsRequired && sheetFieldDef2.RadioButtonGroup.ToLower()==sheetFieldDef.RadioButtonGroup.ToLower() //for misc groups
 							&& sheetFieldDef2.FieldName.ToLower()==sheetFieldDef.FieldName.ToLower()) //for misc groups
 						{
-							MessageBox.Show(Lan.g(this,"Radio buttons in radio button group")+" '"+(sheetFieldDef.RadioButtonGroup==""?sheetFieldDef.FieldName:sheetFieldDef.RadioButtonGroup)+"' "+Lan.g(this,"must all be marked required or all be marked not required."));
+							ODMessageBox.Show(Lan.g(this,"Radio buttons in radio button group")+" '"+(sheetFieldDef.RadioButtonGroup==""?sheetFieldDef.FieldName:sheetFieldDef.RadioButtonGroup)+"' "+Lan.g(this,"must all be marked required or all be marked not required."));
 							return false;
 						}
 					}
@@ -2889,7 +2890,7 @@ namespace OpenDental {
 				if(sheetFieldDef.FieldType==SheetFieldType.InputField && sheetFieldDef.FieldName=="State") {
 					for(int j=0;j<SheetDef_.SheetFieldDefs.Count;j++) {
 						if(SheetDef_.SheetFieldDefs[j].FieldName=="StateNoValidation") {
-							MessageBox.Show(Lan.g(this,"Input Fields \"State\" and \"StateNoValidation\" may not be present on the same form.  " +
+							ODMessageBox.Show(Lan.g(this,"Input Fields \"State\" and \"StateNoValidation\" may not be present on the same form.  " +
 								"Please remove one of these fields to continue."));
 							return false;
 						}
@@ -2899,7 +2900,7 @@ namespace OpenDental {
 			//If any duplicates are found in a language, show a message to the user for all duplicates.
 			if(listSheetFieldDefsErroneousDuplicates.Count>0) {
 				string errorMessage=GetDuplicateSheetFieldDefErrorMessage(listSheetFieldDefsErroneousDuplicates);
-				MessageBox.Show(errorMessage);
+				ODMessageBox.Show(errorMessage);
 				return false;
 			}
 			if(listSheetFieldDefsToDelete.Count>0) {
@@ -2909,32 +2910,32 @@ namespace OpenDental {
 					fieldsDeletedMessage.AppendLine(x.FieldName);
 					SheetDef_.SheetFieldDefs.Remove(x);
 				});
-				MessageBox.Show(fieldsDeletedMessage.ToString());
+				ODMessageBox.Show(fieldsDeletedMessage.ToString());
 			}
 			//Check that each check med has a matching med input.
 			if(listSheetFieldDefsCheckMedList.Count!=0 && listSheetFieldDefsInputMedList.Any(x => !listSheetFieldDefsCheckMedList.Exists(y => y.FieldName==x.FieldName.Replace("inputMed","checkMed")))) {
 				string inputMedMissingCheckBox=listSheetFieldDefsInputMedList.Select(x=>x.FieldName).Where(x=>!listSheetFieldDefsCheckMedList.Exists(y => y.FieldName==x.Replace("inputMed","checkMed"))).FirstOrDefault();
-				MessageBox.Show(Lan.g(this,"Missing checkMed boxes found")+": '"+inputMedMissingCheckBox.Replace("inputMed","checkMed")+"'. "+Lan.g(this,"All inputMed should have a corresponding checkMed, or all checkMeds should be excluded."));
+				ODMessageBox.Show(Lan.g(this,"Missing checkMed boxes found")+": '"+inputMedMissingCheckBox.Replace("inputMed","checkMed")+"'. "+Lan.g(this,"All inputMed should have a corresponding checkMed, or all checkMeds should be excluded."));
 				return false;
 			}
 			switch(SheetDef_.SheetType) {
 				case SheetTypeEnum.TreatmentPlan:
 					if(SheetDef_.SheetFieldDefs.FindAll(x => x.FieldType==SheetFieldType.SigBox).GroupBy(x => x.Language).Any(x => x.ToList().Count!=1)) {
-						MessageBox.Show(Lan.g(this,"Treatment plans must have exactly one patient signature box."));
+						ODMessageBox.Show(Lan.g(this,"Treatment plans must have exactly one patient signature box."));
 						return false;
 					}
 					if(SheetDef_.SheetFieldDefs.FindAll(x => x.FieldType==SheetFieldType.SigBoxPractice).GroupBy(x => x.Language).Any(x => x.ToList().Count>1)) {
-						MessageBox.Show(Lan.g(this,"Treatment plans cannot have more than one practice signature box."));
+						ODMessageBox.Show(Lan.g(this,"Treatment plans cannot have more than one practice signature box."));
 						return false;
 					}
 					if(SheetDef_.SheetFieldDefs.FindAll(x => x.FieldType==SheetFieldType.Grid && x.FieldName=="TreatPlanMain").GroupBy(x => x.Language).Any(x => x.ToList().Count<1)) {
-						MessageBox.Show(Lan.g(this,"Treatment plans must have one main grid."));
+						ODMessageBox.Show(Lan.g(this,"Treatment plans must have one main grid."));
 						return false;
 					}
 					break;
 				case SheetTypeEnum.PaymentPlan:
 					if(SheetDef_.SheetFieldDefs.FindAll(x => x.FieldType==SheetFieldType.SigBox).GroupBy(x => x.Language).Any(x => x.ToList().Count>1)) {
-						MessageBox.Show(Lan.g(this,"Payment plans cannot have more than one signature box."));
+						ODMessageBox.Show(Lan.g(this,"Payment plans cannot have more than one signature box."));
 						return false;
 					}
 					break;
@@ -3431,7 +3432,7 @@ namespace OpenDental {
 				g.DrawRectangle(pen2,rectangleHandleLR);
 			}
 			using Font font=new Font(FontFamily.GenericSansSerif,LayoutManager.UnscaleMS(8.25f));
-			g.DrawString("PatImage: "+Defs.GetName(DefCat.ImageCats,PIn.Long(sheetFieldDef.FieldName)),font,brushText,sheetFieldDef.XPos+1,sheetFieldDef.YPos+1);
+			g.DrawString("PatImage: "+Defs.GetName(DefCat.ImageCats,SIn.Long(sheetFieldDef.FieldName)),font,brushText,sheetFieldDef.XPos+1,sheetFieldDef.YPos+1);
 		}
 
 		private void DrawRectangle(SheetFieldDef sheetFieldDef,Graphics g,bool isSelected) {

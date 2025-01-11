@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -31,17 +32,17 @@ namespace OpenDental {
 		private List<string> ListTagsExludedFromArrivalResponseComeIn => new List<string> { OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ARRIVED_TAG };
 
 		private void LoadControls() {
-			textSMSAggShared.Text=PIn.String(Rule.TemplateSMSAggShared);
-			textSMSAggPerAppt.Text=PIn.String(Rule.TemplateSMSAggPerAppt);
-			textEmailSubjAggShared.Text=PIn.String(Rule.TemplateEmailSubjAggShared);
-			_templateEmailAggShared=PIn.String(Rule.TemplateEmailAggShared);
+			textSMSAggShared.Text=SIn.String(Rule.TemplateSMSAggShared);
+			textSMSAggPerAppt.Text=SIn.String(Rule.TemplateSMSAggPerAppt);
+			textEmailSubjAggShared.Text=SIn.String(Rule.TemplateEmailSubjAggShared);
+			_templateEmailAggShared=SIn.String(Rule.TemplateEmailAggShared);
 			RefreshEmail();
-			textEmailAggPerAppt.Text=PIn.String(Rule.TemplateEmailAggPerAppt);
+			textEmailAggPerAppt.Text=SIn.String(Rule.TemplateEmailAggPerAppt);
 			labelTags.Text=GetTagsAvailable();
-			textSingleAutoReply.Text=PIn.String(Rule.TemplateAutoReply);
-			textAggregateAutoReply.Text=PIn.String(Rule.TemplateAutoReplyAgg);
-			textArrivalResponse.Text=PIn.String(Rule.TemplateAutoReply);
-			textComeIn.Text=PIn.String(Rule.TemplateComeInMessage);
+			textSingleAutoReply.Text=SIn.String(Rule.TemplateAutoReply);
+			textAggregateAutoReply.Text=SIn.String(Rule.TemplateAutoReplyAgg);
+			textArrivalResponse.Text=SIn.String(Rule.TemplateAutoReply);
+			textComeIn.Text=SIn.String(Rule.TemplateComeInMessage);
 			if(Rule.TypeCur==ApptReminderType.PatientPortalInvite) {
 				textSMSAggShared.Enabled=false;
 				textSMSAggPerAppt.Enabled=false;

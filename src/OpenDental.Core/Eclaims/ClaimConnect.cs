@@ -20,6 +20,7 @@ using System.ComponentModel;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 using System.Net.Http;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -386,7 +387,7 @@ namespace OpenDentBusiness.Eclaims {
 				//This XML will be the SOAP body and exclude the header and envelope.
 				System.Xml.Serialization.XmlSerializer xml=new System.Xml.Serialization.XmlSerializer(textRequest.GetType());
 				try {
-					using StreamWriter writer=new StreamWriter(clearingHouse.ExportPath+"Claim"+POut.Long(claim.ClaimNum)+"XML.txt");
+					using StreamWriter writer=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"XML.txt");
 					xml.Serialize(writer,textRequest);
 				}
 				catch(Exception ex) {
@@ -443,14 +444,14 @@ namespace OpenDentBusiness.Eclaims {
 			#region Xml Serialization
 			if(PrefC.GetBool(PrefName.SaveDXCSOAPAsXML)) {
 				Clearinghouse clearingHouse=GetClearingHouseForClaim(claim);
-				using StreamWriter writer1=new StreamWriter(clearingHouse.ExportPath+"Claim"+POut.Long(claim.ClaimNum)+"CredentialsXML.txt");
+				using StreamWriter writer1=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"CredentialsXML.txt");
 				//Before running the serialization you will need to change the class DxcCredentials to public.
 				System.Xml.Serialization.XmlSerializer xml1=new System.Xml.Serialization.XmlSerializer(DxcCredentials.GetDentalxchangeCredentials(claim).GetType());
 				xml1.Serialize(writer1,DxcCredentials.GetDentalxchangeCredentials(claim));
-				using StreamWriter writer2=new StreamWriter(clearingHouse.ExportPath+"Claim"+POut.Long(claim.ClaimNum)+"AttachmentRequestXML.txt");
+				using StreamWriter writer2=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"AttachmentRequestXML.txt");
 				System.Xml.Serialization.XmlSerializer xml2=new System.Xml.Serialization.XmlSerializer(BuildAttachmentRequest(claim,narrative).GetType());
 				xml2.Serialize(writer2,BuildAttachmentRequest(claim,narrative));
-				using StreamWriter writer3=new StreamWriter(clearingHouse.ExportPath+"Claim"+POut.Long(claim.ClaimNum)+"AttachmentArrayXML.txt");
+				using StreamWriter writer3=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"AttachmentArrayXML.txt");
 				System.Xml.Serialization.XmlSerializer xml3=new System.Xml.Serialization.XmlSerializer(arrayAttachments.GetType());
 				xml3.Serialize(writer3,arrayAttachments);
 			}
@@ -1706,15 +1707,15 @@ namespace OpenDentBusiness.Eclaims {
 				xconnectAddress.fax=clinic.FaxNumber;
 			}
 			if(providerBill.IsNotPerson) {
-				xconnectAddress.entityType=POut.Int((int)EnumXConnectAddressEntityType.Organization);
-				xconnectAddress.organizationName=POut.String(providerBill.LName);
+				xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Organization);
+				xconnectAddress.organizationName=SOut.String(providerBill.LName);
 			}
 			else {
-				xconnectAddress.entityType=POut.Int((int)EnumXConnectAddressEntityType.Individual);
+				xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Individual);
 				xconnectAddress.firstName=providerBill.FName;
 				xconnectAddress.lastName=providerBill.LName;
 			}
-			xconnectAddress.type=POut.Int((int)EnumXConnectAddressType.Default);//Default. Never a paytoAddress always a physical address.
+			xconnectAddress.type=SOut.Int((int)EnumXConnectAddressType.Default);//Default. Never a paytoAddress always a physical address.
 			return xconnectAddress;
 		}
 
@@ -1730,12 +1731,12 @@ namespace OpenDentBusiness.Eclaims {
 				xconnectAddress.fax=clinic.FaxNumber;
 			}
 			//xconnectAddress.phoneExt=""
-			xconnectAddress.entityType=POut.Int((int)EnumXConnectAddressEntityType.Individual);
+			xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Individual);
 			if(providerBill.IsNotPerson) {
-				xconnectAddress.entityType=POut.Int((int)EnumXConnectAddressEntityType.Organization);
-				xconnectAddress.organizationName=POut.String(providerBill.LName);
+				xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Organization);
+				xconnectAddress.organizationName=SOut.String(providerBill.LName);
 			}
-			xconnectAddress.type=POut.Int((int)EnumXConnectAddressType.PayToAddress);
+			xconnectAddress.type=SOut.Int((int)EnumXConnectAddressType.PayToAddress);
 			return xconnectAddress;
 		}
 
@@ -1755,8 +1756,8 @@ namespace OpenDentBusiness.Eclaims {
 			xconnectAddress.firstName=patient.FName;
 			xconnectAddress.middleName=patient.MiddleI;
 			xconnectAddress.lastName=patient.LName;
-			xconnectAddress.entityType=POut.Int((int)EnumXConnectAddressEntityType.Individual);
-			xconnectAddress.type=POut.Int((int)EnumXConnectAddressType.Default);//Mark as Default instead of PayToAddress
+			xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Individual);
+			xconnectAddress.type=SOut.Int((int)EnumXConnectAddressType.Default);//Mark as Default instead of PayToAddress
 			return xconnectAddress;
 		}
 
@@ -1775,8 +1776,8 @@ namespace OpenDentBusiness.Eclaims {
 			//xconnectAddress.firstName=//Not needed for organizations.
 			//xconnectAddress.middleName=//Not needed for organizations.
 			//xconnectAddress.lastName=//Not needed for organizations.
-			xconnectAddress.entityType=POut.Int((int)EnumXConnectAddressEntityType.Organization);
-			xconnectAddress.type=POut.Int((int)EnumXConnectAddressType.Default);//Mark as Default instead of PayToAddress
+			xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Organization);
+			xconnectAddress.type=SOut.Int((int)EnumXConnectAddressType.Default);//Mark as Default instead of PayToAddress
 			return xconnectAddress;
 		}
 

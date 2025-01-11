@@ -17,6 +17,7 @@ using System.Globalization;
 using System.Data;
 using System.Linq;
 using System.IO;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness.WebServiceMainHQ;
 using OpenDentBusiness.WebTypes.WebSched.TimeSlot;
@@ -92,7 +93,7 @@ namespace OpenDental {
 			bool doOverrideBlankUpdateServerName=false;
 			bool isInvalidUpdateServerNameAllowed=false;
 			if(string.IsNullOrWhiteSpace(updateServerName)) {
-				dialogResult=MessageBox.Show(Lan.g(this,"The computer that has the eConnector service installed should be set as the Update Server.")+"\r\n"
+				dialogResult=ODMessageBox.Show(Lan.g(this,"The computer that has the eConnector service installed should be set as the Update Server.")+"\r\n"
 					+Lan.g(this,"Would you like to make this computer the Update Server?"),"",MessageBoxButtons.YesNoCancel);
 				if(dialogResult==DialogResult.Cancel) {
 					return;
@@ -102,7 +103,7 @@ namespace OpenDental {
 				}
 			}
 			else if(!ODEnvironment.IdIsThisComputer(updateServerName)) {
-				dialogResult=MessageBox.Show(Lan.g(this,"The eConnector service should be installed on the Update Server")+": "+updateServerName+"\r\n"
+				dialogResult=ODMessageBox.Show(Lan.g(this,"The eConnector service should be installed on the Update Server")+": "+updateServerName+"\r\n"
 					+Lan.g(this,"Are you trying to install the eConnector on a different computer by accident?"),"",MessageBoxButtons.YesNoCancel);
 				//Only saying No to this message box pop up will allow the user to continue (meaning they fully understand what they are getting into).
 				if(dialogResult!=DialogResult.No) {
@@ -179,7 +180,7 @@ namespace OpenDental {
 			if(!string.IsNullOrEmpty(serviceErrors)) {
 				string error=Lan.g(this,"There was a problem starting eConnector Services.  Please go manually start the following eConnector Services")
 					+":\r\n"+serviceErrors;
-				MessageBox.Show(error);
+				ODMessageBox.Show(error);
 			}
 			else {
 				MsgBox.Show(this,"eConnector Services Started.");
@@ -227,7 +228,7 @@ namespace OpenDental {
 				MsgBox.Show("Invalid entry for 'Delete logs older than'. Please enter a value between 0 and 36500.");
 				return;
 			}
-			int interval=PIn.Int(textLogCleanupInterval.Text);
+			int interval=SIn.Int(textLogCleanupInterval.Text);
 			doRefreshCache|=Prefs.UpdateInt(PrefName.EConnectorCleanupLoggerIntervalDays,interval);
 			doRefreshCache|=Prefs.UpdateBool(PrefName.EServiceListenerEnabled,checkEnableEServicesListener.Checked);
 			if(checkEmailsWithDiffProcess.Checked) {

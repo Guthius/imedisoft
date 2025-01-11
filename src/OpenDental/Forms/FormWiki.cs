@@ -120,7 +120,7 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				webBrowserWiki.DocumentText="";
-				MessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed. Click 'Edit' to fix this page.  Error message:")+" "+ex.Message);
+				ODMessageBox.Show(this,Lan.g(this,"This page is broken and cannot be viewed. Click 'Edit' to fix this page.  Error message:")+" "+ex.Message);
 			}
 			Text="Wiki - "+WikiPageCur.PageTitle;
 			#region historyMaint
@@ -318,7 +318,7 @@ namespace OpenDental {
 				pageName=pageName.Substring(5);
 				WikiPage wikiPage=WikiPages.GetByTitle(pageName);
 				if(wikiPage==null) {
-					MessageBox.Show("'"+_listHistoryNav[_listHistoryNav.Count-(1+_idxHistoryNavBack)]+"' page does not exist.");//very rare
+					ODMessageBox.Show("'"+_listHistoryNav[_listHistoryNav.Count-(1+_idxHistoryNavBack)]+"' page does not exist.");//very rare
 					return;
 				}
 				//historyNavBack--;//no need to decrement since this is only called from Back_Click and Forward_Click and the appropriate adjustment to this index happens there
@@ -540,7 +540,7 @@ namespace OpenDental {
 			else if(e.Url.ToString().Contains("wikifile:") && !/* ODEnvironment.IsCloudInstance */ false) {
 				string fileName=e.Url.ToString().Substring(e.Url.ToString().LastIndexOf("wikifile:")+9).Replace("/","\\");
 				if(!File.Exists(fileName)) {
-					MessageBox.Show(Lan.g(this,"File does not exist: ")+fileName);
+					ODMessageBox.Show(Lan.g(this,"File does not exist: ")+fileName);
 					e.Cancel=true;
 					return;
 				}
@@ -555,7 +555,7 @@ namespace OpenDental {
 			else if(e.Url.ToString().Contains("folder:") && !/* ODEnvironment.IsCloudInstance */ false) {
 				string folderName=e.Url.ToString().Substring(e.Url.ToString().LastIndexOf("folder:")+7).Replace("/","\\");
 				if(!Directory.Exists(folderName)) {
-					MessageBox.Show(Lan.g(this,"Folder does not exist: ")+folderName);
+					ODMessageBox.Show(Lan.g(this,"Folder does not exist: ")+folderName);
 					e.Cancel=true;
 					return;
 				}
@@ -570,7 +570,7 @@ namespace OpenDental {
 			else if(e.Url.ToString().Contains("wikifilecloud:")) {
 				string fileName=e.Url.ToString().Substring(e.Url.ToString().LastIndexOf("wikifilecloud:")+14);
 				if(!FileAtoZ.Exists(fileName)) {
-					MessageBox.Show(Lan.g(this,"File does not exist: ")+fileName);
+					ODMessageBox.Show(Lan.g(this,"File does not exist: ")+fileName);
 					e.Cancel=true;
 					return;
 				}
@@ -585,7 +585,7 @@ namespace OpenDental {
 			else if(e.Url.ToString().Contains("foldercloud:")) {
 				string folderName=e.Url.ToString().Substring(e.Url.ToString().LastIndexOf("foldercloud:")+12);
 				if(!FileAtoZ.DirectoryExists(folderName)) {
-					MessageBox.Show(Lan.g(this,"Folder does not exist: ")+folderName);
+					ODMessageBox.Show(Lan.g(this,"Folder does not exist: ")+folderName);
 					e.Cancel=true;
 					return;
 				}
@@ -631,7 +631,7 @@ namespace OpenDental {
 				//Continue to load the page.
 			}
 			else if(wikiPageDeleted!=null) {
-				if(MessageBox.Show(Lan.g(this,"WikiPage '")+pageTitle+Lan.g(this,"' is currently archived. Would you like to restore it?"),
+				if(ODMessageBox.Show(Lan.g(this,"WikiPage '")+pageTitle+Lan.g(this,"' is currently archived. Would you like to restore it?"),
 						"",MessageBoxButtons.OKCancel)!=DialogResult.OK) 
 				{
 					return;

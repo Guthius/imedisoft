@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Text;
+using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -74,7 +76,7 @@ namespace OpenDental{
 				days=0;
 			}
 			if(days>3650) {
-				switch(MessageBox.Show("Lock days set to greater than ten years, would you like to disable lock days instead?","",MessageBoxButtons.YesNoCancel)) {
+				switch(ODMessageBox.Show("Lock days set to greater than ten years, would you like to disable lock days instead?","",MessageBoxButtons.YesNoCancel)) {
 					case DialogResult.Cancel:
 						return;
 					case DialogResult.OK:
@@ -85,12 +87,12 @@ namespace OpenDental{
 						break;
 				}
 			}
-			DateTime date=PIn.Date(textDate.Text);
+			DateTime date=SIn.Date(textDate.Text);
 			//Get currently stored values for audit log.
 			string textDateOld=PrefC.GetDate(PrefName.SecurityLockDate).ToShortDateString();
 			string textDaysOld=PrefC.GetInt(PrefName.SecurityLockDays).ToString();
 			bool includesAdminOld=PrefC.GetBool(PrefName.SecurityLockIncludesAdmin);
-			if(Prefs.UpdateString(PrefName.SecurityLockDate,POut.Date(date,false))
+			if(Prefs.UpdateString(PrefName.SecurityLockDate,SOut.Date(date,false))
 				| Prefs.UpdateInt(PrefName.SecurityLockDays,days)
 				| Prefs.UpdateBool(PrefName.SecurityLockIncludesAdmin,checkAdmin.Checked)  )
 			{

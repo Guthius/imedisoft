@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -46,20 +47,20 @@ namespace OpenDental {
 		private void SetScheduledProcessObject() {
 			_scheduledProcess.ScheduledAction=comboScheduledAction.GetSelected<ScheduledActionEnum>(); 
 			_scheduledProcess.FrequencyToRun=comboFrequency.GetSelected<FrequencyToRunEnum>();
-			_scheduledProcess.TimeToRun=PIn.DateTime(textTimeToRun.Text);
+			_scheduledProcess.TimeToRun=SIn.DateTime(textTimeToRun.Text);
 		}
 
 		private bool ValidateFields() {
 			if(comboScheduledAction.SelectedIndex==-1) {
-				MessageBox.Show("A Scheduled Action must be selected.");
+				ODMessageBox.Show("A Scheduled Action must be selected.");
 				return false;
 			}
 			if(comboFrequency.SelectedIndex==-1) {
-				MessageBox.Show("A Frequency for the action must be selected.");
+				ODMessageBox.Show("A Frequency for the action must be selected.");
 				return false;
 			}
 			if(textTimeToRun.Text=="" || !textTimeToRun.IsValid()) {
-				MessageBox.Show("A valid time to run must be entered.");
+				ODMessageBox.Show("A valid time to run must be entered.");
 				return false;
 			}
 			return true;
@@ -97,7 +98,7 @@ namespace OpenDental {
 			}
 			SetScheduledProcessObject();
 			if(IsScheduled()) {
-				MessageBox.Show("There is an identical Action already scheduled for that time and frequency.");
+				ODMessageBox.Show("There is an identical Action already scheduled for that time and frequency.");
 				return;
 			}
 			if(_scheduledProcess.IsNew) {

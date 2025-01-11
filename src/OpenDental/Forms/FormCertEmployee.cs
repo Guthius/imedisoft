@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -54,12 +55,12 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter a valid date.");
 				return;
 			}
-			if(PIn.Date(textDateCompleted.Text)>DateTime.Today) {
+			if(SIn.Date(textDateCompleted.Text)>DateTime.Today) {
 				MsgBox.Show(this,"Date can not be greater than today.");
 				return;
 			}
-			CertEmployee.DateCompleted=PIn.Date(textDateCompleted.Text);
-			CertEmployee.Note=PIn.String(textNote.Text);
+			CertEmployee.DateCompleted=SIn.Date(textDateCompleted.Text);
+			CertEmployee.Note=SIn.String(textNote.Text);
 			CertEmployee.UserNum=Security.CurUser.UserNum;
 			if(CertEmployee.IsNew) {
 				CertEmployee.CertNum=Cert.CertNum;

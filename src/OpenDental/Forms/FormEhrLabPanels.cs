@@ -75,7 +75,7 @@ namespace OpenDental {
 
 		private void butSubmit_Click(object sender,EventArgs e) {
 			if(gridMain.SelectedIndices.Length==0) {
-				MessageBox.Show("Please select lab panels first.");
+				ODMessageBox.Show("Please select lab panels first.");
 				return;
 			}
 			List<LabPanel> panels=new List<LabPanel>();
@@ -89,7 +89,7 @@ namespace OpenDental {
 			}
 			catch(ApplicationException ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			string outputStr=oru.GenerateMessage();
@@ -98,16 +98,16 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Cursor=Cursors.Default;
-			MessageBox.Show("Sent");
+			ODMessageBox.Show("Sent");
 		}
 
 		private void butShow_Click(object sender,EventArgs e) {
 			if(gridMain.SelectedIndices.Length==0) {
-				MessageBox.Show("Please select lab panels first.");
+				ODMessageBox.Show("Please select lab panels first.");
 				return;
 			}
 			List<LabPanel> panels=new List<LabPanel>();
@@ -121,7 +121,7 @@ namespace OpenDental {
 			}
 			catch(ApplicationException ex) {
 				Cursor=Cursors.Default;
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			string outputStr=oru.GenerateMessage();
@@ -133,7 +133,7 @@ namespace OpenDental {
 		private void butOK_Click(object sender,EventArgs e) {
 			//not visible unless in selectionMode
 			if(gridMain.SelectedIndices.Length!=1) {
-				MessageBox.Show("Please select exactly one lab panel.");
+				ODMessageBox.Show("Please select exactly one lab panel.");
 				return;
 			}
 			SelectedLabPanelNum=listLP[gridMain.SelectedIndices[0]].LabPanelNum;

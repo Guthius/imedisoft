@@ -1200,11 +1200,11 @@ namespace OpenDental {
 				.Count();
 			//User needs to rearrage unorderable fields to put them in the correct position
 			if(numUnorderableMobileFields>0) {
-				MessageBox.Show(Lan.g(this,"One or more fields were found that cannot be ordered.\n" +
+				ODMessageBox.Show(Lan.g(this,"One or more fields were found that cannot be ordered.\n" +
 					"Please drag and drop the fields to the correct location and click OK in the main window to save the mobile order."));
 			}
 			else {
-				MessageBox.Show(Lan.g(this,"Fields ordered."));
+				ODMessageBox.Show(Lan.g(this,"Fields ordered."));
 			}
 		}
 		#endregion Methods - Event Handlers

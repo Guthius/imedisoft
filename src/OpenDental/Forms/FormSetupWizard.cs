@@ -260,7 +260,7 @@ namespace OpenDental {
 				didRemove=true;
 			}
 			if(didRemove) {
-				MessageBox.Show(message);
+				ODMessageBox.Show(message);
 			}
 		}
 

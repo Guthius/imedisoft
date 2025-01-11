@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental.Bridges{
 	/// <summary></summary>
@@ -184,7 +185,7 @@ namespace OpenDental.Bridges{
 					if(pickedName=="") {//Need to generate new folder name
 						int maxInt=0;
 						if(maxFolderName!="") {
-							maxInt=PIn.Int(maxFolderName.Substring(1));//It will crash here if can't parse the int.
+							maxInt=SIn.Int(maxFolderName.Substring(1));//It will crash here if can't parse the int.
 						}
 						maxInt++;
 						string paddedInt=maxInt.ToString().PadLeft(7,'0');

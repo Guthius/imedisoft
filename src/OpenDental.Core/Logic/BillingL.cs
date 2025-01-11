@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Data;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
@@ -832,7 +833,7 @@ public class BillingL
             {
                 //Get remaining statements given original constraints from UI.
                 DataTable table = sendStatementsIO.FuncGetBillingDataTable();
-                List<long> listStatementNumsFromDb = table.Select().Select(x => PIn.Long(x["StatementNum"].ToString())).ToList();
+                List<long> listStatementNumsFromDb = table.Select().Select(x => SIn.Long(x["StatementNum"].ToString())).ToList();
                 //Get statement nums yet to be sent from original run.
                 List<long> listStatementNumsUnsent = sendStatementsIO.ListStatementNumsToSend.Except(sendStatementsIO.ListStatementNumsSent).ToList();
                 //Capture any statements that were deleted while this billing progress was paused.
@@ -877,7 +878,7 @@ public class BillingL
         }
 
         SecurityLogs.MakeLogEntry(EnumPermType.AgingRan, 0, "Starting Aging - " + sendStatementsIO.Source);
-        Prefs.UpdateString(PrefName.AgingBeginDateTime, POut.DateTime(dateTimeNow, false)); //get lock on pref to block others
+        Prefs.UpdateString(PrefName.AgingBeginDateTime, SOut.DateTime(dateTimeNow, false)); //get lock on pref to block others
         Signalods.SetInvalid(InvalidType.Prefs); //signal a cache refresh so other computers will have the updated pref as quickly as possible
         sendStatementsIO.LogWrite(Lans.g("FormBilling", "Calculating enterprise aging for all patients as of") + " " + dateTimeToday.ToShortDateString() + "...", LogLevel.Information);
         bool ret = sendStatementsIO.FuncComputeAging(dateTimeToday);
@@ -885,7 +886,7 @@ public class BillingL
         if (ret)
         {
             //Only move aging date forward if success.
-            Prefs.UpdateString(PrefName.DateLastAging, POut.Date(dateTimeToday, false));
+            Prefs.UpdateString(PrefName.DateLastAging, SOut.Date(dateTimeToday, false));
             SecurityLogs.MakeLogEntry(EnumPermType.AgingRan, 0, "Aging complete - " + sendStatementsIO.Source);
         }
 

@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -55,7 +57,7 @@ namespace OpenDental {
 				Supplies.DeleteObject(SupplyCur);
 			}
 			catch(ApplicationException ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;
@@ -76,10 +78,10 @@ namespace OpenDental {
 			SupplyCur.Category=comboCategory.GetSelectedDefNum();
 			SupplyCur.CatalogNumber=textCatalogNumber.Text;
 			SupplyCur.Descript=textDescript.Text;
-			SupplyCur.LevelDesired=PIn.Float(textLevelDesired.Text);
-			SupplyCur.OrderQty=PIn.Int(textOrderQty.Text);
-			SupplyCur.Price=PIn.Double(textPrice.Text);
-			SupplyCur.LevelOnHand=PIn.Float(textOnHand.Text);
+			SupplyCur.LevelDesired=SIn.Float(textLevelDesired.Text);
+			SupplyCur.OrderQty=SIn.Int(textOrderQty.Text);
+			SupplyCur.Price=SIn.Double(textPrice.Text);
+			SupplyCur.LevelOnHand=SIn.Float(textOnHand.Text);
 			//the logic below handles some of the basics.  This is supplemented in some cases by the automatic order fixing.
 			if(!SupplyCur.IsHidden && checkIsHidden.Checked){//hiding
 				SupplyCur.ItemOrder=0;//not perfect.  Hidden get intermingled with the first item.

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -149,12 +150,12 @@ namespace OpenDental {
 
 		private void butLeft_Click(object sender, System.EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			_dateFrom=PIn.Date(textDateFrom.Text);
+			_dateFrom=SIn.Date(textDateFrom.Text);
 			textDateFrom.Text=_dateFrom.AddMonths(-1).ToShortDateString();
-			_dateTo=PIn.Date(textDateTo.Text);
+			_dateTo=SIn.Date(textDateTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(_dateTo.Year,_dateTo.Month)==_dateTo.Day){
 				toLastDay=true;
@@ -169,12 +170,12 @@ namespace OpenDental {
 
 		private void butRight_Click(object sender, System.EventArgs e) {
 			if(!textDateFrom.IsValid() || !textDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			_dateFrom=PIn.Date(textDateFrom.Text);
+			_dateFrom=SIn.Date(textDateFrom.Text);
 			textDateFrom.Text=_dateFrom.AddMonths(1).ToShortDateString();
-			_dateTo=PIn.Date(textDateTo.Text);
+			_dateTo=SIn.Date(textDateTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(_dateTo.Year,_dateTo.Month)==_dateTo.Day){
 				toLastDay=true;
@@ -195,8 +196,8 @@ namespace OpenDental {
 			if(checkAllClin.Checked) {
 				listClin.SetAll(true);
 			}
-			_dateFrom=PIn.Date(textDateFrom.Text);
-			_dateTo=PIn.Date(textDateTo.Text);
+			_dateFrom=SIn.Date(textDateFrom.Text);
+			_dateTo=SIn.Date(textDateTo.Text);
 			List<Provider> listProvs=new List<Provider>();
 			if(checkAllProv.Checked){
 				listProvs=_listProviders;
@@ -324,8 +325,8 @@ namespace OpenDental {
 					return;
 				}
 			}
-			_dateFrom=PIn.Date(textDateFrom.Text);
-			_dateTo=PIn.Date(textDateTo.Text);
+			_dateFrom=SIn.Date(textDateFrom.Text);
+			_dateTo=SIn.Date(textDateTo.Text);
 			if(_dateTo<_dateFrom) {
 				MsgBox.Show(this,"To date cannot be before From date.");
 				return;

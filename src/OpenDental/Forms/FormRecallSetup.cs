@@ -14,6 +14,7 @@ using System.Xml;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Globalization;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -106,7 +107,7 @@ namespace OpenDental{
 			string[] typearray=PrefC.GetString(PrefName.RecallTypesShowingInList).Split(',');
 			if(typearray.Length>0) {
 				for(int i=0;i<typearray.Length;i++) {
-					listRecallTypes.Add(PIn.Long(typearray[i]));
+					listRecallTypes.Add(SIn.Long(typearray[i]));
 				}
 			}
 			listRecallTypesCache=RecallTypes.GetWhere(x => x.Description!="Child Prophy");
@@ -522,8 +523,8 @@ namespace OpenDental{
 				Prefs.UpdateLong(PrefName.RecallDaysFuture,textDaysFuture.Value);
 			}
 			Prefs.UpdateBool(PrefName.RecallExcludeIfAnyFutureAppt,radioExcludeFutureYes.Checked);
-			Prefs.UpdateDouble(PrefName.RecallAdjustRight,PIn.Double(textRight.Text));
-			Prefs.UpdateDouble(PrefName.RecallAdjustDown,PIn.Double(textDown.Text));
+			Prefs.UpdateDouble(PrefName.RecallAdjustRight,SIn.Double(textRight.Text));
+			Prefs.UpdateDouble(PrefName.RecallAdjustDown,SIn.Double(textDown.Text));
 			//combo boxes These have already been checked for -1
 			Prefs.UpdateLong(PrefName.RecallStatusEmailed,comboStatusEmailedRecall.GetSelected<Def>().DefNum);
 			Prefs.UpdateLong(PrefName.RecallStatusMailed,comboStatusMailedRecall.GetSelected<Def>().DefNum);

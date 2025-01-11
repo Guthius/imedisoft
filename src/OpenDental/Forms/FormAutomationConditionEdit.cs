@@ -125,7 +125,7 @@ namespace OpenDental {
 				AutomationConditions.Delete(AutomationConditionCur.AutomationConditionNum);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

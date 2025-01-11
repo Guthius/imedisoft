@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -62,7 +63,7 @@ namespace OpenDental {
 			for(int i=0;i<ListColNames.Count;i++) {
 				ListColNames[i]=gridMain.ListGridRows[0].Cells[i].Text;
 				try {
-					ListColWidths[i]=PIn.Int(gridMain.ListGridRows[1].Cells[i].Text);
+					ListColWidths[i]=SIn.Int(gridMain.ListGridRows[1].Cells[i].Text);
 				}
 				catch {
 					MsgBox.Show(this,"Please enter only positive integer widths in the 2nd row");

@@ -18,14 +18,14 @@ namespace OpenDentBusiness {
 			if(hasClinicsEnabled && listClinicNums.Count > 0) {//Using clinics
 				whereClin+=" AND claimproc.ClinicNum IN("+string.Join(",",listClinicNums)+") ";
 			}
-			string query="SET @FromDate="+POut.Date(dateStart)+", @ToDate="+POut.Date(dateEnd)+";";
+			string query="SET @FromDate="+SOut.Date(dateStart)+", @ToDate="+SOut.Date(dateEnd)+";";
 			if(writeoffPayType==PPOWriteoffDateCalc.InsPayDate) {
 				query+="SELECT "+DbHelper.DtimeToDate("claimproc.DateCP")+" date,"
 					+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+","
 					+"carrier.CarrierName,"
 					+"provider.Abbr,";
 				if(hasClinicsEnabled) {
-					query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+POut.String(Lans.g("FormRpWriteoffSheet","hidden"))+")'),clinic.Abbr) Clinic,";
+					query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpWriteoffSheet","hidden"))+")'),clinic.Abbr) Clinic,";
 				}
 				query+="SUM(claimproc.WriteOff) $writeoff, "
 					+"claimproc.ClaimNum "
@@ -50,7 +50,7 @@ namespace OpenDentBusiness {
 					+"carrier.CarrierName, "
 					+"provider.Abbr,";
 				if(hasClinicsEnabled) {
-					query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+POut.String(Lans.g("FormRpWriteoffSheet","hidden"))+")'),clinic.Abbr) Clinic,";
+					query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpWriteoffSheet","hidden"))+")'),clinic.Abbr) Clinic,";
 				}
 				query+="SUM(claimproc.WriteOff) $writeoff "
 					+"FROM claimproc "
@@ -84,7 +84,7 @@ namespace OpenDentBusiness {
 											CONCAT(patient.LName,', ',patient.FName,' ',patient.MiddleI) patient,
 											carrier.CarrierName,
 											provider.Abbr,
-											IF(clinic.IsHidden,CONCAT(clinic.Abbr,'({POut.String(Lans.g("FormRpWriteoffSheet","hidden"))})'),clinic.Abbr) Clinic,		
+											IF(clinic.IsHidden,CONCAT(clinic.Abbr,'({SOut.String(Lans.g("FormRpWriteoffSheet","hidden"))})'),clinic.Abbr) Clinic,		
 											SUM(COALESCE(NULLIF(claimsnapshot.WriteOff,-1),0)) 'Estimate',
 											0 'Adjustment',
 											claimproc.ProvNum,
@@ -111,7 +111,7 @@ namespace OpenDentBusiness {
 											CONCAT(patient.LName,', ',patient.FName,' ',patient.MiddleI) patient,
 											carrier.CarrierName,
 											provider.Abbr,
-											IF(clinic.IsHidden,CONCAT(clinic.Abbr,'({POut.String(Lans.g("FormRpWriteoffSheet","hidden"))})'),clinic.Abbr) Clinic,
+											IF(clinic.IsHidden,CONCAT(clinic.Abbr,'({SOut.String(Lans.g("FormRpWriteoffSheet","hidden"))})'),clinic.Abbr) Clinic,
 											0 'Estimate',
 											SUM(COALESCE(NULLIF(claimproc.WriteOff,-1),0)-COALESCE(NULLIF(claimsnapshot.WriteOff,-1),0)) 'Adjustment',
 											claimproc.ProvNum,

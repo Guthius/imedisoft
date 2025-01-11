@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -212,7 +213,7 @@ namespace OpenDental
             for (int i = 0; i < table.Rows.Count; i++)
             {
                 DatabaseIntegrity databaseIntegrity = new DatabaseIntegrity();
-                databaseIntegrity.DatabaseIntegrityNum = PIn.Long(table.Rows[i]["DatabaseIntegrityNum"]);
+                databaseIntegrity.DatabaseIntegrityNum = SIn.Long(table.Rows[i]["DatabaseIntegrityNum"]);
                 string warningIntegrityType = table.Rows[i]["WarningIntegrityType"].ToString();
                 try
                 {

@@ -60,7 +60,7 @@ namespace OpenDental {
 		private void butTryAgain_Click(object sender,EventArgs e) {
 			Prefs.RefreshCache();
 			if(PrefC.GetString(PrefName.UpdateInProgressOnComputerName)!="") {
-				MessageBox.Show(Lan.g(this,"Workstation")+": '"+_updateComputerName+"' "+Lan.g(this,"is still updating.  Please wait and 'Try Again'"));
+				ODMessageBox.Show(Lan.g(this,"Workstation")+": '"+_updateComputerName+"' "+Lan.g(this,"is still updating.  Please wait and 'Try Again'"));
 				return;
 			}
 			DialogResult=DialogResult.OK;

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -54,7 +55,7 @@ namespace OpenDental {
 		///<summary>Turning on automated repeating charges, but recurring charges are also enabled and set to run before auto repeating charges.  Prompt user that this is unadvisable.</summary>
 		private void PromptRecurringRepeatingChargesTimes(object sender,EventArgs e) {
 			if(checkRepeatingChargesAutomated.Checked && checkRecurringChargesAutomated.Checked
-				&& PIn.DateTime(textRepeatingChargesAutomatedTime.Text).TimeOfDay>=PIn.DateTime(textRecurringChargesTime.Text).TimeOfDay)
+				&& SIn.DateTime(textRepeatingChargesAutomatedTime.Text).TimeOfDay>=SIn.DateTime(textRecurringChargesTime.Text).TimeOfDay)
 			{
 				MsgBox.Show(this,"Recurring charges run time is currently set before Repeating charges run time.\r\nConsider setting repeating charges to "
 					+"automatically run before recurring charges.");
@@ -111,9 +112,9 @@ namespace OpenDental {
 			Changed|=Prefs.UpdateBool(PrefName.RecurringChargesUseTransDate,checkRecurringChargesUseTransDate.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.RecurringChargesShowInactive,checkRecurringChargesShowInactive.Checked);
 			Changed|=Prefs.UpdateBool(PrefName.RecurringChargesAutomatedEnabled,checkRecurringChargesAutomated.Checked);
-			Changed|=Prefs.UpdateDateT(PrefName.RecurringChargesAutomatedTime,PIn.DateTime(textRecurringChargesTime.Text));
+			Changed|=Prefs.UpdateDateT(PrefName.RecurringChargesAutomatedTime,SIn.DateTime(textRecurringChargesTime.Text));
 			Changed|=Prefs.UpdateBool(PrefName.RepeatingChargesAutomated,checkRepeatingChargesAutomated.Checked);
-			Changed|=Prefs.UpdateDateT(PrefName.RepeatingChargesAutomatedTime,PIn.DateTime(textRepeatingChargesAutomatedTime.Text));
+			Changed|=Prefs.UpdateDateT(PrefName.RepeatingChargesAutomatedTime,SIn.DateTime(textRepeatingChargesAutomatedTime.Text));
 			Changed|=Prefs.UpdateBool(PrefName.RepeatingChargesRunAging,checkRepeatingChargesRunAging.Checked);
 			Changed|=Prefs.UpdateLong(PrefName.RecurringChargesPayTypeCC,comboRecurringChargePayType.GetSelectedDefNum());
 			Changed|=Prefs.UpdateBool(PrefName.RecurringChargesAllowedWhenNoPatBal,checkRecurPatBal0.Checked);

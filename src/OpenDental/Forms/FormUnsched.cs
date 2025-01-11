@@ -169,7 +169,7 @@ namespace OpenDental{
 						+PatRestrictions.GetPatRestrictDesc(PatRestrict.ApptSchedule)+".");
 					return;
 				}
-				MessageBox.Show("Appointments skipped due to patient restriction "+PatRestrictions.GetPatRestrictDesc(PatRestrict.ApptSchedule)
+				ODMessageBox.Show("Appointments skipped due to patient restriction "+PatRestrictions.GetPatRestrictDesc(PatRestrict.ApptSchedule)
 					+": "+patsRestricted+".");
 			}
 			GlobalFormOpenDental.GoToModule(EnumModuleType.Appointments, listPinApptNums:_listAptNumsSelected, dateSelected:DateTime.Today);//This will send all appointments in _listAptSelected to the pinboard, and will select the patient attached to the last appointment in _listAptSelected.
@@ -200,7 +200,7 @@ namespace OpenDental{
 				else {
 					commlogMsg="One or more appointments have notes.  Save appointment notes in CommLogs?";
 				}
-				DialogResult dialogResult=MessageBox.Show(commlogMsg,"Question...",MessageBoxButtons.YesNoCancel);
+				DialogResult dialogResult=ODMessageBox.Show(commlogMsg,"Question...",MessageBoxButtons.YesNoCancel);
 				if(dialogResult==DialogResult.Cancel) {
 					return;
 				}

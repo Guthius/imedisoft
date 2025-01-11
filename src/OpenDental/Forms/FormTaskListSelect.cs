@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -281,7 +282,7 @@ namespace OpenDental {
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1){
 				string msg=Lan.g(this,"Please select a ")+GetOTypeDescription()+Lan.g(this," first.");
-				MessageBox.Show(msg);
+				ODMessageBox.Show(msg);
 				return;
 			}
 			ListSelectedLists=gridMain.SelectedTags<TaskList>().Select(x => x.TaskListNum).ToList();

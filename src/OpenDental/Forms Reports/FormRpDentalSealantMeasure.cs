@@ -4,6 +4,7 @@ using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormRpDentalSealantMeasure:FormODBase {
@@ -32,8 +33,8 @@ namespace OpenDental {
 			int numerator=0;
 			int denominator=0;
 			foreach(DataRow row in tableMeasures.Rows) {
-				numerator+=PIn.Int(row["Numerator"].ToString());
-				denominator+=PIn.Int(row["Denominator"].ToString());
+				numerator+=SIn.Int(row["Numerator"].ToString());
+				denominator+=SIn.Int(row["Denominator"].ToString());
 			}
 			totalsRow["Provider"]="";
 			totalsRow["Numerator"]=numerator.ToString();

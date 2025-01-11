@@ -301,7 +301,7 @@ namespace OpenDental {
 			catch(ODException ex) {
 				//ODExceptions should already be Lans.g when throwing meaningful messages.
 				//If they weren't translated, the message was from a third party and shouldn't be translated anyway.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			catch(Exception ex) {

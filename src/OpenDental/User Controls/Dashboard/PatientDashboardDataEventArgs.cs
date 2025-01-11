@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental
@@ -177,8 +178,8 @@ namespace OpenDental
                 var row = tablePlannedAppts.Rows[i];
                 var plannedAppt = new Appointment();
                 plannedAppt.PatNum = pat.PatNum; //data.TablePlannedAppts will not have PatNum column.
-                plannedAppt.AptNum = PIn.Long(row["AptNum"].ToString());
-                plannedAppt.ItemOrderPlanned = PIn.Int(row["ItemOrder"].ToString());
+                plannedAppt.AptNum = SIn.Long(row["AptNum"].ToString());
+                plannedAppt.ItemOrderPlanned = SIn.Int(row["ItemOrder"].ToString());
                 listPlannedAppts.Add(plannedAppt);
             }
 

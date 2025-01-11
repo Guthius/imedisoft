@@ -6,6 +6,7 @@ using CodeBase;
 using System.Linq;
 using PdfSharp.Drawing;
 using System.Collections.Generic;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSheetDef:FormODBase {
@@ -319,8 +320,8 @@ namespace OpenDental {
 			}
 			SheetDefCur.FontName=comboFontName.GetSelected<string>();
 			SheetDefCur.FontSize=fontSize;
-			SheetDefCur.Width=PIn.Int(textWidth.Text);
-			SheetDefCur.Height=PIn.Int(textHeight.Text);
+			SheetDefCur.Width=SIn.Int(textWidth.Text);
+			SheetDefCur.Height=SIn.Int(textHeight.Text);
 			SheetDefCur.IsLandscape=checkIsLandscape.Checked;
 			SheetDefCur.HasMobileLayout=checkHasMobileLayout.Checked;
 			SheetDefCur.AutoCheckSaveImage=SetAutoCheckEnabled(SheetDefCur.SheetType) && checkAutoSaveCheck.Checked;

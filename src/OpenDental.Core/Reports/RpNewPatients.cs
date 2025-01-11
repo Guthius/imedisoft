@@ -27,7 +27,7 @@ namespace OpenDentBusiness {
 				            SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits))
 				        FROM procedurelog
 				        WHERE table1.PatNum=procedurelog.PatNum
-				            AND procedurelog.ProcStatus={POut.Int((int)ProcStat.C)}
+				            AND procedurelog.ProcStatus={SOut.Int((int)ProcStat.C)}
 				        ) $HowMuch
 								{(includeAddress? addressFields : "")}
 				    FROM (
@@ -36,24 +36,24 @@ namespace OpenDentBusiness {
 				            (SELECT 
 											MIN(pl2.ProcDate) 
 										FROM procedurelog pl2 
-										WHERE pl2.ProcStatus = {POut.Int((int)ProcStat.C)} 
+										WHERE pl2.ProcStatus = {SOut.Int((int)ProcStat.C)} 
 										AND pl2.PatNum = procedurelog.PatNum 
 										AND !FIND_IN_SET(pl2.CodeNum, '{missApptProcs}')
 										) dateFirstProc
 				        FROM procedurelog
 				        WHERE ProcStatus=2
-								AND procedurelog.ProcDate BETWEEN DATE({POut.Date(dateFrom)}) AND DATE({POut.Date(dateTo)})
+								AND procedurelog.ProcDate BETWEEN DATE({SOut.Date(dateFrom)}) AND DATE({SOut.Date(dateTo)})
 								GROUP BY PatNum
 				    ) table1
 				    INNER JOIN patient
 				        ON table1.PatNum=patient.PatNum
 				    LEFT JOIN refattach
 				        ON patient.PatNum=refattach.PatNum
-				        AND refattach.RefType={POut.Int((int)ReferralType.RefFrom)}
-				        AND refattach.ItemOrder=(SELECT MIN(ra.ItemOrder) FROM refattach ra WHERE ra.PatNum=refattach.PatNum AND ra.RefType={POut.Int((int)ReferralType.RefFrom)})
+				        AND refattach.RefType={SOut.Int((int)ReferralType.RefFrom)}
+				        AND refattach.ItemOrder=(SELECT MIN(ra.ItemOrder) FROM refattach ra WHERE ra.PatNum=refattach.PatNum AND ra.RefType={SOut.Int((int)ReferralType.RefFrom)})
 				    LEFT JOIN referral
 				        ON referral.ReferralNum=refattach.ReferralNum
-				    WHERE DATE(table1.dateFirstProc) BETWEEN DATE({POut.Date(dateFrom)}) AND DATE({POut.Date(dateTo)})
+				    WHERE DATE(table1.dateFirstProc) BETWEEN DATE({SOut.Date(dateFrom)}) AND DATE({SOut.Date(dateTo)})
 						{(!hasAllProvs? provWhere : "")}
 				    GROUP BY patient.LName,patient.FName,patient.PatNum,CONCAT(referral.LName,IF(referral.FName='','',','),referral.FName){(includeAddress? addressFields : "")}
 				    ORDER BY dateFirstProc,patient.LName,patient.FName

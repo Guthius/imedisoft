@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -203,7 +204,7 @@ namespace OpenDental {
 				listKnowledgeRequests=new List<KnowledgeRequest>();
 				KnowledgeRequest knowledgeRequest=new KnowledgeRequest();
 				knowledgeRequest.Type="Medication";
-				knowledgeRequest.Code=POut.Long(medicationPat.RxCui);
+				knowledgeRequest.Code=SOut.Long(medicationPat.RxCui);
 				knowledgeRequest.CodeSystem=CodeSyst.RxNorm;
 				knowledgeRequest.Description=medicationPat.MedDescript;
 				listKnowledgeRequests.Add(knowledgeRequest);
@@ -563,7 +564,7 @@ namespace OpenDental {
 
 		private void gridDiseases_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			if(DiseaseDefs.GetItem(_listDiseases[e.Row].DiseaseDefNum)==null) {
-				MessageBox.Show(Lan.g(this,"Invalid disease.  Please run database maintenance method")+" "
+				ODMessageBox.Show(Lan.g(this,"Invalid disease.  Please run database maintenance method")+" "
 					+nameof(DatabaseMaintenances.DiseaseWithInvalidDiseaseDef));
 				return;
 			}
@@ -1003,7 +1004,7 @@ namespace OpenDental {
 				listRows.Add(row);
 			}
 			#endregion
-			List<GridRow> listRowsOrderByOldest=listRows.OrderBy(x => PIn.Date(x.Cells[0].Text))//rows ordered by date, oldest first
+			List<GridRow> listRowsOrderByOldest=listRows.OrderBy(x => SIn.Date(x.Cells[0].Text))//rows ordered by date, oldest first
 				.ThenBy(x => x.Cells[3].Text!="")
 				//interventions at the top, declined med interventions below normal interventions
 				.ThenBy(x => x.Tag.GetType().Name!="Intervention" || ((Intervention)x.Tag).CodeSystem=="RXNORM").ToList();
@@ -1045,7 +1046,7 @@ namespace OpenDental {
 				return;
 			}
 			//Insert measure event if one does not already exist for this date
-			DateTime dateTEntered=PIn.DateTime(textDateAssessed.Text);//will be set to DateTime.Now when form loads
+			DateTime dateTEntered=SIn.DateTime(textDateAssessed.Text);//will be set to DateTime.Now when form loads
 			EhrMeasureEvent ehrMeasureEvent;
 			for(int i=0;i<gridAssessments.ListGridRows.Count;i++) {
 				ehrMeasureEvent=(EhrMeasureEvent)gridAssessments.ListGridRows[i].Tag;
@@ -1198,7 +1199,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"You must select a tobacco status.");
 				return;
 			}
-			DateTime dateTEntered=PIn.DateTime(textDateAssessed.Text);
+			DateTime dateTEntered=SIn.DateTime(textDateAssessed.Text);
 			EhrMeasureEvent ehrMeasureEvent=new EhrMeasureEvent();
 			ehrMeasureEvent.DateTEvent=dateTEntered;
 			ehrMeasureEvent.EventType=EhrMeasureEventType.TobaccoUseAssessed;
@@ -1219,15 +1220,15 @@ namespace OpenDental {
 				return;
 			}
 			EhrCode ehrCode=_listEhrCodesInterventions[comboInterventionCode.SelectedIndex];
-			DateTime dateTEntry=PIn.Date(textDateIntervention.Text);
+			DateTime dateTEntry=SIn.Date(textDateIntervention.Text);
 			if(ehrCode.CodeSystem=="RXNORM" && !checkPatientDeclined.Checked) {//if patient declines the medication, enter as a declined intervention
 				//codeVal will be RxCui of medication, see if it already exists in Medication table
-				Medication medication=Medications.GetMedicationFromDbByRxCui(PIn.Long(ehrCode.CodeValue));
+				Medication medication=Medications.GetMedicationFromDbByRxCui(SIn.Long(ehrCode.CodeValue));
 				if(medication==null) {//no med with this RxCui, create one
 					medication=new Medication();
 					Medications.Insert(medication);//so that we will have the primary key
 					medication.GenericNum=medication.MedicationNum;
-					medication.RxCui=PIn.Long(ehrCode.CodeValue);
+					medication.RxCui=SIn.Long(ehrCode.CodeValue);
 					medication.MedName=RxNorms.GetDescByRxCui(ehrCode.CodeValue);
 					Medications.Update(medication);
 					Medications.RefreshCache();//refresh cache to include new medication

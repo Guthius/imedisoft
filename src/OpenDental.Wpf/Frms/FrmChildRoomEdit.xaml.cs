@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DataConnectionBase;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -61,7 +62,7 @@ namespace OpenDental {
 			}
 			else {
 				try {
-					ratio=PIn.Int(textRatio.Text);
+					ratio=SIn.Int(textRatio.Text);
 				}
 				catch {
 					MsgBox.Show("Ratio must be value like 4 or 10.");

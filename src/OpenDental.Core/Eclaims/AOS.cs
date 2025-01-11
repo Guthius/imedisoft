@@ -1,35 +1,25 @@
 using System;
-using System.Diagnostics;
 using CodeBase;
-using OpenDentBusiness;
 
-namespace OpenDentBusiness.Eclaims
+namespace OpenDentBusiness.Eclaims;
+
+public class AOS
 {
-	/// <summary>
-	/// Summary description for AOS. added by SPK 7/13/05
-	/// </summary>
-	public class AOS{
-		
-		public static string ErrorMessage="";
-		public AOS()
-		{
-			
-		}
+    public static string ErrorMessage = "";
 
-		///<summary>Returns true if the communications were successful, and false if they failed.</summary>
-		public static bool Launch(Clearinghouse clearinghouseClin,int batchNum){ //called from Eclaims.cs. Clinic-level clearinghouse passed in.
-			try{
-				//call the client program
-				ODFileUtils.ProcessStart(clearinghouseClin.ClientProgram);
-			}
-			catch(Exception ex){
-				//X12.Rollback(clearinghouseClin,batchNum);//doesn't actually do anything
-				ErrorMessage=ex.Message;
-				return false;
-			}
-			return true;
-		}
+    public static bool Launch(Clearinghouse clearinghouseClin)
+    {
+        try
+        {
+            ODFileUtils.ProcessStart(clearinghouseClin.ClientProgram);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
 
+            return false;
+        }
 
-	}
+        return true;
+    }
 }

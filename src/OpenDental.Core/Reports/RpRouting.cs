@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpRouting {
@@ -14,8 +15,8 @@ namespace OpenDentBusiness {
 			//Excluding PtNote and PtNoteCompleted per Nathan and Arna, see job 1064
 			string command="SELECT AptNum FROM appointment "
 				+"WHERE "+DbHelper.DateTConditionColumn("AptDateTime",ConditionOperator.Equals,date)+" "
-				+"AND AptStatus NOT IN ("+POut.Int((int)ApptStatus.UnschedList)+","+POut.Int((int)ApptStatus.Planned)+","+POut.Int((int)ApptStatus.PtNote)+","
-					+POut.Int((int)ApptStatus.PtNoteCompleted)+") ";
+				+"AND AptStatus NOT IN ("+SOut.Int((int)ApptStatus.UnschedList)+","+SOut.Int((int)ApptStatus.Planned)+","+SOut.Int((int)ApptStatus.PtNote)+","
+					+SOut.Int((int)ApptStatus.PtNoteCompleted)+") ";
 			if(listProvNums!=null && listProvNums.Count>0) {
 				command+="AND (ProvNum IN ("+string.Join(",",listProvNums)+") OR ProvHyg IN ("+string.Join(",",listProvNums)+")) ";
 			}

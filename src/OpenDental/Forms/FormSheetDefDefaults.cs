@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -111,10 +112,10 @@ namespace OpenDental {
 			ClinicPref clinicPref=ClinicPrefs.GetPref(prefName,comboClinicDefault.ClinicNumSelected);
 			if(clinicPref==null || comboClinicDefault.ClinicNumSelected==0) {
 				Pref pref=Prefs.GetPref(prefName.GetDescription());
-				comboBox.SetSelectedKey<SheetDef>(PIn.Long(pref.ValueString),x=>x.SheetDefNum);
+				comboBox.SetSelectedKey<SheetDef>(SIn.Long(pref.ValueString),x=>x.SheetDefNum);
 			}
 			else {
-				comboBox.SetSelectedKey<SheetDef>(PIn.Long(clinicPref.ValueString),x=>x.SheetDefNum);
+				comboBox.SetSelectedKey<SheetDef>(SIn.Long(clinicPref.ValueString),x=>x.SheetDefNum);
 			}
 		}
 
@@ -146,10 +147,10 @@ namespace OpenDental {
 			ClinicPref clinicPref=ClinicPrefs.GetPref(prefName,comboClinicDefault.ClinicNumSelected);
 			if(clinicPref==null || comboClinicDefault.ClinicNumSelected==0) {
 				Pref pref=Prefs.GetPref(prefName.GetDescription());
-				return comboBox.GetSelectedKey<SheetDef>(x=>x.SheetDefNum)!=PIn.Long(pref.ValueString);//Inverse to tell if there was a change
+				return comboBox.GetSelectedKey<SheetDef>(x=>x.SheetDefNum)!=SIn.Long(pref.ValueString);//Inverse to tell if there was a change
 			} 
 			else {
-				return comboBox.GetSelectedKey<SheetDef>(x=>x.SheetDefNum)!=PIn.Long(clinicPref.ValueString);
+				return comboBox.GetSelectedKey<SheetDef>(x=>x.SheetDefNum)!=SIn.Long(clinicPref.ValueString);
 			}
 		}
 

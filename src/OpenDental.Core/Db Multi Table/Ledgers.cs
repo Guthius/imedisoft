@@ -88,14 +88,14 @@ namespace OpenDentBusiness{
 			if(listGuarantorNums.Count==1) {
 				FamAging famAgingCur=Crud.FamAgingCrud.SelectOne(GetAgingQueryString(asOfDate,listGuarantorNums));
 				command="UPDATE patient p SET "
-					+"p.BalOver90 =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.BalOver90)+" END,"
-					+"p.Bal_61_90 =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.Bal_61_90)+" END,"
-					+"p.Bal_31_60 =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.Bal_31_60)+" END,"
-					+"p.Bal_0_30  =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.Bal_0_30)+" END,"
-					+"p.BalTotal  =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.BalTotal)+" END,"
-					+"p.InsEst    =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.InsEst)+" END,"
-					+"p.PayPlanDue=CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+POut.Double(famAgingCur.PayPlanDue)+" END "
-					+"WHERE p.Guarantor="+POut.Long(listGuarantorNums[0]);
+					+"p.BalOver90 =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.BalOver90)+" END,"
+					+"p.Bal_61_90 =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.Bal_61_90)+" END,"
+					+"p.Bal_31_60 =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.Bal_31_60)+" END,"
+					+"p.Bal_0_30  =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.Bal_0_30)+" END,"
+					+"p.BalTotal  =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.BalTotal)+" END,"
+					+"p.InsEst    =CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.InsEst)+" END,"
+					+"p.PayPlanDue=CASE WHEN p.Guarantor!=p.PatNum THEN 0 ELSE "+SOut.Double(famAgingCur.PayPlanDue)+" END "
+					+"WHERE p.Guarantor="+SOut.Long(listGuarantorNums[0]);
 			}
 			else {
 				List<FamAging> listFamAgings=Crud.FamAgingCrud.SelectMany(GetAgingQueryString(asOfDate,listGuarantorNums)
@@ -144,7 +144,7 @@ namespace OpenDentBusiness{
 						+"finished or date and time is cleared.");
 				}
 				else {
-					Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateTime(dtNow,false));//get lock on pref to block others
+					Prefs.UpdateString(PrefName.AgingBeginDateTime,SOut.DateTime(dtNow,false));//get lock on pref to block others
 					Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
 					try {
 						Ledgers.ComputeAging(listGuarantorNums,DateTime.Today.Date);
@@ -164,7 +164,7 @@ namespace OpenDentBusiness{
 		///<summary>Generates a dictionary where the Key:PatNum and Val:FamilyBalance for passed-in guarantors.</summary>
 		public static Dictionary<long,double> GetBalancesForFamilies(List<long> listGuarantorNums) {
 			string command = GetAgingQueryString(DateTime.Today,listGuarantorNums);
-			return DataCore.GetTable(command).Rows.OfType<DataRow>().ToDictionary(x => PIn.Long(x["PatNum"].ToString()),y => PIn.Double(y["BalTotal"].ToString()));
+			return DataCore.GetTable(command).Rows.OfType<DataRow>().ToDictionary(x => SIn.Long(x["PatNum"].ToString()),y => SIn.Double(y["BalTotal"].ToString()));
 		}
 
 		///<summary>Returns a query string for selecting the guarantor and aged bals with InsEst and PayPlanDue.
@@ -213,7 +213,7 @@ namespace OpenDentBusiness{
 		{
 			string command=GetAgingGuarTransQuery(asOfDate,listGuarantors,hasDateLastPay,isHistoric,isGroupByGuar,
 				isWoAged,doAgePatPayPlanPayments);
-			return DataCore.GetTable(command).Rows.OfType<DataRow>().ToDictionary(x => PIn.Long(x["PatNum"].ToString()),y => y);
+			return DataCore.GetTable(command).Rows.OfType<DataRow>().ToDictionary(x => SIn.Long(x["PatNum"].ToString()),y => y);
 		}
 
 		///<summary>Returns a query string.</summary>
@@ -223,10 +223,10 @@ namespace OpenDentBusiness{
 			if(asOfDate.Year<1880) {
 				asOfDate=DateTime.Today;
 			}
-			string asOfDateStr=POut.Date(asOfDate);
-			string thirtyDaysAgo=POut.Date(asOfDate.AddDays(-30));
-			string sixtyDaysAgo=POut.Date(asOfDate.AddDays(-60));
-			string ninetyDaysAgo=POut.Date(asOfDate.AddDays(-90));
+			string asOfDateStr=SOut.Date(asOfDate);
+			string thirtyDaysAgo=SOut.Date(asOfDate.AddDays(-30));
+			string sixtyDaysAgo=SOut.Date(asOfDate.AddDays(-60));
+			string ninetyDaysAgo=SOut.Date(asOfDate.AddDays(-90));
 			string familyPatNums="";
 			string command="";
 			if(listGuarantors!=null && listGuarantors.Any(x => x>0)) {
@@ -342,12 +342,12 @@ namespace OpenDentBusiness{
 				//This if statement never really does anything.  The only places that call this function with historic=true don't look at the
 				//patient.payplandue amount, and patient aging gets reset after the reports are generated.  In the future if we start looking at payment plan
 				//due amounts when historic=true we may need to revaluate this if statement.
-				billInAdvanceDate=POut.Date(DateTime.Today.AddDays(PrefC.GetLong(PrefName.PayPlansBillInAdvanceDays)));
+				billInAdvanceDate=SOut.Date(DateTime.Today.AddDays(PrefC.GetLong(PrefName.PayPlansBillInAdvanceDays)));
 			}
 			else {
-				billInAdvanceDate=POut.Date(asOfDate.AddDays(PrefC.GetLong(PrefName.PayPlansBillInAdvanceDays)));
+				billInAdvanceDate=SOut.Date(asOfDate.AddDays(PrefC.GetLong(PrefName.PayPlansBillInAdvanceDays)));
 			}
-			string asOfDateStr=POut.Date(asOfDate);
+			string asOfDateStr=SOut.Date(asOfDate);
 			PayPlanVersions payPlanVersionCur=(PayPlanVersions)PrefC.GetInt(PrefName.PayPlansVersion);
 			bool isAllPats=string.IsNullOrWhiteSpace(familyPatNums);
 			string command="";
@@ -493,7 +493,7 @@ namespace OpenDentBusiness{
 				+"FROM payplancharge ppc "
 				+"INNER JOIN payplan pp ON ppc.PayPlanNum=pp.PayPlanNum "
 				+"WHERE ppc.ChargeDate <= "+billInAdvanceDate+" "//accounts for historic vs current because of how it's set above
-				+"AND ppc.ChargeType="+POut.Int((int)PayPlanChargeType.Debit)+" "
+				+"AND ppc.ChargeType="+SOut.Int((int)PayPlanChargeType.Debit)+" "
 				+(payPlanVersionCur==PayPlanVersions.AgeCreditsAndDebits?"AND !pp.IsClosed ":"")
 				+(isAllPats?"":("AND ppc.Guarantor IN ("+familyPatNums+") "))
 				+"AND ppc.Principal+ppc.Interest != 0 "
@@ -521,18 +521,18 @@ namespace OpenDentBusiness{
 				//For debits, use the guarantor on the payplancharge (because that is the person that needs to be paying on the payment plan).
 				command+="UNION ALL "
 					+"SELECT 'PPCComplete' TranType,ppc.PayPlanChargeNum PriKey,"
-					+"(CASE WHEN ppc.ChargeType = "+POut.Int((int)PayPlanChargeType.Debit)+" THEN ppc.Guarantor ELSE pp.PatNum END) PatNum,"
+					+"(CASE WHEN ppc.ChargeType = "+SOut.Int((int)PayPlanChargeType.Debit)+" THEN ppc.Guarantor ELSE pp.PatNum END) PatNum,"
 					+"ppc.ChargeDate TranDate,"
-					+"(CASE WHEN ppc.ChargeType != "+POut.Int((int)PayPlanChargeType.Debit)+" THEN -ppc.Principal "
+					+"(CASE WHEN ppc.ChargeType != "+SOut.Int((int)PayPlanChargeType.Debit)+" THEN -ppc.Principal "
 						+"WHEN pp.PlanNum=0 THEN ppc.Principal+ppc.Interest ELSE 0 END) TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
 					+(doIncludeProcNum?",0 ProcNum,0 PayNum":"")
-					+(isAgedByProc?",(CASE WHEN ppc.ChargeType="+POut.Int((int)PayPlanChargeType.Credit)+" THEN ppc.ProcNum ELSE 0 END) AgedProcNum":"")
+					+(isAgedByProc?",(CASE WHEN ppc.ChargeType="+SOut.Int((int)PayPlanChargeType.Credit)+" THEN ppc.ProcNum ELSE 0 END) AgedProcNum":"")
 					+(isAgedByProc?",pl.ProcDate AgedProcDate":"")+" "
 					+"FROM payplancharge ppc "
 					+"LEFT JOIN payplan pp ON pp.PayPlanNum=ppc.PayPlanNum "
 					+(isAgedByProc?"LEFT JOIN procedurelog pl ON pl.ProcNum=ppc.ProcNum ":"")
 					+"WHERE ppc.ChargeDate <= "+asOfDateStr+" "
-					+(isAllPats?"":("AND (CASE WHEN ppc.ChargeType = "+POut.Int((int)PayPlanChargeType.Debit)+" THEN ppc.Guarantor ELSE ppc.PatNum end) IN ("+familyPatNums+") "));
+					+(isAllPats?"":("AND (CASE WHEN ppc.ChargeType = "+SOut.Int((int)PayPlanChargeType.Debit)+" THEN ppc.Guarantor ELSE ppc.PatNum end) IN ("+familyPatNums+") "));
 			}
 			#endregion PayPlan Version 2
 			#region PayPlan Version 3
@@ -547,7 +547,7 @@ namespace OpenDentBusiness{
 					+"LEFT JOIN payplan pp ON pp.PayPlanNum=ppc.PayPlanNum "
 					+(isAgedByProc?"LEFT JOIN procedurelog pl ON pl.ProcNum=ppc.ProcNum ":"")
 					+"WHERE ppc.ChargeDate <= "+asOfDateStr+" "
-					+"AND ppc.ChargeType = "+POut.Int((int)PayPlanChargeType.Credit)+" "
+					+"AND ppc.ChargeType = "+SOut.Int((int)PayPlanChargeType.Credit)+" "
 					+(isAllPats?"":("AND ppc.PatNum IN ("+familyPatNums+") "));
 			}
 			#endregion PayPlan Version 3
@@ -580,8 +580,8 @@ namespace OpenDentBusiness{
 						FROM payplanlink
 						INNER JOIN payplan ON payplanlink.PayPlanNum=payplan.PayPlanNum
 						INNER JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey
-							AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Procedure)}
-							AND procedurelog.ProcStatus={POut.Int((int)ProcStat.C)}
+							AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Procedure)}
+							AND procedurelog.ProcStatus={SOut.Int((int)ProcStat.C)}
 						LEFT JOIN (
 							SELECT SUM(adjustment.AdjAmt) AdjAmt,adjustment.ProcNum,adjustment.PatNum,adjustment.ProvNum,adjustment.ClinicNum
 							FROM adjustment ";
@@ -593,17 +593,17 @@ namespace OpenDentBusiness{
 							AND procAdj.ClinicNum=procedurelog.ClinicNum
 						LEFT JOIN (
 							SELECT SUM(COALESCE((CASE WHEN claimproc.Status IN (
-								{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+								{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 							) THEN claimproc.InsPayAmt 
 								WHEN claimproc.InsEstTotalOverride!=-1 THEN claimproc.InsEstTotalOverride ELSE claimproc.InsPayEst END),0)*-1) InsPay
 							,SUM(COALESCE((CASE WHEN claimproc.Status IN (
-								{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+								{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 							)	THEN claimproc.WriteOff 
 								WHEN claimproc.WriteOffEstOverride!=-1 THEN claimproc.WriteOffEstOverride 
 								WHEN claimproc.WriteOffEst!=-1 THEN claimproc.WriteOffEst ELSE 0 END),0)*-1) WriteOff
 							,claimproc.ProcNum
 							FROM claimproc 
-							WHERE claimproc.Status!={POut.Int((int)ClaimProcStatus.Preauth)} ";
+							WHERE claimproc.Status!={SOut.Int((int)ClaimProcStatus.Preauth)} ";
 							command+=isAllPats?"":$"AND claimproc.PatNum IN ({familyPatNums}) ";
 							command+=$@"GROUP BY claimproc.ProcNum
 						)procClaimProc ON procClaimProc.ProcNum=procedurelog.ProcNum 
@@ -619,7 +619,7 @@ namespace OpenDentBusiness{
 							,0 ProcNum,adjustment.AdjDate AgeDate 
 						FROM payplanlink 
 						INNER JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey 
-							AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Adjustment)} 
+							AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Adjustment)} 
 						LEFT JOIN (
 								SELECT SUM(COALESCE(paysplit.SplitAmt,0))*-1 SplitAmt,paysplit.AdjNum
 								FROM paysplit
@@ -676,14 +676,14 @@ namespace OpenDentBusiness{
 			return DataCore.GetTable(command).Select()
 				.Where(x => dictTranTypes.ContainsKey(x["TranType"].ToString()))
 				.Select(x => new TsiTrans(
-					PIn.Long(x["PriKey"].ToString()),
+					SIn.Long(x["PriKey"].ToString()),
 					dictTranTypes[x["TranType"].ToString()],
-					PIn.Long(x["ProcNum"].ToString()),
-					PIn.Long(x["PayNum"].ToString()),
-					PIn.Long(x["PatNum"].ToString()),
-					PIn.Long(x["Guarantor"].ToString()),
-					PIn.Date(x["TranDate"].ToString()),
-					PIn.Double(x["TranAmount"].ToString())-PIn.Double(x["InsEst"].ToString())//have to subtract InsEst so that balance due will match the PatAging.AmountDue
+					SIn.Long(x["ProcNum"].ToString()),
+					SIn.Long(x["PayNum"].ToString()),
+					SIn.Long(x["PatNum"].ToString()),
+					SIn.Long(x["Guarantor"].ToString()),
+					SIn.Date(x["TranDate"].ToString()),
+					SIn.Double(x["TranAmount"].ToString())-SIn.Double(x["InsEst"].ToString())//have to subtract InsEst so that balance due will match the PatAging.AmountDue
 				)).ToList();
 		}
 
@@ -777,8 +777,8 @@ namespace OpenDentBusiness{
 						.Select(x => x.TranDate).DefaultIfEmpty(DateTime.MinValue).Min());
 				}
 				row=retval.NewRow();
-				row["PatNum"]=POut.Long(patAgeCur.PatNum);
-				row["ClinicNum"]=POut.Long(patAgeCur.ClinicNum);
+				row["PatNum"]=SOut.Long(patAgeCur.PatNum);
+				row["ClinicNum"]=SOut.Long(patAgeCur.ClinicNum);
 				//set to the oldest balance date for all guarantors on this superbill, or if not a super bill, the oldest balance date for this guarantor
 				//could be DateTime.MinValue if their credits pay for all of their charges
 				row["DateAccountAge"]=listDateBals.Where(x => x>DateTime.MinValue).DefaultIfEmpty(DateTime.MinValue).Min();
@@ -812,22 +812,22 @@ namespace OpenDentBusiness{
 				return retval;
 			}
 			Dictionary<long,double> dictGuarCreditTotals=table.Select()
-				.GroupBy(x => PIn.Long(x["PatNum"].ToString()),x => PIn.Double(x["PayForDate"].ToString()))
+				.GroupBy(x => SIn.Long(x["PatNum"].ToString()),x => SIn.Double(x["PayForDate"].ToString()))
 				.ToDictionary(x => x.Key,y => y.Sum());
 			double runningChargesToDate=0;
 			double runningCreditsToDate=0;
 			long guarNumCur;
 			foreach(DataRow rowCur in table.Rows) {
-				guarNumCur=PIn.Long(rowCur["PatNum"].ToString());
+				guarNumCur=SIn.Long(rowCur["PatNum"].ToString());
 				if(!retval.ContainsKey(guarNumCur)) {
 					retval[guarNumCur]=new List<GuarDateBals>();
 					runningChargesToDate=0;
 					runningCreditsToDate=0;
 				}
-				runningChargesToDate+=PIn.Double(rowCur["ChargeForDate"].ToString());
-				runningCreditsToDate+=PIn.Double(rowCur["PayForDate"].ToString());
+				runningChargesToDate+=SIn.Double(rowCur["ChargeForDate"].ToString());
+				runningCreditsToDate+=SIn.Double(rowCur["PayForDate"].ToString());
 				retval[guarNumCur].Add(new GuarDateBals() {
-					TranDate=PIn.Date(rowCur["TranDate"].ToString()),
+					TranDate=SIn.Date(rowCur["TranDate"].ToString()),
 					Bal=runningChargesToDate+dictGuarCreditTotals[guarNumCur],
 					BalZero=runningChargesToDate+runningCreditsToDate
 				});

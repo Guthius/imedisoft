@@ -12,6 +12,7 @@ using System.IO;
 using CodeBase;
 using OpenDentBusiness.Eclaims;
 using System.Text;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental {
@@ -210,7 +211,7 @@ namespace OpenDental {
 				Document document=Documents.GetByNum(_docNumSelected);
 				fileName=document.FileName;
 				if(fileName.EndsWith(".pdf")) {
-					MessageBox.Show(this,"PDF attachments are not supported.");
+					ODMessageBox.Show(this,"PDF attachments are not supported.");
 					return false;
 				}
 				if(!fileName.ToLower().EndsWith(".bmp")
@@ -249,7 +250,7 @@ namespace OpenDental {
 				//Create an ImageAttachment object to send to ClaimConnect.
 				_claimConnectImageAttachment=ClaimConnect.ImageAttachment.Create(
 					fileName:textFileName.Text,
-					createdDate:PIn.Date(textDateCreated.Text),
+					createdDate:SIn.Date(textDateCreated.Text),
 					typeCodeImage:listBoxImageType.GetSelected<ClaimConnect.ImageTypeCode>(),
 					imageClaim:bitmap,
 					rightOrientation:!checkIsXrayMirrored.Checked);
@@ -263,7 +264,7 @@ namespace OpenDental {
 			catch(ODException ex) {
 				//ODExceptions should already be Lans.g when throwing meaningful messages.
 				//If they weren't translated, the message was from a third party and shouldn't be translated anyway.
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return false;
 			}
 			catch(Exception ex) {

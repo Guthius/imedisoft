@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -79,14 +80,14 @@ namespace OpenDental {
 				if(listPayorTypes[i].PayorTypeNum==_payorType.PayorTypeNum) {
 					continue;
 				}
-				if(listPayorTypes[i].DateStart==PIn.Date(textDate.Text)) {
+				if(listPayorTypes[i].DateStart==SIn.Date(textDate.Text)) {
 					MsgBox.Show(this,"There is already a payor type with the selected start date.  Either change the date of this payor type or edit the existing payor type with this date.");
 					return;
 				}
 			}
 			_payorType.SopCode=_listSops[comboSopCode.SelectedIndex].SopCode;
 			_payorType.Note=textNote.Text;
-			_payorType.DateStart=PIn.Date(textDate.Text);
+			_payorType.DateStart=SIn.Date(textDate.Text);
 			if(IsNew) {
 				PayorTypes.Insert(_payorType);
 			}

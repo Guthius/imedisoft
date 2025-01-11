@@ -1,6 +1,7 @@
 ﻿using OpenDentBusiness;
 using System;
 using System.Windows.Forms;
+using CodeBase;
 
 namespace OpenDental {
 	public partial class FormEhrAmendmentEdit:FormODBase {
@@ -111,15 +112,15 @@ namespace OpenDental {
 				return;
 			}
 			if(comboSource.SelectedIndex==-1) {
-				MessageBox.Show("Please select an amendment source.");
+				ODMessageBox.Show("Please select an amendment source.");
 				return;
 			}
 			if(textSourceName.Text=="") {
-				MessageBox.Show("Please input a source name.");
+				ODMessageBox.Show("Please input a source name.");
 				return;
 			}
 			if(textDescription.Text=="") {
-				MessageBox.Show("Please input an amendment description.");
+				ODMessageBox.Show("Please input an amendment description.");
 				return;
 			}
 			YN YNstatus;

@@ -62,8 +62,8 @@ namespace OpenDentBusiness {
 				+" INNER JOIN insplan ON insplan.PlanNum=claim.PlanNum"
 				+" INNER JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum"
 				+clinJoin
-				+" WHERE claim.DateService >= "+POut.Date(fromDate)
-				+" AND claim.DateService <= "+POut.Date(toDate)
+				+" WHERE claim.DateService >= "+SOut.Date(fromDate)
+				+" AND claim.DateService <= "+SOut.Date(toDate)
 				+whereClin
 				+claimFilter
 				+" GROUP BY claim.ClaimNum";

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Cloud.Storage;
@@ -135,7 +136,7 @@ namespace OpenDental{
 		private void butClaimPay_Click(object sender,EventArgs e) {
 			if(!Security.IsAuthorized(EnumPermType.InsPayCreate,true) && !Security.IsAuthorized(EnumPermType.InsPayEdit,true)) {
 				//Custom message for multiple permissions.
-				MessageBox.Show(Lan.g(this,"Not authorized")+".\r\n"
+				ODMessageBox.Show(Lan.g(this,"Not authorized")+".\r\n"
 					+Lan.g(this,"A user with the SecurityAdmin permission must grant you access for")+":\r\n"
 					+Lan.g(this,"Insurance Payment Create or Insurance Payment Edit"));
 				return;
@@ -161,7 +162,7 @@ namespace OpenDental{
 				progressOD.ShowDialog();
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			Employee EmployeeOld=_employee.Copy();
@@ -193,7 +194,7 @@ namespace OpenDental{
 				progressOD.ShowDialog();
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DataValid.SetInvalid(InvalidType.PhoneEmpDefaults);
@@ -993,7 +994,7 @@ namespace OpenDental{
 			for(int i=0;i<_listSigMessages.Count;i++) {
 				if(checkIncludeAck.Checked) {
 					if(_listSigMessages[i].AckDateTime.Year>1880//if this is acked
-						&& _listSigMessages[i].AckDateTime<DateTime.Today.AddDays(1-PIn.Long(textDays.Text))) {
+						&& _listSigMessages[i].AckDateTime<DateTime.Today.AddDays(1-SIn.Long(textDays.Text))) {
 						continue;
 					}
 				}

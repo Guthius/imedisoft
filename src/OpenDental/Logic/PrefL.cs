@@ -158,7 +158,7 @@ namespace OpenDental
                 //We do not want to install in case this is a pre-test cloud database.
                 if (!isSilent)
                 {
-                    MessageBox.Show(Lans.g("ServicesHelper", "Not allowed to install the OpenDentalEConnector service in cloud mode."));
+                    ODMessageBox.Show(Lans.g("ServicesHelper", "Not allowed to install the OpenDentalEConnector service in cloud mode."));
                 }
 
                 return false;
@@ -185,7 +185,7 @@ namespace OpenDental
                     {
                         if (!isSilent)
                         {
-                            MessageBox.Show(Lans.g("ServicesHelper", "Failed to get host name:") + " " + ex.Message);
+                            ODMessageBox.Show(Lans.g("ServicesHelper", "Failed to get host name:") + " " + ex.Message);
                         }
 
                         return false;
@@ -261,7 +261,7 @@ namespace OpenDental
                 XmlDocument xmlDocument = new XmlDocument();
                 xmlDocument.LoadXml(response);
                 XmlNode xmlNode = xmlDocument.SelectSingleNode("//IsDevKey");
-                return PIn.Bool(xmlNode.InnerText);
+                return SIn.Bool(xmlNode.InnerText);
             }
             catch (Exception ex)
             {

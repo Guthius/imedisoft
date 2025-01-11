@@ -6,15 +6,16 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpInsAging {
 		public static DataTable GetInsAgingTable(RpAgingParamObject rpo) {			
 			#region Insurance Aging
-			string asOfDateStr=POut.Date(rpo.AsOfDate);
-			string thirtyDaysAgo=POut.Date(rpo.AsOfDate.AddDays(-30));
-			string sixtyDaysAgo=POut.Date(rpo.AsOfDate.AddDays(-60));
-			string ninetyDaysAgo=POut.Date(rpo.AsOfDate.AddDays(-90));
+			string asOfDateStr=SOut.Date(rpo.AsOfDate);
+			string thirtyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-30));
+			string sixtyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-60));
+			string ninetyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-90));
 			string patOrGuar=(rpo.IsGroupByFam?"guar":"patient");
 			string command="SELECT guarAging.PatNum,";
 			if(ReportsComplex.RunFuncOnReportServer(() => Prefs.GetBoolNoCache(PrefName.ReportsShowPatNum))) {
@@ -55,13 +56,13 @@ namespace OpenDentBusiness {
 				}
 			}
 			if(rpo.ListBillTypes.Count>0){//if all bill types is selected, list will be empty
-				command+="AND "+patOrGuar+".BillingType IN ("+string.Join(",",rpo.ListBillTypes.Select(x => POut.Long(x)))+") ";
+				command+="AND "+patOrGuar+".BillingType IN ("+string.Join(",",rpo.ListBillTypes.Select(x => SOut.Long(x)))+") ";
 			}
 			if(rpo.ListProvNums.Count>0) {//if all provs is selected, list will be empty
-				command+="AND "+patOrGuar+".PriProv IN ("+string.Join(",",rpo.ListProvNums.Select(x => POut.Long(x)))+") ";
+				command+="AND "+patOrGuar+".PriProv IN ("+string.Join(",",rpo.ListProvNums.Select(x => SOut.Long(x)))+") ";
 			}
 			if(rpo.ListClinicNums.Count>0) {//listClin may contain "Unassigned" clinic with ClinicNum 0, in which case it will also be in the query string
-				command+="AND "+patOrGuar+".ClinicNum IN ("+string.Join(",",rpo.ListClinicNums.Select(x => POut.Long(x)))+") ";
+				command+="AND "+patOrGuar+".ClinicNum IN ("+string.Join(",",rpo.ListClinicNums.Select(x => SOut.Long(x)))+") ";
 			}
 			command+="GROUP BY "+patOrGuar+".PatNum"
 				+(rpo.GroupByCarrier ? ",carrier.CarrierName" : "")
@@ -117,39 +118,39 @@ namespace OpenDentBusiness {
 				newRow["InsPayEst_61_90"]=insRow["InsPayEst_61_90"];
 				newRow["InsPayEst_90"]=insRow["InsPayEst_90"];
 				newRow["InsPayEst_Total"]=insRow["InsPayEst_Total"];
-				dictPatInsAgingRows[PIn.Long(insRow["PatNum"].ToString())]=newRow;//PatNum only used to link insAgingRows to regAgingRows
+				dictPatInsAgingRows[SIn.Long(insRow["PatNum"].ToString())]=newRow;//PatNum only used to link insAgingRows to regAgingRows
 				dictDetailedInsAgingRows[AgingTableRowId.FromDataRow(insRow)]=newRow;//Only used for Detailed report.
 			}
 			#endregion Add All Insurance Aging Rows to Dictionary
 			#region Add Regular Aging Rows and Apply Insurance Estimates to Dictionary
 			foreach(DataRow row in regAging.Rows) {
-				long patNumCur=PIn.Long(row["PatNum"].ToString());
+				long patNumCur=SIn.Long(row["PatNum"].ToString());
 				DataRow insAgingRow;
 				if(dictPatInsAgingRows.TryGetValue(patNumCur,out insAgingRow)) {
 					//check to see if that patient exists in the insurance aging report
-					insAgingRow["PatBal_0_30"]=PIn.Double(row["Bal_0_30"].ToString()) - PIn.Double(insAgingRow["InsPayEst_0_30"].ToString());
-					insAgingRow["PatBal_31_60"]=PIn.Double(row["Bal_31_60"].ToString()) - PIn.Double(insAgingRow["InsPayEst_31_60"].ToString());
-					insAgingRow["PatBal_61_90"]=PIn.Double(row["Bal_61_90"].ToString()) - PIn.Double(insAgingRow["InsPayEst_61_90"].ToString());
-					insAgingRow["PatBal_90"]=PIn.Double(row["BalOver90"].ToString()) - PIn.Double(insAgingRow["InsPayEst_90"].ToString());
-					insAgingRow["PatBal_Total"]=PIn.Double(row["BalTotal"].ToString()) - PIn.Double(insAgingRow["InsPayEst_Total"].ToString());
-					insAgingRow["InsWoChange"]=PIn.Double(row["InsWoEst"].ToString());
-					insAgingRow["PatBalEst"]=PIn.Double(insAgingRow["PatBal_Total"].ToString()) - PIn.Double(insAgingRow["InsWoChange"].ToString());
+					insAgingRow["PatBal_0_30"]=SIn.Double(row["Bal_0_30"].ToString()) - SIn.Double(insAgingRow["InsPayEst_0_30"].ToString());
+					insAgingRow["PatBal_31_60"]=SIn.Double(row["Bal_31_60"].ToString()) - SIn.Double(insAgingRow["InsPayEst_31_60"].ToString());
+					insAgingRow["PatBal_61_90"]=SIn.Double(row["Bal_61_90"].ToString()) - SIn.Double(insAgingRow["InsPayEst_61_90"].ToString());
+					insAgingRow["PatBal_90"]=SIn.Double(row["BalOver90"].ToString()) - SIn.Double(insAgingRow["InsPayEst_90"].ToString());
+					insAgingRow["PatBal_Total"]=SIn.Double(row["BalTotal"].ToString()) - SIn.Double(insAgingRow["InsPayEst_Total"].ToString());
+					insAgingRow["InsWoChange"]=SIn.Double(row["InsWoEst"].ToString());
+					insAgingRow["PatBalEst"]=SIn.Double(insAgingRow["PatBal_Total"].ToString()) - SIn.Double(insAgingRow["InsWoChange"].ToString());
 				}
 				else {//if pat doesn't exist in ins aging report, create a new row with 0.00 insurance values and fill the patient aging values
 					insAgingRow=insAgingTable.NewRow();
 					insAgingRow["PatName"]=row["PatName"];
-					insAgingRow["InsPayEst_0_30"]=PIn.Double("0.00");
-					insAgingRow["InsPayEst_31_60"]=PIn.Double("0.00");
-					insAgingRow["InsPayEst_61_90"]=PIn.Double("0.00");
-					insAgingRow["InsPayEst_90"]=PIn.Double("0.00");
-					insAgingRow["InsPayEst_Total"]=PIn.Double("0.00");
-					insAgingRow["PatBal_0_30"]=PIn.Double(row["Bal_0_30"].ToString());
-					insAgingRow["PatBal_31_60"]=PIn.Double(row["Bal_31_60"].ToString());
-					insAgingRow["PatBal_61_90"]=PIn.Double(row["Bal_61_90"].ToString());
-					insAgingRow["PatBal_90"]=PIn.Double(row["BalOver90"].ToString());
-					insAgingRow["PatBal_Total"]=PIn.Double(row["BalTotal"].ToString());
-					insAgingRow["InsWoChange"]=PIn.Double(row["InsWoEst"].ToString());
-					insAgingRow["PatBalEst"]=PIn.Double(row["BalTotal"].ToString())-PIn.Double(row["InsWoEst"].ToString())-PIn.Double(row["InsPayEst"].ToString());
+					insAgingRow["InsPayEst_0_30"]=SIn.Double("0.00");
+					insAgingRow["InsPayEst_31_60"]=SIn.Double("0.00");
+					insAgingRow["InsPayEst_61_90"]=SIn.Double("0.00");
+					insAgingRow["InsPayEst_90"]=SIn.Double("0.00");
+					insAgingRow["InsPayEst_Total"]=SIn.Double("0.00");
+					insAgingRow["PatBal_0_30"]=SIn.Double(row["Bal_0_30"].ToString());
+					insAgingRow["PatBal_31_60"]=SIn.Double(row["Bal_31_60"].ToString());
+					insAgingRow["PatBal_61_90"]=SIn.Double(row["Bal_61_90"].ToString());
+					insAgingRow["PatBal_90"]=SIn.Double(row["BalOver90"].ToString());
+					insAgingRow["PatBal_Total"]=SIn.Double(row["BalTotal"].ToString());
+					insAgingRow["InsWoChange"]=SIn.Double(row["InsWoEst"].ToString());
+					insAgingRow["PatBalEst"]=SIn.Double(row["BalTotal"].ToString())-SIn.Double(row["InsWoEst"].ToString())-SIn.Double(row["InsPayEst"].ToString());
 					dictPatInsAgingRows[patNumCur]=insAgingRow;
 				}
 			}
@@ -176,17 +177,17 @@ namespace OpenDentBusiness {
 
 		private static void AddRowsFromDict<T>(RpAgingParamObject rpo,Dictionary<T,DataRow> dict,DataTable insAgingTable) {
 			foreach(DataRow rowCur in dict.Values) {
-				double insPayEstTotal = PIn.Double(rowCur["InsPayEst_Total"].ToString());
-				double patBalTotal = PIn.Double(rowCur["PatBal_Total"].ToString())+insPayEstTotal;
+				double insPayEstTotal = SIn.Double(rowCur["InsPayEst_Total"].ToString());
+				double patBalTotal = SIn.Double(rowCur["PatBal_Total"].ToString())+insPayEstTotal;
 				if(patBalTotal <= -0.005) {
 					insAgingTable.Rows.Add(rowCur);
 					continue;
 				}
-				double insWoChange = PIn.Double(rowCur["InsWoChange"].ToString());
-				double patBal0_30 = PIn.Double(rowCur["PatBal_0_30"].ToString())+PIn.Double(rowCur["InsPayEst_0_30"].ToString());
-				double patBal31_60 = PIn.Double(rowCur["PatBal_31_60"].ToString())+PIn.Double(rowCur["InsPayEst_31_60"].ToString());
-				double patBal61_90 = PIn.Double(rowCur["PatBal_61_90"].ToString())+PIn.Double(rowCur["InsPayEst_61_90"].ToString());
-				double patBal90 = PIn.Double(rowCur["PatBal_90"].ToString())+PIn.Double(rowCur["InsPayEst_90"].ToString());
+				double insWoChange = SIn.Double(rowCur["InsWoChange"].ToString());
+				double patBal0_30 = SIn.Double(rowCur["PatBal_0_30"].ToString())+SIn.Double(rowCur["InsPayEst_0_30"].ToString());
+				double patBal31_60 = SIn.Double(rowCur["PatBal_31_60"].ToString())+SIn.Double(rowCur["InsPayEst_31_60"].ToString());
+				double patBal61_90 = SIn.Double(rowCur["PatBal_61_90"].ToString())+SIn.Double(rowCur["InsPayEst_61_90"].ToString());
+				double patBal90 = SIn.Double(rowCur["PatBal_90"].ToString())+SIn.Double(rowCur["InsPayEst_90"].ToString());
 				if((!CompareDouble.IsZero(insPayEstTotal) || !CompareDouble.IsZero(insWoChange)) 
 					&& new[] { patBal0_30,patBal31_60,patBal61_90,patBal90 }.All(x => x < 0.005)) 
 				{
@@ -211,13 +212,13 @@ namespace OpenDentBusiness {
 			public static AgingTableRowId FromDataRow(DataRow row) {
 				AgingTableRowId retVal=new AgingTableRowId();
 				if(row.Table.Columns.Contains("PatNum")) {
-					retVal.PatNum=PIn.Long(row["PatNum"].ToString());
+					retVal.PatNum=SIn.Long(row["PatNum"].ToString());
 				}
 				if(row.Table.Columns.Contains("PlanNum")) {
-					retVal.InsPlanNum=PIn.Long(row["PlanNum"].ToString());
+					retVal.InsPlanNum=SIn.Long(row["PlanNum"].ToString());
 				}
 				if(row.Table.Columns.Contains("CarrierNum")) {
-					retVal.CarrierNum=PIn.Long(row["CarrierNum"].ToString());
+					retVal.CarrierNum=SIn.Long(row["CarrierNum"].ToString());
 				}
 				return retVal;
 			}

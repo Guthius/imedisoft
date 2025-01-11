@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -45,7 +46,7 @@ namespace OpenDental {
 			timeRun=new DateTime(1881,01,01,timeRun.Hour,timeRun.Minute,timeRun.Second);
 			//return Prefs.UpdateDateT(PrefName.ClaimSnapshotRunTime,dateTSnapshotRunTime);
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ClaimSnapshotRunTime);
-			prefValSync.PrefVal=POut.DateTime(timeRun,false);
+			prefValSync.PrefVal=SOut.DateTime(timeRun,false);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
@@ -58,19 +59,19 @@ namespace OpenDental {
 
 		private void checkShowFeaturePatientClone_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ShowFeaturePatientClone);
-			prefValSync.PrefVal=POut.Bool(checkShowFeaturePatientClone.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkShowFeaturePatientClone.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkShowFeatureSuperFamilies_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ShowFeatureSuperfamilies);
-			prefValSync.PrefVal=POut.Bool(checkShowFeatureSuperfamilies.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkShowFeatureSuperfamilies.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 
 		private void checkCloneCreateSuperFamily_Click(object sender,EventArgs e) {
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.CloneCreateSuperFamily);
-			prefValSync.PrefVal=POut.Bool(checkCloneCreateSuperFamily.Checked);
+			prefValSync.PrefVal=SOut.Bool(checkCloneCreateSuperFamily.Checked);
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
 		#endregion Methods - Event Handlers Sync
@@ -116,7 +117,7 @@ namespace OpenDental {
 				checkBox.Visible=false;
 				return;
 			}
-			checkBox.Checked=PIn.Bool(valueString);
+			checkBox.Checked=SIn.Bool(valueString);
 		}
 		#endregion Methods - Private
 
@@ -139,7 +140,7 @@ namespace OpenDental {
 			//}
 			//stays in FillFamilyGeneral() to only hide groupClaimSnapshot upon form open when ClaimCreate is selected
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ClaimSnapshotTriggerType);
-			ClaimSnapshotTrigger claimSnapshotTrigger=PIn.Enum<ClaimSnapshotTrigger>(prefValSync.PrefVal,enumString:true);
+			ClaimSnapshotTrigger claimSnapshotTrigger=SIn.Enum<ClaimSnapshotTrigger>(prefValSync.PrefVal,enumString:true);
 			if(claimSnapshotTrigger==ClaimSnapshotTrigger.ClaimCreate) {
 				groupClaimSnapshot.Visible=false;
 			}
@@ -163,21 +164,21 @@ namespace OpenDental {
 
 		public void FillSynced(){
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ClaimSnapshotRunTime);
-			textClaimSnapshotRunTime.Text=PIn.DateTime(prefValSync.PrefVal).ToShortTimeString();
+			textClaimSnapshotRunTime.Text=SIn.DateTime(prefValSync.PrefVal).ToShortTimeString();
 			//--------------------------------------------------------------------------------------------------------------------------------------------------
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ClaimSnapshotTriggerType);
 			//users should only see the snapshot trigger and service runtime if they have it set to something other than ClaimCreate.
 			//if a user wants to be able to change claimsnapshot settings, the following MySQL statement should be run:
 			//UPDATE preference SET ValueString = 'Service'	 WHERE PrefName = 'ClaimSnapshotTriggerType'
-			ClaimSnapshotTrigger claimSnapshotTrigger=PIn.Enum<ClaimSnapshotTrigger>(prefValSync.PrefVal,enumString:true);
+			ClaimSnapshotTrigger claimSnapshotTrigger=SIn.Enum<ClaimSnapshotTrigger>(prefValSync.PrefVal,enumString:true);
 			comboClaimSnapshotTriggerType.SetSelectedEnum(claimSnapshotTrigger);
 			//--------------------------------------------------------------------------------------------------------------------------------------------------
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ShowFeatureSuperfamilies);
-			checkShowFeatureSuperfamilies.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkShowFeatureSuperfamilies.Checked=SIn.Bool(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.CloneCreateSuperFamily);
-			checkCloneCreateSuperFamily.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkCloneCreateSuperFamily.Checked=SIn.Bool(prefValSync.PrefVal);
 			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ShowFeaturePatientClone);
-			checkShowFeaturePatientClone.Checked=PIn.Bool(prefValSync.PrefVal);
+			checkShowFeaturePatientClone.Checked=SIn.Bool(prefValSync.PrefVal);
 		}
 		#endregion Methods - Public
 	}

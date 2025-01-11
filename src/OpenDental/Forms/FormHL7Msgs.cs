@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -44,7 +45,7 @@ namespace OpenDental {
 			else {
 				textPatient.Text="";
 			}
-			_listHL7Msgs=HL7Msgs.GetHL7Msgs(PIn.Date(textDateStart.Text),PIn.Date(textDateEnd.Text),_patNumSelected,comboHL7Status.SelectedIndex);
+			_listHL7Msgs=HL7Msgs.GetHL7Msgs(SIn.Date(textDateStart.Text),SIn.Date(textDateEnd.Text),_patNumSelected,comboHL7Status.SelectedIndex);
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
 			GridColumn col=new GridColumn(Lan.g(this,"DateTime"),180);

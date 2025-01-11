@@ -8,6 +8,7 @@ using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CodeBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -192,7 +193,7 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please select an item first.");
 				return;
 			}
-			if(MessageBox.Show(Lan.g(this,"Delete Item?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+			if(ODMessageBox.Show(Lan.g(this,"Delete Item?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
 				return;
 			}
 			UserQueries.Delete(UserQueryCur);

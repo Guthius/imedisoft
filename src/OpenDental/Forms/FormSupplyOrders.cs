@@ -10,6 +10,7 @@ using OpenDental.UI;
 using System.Drawing.Printing;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 
 namespace OpenDental {
 	public partial class FormSupplyOrders:FormODBase {
@@ -38,7 +39,7 @@ namespace OpenDental {
 			comboSupplier.Items.AddList(_listSuppliers,x=>x.Name);
 			comboSupplier.IsAllSelected=true;
 			_userOdPrefShowReceived=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.ReceivedSupplyOrders).FirstOrDefault();
-			if(_userOdPrefShowReceived!=null && PIn.Bool(_userOdPrefShowReceived.ValueString)) {
+			if(_userOdPrefShowReceived!=null && SIn.Bool(_userOdPrefShowReceived.ValueString)) {
 				checkShowReceived.Checked=true;
 			} 
 			else { 
@@ -85,7 +86,7 @@ namespace OpenDental {
 			}
 			for(int i=0;i<formSupplies.ListSuppliesSelected.Count;i++) {
 				//check for existing----			
-				if(_tableOrderItems.Rows.OfType<DataRow>().Any(x => PIn.Long(x["SupplyNum"].ToString())==formSupplies.ListSuppliesSelected[i].SupplyNum)) {
+				if(_tableOrderItems.Rows.OfType<DataRow>().Any(x => SIn.Long(x["SupplyNum"].ToString())==formSupplies.ListSuppliesSelected[i].SupplyNum)) {
 					//MsgBox.Show(this,"Selected item already exists in currently selected order. Please edit quantity instead.");
 					continue;
 				}
@@ -196,13 +197,13 @@ namespace OpenDental {
 				row=new GridRow();
 				row.Cells.Add(_tableOrderItems.Rows[i]["CatalogNumber"].ToString());
 				row.Cells.Add(_tableOrderItems.Rows[i]["Descript"].ToString());
-				qty=PIn.Int(_tableOrderItems.Rows[i]["Qty"].ToString());
+				qty=SIn.Int(_tableOrderItems.Rows[i]["Qty"].ToString());
 				row.Cells.Add(qty.ToString());
-				price=PIn.Double(_tableOrderItems.Rows[i]["Price"].ToString());
+				price=SIn.Double(_tableOrderItems.Rows[i]["Price"].ToString());
 				row.Cells.Add(price.ToString("n"));
 				subtotal=((double)qty)*price;
 				row.Cells.Add(subtotal.ToString("n"));
-				DateTime dateReceived=PIn.Date(_tableOrderItems.Rows[i]["DateReceived"].ToString());
+				DateTime dateReceived=SIn.Date(_tableOrderItems.Rows[i]["DateReceived"].ToString());
 				if(dateReceived.Year<1880) {
 					row.Cells.Add("pending");
 				}
@@ -220,7 +221,7 @@ namespace OpenDental {
 
 		private void gridOrderItem_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			using FormSupplyOrderItemEdit formSupplyOrderItemEdit = new FormSupplyOrderItemEdit();
-			formSupplyOrderItemEdit.SupplyOrderItemCur = SupplyOrderItems.SelectOne(PIn.Long(_tableOrderItems.Rows[e.Row]["SupplyOrderItemNum"].ToString()));
+			formSupplyOrderItemEdit.SupplyOrderItemCur = SupplyOrderItems.SelectOne(SIn.Long(_tableOrderItems.Rows[e.Row]["SupplyOrderItemNum"].ToString()));
 			formSupplyOrderItemEdit.ListSuppliersAll = Suppliers.GetAll();
 			formSupplyOrderItemEdit.ShowDialog();
 			if(formSupplyOrderItemEdit.DialogResult!=DialogResult.OK) {
@@ -320,14 +321,14 @@ namespace OpenDental {
 		}
 
 		private void gridItems_CellLeave(object sender,ODGridClickEventArgs e) {
-			int qtyOld=PIn.Int(_tableOrderItems.Rows[e.Row]["Qty"].ToString(),false);
+			int qtyOld=SIn.Int(_tableOrderItems.Rows[e.Row]["Qty"].ToString(),false);
 			int qtyNew=0;
 			try {
-				qtyNew=PIn.Int(gridItems.ListGridRows[e.Row].Cells[2].Text);//0 if not valid input
+				qtyNew=SIn.Int(gridItems.ListGridRows[e.Row].Cells[2].Text);//0 if not valid input
 			}
 			catch { }
-			double priceOld=PIn.Double(_tableOrderItems.Rows[e.Row]["Price"].ToString());
-			double priceNew=PIn.Double(gridItems.ListGridRows[e.Row].Cells[3].Text);//0 if not valid input
+			double priceOld=SIn.Double(_tableOrderItems.Rows[e.Row]["Price"].ToString());
+			double priceNew=SIn.Double(gridItems.ListGridRows[e.Row].Cells[3].Text);//0 if not valid input
 			//if(e.Col==2){//Qty
 				//gridItems.ListGridRows[e.Row].Cells[2].Text=qtyNew.ToString();//Fix the cell formatting
 				//if(qtyOld==qtyNew){
@@ -350,7 +351,7 @@ namespace OpenDental {
 				FillGridOrderItem(false);//no refresh
 				return;
 			}
-			SupplyOrderItem supplyOrderItem=SupplyOrderItems.SelectOne(PIn.Long(_tableOrderItems.Rows[e.Row]["SupplyOrderItemNum"].ToString()));
+			SupplyOrderItem supplyOrderItem=SupplyOrderItems.SelectOne(SIn.Long(_tableOrderItems.Rows[e.Row]["SupplyOrderItemNum"].ToString()));
 			supplyOrderItem.Qty=qtyNew;
 			supplyOrderItem.Price=priceNew;
 			SupplyOrderItems.Update(supplyOrderItem);
@@ -386,13 +387,13 @@ namespace OpenDental {
 				UserOdPrefs.Insert(new UserOdPref() {
 					UserNum=Security.CurUser.UserNum,
 					FkeyType=UserOdFkeyType.ReceivedSupplyOrders,
-					ValueString=POut.Bool(checkShowReceived.Checked)
+					ValueString=SOut.Bool(checkShowReceived.Checked)
 				});
 				DataValid.SetInvalid(InvalidType.UserOdPrefs);
 				return;
 			}
 			UserOdPref userOdPrefOld=_userOdPrefShowReceived.Clone();
-			_userOdPrefShowReceived.ValueString=POut.Bool(checkShowReceived.Checked);
+			_userOdPrefShowReceived.ValueString=SOut.Bool(checkShowReceived.Checked);
 			if(UserOdPrefs.Update(_userOdPrefShowReceived,userOdPrefOld)) {
 				//Only need to signal cache refresh on change.
 				DataValid.SetInvalid(InvalidType.UserOdPrefs);

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DataConnectionBase;
 
 namespace OpenDentBusiness{
 	public class SheetPrinting{
@@ -172,7 +173,7 @@ namespace OpenDentBusiness{
 							filePathAndName="";
 							break;
 						}
-						document=Documents.GetByNum(PIn.Long(field.FieldValue));
+						document=Documents.GetByNum(SIn.Long(field.FieldValue));
 						List<string> paths=Documents.GetPaths(new List<long> { document.DocNum },ImageStore.GetPreferredAtoZpath());
 						if(paths.Count < 1) {//No path was found so we cannot draw the image.
 							continue;

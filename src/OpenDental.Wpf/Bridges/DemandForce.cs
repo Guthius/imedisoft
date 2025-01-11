@@ -9,6 +9,7 @@ using System.Xml;
 using System.Collections.Generic;
 using System.Threading;
 using CodeBase;
+using DataConnectionBase;
 using OpenDental.UI;
 
 namespace OpenDental.Bridges {
@@ -96,7 +97,7 @@ namespace OpenDental.Bridges {
 						writer.WriteAttributeString("lastVisit",dateLastVisit[patient.PatNum].ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffK"));
 					}
 					else {
-						writer.WriteAttributeString("lastVisit",PIn.DateTime("0001-01-01 00:00:00").ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffK"));
+						writer.WriteAttributeString("lastVisit",SIn.DateTime("0001-01-01 00:00:00").ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffK"));
 					}
 					writer.WriteStartElement("Demographics");
 					if(patient.FName!="") {

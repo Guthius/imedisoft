@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -71,14 +72,14 @@ namespace OpenDental {
 					return;
 				}
 			}
-			if(PIn.Long(textPaperCopies.Text)==0
+			if(SIn.Long(textPaperCopies.Text)==0
 				&& !checkEmailPat.Checked
 				&& !checkEmail2.Checked)
 			{
 				MsgBox.Show(this,"There are no output methods selected.");
 				return;
 			}
-			QtyPaperCopies=PIn.Int(textPaperCopies.Text);
+			QtyPaperCopies=SIn.Int(textPaperCopies.Text);
 			IsEmailPatOrLab=checkEmailPat.Checked;
 			EmailPatOrLabAddress=textEmailPat.Text;
 			if(IsEmail2Visible){

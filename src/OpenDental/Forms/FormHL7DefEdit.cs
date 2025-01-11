@@ -365,7 +365,7 @@ namespace OpenDental {
 				return;
 			}
 			if(password.StringResult!="hl7") {
-				MessageBox.Show("Wrong password.");
+				ODMessageBox.Show("Wrong password.");
 				SetShowRadioButtons();
 			}
 		}

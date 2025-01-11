@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -162,7 +163,7 @@ namespace OpenDental {
 			}
 			_encounter.ProvNum=_provNum;
 			_encounter.Note=textNote.Text; //PIn.String(textNote.Text);
-			_encounter.DateEncounter=PIn.Date(textDateEnc.Text);
+			_encounter.DateEncounter=SIn.Date(textDateEnc.Text);
 			if(_encounter.CodeValue==null || _encounter.CodeSystem==null) {
 				MsgBox.Show(this,"You must select a code");
 				return;

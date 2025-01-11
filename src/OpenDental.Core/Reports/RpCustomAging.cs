@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using CodeBase;
 using System.ComponentModel;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -71,15 +72,15 @@ namespace OpenDentBusiness {
 			}
 			string instantAdd="trans.TranType IN ("+string.Join(",",listInstantTranTypes)+")";
 			command += @"
-				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate >= "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 30 DAY THEN trans.TranAmount ELSE 0 END) Charges_0_30,
-				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate BETWEEN "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 60 DAY AND "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 31 DAY THEN trans.TranAmount ELSE 0 END) Charges_31_60,
-				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate BETWEEN "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY AND "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 61 DAY THEN trans.TranAmount ELSE 0 END) Charges_61_90,
-				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate < "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY THEN trans.TranAmount ELSE 0 END) ChargesOver90,
+				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate >= "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 30 DAY THEN trans.TranAmount ELSE 0 END) Charges_0_30,
+				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate BETWEEN "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 60 DAY AND "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 31 DAY THEN trans.TranAmount ELSE 0 END) Charges_31_60,
+				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate BETWEEN "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY AND "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 61 DAY THEN trans.TranAmount ELSE 0 END) Charges_61_90,
+				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate < "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY THEN trans.TranAmount ELSE 0 END) ChargesOver90,
 				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") THEN trans.TranAmount ELSE 0 END) TotalCharges,
-				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate >= "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 30 DAY THEN trans.TranAmount ELSE 0 END) Credits_0_30,
-				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate BETWEEN "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 60 DAY AND "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 31 DAY THEN trans.TranAmount ELSE 0 END) Credits_31_60,
-				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate BETWEEN "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY AND "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 61 DAY THEN trans.TranAmount ELSE 0 END) Credits_61_90,
-				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate < "+POut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY THEN trans.TranAmount ELSE 0 END) CreditsOver90,
+				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate >= "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 30 DAY THEN trans.TranAmount ELSE 0 END) Credits_0_30,
+				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate BETWEEN "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 60 DAY AND "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 31 DAY THEN trans.TranAmount ELSE 0 END) Credits_31_60,
+				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate BETWEEN "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY AND "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 61 DAY THEN trans.TranAmount ELSE 0 END) Credits_61_90,
+				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") AND trans.TranDate < "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 90 DAY THEN trans.TranAmount ELSE 0 END) CreditsOver90,
 				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") THEN trans.TranAmount ELSE 0 END) TotalCredits,
 				SUM(CASE WHEN trans.TranAmount != 0 THEN trans.TranAmount ELSE 0 END) BalTotal
 				FROM (";
@@ -204,17 +205,17 @@ namespace OpenDentBusiness {
 			List<AgingPat> retVal = new List<AgingPat>();
 			foreach(DataRow row in table.Rows) {
 				Patient patLim = new Patient() {
-					PatNum = PIn.Long(row["PatNum"].ToString()),
-					FName = PIn.String(row["FName"].ToString()),
-					LName = PIn.String(row["LName"].ToString()),
+					PatNum = SIn.Long(row["PatNum"].ToString()),
+					FName = SIn.String(row["FName"].ToString()),
+					LName = SIn.String(row["LName"].ToString()),
 				};
 				AgingPat agingPatCur = new AgingPat() {
 					Pat = patLim,
-					BalZeroThirty = PIn.Double(row["Bal_0_30"].ToString()),
-					BalThirtySixty = PIn.Double(row["Bal_31_60"].ToString()),
-					BalSixtyNinety= PIn.Double(row["Bal_61_90"].ToString()),
-					BalOverNinety = PIn.Double(row["BalOver90"].ToString()),
-					BalTotal = PIn.Double(row["BalTotal"].ToString()),
+					BalZeroThirty = SIn.Double(row["Bal_0_30"].ToString()),
+					BalThirtySixty = SIn.Double(row["Bal_31_60"].ToString()),
+					BalSixtyNinety= SIn.Double(row["Bal_61_90"].ToString()),
+					BalOverNinety = SIn.Double(row["BalOver90"].ToString()),
+					BalTotal = SIn.Double(row["BalTotal"].ToString()),
 				};
 				retVal.Add(agingPatCur);
 			}
@@ -228,7 +229,7 @@ namespace OpenDentBusiness {
 				FROM procedurelog pl 
 				WHERE pl.ProcStatus="+(int)ProcStat.C+@"
 				AND pl.ProcFee != 0 
-				AND pl.ProcDate <= " +POut.Date(ageOptions.DateAsOf) + " ";
+				AND pl.ProcDate <= " +SOut.Date(ageOptions.DateAsOf) + " ";
 		}
 
 		private static string GetAdjAgingQuery(AgingOptions ageOptions) {
@@ -237,7 +238,7 @@ namespace OpenDentBusiness {
 				+(_isAgedByProc?",adj.ProcNum AgedProcNum,adj.ProcDate AgedProcDate":"")+" "+@"
 				FROM adjustment adj
 				WHERE adj.AdjAmt != 0 
-				AND adj.AdjDate <= " +POut.Date(ageOptions.DateAsOf)+ " ";
+				AND adj.AdjDate <= " +SOut.Date(ageOptions.DateAsOf)+ " ";
 		}
 
 		private static string GetPayPlanAgingQuery(AgingOptions ageOptions) {
@@ -255,12 +256,12 @@ namespace OpenDentBusiness {
 			string command;
 			command=@"
 					SELECT 'PPComplete' TranType,(CASE WHEN pp.PlanNum > 0 THEN ppc.PatNum ELSE ppc.Guarantor END) PatNum,ppc.ChargeDate TranDate,
-					(CASE WHEN ppc.ChargeType != "+POut.Int((int)PayPlanChargeType.Debit)+@" THEN -ppc.Principal 
+					(CASE WHEN ppc.ChargeType != "+SOut.Int((int)PayPlanChargeType.Debit)+@" THEN -ppc.Principal 
 					WHEN pp.PlanNum=0 THEN ppc.Principal+ppc.Interest ELSE 0 END) TranAmount"
 					+(_isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@"
 					FROM payplancharge ppc 
 					LEFT JOIN payplan pp ON pp.PayPlanNum=ppc.PayPlanNum
-					WHERE ppc.ChargeDate <= "+POut.Date(ageOptions.DateAsOf)  +@"
+					WHERE ppc.ChargeDate <= "+SOut.Date(ageOptions.DateAsOf)  +@"
 					AND ppc.ChargeType IN " + chargeTypeInclude + " ";
 			return command;
 		}
@@ -290,8 +291,8 @@ namespace OpenDentBusiness {
 					FROM payplanlink
 					INNER JOIN payplan ON payplanlink.PayPlanNum=payplan.PayPlanNum
 					INNER JOIN procedurelog ON procedurelog.ProcNum=payplanlink.FKey
-						AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Procedure)}
-						AND procedurelog.ProcStatus={POut.Int((int)ProcStat.C)}
+						AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Procedure)}
+						AND procedurelog.ProcStatus={SOut.Int((int)ProcStat.C)}
 					LEFT JOIN (
 						SELECT SUM(adjustment.AdjAmt) AdjAmt,adjustment.ProcNum,adjustment.PatNum,adjustment.ProvNum,adjustment.ClinicNum
 						FROM adjustment 
@@ -302,17 +303,17 @@ namespace OpenDentBusiness {
 						AND procAdj.ClinicNum=procedurelog.ClinicNum
 					LEFT JOIN (
 						SELECT SUM(COALESCE((CASE WHEN claimproc.Status IN (
-								{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+								{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 							) THEN claimproc.InsPayAmt 
 								WHEN claimproc.InsEstTotalOverride!=-1 THEN claimproc.InsEstTotalOverride ELSE claimproc.InsPayEst END),0)*-1) InsPay
 							,SUM(COALESCE((CASE WHEN claimproc.Status IN (
-								{POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapComplete)}
+								{SOut.Int((int)ClaimProcStatus.Received)},{SOut.Int((int)ClaimProcStatus.Supplemental)},{SOut.Int((int)ClaimProcStatus.CapComplete)}
 							)	THEN claimproc.WriteOff 
 								WHEN claimproc.WriteOffEstOverride!=-1 THEN claimproc.WriteOffEstOverride 
 								WHEN claimproc.WriteOffEst!=-1 THEN claimproc.WriteOffEst ELSE 0 END),0)*-1) WriteOff
 							,claimproc.ProcNum
 						FROM claimproc 
-						WHERE claimproc.Status!={POut.Int((int)ClaimProcStatus.Preauth)} 
+						WHERE claimproc.Status!={SOut.Int((int)ClaimProcStatus.Preauth)} 
 						GROUP BY claimproc.ProcNum
 					)procClaimProc ON procClaimProc.ProcNum=procedurelog.ProcNum 
 					LEFT JOIN (
@@ -325,7 +326,7 @@ namespace OpenDentBusiness {
 					SELECT adjustment.PatNum,adjustment.AdjAmt + COALESCE(adjSplit.SplitAmt,0) Fee,payplanlink.PayPlanLinkNum LinkNum
 							,0 ProcNum,adjustment.AdjDate AgeDate 
 					FROM payplanlink 
-					INNER JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType={POut.Int((int)PayPlanLinkType.Adjustment)} 
+					INNER JOIN adjustment ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType={SOut.Int((int)PayPlanLinkType.Adjustment)} 
 					LEFT JOIN (
 							SELECT SUM(COALESCE(paysplit.SplitAmt,0))*-1 SplitAmt,paysplit.AdjNum
 							FROM paysplit
@@ -333,7 +334,7 @@ namespace OpenDentBusiness {
 							GROUP BY paysplit.AdjNum
 					)adjSplit ON adjSplit.AdjNum=adjustment.AdjNum
 				) prodlink ON prodlink.LinkNum=payplanlink.PayPlanLinkNum 
-				WHERE prodlink.AgeDate <= {POut.Date(ageOptions.DateAsOf)} ";
+				WHERE prodlink.AgeDate <= {SOut.Date(ageOptions.DateAsOf)} ";
 			return command;
 		}
 
@@ -346,7 +347,7 @@ namespace OpenDentBusiness {
 				+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@"
 				FROM paysplit ps
 				WHERE ps.SplitAmt != 0
-				AND ps.DatePay <= " +POut.Date(ageOptions.DateAsOf) + " ";
+				AND ps.DatePay <= " +SOut.Date(ageOptions.DateAsOf) + " ";
 			if(!ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCharges) 
 				|| !ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCredits)) {
 				command+=@"
@@ -366,11 +367,11 @@ namespace OpenDentBusiness {
 				SELECT 'InsPay' TranType,cp.PatNum,cp.DateCP TranDate,-cp.InsPayAmt TranAmount"
 				+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@" 
 				FROM claimproc cp 
-				WHERE cp.Status IN ("+POut.Int((int)ClaimProcStatus.Received)+","+POut.Int((int)ClaimProcStatus.Supplemental)+","
-					+POut.Int((int)ClaimProcStatus.CapClaim)+","+POut.Int((int)ClaimProcStatus.CapComplete)+@") 
+				WHERE cp.Status IN ("+SOut.Int((int)ClaimProcStatus.Received)+","+SOut.Int((int)ClaimProcStatus.Supplemental)+","
+					+SOut.Int((int)ClaimProcStatus.CapClaim)+","+SOut.Int((int)ClaimProcStatus.CapComplete)+@") 
 				AND cp.InsPayAmt != 0 
 				AND cp.PayPlanNum = 0 
-				AND cp.DateCP <= " +POut.Date(ageOptions.DateAsOf);
+				AND cp.DateCP <= " +SOut.Date(ageOptions.DateAsOf);
 			return command;
 		}
 
@@ -379,9 +380,9 @@ namespace OpenDentBusiness {
 				SELECT 'InsEst' TranType,cp.PatNum,cp.DateCP TranDate,-cp.InsPayEst TranAmount"
 				+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@" 
 				FROM claimproc cp
-				WHERE cp.Status = "+POut.Int((int)ClaimProcStatus.NotReceived)+@" 
+				WHERE cp.Status = "+SOut.Int((int)ClaimProcStatus.NotReceived)+@" 
 				AND cp.InsPayEst != 0 
-				AND cp.DateCP <= " +POut.Date(ageOptions.DateAsOf);
+				AND cp.DateCP <= " +SOut.Date(ageOptions.DateAsOf);
 			return command;
 		}
 
@@ -389,7 +390,7 @@ namespace OpenDentBusiness {
 			List<ClaimProcStatus> listClaimProcStatus=new List<ClaimProcStatus>() {
 				ClaimProcStatus.Received,ClaimProcStatus.Supplemental,ClaimProcStatus.CapClaim,ClaimProcStatus.CapComplete
 			};
-			string statusIn=string.Join(",",listClaimProcStatus.Select(x => POut.Int((int)x)));
+			string statusIn=string.Join(",",listClaimProcStatus.Select(x => SOut.Int((int)x)));
 			string command;
 			if(ageOptions.WriteoffOptions == PPOWriteoffDateCalc.InsPayDate){
 				command="SELECT 'Writeoff' TranType,"
@@ -400,7 +401,7 @@ namespace OpenDentBusiness {
 					+"FROM claimproc cp "
 					+"WHERE cp.Status IN ("+statusIn+") "
 					+"AND cp.WriteOff != 0 "
-					+"AND cp.DateCP <= "+POut.Date(ageOptions.DateAsOf);
+					+"AND cp.DateCP <= "+SOut.Date(ageOptions.DateAsOf);
 			}		
 			else if(ageOptions.WriteoffOptions==PPOWriteoffDateCalc.ProcDate) {
 				command="SELECT 'Writeoff' TranType,"
@@ -411,7 +412,7 @@ namespace OpenDentBusiness {
 					+"FROM claimproc cp "
 					+"WHERE cp.Status IN ("+statusIn+") "
 					+"AND cp.WriteOff != 0 "
-					+"AND cp.ProcDate <= "+POut.Date(ageOptions.DateAsOf);
+					+"AND cp.ProcDate <= "+SOut.Date(ageOptions.DateAsOf);
 			}	
 			else { //AgingOptions.WriteoffAgingOptions.ClaimPayDate
 				command="SELECT 'Writeoff' TranType, "
@@ -423,7 +424,7 @@ namespace OpenDentBusiness {
 					+"FROM claimproc cp "
 					+"LEFT JOIN claimsnapshot ON cp.ClaimProcNum=claimsnapshot.ClaimProcNum "
 					+"WHERE cp.Status IN ("+statusIn+") "
-					+"AND cp.ProcDate <= "+POut.Date(ageOptions.DateAsOf)+" "
+					+"AND cp.ProcDate <= "+SOut.Date(ageOptions.DateAsOf)+" "
 					+"GROUP BY cp.ClaimProcNum "
 					+"HAVING TranAmount != 0 "
 					+"UNION ALL "
@@ -436,7 +437,7 @@ namespace OpenDentBusiness {
 					+"FROM claimproc cp "
 					+"INNER JOIN claimsnapshot ON cp.ClaimProcNum=claimsnapshot.ClaimProcNum "
 					+"WHERE cp.Status IN ("+statusIn+") "
-					+"AND cp.DateCP <= "+POut.Date(ageOptions.DateAsOf)+" "
+					+"AND cp.DateCP <= "+SOut.Date(ageOptions.DateAsOf)+" "
 					+"GROUP BY cp.ClaimProcNum "
 					+"HAVING TranAmount != 0 ";
 			}
@@ -454,8 +455,8 @@ namespace OpenDentBusiness {
 					+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@"
 					FROM claimproc cp
 					WHERE (cp.Status="+(int)ClaimProcStatus.NotReceived+@"
-						OR (cp.Status="+(int)ClaimProcStatus.Received+@" AND cp.DateCP>" +POut.Date(ageOptions.DateAsOf)+@"))
-					AND cp.ProcDate <= " +POut.Date(ageOptions.DateAsOf);
+						OR (cp.Status="+(int)ClaimProcStatus.Received+@" AND cp.DateCP>" +SOut.Date(ageOptions.DateAsOf)+@"))
+					AND cp.ProcDate <= " +SOut.Date(ageOptions.DateAsOf);
 			}
 			else if(ageOptions.WriteoffOptions==PPOWriteoffDateCalc.InsPayDate){
 				command = $@"
@@ -465,7 +466,7 @@ namespace OpenDentBusiness {
 					FROM claimproc cp 
 					LEFT JOIN claimsnapshot ON cp.ClaimProcNum=claimsnapshot.ClaimProcNum
 					WHERE cp.Status={(int)ClaimProcStatus.NotReceived}
-					AND cp.DateCP <= {POut.Date(ageOptions.DateAsOf)}
+					AND cp.DateCP <= {SOut.Date(ageOptions.DateAsOf)}
 					GROUP BY cp.ClaimProcNum
 					HAVING TranAmount != 0";
 

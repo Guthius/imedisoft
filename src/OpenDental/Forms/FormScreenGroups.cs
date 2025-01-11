@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
+using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 
@@ -32,7 +34,7 @@ namespace OpenDental{
 		}
 
 		private void FillGrid() {
-			_listScreenGroups=ScreenGroups.Refresh(PIn.Date(textDateFrom.Text),PIn.Date(textDateTo.Text));
+			_listScreenGroups=ScreenGroups.Refresh(SIn.Date(textDateFrom.Text),SIn.Date(textDateTo.Text));
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
 			GridColumn col;
@@ -65,7 +67,7 @@ namespace OpenDental{
 				DateTime.Parse(textDateFrom.Text);
 			}
 			catch {
-				MessageBox.Show("Date invalid");
+				ODMessageBox.Show("Date invalid");
 				e.Cancel=true;
 			}
 		}
@@ -78,7 +80,7 @@ namespace OpenDental{
 				DateTime.Parse(textDateTo.Text);
 			}
 			catch {
-				MessageBox.Show("Date invalid");
+				ODMessageBox.Show("Date invalid");
 				e.Cancel=true;
 			}
 		}
@@ -119,13 +121,13 @@ namespace OpenDental{
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
 			if(gridMain.SelectedIndices.Length!=1){
-				MessageBox.Show("Please select one item first.");
+				ODMessageBox.Show("Please select one item first.");
 				return;
 			}
 			ScreenGroup screenGroup=_listScreenGroups[gridMain.GetSelectedIndex()];
 			List<OpenDentBusiness.Screen> listScreens=Screens.GetScreensForGroup(screenGroup.ScreenGroupNum);
 			if(listScreens.Count>0) {
-				MessageBox.Show("Not allowed to delete a screening group with items in it.");
+				ODMessageBox.Show("Not allowed to delete a screening group with items in it.");
 				return;
 			}
 			ScreenGroups.Delete(screenGroup);

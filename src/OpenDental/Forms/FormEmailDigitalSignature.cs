@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -46,7 +47,7 @@ namespace OpenDental {
 				EmailMessages.TryAddTrustForSignature(_x509Certificate2);
 			}
 			catch(Exception ex) {
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			MsgBox.Show(this,"Trust added for digital signature.");

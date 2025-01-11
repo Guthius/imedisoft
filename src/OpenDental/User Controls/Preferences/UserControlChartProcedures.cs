@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -55,7 +56,7 @@ namespace OpenDental {
 				Process.Start("https://www.opendental.com/manual/procedurelocking.html");
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/procedurelocking.html"+"\r\n"
+				ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/procedurelocking.html"+"\r\n"
 					+Lan.g(this,"Please set up a default web browser."));
 			}
 		}

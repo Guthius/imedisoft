@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using CodeBase;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -119,7 +120,7 @@ namespace OpenDental{
 				row.Cells.Add(table.Rows[i]["Descript"].ToString());
 				row.Cells.Add(table.Rows[i]["Abbr"].ToString());
 				row.Cells.Add(table.Rows[i]["$fee"].ToString());
-				row.Tag=PIn.Long(table.Rows[i]["PatNum"].ToString());
+				row.Tag=SIn.Long(table.Rows[i]["PatNum"].ToString());
 				gridMain.ListGridRows.Add(row);
 			}
 			gridMain.EndUpdate();

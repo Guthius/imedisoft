@@ -10,6 +10,7 @@ using OpenDental.ReportingComplex;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental
@@ -41,15 +42,15 @@ namespace OpenDental
 
 		private void butLeft_Click(object sender, System.EventArgs e) {
 			if(!validDateFrom.IsValid() || !validDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			DateTime dateFrom=PIn.Date(validDateFrom.Text);
+			DateTime dateFrom=SIn.Date(validDateFrom.Text);
 			if(dateFrom.Year < 1880) {
 				MsgBox.Show(this,"Please fix the From date first.");
 				return;
 			}
-			DateTime dateTo=PIn.Date(validDateTo.Text);
+			DateTime dateTo=SIn.Date(validDateTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month)==dateTo.Day){
 				toLastDay=true;
@@ -70,11 +71,11 @@ namespace OpenDental
 
 		private void butRight_Click(object sender, System.EventArgs e) {
 			if(!validDateFrom.IsValid() || !validDateTo.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
-			DateTime dateFrom=PIn.Date(validDateFrom.Text);
-			DateTime dateTo=PIn.Date(validDateTo.Text);
+			DateTime dateFrom=SIn.Date(validDateFrom.Text);
+			DateTime dateTo=SIn.Date(validDateTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month)==dateTo.Day){
 				toLastDay=true;
@@ -111,8 +112,8 @@ namespace OpenDental
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return;
 			}
-			DateTime dateFrom=PIn.Date(validDateFrom.Text);
-			DateTime dateTo=PIn.Date(validDateTo.Text);
+			DateTime dateFrom=SIn.Date(validDateFrom.Text);
+			DateTime dateTo=SIn.Date(validDateTo.Text);
 			if(dateTo < dateFrom) {
 				MsgBox.Show(this,"To date cannot be before From date.");
 				return;
@@ -189,9 +190,9 @@ namespace OpenDental
 				else{
 					str=str.Replace("?FName",BirthdayTable.Rows[patientsPrinted]["FName"].ToString());
 				}
-				birthdate=PIn.Date(BirthdayTable.Rows[patientsPrinted]["Birthdate"].ToString());
+				birthdate=SIn.Date(BirthdayTable.Rows[patientsPrinted]["Birthdate"].ToString());
 				//age=Shared.DateToAge(birthdate,PIn.PDate(textDateTo.Text).AddDays(1));//age on the day after the range
-				age=PIn.Int(BirthdayTable.Rows[patientsPrinted]["Age"].ToString());
+				age=SIn.Int(BirthdayTable.Rows[patientsPrinted]["Age"].ToString());
 				str=str.Replace("?AgeOrdinal",Shared.NumberToOrdinal(age));
 				str=str.Replace("?Age",age.ToString());
 				g.DrawString(str,new Font(FontFamily.GenericSansSerif,10),Brushes.Black,new RectangleF(xPos+45,yPos+180,250,190));
@@ -242,8 +243,8 @@ namespace OpenDental
 				MsgBox.Show(this,"Dates can not be blank");
 				return;
 			}
-			DateTime dateFrom=PIn.Date(validDateFrom.Text);
-			DateTime dateTo=PIn.Date(validDateTo.Text);
+			DateTime dateFrom=SIn.Date(validDateFrom.Text);
+			DateTime dateTo=SIn.Date(validDateTo.Text);
 			if(dateTo < dateFrom) {
 				MsgBox.Show(this,"To date cannot be before From date.");
 				return;

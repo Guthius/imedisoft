@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Eclaims;
@@ -293,7 +294,7 @@ namespace OpenDental{
 				ClearinghouseHq.ResponsePath=textResponsePath.Text;
 				ClearinghouseHq.Eformat=(ElectronicClaimFormat)(comboFormat.SelectedIndex);
 				ClearinghouseHq.CommBridge=(EclaimsCommBridge)(comboCommBridge.SelectedIndex);
-				ClearinghouseHq.ModemPort=PIn.Byte(textModemPort.Text);
+				ClearinghouseHq.ModemPort=SIn.Byte(textModemPort.Text);
 				ClearinghouseHq.ClientProgram=textClientProgram.Text;
 				//ClearinghouseHq.IsDefault=checkIsDefault.Checked;
 				ClearinghouseHq.Payors=textPayors.Text;

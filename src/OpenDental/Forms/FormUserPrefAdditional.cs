@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental {
@@ -70,7 +71,7 @@ namespace OpenDental {
 		}
 
 		private void gridProvProperties_CellLeave(object sender,ODGridClickEventArgs e) {
-			string newDoseSpotID=PIn.String(gridUserProperties.ListGridRows[e.Row].Cells[e.Col].Text);
+			string newDoseSpotID=SIn.String(gridUserProperties.ListGridRows[e.Row].Cells[e.Col].Text);
 			UserOdPref userOdPref=(UserOdPref)gridUserProperties.ListGridRows[e.Row].Tag;
 			userOdPref.ValueString=newDoseSpotID;
 		}

@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -59,7 +60,7 @@ namespace OpenDental {
 			if(PrefC.GetBool(PrefName.EnforceMedicaidIDLength)) {
 				_stateAbbr.MedicaidIDLength=0;
 				if(textMedIDLength.Text!="") {
-					_stateAbbr.MedicaidIDLength=PIn.Int(textMedIDLength.Text);
+					_stateAbbr.MedicaidIDLength=SIn.Int(textMedIDLength.Text);
 				}
 			}
 			if(_stateAbbr.IsNew) {

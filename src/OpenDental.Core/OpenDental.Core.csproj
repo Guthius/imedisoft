@@ -840,7 +840,6 @@
     <Compile Include="Eclaims\Ramq.cs" />
     <Compile Include="Eclaims\RECS.cs" />
     <Compile Include="Eclaims\Renaissance.cs" />
-    <Compile Include="Eclaims\Rs232.cs" />
     <Compile Include="Eclaims\TerminalConnector.cs" />
     <Compile Include="Eclaims\Tesia.cs" />
     <Compile Include="Eclaims\WebMD.cs" />
@@ -1831,8 +1830,6 @@
     <Compile Include="X12\X837_4010.cs" />
     <Compile Include="X12\X997.cs" />
     <Compile Include="ODDataSet\ODDataTable.cs" />
-    <Compile Include="Db\PIn.cs" />
-    <Compile Include="Db\POut.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -51,11 +52,11 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please enter a valid annual percentage rate (APR).");
 				return;
 			}
-			InstallmentPlanCur.DateAgreement=PIn.Date(textDateAgreement.Text);
-			InstallmentPlanCur.DateFirstPayment=PIn.Date(textDateFirstPay.Text);
-			InstallmentPlanCur.MonthlyPayment=PIn.Double(textMonthlyPayment.Text);
-			InstallmentPlanCur.APR=PIn.Float(textAPR.Text);
-			InstallmentPlanCur.Note=PIn.String(textNote.Text);
+			InstallmentPlanCur.DateAgreement=SIn.Date(textDateAgreement.Text);
+			InstallmentPlanCur.DateFirstPayment=SIn.Date(textDateFirstPay.Text);
+			InstallmentPlanCur.MonthlyPayment=SIn.Double(textMonthlyPayment.Text);
+			InstallmentPlanCur.APR=SIn.Float(textAPR.Text);
+			InstallmentPlanCur.Note=SIn.String(textNote.Text);
 			if(IsNew) {
 				InstallmentPlans.Insert(InstallmentPlanCur);
 			}

@@ -13,6 +13,7 @@ using System.Drawing;
 using CodeBase;
 using System.Globalization;
 using System.Linq;
+using DataConnectionBase;
 
 namespace OpenDental.Bridges {
 	public class Trojan {
@@ -320,7 +321,7 @@ namespace OpenDental.Bridges {
 							ben=new Benefit();
 							ben.BenefitType=InsBenefitType.Limitations;
 							ben.CovCatNum=CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum;
-							ben.MonetaryAmt=PIn.Double(fields[2]);
+							ben.MonetaryAmt=SIn.Double(fields[2]);
 							ben.TimePeriod=BenefitTimePeriod.CalendarYear;
 							ben.CoverageLevel=BenefitCoverageLevel.Individual;
 							troj.BenefitList.Add(ben.Copy());
@@ -342,7 +343,7 @@ namespace OpenDental.Bridges {
 						else {
 							fields[2]=fields[2].Remove(0,1);
 							fields[2]=fields[2].Split(new char[] { ' ' })[0];
-							amt=PIn.Double(fields[2]);
+							amt=SIn.Double(fields[2]);
 						}
 						ben=new Benefit();
 						ben.BenefitType=InsBenefitType.Deductible;
@@ -474,7 +475,7 @@ namespace OpenDental.Bridges {
 							ben=new Benefit();
 							ben.BenefitType=InsBenefitType.Limitations;
 							ben.CovCatNum=CovCats.GetForEbenCat(EbenefitCategory.Orthodontics).CovCatNum;
-							ben.MonetaryAmt=PIn.Double(fields[2]);
+							ben.MonetaryAmt=SIn.Double(fields[2]);
 							ben.TimePeriod=BenefitTimePeriod.CalendarYear;
 							troj.BenefitList.Add(ben.Copy());
 						}
@@ -535,7 +536,7 @@ namespace OpenDental.Bridges {
 		private static int ConvertPercentToInt(string percent) {
 			Match regMatch=Regex.Match(percent,@"([0-9]+)\%");
 			if(regMatch.Success) {
-				return PIn.Int(regMatch.Groups[1].Value);
+				return SIn.Int(regMatch.Groups[1].Value);
 			}
 			return -1;
 		}

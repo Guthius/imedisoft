@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -78,7 +79,7 @@ namespace OpenDental{
 
 		private void comboSpecial_SelectionChangeCommitted(object sender,EventArgs e) {
 			if(_countForType>0){
-				MessageBox.Show(Lan.g(this,"Cannot change Special Type. Patients using this recall type: ") + _countForType.ToString());
+				ODMessageBox.Show(Lan.g(this,"Cannot change Special Type. Patients using this recall type: ") + _countForType.ToString());
 				SetSpecialIdx();//sets back to what it was when form opened
 				return;
 			}
@@ -100,7 +101,7 @@ namespace OpenDental{
 				countForTypePrev=Recalls.GetCountForType(recallTypeNumPrev);
 			}
 			if(countForTypePrev>0) {
-				MessageBox.Show(Lan.g(this,"Cannot change Special Type to one that is set for another recall type and in use by patients.  "
+				ODMessageBox.Show(Lan.g(this,"Cannot change Special Type to one that is set for another recall type and in use by patients.  "
 					+"Patients using the other recall type: ")+countForTypePrev.ToString());
 				SetSpecialIdx();//sets back to what it was when form opened
 				return;
@@ -317,17 +318,17 @@ namespace OpenDental{
 					MsgBox.Show(this,"Please fix data entry errors first.");
 					return;
 				}
-				if(Prefs.UpdateInt(PrefName.RecallAgeAdult,PIn.Int(textRecallAgeAdult.Text))) {
+				if(Prefs.UpdateInt(PrefName.RecallAgeAdult,SIn.Int(textRecallAgeAdult.Text))) {
 					hasChanged=true;
 				}
 				_listRecallTriggers.Clear();//triggers for child prophy special type are handled by the prophy special type
 			}
 			else {//for child prophy, interval will default to 0, since this special type uses the Prophy default interval
 				Interval interval=new Interval(
-					PIn.Int(textDays.Text),
-					PIn.Int(textWeeks.Text),
-					PIn.Int(textMonths.Text),
-					PIn.Int(textYears.Text));
+					SIn.Int(textDays.Text),
+					SIn.Int(textWeeks.Text),
+					SIn.Int(textMonths.Text),
+					SIn.Int(textYears.Text));
 				RecallTypeCur.DefaultInterval=interval;
 			}
 			RecallTypeCur.Description=textDescription.Text;
@@ -342,7 +343,7 @@ namespace OpenDental{
 					RecallTypes.Insert(RecallTypeCur);
 				}
 				catch(Exception ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				SecurityLogs.MakeLogEntry(EnumPermType.RecallEdit,0,"Recall type added '"+RecallTypeCur.Description+"'");
@@ -353,7 +354,7 @@ namespace OpenDental{
 					RecallTypes.Update(RecallTypeCur);
 				}
 				catch(Exception ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 			}

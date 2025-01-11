@@ -200,11 +200,11 @@ namespace OpenDental.Graph.Dashboard
 
                 pdfDoc.Save(sd.FileName);
 
-                MessageBox.Show(Lans.g(this, "File saved."));
+                ODMessageBox.Show(Lans.g(this, "File saved."));
             }
             catch (Exception ex)
             {
-                MessageBox.Show("File not saved." + "\r\n" + ex.Source + "\r\n" + ex.Message + "\r\n" + ex.StackTrace);
+                ODMessageBox.Show("File not saved." + "\r\n" + ex.Source + "\r\n" + ex.Message + "\r\n" + ex.StackTrace);
             }
         }
 

@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 
 namespace OpenDental{
@@ -95,11 +96,11 @@ namespace OpenDental{
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(!textDateTL.IsValid()) {
-				MessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
 				return;
 			}
 			_taskList.Descript=textDescript.Text;
-			_taskList.DateTL=PIn.Date(textDateTL.Text);
+			_taskList.DateTL=SIn.Date(textDateTL.Text);
 			_taskList.DateType=listDateType.GetSelected<TaskDateType>();
 			if(!checkFromNum.Checked){//user unchecked the box
 				_taskList.FromNum=0;
@@ -114,7 +115,7 @@ namespace OpenDental{
 					TaskLists.Insert(_taskList);
 				}
 				catch(Exception ex){
-					MessageBox.Show(ex.Message);
+					ODMessageBox.Show(ex.Message);
 					return;
 				}
 				SecurityLogs.MakeLogEntry(EnumPermType.TaskListCreate,0,_taskList.Descript+" "+Lan.g(this,"added"));
@@ -125,7 +126,7 @@ namespace OpenDental{
 				TaskLists.Update(_taskList);
 			}
 			catch(Exception ex){
-				MessageBox.Show(ex.Message);
+				ODMessageBox.Show(ex.Message);
 				return;
 			}
 			DialogResult=DialogResult.OK;

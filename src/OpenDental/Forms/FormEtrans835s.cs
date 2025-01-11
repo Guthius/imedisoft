@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 
@@ -149,8 +150,8 @@ namespace OpenDental {
 						string status=Lan.g(this,etrans835.Status.GetDescription());
 						row.Cells.Add(status);
 					}
-					row.Cells.Add(POut.Date(eraDataFiltered.ListEtrans[i].DateTimeTrans));
-					row.Cells.Add(POut.Double(etrans835.InsPaid));
+					row.Cells.Add(SOut.Date(eraDataFiltered.ListEtrans[i].DateTimeTrans));
+					row.Cells.Add(SOut.Double(etrans835.InsPaid));
 #region Column: Clinic
 					if(showStatusAndClinics && true) {
 						List<long> listClinicNums=eraDataFiltered.ListAttached.FindAll(x => x.EtransNum==eraDataFiltered.ListEtrans[i].EtransNum)

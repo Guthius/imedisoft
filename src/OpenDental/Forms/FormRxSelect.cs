@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Linq;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -129,9 +130,9 @@ namespace OpenDental{
 					+Lan.g(this,"Prescriptions without RxNorms cannot be exported in EHR documents")+".\r\n";
 				if(!Security.IsAuthorized(EnumPermType.RxEdit,true)) {
 					//Show the message but don't allow to edit. Continue creating rx
-					MessageBox.Show(strMsgText);
+					ODMessageBox.Show(strMsgText);
 				}
-				else if(MessageBox.Show(strMsgText+Lan.g(this,"Edit RxNorm in Rx Template?"),"",MessageBoxButtons.YesNo)==DialogResult.Yes) {
+				else if(ODMessageBox.Show(strMsgText+Lan.g(this,"Edit RxNorm in Rx Template?"),"",MessageBoxButtons.YesNo)==DialogResult.Yes) {
 					using FormRxDefEdit formRxDefEdit=new FormRxDefEdit(rxDef);
 					formRxDefEdit.ShowDialog();
 					rxDef=RxDefs.GetOne(rxDef.RxDefNum);//FormRxDefEdit does not modify the RxDefCur object, so we must get the updated RxCui from the db.

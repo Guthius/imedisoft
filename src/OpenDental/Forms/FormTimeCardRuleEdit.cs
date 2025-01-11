@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -117,7 +118,7 @@ namespace OpenDental {
 						timeSpanOverHoursPerDay=TimeSpan.Parse(textOverHoursPerDay.Text);
 					}
 					else{
-						timeSpanOverHoursPerDay=TimeSpan.FromHours(PIn.Double(textOverHoursPerDay.Text));
+						timeSpanOverHoursPerDay=TimeSpan.FromHours(SIn.Double(textOverHoursPerDay.Text));
 					}
 				}
 				catch {

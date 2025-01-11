@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -728,7 +729,7 @@ namespace OpenDental {
 							if(listValidDates[j].Text=="" || !listValidDates[j].IsValid()) {
 								continue;
 							}
-							DateTime birthdate=PIn.Date(listValidDates[j].Text);
+							DateTime birthdate=SIn.Date(listValidDates[j].Text);
 							if(birthdate>DateTime.Today) {
 								birthdate=birthdate.AddYears(-100);
 							}
@@ -739,7 +740,7 @@ namespace OpenDental {
 							List<RequiredFieldCondition> listRequiredFieldConditionsAge=listRequiredFieldConditions.FindAll(x => x.ConditionType==RequiredFieldName.Birthdate);
 							List<bool> listAreCondsMet=new List<bool>();
 							for(int k=0;k<listRequiredFieldConditionsAge.Count;k++) {
-								listAreCondsMet.Add(CondOpComparer(ageEntered,listRequiredFieldConditionsAge[k].Operator,PIn.Int(listRequiredFieldConditionsAge[k].ConditionValue)));
+								listAreCondsMet.Add(CondOpComparer(ageEntered,listRequiredFieldConditionsAge[k].Operator,SIn.Int(listRequiredFieldConditionsAge[k].ConditionValue)));
 							}
 							if(listAreCondsMet.Count<2 || listRequiredFieldConditionsAge[1].ConditionRelationship==LogicalOperator.And) {
 								areConditionsMet=!listAreCondsMet.Contains(false);
@@ -769,7 +770,7 @@ namespace OpenDental {
 								continue;
 							}
 							if(listRequiredFieldConditions[i].Operator==ConditionOperator.Equals
-								&& PIn.Long(listRequiredFieldConditions[i].ConditionValue)==selectedClinicNum) 
+								&& SIn.Long(listRequiredFieldConditions[i].ConditionValue)==selectedClinicNum) 
 							{
 								areConditionsMet=true;
 								break;
@@ -826,7 +827,7 @@ namespace OpenDental {
 								continue;
 							}
 							if(listRequiredFieldConditions[i].Operator==ConditionOperator.Equals
-								&& PIn.Long(listRequiredFieldConditions[i].ConditionValue)==_listProviders[provIdx].ProvNum) 
+								&& SIn.Long(listRequiredFieldConditions[i].ConditionValue)==_listProviders[provIdx].ProvNum) 
 							{
 								areConditionsMet=true;
 								break;//From the for loop
@@ -1325,7 +1326,7 @@ namespace OpenDental {
 				textAge1.Text="";
 				return;
 			}
-			DateTime birthdate=PIn.Date(textBirthdate1.Text);
+			DateTime birthdate=SIn.Date(textBirthdate1.Text);
 			if(birthdate>DateTime.Today){
 				birthdate=birthdate.AddYears(-100);
 			}
@@ -1337,7 +1338,7 @@ namespace OpenDental {
 				textAge2.Text="";
 				return;
 			}
-			DateTime birthdate=PIn.Date(textBirthdate2.Text);
+			DateTime birthdate=SIn.Date(textBirthdate2.Text);
 			if(birthdate>DateTime.Today){
 				birthdate=birthdate.AddYears(-100);
 			}
@@ -1349,7 +1350,7 @@ namespace OpenDental {
 				textAge3.Text="";
 				return;
 			}
-			DateTime birthdate=PIn.Date(textBirthdate3.Text);
+			DateTime birthdate=SIn.Date(textBirthdate3.Text);
 			if(birthdate>DateTime.Today){
 				birthdate=birthdate.AddYears(-100);
 			}
@@ -1361,7 +1362,7 @@ namespace OpenDental {
 				textAge4.Text="";
 				return;
 			}
-			DateTime birthdate=PIn.Date(textBirthdate4.Text);
+			DateTime birthdate=SIn.Date(textBirthdate4.Text);
 			if(birthdate>DateTime.Today){
 				birthdate=birthdate.AddYears(-100);
 			}
@@ -1373,7 +1374,7 @@ namespace OpenDental {
 				textAge5.Text="";
 				return;
 			}
-			DateTime birthdate=PIn.Date(textBirthdate5.Text);
+			DateTime birthdate=SIn.Date(textBirthdate5.Text);
 			if(birthdate>DateTime.Today){
 				birthdate=birthdate.AddYears(-100);
 			}
@@ -1498,7 +1499,7 @@ namespace OpenDental {
 		}
 
 		private void SetEmail() {
-			if(PIn.Bool(PrefName.AddFamilyInheritsEmail.ToString())) {
+			if(SIn.Bool(PrefName.AddFamilyInheritsEmail.ToString())) {
 				SetEmail(textEmail2,textFName2,_emailOld2);
 				SetEmail(textEmail3,textFName3,_emailOld3);
 				SetEmail(textEmail4,textFName4,_emailOld4);
@@ -1687,7 +1688,7 @@ namespace OpenDental {
 		private void FillComboBillTypes(ComboBox comboBox,long clinicNum) {
 			_listDefsBillingType=Defs.GetDefsForCategory(DefCat.BillingTypes,true);
 			comboBox.Items.Clear();
-			long defNum=PIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,clinicNum));
+			long defNum=SIn.Long(ClinicPrefs.GetPrefValue(PrefName.PracticeDefaultBillType,clinicNum));
 			for(int i=0;i<_listDefsBillingType.Count;i++){
 				comboBox.Items.Add(_listDefsBillingType[i].ItemName);
 				if(_listDefsBillingType[i].DefNum==defNum) {
@@ -2496,7 +2497,7 @@ namespace OpenDental {
 			patient.FName=fname;
 			patient.ClinicNum=clinicNum;
 			if(birthday!=""){
-				patient.Birthdate=PIn.Date(birthday);
+				patient.Birthdate=SIn.Date(birthday);
 			}
 			listPatients.Add(patient);
 		}
@@ -2778,7 +2779,7 @@ namespace OpenDental {
 						}
 						patient.Gender=listGender1.GetSelected<PatientGender>();
 						patient.Position=(PatientPosition)listPosition1.SelectedIndex;
-						patient.Birthdate=PIn.Date(textBirthdate1.Text);
+						patient.Birthdate=SIn.Date(textBirthdate1.Text);
 						if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 							if(comboPriProv1.SelectedIndex>0) {//'Select Provider'
 								patient.PriProv=_listProviders[comboPriProv1.SelectedIndex-1].ProvNum;
@@ -2809,7 +2810,7 @@ namespace OpenDental {
 						}
 						patient.Gender=listGender2.GetSelected<PatientGender>();
 						patient.Position=(PatientPosition)listPosition2.SelectedIndex;
-						patient.Birthdate=PIn.Date(textBirthdate2.Text);
+						patient.Birthdate=SIn.Date(textBirthdate2.Text);
 						if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 							if(comboPriProv2.SelectedIndex>0) {//'Select Provider'
 								patient.PriProv=_listProviders[comboPriProv2.SelectedIndex-1].ProvNum;
@@ -2840,7 +2841,7 @@ namespace OpenDental {
 						}
 						patient.Gender=listGender3.GetSelected<PatientGender>();
 						patient.Position=PatientPosition.Child;
-						patient.Birthdate=PIn.Date(textBirthdate3.Text);
+						patient.Birthdate=SIn.Date(textBirthdate3.Text);
 						if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 							if(comboPriProv3.SelectedIndex>0) {//'Select Provider'
 								patient.PriProv=_listProviders[comboPriProv3.SelectedIndex-1].ProvNum;
@@ -2871,7 +2872,7 @@ namespace OpenDental {
 						}
 						patient.Gender=listGender4.GetSelected<PatientGender>();
 						patient.Position=PatientPosition.Child;
-						patient.Birthdate=PIn.Date(textBirthdate4.Text);
+						patient.Birthdate=SIn.Date(textBirthdate4.Text);
 						if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 							if(comboPriProv4.SelectedIndex>0) {//'Select Provider'
 								patient.PriProv=_listProviders[comboPriProv4.SelectedIndex-1].ProvNum;
@@ -2902,7 +2903,7 @@ namespace OpenDental {
 						}
 						patient.Gender=listGender5.GetSelected<PatientGender>();
 						patient.Position=PatientPosition.Child;
-						patient.Birthdate=PIn.Date(textBirthdate5.Text);
+						patient.Birthdate=SIn.Date(textBirthdate5.Text);
 						if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 							if(comboPriProv5.SelectedIndex>0) {//'Select Provider'
 								patient.PriProv=_listProviders[comboPriProv5.SelectedIndex-1].ProvNum;

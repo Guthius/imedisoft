@@ -101,7 +101,7 @@ namespace OpenDental {
 						if(i>0) {
 							whereProv += ",";
 						}
-						whereProv += "'" + POut.Long(_listProviders[listProviders.SelectedIndices[i]].ProvNum) + "'";
+						whereProv += "'" + SOut.Long(_listProviders[listProviders.SelectedIndices[i]].ProvNum) + "'";
 					}
 					whereProv += ") ";
 					patStat = BuildPatStatList(checkActiveOnly.Checked);
@@ -113,14 +113,14 @@ namespace OpenDental {
 					else {
 						command+=" WHERE CONCAT(CONCAT(CONCAT(CONCAT(patient.LName,', '),patient.FName),' '),patient.MiddleI) >= ";
 					}
-					command+="'"+POut.String(textStartName.Text)+"'";
+					command+="'"+SOut.String(textStartName.Text)+"'";
 					if(checkGroupByFamily.Checked) {
 						command+=" AND CONCAT(CONCAT(CONCAT(CONCAT(familymembers.LName,', '),familymembers.FName),' '),familymembers.MiddleI) <= ";
 					}
 					else {
 						command+=" AND CONCAT(CONCAT(CONCAT(CONCAT(patient.LName,', '),patient.FName),' '),patient.MiddleI) <= ";
 					}
-					command+="'"+POut.String(textEndName.Text)+"'";
+					command+="'"+SOut.String(textEndName.Text)+"'";
 					if(checkGroupByFamily.Checked) {
 						command+=" AND patient.Guarantor=patient.PatNum";
 					}
@@ -206,8 +206,8 @@ namespace OpenDental {
 						MsgBox.Show(this,"At least one patient status must be selected.");
 						return;
 					}
-					DateTime dateBirthdayFrom = PIn.Date(textBirthdayFrom.Text);
-					DateTime dateBirthdayTo = PIn.Date(textBirthdayTo.Text);
+					DateTime dateBirthdayFrom = SIn.Date(textBirthdayFrom.Text);
+					DateTime dateBirthdayTo = SIn.Date(textBirthdayTo.Text);
 					if(dateBirthdayTo < dateBirthdayFrom) {
 						MsgBox.Show(this,"To date cannot be before From date.");
 						return;
@@ -316,7 +316,7 @@ namespace OpenDental {
 				);
 			}
 			else {
-				MessageBox.Show("No Labels to Print for Selected Criteria");
+				ODMessageBox.Show("No Labels to Print for Selected Criteria");
 			}
 		}
 		public static void FitTextOld(string text,Font font,Brush brush,RectangleF rectF,StringFormat stringFormat,Graphics g) {
@@ -585,12 +585,12 @@ namespace OpenDental {
 			}
 		}
 		private void butBirthdayLeft_Click(object sender,EventArgs e) {
-			DateTime dateFrom=PIn.Date(textBirthdayFrom.Text);
+			DateTime dateFrom=SIn.Date(textBirthdayFrom.Text);
 			if(dateFrom.Year < 1880) {
 				MsgBox.Show(this,"Please fix the From date first.");
 				return;
 			}
-			DateTime dateTo=PIn.Date(textBirthdayTo.Text);
+			DateTime dateTo=SIn.Date(textBirthdayTo.Text);
 			bool toLastDay=false;
 			if(CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month)==dateTo.Day) {
 				toLastDay=true;
@@ -598,7 +598,7 @@ namespace OpenDental {
 			textBirthdayFrom.Text=dateFrom.AddMonths(-1).ToString(Lan.g(this,"MM/dd"));
 			textBirthdayTo.Text=dateTo.AddMonths(-1).ToString(Lan.g(this,"MM/dd"));
 			if(toLastDay) {
-				dateTo=PIn.Date(textBirthdayTo.Text);
+				dateTo=SIn.Date(textBirthdayTo.Text);
 				textBirthdayTo.Text=new DateTime(dateTo.Year,dateTo.Month,
 					CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month))
 					.ToString(Lan.g(this,"MM/dd"));
@@ -606,8 +606,8 @@ namespace OpenDental {
 		}
 
 		private void butBirthdayRight_Click(object sender,EventArgs e) {
-			DateTime dateFrom=PIn.Date(textBirthdayFrom.Text);
-			DateTime dateTo=PIn.Date(textBirthdayTo.Text);
+			DateTime dateFrom=SIn.Date(textBirthdayFrom.Text);
+			DateTime dateTo=SIn.Date(textBirthdayTo.Text);
 			textBirthdayFrom.Text=dateFrom.AddMonths(-1).ToShortDateString();
 			textBirthdayTo.Text=dateTo.AddMonths(-1).ToShortDateString();
 			bool toLastDay=false;
@@ -617,7 +617,7 @@ namespace OpenDental {
 			textBirthdayFrom.Text=dateFrom.AddMonths(1).ToString(Lan.g(this,"MM/dd"));
 			textBirthdayTo.Text=dateTo.AddMonths(1).ToString(Lan.g(this,"MM/dd"));
 			if(toLastDay) {
-				dateTo=PIn.Date(textBirthdayTo.Text);
+				dateTo=SIn.Date(textBirthdayTo.Text);
 				textBirthdayTo.Text=new DateTime(dateTo.Year,dateTo.Month,
 					CultureInfo.CurrentCulture.Calendar.GetDaysInMonth(dateTo.Year,dateTo.Month))
 					.ToString(Lan.g(this,"MM/dd"));

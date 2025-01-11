@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using OpenDentBusiness;
 
@@ -68,7 +69,7 @@ namespace OpenDental {
 				prefValSync.PrefVal="";
 			}
 			else {
-				prefValSync.PrefVal=POut.DateTime(timeAgingRun,false);
+				prefValSync.PrefVal=SOut.DateTime(timeAgingRun,false);
 			}
 			SyncChanged?.Invoke(this,new EventArgs());
 		}
@@ -129,7 +130,7 @@ namespace OpenDental {
 
 		public void FillSynced(){
 			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.AgingServiceTimeDue);
-			DateTime dateAgingServiceTimeDue=PIn.DateTime(prefValSync.PrefVal);
+			DateTime dateAgingServiceTimeDue=SIn.DateTime(prefValSync.PrefVal);
 			if(dateAgingServiceTimeDue!=DateTime.MinValue) {
 				textAgingServiceTimeDue.Text=dateAgingServiceTimeDue.ToShortTimeString();
 			}

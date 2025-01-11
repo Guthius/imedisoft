@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using DataConnectionBase;
 using OpenDentBusiness;
 
 namespace OpenDental.Bridges{
@@ -74,7 +75,7 @@ namespace OpenDental.Bridges{
 			for(int i=0;i<fieldVals.Length;i++) {
 				fieldVals[i]=fieldVals[i].Replace("\"","");//remove quotes
 			}
-			long patNum=PIn.Long(GetVal("PAT_OTHID"));
+			long patNum=SIn.Long(GetVal("PAT_OTHID"));
 			if(patNum==0){
 				MessageBox.Show(patNum.ToString()+" is not a recognized PatNum.");
 				return;
@@ -179,7 +180,7 @@ namespace OpenDental.Bridges{
 			}
 			txt=GetVal("PAT_BIRTH");// yyyyMMdd
 			if(txt!=""){
-				pat.Birthdate=PIn.Date(txt);
+				pat.Birthdate=SIn.Date(txt);
 			}
 			txt=GetVal("PAT_SSN");// No punct
 			if(txt!=""){

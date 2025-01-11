@@ -87,7 +87,7 @@ namespace OpenDental
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    ODMessageBox.Show(ex.Message);
                     return listEmailAttaches;
                 }
 
@@ -145,7 +145,7 @@ namespace OpenDental
                             catch (Exception ex)
                             {
                                 //most likely exception is file not found
-                                MessageBox.Show(ex.Message);
+                                ODMessageBox.Show(ex.Message);
                                 return null;
                             }
                         }
@@ -186,7 +186,7 @@ namespace OpenDental
                 catch (Exception ex)
                 {
                     //most likely exception is file not found
-                    MessageBox.Show(ex.Message);
+                    ODMessageBox.Show(ex.Message);
                     return null;
                 }
 
