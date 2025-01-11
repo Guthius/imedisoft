@@ -535,22 +535,6 @@ namespace OpenDental {
 				node2=SetNode(EnumPermType.MobileWeb);
 				node.Nodes.Add(node2);
 			treePermissions.Nodes.Add(node);
-			#region ODCloud Only Permissions
-			if(false) {
-				node=SetNode("Cloud");
-					node2=SetNode(EnumPermType.AllowLoginFromAnyLocation);
-					node.Nodes.Add(node2);
-				treePermissions.Nodes.Add(node);
-			}
-			#endregion
-			#region HQ Only Permissions
-			#region Child Daycare
-			if(PrefC.GetBoolSilent(PrefName.ChildDaycare,false)) {
-				node=SetNode(EnumPermType.ChildDaycareEdit);
-				treePermissions.Nodes.Add(node);
-			}
-			#endregion
-			#endregion
 			treePermissions.ExpandAll();
 		}
 

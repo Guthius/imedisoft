@@ -578,9 +578,6 @@ namespace OpenDentBusiness {
 		///<summary>If true, then checkboxes for Tooth Chart Ortho Mode and Show Ortho Grids will get automatically checked and unchecked</summary>
 		[PrefName(ValueType=PrefValueType.BOOL)]
 		ChartOrthoTabAutomaticCheckboxes = 248,
-		///<summary>Used by internal daycare only. True if this is the Daycare database.</summary>
-		[PrefName(ValueType=PrefValueType.BOOL)]
-		ChildDaycare = 249,
 		ClaimAttachExportPath = 250,
 		///<summary>If true, we will require claims to not have any missing data before they can be created/edited.</summary>
 		[PrefName(ValueType=PrefValueType.BOOL)]

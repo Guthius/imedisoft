@@ -4,7 +4,6 @@ using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class CertEmployees
 {
     //Only pull out the methods below as you need them.  Otherwise, leave them commented out.

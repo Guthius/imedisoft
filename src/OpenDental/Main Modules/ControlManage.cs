@@ -172,10 +172,6 @@ namespace OpenDental{
 			if(!PayPeriods.HasPayPeriodForDate(DateTime.Today)) {
 				MsgBox.Show(this,"No dates exist for this pay period.  Time clock events will not display until pay periods have been created for this date range");
 			}
-			if(PrefC.GetBoolSilent(PrefName.ChildDaycare,false)) {
-				//So teacher has their status updated when they clock in
-				Signalods.SetInvalid(InvalidType.Children);
-			}
 		}
 
 		private void butClockOut_Click(object sender,EventArgs e) {
@@ -202,16 +198,6 @@ namespace OpenDental{
 			_employee.ClockStatus=Lan.g("enumTimeClockStatus",(_listTimeClockStatusesShown[listBoxStatus.SelectedIndex]).GetDescription());
 			Employees.UpdateChanged(_employee, employeeOld, true);
 			ModuleSelected(_patNum);
-			//Automatically create a leaving log when an employee clocks out
-			if(PrefC.GetBoolSilent(PrefName.ChildDaycare,false)) {
-				ChildRoomLog childRoomLog=new ChildRoomLog();
-				childRoomLog.DateTEntered=DateTime.Now;
-				childRoomLog.DateTDisplayed=DateTime.Now;
-				childRoomLog.EmployeeNum=_employee.EmployeeNum;
-				childRoomLog.ChildRoomNum=0;
-				ChildRoomLogs.Insert(childRoomLog);
-				Signalods.SetInvalid(InvalidType.Children);
-			}
 		}
 
 		private void butDeposit_Click(object sender,EventArgs e) {
@@ -303,22 +289,6 @@ namespace OpenDental{
 			}
 		}
 		
-		private void butDaycare_Click(object sender,EventArgs e) {
-			FrmChildCareMap frmChildCareMap=new FrmChildCareMap();
-			if(!Security.IsAuthorized(EnumPermType.ChildDaycareEdit,true)) {
-				frmChildCareMap.ViewOnly=true;
-			}
-			frmChildCareMap.Show();
-		}
-
-		private void butDaycareCheckIn_Click(object sender,EventArgs e) {
-			FrmChildCheckIn frmChildCheckIn=new FrmChildCheckIn();
-			if(!Security.IsAuthorized(EnumPermType.ChildDaycareEdit,false)) {
-				return;
-			}
-			frmChildCheckIn.Show();
-		}
-
 		private void butSendClaims_Click(object sender,EventArgs e) {
 			if(!Security.IsAuthorized(EnumPermType.ClaimSend)) {
 				return;
@@ -533,10 +503,6 @@ namespace OpenDental{
 
 		#region Methods - Event Handlers - Other
 		private void ControlManage_Load(object sender,EventArgs e) {
-			if(!PrefC.GetBoolSilent(PrefName.ChildDaycare,false)) {
-				butDaycare.Visible=false;
-				butDaycareCheckIn.Visible=false;
-			}
 		}
 
 		private void formClaimsSend_GoToChanged(ODEventArgs e) {

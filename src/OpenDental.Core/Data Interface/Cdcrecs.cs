@@ -6,9 +6,9 @@ namespace OpenDentBusiness;
 
 public class Cdcrecs
 {
-    public static long Insert(Cdcrec cdcrec)
+    public static void Insert(Cdcrec cdcrec)
     {
-        return CdcrecCrud.Insert(cdcrec);
+        CdcrecCrud.Insert(cdcrec);
     }
     
     public static void Update(Cdcrec cdcrec)

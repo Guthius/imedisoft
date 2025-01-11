@@ -9,12 +9,10 @@ namespace OpenDentBusiness;
 
 public class ChartViews
 {
-    
-    public static long Insert(ChartView chartView)
+    public static void Insert(ChartView chartView)
     {
-        return ChartViewCrud.Insert(chartView);
+        ChartViewCrud.Insert(chartView);
     }
-
     
     public static bool Update(ChartView chartView, ChartView chartViewOld = null)
     {
@@ -26,11 +24,10 @@ public class ChartViews
 
         return ChartViewCrud.Update(chartView, chartViewOld);
     }
-
     
     public static void Delete(long chartViewNum)
     {
-        var command = "DELETE FROM chartview WHERE ChartViewNum = " + SOut.Long(chartViewNum);
+        var command = "DELETE FROM chartview WHERE ChartViewNum = " + chartViewNum;
         Db.NonQ(command);
     }
 
@@ -105,22 +102,4 @@ public class ChartViews
     }
 
     #endregion
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<ChartView> Refresh(long patNum){
-
-        string command="SELECT * FROM chartview WHERE PatNum = "+POut.Long(patNum);
-        return Crud.ChartViewCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one ChartView from the db.</summary>
-    public static ChartView GetOne(long chartViewNum){
-
-        return Crud.ChartViewCrud.SelectOne(chartViewNum);
-    }
-
-    */
 }
