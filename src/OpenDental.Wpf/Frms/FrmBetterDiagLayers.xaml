@@ -1,0 +1,36 @@
+<local:FrmODBase x:Name="frmBetterDiagLayers" x:Class="OpenDental.FrmBetterDiagLayers"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:OpenDental"
+             xmlns:ui="clr-namespace:WpfControls.UI"
+             mc:Ignorable="d"
+             Width="139" Height="348" 
+             Text="Show AI Layers" MinMaxBoxes="False" >
+	<Grid Background="#FFFCFDFE" >
+		<ui:GroupBox x:Name="groupShowAI" Margin="9,11,0,0" Height="40" Width="120" Text="Show AI Annotations">
+			<ui:RadioButton x:Name="radioShow" Margin="7,17,0,0" Height="20" Width="50" Text="Show" Click="radioShow_Click"/>
+			<ui:RadioButton x:Name="radioHide" Margin="66,17,0,0" Height="20" Width="50" Text="Hide" Click="radioHide_Click"/>
+		</ui:GroupBox>
+		<ui:GroupBox x:Name="groupFindings" Margin="9,58,0,0" Height="101" Width="120" Text="Findings" >
+			<ui:CheckBox x:Name="checkCavity" Width="100" Height="19" Margin="7,19,0,0" Text="Cavities" />
+			<ui:CheckBox x:Name="checkBoneLoss" Width="100" Height="19" Margin="7,39,0,0" Text="Bone Loss" />
+			<ui:CheckBox x:Name="checkInfection" Width="100" Height="19" Margin="7,59,0,0" Text="Infections" />
+			<ui:CheckBox x:Name="checkBoneLevel" Width="100" Height="19" Margin="7,79,0,0" Text="Bone Level" />
+		</ui:GroupBox>
+		<ui:GroupBox x:Name="groupRestorations" Margin="9,166,0,0" Height="61" Width="120" Text="Restorations" >
+			<ui:CheckBox x:Name="checkRestoration" Width="100" Height="19" Margin="7,19,0,0" Text="Restorations" />
+			<ui:CheckBox x:Name="checkCrown" Width="100" Height="19" Margin="7,39,0,0" Text="Crowns" />
+		</ui:GroupBox>
+		<ui:GroupBox x:Name="groupToothPartsLegend" Margin="9,233,0,0" Height="103" Width="120" Text="Teeth">
+			<ui:Label x:Name="labelEnamel" Margin="28,40,0,0" Height="18" Text="Enamel" Width="68"/>
+			<ui:Label x:Name="labelDentin" Margin="27,60,0,0" Height="18" Text="Dentin" Width="44"/>
+			<ui:Label x:Name="labelPulp" Margin="27,80,0,0" Height="18" Text="Pulp" Width="44"/>
+			<ui:Panel x:Name="panelColorEnamel" Width="20" Height="14" Margin="7,42,0,0" ColorBorder="Black"/>
+			<ui:Panel x:Name="panelColorDentin" Width="20" Height="14" Margin="7,62,0,0" ColorBorder="Black"/>
+			<ui:Panel x:Name="panelColorPulp" Width="20" Height="14" Margin="7,82,0,0" ColorBorder="Black"/>
+			<ui:CheckBox x:Name="checkToothParts" Width="100" Height="19" Margin="7,18,0,0" Text="Teeth" />
+		</ui:GroupBox>
+	</Grid>
+</local:FrmODBase>

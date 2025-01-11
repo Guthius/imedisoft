@@ -1,0 +1,20 @@
+<local:FrmODBase x:Class="OpenDental.FrmEra835Editor"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="clr-namespace:OpenDental"
+	xmlns:ui="clr-namespace:WpfControls.UI"
+	mc:Ignorable="d"
+	Width="1212" Height="719" 
+	Text="ERA 835 Editor" MinMaxBoxes="False">
+	<Grid Background="#FFFCFDFE" >
+		<ui:Label Height="39" Margin="10,10,0,0" Text="This tool is intended for internal testing only. ERAs created by this tool will always have carrier and billing provider information replaced with fake hard coded values.&#10;If you import an ERA, you must manually change patient PHI for security reasons." Width="882" VAlign="Center" />
+		<ui:Button x:Name="butBuildEra" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,1127,641" Text="Build ERA" Click="butBuildEra_Click" />
+		<ui:Label Height="18" Margin="90,57,0,0" Text="(from outstanding claims)" Width="282" VAlign="Center" />
+		<ui:Button x:Name="butImportEra" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,1127,612" Text="Import ERA" Click="butImportEra_Click" />
+		<ui:Grid x:Name="gridClaims" Margin="10,112,10,39" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Title="ERA Claims" HeadersMultiline="True" SelectionMode="MultiExtended"/>
+		<ui:Button x:Name="butDeleteClaims" Width="120" Height="24" Margin="450,0,0,10" Text="Delete Claims" Icon="DeleteX" Click="butDeleteClaims_Click"  HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+		<ui:Button x:Name="butSave" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,10,10" Text="_Save" Click="butSave_Click" />
+	</Grid>
+</local:FrmODBase>

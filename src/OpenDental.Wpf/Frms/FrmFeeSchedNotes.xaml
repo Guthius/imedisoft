@@ -1,0 +1,18 @@
+<local:FrmODBase x:Class="OpenDental.FrmFeeSchedNotes"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:OpenDental"
+             xmlns:ui="clr-namespace:WpfControls.UI"
+             mc:Ignorable="d"
+             Width="750" Height="600"
+             Text="Fee Schedule Notes" MinMaxBoxes="False">
+	<Grid Background="#FFFCFDFE" >
+		<ui:Grid x:Name="gridMain" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,39,10,10" HScrollVisible="True" Title="Fee Schedule Notes" TranslationName="FormFeeScheduleNote" />
+		<ui:ComboClinic x:Name="comboClinic" Width="190" Height="18" Margin="549,13,0,0" ForceShowUnassigned="True" IncludeUnassigned="True" IncludeHiddenInAll="True" IncludeAll="True"/>
+		<ui:Button x:Name="butAdd" VerticalAlignment="Bottom" Height="24" Margin="10,0,0,566" Text="_Add" Click="butAdd_Click" Width="75" Icon="Add" />
+		<ui:Label x:Name="labelFeeSchedule" Width="142" Height="18" Margin="133,13,0,0" Text="Fee Schedule" HAlign="Right" VAlign="Center" />
+		<ui:TextBox x:Name="textFeeSchedule" Width="188" Height="18" Margin="275,13,0,0" ReadOnly="True" ColorBack="#FFF0F0F0"/>
+	</Grid>
+</local:FrmODBase>

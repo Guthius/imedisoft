@@ -1,0 +1,110 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <UseWpf>true</UseWpf>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <RootNamespace>Imedisoft</RootNamespace>
+        <GenerateResourceUsePreserializedResources>True</GenerateResourceUsePreserializedResources>
+        <IsPackable>false</IsPackable>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net48</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\OpenDental.Core\OpenDental.Core.csproj">
+            <Project>{3d0fc76e-803c-4de2-bdb1-47d63a4e2357}</Project>
+            <Name>OpenDental.Core</Name>
+        </ProjectReference>
+        <ProjectReference Include="..\OpenDental.Chart\OpenDental.Chart.csproj">
+            <Project>{033b77f4-2e98-49a7-901f-5f388dedf83e}</Project>
+            <Name>OpenDental.Chart</Name>
+        </ProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+        <PackageReference Include="System.Resources.Extensions" Version="9.0.0"/>
+        <PackageReference Include="System.ServiceModel.Http" Version="8.1.1" />
+        <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="Bridges, Version=24.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\Bridges.dll</HintPath>
+        </Reference>
+        <Reference Include="CDT">
+            <HintPath>..\..\lib\CDT.dll</HintPath>
+        </Reference>
+        <Reference Include="CommunityToolkit.Mvvm, Version=8.4.0.0, Culture=neutral, PublicKeyToken=4aff67a105548ee2, processorArchitecture=MSIL">
+            <HintPath>..\..\packages\CommunityToolkit.Mvvm.8.4.0\lib\netstandard2.0\CommunityToolkit.Mvvm.dll</HintPath>
+        </Reference>
+        <Reference Include="DpsPos">
+            <HintPath>..\..\lib\DpsPos.dll</HintPath>
+        </Reference>
+        <Reference Include="Interop.CDRDATALib">
+            <HintPath>..\..\lib\Interop.CDRDATALib.dll</HintPath>
+            <EmbedInteropTypes>True</EmbedInteropTypes>
+        </Reference>
+        <Reference Include="Interop.CDRDicom">
+            <HintPath>..\..\lib\Interop.CDRDicom.dll</HintPath>
+            <EmbedInteropTypes>True</EmbedInteropTypes>
+        </Reference>
+        <Reference Include="Interop.QBFC10">
+            <HintPath>..\..\lib\Interop.QBFC10.dll</HintPath>
+            <EmbedInteropTypes>True</EmbedInteropTypes>
+        </Reference>
+        <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+            <HintPath>..\..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <EmbedInteropTypes>True</EmbedInteropTypes>
+            <HintPath>..\..\lib\Microsoft.Office.Interop.Word.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.VisualBasic"/>
+        <Reference Include="Microsoft.Web.WebView2.Core, Version=1.0.2277.86, Culture=neutral, PublicKeyToken=2a8ab48044d2601e, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\Microsoft.Web.WebView2.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.Web.WebView2.Wpf, Version=1.0.2277.86, Culture=neutral, PublicKeyToken=2a8ab48044d2601e, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\Microsoft.Web.WebView2.Wpf.dll</HintPath>
+        </Reference>
+        <Reference Include="mscorlib"/>
+        <Reference Include="NDde">
+            <HintPath>..\..\lib\NDde.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="NHunspell">
+            <HintPath>..\..\lib\NHunspell.dll</HintPath>
+        </Reference>
+        <Reference Include="ODCrypt">
+            <HintPath>..\..\lib\ODCrypt.dll</HintPath>
+        </Reference>
+        <Reference Include="PdfSharp, Version=1.2.1269.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\PdfSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="ReachFramework"/>
+        <Reference Include="Sparks3D, Version=22.4.0.0, Culture=neutral, processorArchitecture=x86">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\Sparks3D\Sparks3D.dll</HintPath>
+        </Reference>
+        <Reference Include="VBbridges, Version=22.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+            <SpecificVersion>False</SpecificVersion>
+            <HintPath>..\..\lib\VBbridges.dll</HintPath>
+        </Reference>
+        <Reference Include="VirtualWeb">
+            <HintPath>..\..\lib\VirtualWeb.dll</HintPath>
+        </Reference>
+        <Reference Include="WindowsBase"/>
+        <Reference Include="WindowsFormsIntegration"/>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,19 @@
+<local:FrmODBase x:Class="OpenDental.FrmQueryMonitorFilterEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:OpenDental"
+             xmlns:ui="clr-namespace:WpfControls.UI"
+             mc:Ignorable="d"
+             Width="532" Height="196" 
+             Text="Query Filter Edit" MinMaxBoxes="False">
+    <Grid Background="#FFFCFDFE" >
+        <ui:Button x:Name="butSave" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,13,10" Text="_Save" Click="butSave_Click" />
+        <ui:Button x:Name="butDelete" Width="80" VerticalAlignment="Bottom" Height="24" Margin="13,0,0,10" Icon="DeleteX" Text="Delete" Click="butDelete_Click" />
+        <ui:Label Margin="21,40,0,0" Text="Group Name" x:Name="labelGroupName" Width="88" Height="18" HAlign="Right" VAlign="Bottom"/>
+        <ui:Label Margin="36,79,0,0" Text="Filter Text" x:Name="labelFilterText" Width="73" Height="18" HAlign="Right"/>
+        <ui:TextBox x:Name="textFilterText" Margin="110,78,0,0" Height="48" Width="374" IsMultiline="True" MaxLength="255" IsUnderline="True"/>
+        <ui:ComboBox x:Name="comboGroupName" Margin="110,40,0,0" Height="20" Width="187"/>
+    </Grid>
+</local:FrmODBase>

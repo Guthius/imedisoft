@@ -1,0 +1,42 @@
+<local:FrmODBase x:Class="OpenDental.FrmChartLetterProperties"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:OpenDental"
+             xmlns:ui="clr-namespace:WpfControls.UI"
+             mc:Ignorable="d"
+             Width="820" Height="480" 
+             Text="Chart Letter Properties" MinMaxBoxes="False">
+	<Grid Background="#FFFCFDFE" >
+		<ui:Button x:Name="butSave" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,10,10" Text="_Save" Click="butSave_Click" />
+		<ui:TextBox x:Name="textDescription" Height="20" RenderTransformOrigin="0.371,0.78" Width="285" Margin="146,214,0,0"/>
+		<ui:Label Height="18" Margin="58,215,0,0" Text="Description" Width="88" VAlign="Center" HAlign="Right" />
+		<ui:Button x:Name="butDelete" Width="75" VerticalAlignment="Bottom" Height="24" Margin="10,0,0,10" Text="Delete" Icon="DeleteX" Click="butDelete_Click" />
+		<ui:Label Height="18" Margin="57,238,0,0" Text="User" Width="88" VAlign="Center" HAlign="Right" />
+		<ui:TextBox x:Name="textTime" Width="104" Height="20" Margin="146,191,0,0" />
+		<ui:Label x:Name="label4" Width="95" Height="16" Margin="50,194,0,0" Text="Time" HAlign="Right" />
+		<ui:TextVDate x:Name="textDate" Width="104" Height="20" Margin="146,168,0,0" TabIndexOD="1" />
+		<ui:Label x:Name="label3" Width="100" Height="18" Margin="45,171,0,0" Text="Date" HAlign="Right" />
+		<ui:Button x:Name="butOpenFolder" Width="75" Height="24" Margin="607,122,0,0" Text="Open Folder" Click="butOpenFolder_Click" />
+		<ui:TextBox x:Name="textFileHash" Width="244" Height="20" Margin="146,122,0,0" ColorBack="#FFF0F0F0" ReadOnly="True" TabIndexOD="13" />
+		<ui:Label x:Name="label6" Width="100" Height="18" Margin="45,125,0,0" Text="File Hash" HAlign="Right" />
+		<ui:TextBox x:Name="textFileName" Height="20" Margin="146,99,0,0" ColorBack="#FFF0F0F0" ReadOnly="True" TabIndexOD="9" Width="536" />
+		<ui:Label x:Name="labelFileName" Width="100" Height="18" Margin="45,102,0,0" Text="File Name" HAlign="Right" />
+		<ui:TextBox x:Name="textStoredHash" Width="244" Height="20" Margin="146,145,0,0" ColorBack="#FFF0F0F0" ReadOnly="True" TabIndexOD="13" />
+		<ui:Label x:Name="label6_Copy" Width="100" Height="18" Margin="45,148,0,0" Text="Stored Hash" HAlign="Right" />
+		<ui:TextBox x:Name="textUser" Width="104" Height="20" Margin="146,237,0,0" ReadOnly="True" ColorBack="#FFF0F0F0" />
+		<ui:Label Height="38" Margin="90,0,0,4" Text="This removes it from view in the Chart Module, but it will still show in Audit mode" Width="255" VAlign="Center" VerticalAlignment="Bottom" />
+		<ui:Button x:Name="butEdit" Width="100" Height="24" Margin="396,270,0,0" Text="Edit Document" Click="butEdit_Click" />
+		<ui:Label Height="78" Margin="71,19,0,0" Text="Chart letters are tied to Word documents. They have special security that proves they remain unaltered. Every time the attached Word document gets edited, a new Word document is actually created so that the entire history remains preserved. The historical Word documents that are created in this manner do not normally show in the patient Chart Module, but they can all be viewed by going into Audit mode, which is a checkbox in the Chart Module View tab." Width="639" />
+		<ui:Label x:Name="labelEditDoc" Height="60" Margin="500,253,0,0" Text="This will make a new Word document and a new corresponding Audit entry. You must leave Open Dental running while you make the changes in Word. This also changes date and time to now." Width="315" VAlign="Center" />
+		<ui:GroupBox x:Name="groupPDF" Height="72" Margin="535,340,0,0" Width="270" Text="Save as PDF">
+			<ui:Button x:Name="butPdf" Width="63" Height="24" Margin="197,38,0,0" Text="Save" Click="butPdf_Click" />
+			<ui:Label Height="18" Margin="9,20,0,0" Text="Image Category" Width="130" VAlign="Bottom" />
+			<ui:ComboBox x:Name="comboImageCats" Height="20" Margin="12,42,0,0" Width="170"/>
+		</ui:GroupBox>
+		<ui:Label x:Name="labelMatch" Width="160" Height="33" Margin="400,127,0,0" Text="MATCH. No external changes to file detected." VAlign="Center" IsBold="True" />
+		<ui:SignatureBoxWrapper x:Name="signatureBoxWrapper" Height="79" Margin="80,335,0,0" Width="362"/>
+		<ui:Label Height="18" Margin="78,314,0,0" Text="Signature" Width="88" VAlign="Bottom" />
+	</Grid>
+</local:FrmODBase>

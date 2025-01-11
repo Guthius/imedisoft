@@ -1,0 +1,19 @@
+<local:FrmODBase x:Class="OpenDental.FrmEra835ClaimEdit"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="clr-namespace:OpenDental"
+	xmlns:ui="clr-namespace:WpfControls.UI"
+	mc:Ignorable="d"
+	Width="1212" Height="719"
+Text="ERA 835 Claim Edit" MinMaxBoxes="False">
+	<Grid Background="#FFFCFDFE" >
+		<ui:Label Height="18" Margin="30,10,0,0" Text="Claim Fee" Width="88" VAlign="Center" HAlign="Right" />
+		<ui:TextBox x:Name="textClaimFee" Height="20" Margin="122,10,0,0" Width="80" ReadOnly="True"/>
+		<ui:Label Height="18" Margin="10,35,0,0" Text="Claim Fee Override" Width="108" VAlign="Center" HAlign="Right" />
+		<ui:TextVDouble x:Name="textVDoubleClaimFeeOverride"  Height="20" Margin="122,35,0,0" Width="80" MinVal="0"/>
+		<ui:Grid x:Name="gridProcedures"  Margin="10,60,10,39" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Title="ERA Claim Procedures" SelectionMode="MultiExtended"/>
+		<ui:Button x:Name="butSave" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,10,10" Text="_Save" Click="butSave_Click" />
+	</Grid>
+</local:FrmODBase>

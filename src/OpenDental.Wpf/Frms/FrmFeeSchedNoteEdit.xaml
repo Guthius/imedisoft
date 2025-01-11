@@ -1,0 +1,21 @@
+<local:FrmODBase x:Class="OpenDental.FrmFeeSchedNoteEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:OpenDental"
+             xmlns:ui="clr-namespace:WpfControls.UI"
+             mc:Ignorable="d"
+             Width="450" Height="307"
+             Text="Fee Schedule Note Edit" MinMaxBoxes="False">
+	<Grid Background="#FFFCFDFE" >
+		<ui:Button x:Name="butSave" HorizontalAlignment="Right" Width="75" VerticalAlignment="Bottom" Height="24" Margin="0,0,10,10" Text="_Save" Click="butSave_Click" />
+		<ui:TextBox x:Name="textNote" Width="430" Height="178" Margin="0,87,0,0" IsMultiline="True" HorizontalAlignment="Center"/>
+		<ui:Label x:Name="labelNote" Width="65" Height="18" Margin="11,64,0,0" Text="Note" VAlign="Center" />
+		<ui:ComboClinic x:Name="comboClinic" Width="190" Height="18" Margin="250,64,0,0" ForceShowUnassigned="True" IncludeUnassigned="True" IncludeHiddenInAll="True" IsMultiSelect="True"/>
+		<ui:Label x:Name="labelDate" Width="56" Height="18" Margin="79,64,0,0" Text="Date" HAlign="Right" VAlign="Center" />
+		<ui:TextVDate x:Name="textDate" Width="100" Height="18" Margin="135,64,0,0"/>
+		<ui:Button x:Name="butDelete" VerticalAlignment="Bottom" Height="24" Margin="10,0,0,10" Text="_Delete" Click="butDelete_Click" Width="75" Icon="DeleteX" />
+		<ui:Label x:Name="labelNote_Copy" Width="391" Height="49" Margin="11,10,0,0" Text="You can optionally add a note here describing the origin of the fees, etc.  The note will later be accessible by right clicking on a fee in the Procedure Codes window." />
+	</Grid>
+</local:FrmODBase>
