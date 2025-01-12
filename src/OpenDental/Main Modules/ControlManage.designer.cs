@@ -36,7 +36,6 @@ namespace OpenDental {
 			this.butEras = new OpenDental.UI.Button();
 			this.butImportInsPlans = new OpenDental.UI.Button();
 			this.butEmailInbox = new OpenDental.UI.Button();
-			this.butSupply = new OpenDental.UI.Button();
 			this.butClaimPay = new OpenDental.UI.Button();
 			this.butBilling = new OpenDental.UI.Button();
 			this.butAccounting = new OpenDental.UI.Button();
@@ -95,7 +94,6 @@ namespace OpenDental {
 			this.groupBox3.Controls.Add(this.butEras);
 			this.groupBox3.Controls.Add(this.butImportInsPlans);
 			this.groupBox3.Controls.Add(this.butEmailInbox);
-			this.groupBox3.Controls.Add(this.butSupply);
 			this.groupBox3.Controls.Add(this.butClaimPay);
 			this.groupBox3.Controls.Add(this.butBilling);
 			this.groupBox3.Controls.Add(this.butAccounting);
@@ -139,16 +137,6 @@ namespace OpenDental {
 			this.butEmailInbox.TabIndex = 28;
 			this.butEmailInbox.Text = "Emails";
 			this.butEmailInbox.Click += new System.EventHandler(this.butEmailInbox_Click);
-			// 
-			// butSupply
-			// 
-			this.butSupply.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butSupply.Location = new System.Drawing.Point(16, 123);
-			this.butSupply.Name = "butSupply";
-			this.butSupply.Size = new System.Drawing.Size(104, 26);
-			this.butSupply.TabIndex = 26;
-			this.butSupply.Text = "Supply Inventory";
-			this.butSupply.Click += new System.EventHandler(this.butSupply_Click);
 			// 
 			// butClaimPay
 			// 
@@ -614,7 +602,6 @@ namespace OpenDental {
 		private UI.Button butManageAR;
 		private UI.Button butSend;
 		private UI.Button butSendClaims;
-		private UI.Button butSupply;
 		private UI.Button butTasks;
 		private UI.Button butTimeCard;
 		private UI.Button butViewSched;

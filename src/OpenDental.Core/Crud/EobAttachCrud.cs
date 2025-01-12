@@ -1,11 +1,7 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
-
-#endregion
 
 namespace OpenDentBusiness.Crud;
 
@@ -15,13 +11,6 @@ public class EobAttachCrud
     {
         var command = "SELECT * FROM eobattach "
                       + "WHERE EobAttachNum = " + SOut.Long(eobAttachNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static EobAttach SelectOne(string command)
-    {
         var list = TableToList(DataCore.GetTable(command));
         if (list.Count == 0) return null;
         return list[0];

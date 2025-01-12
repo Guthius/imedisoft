@@ -4252,12 +4252,6 @@
     <Compile Include="Forms\FormHL7Defs.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\FormSupplyOrders.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplyOrders.designer.cs">
-      <DependentUpon>FormSupplyOrders.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\FormEtrans835Edit.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -4744,18 +4738,6 @@
     <Compile Include="Forms\FormPatientForms.designer.cs">
       <DependentUpon>FormPatientForms.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\FormEquipmentEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEquipmentEdit.Designer.cs">
-      <DependentUpon>FormEquipmentEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormEquipment.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormEquipment.Designer.cs">
-      <DependentUpon>FormEquipment.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\FormAutomationEdit.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -4962,48 +4944,6 @@
     </Compile>
     <Compile Include="Forms\FormPopupDisplay.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplyOrderItemEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplyOrderItemEdit.Designer.cs">
-      <DependentUpon>FormSupplyOrderItemEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSupplies.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplies.Designer.cs">
-      <DependentUpon>FormSupplies.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSupplyOrderEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplyOrderEdit.Designer.cs">
-      <DependentUpon>FormSupplyOrderEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSupplyEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplyEdit.Designer.cs">
-      <DependentUpon>FormSupplyEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSupplierEdit.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplierEdit.Designer.cs">
-      <DependentUpon>FormSupplierEdit.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSuppliers.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSuppliers.Designer.cs">
-      <DependentUpon>FormSuppliers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\FormSupplyInventory.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\FormSupplyInventory.Designer.cs">
-      <DependentUpon>FormSupplyInventory.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormImageSelect.cs">
       <SubType>Form</SubType>
@@ -7660,9 +7600,6 @@
       <DependentUpon>FormHL7Defs.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplyOrders.resx">
-      <DependentUpon>FormSupplyOrders.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormEtrans835Edit.resx">
       <DependentUpon>FormEtrans835Edit.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -7917,34 +7854,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormPopupDisplay.resx">
       <DependentUpon>FormPopupDisplay.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplyOrderItemEdit.resx">
-      <DependentUpon>FormSupplyOrderItemEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplies.resx">
-      <DependentUpon>FormSupplies.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplyOrderEdit.resx">
-      <DependentUpon>FormSupplyOrderEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplyEdit.resx">
-      <DependentUpon>FormSupplyEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplierEdit.resx">
-      <DependentUpon>FormSupplierEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSuppliers.resx">
-      <DependentUpon>FormSuppliers.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormSupplyInventory.resx">
-      <DependentUpon>FormSupplyInventory.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormImageSelect.resx">
@@ -9528,14 +9437,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormPatientForms.resx">
       <DependentUpon>FormPatientForms.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEquipmentEdit.resx">
-      <DependentUpon>FormEquipmentEdit.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FormEquipment.resx">
-      <DependentUpon>FormEquipment.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormAutomationEdit.resx">

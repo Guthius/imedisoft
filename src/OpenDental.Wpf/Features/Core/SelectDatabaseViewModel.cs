@@ -6,7 +6,7 @@ using DataConnectionBase;
 
 namespace Imedisoft.Features.Core;
 
-internal sealed partial class SelectDatabaseViewModel : ObservableObject
+internal sealed partial class SelectDatabaseViewModel : WindowViewModel
 {
     private readonly SelectDatabaseModel _model;
 
@@ -31,8 +31,6 @@ internal sealed partial class SelectDatabaseViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _hideOnStartup;
-
-    public Action<bool?>? Close { get; set; }
 
     public SelectDatabaseViewModel(SelectDatabaseModel model)
     {

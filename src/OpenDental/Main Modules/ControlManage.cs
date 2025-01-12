@@ -308,11 +308,6 @@ namespace OpenDental{
 			Cursor=Cursors.Default;
 		}
 
-		private void butSupply_Click(object sender,EventArgs e) {
-			using FormSupplyInventory formSupplyInventory=new FormSupplyInventory();
-			formSupplyInventory.ShowDialog();
-		}
-
 		private void butTasks_Click(object sender,EventArgs e) {
 			LaunchTaskWindow(false);
 			/*  //This is the old code exactly how it was before making the task window non-modal in case issues arise.
@@ -596,7 +591,6 @@ namespace OpenDental{
 				butSendClaims,
 				butBilling,
 				butDeposit,
-				butSupply,
 				butTasks,
 				butBackup,
 				butAccounting,
