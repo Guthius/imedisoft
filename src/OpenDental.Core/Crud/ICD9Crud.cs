@@ -1,32 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ICD9Crud
 {
-    public static ICD9 SelectOne(long iCD9Num)
-    {
-        var command = "SELECT * FROM icd9 "
-                      + "WHERE ICD9Num = " + SOut.Long(iCD9Num);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ICD9 SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ICD9> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -63,12 +44,7 @@ public class ICD9Crud
         return table;
     }
 
-    public static long Insert(ICD9 iCD9)
-    {
-        return Insert(iCD9, false);
-    }
-
-    public static long Insert(ICD9 iCD9, bool useExistingPK)
+    public static void Insert(ICD9 iCD9)
     {
         var command = "INSERT INTO icd9 (";
 
@@ -80,30 +56,6 @@ public class ICD9Crud
         //DateTStamp can only be set by MySQL
 
         iCD9.ICD9Num = Db.NonQ(command, true, "ICD9Num", "iCD9");
-        return iCD9.ICD9Num;
-    }
-
-    public static long InsertNoCache(ICD9 iCD9)
-    {
-        return InsertNoCache(iCD9, false);
-    }
-
-    public static long InsertNoCache(ICD9 iCD9, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO icd9 (";
-        if (isRandomKeys || useExistingPK) command += "ICD9Num,";
-        command += "ICD9Code,Description) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(iCD9.ICD9Num) + ",";
-        command +=
-            "'" + SOut.String(iCD9.ICD9Code) + "',"
-            + "'" + SOut.String(iCD9.Description) + "')";
-        //DateTStamp can only be set by MySQL
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            iCD9.ICD9Num = Db.NonQ(command, true, "ICD9Num", "iCD9");
-        return iCD9.ICD9Num;
     }
 
     public static void Update(ICD9 iCD9)
@@ -113,52 +65,6 @@ public class ICD9Crud
                       + "Description= '" + SOut.String(iCD9.Description) + "' "
                       //DateTStamp can only be set by MySQL
                       + "WHERE ICD9Num = " + SOut.Long(iCD9.ICD9Num);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(ICD9 iCD9, ICD9 oldICD9)
-    {
-        var command = "";
-        if (iCD9.ICD9Code != oldICD9.ICD9Code)
-        {
-            if (command != "") command += ",";
-            command += "ICD9Code = '" + SOut.String(iCD9.ICD9Code) + "'";
-        }
-
-        if (iCD9.Description != oldICD9.Description)
-        {
-            if (command != "") command += ",";
-            command += "Description = '" + SOut.String(iCD9.Description) + "'";
-        }
-
-        //DateTStamp can only be set by MySQL
-        if (command == "") return false;
-        command = "UPDATE icd9 SET " + command
-                                     + " WHERE ICD9Num = " + SOut.Long(iCD9.ICD9Num);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(ICD9 iCD9, ICD9 oldICD9)
-    {
-        if (iCD9.ICD9Code != oldICD9.ICD9Code) return true;
-        if (iCD9.Description != oldICD9.Description) return true;
-        //DateTStamp can only be set by MySQL
-        return false;
-    }
-
-    public static void Delete(long iCD9Num)
-    {
-        var command = "DELETE FROM icd9 "
-                      + "WHERE ICD9Num = " + SOut.Long(iCD9Num);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listICD9Nums)
-    {
-        if (listICD9Nums == null || listICD9Nums.Count == 0) return;
-        var command = "DELETE FROM icd9 "
-                      + "WHERE ICD9Num IN(" + string.Join(",", listICD9Nums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

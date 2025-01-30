@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormAutoCode {
 		/// <summary>
 		/// Required designer variable.
@@ -37,7 +30,7 @@ namespace OpenDental {
 			this.listAutoCodes.Name = "listAutoCodes";
 			this.listAutoCodes.Size = new System.Drawing.Size(178, 316);
 			this.listAutoCodes.TabIndex = 0;
-			this.listAutoCodes.DoubleClick += new System.EventHandler(this.listAutoCodes_DoubleClick);
+			this.listAutoCodes.DoubleClick += new System.EventHandler(this.ListBoxAutoCodes_DoubleClick);
 			// 
 			// butAdd
 			// 
@@ -48,7 +41,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(90, 26);
 			this.butAdd.TabIndex = 5;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butDelete
 			// 
@@ -59,7 +52,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(90, 26);
 			this.butDelete.TabIndex = 6;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// FormAutoCode
 			// 

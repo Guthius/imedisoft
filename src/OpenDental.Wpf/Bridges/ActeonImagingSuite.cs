@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Windows;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	public class ActeonImagingSuite {

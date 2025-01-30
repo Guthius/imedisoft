@@ -1,4 +1,4 @@
-namespace OpenDental
+namespace OpenDental.Forms
 {
     partial class FormAutoNoteEdit
     {
@@ -68,7 +68,7 @@ namespace OpenDental
 			this.textMain.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
 			this.textMain.Size = new System.Drawing.Size(504, 552);
 			this.textMain.TabIndex = 108;
-			this.textMain.Leave += new System.EventHandler(this.textMain_Leave);
+			this.textMain.Leave += new System.EventHandler(this.TextBoxMain_Leave);
 			// 
 			// label1
 			// 
@@ -89,7 +89,7 @@ namespace OpenDental
 			this.butAdd.Size = new System.Drawing.Size(79, 24);
 			this.butAdd.TabIndex = 110;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butDelete
 			// 
@@ -102,7 +102,7 @@ namespace OpenDental
 			this.butDelete.Size = new System.Drawing.Size(79, 24);
 			this.butDelete.TabIndex = 107;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// gridMain
 			// 
@@ -125,7 +125,7 @@ namespace OpenDental
 			this.butInsert.Size = new System.Drawing.Size(79, 24);
 			this.butInsert.TabIndex = 105;
 			this.butInsert.Text = "Insert";
-			this.butInsert.Click += new System.EventHandler(this.butInsert_Click);
+			this.butInsert.Click += new System.EventHandler(this.ButtonInsert_Click);
 			// 
 			// butSave
 			// 
@@ -135,7 +135,7 @@ namespace OpenDental
 			this.butSave.Size = new System.Drawing.Size(78, 24);
 			this.butSave.TabIndex = 5;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// FormAutoNoteEdit
 			// 

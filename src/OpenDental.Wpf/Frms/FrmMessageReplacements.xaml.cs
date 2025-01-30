@@ -230,9 +230,9 @@ namespace OpenDental {
 		///<summary>Builds and inserts a replacement row into the grid using the passed-in field name, description, and replacement type.</summary>
 		private void AddReplacementRow(ReplacementField replacementField) {
 			GridRow row=new GridRow();
-			row.Cells.Add(Lang.g("enumMessageReplaceType",replacementField.MessageReplaceTypeCur.ToString()));
+			row.Cells.Add(replacementField.MessageReplaceTypeCur.ToString());
 			row.Cells.Add(replacementField.FieldName);
-			row.Cells.Add(Lang.g(this,replacementField.Descript));
+			row.Cells.Add(replacementField.Descript);
 			if(replacementField.IsPHI) {
 				row.ColorText=Colors.DarkSlateGray;
 			}

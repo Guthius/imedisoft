@@ -3,8 +3,10 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AppointmentTypeCrud
 {

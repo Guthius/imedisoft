@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PerioMeasureCrud
 {
@@ -104,7 +106,7 @@ public class PerioMeasureCrud
                                                  + SOut.Int(perioMeasure.MLvalue) + ","
                                                  + SOut.Int(perioMeasure.Lvalue) + ","
                                                  + SOut.Int(perioMeasure.DLvalue) + ","
-                                                 + DbHelper.Now() + ")";
+                                                 + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
 
         perioMeasure.PerioMeasureNum = Db.NonQ(command, true, "PerioMeasureNum", "perioMeasure");
@@ -165,7 +167,7 @@ public class PerioMeasureCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Int(perioMeasure.DLvalue));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(")");
             //SecDateTEdit can only be set by MySQL
             if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
@@ -207,7 +209,7 @@ public class PerioMeasureCrud
                                                  + SOut.Int(perioMeasure.MLvalue) + ","
                                                  + SOut.Int(perioMeasure.Lvalue) + ","
                                                  + SOut.Int(perioMeasure.DLvalue) + ","
-                                                 + DbHelper.Now() + ")";
+                                                 + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);

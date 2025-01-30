@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EncounterCrud
 {
@@ -88,7 +90,7 @@ public class EncounterCrud
                                         + DbHelper.ParamChar + "paramNote,"
                                         + SOut.Date(encounter.DateEncounter) + ")";
         if (encounter.Note == null) encounter.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(encounter.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(encounter.Note));
         {
             encounter.EncounterNum = Db.NonQ(command, true, "EncounterNum", "encounter", paramNote);
         }
@@ -115,7 +117,7 @@ public class EncounterCrud
                                         + DbHelper.ParamChar + "paramNote,"
                                         + SOut.Date(encounter.DateEncounter) + ")";
         if (encounter.Note == null) encounter.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(encounter.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(encounter.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -134,7 +136,7 @@ public class EncounterCrud
                       + "DateEncounter=  " + SOut.Date(encounter.DateEncounter) + " "
                       + "WHERE EncounterNum = " + SOut.Long(encounter.EncounterNum);
         if (encounter.Note == null) encounter.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(encounter.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(encounter.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -179,7 +181,7 @@ public class EncounterCrud
 
         if (command == "") return false;
         if (encounter.Note == null) encounter.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(encounter.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(encounter.Note));
         command = "UPDATE encounter SET " + command
                                           + " WHERE EncounterNum = " + SOut.Long(encounter.EncounterNum);
         Db.NonQ(command, paramNote);

@@ -1,4 +1,4 @@
-namespace OpenDental {
+namespace OpenDental.Forms {
 	partial class FormAutoNoteControlEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -157,7 +157,7 @@ namespace OpenDental {
 			this.comboType.Name = "comboType";
 			this.comboType.Size = new System.Drawing.Size(215, 21);
 			this.comboType.TabIndex = 0;
-			this.comboType.SelectedIndexChanged += new System.EventHandler(this.comboType_SelectedIndexChanged);
+			this.comboType.SelectedIndexChanged += new System.EventHandler(this.ComboBoxType_SelectedIndexChanged);
 			// 
 			// textBoxControlLabel
 			// 
@@ -167,7 +167,7 @@ namespace OpenDental {
 			this.textBoxControlLabel.Name = "textBoxControlLabel";
 			this.textBoxControlLabel.Size = new System.Drawing.Size(364, 76);
 			this.textBoxControlLabel.TabIndex = 2;
-			this.textBoxControlLabel.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxControlLabel_KeyDown);
+			this.textBoxControlLabel.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBoxControlLabel_KeyDown);
 			// 
 			// textBoxControlDescript
 			// 
@@ -235,7 +235,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(76, 24);
 			this.butDelete.TabIndex = 124;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSave
 			// 
@@ -245,7 +245,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(76, 24);
 			this.butSave.TabIndex = 8;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butAddOptionControl
 			// 
@@ -272,7 +272,7 @@ namespace OpenDental {
 			this.butDown.Name = "butDown";
 			this.butDown.Size = new System.Drawing.Size(25, 24);
 			this.butDown.TabIndex = 126;
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -282,7 +282,7 @@ namespace OpenDental {
 			this.butUp.Name = "butUp";
 			this.butUp.Size = new System.Drawing.Size(25, 24);
 			this.butUp.TabIndex = 125;
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butAutoNoteResp
 			// 
@@ -292,7 +292,7 @@ namespace OpenDental {
 			this.butAutoNoteResp.TabIndex = 127;
 			this.butAutoNoteResp.Text = "Auto Note Response";
 			this.butAutoNoteResp.Visible = false;
-			this.butAutoNoteResp.Click += new System.EventHandler(this.butAutoNoteResp_Click);
+			this.butAutoNoteResp.Click += new System.EventHandler(this.ButtonAutoNoteResp_Click);
 			// 
 			// FormAutoNoteControlEdit
 			// 

@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormApptTypeEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -60,7 +60,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 16;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// labelColor
 			// 
@@ -78,7 +78,7 @@ namespace OpenDental{
 			this.butColorClear.Size = new System.Drawing.Size(53, 24);
 			this.butColorClear.TabIndex = 2;
 			this.butColorClear.Text = "None";
-			this.butColorClear.Click += new System.EventHandler(this.butColorClear_Click);
+			this.butColorClear.Click += new System.EventHandler(this.ButtonColorClear_Click);
 			// 
 			// butColor
 			// 
@@ -87,7 +87,7 @@ namespace OpenDental{
 			this.butColor.Name = "butColor";
 			this.butColor.Size = new System.Drawing.Size(20, 20);
 			this.butColor.TabIndex = 1;
-			this.butColor.Click += new System.EventHandler(this.butColor_Click);
+			this.butColor.Click += new System.EventHandler(this.ButtonColor_Click);
 			// 
 			// labelName
 			// 
@@ -127,7 +127,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 15;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSlider
 			// 
@@ -138,9 +138,9 @@ namespace OpenDental{
 			this.butSlider.TabIndex = 188;
 			this.butSlider.TabStop = false;
 			this.butSlider.UseVisualStyleBackColor = false;
-			this.butSlider.MouseDown += new System.Windows.Forms.MouseEventHandler(this.butSlider_MouseDown);
-			this.butSlider.MouseMove += new System.Windows.Forms.MouseEventHandler(this.butSlider_MouseMove);
-			this.butSlider.MouseUp += new System.Windows.Forms.MouseEventHandler(this.butSlider_MouseUp);
+			this.butSlider.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ButtonSlider_MouseDown);
+			this.butSlider.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ButtonSlider_MouseMove);
+			this.butSlider.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonSlider_MouseUp);
 			// 
 			// tbTime
 			// 
@@ -153,7 +153,7 @@ namespace OpenDental{
 			this.tbTime.Size = new System.Drawing.Size(15, 561);
 			this.tbTime.TabIndex = 187;
 			this.tbTime.TabStop = false;
-			this.tbTime.CellClicked += new OpenDental.ContrTable.CellEventHandler(this.tbTime_CellClicked);
+			this.tbTime.CellClicked += new OpenDental.ContrTable.CellEventHandler(this.TimeBarTime_CellClicked);
 			// 
 			// labelTime
 			// 
@@ -179,7 +179,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(65, 24);
 			this.butAdd.TabIndex = 7;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butRemove
 			// 
@@ -188,7 +188,7 @@ namespace OpenDental{
 			this.butRemove.Size = new System.Drawing.Size(65, 24);
 			this.butRemove.TabIndex = 8;
 			this.butRemove.Text = "Remove";
-			this.butRemove.Click += new System.EventHandler(this.butRemove_Click);
+			this.butRemove.Click += new System.EventHandler(this.ButtonRemove_Click);
 			// 
 			// labelTreatmentPlannedProcedures
 			// 
@@ -206,7 +206,7 @@ namespace OpenDental{
 			this.butClear.Size = new System.Drawing.Size(65, 24);
 			this.butClear.TabIndex = 5;
 			this.butClear.Text = "Clear";
-			this.butClear.Click += new System.EventHandler(this.butClear_Click);
+			this.butClear.Click += new System.EventHandler(this.ButtonClear_Click);
 			// 
 			// textTime
 			// 
@@ -231,7 +231,7 @@ namespace OpenDental{
 			this.butAddRequired.Size = new System.Drawing.Size(65, 24);
 			this.butAddRequired.TabIndex = 11;
 			this.butAddRequired.Text = "Add";
-			this.butAddRequired.Click += new System.EventHandler(this.butAddRequired_Click);
+			this.butAddRequired.Click += new System.EventHandler(this.ButtonAddRequired_Click);
 			// 
 			// butRemoveRequired
 			// 
@@ -240,7 +240,7 @@ namespace OpenDental{
 			this.butRemoveRequired.Size = new System.Drawing.Size(65, 24);
 			this.butRemoveRequired.TabIndex = 12;
 			this.butRemoveRequired.Text = "Remove";
-			this.butRemoveRequired.Click += new System.EventHandler(this.butRemoveRequired_Click);
+			this.butRemoveRequired.Click += new System.EventHandler(this.ButtonRemoveRequired_Click);
 			// 
 			// listBoxBlockoutTypes
 			// 

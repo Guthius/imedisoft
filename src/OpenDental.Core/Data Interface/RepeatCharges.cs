@@ -6,8 +6,10 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
@@ -177,8 +179,8 @@ public class RepeatCharges
     {
         //Counts the number of repeat charges that a patient has with a valid start date in the past and no stop date or a stop date in the future
         var command = "SELECT COUNT(*) FROM repeatcharge "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " AND DateStart BETWEEN '1880-01-01' AND " + DbHelper.Curdate() + " "
-                      + "AND (DateStop='0001-01-01' OR DateStop>=" + DbHelper.Curdate() + ")";
+                      + "WHERE PatNum=" + SOut.Long(patNum) + " AND DateStart BETWEEN '1880-01-01' AND " + "CURDATE()" + " "
+                      + "AND (DateStop='0001-01-01' OR DateStop>=" + "CURDATE()" + ")";
         if (Db.GetCount(command) == "0") return false;
         return true;
     }
@@ -561,7 +563,7 @@ public class RepeatCharges
         try
         {
             //No recall synch needed because dental offices don't use this feature
-            Procedures.Insert(procedure, isRepeatCharge: true, skipDiscountPlanAdjustment: orthoCaseProcedureLinker.ShouldProcedureLinkToOrthoCase(procedure, repeatCharge.ProcCode));
+            Procedures.Insert(procedure, skipDiscountPlanAdjustment: orthoCaseProcedureLinker.ShouldProcedureLinkToOrthoCase(procedure, repeatCharge.ProcCode));
         }
         catch (Exception e)
         {

@@ -9,6 +9,7 @@ using PdfSharp.Pdf;
 using OpenDentBusiness;
 using System.Drawing.Drawing2D;
 using Google.Apis.Util;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class GraphicsHelper {

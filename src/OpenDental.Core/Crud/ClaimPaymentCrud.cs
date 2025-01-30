@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClaimPaymentCrud
 {
@@ -67,7 +69,7 @@ public class ClaimPaymentCrud
                                               + SOut.Bool(claimPayment.IsPartial) + ","
                                               + SOut.Long(claimPayment.PayType) + ","
                                               + SOut.Long(claimPayment.SecUserNumEntry) + ","
-                                              + DbHelper.Now() + ","
+                                              + "NOW()" + ","
                                               //SecDateTEdit can only be set by MySQL
                                               + SOut.Long(claimPayment.PayGroup) + ")";
         {

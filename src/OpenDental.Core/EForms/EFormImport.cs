@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness {

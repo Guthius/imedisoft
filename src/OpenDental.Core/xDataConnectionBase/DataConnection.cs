@@ -26,8 +26,6 @@ public class DataConnection : IDisposable
         }
         set => _commandTimeout = value;
     }
-
-    public static int ConnectionRetryTimeoutSeconds { get; set; }
     
     public static string Database => new MySqlConnectionStringBuilder(ConnectionString).Database;
 

@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProgramPropertyCrud
 {
@@ -92,7 +94,7 @@ public class ProgramPropertyCrud
                                                   + SOut.Bool(programProperty.IsMasked) + ","
                                                   + SOut.Bool(programProperty.IsHighSecurity) + ")";
         if (programProperty.PropertyValue == null) programProperty.PropertyValue = "";
-        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", OdDbType.Text, SOut.StringParam(programProperty.PropertyValue));
+        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", SOut.StringParam(programProperty.PropertyValue));
         {
             programProperty.ProgramPropertyNum = Db.NonQ(command, true, "ProgramPropertyNum", "programProperty", paramPropertyValue);
         }
@@ -184,7 +186,7 @@ public class ProgramPropertyCrud
                                                   + SOut.Bool(programProperty.IsMasked) + ","
                                                   + SOut.Bool(programProperty.IsHighSecurity) + ")";
         if (programProperty.PropertyValue == null) programProperty.PropertyValue = "";
-        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", OdDbType.Text, SOut.StringParam(programProperty.PropertyValue));
+        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", SOut.StringParam(programProperty.PropertyValue));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPropertyValue);
         else
@@ -204,7 +206,7 @@ public class ProgramPropertyCrud
                       + "IsHighSecurity    =  " + SOut.Bool(programProperty.IsHighSecurity) + " "
                       + "WHERE ProgramPropertyNum = " + SOut.Long(programProperty.ProgramPropertyNum);
         if (programProperty.PropertyValue == null) programProperty.PropertyValue = "";
-        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", OdDbType.Text, SOut.StringParam(programProperty.PropertyValue));
+        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", SOut.StringParam(programProperty.PropertyValue));
         Db.NonQ(command, paramPropertyValue);
     }
 
@@ -255,7 +257,7 @@ public class ProgramPropertyCrud
 
         if (command == "") return false;
         if (programProperty.PropertyValue == null) programProperty.PropertyValue = "";
-        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", OdDbType.Text, SOut.StringParam(programProperty.PropertyValue));
+        var paramPropertyValue = new OdSqlParameter("paramPropertyValue", SOut.StringParam(programProperty.PropertyValue));
         command = "UPDATE programproperty SET " + command
                                                 + " WHERE ProgramPropertyNum = " + SOut.Long(programProperty.ProgramPropertyNum);
         Db.NonQ(command, paramPropertyValue);

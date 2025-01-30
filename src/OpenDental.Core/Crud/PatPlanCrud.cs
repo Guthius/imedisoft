@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PatPlanCrud
 {
@@ -97,7 +99,7 @@ public class PatPlanCrud
                                       + SOut.Long(patPlan.InsSubNum) + ","
                                       + SOut.Double(patPlan.OrthoAutoFeeBilledOverride) + ","
                                       + SOut.Date(patPlan.OrthoAutoNextClaimDate) + ","
-                                      + DbHelper.Now() + ")";
+                                      + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
 
         patPlan.PatPlanNum = Db.NonQ(command, true, "PatPlanNum", "patPlan");
@@ -125,7 +127,7 @@ public class PatPlanCrud
                                       + SOut.Long(patPlan.InsSubNum) + ","
                                       + SOut.Double(patPlan.OrthoAutoFeeBilledOverride) + ","
                                       + SOut.Date(patPlan.OrthoAutoNextClaimDate) + ","
-                                      + DbHelper.Now() + ")";
+                                      + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);

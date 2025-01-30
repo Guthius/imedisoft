@@ -11,6 +11,8 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDental.Drawing;
 
 namespace OpenDental {

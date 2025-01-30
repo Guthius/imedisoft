@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -111,7 +113,7 @@ namespace OpenDental {
 			if(radioSitInvalid.Checked==true){
 				enumEFormImportSituation=EnumEFormImportSituation.Invalid;
 			}
-			if(!EFormImportRules.isAllowedSit(fieldName,enumEFormImportSituation)){
+			if(!EFormImportRules.IsAllowedSit(fieldName,enumEFormImportSituation)){
 				MsgBox.Show(this,"That situation is not allowed for that field.");
 				return;
 			}
@@ -125,7 +127,7 @@ namespace OpenDental {
 			if(radioActionFix.Checked==true){
 				enumEFormImportAction=EnumEFormImportAction.Fix;
 			}
-			if(!EFormImportRules.isAllowedAction(fieldName,enumEFormImportAction)){
+			if(!EFormImportRules.IsAllowedAction(fieldName,enumEFormImportAction)){
 				MsgBox.Show(this,"That action is not allowed for that field.");
 				return;
 			}

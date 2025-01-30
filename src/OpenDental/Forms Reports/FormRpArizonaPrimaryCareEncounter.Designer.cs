@@ -34,7 +34,7 @@ namespace OpenDental{
 			this.label1=new System.Windows.Forms.Label();
 			this.textEncounterFolder=new System.Windows.Forms.TextBox();
 			this.butFinished=new OpenDental.UI.Button();
-			this.folderEncounter=new OpenDental.FolderBrowserDialog();
+			this.folderEncounter=new System.Windows.Forms.FolderBrowserDialog();
 			this.groupBox1=new OpenDental.UI.GroupBox();
 			this.label5=new System.Windows.Forms.Label();
 			this.dateTimeTo=new System.Windows.Forms.DateTimePicker();
@@ -227,7 +227,7 @@ namespace OpenDental{
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.TextBox textEncounterFolder;
 		private OpenDental.UI.Button butFinished;
-		private OpenDental.FolderBrowserDialog folderEncounter;
+		private System.Windows.Forms.FolderBrowserDialog folderEncounter;
 		private OpenDental.UI.GroupBox groupBox1;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.DateTimePicker dateTimeTo;

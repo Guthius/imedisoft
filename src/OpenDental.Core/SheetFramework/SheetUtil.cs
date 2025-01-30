@@ -11,6 +11,7 @@ using DataConnectionBase;
 using Google.Apis.Util;
 using Health.Direct.Common.Extensions;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -51,7 +52,7 @@ namespace OpenDentBusiness{
 							}
 							else{
 								Document document=Documents.GetByNum(SIn.Long(field.FieldValue));
-								List<string> paths=Documents.GetPaths(new List<long> { document.DocNum },ImageStore.GetPreferredAtoZpath());
+								List<string> paths=Documents.GetPaths(new List<long> { document.DocNum },ImageStore.GetDataFolder());
 								if(paths.Count < 1) {//No path was found so we cannot draw the image.
 									continue;
 								}
@@ -515,7 +516,7 @@ namespace OpenDentBusiness{
 			if(false) {
 				throw new ApplicationException("Must be using AtoZ folders.");
 			}
-			imagePath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"SheetImages");
+			imagePath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"SheetImages");
 			if(false) {
 				imagePath=imagePath.Replace("\\","/");
 			}
@@ -571,7 +572,7 @@ namespace OpenDentBusiness{
 			if(false) {
 				throw new ApplicationException("Must be using AtoZ folders.");
 			}
-			imagePath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"SheetPatImages");
+			imagePath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"SheetPatImages");
 			if(true && !Directory.Exists(imagePath)) {
 				Directory.CreateDirectory(imagePath);
 			}

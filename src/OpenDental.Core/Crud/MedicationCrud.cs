@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MedicationCrud
 {
@@ -86,7 +88,7 @@ public class MedicationCrud
             //DateTStamp can only be set by MySQL
             + SOut.Long(medication.RxCui) + ")";
         if (medication.Notes == null) medication.Notes = "";
-        var paramNotes = new OdSqlParameter("paramNotes", OdDbType.Text, SOut.StringParam(medication.Notes));
+        var paramNotes = new OdSqlParameter("paramNotes", SOut.StringParam(medication.Notes));
         {
             medication.MedicationNum = Db.NonQ(command, true, "MedicationNum", "medication", paramNotes);
         }
@@ -171,7 +173,7 @@ public class MedicationCrud
             //DateTStamp can only be set by MySQL
             + SOut.Long(medication.RxCui) + ")";
         if (medication.Notes == null) medication.Notes = "";
-        var paramNotes = new OdSqlParameter("paramNotes", OdDbType.Text, SOut.StringParam(medication.Notes));
+        var paramNotes = new OdSqlParameter("paramNotes", SOut.StringParam(medication.Notes));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNotes);
         else
@@ -189,7 +191,7 @@ public class MedicationCrud
                       + "RxCui        =  " + SOut.Long(medication.RxCui) + " "
                       + "WHERE MedicationNum = " + SOut.Long(medication.MedicationNum);
         if (medication.Notes == null) medication.Notes = "";
-        var paramNotes = new OdSqlParameter("paramNotes", OdDbType.Text, SOut.StringParam(medication.Notes));
+        var paramNotes = new OdSqlParameter("paramNotes", SOut.StringParam(medication.Notes));
         Db.NonQ(command, paramNotes);
     }
 
@@ -223,7 +225,7 @@ public class MedicationCrud
 
         if (command == "") return false;
         if (medication.Notes == null) medication.Notes = "";
-        var paramNotes = new OdSqlParameter("paramNotes", OdDbType.Text, SOut.StringParam(medication.Notes));
+        var paramNotes = new OdSqlParameter("paramNotes", SOut.StringParam(medication.Notes));
         command = "UPDATE medication SET " + command
                                            + " WHERE MedicationNum = " + SOut.Long(medication.MedicationNum);
         Db.NonQ(command, paramNotes);

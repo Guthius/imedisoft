@@ -3,8 +3,10 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ApptViewItemCrud
 {

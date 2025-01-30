@@ -14,6 +14,7 @@ using WpfControls.UI;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Word=Microsoft.Office.Interop.Word;
 using WpfControls;
 
@@ -119,7 +120,7 @@ namespace OpenDental {
 		private string TryGetPatientFolder() {
 			string patFolderName;
 			try {
-				patFolderName=ImageStore.GetPatientFolder(PatientCur,ImageStore.GetPreferredAtoZpath());
+				patFolderName=ImageStore.GetPatientFolder(PatientCur,ImageStore.GetDataFolder());
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(ex.Message,ex);
@@ -254,7 +255,7 @@ namespace OpenDental {
 			document.Description=textDescription.Text;
 			document.RawBase64=rawBase64;//blank if using AtoZfolder
 			document.FileName=ODFileUtils.CleanFileName(document.Description+document.DocNum)+".pdf";
-			string fileDestPath=ImageStore.GetFilePath(document,ImageStore.GetPatientFolder(PatientCur,ImageStore.GetPreferredAtoZpath()));
+			string fileDestPath=ImageStore.GetFilePath(document,ImageStore.GetPatientFolder(PatientCur,ImageStore.GetDataFolder()));
 			File.Copy(fullPathTemp,fileDestPath);
 			Documents.Update(document);
 			Cursor=Cursors.Arrow;

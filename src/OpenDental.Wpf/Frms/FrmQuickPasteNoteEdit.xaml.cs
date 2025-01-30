@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -40,7 +41,7 @@ namespace OpenDental {
 		}
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
-			if(MessageBox.Show(Lans.g(this,"Delete note?"),"",MessageBoxButton.OKCancel)!=MessageBoxResult.OK){
+			if(MessageBox.Show(Lans.g("Delete note?"),"",MessageBoxButton.OKCancel)!=MessageBoxResult.OK){
 				return;
 			}
 			QuickPasteNoteCur=null;//triggers an action in the calling form
@@ -65,7 +66,7 @@ namespace OpenDental {
 			QuickPasteNoteCur.Abbreviation=textAbbreviation.Text;
 			if(QuickPasteNoteCur.Abbreviation!=""){
 				string msgText=QuickPasteNotes.AbbrAlreadyInUse(QuickPasteNoteCur);
-				if(!String.IsNullOrEmpty(msgText) && MessageBox.Show(msgText,Lans.g(this,"Warning"),MessageBoxButton.YesNo)==MessageBoxResult.No) {
+				if(!String.IsNullOrEmpty(msgText) && MessageBox.Show(msgText,Lans.g("Warning"),MessageBoxButton.YesNo)==MessageBoxResult.No) {
 					return;
 				}
 			}

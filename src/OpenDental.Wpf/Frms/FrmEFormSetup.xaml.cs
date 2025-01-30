@@ -12,6 +12,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Microsoft.Win32;
 using OpenDentBusiness;
 using WpfControls.UI;

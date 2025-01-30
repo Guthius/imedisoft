@@ -3,7 +3,7 @@ using System.Windows.Media;
 using OpenDentBusiness;
 
 namespace WpfControls.UI{
-	//---------------This file is generated automatically from the IconOrganizer project.  Do not edit manually.
+	
 	public class Gen_Flip{
 
 		public static void Draw(DrawSvg drawSvg,double scale){

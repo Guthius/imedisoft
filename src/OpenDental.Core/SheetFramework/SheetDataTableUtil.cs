@@ -8,6 +8,8 @@ using System.Globalization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.SheetFramework {
 	public class SheetDataTableUtil {

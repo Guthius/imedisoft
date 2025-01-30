@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormAutoItemEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -66,7 +59,7 @@ namespace OpenDental {
 			this.butChange.Size = new System.Drawing.Size(76,25);
 			this.butChange.TabIndex = 24;
 			this.butChange.Text = "C&hange";
-			this.butChange.Click += new System.EventHandler(this.butChange_Click);
+			this.butChange.Click += new System.EventHandler(this.ButtonChange_Click);
 			// 
 			// butSave
 			// 
@@ -76,7 +69,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75,26);
 			this.butSave.TabIndex = 22;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// label2
 			// 

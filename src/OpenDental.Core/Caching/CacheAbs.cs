@@ -24,7 +24,7 @@ public abstract class CacheAbs<TItem> where TItem : TableBase
 
     private void FillCache(FillCacheSource source, DataTable table)
     {
-        Logger.LogToPath("" + typeof(TItem).Name, LogPath.Signals, LogPhase.Start);
+        Logger.LogToPath();
 
         var items = source switch
         {
@@ -35,7 +35,7 @@ public abstract class CacheAbs<TItem> where TItem : TableBase
 
         OnNewCacheReceived(items);
 
-        Logger.LogToPath("" + typeof(TItem).Name, LogPath.Signals, LogPhase.End, "Got " + items.Count + " items");
+        Logger.LogToPath();
     }
 
     public void FillCacheFromTable(DataTable table)

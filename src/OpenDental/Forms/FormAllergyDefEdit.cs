@@ -1,125 +1,116 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormAllergyDefEdit:FormODBase {
-		public AllergyDef AllergyDefCur;
+namespace OpenDental.Forms;
 
-		public FormAllergyDefEdit() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormAllergyDefEdit : FormODBase
+{
+    private readonly AllergyDef _allergyDef;
 
-		private void FormAllergyDefEdit_Load(object sender,EventArgs e) {
-			textDescription.Text=AllergyDefCur?.Description??"";//set description if available. New allergies can be added with descriptions. 
-			if(!AllergyDefCur.IsNew) { 
-				checkHidden.Checked=AllergyDefCur.IsHidden;
-			}
-			for(int i=0;i<Enum.GetNames(typeof(SnomedAllergy)).Length;i++) {
-				comboSnomedAllergyType.Items.Add(Enum.GetNames(typeof(SnomedAllergy))[i]);
-			}
-			comboSnomedAllergyType.SelectedIndex=(int)AllergyDefCur.SnomedType;
-			textMedication.Text=Medications.GetDescription(AllergyDefCur.MedicationNum);
-			textUnii.Text=AllergyDefCur.UniiCode;
-			if(!Security.IsAuthorized(EnumPermType.AllergyDefEdit)) {
-				butSave.Enabled=false;
-				butDelete.Enabled=false;
-			}
-		}
+    public FormAllergyDefEdit(AllergyDef allergyDef)
+    {
+        _allergyDef = allergyDef;
 
-		private void butUniiToSelect_Click(object sender,EventArgs e) {
-			//using FormSnomeds formSnowmeds=new FormSnomeds();
-			//formSnowmeds.IsSelectionMode=true;
-			//if(formSnowmeds.ShowDialog()==DialogResult.OK) {
-			//	snomedAllergicTo=formSnowmeds.SelectedSnomed;
-			//	//textSnomedAllergicTo.Text=snomedAllergicTo.Description;
-			//}
-			//TODO: Implement similar code for Unii
-		}
+        InitializeComponent();
+    }
 
-		private void butMedicationSelect_Click(object sender,EventArgs e) {
-			using FormMedications formMedications=new FormMedications();
-			formMedications.IsSelectionMode=true;
-			formMedications.ShowDialog();
-			if(formMedications.DialogResult!=DialogResult.OK){
-				return;
-			}
-			AllergyDefCur.MedicationNum=formMedications.SelectedMedicationNum;
-			textMedication.Text=Medications.GetDescription(AllergyDefCur.MedicationNum);
-		}
+    private void FormAllergyDefEdit_Load(object sender, EventArgs e)
+    {
+        textDescription.Text = _allergyDef.Description;
 
-		private void butNoneUniiTo_Click(object sender,EventArgs e) {
-			//TODO: Implement this
-		}
+        if (!_allergyDef.IsNew)
+        {
+            checkHidden.Checked = _allergyDef.IsHidden;
+        }
 
-		private void butNone_Click(object sender,EventArgs e) {
-			AllergyDefCur.MedicationNum=0;
-			textMedication.Text="";
-		}
+        for (var i = 0; i < Enum.GetNames(typeof(SnomedAllergy)).Length; i++)
+        {
+            comboSnomedAllergyType.Items.Add(Enum.GetNames(typeof(SnomedAllergy))[i]);
+        }
 
-		private void butSave_Click(object sender,EventArgs e) {
-			if(textDescription.Text.Trim()=="") {
-				MsgBox.Show(this,"Description cannot be blank.");
-				return;
-			}
-			if(textUnii.Text!="" && textMedication.Text!="") {
-				MsgBox.Show(this,"Only one code is allowed per allergy def.");
-				return;
-			}
-			string validChars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-			StringBuilder stringBuilder=new StringBuilder();
-			for(int i=0;i<textUnii.Text.Length;i++) {
-				if(validChars.IndexOf(textUnii.Text[i])==-1) {//Not found.
-					stringBuilder.Append(textUnii.Text[i]);
-				}
-			}
-			if(stringBuilder.ToString()!="") {
-				ODMessageBox.Show(Lan.g(this,"UNII code has invalid characters: ")+stringBuilder);
-				return;
-			}
-			if(textUnii.Text!="" && textUnii.Text.Length!=10) {
-				MsgBox.Show(this,"UNII code must be 10 characters in length.");
-				return;
-			}
-			AllergyDefCur.Description=textDescription.Text;
-			AllergyDefCur.IsHidden=checkHidden.Checked;
-			AllergyDefCur.SnomedType=(SnomedAllergy)comboSnomedAllergyType.SelectedIndex;
-			AllergyDefCur.UniiCode=textUnii.Text;
-			//if(snomedAllergicTo!=null) { //TODO: Do UNII check once the table is added
-			//	AllergyDefCur.SnomedAllergyTo=snomedAllergicTo.SnomedCode;
-			//}
-			if(AllergyDefCur.IsNew) {
-				AllergyDefs.Insert(AllergyDefCur);
-			}
-			else {
-				AllergyDefs.Update(AllergyDefCur);
-			}
-			DialogResult=DialogResult.OK;
-		}
+        comboSnomedAllergyType.SelectedIndex = (int) _allergyDef.SnomedType;
 
-		private void butDelete_Click(object sender,EventArgs e) {
-			if(AllergyDefCur.IsNew) {
-				DialogResult=DialogResult.Cancel;
-				return;
-			}
-			if(AllergyDefs.DefIsInUse(AllergyDefCur.AllergyDefNum)) {
-				MsgBox.Show(this,"Cannot delete allergies in use.");
-				return;
-			}
-			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Delete Allergy?")) {
-				return;
-			}
-			AllergyDefs.Delete(AllergyDefCur.AllergyDefNum);
-			DialogResult=DialogResult.OK;
-		}
+        textMedication.Text = Medications.GetDescription(_allergyDef.MedicationNum);
 
-	}
+        if (Security.IsAuthorized(EnumPermType.AllergyDefEdit))
+        {
+            return;
+        }
+
+        butSave.Enabled = false;
+        butDelete.Enabled = false;
+    }
+
+    private void ButtonMedicationSelect_Click(object sender, EventArgs e)
+    {
+        using var formMedications = new FormMedications();
+
+        formMedications.IsSelectionMode = true;
+
+        if (formMedications.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _allergyDef.MedicationNum = formMedications.SelectedMedicationNum;
+
+        textMedication.Text = Medications.GetDescription(_allergyDef.MedicationNum);
+    }
+
+    private void ButtonNone_Click(object sender, EventArgs e)
+    {
+        _allergyDef.MedicationNum = 0;
+        textMedication.Text = "";
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (textDescription.Text.Trim() == "")
+        {
+            ShowError("Description cannot be blank.");
+            return;
+        }
+
+        _allergyDef.Description = textDescription.Text;
+        _allergyDef.IsHidden = checkHidden.Checked;
+        _allergyDef.SnomedType = (SnomedAllergy) comboSnomedAllergyType.SelectedIndex;
+        _allergyDef.UniiCode = string.Empty;
+
+        if (_allergyDef.IsNew)
+        {
+            AllergyDefs.Insert(_allergyDef);
+        }
+        else
+        {
+            AllergyDefs.Update(_allergyDef);
+        }
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (_allergyDef.IsNew)
+        {
+            DialogResult = DialogResult.Cancel;
+            return;
+        }
+
+        if (AllergyDefs.DefIsInUse(_allergyDef.AllergyDefNum))
+        {
+            ShowError("Cannot delete allergies in use.");
+            return;
+        }
+
+        if (!ConfirmOk("Delete Allergy?"))
+        {
+            return;
+        }
+
+        AllergyDefs.Delete(_allergyDef.AllergyDefNum);
+
+        DialogResult = DialogResult.OK;
+    }
 }

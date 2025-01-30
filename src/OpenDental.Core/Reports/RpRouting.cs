@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpRouting {
@@ -24,7 +25,7 @@ namespace OpenDentBusiness {
 				command+="AND ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
 			}
 			command+="ORDER BY AptDateTime";
-			return ReportsComplex.RunFuncOnReportServer(() => Db.GetListLong(command));
+			return Db.GetListLong(command);
 		}
 	}
 }

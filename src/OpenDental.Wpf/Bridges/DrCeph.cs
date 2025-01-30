@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using CodeBase;
 using Newtonsoft.Json;
 using System.Windows.Forms;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	/// <summary></summary>

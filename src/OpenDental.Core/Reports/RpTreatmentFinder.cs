@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpTreatmentFinder {
@@ -207,7 +208,7 @@ namespace OpenDentBusiness {
 				AND procedurelog.PatNum NOT IN (
 					SELECT PatNum FROM appointment
 					WHERE appointment.AptStatus={SOut.Int((int)ApptStatus.Scheduled)}
-					AND appointment.AptDateTime>={DbHelper.Curdate()})")}
+					AND appointment.AptDateTime>={"CURDATE()"})")}
 				GROUP BY procedurelog.PatNum
 				HAVING AmtPlanned>0
 				ORDER BY NULL";//Removes filesort reference from query explain

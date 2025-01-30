@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -323,12 +324,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(procedurelog.ProcDate),MONTH(procedurelog.ProcDate),DAY(procedurelog.ProcDate)";//Does not work for Oracle. Consider enhancing with DbHelper.Year(),DbHelper.Month()
 			command+=" ORDER BY ClinicNum,ProcDate";
 			DataTable tableProduction=new DataTable();
-			if(isCEMT) {
-				tableProduction=DataCore.GetTable(command);
-			}
-			else {
-				tableProduction=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableProduction=DataCore.GetTable(command);
 			tableProduction.TableName="tableProduction";
 			#endregion
 			#region Adjustments
@@ -357,7 +353,7 @@ namespace OpenDentBusiness {
 				+whereClin
 				+"UNION ALL "
 				+"SELECT "
-				+DbHelper.DtimeToDate("appointment.AptDateTime")+" AdjDate, "
+				+"DATE(appointment.AptDateTime) AdjDate, "
 				+"procedurelog.ClinicNum, "
 				+"-(procedurelog.Discount + procedurelog.DiscountPlanAmt) Adjustment "
 				+"FROM appointment "
@@ -370,12 +366,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(U.AdjDate),MONTH(U.AdjDate),DAY(U.AdjDate) "
 				+"ORDER BY ClinicNum,AdjDate";
 			DataTable tableAdj=new DataTable();
-			if(isCEMT) {
-				tableAdj=DataCore.GetTable(command);
-			}
-			else { 
-				tableAdj=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableAdj=DataCore.GetTable(command);
 			tableAdj.TableName="tableAdj";
 			#endregion
 			#region TableInsWriteoff
@@ -428,12 +419,7 @@ namespace OpenDentBusiness {
 				+"ORDER BY ClinicNum,claimsnapshot.DateTEntry";
 			}
 			DataTable tableInsWriteoff=new DataTable();
-			if(isCEMT) {
-				tableInsWriteoff=DataCore.GetTable(command);
-			}
-			else { 
-				tableInsWriteoff=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableInsWriteoff=DataCore.GetTable(command);
 			tableInsWriteoff.TableName="tableInsWriteoff";
 			#endregion
 			#region TableSched
@@ -445,9 +431,9 @@ namespace OpenDentBusiness {
 			if(!hasAllClinics && listClinicNums.Count>0) {
 				whereClin="AND procedurelog.ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
 			}
-			command= "SELECT "+DbHelper.DtimeToDate("t.AptDateTime")+" SchedDate,SUM(t.Fee-t.WriteoffEstimate) Amount,ClinicNum "
+			command= "SELECT DATE(t.AptDateTime) SchedDate,SUM(t.Fee-t.WriteoffEstimate) Amount,ClinicNum "
 				+"FROM (SELECT appointment.AptDateTime,IFNULL(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits),0) Fee,appointment.ClinicNum,";
-			if(ReportsComplex.RunFuncOnReportServer(() => Prefs.GetBoolNoCache(PrefName.ReportPandIschedProdSubtractsWO))) {
+			if(Prefs.GetBoolNoCache(PrefName.ReportPandIschedProdSubtractsWO)) {
 				//Subtract both PPO and capitation writeoffs
 				command+="SUM(IFNULL(CASE WHEN WriteOffEstOverride != -1 THEN WriteOffEstOverride ELSE WriteOffEst END,0)) WriteoffEstimate ";
 			}
@@ -463,19 +449,14 @@ namespace OpenDentBusiness {
 					+"AND claimproc.Status IN("+SOut.Int((int)ClaimProcStatus.Estimate)+","+SOut.Int((int)ClaimProcStatus.CapEstimate)+") "
 					+" AND (WriteOffEst != -1 OR WriteOffEstOverride != -1) "
 				+"WHERE appointment.AptStatus = "+SOut.Int((int)ApptStatus.Scheduled)+" "
-				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" >= "+SOut.Date(dateFrom)+" "
-				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" <= "+SOut.Date(dateTo)+" "
+				+"AND DATE(appointment.AptDateTime) >= "+SOut.Date(dateFrom)+" "
+				+"AND DATE(appointment.AptDateTime) <= "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin
 				+" GROUP BY procedurelog.ProcNum) t "//without this, there can be duplicate proc rows due to the claimproc join with dual insurance.
 				+"GROUP BY SchedDate,ClinicNum "
 				+"ORDER BY SchedDate";
-			if(isCEMT) {
-				tableSched=DataCore.GetTable(command);
-			}
-			else { 
-				tableSched=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableSched=DataCore.GetTable(command);
 			tableSched.TableName="tableSched";
 			#endregion
 			#region TableProdGoal
@@ -493,7 +474,7 @@ namespace OpenDentBusiness {
 			}
 			//Fetch all schedules for the month and associated information (clinic from operatory, HourlyProdGoalAmt from provider)
 			command="SELECT S.SchedDate, S.StartTime, S.StopTime, COALESCE(COALESCE(S.ClinicNum,operatory.ClinicNum),0) AS ClinicNum, S.ProvProdGoal, S.ProvNum FROM "
-				+"(SELECT "+DbHelper.DtimeToDate("schedule.SchedDate")+@" AS SchedDate, schedule.StartTime AS StartTime, schedule.StopTime AS StopTime, schedule.SchedType AS SchedType, schedule.Status AS STATUS, 
+				+"(SELECT DATE(schedule.SchedDate)"+@" AS SchedDate, schedule.StartTime AS StartTime, schedule.StopTime AS StopTime, schedule.SchedType AS SchedType, schedule.Status AS STATUS, 
 				operatory.ClinicNum AS ClinicNum, provider.HourlyProdGoalAmt AS ProvProdGoal, provider.ProvNum AS ProvNum
 				FROM schedule 
 				INNER JOIN provider ON provider.ProvNum=schedule.ProvNum 
@@ -505,12 +486,7 @@ namespace OpenDentBusiness {
 				+"AND S."+DbHelper.BetweenDates("SchedDate",dateFrom,dateTo)+" "
 				+whereProv
 				+whereClin;
-			if(isCEMT) {
-				tableProdGoal=DataCore.GetTable(command);
-			}
-			else {
-				tableProdGoal=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableProdGoal=DataCore.GetTable(command);
 			tableProdGoal.TableName="tableProdGoal";	
 			#endregion
 			#region WriteOffAdjustments
@@ -534,12 +510,8 @@ namespace OpenDentBusiness {
 					{whereProv}
 					{whereClin}
 					GROUP BY ClinicNum,DATE(claimproc.DateCP)";
-				if(isCEMT) {
-					tableWriteOffAdjustments=DataCore.GetTable(command);
-				}
-				else { 
-					tableWriteOffAdjustments=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-				}
+				tableWriteOffAdjustments=DataCore.GetTable(command);
+				
 			}
 			tableWriteOffAdjustments.TableName="tableWriteOffAdjustments";
 			#endregion WriteOffAdjustments

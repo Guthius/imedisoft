@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -99,7 +101,7 @@ namespace OpenDental {
 			if(textCity.Text!="" || textState.Text!="") {
 				return;
 			}
-			List<ZipCode> listZipCodes=ZipCodes.GetALMatches(textZip.Text);
+			List<ZipCode> listZipCodes=ZipCodes.GetAlMatches(textZip.Text);
 			if(listZipCodes.Count==0) {
 				//No match found. Must enter info for new zipcode
 				ZipCode zipCode=new ZipCode();
@@ -156,7 +158,7 @@ namespace OpenDental {
 				}
 				return;
 			}
-			List<ZipCode> listZipCodes=ZipCodes.GetALMatches(textZip.Text);
+			List<ZipCode> listZipCodes=ZipCodes.GetAlMatches(textZip.Text);
 			if(listZipCodes.Count==0) {
 				FrmZipCodeEdit frmZipCodeEdit=new FrmZipCodeEdit();
 				frmZipCodeEdit.ZipCodeCur=new ZipCode();

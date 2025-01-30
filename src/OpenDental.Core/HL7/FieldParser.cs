@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Diagnostics;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>Parses a single incoming HL7 field.</summary>

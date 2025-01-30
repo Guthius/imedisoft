@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TaskCrud
 {
@@ -127,13 +129,13 @@ public class TaskCrud
                                         + "'" + SOut.String(task.ReminderGroupId) + "',"
                                         + SOut.Int((int) task.ReminderType) + ","
                                         + SOut.Int(task.ReminderFrequency) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         //SecDateTEdit can only be set by MySQL
                                         + "'" + SOut.String(task.DescriptOverride) + "',"
                                         + SOut.Bool(task.IsReadOnly) + ","
                                         + SOut.Long(task.TriageCategory) + ")";
         if (task.Descript == null) task.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(task.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(task.Descript));
         {
             task.TaskNum = Db.NonQ(command, true, "TaskNum", "task", paramDescript);
         }
@@ -169,13 +171,13 @@ public class TaskCrud
                                         + "'" + SOut.String(task.ReminderGroupId) + "',"
                                         + SOut.Int((int) task.ReminderType) + ","
                                         + SOut.Int(task.ReminderFrequency) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         //SecDateTEdit can only be set by MySQL
                                         + "'" + SOut.String(task.DescriptOverride) + "',"
                                         + SOut.Bool(task.IsReadOnly) + ","
                                         + SOut.Long(task.TriageCategory) + ")";
         if (task.Descript == null) task.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(task.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(task.Descript));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDescript);
         else
@@ -209,7 +211,7 @@ public class TaskCrud
                       + "TriageCategory   =  " + SOut.Long(task.TriageCategory) + " "
                       + "WHERE TaskNum = " + SOut.Long(task.TaskNum);
         if (task.Descript == null) task.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(task.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(task.Descript));
         Db.NonQ(command, paramDescript);
     }
 
@@ -334,7 +336,7 @@ public class TaskCrud
 
         if (command == "") return false;
         if (task.Descript == null) task.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(task.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(task.Descript));
         command = "UPDATE task SET " + command
                                      + " WHERE TaskNum = " + SOut.Long(task.TaskNum);
         Db.NonQ(command, paramDescript);

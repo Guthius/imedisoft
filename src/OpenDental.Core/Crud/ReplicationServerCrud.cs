@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ReplicationServerCrud
 {
@@ -91,7 +93,7 @@ public class ReplicationServerCrud
                                + SOut.Bool(replicationServer.UpdateBlocked) + ","
                                + "'" + SOut.String(replicationServer.SlaveMonitor) + "')";
         if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(replicationServer.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
         {
             replicationServer.ReplicationServerNum = Db.NonQ(command, true, "ReplicationServerNum", "replicationServer", paramDescript);
         }
@@ -119,7 +121,7 @@ public class ReplicationServerCrud
                                + SOut.Bool(replicationServer.UpdateBlocked) + ","
                                + "'" + SOut.String(replicationServer.SlaveMonitor) + "')";
         if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(replicationServer.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDescript);
         else
@@ -139,7 +141,7 @@ public class ReplicationServerCrud
                       + "SlaveMonitor        = '" + SOut.String(replicationServer.SlaveMonitor) + "' "
                       + "WHERE ReplicationServerNum = " + SOut.Long(replicationServer.ReplicationServerNum);
         if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(replicationServer.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
         Db.NonQ(command, paramDescript);
     }
 
@@ -190,7 +192,7 @@ public class ReplicationServerCrud
 
         if (command == "") return false;
         if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", OdDbType.Text, SOut.StringParam(replicationServer.Descript));
+        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
         command = "UPDATE replicationserver SET " + command
                                                   + " WHERE ReplicationServerNum = " + SOut.Long(replicationServer.ReplicationServerNum);
         Db.NonQ(command, paramDescript);

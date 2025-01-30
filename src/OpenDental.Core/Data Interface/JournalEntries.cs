@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class JournalEntries
 {
-    ///<summary>Used when displaying the splits for a transaction.</summary>
     public static List<JournalEntry> GetForTrans(long transactionNum)
     {
         var command =
@@ -18,11 +17,7 @@ public class JournalEntries
             + "WHERE TransactionNum=" + SOut.Long(transactionNum);
         return JournalEntryCrud.SelectMany(command);
     }
-
-    /// <summary>
-    ///     Used to display a list of entries for one account. Even though we're passing in a dateFrom, we always get full
-    ///     list for assets, liabilities, and equity in order to get the running total, even if we don't show those rows.
-    /// </summary>
+    
     public static List<JournalEntry> GetForAccount(Account account, DateTime dateFrom, DateTime dateTo)
     {
         string command;
@@ -173,7 +168,6 @@ public class JournalEntries
         return listJournalEntries;
     }
 
-    ///<summary>Used in reconcile window.</summary>
     public static List<JournalEntry> GetForReconcile(long accountNum, bool includeUncleared, long reconcileNum)
     {
         var command =
@@ -187,17 +181,15 @@ public class JournalEntries
         command += " ORDER BY DateDisplayed";
         return JournalEntryCrud.SelectMany(command);
     }
-
     
-    public static long Insert(JournalEntry journalEntry)
+    public static void Insert(JournalEntry journalEntry)
     {
         journalEntry.SecUserNumEntry = Security.CurUser.UserNum; //Before middle tier check to catch user at workstation
         journalEntry.SecUserNumEdit = Security.CurUser.UserNum;
 
         if (journalEntry.DebitAmt < 0 || journalEntry.CreditAmt < 0) throw new ApplicationException(Lans.g("JournalEntries", "Error. Credit and debit must both be positive."));
-        return JournalEntryCrud.Insert(journalEntry);
+        JournalEntryCrud.Insert(journalEntry);
     }
-
     
     public static void Update(JournalEntry journalEntry)
     {
@@ -207,7 +199,6 @@ public class JournalEntries
         JournalEntryCrud.Update(journalEntry);
     }
 
-    
     public static void Delete(JournalEntry journalEntry)
     {
         //This method is only used once in synch below.  Validation needs to be done, but doing it inside the loop would be dangerous.
@@ -220,11 +211,6 @@ public class JournalEntries
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Used in FormTransactionEdit to synch database with changes user made to the journalEntry list for a
-    ///     transaction.  Must supply an old list for comparison.  Only the differences are saved.  Surround with try/catch,
-    ///     because it will thrown an exception if any entries are negative.
-    /// </summary>
     public static void UpdateList(List<JournalEntry> listJournalEntriesOld, List<JournalEntry> listJournalEntriesNew)
     {
         for (var i = 0; i < listJournalEntriesNew.Count; i++)
@@ -274,7 +260,6 @@ public class JournalEntries
         }
     }
 
-    ///<summary>Called from FormTransactionEdit.</summary>
     public static bool AttachedToReconcile(List<JournalEntry> listJournalEntries)
     {
         for (var i = 0; i < listJournalEntries.Count; i++)
@@ -284,7 +269,6 @@ public class JournalEntries
         return false;
     }
 
-    ///<summary>Called from FormTransactionEdit.</summary>
     public static DateTime GetReconcileDate(List<JournalEntry> listJournalEntries)
     {
         for (var i = 0; i < listJournalEntries.Count; i++)
@@ -294,7 +278,6 @@ public class JournalEntries
         return DateTime.MinValue;
     }
 
-    ///<summary>Called once from FormReconcileEdit when closing.  Saves the reconcileNum for every item in the list.</summary>
     public static void SaveList(List<JournalEntry> listJournalEntries, long reconcileNum)
     {
         var command = "UPDATE journalentry SET ReconcileNum=0 WHERE";
@@ -328,7 +311,6 @@ public class JournalEntries
         }
     }
 
-    ///<Summary>Returns true if the account was used in any journal entry.</Summary>
     public static bool IsInUse(long accountNum)
     {
         var command = "SELECT COUNT(*) FROM journalentry "

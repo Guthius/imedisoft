@@ -9,40 +9,23 @@ using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.FileIO;
 using OpenDentBusiness.SheetFramework;
 
 namespace OpenDentBusiness;
 
-
 public class Statements
 {
-    #region Get Methods
-
-    ///<Summary>Gets one statement from the database.</Summary>
     public static Statement GetStatement(long statementNum)
     {
         return StatementCrud.SelectOne(statementNum);
     }
 
-    ///<summary>Gets a list of statements optionally filtered for the API. Returns an empty list if not found.</summary>
-    public static List<Statement> GetStatementsForApi(int limit, int offset, long patNum)
-    {
-        var command = "SELECT * FROM statement ";
-        if (patNum > 0) command += "WHERE PatNum=" + SOut.Long(patNum) + " ";
-        command += "ORDER BY StatementNum " //Ensure order for limit and offset.
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return StatementCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets a list of statements based on the passed in primary keys. If clinics are enabled and the preference
-    ///     PrintStatementsAlphabetically is set, the statements will be sorted by patients last name then first name.
-    ///     Otherwise statements will be ordered in the order of the listStatementNums passed in.
-    /// </summary>
     public static List<Statement> GetStatements(List<long> listStatementNums)
     {
         if (listStatementNums == null || listStatementNums.Count < 1) return new List<Statement>();
@@ -59,7 +42,6 @@ public class Statements
         return listStatements;
     }
 
-    ///<summary>For orderBy, use 0 for BillingType and 1 for PatientName.</summary>
     public static DataTable GetBilling(bool isSent, int orderBy, DateTime dateFrom, DateTime dateTo, List<long> listClinicNums)
     {
         var table = new DataTable();
@@ -171,69 +153,18 @@ public class Statements
         return table;
     }
 
-    ///<summary>This query is flawed.</summary>
     public static DataTable GetStatementNotesPracticeWeb(long patnum)
     {
         var command = @"SELECT Note FROM statement Where Patnum=" + patnum;
         return DataCore.GetTable(command);
     }
 
-    ///<summary>This query is flawed.</summary>
     public static Statement GetStatementInfoPracticeWeb(long patnum)
     {
         var command = @"Select SinglePatient,DateRangeFrom,DateRangeTo,Intermingled FROM statement WHERE PatNum = " + patnum;
         return StatementCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Fetches StatementNums restricted by the DateTStamp, PatNums and a limit of records per patient. If
-    ///     limitPerPatient is zero all StatementNums of a patient are fetched
-    /// </summary>
-    public static List<long> GetChangedSinceStatementNums(DateTime dateChangedSince, List<long> listPatnumsEligibleForUpload, int limitPerPatient)
-    {
-        var listStatementNums = new List<long>();
-        var strLimit = "";
-        if (limitPerPatient > 0) strLimit = "LIMIT " + limitPerPatient;
-        DataTable table;
-        // there are possibly more efficient ways to implement this using a single sql statement but readability of the sql can be compromised
-        if (listPatnumsEligibleForUpload.Count > 0)
-            for (var i = 0; i < listPatnumsEligibleForUpload.Count; i++)
-            {
-                var command = "SELECT StatementNum FROM statement WHERE DateTStamp > " + SOut.DateTime(dateChangedSince) + " AND PatNum='"
-                              + listPatnumsEligibleForUpload[i] + "' ORDER BY DateSent DESC, StatementNum DESC " + strLimit;
-                table = DataCore.GetTable(command);
-                for (var j = 0; j < table.Rows.Count; j++) listStatementNums.Add(SIn.Long(table.Rows[j]["StatementNum"].ToString()));
-            }
-
-        return listStatementNums;
-    }
-
-    ///<summary>Used along with GetChangedSinceStatementNums</summary>
-    public static List<Statement> GetMultStatements(List<long> listStatementNums)
-    {
-        var strStatementNums = "";
-        DataTable table;
-        if (listStatementNums.Count > 0)
-        {
-            for (var i = 0; i < listStatementNums.Count; i++)
-            {
-                if (i > 0) strStatementNums += "OR ";
-                strStatementNums += "StatementNum='" + listStatementNums[i] + "' ";
-            }
-
-            var command = "SELECT * FROM statement WHERE " + strStatementNums;
-            table = DataCore.GetTable(command);
-        }
-        else
-        {
-            table = new DataTable();
-        }
-
-        var listStatements = StatementCrud.TableToList(table);
-        return listStatements;
-    }
-
-    ///<summary>Returns an email message for the patient based on the statement passed in.</summary>
     public static EmailMessage GetEmailMessageForStatement(Statement statement, Patient patient, EmailAddress fromAddress = null)
     {
         if (statement.PatNum != patient.PatNum)
@@ -299,36 +230,17 @@ public class Statements
         return emailMessage;
     }
 
-    ///<summary>Gets a list of unsent StatementNums.</summary>
-    public static List<long> GetUnsentStatements(params StatementMode[] statementModeArray)
-    {
-        var command = "SELECT StatementNum FROM statement WHERE IsSent=0 ";
-        if (statementModeArray.Length != 0) command += $"AND Mode_ IN({string.Join(",", statementModeArray.Select(x => SOut.Enum(x)))})";
-        return Db.GetListLong(command);
-    }
-
-    #endregion
-
-    #region Insert
-
-    
     public static long Insert(Statement statement)
     {
         return StatementCrud.Insert(statement);
     }
 
-    
     public static void InsertMany(List<Statement> listStatements)
     {
         if (listStatements == null || listStatements.Count == 0) return;
         StatementCrud.InsertMany(listStatements);
     }
 
-    #endregion
-
-    #region Update
-
-    ///<summary>Updates the statements with the send status.</summary>
     public static void UpdateSmsSendStatus(List<long> listStmtNumsToUpdate, AutoCommStatus autoCommStatus)
     {
         if (listStmtNumsToUpdate.Count == 0) return;
@@ -338,16 +250,14 @@ public class Statements
         Db.NonQ(command);
     }
 
-    
     public static void Update(Statement statement)
     {
         StatementCrud.Update(statement);
     }
 
-    
-    public static bool Update(Statement statement, Statement statementOld)
+    public static void Update(Statement statement, Statement statementOld)
     {
-        return StatementCrud.Update(statement, statementOld);
+        StatementCrud.Update(statement, statementOld);
     }
 
     public static void MarkSent(long statementNum, DateTime dateSent)
@@ -372,22 +282,6 @@ public class Statements
         Db.NonQ("UPDATE statement SET DocNum=0 WHERE DocNum=" + SOut.Long(docNum));
     }
 
-    ///<summary>Changes the value of the DateTStamp column to the current time stamp for all statements of a patient</summary>
-    public static void ResetTimeStamps(long patNum)
-    {
-        var command = "UPDATE statement SET DateTStamp = CURRENT_TIMESTAMP WHERE PatNum =" + SOut.Long(patNum);
-        Db.NonQ(command);
-    }
-
-    #endregion
-
-    #region Delete
-
-    /// <summary>
-    ///     Deletes the passed in list of statements. Checks for permission before deleting the stored image in ODI folder. Can
-    ///     force to delete the
-    ///     stored image without the permission check. Will always delete the statement object. Throws UE.
-    /// </summary>
     public static void DeleteStatements(List<Statement> listStatements, bool forceImageDelete = false)
     {
         if (listStatements.IsNullOrEmpty()) return;
@@ -411,27 +305,20 @@ public class Statements
         DeleteStatementDocument(statement, document);
     }
 
-    /// <summary>
-    ///     Will use passed in document if not null. Otherwise, queries for document. You probably want to use
-    ///     DeleteStatementDocumentIfAuthorized(). This should only be used if the calling method must have the option to force
-    ///     document deletion, like DeleteStatements() does.
-    /// </summary>
     private static void DeleteStatementDocument(Statement statement, Document document = null)
     {
         if (document == null) document = Documents.GetByNum(statement.DocNum, true);
         if (document == null) return; //If it is still null we have nothing to delete.
         var patient = Patients.GetPat(statement.PatNum);
-        var patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
+        var patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder());
         ImageStore.DeleteDocuments(new List<Document> {document}, patFolder);
     }
 
-    
     public static void Delete(Statement statement)
     {
         Delete(statement.StatementNum);
     }
 
-    ///<summary>For deleting a statement when user clicks Cancel.  No need to make entry in DeletedObject table.</summary>
     public static void Delete(long statementNum)
     {
         DeleteAll(new List<long> {statementNum});
@@ -452,11 +339,6 @@ public class Statements
         Db.NonQ(command);
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Queries the database to determine if there are any unsent statements.</summary>
     public static bool UnsentStatementsExist()
     {
         var command = "SELECT COUNT(*) FROM statement WHERE IsSent=0";
@@ -464,7 +346,6 @@ public class Statements
         return true;
     }
 
-    ///<summary>Queries the database to determine if there are any unsent statements for a particular clinic.</summary>
     public static bool UnsentClinicStatementsExist(long clinicNum)
     {
         if (clinicNum == 0) //All clinics.
@@ -477,10 +358,6 @@ public class Statements
         return true;
     }
 
-    /// <summary>
-    ///     Allows an email receipt to be sent to a patient through the portal.  Throws exceptions in the case where the
-    ///     email from address is not valid. Sends a seperate email if the document was unable to be created.
-    /// </summary>
     public static void EmailStatementPatientPortal(Statement statement, string toAddress, EmailAddress emailAddressFrom, Patient patient)
     {
         //Create the Statement Object
@@ -541,7 +418,7 @@ public class Statements
             return;
         }
 
-        var guarFolder = ImageStore.GetPatientFolder(patientGuar, ImageStore.GetPreferredAtoZpath());
+        var guarFolder = ImageStore.GetPatientFolder(patientGuar, ImageStore.GetDataFolder());
         var fileName = "";
         document.ImgType = ImageType.Document;
         document.Description = Lans.g("Statement", "Receipt");
@@ -552,8 +429,8 @@ public class Statements
         //Doc fileName and Copy to emailAttach Folder
         var attachPath = EmailAttaches.GetAttachPath();
         fileName = DateTime.Now.ToString("yyyyMMdd") + DateTime.Now.TimeOfDay.Ticks + ODRandom.Next(1000) + ".pdf";
-        var filePathAndName = FileAtoZ.CombinePaths(attachPath, fileName);
-        FileAtoZ.Copy(ImageStore.GetFilePath(Documents.GetByNum(statement.DocNum), guarFolder), filePathAndName, FileAtoZSourceDestination.AtoZToAtoZ);
+        var filePathAndName = Path.Combine(attachPath, fileName);
+        File.Copy(ImageStore.GetFilePath(Documents.GetByNum(statement.DocNum), guarFolder), filePathAndName);
         if (emailAddressFrom == null || EmailAddresses.GetValidMailAddress(emailAddressFrom.GetFrom()) == null) //Check to make sure that our "from" email address is valid.
             throw new ODException("Thank you for your recent payment. An error occurred when attempting to email your receipt,"
                                   + " please refresh your page to view your statement.", ODException.ErrorCodes.ReceiptEmailAddressInvalid);
@@ -598,11 +475,6 @@ public class Statements
         return statement;
     }
 
-    /// <summary>
-    ///     If the statement does not have a short guid or URL, a call will be made to HQ to assign it one. The statement will
-    ///     be updated
-    ///     to the database.
-    /// </summary>
     public static void AssignURLsIfNecessary(Statement statement, Patient patient)
     {
         if (!string.IsNullOrEmpty(statement.ShortGUID) && !string.IsNullOrEmpty(statement.StatementURL)) return;
@@ -614,16 +486,7 @@ public class Statements
         Update(statement, statementOld);
     }
 
-    ///<summary>Assigns the given ShortGUID to the Statement with the given StatementNum</summary>
-    public static void UpdateShortGUID(long statementNum, string shortGuid)
-    {
-        var command = "UPDATE statement SET ShortGUID='" + SOut.String(shortGuid) + "' WHERE StatementNum=" + SOut.Long(statementNum);
-        Db.NonQ(command);
-    }
-
-    public static Statement CreateLimitedStatement(List<long> listPatNumsSelected, long patNum, List<long> listPayClaimNums, List<long> listAdjustments,
-        List<long> listPayNums, List<long> listProcNums, long superFamily = 0,
-        EnumLimitedCustomFamily limitedCustomFamily = EnumLimitedCustomFamily.None)
+    public static Statement CreateLimitedStatement(List<long> listPatNumsSelected, long patNum, List<long> listPayClaimNums, List<long> listAdjustments, List<long> listPayNums, List<long> listProcNums, long superFamily = 0, EnumLimitedCustomFamily limitedCustomFamily = EnumLimitedCustomFamily.None)
     {
         var statement = new Statement();
         statement.PatNum = patNum;
@@ -706,26 +569,17 @@ public class Statements
         return statement;
     }
 
-    /// <summary>
-    ///     Creates statement prods for a statement based off of the dataSet passed in, then syncs this list with the
-    ///     existing statementprods for the statement in the DB.
-    /// </summary>
     public static void SyncStatementProdsForStatement(DataSet dataSet, long statementNum, long docNum)
     {
         if (docNum == 0) return;
         StatementProds.SyncForStatement(dataSet, statementNum, docNum);
     }
 
-    /// <summary>
-    ///     Pass in a list of statement DataSets. Creates statement prods for the statements based off of their dataSets,
-    ///     then syncs these statementprods with the existing statementprods for the statements in the DB.
-    /// </summary>
     public static void SyncStatementProdsForMultipleStatements(List<StatementData> listStatementDatas)
     {
         StatementProds.SyncForMultipleStatements(listStatementDatas);
     }
 
-    ///<summary>Sets the installment plans field on each of the statements passed in.</summary>
     public static void AddInstallmentPlansToStatements(List<Statement> listStatements, Dictionary<long, Family> dictFamilies = null)
     {
         if (listStatements.IsNullOrEmpty()) return;
@@ -754,20 +608,6 @@ public class Statements
         }
     }
 
-    ///<summary>Returns the family's balance according to the most recent statement across the entire family.</summary>
-    public static double GetFamilyBalance(long patNum)
-    {
-        var listPatients = Patients.GetFamily(patNum).ListPats.ToList();
-        var command = "SELECT * FROM statement "
-                      + "WHERE PatNum IN(" + string.Join(",", listPatients.Select(x => SOut.Long(x.PatNum)).ToList()) + ") "
-                      + "AND IsSent=1 "
-                      + "ORDER BY StatementNum DESC LIMIT 1";
-        var statement = StatementCrud.SelectOne(command);
-        if (statement == null) return 0;
-        return statement.BalTotal - statement.InsEst;
-    }
-
-    ///<summary>Returns a dictionary of Key-PatNum, Value-Family for the statements passed in.</summary>
     public static Dictionary<long, Family> GetFamiliesForStatements(List<Statement> listStatements)
     {
         if (listStatements.IsNullOrEmpty()) return new Dictionary<long, Family>();
@@ -778,7 +618,6 @@ public class Statements
         return dictionaryFamilyValues;
     }
 
-    ///<summary>List of batches of statements. BatchNum will start with 1 for UI.</summary>
     public static List<StatementBatch> GetBatchesForStatements(List<Statement> listStatements, List<Patient> listPatients)
     {
         var listBatchesOfStatements = new List<StatementBatch>();
@@ -834,10 +673,6 @@ public class Statements
         return listBatchesOfStatements;
     }
 
-    /// <summary>
-    ///     The filePath is the full path to the output file if the clinics feature is disabled (for a single location
-    ///     practice).
-    /// </summary>
     public static string GetEbillFilePathForClinic(string filePath, long clinicNum)
     {
         if (!true) return filePath;
@@ -851,10 +686,6 @@ public class Statements
         return ODFileUtils.CombinePaths(Path.GetDirectoryName(filePath), ODFileUtils.CleanFileName(fileName));
     }
 
-    /// <summary>
-    ///     Returns a list of failed messages. If list is empty then all messages succeeded.
-    ///     Statement.TagOD must be set to SmsToMobile.GuidMessage before calling this method.
-    /// </summary>
     public static List<SmsToMobile> HandleSmsSent(List<SmsToMobile> listSmsToMobiles, List<Statement> listStatements)
     {
         //WSHQ.SmsSend will only return FailNoCharge or Pending so we only need to handle those 2 cases here. FailWithCharge is impossible at this stage of the text message life.
@@ -875,7 +706,6 @@ public class Statements
         return listSmsToMobiles.FindAll(x => x.SmsStatus == SmsDeliveryStatus.FailNoCharge);
     }
 
-    ///<summary>Returns the mode for the statement.</summary>
     public static StatementMode GetStatementMode(PatAging patAging)
     {
         StatementMode statementMode;
@@ -888,7 +718,6 @@ public class Statements
         return statementMode;
     }
 
-    ///<summary>Returns true if the patient statement mode has an option to send by SMS.</summary>
     public static bool DoSendSms(PatAging patAging, Dictionary<long, PatAgingData> dictPatAgingData, List<StatementMode> listStatementModes)
     {
         PatAgingData patAgingData;
@@ -901,14 +730,6 @@ public class Statements
         return false;
     }
 
-    /// <summary>
-    ///     Creates a new pdf, attaches it to a new doc, and attaches that to the statement.  If it cannot create a pdf, for
-    ///     example if no AtoZ
-    ///     folders, then it will simply result in a docnum of zero, so no attached doc. Only used for batch statment printing.
-    ///     Returns the path of the
-    ///     temp file where the pdf is saved.Temp file should be deleted manually.  Will return an empty string when unable to
-    ///     create the file.
-    /// </summary>
     public static string CreateStatementPdfSheets(Statement statement, Patient patient, Family family, DataSet dataSet)
     {
         var statementNew = statement;
@@ -958,7 +779,6 @@ public class Statements
         return tempPath;
     }
 
-    
     public static string SaveStatementAsCSV(Statement statement)
     {
         var statementCategory = Defs.GetImageCat(ImageCategorySpecial.S);
@@ -967,16 +787,15 @@ public class Statements
             //Files that start with "_###_" will automatically have Document entries created for them when the Imaging module loads.
             prependCategoryNum = "_" + statementCategory + "_";
         var patient = Patients.GetPat(statement.PatNum);
-        var patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
+        var patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder());
         var fileName = prependCategoryNum + patient.LName + patient.FName + statement.DocNum + ".csv";
         return WriteStatementToCSV(statement, fileName, patFolder);
     }
 
-    
     private static string WriteStatementToCSV(Statement statement, string fileName, string filePath)
     {
         if (statement == null) return "";
-        var path = FileAtoZ.CombinePaths(filePath, fileName);
+        var path = Path.Combine(filePath, fileName);
         var dataSet = AccountModules.GetStatementDataSet(statement);
         var dataTable = SheetDataTableUtil.GetTable_StatementMain(dataSet, statement);
         var stringBuilderExportCSV = new StringBuilder();
@@ -1018,10 +837,6 @@ public class Statements
         return path;
     }
 
-    /// <summary>
-    ///     Takes the passed in patient to create a statement for the guarantor. This logic used to just exist behind the
-    ///     toolBarButStatement_Click in the account controller
-    /// </summary>
     public static Statement GenerateStatement(Patient patient, DateTime dateStart, DateTime dateEnd, StatementMode statementMode, bool isSinglePatient = false)
     {
         var statement = new Statement();
@@ -1076,11 +891,6 @@ public class Statements
         return statement;
     }
 
-    /// <summary>
-    ///     Returns the PatNum of the patient that this statement is responsible for. Typically returns StatementCur.PatNum.
-    ///     Can return a different PatNum if this is a SinglePatient statement and there is only one PatNum StmtLink associated
-    ///     with this statement.
-    /// </summary>
     public static long GetPatNumForGetAccount(Statement statement)
     {
         var patNum = statement.PatNum;
@@ -1088,7 +898,6 @@ public class Statements
         return patNum;
     }
 
-    ///<summary>Calculates and sets the BalTotal and InsEst fields on the passed-in Statement object.</summary>
     public static void CalcBalTotalInsEst(Statement statement, DataSet dataSet, Patient patient = null, Patient patientGuar = null)
     {
         if (patient == null) patient = Patients.GetPat(statement.PatNum);
@@ -1209,60 +1018,23 @@ public class Statements
         //payPlanDue;//PatGuar.PayPlanDue;
         statement.IsBalValid = true;
     }
-
-    #endregion
 }
 
-///<summary>Holds all of the statement and StatementProd data relevant to syncing StatementProds and late charges.</summary>
-[Serializable]
 public class StatementData
 {
-	/// <summary>
-	///     Specific tables and columns from the DataSet used to create the statement for inserting or syncing
-	///     StatementProds.
-	/// </summary>
-	[XmlIgnore]
     public DataSet DataSetStmtNew;
-
-    ///<summary>Date the statement was sent.</summary>
     public DateTime DateSent;
-
-    ///<summary>The DocNum of the document associated to the statement.</summary>
     public long DocNum;
-
-    ///<summary>True if the statement is a superfamily statement.</summary>
     public bool IsSuperFamilyStatement;
-
-    /// <summary>
-    ///     Holds the PatNums of all guarantors in super family if the statement is a super family statement, otherwise it
-    ///     just holds the family's guarantor.
-    /// </summary>
-    public List<long> ListPatNumsGuarantor = new();
-
-    ///<summary>The StatementProds associated to the statement.</summary>
-    public List<StatementProd> ListStatementProds = new();
-
-    /// <summary>
-    ///     PatNum of the guarantor of the family that the statement is for or the PatNum of the SuperFamily head if the
-    ///     statement is a SuperFamily statement.
-    /// </summary>
+    public List<long> ListPatNumsGuarantor = [];
+    public List<StatementProd> ListStatementProds = [];
     public long PatNumGuarantor;
-
-    /// <summary>
-    ///     Guarantor's primary provider's ProvNum or the SuperFamily head's primary provider's ProvNum if the statement
-    ///     is a SuperFamily statement.
-    /// </summary>
     public long ProvNumPriGuarantor;
 
-    ///<summary>For serialization purposes.</summary>
     public StatementData()
     {
     }
 
-    /// <summary>
-    ///     This constructur only sets the DocNum and StmtDataSet and is only used when building a collection of
-    ///     StatementData sets for the purpose of syncing StatementProds for multiple statements.
-    /// </summary>
     public StatementData(DataSet dataSetStmt, long docNum)
     {
         DataSetStmtNew = new DataSet();
@@ -1282,14 +1054,9 @@ public class StatementData
         DocNum = docNum;
     }
 
-    /// <summary>
-    ///     Used when creating late charges. Gets a list of StatementData objects based on the filters used in
-    ///     ForLateCharges. Should only be run after aging has been run.
-    /// </summary>
-    public static List<StatementData> GetListStatementDataForLateCharges(bool isExcludeAccountNoTil, bool isExcludeExistingLateCharges,
-        decimal excludeBalancesLessThan, DateTime dateRangeStart, DateTime dateRangeEnd, List<long> listBillingTypes)
+    public static List<StatementData> GetListStatementDataForLateCharges(bool isExcludeAccountNoTil, bool isExcludeExistingLateCharges, decimal excludeBalancesLessThan, DateTime dateRangeStart, DateTime dateRangeEnd, List<long> listBillingTypes)
     {
-        if (listBillingTypes.IsNullOrEmpty()) return new List<StatementData>();
+        if (listBillingTypes.IsNullOrEmpty()) return [];
 
         var command = $@"
 				SELECT statementprod.*,statement.SuperFamily,statement.DateSent,guar.PatNum,guar.PriProv

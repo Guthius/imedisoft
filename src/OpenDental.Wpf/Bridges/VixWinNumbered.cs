@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.IO;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	/// <summary></summary>
@@ -32,7 +33,7 @@ namespace OpenDental.Bridges {
 					Directory.CreateDirectory(fullPath);
 				}
 				catch {
-					MessageBox.Show(Lang.g("VixWinNumbered","Patient image path could not be created.  This usually indicates a permission issue.  Path")+":\r\n"
+					MessageBox.Show("Patient image path could not be created.  This usually indicates a permission issue.  Path:\r\n"
 						+fullPath);
 					return;
 				}

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AppointmentCrud
 {
@@ -103,18 +105,18 @@ public class AppointmentCrud
                                           + SOut.Int(appointment.ColorOverride.ToArgb()) + ","
                                           + SOut.Long(appointment.AppointmentTypeNum) + ","
                                           + SOut.Long(appointment.SecUserNumEntry) + ","
-                                          + DbHelper.Now() + ","
+                                          + "NOW()" + ","
                                           + SOut.Int((int) appointment.Priority) + ","
                                           + "'" + SOut.String(appointment.ProvBarText) + "',"
                                           + "'" + SOut.String(appointment.PatternSecondary) + "',"
                                           + "'" + SOut.String(appointment.SecurityHash) + "',"
                                           + SOut.Int(appointment.ItemOrderPlanned) + ")";
         if (appointment.Note == null) appointment.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(appointment.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(appointment.Note));
         if (appointment.ProcDescript == null) appointment.ProcDescript = "";
-        var paramProcDescript = new OdSqlParameter("paramProcDescript", OdDbType.Text, SOut.StringParam(appointment.ProcDescript));
+        var paramProcDescript = new OdSqlParameter("paramProcDescript", SOut.StringParam(appointment.ProcDescript));
         if (appointment.ProcsColored == null) appointment.ProcsColored = "";
-        var paramProcsColored = new OdSqlParameter("paramProcsColored", OdDbType.Text, SOut.StringParam(appointment.ProcsColored));
+        var paramProcsColored = new OdSqlParameter("paramProcsColored", SOut.StringParam(appointment.ProcsColored));
         {
             appointment.AptNum = Db.NonQ(command, true, "AptNum", "appointment", paramNote, paramProcDescript, paramProcsColored);
         }
@@ -315,11 +317,11 @@ public class AppointmentCrud
 
         if (command == "") return false;
         if (appointment.Note == null) appointment.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(appointment.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(appointment.Note));
         if (appointment.ProcDescript == null) appointment.ProcDescript = "";
-        var paramProcDescript = new OdSqlParameter("paramProcDescript", OdDbType.Text, SOut.StringParam(appointment.ProcDescript));
+        var paramProcDescript = new OdSqlParameter("paramProcDescript", SOut.StringParam(appointment.ProcDescript));
         if (appointment.ProcsColored == null) appointment.ProcsColored = "";
-        var paramProcsColored = new OdSqlParameter("paramProcsColored", OdDbType.Text, SOut.StringParam(appointment.ProcsColored));
+        var paramProcsColored = new OdSqlParameter("paramProcsColored", SOut.StringParam(appointment.ProcsColored));
         command = "UPDATE appointment SET " + command
                                             + " WHERE AptNum = " + SOut.Long(appointment.AptNum);
         Db.NonQ(command, paramNote, paramProcDescript, paramProcsColored);

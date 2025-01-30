@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class RxPatCrud
 {
@@ -142,7 +144,7 @@ public class RxPatCrud
                                     + SOut.Long(rxPat.UserNum) + ","
                                     + SOut.Int((int) rxPat.RxType) + ")";
         if (rxPat.PatientInstruction == null) rxPat.PatientInstruction = "";
-        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", OdDbType.Text, SOut.StringParam(rxPat.PatientInstruction));
+        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", SOut.StringParam(rxPat.PatientInstruction));
         {
             rxPat.RxNum = Db.NonQ(command, true, "RxNum", "rxPat", paramPatientInstruction);
         }
@@ -189,7 +191,7 @@ public class RxPatCrud
                                     + SOut.Long(rxPat.UserNum) + ","
                                     + SOut.Int((int) rxPat.RxType) + ")";
         if (rxPat.PatientInstruction == null) rxPat.PatientInstruction = "";
-        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", OdDbType.Text, SOut.StringParam(rxPat.PatientInstruction));
+        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", SOut.StringParam(rxPat.PatientInstruction));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPatientInstruction);
         else
@@ -227,7 +229,7 @@ public class RxPatCrud
                       + "RxType            =  " + SOut.Int((int) rxPat.RxType) + " "
                       + "WHERE RxNum = " + SOut.Long(rxPat.RxNum);
         if (rxPat.PatientInstruction == null) rxPat.PatientInstruction = "";
-        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", OdDbType.Text, SOut.StringParam(rxPat.PatientInstruction));
+        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", SOut.StringParam(rxPat.PatientInstruction));
         Db.NonQ(command, paramPatientInstruction);
     }
 
@@ -376,7 +378,7 @@ public class RxPatCrud
 
         if (command == "") return false;
         if (rxPat.PatientInstruction == null) rxPat.PatientInstruction = "";
-        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", OdDbType.Text, SOut.StringParam(rxPat.PatientInstruction));
+        var paramPatientInstruction = new OdSqlParameter("paramPatientInstruction", SOut.StringParam(rxPat.PatientInstruction));
         command = "UPDATE rxpat SET " + command
                                       + " WHERE RxNum = " + SOut.Long(rxPat.RxNum);
         Db.NonQ(command, paramPatientInstruction);

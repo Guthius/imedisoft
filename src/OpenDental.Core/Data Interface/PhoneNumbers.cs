@@ -3,39 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class PhoneNumbers
 {
-    public static int SyncBatchSize = 5000;
-
-    public static List<PhoneNumber> GetPhoneNumbers(long patNum)
-    {
-        var command = "SELECT * FROM phonenumber WHERE PatNum=" + SOut.Long(patNum);
-        return PhoneNumberCrud.SelectMany(command);
-    }
-
-    
-    public static long Insert(PhoneNumber phoneNumber)
-    {
-        return PhoneNumberCrud.Insert(phoneNumber);
-    }
-
-    
-    public static void Update(PhoneNumber phoneNumber)
-    {
-        PhoneNumberCrud.Update(phoneNumber);
-    }
+    public const int SyncBatchSize = 5000;
 
     public static void SyncAllPats()
     {
         //Get all PhoneNumbers we will delete later, anything except 'Other' that has a PhoneNumberVal.
-        ODEvent.Fire(ODEventType.ProgressBar, Lans.g("PhoneNumber", "Initializing..."));
+        ODEvent.Fire(ODEventType.ProgressBar, "Initializing...");
         var command = $"SELECT PhoneNumberNum FROM phonenumber WHERE PhoneType!={(int) PhoneType.Other} OR PhoneNumberVal=''";
         var listPhoneNumberNumsToDelete = DataCore.GetList(command, x => SIn.Long(x["PhoneNumberNum"].ToString()));
         //Per clinic, including 0 clinic.
@@ -58,7 +40,6 @@ public class PhoneNumbers
         }
     }
 
-    ///<summary>Adds entries to PhoneNumber table based on Patient table for given clinicNum and PhoneType.</summary>
     private static void AddPhoneNumbers(ClinicDto clinic, int clinicIndex, int countClinics, PhoneType phoneType)
     {
         //Map PhoneType to Patient phone number field.
@@ -101,21 +82,11 @@ public class PhoneNumbers
         }
     }
 
-    /// <summary>
-    ///     Syncs patient HmPhone, WkPhone, and WirelessPhone to the PhoneNumber table.  Will delete extra PhoneNumber table
-    ///     rows of each type
-    ///     and any rows for numbers that are now blank in the patient table.
-    /// </summary>
     public static void SyncPat(Patient pat)
     {
-        SyncPats(new List<Patient> {pat});
+        SyncPats([pat]);
     }
 
-    /// <summary>
-    ///     Syncs patient HmPhone, WkPhone, and WirelessPhone to the PhoneNumber table.  Will delete extra PhoneNumber table
-    ///     rows of each type
-    ///     and any rows for numbers that are now blank in the patient table.
-    /// </summary>
     public static void SyncPats(List<Patient> listPats)
     {
         if (listPats.Count == 0) return;
@@ -139,16 +110,8 @@ public class PhoneNumbers
         if (listForInsert.Count > 0) PhoneNumberCrud.InsertMany(listForInsert);
     }
 
-    public static void DeleteObject(long phoneNumberNum)
+    public static string RemoveNonDigitsAndTrimStart(string phoneNumber)
     {
-        PhoneNumberCrud.Delete(phoneNumberNum);
-    }
-
-    ///<summary>Removes non-digit chars and any leading 0's and 1's.</summary>
-    public static string RemoveNonDigitsAndTrimStart(string phNum)
-    {
-        if (string.IsNullOrEmpty(phNum)) return "";
-        //Not using Char.IsDigit because it includes characters like '٣' and '෯'
-        return new string(phNum.Where(x => x >= '0' && x <= '9').ToArray()).TrimStart('0', '1');
+        return string.IsNullOrEmpty(phoneNumber) ? string.Empty : new string(phoneNumber.Where(x => x is >= '0' and <= '9').ToArray()).TrimStart('0', '1');
     }
 }

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormContacts {
 		/// <summary>
 		/// Required designer variable.
@@ -66,7 +59,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(75,25);
 			this.butAdd.TabIndex = 5;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// gridMain
 			// 
@@ -79,7 +72,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 12;
 			this.gridMain.Title = "Contacts";
 			this.gridMain.TranslationName = "TableContact";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// FormContacts
 			// 

@@ -13,6 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -48,10 +50,10 @@ namespace OpenDental {
 			}
 			else {
 				if(IsNew) {
-					this.Text=Lans.g(this,"Add Zip Code");
+					this.Text=Lans.g("Add Zip Code");
 				}
 				else {
-					this.Text=Lans.g(this,"Edit Zip Code");
+					this.Text=Lans.g("Edit Zip Code");
 				}
 			}
 			textZip.Text=ZipCodeCur.ZipCodeDigits;

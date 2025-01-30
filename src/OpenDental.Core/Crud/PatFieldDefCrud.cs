@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PatFieldDefCrud
 {
@@ -85,7 +87,7 @@ public class PatFieldDefCrud
             + SOut.Int(patFieldDef.ItemOrder) + ","
             + SOut.Bool(patFieldDef.IsHidden) + ")";
         if (patFieldDef.PickList == null) patFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(patFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(patFieldDef.PickList));
         {
             patFieldDef.PatFieldDefNum = Db.NonQ(command, true, "PatFieldDefNum", "patFieldDef", paramPickList);
         }
@@ -111,7 +113,7 @@ public class PatFieldDefCrud
             + SOut.Int(patFieldDef.ItemOrder) + ","
             + SOut.Bool(patFieldDef.IsHidden) + ")";
         if (patFieldDef.PickList == null) patFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(patFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(patFieldDef.PickList));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPickList);
         else
@@ -129,7 +131,7 @@ public class PatFieldDefCrud
                       + "IsHidden      =  " + SOut.Bool(patFieldDef.IsHidden) + " "
                       + "WHERE PatFieldDefNum = " + SOut.Long(patFieldDef.PatFieldDefNum);
         if (patFieldDef.PickList == null) patFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(patFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(patFieldDef.PickList));
         Db.NonQ(command, paramPickList);
     }
 
@@ -168,7 +170,7 @@ public class PatFieldDefCrud
 
         if (command == "") return false;
         if (patFieldDef.PickList == null) patFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(patFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(patFieldDef.PickList));
         command = "UPDATE patfielddef SET " + command
                                             + " WHERE PatFieldDefNum = " + SOut.Long(patFieldDef.PatFieldDefNum);
         Db.NonQ(command, paramPickList);

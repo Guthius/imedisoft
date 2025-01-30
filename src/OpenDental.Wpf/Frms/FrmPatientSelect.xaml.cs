@@ -14,6 +14,7 @@ using System.Windows.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;
 using OpenDentBusiness;
@@ -931,7 +932,7 @@ namespace OpenDental {
 			if(formLauncher.IsDialogOK){
 				IsNewPatientAdded=true;
 				PatNumSelected=patient.PatNum;
-				ImageStore.GetPatientFolder(patient,ImageStore.GetPreferredAtoZpath());
+				ImageStore.GetPatientFolder(patient,ImageStore.GetDataFolder());
 				IsDialogOK=true;
 			}
 		}

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpNewPatients {
@@ -60,7 +61,7 @@ namespace OpenDentBusiness {
 				) result
 				{(excludeNoProd? "HAVING $HowMuch > 0" : "")}";
 
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
+			return DataCore.GetTable(query);
 		}
 	}
 }

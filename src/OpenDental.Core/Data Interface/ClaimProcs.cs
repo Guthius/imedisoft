@@ -7,78 +7,69 @@ using CDT;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.Eclaims;
 using OpenDentBusiness.Misc;
 
 namespace OpenDentBusiness;
 
-
 public class ClaimProcs
 {
-    #region Delete
-
-    /// <summary>
-    ///     If the claim has transfers and is then edited in any way after the fact, call this method to remove all
-    ///     associate transfer procedures.
-    /// </summary>
     public static void RemoveSupplementalTransfersForClaims(long claimNum)
     {
-        //A claimnum of zero will scan the entire database, we save MT users a lot of time if we kick out before checking MT.
-        if (claimNum == 0) return;
-        var command = "DELETE FROM claimproc WHERE ClaimNum = " + SOut.Long(claimNum) + " AND IsTransfer!=0";
-        Db.NonQ(command);
+        if (claimNum == 0)
+        {
+            return;
+        }
+        
+        Db.NonQ("DELETE FROM claimproc WHERE ClaimNum = " + claimNum + " AND IsTransfer != 0");
     }
-
-    #endregion
 
     public static List<ClaimProc> GetPatientData(long patNum)
     {
-        var command =
-            "SELECT * FROM claimproc "
-            + "WHERE PatNum = '" + SOut.Long(patNum) + "' ORDER BY LineNumber";
-        return ClaimProcCrud.SelectMany(command);
+        return ClaimProcCrud.SelectMany("SELECT * FROM claimproc WHERE PatNum = " + patNum + " ORDER BY LineNumber");
     }
 
-    
     public static List<ClaimProc> Refresh(long patNum)
     {
-        var command = "SELECT * FROM claimproc WHERE PatNum = " + SOut.Long(patNum) + " ORDER BY LineNumber";
-        return DataCore.GetList(command, ClaimProcCrud.RowToObj);
+        return DataCore.GetList("SELECT * FROM claimproc WHERE PatNum = " + patNum + " ORDER BY LineNumber", ClaimProcCrud.RowToObj);
     }
 
-    ///<summary>Gets the ClaimProcs for a list of patients.</summary>
-    public static List<ClaimProc> Refresh(List<long> listPatNums)
+    public static List<ClaimProc> Refresh(List<long> patNums)
     {
-        if (listPatNums.Count == 0) return new List<ClaimProc>();
-        var command =
-            "SELECT * FROM claimproc "
-            + "WHERE PatNum IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")";
-        return DataCore.GetList(command, ClaimProcCrud.RowToObj);
+        if (patNums.Count == 0)
+        {
+            return [];
+        }
+        
+        return DataCore.GetList("SELECT * FROM claimproc WHERE PatNum IN(" + string.Join(",", patNums) + ")", ClaimProcCrud.RowToObj);
     }
 
-    /// <summary>
-    ///     For a given PayPlan, returns a list of Claimprocs associated to that PayPlan. Pass in claim proc status for
-    ///     filtering.
-    /// </summary>
-    public static List<ClaimProc> GetForPayPlans(List<long> listPayPlanNums, List<ClaimProcStatus> listClaimProcStatuses = null)
+    public static List<ClaimProc> GetForPayPlans(List<long> listPayPlanNums, List<ClaimProcStatus> claimProcStatuses = null)
     {
-        var command = "SELECT claimproc.* "
-                      + "FROM claimproc "
-                      + "WHERE claimproc.PayPlanNum IN (" + SOut.String(string.Join(",", listPayPlanNums)) + ") ";
-        if (listClaimProcStatuses != null && listClaimProcStatuses.Count > 0) command += "AND claimproc.Status IN (" + string.Join(",", listClaimProcStatuses.Select(x => (int) x)) + ") ";
-        command += "ORDER BY claimproc.DateCP";
-        var listClaimProcs = ClaimProcCrud.SelectMany(command);
-        return listClaimProcs;
+        var commandText = 
+            "SELECT claimproc.* " + 
+            "FROM claimproc " + 
+            "WHERE claimproc.PayPlanNum IN (" + string.Join(",", listPayPlanNums) + ") ";
+        
+        if (claimProcStatuses is {Count: > 0})
+        {
+            commandText += "AND claimproc.Status IN (" + string.Join(",", claimProcStatuses.Select(x => (int) x)) + ") ";
+        }
+        
+        commandText += "ORDER BY claimproc.DateCP";
+        
+        return ClaimProcCrud.SelectMany(commandText);
     }
 
-    ///<summary>Gets a list of ClaimProcs for one claim.</summary>
     public static List<ClaimProc> RefreshForClaim(long claimNum, List<Procedure> listProceduresForClaim = null, List<ClaimProc> listClaimProcs = null)
     {
         List<ClaimProc> listClaimProcsForClaim;
         if (listClaimProcs == null)
-            listClaimProcsForClaim = RefreshForClaims(new List<long> {claimNum}).OrderBy(x => x.LineNumber).ToList();
+            listClaimProcsForClaim = RefreshForClaims([claimNum]).OrderBy(x => x.LineNumber).ToList();
         else
             listClaimProcsForClaim = listClaimProcs.FindAll(x => x.ClaimNum == claimNum).OrderBy(x => x.LineNumber).ToList();
         //In Canada, we must remove any claimprocs which are directly associated to labs, because labs go out on the same line as the attached parent proc.
@@ -95,63 +86,70 @@ public class ClaimProcs
         return listClaimProcsForClaim;
     }
 
-    ///<summary>Inserts a ClaimProc for the passed in procedure.</summary>
     public static void InsertClaimProcForInsHist(Procedure procedure, long planNum, long insSubNum)
     {
-        if (procedure == null) return;
-        var claimProc = new ClaimProc();
-        claimProc.PatNum = procedure.PatNum;
-        claimProc.Status = ClaimProcStatus.InsHist;
-        claimProc.PlanNum = planNum;
-        claimProc.InsSubNum = insSubNum;
-        claimProc.ProcDate = procedure.ProcDate;
-        claimProc.ProcNum = procedure.ProcNum;
-        claimProc.ProvNum = procedure.ProvNum;
-        claimProc.ClinicNum = procedure.ClinicNum;
-        Insert(claimProc);
-    }
-
-    /// <summary>
-    ///     Updates the claimprocs with the date passed in and sets the claimproc status to InsHist. Only changes the status if
-    ///     the claimproc matches
-    ///     the InsSubNum passed in. The ProcDate gets updated for all claimprocs to keep them in sync with the proccedure.
-    /// </summary>
-    public static void UpdateClaimProcForInsHist(List<ClaimProc> listClaimProcs, DateTime date, long insSubNum)
-    {
-        if (listClaimProcs == null || listClaimProcs.Count == 0) return;
-        for (var i = 0; i < listClaimProcs.Count; i++)
+        if (procedure == null)
         {
-            if (listClaimProcs[i].InsSubNum == insSubNum) listClaimProcs[i].Status = ClaimProcStatus.InsHist; //Only change claimproc to InsHist status if it's for the plan with the ins hist limitations
-            listClaimProcs[i].ProcDate = date;
+            return;
         }
 
-        UpdateMany(listClaimProcs);
+        Insert(new ClaimProc
+        {
+            PatNum = procedure.PatNum,
+            Status = ClaimProcStatus.InsHist,
+            PlanNum = planNum,
+            InsSubNum = insSubNum,
+            ProcDate = procedure.ProcDate,
+            ProcNum = procedure.ProcNum,
+            ProvNum = procedure.ProvNum,
+            ClinicNum = procedure.ClinicNum
+        });
     }
 
-    ///<summary>Updates the InsHist claimprocs that have planNumOld for this patNum with the planNumNew.</summary>
+    public static void UpdateClaimProcForInsHist(List<ClaimProc> claimProcs, DateTime date, long insSubNum)
+    {
+        if (claimProcs == null || claimProcs.Count == 0)
+        {
+            return;
+        }
+        
+        foreach (var claimProc in claimProcs)
+        {
+            if (claimProc.InsSubNum == insSubNum)
+            {
+                claimProc.Status = ClaimProcStatus.InsHist;
+            }
+
+            claimProc.ProcDate = date;
+        }
+
+        UpdateMany(claimProcs);
+    }
+
     public static void UpdatePlanNumForInsHist(long patNum, long planNumOld, long planNumNew)
     {
-        var command = "UPDATE claimproc SET PlanNum=" + SOut.Long(planNumNew) + " "
-                      + "WHERE PlanNum=" + SOut.Long(planNumOld) + " "
-                      + "AND PatNum=" + SOut.Long(patNum) + " "
-                      + "AND Status=" + SOut.Long((int) ClaimProcStatus.InsHist);
-        Db.NonQ(command);
+        Db.NonQ(
+            "UPDATE claimproc SET PlanNum=" + planNumNew + " " + 
+            "WHERE PlanNum=" + planNumOld + " " + 
+            "AND PatNum=" + patNum + " " +
+            "AND Status=" + (int) ClaimProcStatus.InsHist);
     }
 
-    public static List<ClaimProc> RefreshForClaims(List<long> listClaimNums)
+    public static List<ClaimProc> RefreshForClaims(List<long> claimNums)
     {
-        if (listClaimNums.Count == 0) return new List<ClaimProc>();
-        listClaimNums = listClaimNums.Distinct().ToList();
-        var command =
-            "SELECT * FROM claimproc "
-            + "WHERE ClaimNum IN(" + string.Join(",", listClaimNums) + ")";
-        return ClaimProcCrud.SelectMany(command);
+        if (claimNums.Count == 0)
+        {
+            return [];
+        }
+        
+        claimNums = claimNums.Distinct().ToList();
+
+        return ClaimProcCrud.SelectMany("SELECT * FROM claimproc WHERE ClaimNum IN(" + string.Join(",", claimNums) + ")");
     }
 
-    ///<summary>Grabs columns specifically needed for Claims.GetQueueList() for the sake of speed enhancement.</summary>
     public static List<ClaimProcQueued> GetClaimProcQueuedsForClaims(List<long> listClaimNums)
     {
-        if (listClaimNums.Count == 0) return new List<ClaimProcQueued>();
+        if (listClaimNums.Count == 0) return [];
         var command = "SELECT ClaimProcNum,ProcNum,ClaimNum" +
                       " FROM claimproc WHERE ClaimNum IN (" + string.Join(",", listClaimNums) + ")";
         var table = DataCore.GetTable(command);
@@ -160,7 +158,7 @@ public class ClaimProcs
         {
             var dataRow = table.Rows[i];
             var claimProcQueued = new ClaimProcQueued();
-            claimProcQueued.ClaimProcNum = SIn.Long(dataRow["ClaimProcNum"].ToString());
+            SIn.Long(dataRow["ClaimProcNum"].ToString());
             claimProcQueued.ProcNum = SIn.Long(dataRow["ProcNum"].ToString());
             claimProcQueued.ClaimNum = SIn.Long(dataRow["ClaimNum"].ToString());
             listClaimProcQueueds.Add(claimProcQueued);
@@ -169,39 +167,30 @@ public class ClaimProcs
         return listClaimProcQueueds;
     }
 
-    ///<summary>Gets a list of ClaimProcs with status of estimate.</summary>
-    public static List<ClaimProc> RefreshForTP(long patNum)
+    public static List<ClaimProc> RefreshForTp(long patNum)
     {
-        var command =
-            "SELECT * FROM claimproc "
-            + "WHERE (Status=" + SOut.Long((int) ClaimProcStatus.Estimate)
-            + " OR Status=" + SOut.Long((int) ClaimProcStatus.CapEstimate) + ") "
-            + "AND PatNum = " + SOut.Long(patNum);
-        return ClaimProcCrud.SelectMany(command);
+        return ClaimProcCrud.SelectMany(
+            "SELECT * FROM claimproc " + 
+            "WHERE (Status = " + (int) ClaimProcStatus.Estimate + " OR Status = " + (int) ClaimProcStatus.CapEstimate + ") " + 
+            "AND PatNum = " + patNum);
     }
 
-    ///<summary>Gets a list of ClaimProcs for one proc.</summary>
     public static List<ClaimProc> RefreshForProc(long procNum)
     {
-        var command =
-            "SELECT * FROM claimproc "
-            + "WHERE ProcNum=" + SOut.Long(procNum);
-        return ClaimProcCrud.SelectMany(command);
+        return ClaimProcCrud.SelectMany("SELECT * FROM claimproc WHERE ProcNum = " + procNum);
     }
 
-    ///<summary>Gets a list of ClaimProcs for one proc.</summary>
     public static List<ClaimProc> RefreshForProcs(List<long> listProcNums)
     {
-        if (listProcNums == null || listProcNums.Count == 0) return new List<ClaimProc>(); //No point going to middle tier.
+        if (listProcNums == null || listProcNums.Count == 0) return []; //No point going to middle tier.
         //TODO: Use new CRUD function to prevent issue with IN statement when using Oracle.  Derek will provide function.
         var command =
             "SELECT * FROM claimproc "
-            + "WHERE ProcNum IN (" + string.Join(",", listProcNums.Select(x => SOut.Long(x))) + ")";
+            + "WHERE ProcNum IN (" + string.Join(",", listProcNums.Select(x => x)) + ")";
         return ClaimProcCrud.SelectMany(command);
     }
 
-    
-    public static long Insert(ClaimProc claimProc)
+    public static void Insert(ClaimProc claimProc)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         claimProc.SecUserNumEntry = Security.CurUser.UserNum;
@@ -210,10 +199,9 @@ public class ClaimProcs
         else //In case someone tried to programmatically set the DateSuppReceived when they shouldn't have
             claimProc.DateSuppReceived = DateTime.MinValue;
         claimProc.SecurityHash = HashFields(claimProc);
-        return ClaimProcCrud.Insert(claimProc);
+        ClaimProcCrud.Insert(claimProc);
     }
 
-    
     public static void Update(ClaimProc claimProc, ClaimProc claimProcOld = null)
     {
         if (claimProc.Status.In(ClaimProcStatus.Received, ClaimProcStatus.Supplemental) && claimProc.DateSuppReceived.Year < 1880 && (claimProcOld == null || claimProc.Status != claimProcOld.Status))
@@ -234,35 +222,32 @@ public class ClaimProcs
         }
     }
 
-    ///<summary>Updates the DateCP and ClaimPaymentNum for the list of ClaimProcNums passed in.</summary>
     public static void UpdateForClaimPayment(List<long> listClaimProcNums, ClaimPayment claimPayment)
     {
         if (listClaimProcNums.IsNullOrEmpty()) return;
         var command = @$"
 				UPDATE claimproc 
-				SET DateCP={SOut.Date(claimPayment.CheckDate)},ClaimPaymentNum={SOut.Long(claimPayment.ClaimPaymentNum)}
-				WHERE ClaimProcNum IN ({string.Join(",", listClaimProcNums.Select(x => SOut.Long(x)))})";
+				SET DateCP={SOut.Date(claimPayment.CheckDate)},ClaimPaymentNum={claimPayment.ClaimPaymentNum}
+				WHERE ClaimProcNum IN ({string.Join(",", listClaimProcNums.Select(x => x))})";
         Db.NonQ(command);
     }
 
-    
     public static void Delete(ClaimProc claimProc)
     {
-        var command = "DELETE FROM claimproc WHERE ClaimProcNum = " + SOut.Long(claimProc.ClaimProcNum);
+        var command = "DELETE FROM claimproc WHERE ClaimProcNum = " + claimProc.ClaimProcNum;
         Db.NonQ(command);
     }
 
-    ///<summary>Validates and deletes a claimproc. If there are any dependencies, then this will throw an exception.</summary>
     public static void DeleteAfterValidating(ClaimProc claimProc)
     {
         string command;
         //Can't delete claimprocs for procedures that have Supplemental or Pending Supplemental (Not Received and IsOverpay==true) claimprocs created.
         if (claimProc.ClaimNum != 0 && claimProc.Status != ClaimProcStatus.Supplemental)
         {
-            command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + SOut.Long(claimProc.ProcNum) + " AND ClaimNum=" + SOut.Long(claimProc.ClaimNum) + " AND Status=" + (int) ClaimProcStatus.Supplemental;
+            command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + claimProc.ProcNum + " AND ClaimNum=" + claimProc.ClaimNum + " AND Status=" + (int) ClaimProcStatus.Supplemental;
             var supplementalCP = SIn.Long(Db.GetCount(command));
             if (supplementalCP != 0) throw new ApplicationException(Lans.g("ClaimProcs", "Not allowed to delete this procedure until all supplementals for this procedure are deleted first."));
-            command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + SOut.Long(claimProc.ProcNum) + " AND ClaimNum=" + SOut.Long(claimProc.ClaimNum) + " AND Status=" + (int) ClaimProcStatus.NotReceived + " AND IsOverPay=1";
+            command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + claimProc.ProcNum + " AND ClaimNum=" + claimProc.ClaimNum + " AND Status=" + (int) ClaimProcStatus.NotReceived + " AND IsOverPay=1";
             supplementalCP = SIn.Long(Db.GetCount(command));
             if (supplementalCP != 0) throw new ApplicationException(Lans.g("ClaimProcs", "Not allowed to delete this estimate until all pending supplementals for this procedure are zeroed out first."));
         }
@@ -280,13 +265,13 @@ public class ClaimProcs
                 command = @$"SELECT claimproc.*
 						FROM claimproc 
 						INNER JOIN procedurelog ON claimproc.ProcNum=procedurelog.ProcNum
-						WHERE claimproc.ClaimNum={SOut.Long(claimProc.ClaimNum)} AND claimproc.ClaimProcNum!={SOut.Long(claimProc.ClaimProcNum)} AND claimproc.ProcNum!=0
+						WHERE claimproc.ClaimNum={claimProc.ClaimNum} AND claimproc.ClaimProcNum!={claimProc.ClaimProcNum} AND claimproc.ProcNum!=0
 							AND procedurelog.ProcNumLab=0"; //Ignore labs, only consider parent procedures.
                 remainingCP = Db.GetListLong(command).Count;
             }
             else
             {
-                command = "SELECT COUNT(*) FROM claimproc WHERE ClaimNum= " + SOut.Long(claimProc.ClaimNum) + " AND ClaimProcNum!= " + SOut.Long(claimProc.ClaimProcNum) + " AND ProcNum!=0";
+                command = "SELECT COUNT(*) FROM claimproc WHERE ClaimNum= " + claimProc.ClaimNum + " AND ClaimProcNum!= " + claimProc.ClaimProcNum + " AND ProcNum!=0";
                 remainingCP = SIn.Long(Db.GetCount(command));
             }
 
@@ -299,35 +284,31 @@ public class ClaimProcs
             var listClaimProcsToDelete = new List<ClaimProc>();
             command = $@"SELECT claimproc.* FROM claimproc 
 					INNER JOIN procedurelog on claimproc.ProcNum=procedurelog.ProcNum
-					WHERE claimproc.ClaimProcNum={SOut.Long(claimProc.ClaimProcNum)} 
-					OR (procedurelog.ProcNumLab={SOut.Long(claimProc.ProcNum)} AND claimproc.Status={SOut.Enum(claimProc.Status)} ";
+					WHERE claimproc.ClaimProcNum={claimProc.ClaimProcNum} 
+					OR (procedurelog.ProcNumLab={claimProc.ProcNum} AND claimproc.Status={SOut.Enum(claimProc.Status)} ";
             if (claimProc.Status == ClaimProcStatus.Supplemental) command += $"AND claimproc.DateCP={SOut.DateTime(claimProc.DateCP)}"; //Supplemental claimprocs and their labs are made at the same time
-            command += $"AND claimproc.ClaimNum={SOut.Long(claimProc.ClaimNum)})";
+            command += $"AND claimproc.ClaimNum={claimProc.ClaimNum})";
             listClaimProcsToDelete = DataCore.GetList(command, ClaimProcCrud.RowToObj);
             DeleteMany(listClaimProcsToDelete);
             return;
         }
 
-        command = "DELETE FROM claimproc WHERE ClaimProcNum=" + SOut.Long(claimProc.ClaimProcNum);
+        command = "DELETE FROM claimproc WHERE ClaimProcNum=" + claimProc.ClaimProcNum;
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Deletes claimprocs passed in if they are associated to a dropped patplan for the patnum passed in.
-    ///     Usually ran before deleting a claim.
-    /// </summary>
     public static void DeleteEstimatesForDroppedPatPlan(List<ClaimProc> listClaimProcs)
     {
         if (listClaimProcs == null || listClaimProcs.Count == 0) return;
         //Check to see if the patient still has the patplan associated to the claimprocs.
         var command = @"SELECT claimproc.ClaimProcNum FROM claimproc
 				LEFT JOIN patplan ON patplan.InsSubNum=claimproc.InsSubNum AND patplan.PatNum=claimproc.PatNum
-				WHERE claimproc.ClaimProcNum IN(" + string.Join(",", listClaimProcs.Select(x => SOut.Long(x.ClaimProcNum))) + @") 
+				WHERE claimproc.ClaimProcNum IN(" + string.Join(",", listClaimProcs.Select(x => x.ClaimProcNum)) + @") 
 				AND (claimproc.Status IN(" + string.Join(",", new List<int>
         {
             (int) ClaimProcStatus.NotReceived,
             (int) ClaimProcStatus.CapClaim, (int) ClaimProcStatus.Estimate, (int) ClaimProcStatus.CapEstimate
-        }.Select(x => SOut.Long(x))) + @") ";
+        }.Select(x => x)) + @") ";
         //Per TaskNum:3000120, Nathan and Allen approved to delete received claimprocs with $0 InsPayAmts
         command += $"OR (claimproc.Status={SOut.Int((int) ClaimProcStatus.Received)} AND claimproc.InsPayAmt=0)) "
                    + "AND patplan.PatPlanNum IS NULL ";
@@ -335,13 +316,7 @@ public class ClaimProcs
         DeleteMany(Db.GetListLong(command));
     }
 
-    /// <summary>
-    ///     Used when creating a claim to create any missing claimProcs. Also used in FormProcEdit if click button to add
-    ///     Estimate.  Inserts it into db. It will still be altered after this to fill in the fields that actually attach it to
-    ///     the claim.
-    /// </summary>
-    public static void CreateEst(ClaimProc claimProc, Procedure procedure, InsPlan insPlan, InsSub insSub, double baseEstAmt = 0, double insEstTotalAmt = 0,
-        bool isInsertNeeded = true, bool isPreauth = false)
+    public static void CreateEst(ClaimProc claimProc, Procedure procedure, InsPlan insPlan, InsSub insSub, double baseEstAmt = 0, double insEstTotalAmt = 0, bool isInsertNeeded = true, bool isPreauth = false)
     {
         claimProc.ProcNum = procedure.ProcNum;
         //claimnum
@@ -396,10 +371,6 @@ public class ClaimProcs
         if (isInsertNeeded) Insert(claimProc);
     }
 
-    /// <summary>
-    ///     Creates and inserts supplemental claimprocs for given listClaimProcs.
-    ///     Ignores claimProcs that are not recieved and "By Total" claimProcs.
-    /// </summary>
     public static List<ClaimProc> CreateSuppClaimProcs(List<ClaimProc> listClaimProcs, bool isReversalClaim = false, bool isOriginalClaim = true)
     {
         var listClaimProcs2 = new List<ClaimProc>();
@@ -435,10 +406,6 @@ public class ClaimProcs
         return listClaimProcs2;
     }
 
-    /// <summary>
-    ///     This compares the two lists and saves all the changes to the database.  It also removes all the items marked
-    ///     doDelete.
-    /// </summary>
     public static void Synch(ref List<ClaimProc> listClaimProcs, List<ClaimProc> listClaimProcsOld)
     {
         var listClaimProcsDelete = new List<ClaimProc>();
@@ -474,7 +441,6 @@ public class ClaimProcs
                 listClaimProcs.RemoveAt(i);
     }
 
-    ///<summary>Gets all as total insurance payments for a family.</summary>
     public static List<ClaimProc> GetByTotForPats(List<long> listPatNums)
     {
         var command = "SELECT * from claimproc WHERE PatNum IN(" + string.Join(", ", listPatNums) + ") "
@@ -483,7 +449,6 @@ public class ClaimProcs
         return ClaimProcCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all ClaimProc bundles for the given PayPlanNum. Bundles claimprocs by Date and then by ClaimPaymentNum.</summary>
     public static DataTable GetBundlesForPayPlan(long payPlanNum)
     {
         //MAX functions added to preserve behavior in Oracle.  We may use ProcDate instead of DateCP in the future.
@@ -491,33 +456,25 @@ public class ClaimProcs
                       + ",SUM(claimproc.InsPayAmt) InsPayAmt "
                       + "FROM claimproc "
                       + "LEFT JOIN claimpayment ON claimproc.ClaimPaymentNum=claimpayment.ClaimPaymentNum "
-                      + "WHERE PayPlanNum=" + SOut.Long(payPlanNum) + " "
-                      + "AND claimproc.Status IN (" + SOut.Long((long) ClaimProcStatus.Received) + "," + SOut.Long((long) ClaimProcStatus.Supplemental) + "," + SOut.Long((long) ClaimProcStatus.CapClaim) + ") "
+                      + "WHERE PayPlanNum=" + payPlanNum + " "
+                      + "AND claimproc.Status IN (" + (long) ClaimProcStatus.Received + "," + (long) ClaimProcStatus.Supplemental + "," + (long) ClaimProcStatus.CapClaim + ") "
                       + "GROUP BY claimproc.ClaimNum,claimproc.DateCP,claimproc.ClaimPaymentNum,claimproc.ProvNum "
                       + "ORDER BY claimproc.DateCP";
         return DataCore.GetTable(command);
     }
 
-    /// <summary>
-    ///     Gets all ClaimProcs contributing to the -InsEst value for a given family. Mimics aging, specifically the
-    ///     Regular Claimproc By DateCP region of Ledgers.GetTransQueryString().
-    /// </summary>
     public static DataTable GetClaimProcEstimatesForPatients(List<long> listPatNums)
     {
         var command = "SELECT cp.ClaimProcNum, cp.ProcNum, cp.ClaimNum, cp.PatNum, cp.InsPayEst, cp.WriteOff, p.ProcStatus, p.CodeNum, c.DateService "
                       + "FROM claimproc cp "
                       + "LEFT JOIN procedurelog p ON cp.ProcNum = p.ProcNum "
                       + "LEFT JOIN claim c ON cp.ClaimNum = c.ClaimNum "
-                      + "WHERE cp.Status = " + SOut.Long((long) ClaimProcStatus.NotReceived) + " "
-                      + "AND (cp.ProcNum = 0 OR p.ProcStatus = " + SOut.Long((long) ProcStat.C) + ") "
+                      + "WHERE cp.Status = " + (long) ClaimProcStatus.NotReceived + " "
+                      + "AND (cp.ProcNum = 0 OR p.ProcStatus = " + (long) ProcStat.C + ") "
                       + "AND cp.PatNum IN(" + string.Join(", ", listPatNums) + ") ";
         return DataCore.GetTable(command);
     }
 
-    /// <summary>
-    ///     When sending or printing a claim, this converts the supplied list into a list of ClaimProcs that need to be
-    ///     sent.
-    /// </summary>
     public static List<ClaimProc> GetForSendClaim(List<ClaimProc> listClaimProcs, long claimNum)
     {
         //MessageBox.Show(List.Length.ToString());
@@ -543,7 +500,6 @@ public class ClaimProcs
         return listClaimProcsRet;
     }
 
-    ///<summary>Gets claimprocs from the given list which are attached to the given claimNum and are attached to a procedure.</summary>
     public static List<ClaimProc> GetForClaimOverpay(List<ClaimProc> listClaimProcs, long claimNum)
     {
         var listClaimProcsRet = new List<ClaimProc>();
@@ -557,10 +513,6 @@ public class ClaimProcs
         return listClaimProcsRet;
     }
 
-    /// <summary>
-    ///     Sets the fields of an under/overpayment claimproc and then returns the claimproc. If the passed in
-    ///     claimProcOverpay is null, creates the claimproc.
-    /// </summary>
     public static ClaimProc CreateOverpay(ClaimProc claimProc, double insEstTotalOverride, ClaimProc claimProcOverpay = null)
     {
         if (claimProcOverpay == null) claimProcOverpay = new ClaimProc();
@@ -618,17 +570,11 @@ public class ClaimProcs
         return claimProcOverpay;
     }
 
-
-    ///<summary>Gets all ClaimProcs for the current Procedure. The List must be all ClaimProcs for this patient.</summary>
     public static List<ClaimProc> GetForProc(List<ClaimProc> listClaimProcs, long procNum)
     {
         return listClaimProcs.FindAll(x => x.ProcNum == procNum);
     }
 
-    /// <summary>
-    ///     Loops through listClaimProcs for a claimProc associated to the given claimProcNum.
-    ///     If not found returns null
-    /// </summary>
     public static ClaimProc GetFromList(List<ClaimProc> listClaimProcs, long claimProcNum)
     {
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -638,23 +584,15 @@ public class ClaimProcs
         return null;
     }
 
-    /// <summary>Gets all ClaimProcs for the list of ProcNums, optionally filtered by list of statuses.</summary>
-    /// <param name="useDataReader">
-    ///     Setting useDataReader to true will cause this to call DataCore.GetList(command,RowToObj) which uses a MySqlDataReader to
-    ///     retrieve one row at a time to be converted to ClaimProc objects.  This is to reduce the memory load of the
-    ///     TableToList(GetTable(command))
-    ///     pattern which causes two copies of the data to be held in memory, one as a DataRow and one as the object.
-    /// </param>
     public static List<ClaimProc> GetForProcs(List<long> listProcNums, List<ClaimProcStatus> listClaimProcStatuses = null, bool useDataReader = false)
     {
-        if (listProcNums.IsNullOrEmpty()) return new List<ClaimProc>();
+        if (listProcNums.IsNullOrEmpty()) return [];
         var command = $"SELECT * FROM claimproc WHERE ProcNum IN({string.Join(",", listProcNums)})";
         if (!listClaimProcStatuses.IsNullOrEmpty()) command += $" AND Status IN ({string.Join(",", listClaimProcStatuses.Select(x => SOut.Int((int) x)))})";
         if (useDataReader) return DataCore.GetList(command, ClaimProcCrud.RowToObj);
         return ClaimProcCrud.SelectMany(command);
     }
 
-    ///<summary> </summary>
     public static List<ClaimProc> GetForProcsWithOrdinal(List<long> listProcNums, int ordinal)
     {
         var listClaimProcs = new List<ClaimProc>();
@@ -668,16 +606,14 @@ public class ClaimProcs
         return ClaimProcCrud.SelectMany(command);
     }
 
-    ///<summary>Mimics GetForProcsWithOrdinal(...) but for cached information.</summary>
     public static List<ClaimProc> GetForProcsWithOrdinalFromList(List<long> listProcNums, int ordinal, List<PatPlan> listPatPlansAll, List<ClaimProc> listClaimProcsAll)
     {
-        if (listProcNums == null || listProcNums.Count < 1) return new List<ClaimProc>();
+        if (listProcNums == null || listProcNums.Count < 1) return [];
         return listClaimProcsAll.FindAll(x =>
             listProcNums.Contains(x.ProcNum) && listPatPlansAll.Find(y => y.InsSubNum == x.InsSubNum && y.PatNum == x.PatNum && y.Ordinal == ordinal) != null
         );
     }
 
-    ///<summary> </summary>
     public static ClaimProc GetForProcWithOrdinal(long procNum, int ordinal)
     {
         var command = "SELECT claimproc.* "
@@ -685,15 +621,10 @@ public class ClaimProcs
                       + "INNER JOIN patplan ON patplan.InsSubNum=claimproc.InsSubNum "
                       + "AND patplan.PatNum=claimproc.PatNum "
                       + "AND patplan.Ordinal=" + SOut.Int(ordinal) + " "
-                      + "WHERE ProcNum = " + SOut.Long(procNum);
+                      + "WHERE ProcNum = " + procNum;
         return ClaimProcCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Used in TP module to get one estimate. The List must be all ClaimProcs for this patient. If estimate can't be
-    ///     found, then return null.  The procedure is always status TP, so there shouldn't be more than one estimate for one
-    ///     plan.
-    /// </summary>
     public static ClaimProc GetEstimate(List<ClaimProc> listClaimProcs, long procNum, long planNum, long subNum)
     {
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -705,20 +636,11 @@ public class ClaimProcs
         return null;
     }
 
-    /// <summary>
-    ///     Used in Account and in PaySplitEdit. The insurance estimate based on all claimprocs with this procNum, but
-    ///     only for those claimprocs that are not received yet. The list can be all ClaimProcs for patient, or just those for
-    ///     this procedure.
-    /// </summary>
     public static double ProcEstNotReceived(List<ClaimProc> listClaimProcs, long procNum)
     {
         return listClaimProcs.FindAll(x => x.ProcNum == procNum && x.Status == ClaimProcStatus.NotReceived).Select(x => x.InsPayEst).Sum();
     }
 
-    /// <summary>
-    ///     Used in PaySplitEdit. The insurance amount paid based on all claimprocs with this procNum. The list can be all
-    ///     ClaimProcs for patient, or just those for this procedure.
-    /// </summary>
     public static double ProcInsPay(List<ClaimProc> listClaimProcs, long procNum)
     {
         return listClaimProcs.FindAll(x => x.ProcNum == procNum)
@@ -726,10 +648,6 @@ public class ClaimProcs
             .Select(x => x.InsPayAmt).Sum();
     }
 
-    /// <summary>
-    ///     Used in PaySplitEdit. The insurance writeoff based on all claimprocs with this procNum. The list can be all
-    ///     ClaimProcs for patient, or just those for this procedure.
-    /// </summary>
     public static double ProcWriteoff(List<ClaimProc> listClaimProcs, long procNum)
     {
         return listClaimProcs.FindAll(x => x.ProcNum == procNum)
@@ -737,10 +655,6 @@ public class ClaimProcs
             .Select(x => x.WriteOff).Sum();
     }
 
-    /// <summary>
-    ///     Used in E-claims to get the amount paid by primary. The insurance amount paid by other subNums based on all
-    ///     claimprocs with this procNum. The list can be all ClaimProcs for patient, or just those for this procedure.
-    /// </summary>
     public static double ProcInsPayPri(List<ClaimProc> listClaimProcs, long procNum, long subNumExclude)
     {
         double retVal = 0;
@@ -771,11 +685,6 @@ public class ClaimProcs
         return false;
     }
 
-    /// <summary>
-    ///     Used in E-claims to get the most recent date paid (by primary?). The insurance amount paid by the planNum
-    ///     based on all claimprocs with this procNum. The list can be all ClaimProcs for patient, or just those for this
-    ///     procedure.
-    /// </summary>
     public static DateTime GetDatePaid(List<ClaimProc> listClaimProcs, long procNum, long planNum)
     {
         var date = DateTime.MinValue;
@@ -793,45 +702,9 @@ public class ClaimProcs
         return date;
     }
 
-    /// <summary>
-    ///     Used once in Account on the Claim line.  The amount paid on a claim only by total, not including by procedure.
-    ///     The list can be all ClaimProcs for patient, or just those for this claim.
-    /// </summary>
-    public static double ClaimByTotalOnly(ClaimProc[] claimProcArray, long claimNum)
-    {
-        double retVal = 0;
-        for (var i = 0; i < claimProcArray.Length; i++)
-            if (claimProcArray[i].ClaimNum == claimNum
-                && claimProcArray[i].ProcNum == 0
-                && claimProcArray[i].Status != ClaimProcStatus.Preauth)
-                retVal += claimProcArray[i].InsPayAmt;
-
-        return retVal;
-    }
-
-    /// <summary>
-    ///     Used once in Account on the Claim line.  The writeoff amount on a claim only by total, not including by
-    ///     procedure.  The list can be all ClaimProcs for patient, or just those for this claim.
-    /// </summary>
-    public static double ClaimWriteoffByTotalOnly(ClaimProc[] claimProcArray, long claimNum)
-    {
-        double retVal = 0;
-        for (var i = 0; i < claimProcArray.Length; i++)
-            if (claimProcArray[i].ClaimNum == claimNum
-                && claimProcArray[i].ProcNum == 0
-                && claimProcArray[i].Status != ClaimProcStatus.Preauth)
-                retVal += claimProcArray[i].WriteOff;
-
-        return retVal;
-    }
-
-    /// <summary>
-    ///     Returns the sum of all claimproc writeoff amounts for the specified claim.  If there are claimprocs provided
-    ///     in the list it will not include those in the sum.
-    /// </summary>
     public static double GetClaimWriteOffTotal(long claimNum, long procNum, List<ClaimProc> listClaimProcsExclude)
     {
-        var command = "SELECT * FROM claimproc WHERE ClaimNum=" + SOut.Long(claimNum) + " AND ProcNum=" + SOut.Long(procNum) + " AND Status IN(" + (int) ClaimProcStatus.Received + "," + (int) ClaimProcStatus.Supplemental + ")";
+        var command = "SELECT * FROM claimproc WHERE ClaimNum=" + claimNum + " AND ProcNum=" + procNum + " AND Status IN(" + (int) ClaimProcStatus.Received + "," + (int) ClaimProcStatus.Supplemental + ")";
         var listClaimProcs = ClaimProcCrud.SelectMany(command);
         decimal writeoffTotal = 0; //decimal used to prevent rounding errors.
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -843,10 +716,6 @@ public class ClaimProcs
         return (double) writeoffTotal;
     }
 
-    /// <summary>
-    ///     Used in Adjustments when calculating sales tax.  Returns the sum of all claimproc writeoff and estimate
-    ///     amounts for the specified procedure.
-    /// </summary>
     public static double GetWriteOffFromList(List<ClaimProc> listClaimProcs, long procNum)
     {
         double writeOff = 0;
@@ -869,10 +738,6 @@ public class ClaimProcs
         return writeOff;
     }
 
-    /// <summary>
-    ///     Centralized logic for computing sales tax. Returns whatever value is already there for ODHQ. The isEstimate
-    ///     parameter should be set to true when creating sales tax estimates
-    /// </summary>
     public static double ComputeSalesTax(Procedure procedure, List<ClaimProc> listClaimProcs, bool isEstimate)
     {
         //This check will stop non-autotaxed procedures from showing sales tax estimates, but will still allow manual sales tax to be applied
@@ -885,75 +750,60 @@ public class ClaimProcs
         return taxAmt;
     }
 
-    /// <summary>
-    ///     Attaches or detaches claimprocs from the specified claimPayment. Updates all claimprocs on a claim with one
-    ///     query.  It also updates their DateCP's to match the claimpayment date.
-    /// </summary>
     public static void SetForClaimOld(long claimNum, long claimPaymentNum, DateTime date, bool setAttached)
     {
         var command = "UPDATE claimproc SET ClaimPaymentNum = ";
         if (setAttached)
-            command += "" + SOut.Long(claimPaymentNum) + " ";
+            command += "" + claimPaymentNum + " ";
         else
             command += "0 ";
         command += ",DateCP=" + SOut.Date(date) + " "
-                   + "WHERE ClaimNum=" + SOut.Long(claimNum) + " AND "
+                   + "WHERE ClaimNum=" + claimNum + " AND "
                    + "claimproc.IsTransfer=0 AND "
                    + "InsPayAmt!=0 AND ("
-                   + "ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + " OR ClaimPaymentNum=0)";
+                   + "ClaimPaymentNum=" + claimPaymentNum + " OR ClaimPaymentNum=0)";
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Attaches claimprocs to the specified claimPayment. Updates all claimprocs on a claim with one query.
-    ///     It also updates their DateCP's to match the claimpayment date.  Returns the number of rows that were changed via
-    ///     the UPDATE query.
-    /// </summary>
     public static long AttachToPayment(long claimNum, long claimPaymentNum, DateTime date, int paymentRow)
     {
-        var command = "UPDATE claimproc SET ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + ", "
+        var command = "UPDATE claimproc SET ClaimPaymentNum=" + claimPaymentNum + ", "
                       + "DateCP=" + SOut.Date(date) + ", "
                       + "PaymentRow=" + SOut.Int(paymentRow) + ", "
-                      + "DateInsFinalized = (CASE DateInsFinalized WHEN '0001-01-01' THEN " + DbHelper.Now() + " ELSE DateInsFinalized END) "
-                      + "WHERE ClaimNum=" + SOut.Long(claimNum) + " "
+                      + "DateInsFinalized = (CASE DateInsFinalized WHEN '0001-01-01' THEN " + "NOW()" + " ELSE DateInsFinalized END) "
+                      + "WHERE ClaimNum=" + claimNum + " "
                       + "AND Status IN (" + string.Join(",", GetInsPaidStatuses().Select(x => SOut.Int((int) x))) + ") "
                       + "AND ClaimPaymentNum=0 "
                       + "AND claimproc.IsTransfer=0 ";
         return Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Detaches claimprocs from the specified claimPayment. Updates all claimprocs on a list of claims with one
-    ///     query.
-    /// </summary>
     public static void DetachFromPayment(List<long> listClaimNums, long claimPaymentNum)
     {
         if (listClaimNums == null || listClaimNums.Count == 0) return;
         var command = "UPDATE claimproc SET "
                       + "DateInsFinalized='0001-01-01' "
-                      + "WHERE ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + " "
-                      + "AND (SELECT SecDateEntry FROM claimpayment WHERE ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + ")=" + DbHelper.Curdate() + " "
-                      + "AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ")";
+                      + "WHERE ClaimPaymentNum=" + claimPaymentNum + " "
+                      + "AND (SELECT SecDateEntry FROM claimpayment WHERE ClaimPaymentNum=" + claimPaymentNum + ")=" + "CURDATE()" + " "
+                      + "AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => x)) + ")";
         Db.NonQ(command);
         command = "UPDATE claimproc SET ClaimPaymentNum=0, "
                   //+"DateCP="+POut.Date(DateTime.MinValue)+", "
                   + "PaymentRow=0 "
-                  + "WHERE ClaimNum IN (" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ") "
-                  + "AND ClaimPaymentNum=" + SOut.Long(claimPaymentNum);
+                  + "WHERE ClaimNum IN (" + string.Join(",", listClaimNums.Select(x => x)) + ") "
+                  + "AND ClaimPaymentNum=" + claimPaymentNum;
         Db.NonQ(command);
     }
 
-    ///<summary>Synchs all claimproc DateCP's attached to the claim payment.  Used when an insurance check's date is changed.</summary>
     public static void SynchDateCP(long claimPaymentNum, DateTime date)
     {
         var command = "UPDATE claimproc SET "
                       + "DateCP=" + SOut.Date(date) + " "
-                      + "WHERE ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + " "
+                      + "WHERE ClaimPaymentNum=" + claimPaymentNum + " "
                       + "AND claimproc.IsTransfer=0 ";
         Db.NonQ(command);
     }
 
-    ///<summary>After entering estimates from a preauth, this routine is called for each proc to override the ins est.</summary>
     public static void SetInsEstTotalOverride(long procNum, long planNum, long insSubNum, double insPayEst, List<ClaimProc> listClaimProcs)
     {
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -967,36 +817,7 @@ public class ClaimProcs
         }
     }
 
-    /// <summary>
-    ///     Calculates the Base estimate, InsEstTotal, and all the other insurance numbers for a single claimproc.  This is not
-    ///     done on the fly.
-    ///     Use Procedure.GetEst to later retrieve the estimate. This function replaces all of the upper estimating logic that
-    ///     was within FormClaimProc.
-    ///     BaseEst=((fee or allowedOverride)-Copay) x (percentage or percentOverride).
-    ///     The calling class must have already created the claimProc, this function simply updates the BaseEst field of that
-    ///     claimproc. pst.Tot not used.
-    ///     For Estimate and CapEstimate, all the estimate fields will be recalculated except the overrides.  histList and
-    ///     loopList can be null.
-    ///     If so, then deductible and annual max will not be recalculated.  histList and loopList may only make sense in TP
-    ///     module and claimEdit.
-    ///     loopList contains all claimprocs in the current list (TP or claim) that come before this procedure.
-    ///     PaidOtherInsTot should only contain sum of InsEstTotal/Override, or paid, depending on the status.
-    ///     PaidOtherInsBase also includes actual payments.
-    ///     listSubstLinks won't be null because it gets filled in Procedures.ComputeEstimates
-    ///     lookupFees can be null, in which case, it will go to the db for fee.  lookupFees passed in will also contain all
-    ///     possible alternate codes and medical codes.  In GlobalUpdateWriteoffs, it will be massive, which is why it must be
-    ///     a lookup.
-    ///     For Canadians, this method doesn't simply calculate insurance related numbers for a single claimproc as it states
-    ///     above.
-    ///     There is a chance that this function will create new claimprocs for labs associated to the procedure passed in if
-    ///     they do not already exist.
-    ///     Set doCheckCanadianLabs to false when simply making in memory changes to given cp (like in FormClaimProc).
-    ///     Otherwise duplicate lab claimprocs can be created if cp.Status was only changed in memory.
-    /// </summary>
-    public static void ComputeBaseEst(ClaimProc claimProc, Procedure procedure, InsPlan insPlan, long patPlanNum, List<Benefit> listBenefits, List<ClaimProcHist> listClaimProcHists
-        , List<ClaimProcHist> listClaimProcHistsLoop, List<PatPlan> listPatPlans, double paidOtherInsTot, double paidOtherInsBase, int patientAge, double writeOffOtherIns
-        , List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<SubstitutionLink> listSubstitutionLinks, bool useProcDateOnProc, //=false,List<Fee> listFees=null) 
-        Lookup<FeeKey2, Fee> lookupFees, BlueBookEstimateData blueBookEstimateData, bool doCheckCanadianLabs = true)
+    public static void ComputeBaseEst(ClaimProc claimProc, Procedure procedure, InsPlan insPlan, long patPlanNum, List<Benefit> listBenefits, List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop, List<PatPlan> listPatPlans, double paidOtherInsTot, double paidOtherInsBase, int patientAge, double writeOffOtherIns, List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<SubstitutionLink> listSubstitutionLinks, bool useProcDateOnProc, Lookup<FeeKey2, Fee> lookupFees, BlueBookEstimateData blueBookEstimateData, bool doCheckCanadianLabs = true)
     {
         if (claimProc.Status == ClaimProcStatus.Received && !PrefC.GetBool(PrefName.InsEstRecalcReceived)) return;
         if (listClaimProcHists != null)
@@ -1455,7 +1276,6 @@ public class ClaimProcs
         if (doZeroWriteoff && GetEstimatedStatuses().Contains(claimProc.Status)) claimProc.WriteOffEst = 0;
     }
 
-    ///<summary>Determine which date to use for procDate when computing base estimate.</summary>
     private static DateTime GetProcDate(Procedure procedure, ClaimProc claimProc, bool useProcDateOnProc)
     {
         DateTime dateProc;
@@ -1468,7 +1288,6 @@ public class ClaimProcs
         return dateProc;
     }
 
-    ///<summary>Append a string to the ClaimProc's EstimateNote field.</summary>
     private static void AppendToEstimateNote(ClaimProc claimProc, string note)
     {
         if (string.IsNullOrEmpty(note)) return;
@@ -1476,17 +1295,10 @@ public class ClaimProcs
         claimProc.EstimateNote += note;
     }
 
-    /// <summary>
-    ///     Update or create a claimProc for the given Canadian lab procedure (procLab).
-    ///     Calculations are based on the percentage from the parent claim procs percentage (procParent).
-    ///     Optionally pass in a list of claimprocs that will be manipulated if a new claimproc is created by this method.
-    /// </summary>
-    private static void CanadianLabBaseEstHelper(ClaimProc claimProcParent, Procedure procedureLab, InsPlan insPlan, long insSubNum,
-        Procedure procedureParent, List<Benefit> listBenefits, long patPlanNum, List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop,
-        int patientAge, bool useProcDateOnProc)
+    private static void CanadianLabBaseEstHelper(ClaimProc claimProcParent, Procedure procedureLab, InsPlan insPlan, long insSubNum, Procedure procedureParent, List<Benefit> listBenefits, long patPlanNum, List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop, int patientAge, bool useProcDateOnProc)
     {
-        if (listClaimProcHists == null) listClaimProcHists = new List<ClaimProcHist>();
-        if (listClaimProcHistsLoop == null) listClaimProcHistsLoop = new List<ClaimProcHist>();
+        if (listClaimProcHists == null) listClaimProcHists = [];
+        if (listClaimProcHistsLoop == null) listClaimProcHistsLoop = [];
         double percentage = 0;
         if (claimProcParent.Percentage != -1) //Can happen if claimProcParent.NoBillIns==true.
             percentage = claimProcParent.Percentage;
@@ -1551,7 +1363,7 @@ public class ClaimProcs
                 }
 
                 //next proc needs to know this one is already added, 
-                listClaimProcHistsLoop.AddRange(GetHistForProc(new List<ClaimProc> {listClaimProcs[i]}, procedureLab, procedureParent.CodeNum));
+                listClaimProcHistsLoop.AddRange(GetHistForProc([listClaimProcs[i]], procedureLab, procedureParent.CodeNum));
                 Update(listClaimProcs[i]);
             }
 
@@ -1587,11 +1399,10 @@ public class ClaimProcs
             AppendToEstimateNote(claimProcLab, note);
         }
 
-        listClaimProcHistsLoop.AddRange(GetHistForProc(new List<ClaimProc> {claimProcLab}, procedureLab, procedureParent.CodeNum));
+        listClaimProcHistsLoop.AddRange(GetHistForProc([claimProcLab], procedureLab, procedureParent.CodeNum));
         Update(claimProcLab);
     }
 
-    ///<summary>If the given procedure status is in a "completed" state, set the CodeSent, othewise set it to an empty string.</summary>
     private static string GetCanadianCodeSent(long codeNum)
     {
         var code = ProcedureCodes.GetStringProcCode(codeNum);
@@ -1600,11 +1411,6 @@ public class ClaimProcs
         return code;
     }
 
-    /// <summary>
-    ///     Updates pertinent lab claimproc statuses for given parentClaimProc.
-    ///     Only updates the statuses for claimprocs associated to the same plan as given parentClaimProc.
-    ///     Simply returns if given insPlan is not valid for lab estimates.
-    /// </summary>
     public static void UpdatePertinentLabStatuses(ClaimProc claimProcParent, InsPlan insPlan)
     {
         if (!Canadian.IsValidForLabEstimates(insPlan)) return;
@@ -1619,20 +1425,15 @@ public class ClaimProcs
         UpdateMany(listClaimProcsLab);
     }
 
-    ///<summary>Returns all ClaimProcs associated to any lab procedures that may point the the given parentProcNum.</summary>
     public static List<ClaimProc> GetAllLabClaimProcsForParentProcNum(long parentProcNum)
     {
         var command = $@"SELECT claimproc.*
 				FROM claimproc
 				INNER JOIN procedurelog ON claimproc.ProcNum=procedurelog.ProcNum 
-				AND ProcNumLab={SOut.Long(parentProcNum)}";
+				AND ProcNumLab={parentProcNum}";
         return ClaimProcCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Typically called when cp.NoBillIns is true.
-    ///     Sets various ClaimProc fields to 0 or -1 (indicates blank) where appropriate.
-    /// </summary>
     private static void ZeroOutClaimProc(ClaimProc claimProc)
     {
         claimProc.AllowedOverride = -1;
@@ -1653,17 +1454,12 @@ public class ClaimProcs
         claimProc.EstimateNote = "";
     }
 
-    /// <summary>
-    ///     Only useful if secondary ins or greater.  For one procedure, it gets the sum of InsEstTotal/Override for other
-    ///     insurances with lower ordinals.  Either estimates or actual payments.  Will return 0 if ordinal of this claimproc
-    ///     is 1.
-    /// </summary>
     public static double GetPaidOtherInsTotal(ClaimProc claimProc, List<PatPlan> listPatPlans)
     {
         if (claimProc.ProcNum == 0) return 0;
         var thisOrdinal = PatPlans.GetOrdinal(claimProc.InsSubNum, listPatPlans);
         if (thisOrdinal == 1) return 0;
-        var command = "SELECT InsSubNum,InsEstTotal,InsEstTotalOverride,InsPayAmt,Status FROM claimproc WHERE ProcNum=" + SOut.Long(claimProc.ProcNum);
+        var command = "SELECT InsSubNum,InsEstTotal,InsEstTotalOverride,InsPayAmt,Status FROM claimproc WHERE ProcNum=" + claimProc.ProcNum;
         var table = DataCore.GetTable(command);
         double retVal = 0;
         long subNum;
@@ -1692,16 +1488,12 @@ public class ClaimProcs
         return retVal;
     }
 
-    /// <summary>
-    ///     Only useful if secondary ins or greater.  For one procedure, it gets the sum of BaseEst for other insurances
-    ///     with lower ordinals.  Either estimates or actual payments.  Will return 0 if ordinal of this claimproc is 1.
-    /// </summary>
     public static double GetPaidOtherInsBaseEst(ClaimProc claimProc, List<PatPlan> listPatPlans)
     {
         if (claimProc.ProcNum == 0) return 0;
         var thisOrdinal = PatPlans.GetOrdinal(claimProc.InsSubNum, listPatPlans);
         if (thisOrdinal == 1) return 0;
-        var command = "SELECT InsSubNum,BaseEst,InsPayAmt,Status FROM claimproc WHERE ProcNum=" + SOut.Long(claimProc.ProcNum);
+        var command = "SELECT InsSubNum,BaseEst,InsPayAmt,Status FROM claimproc WHERE ProcNum=" + claimProc.ProcNum;
         var table = DataCore.GetTable(command);
         double retVal = 0;
         long subNum;
@@ -1724,17 +1516,12 @@ public class ClaimProcs
         return retVal;
     }
 
-    /// <summary>
-    ///     Only useful if secondary ins or greater.  For one procedure, it gets the sum of WriteOffEstimates/Override for
-    ///     other insurances with lower ordinals.  Either estimates or actual writeoffs.  Will return 0 if ordinal of this
-    ///     claimproc is 1.
-    /// </summary>
     public static double GetWriteOffOtherIns(ClaimProc claimProcs, List<PatPlan> listPatPlans)
     {
         if (claimProcs.ProcNum == 0) return 0;
         var thisOrdinal = PatPlans.GetOrdinal(claimProcs.InsSubNum, listPatPlans);
         if (thisOrdinal == 1) return 0;
-        var command = "SELECT InsSubNum,WriteOffEst,WriteOffEstOverride,WriteOff,Status FROM claimproc WHERE ProcNum=" + SOut.Long(claimProcs.ProcNum);
+        var command = "SELECT InsSubNum,WriteOffEst,WriteOffEstOverride,WriteOff,Status FROM claimproc WHERE ProcNum=" + claimProcs.ProcNum;
         var table = DataCore.GetTable(command);
         double retVal = 0;
         long subNum;
@@ -1762,58 +1549,12 @@ public class ClaimProcs
         return retVal;
     }
 
-    /////<summary>Only useful if secondary ins or greater.  For one procedure, it gets the sum of WriteOffEstimates/Override for other insurances with lower ordinals.  Either estimates or actual writeoffs.  Will return 0 if ordinal of this claimproc is 1.</summary>
-    //public static double GetDeductibleOtherIns(ClaimProc cp,List<PatPlan> patPlanList) {
-    //  
-    //  if(cp.ProcNum==0) {
-    //    return 0;
-    //  }
-    //  int thisOrdinal=PatPlans.GetOrdinal(cp.InsSubNum,patPlanList);
-    //  if(thisOrdinal==1) {
-    //    return 0;
-    //  }
-    //  string command="SELECT InsSubNum,DedEst,DedEstOverride,DedApplied,Status FROM claimproc WHERE ProcNum="+POut.Long(cp.ProcNum);
-    //  DataTable table=DataCore.GetTable(command);
-    //  double retVal=0;
-    //  long subNum;
-    //  int ordinal;
-    //  double dedEst;
-    //  double dedEstOverride;
-    //  double dedApplied;
-    //  ClaimProcStatus status;
-    //  for(int i=0;i<table.Rows.Count;i++) {
-    //    subNum=PIn.Long(table.Rows[i]["InsSubNum"].ToString());
-    //    ordinal=PatPlans.GetOrdinal(subNum,patPlanList);
-    //    if(ordinal >= thisOrdinal) {
-    //      continue;
-    //    }
-    //    dedEst=PIn.Double(table.Rows[i]["DedEst"].ToString());
-    //    dedEstOverride=PIn.Double(table.Rows[i]["DedEstOverride"].ToString());
-    //    dedApplied=PIn.Double(table.Rows[i]["DedApplied"].ToString());
-    //    status=(ClaimProcStatus)PIn.Int(table.Rows[i]["Status"].ToString());
-    //    if(status==ClaimProcStatus.Received || status==ClaimProcStatus.Supplemental) {
-    //      retVal+=dedApplied;
-    //    }
-    //    if(status==ClaimProcStatus.Estimate || status==ClaimProcStatus.NotReceived) {
-    //      if(dedEstOverride != -1) {
-    //        retVal+=dedEst;
-    //      }
-    //      else if(dedEst !=-1){
-    //        retVal+=dedEst;
-    //      }
-    //    }
-    //  }
-    //  return retVal;
-    //}
-
-    ///<summary>Simply gets insEstTotal or its override if applicable.</summary>
     public static double GetInsEstTotal(ClaimProc claimProc)
     {
         if (claimProc.InsEstTotalOverride != -1) return claimProc.InsEstTotalOverride;
         return claimProc.InsEstTotal;
     }
 
-    ///<summary>Simply gets dedEst or its override if applicable.  Can return 0, but never -1.</summary>
     public static double GetDedEst(ClaimProc claimProc)
     {
         if (claimProc.DedEstOverride != -1) return claimProc.DedEstOverride;
@@ -1822,7 +1563,6 @@ public class ClaimProcs
         return 0;
     }
 
-    ///<summary>Gets either the override or the calculated write-off estimate.  Or zero if neither.</summary>
     public static double GetWriteOffEstimate(ClaimProc claimProc)
     {
         if (claimProc.WriteOffEstOverride != -1) return claimProc.WriteOffEstOverride;
@@ -1848,7 +1588,6 @@ public class ClaimProcs
         return "";
     }
 
-    
     public static string GetWriteOffEstimateDisplay(ClaimProc claimProc)
     {
         if (claimProc.WriteOffEstOverride != -1) return claimProc.WriteOffEstOverride.ToString("f");
@@ -1869,7 +1608,6 @@ public class ClaimProcs
         return claimProc.InsPayEst.ToString("f");
     }
 
-    ///<summary>Returns 0 or -1 if no deduct.</summary>
     public static double GetDeductibleDisplay(ClaimProc claimProc)
     {
         if (claimProc.Status == ClaimProcStatus.CapEstimate || claimProc.Status == ClaimProcStatus.CapComplete) return -1;
@@ -1887,7 +1625,6 @@ public class ClaimProcs
         return claimProc.DedApplied;
     }
 
-    ///<summary>Used in TP module.  Gets all estimate notes for this proc.</summary>
     public static string GetEstimateNotes(long procNum, List<ClaimProc> listClaimProcs)
     {
         var retVal = "";
@@ -1916,7 +1653,6 @@ public class ClaimProcs
         return retVal;
     }
 
-    
     public static List<ClaimProcHist> GetPatientData(long patNum, List<Benefit> listBenefits, List<PatPlan> listPatPlans, List<InsPlan> listInsPlans, List<InsSub> listInsSubs)
     {
         return GetHistList(patNum, listBenefits, listPatPlans, listInsPlans, -1, DateTime.Today, listInsSubs);
@@ -1927,20 +1663,7 @@ public class ClaimProcs
         return GetHistList(patNum, listBenefits, listPatPlans, listInsPlans, -1, dateProc, listInsSubs);
     }
 
-    /// <summary>
-    ///     We pass in the benefit list so that we know whether to include family.  We are getting a simplified list of
-    ///     claimprocs.
-    ///     History of payments and pending payments.  If the patient has multiple insurance, then this info will be for all of
-    ///     their insurance plans.
-    ///     It runs a separate query for each plan because that's the only way to handle family history.
-    ///     For some plans, the benefits will indicate entire family, but not for other plans.  And the date ranges can be
-    ///     different as well.
-    ///     When this list is processed later, it is again filtered, but it can't have missing information.  Use
-    ///     excludeClaimNum=-1 to not exclude a claim.
-    ///     A claim is excluded if editing from inside that claim.
-    /// </summary>
-    public static List<ClaimProcHist> GetHistList(long patNum, List<Benefit> listBenefits, List<PatPlan> listPatPlans, List<InsPlan> listInsPlans
-        , long excludeClaimNum, DateTime dateProc, List<InsSub> listInsSubs)
+    public static List<ClaimProcHist> GetHistList(long patNum, List<Benefit> listBenefits, List<PatPlan> listPatPlans, List<InsPlan> listInsPlans, long excludeClaimNum, DateTime dateProc, List<InsSub> listInsSubs)
     {
         var listClaimProcHists = new List<ClaimProcHist>();
         InsSub insSub;
@@ -2002,18 +1725,18 @@ public class ClaimProcs
                           + "claimproc.NoBillIns,procedurelog.Surf, procedurelog.ToothRange, procedurelog.ToothNum "
                           + "FROM claimproc "
                           + "LEFT JOIN procedurelog on claimproc.ProcNum=procedurelog.ProcNum " //to get the codenum
-                          + "WHERE claimproc.InsSubNum=" + SOut.Long(listPatPlans[p].InsSubNum)
+                          + "WHERE claimproc.InsSubNum=" + listPatPlans[p].InsSubNum
                           + " AND claimproc.ProcDate >= " + SOut.Date(dateStart) //no upper limit on date.
                           + " AND claimproc.Status IN("
-                          + SOut.Long((int) ClaimProcStatus.NotReceived) + ","
-                          + SOut.Long((int) ClaimProcStatus.Adjustment) + "," //insPayAmt and DedApplied
-                          + SOut.Long((int) ClaimProcStatus.Received) + ","
-                          + SOut.Long((int) ClaimProcStatus.InsHist) + ","
-                          + SOut.Long((int) ClaimProcStatus.Supplemental) + ")";
+                          + (int) ClaimProcStatus.NotReceived + ","
+                          + (int) ClaimProcStatus.Adjustment + "," //insPayAmt and DedApplied
+                          + (int) ClaimProcStatus.Received + ","
+                          + (int) ClaimProcStatus.InsHist + ","
+                          + (int) ClaimProcStatus.Supplemental + ")";
             if (!isFam)
                 //we include patnum because this one query can get results for multiple patients that all have this one subsriber.
-                command += " AND claimproc.PatNum=" + SOut.Long(patNum);
-            if (excludeClaimNum != -1) command += " AND claimproc.ClaimNum != " + SOut.Long(excludeClaimNum);
+                command += " AND claimproc.PatNum=" + patNum;
+            if (excludeClaimNum != -1) command += " AND claimproc.ClaimNum != " + excludeClaimNum;
             table = DataCore.GetTable(command);
             var listCodeNumsLimitations = ProcedureCodes.GetCodeNumsForAllLimitations(listBenefitsLimitations, insPlan, listPatPlans[p].PatPlanNum);
             for (var i = 0; i < table.Rows.Count; i++)
@@ -2046,11 +1769,6 @@ public class ClaimProcs
         return listClaimProcHists;
     }
 
-    /// <summary>
-    ///     Used in creation of the loopList.  Used in TP list estimation and in claim creation.  Some of the items in the
-    ///     claimProcList passed in will not have been saved to the database yet.  The codeNum can be different than
-    ///     Proc.CodeNum.
-    /// </summary>
     public static List<ClaimProcHist> GetHistForProc(List<ClaimProc> listClaimProcs, Procedure procedure, long codeNum)
     {
         var listClaimProcHists = new List<ClaimProcHist>();
@@ -2082,22 +1800,7 @@ public class ClaimProcs
         return listClaimProcHists;
     }
 
-    ///<summary>Gets a list of ClaimProcs attached to a specific ClaimPayment from the db. Returns an empty list if not found.</summary>
-    public static List<ClaimProc> GetClaimProcsForClaimPayment(long claimPaymentNum)
-    {
-        var command = "SELECT * from claimproc"
-                      + " WHERE ClaimPaymentNum=" + SOut.Long(claimPaymentNum);
-        return ClaimProcCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Attempts to set ProvNum on each supplied ClaimProc to the ProvNum on the supplied Procedure. Does not update
-    ///     database.
-    ///     Returns true if all ClaimProcs are set to the ProvNum. Returns false if at least one ClaimProc was not set, due to
-    ///     the Procedure being
-    ///     attached to a Claim and PrefName.ProcProvChangesClaimProcWithClaim being false.
-    /// </summary>
-    public static bool TrySetProvFromProc(Procedure procedure, List<ClaimProc> listClaimProcs)
+    public static void TrySetProvFromProc(Procedure procedure, List<ClaimProc> listClaimProcs)
     {
         var retVal = true;
         if (PrefC.GetBool(PrefName.ProcProvChangesClaimProcWithClaim))
@@ -2105,7 +1808,7 @@ public class ClaimProcs
             //This will only change providers for claimproc estimates
             var listClaimProcsForProcedure = listClaimProcs.FindAll(x => x.ProcNum == procedure.ProcNum);
             for (var i = 0; i < listClaimProcsForProcedure.Count; i++) listClaimProcsForProcedure[i].ProvNum = procedure.ProvNum;
-            return retVal;
+            return;
         }
 
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -2117,11 +1820,8 @@ public class ClaimProcs
             else
                 retVal = false;
         }
-
-        return retVal;
     }
 
-    ///<summary>Does not make call to db unless necessary.</summary>
     public static void SetProvForProc(Procedure procedure, List<ClaimProc> listClaimProcs)
     {
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -2133,38 +1833,25 @@ public class ClaimProcs
         }
     }
 
-    ///<summary>For moving rows up and down the batch insurance window.</summary>
     public static void SetPaymentRow(long claimNum, long claimPaymentNum, int paymentRow)
     {
         var command = "UPDATE claimproc SET PaymentRow=" + SOut.Int(paymentRow) + " "
-                      + "WHERE ClaimNum=" + SOut.Long(claimNum) + " "
-                      + "AND ClaimPaymentNum=" + SOut.Long(claimPaymentNum);
+                      + "WHERE ClaimNum=" + claimNum + " "
+                      + "AND ClaimPaymentNum=" + claimPaymentNum;
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     For moving rows up and down the batch insurance window. For each ClaimNum in listClaimNums, the value at the
-    ///     corresponding index in
-    ///     listPaymentRows will be set as the PaymentRow. Be sure that listClaimNums and listPaymentRows have the same number
-    ///     of items.
-    /// </summary>
     public static void SetPaymentRow(List<long> listClaimNums, long claimPaymentNum, List<int> listPaymentRows)
     {
         if (listClaimNums == null || listClaimNums.Count == 0 || listPaymentRows == null || listClaimNums.Count != listPaymentRows.Count) return;
         var command = "UPDATE claimproc SET PaymentRow=(CASE ClaimNum ";
         for (var i = 0; i < listClaimNums.Count; i++) //Expected up to 10; To actual limit, one for each claim in FormClaimPayBatch.GridMain (100s or 1000s)
-            command += "WHEN " + SOut.Long(listClaimNums[i]) + " THEN " + SOut.Int(listPaymentRows[i]) + " ";
-        command += "END) WHERE ClaimNum IN (" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ") "
-                   + "AND ClaimPaymentNum=" + SOut.Long(claimPaymentNum);
+            command += "WHEN " + listClaimNums[i] + " THEN " + SOut.Int(listPaymentRows[i]) + " ";
+        command += "END) WHERE ClaimNum IN (" + string.Join(",", listClaimNums.Select(x => x)) + ") "
+                   + "AND ClaimPaymentNum=" + claimPaymentNum;
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Attaches all claimprocs that have an InsPayAmt entered to the specified ClaimPayment,
-    ///     and then returns a list of the claimprocs.  The claimprocs must be currently unattached.
-    ///     Used from Edit Claim window (FormClaimEdit) when user is not doing the batch entry.
-    ///     To finalize a single claim, set onlyOneClaimNum to the claimNum to finalize.
-    /// </summary>
     public static List<ClaimProc> AttachAllOutstandingToPayment(long claimPaymentNum, DateTime dateClaimPayZero, long onlyOneClaimNum = 0)
     {
         //See job #7423.
@@ -2173,7 +1860,7 @@ public class ClaimProcs
         //Since the service date could be weeks or months in the past, it makes more sense to use the received date, which will be more recent.
         //Additionally, users found using the date of service to be unintuitive.
         //STRONG CAUTION not to use the claimproc.ProcDate here in the future.
-        var command = "UPDATE claimproc SET ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + " "
+        var command = "UPDATE claimproc SET ClaimPaymentNum=" + claimPaymentNum + " "
                       + "WHERE ClaimPaymentNum=0 "
                       + "AND claimproc.IsTransfer=0 " //do not attach transfer claimprocs to claim payments
                       + "AND claimproc.Status IN(" + string.Join(",", GetInsPaidStatuses().Select(x => SOut.Int((int) x))) + ") "
@@ -2184,18 +1871,12 @@ public class ClaimProcs
         if (onlyOneClaimNum != 0 && dateClaimPayZero.Year > 1880) command += "OR DateCP >= " + SOut.Date(dateClaimPayZero);
         command += ") ";
         if (onlyOneClaimNum != 0) //Finalizing individual claim.
-            command += "AND ClaimNum=" + SOut.Long(onlyOneClaimNum);
+            command += "AND ClaimNum=" + onlyOneClaimNum;
         Db.NonQ(command);
-        command = "SELECT * FROM claimproc WHERE ClaimPaymentNum=" + SOut.Long(claimPaymentNum);
+        command = "SELECT * FROM claimproc WHERE ClaimPaymentNum=" + claimPaymentNum;
         return ClaimProcCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Called when we want to try and update claimProc.DateInsFinalized for claimProcs associated to the given
-    ///     claimPaymentNum.
-    ///     The filters inside this function mimic AttachAllOutstandingToPayment() above.
-    ///     If finalizing a single claim, set onlyOneClaimNum to the claimNum to finalize.
-    /// </summary>
     public static void DateInsFinalizedHelper(long claimPaymentNum, DateTime dateClaimPayZero, long onlyOneClaimNum = 0)
     {
         //See job #7423.
@@ -2205,8 +1886,8 @@ public class ClaimProcs
         //Additionally, users found using the date of service to be unintuitive.
         //STRONG CAUTION not to use the claimproc.ProcDate here in the future.
         var command = "UPDATE claimproc SET "
-                      + "DateInsFinalized = (CASE DateInsFinalized WHEN '0001-01-01' THEN " + DbHelper.Now() + " ELSE DateInsFinalized END) "
-                      + "WHERE ClaimPaymentNum=" + SOut.Long(claimPaymentNum) + " "
+                      + "DateInsFinalized = (CASE DateInsFinalized WHEN '0001-01-01' THEN " + "NOW()" + " ELSE DateInsFinalized END) "
+                      + "WHERE ClaimPaymentNum=" + claimPaymentNum + " "
                       + "AND (claimproc.Status = '1' OR claimproc.Status = '4' OR claimproc.Status='5') " //received or supplemental or capclaim
                       + "AND (InsPayAmt != 0 ";
         //See job #7517.
@@ -2215,15 +1896,10 @@ public class ClaimProcs
         if (onlyOneClaimNum != 0 && dateClaimPayZero.Year > 1880) command += "OR DateCP >= " + SOut.Date(dateClaimPayZero);
         command += ") ";
         if (onlyOneClaimNum != 0) //Finalizing individual claim.
-            command += "AND ClaimNum=" + SOut.Long(onlyOneClaimNum);
+            command += "AND ClaimNum=" + onlyOneClaimNum;
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Pass in a cached or potentially "stale" list of claim procs and this method will check the ClaimNum against
-    ///     the num stored in the database to make sure they still match.  Returns true if any of the claim procs are not
-    ///     pointing to the same claim.
-    /// </summary>
     public static bool IsAttachedToDifferentClaim(long procNum, List<ClaimProc> listClaimProcsFromCache)
     {
         var listClaimProcsFromDB = RefreshForProc(procNum);
@@ -2237,7 +1913,6 @@ public class ClaimProcs
         return false;
     }
 
-    ///<summary>Gets the ProcNum, Status, and WriteOff for the passed in procedures.</summary>
     public static List<ClaimProc> GetForProcsLimited(List<long> listProcNums, params ClaimProcStatus[] claimProcStatusArray)
     {
         var listClaimProcs = new List<ClaimProc>();
@@ -2269,13 +1944,9 @@ public class ClaimProcs
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Returns the salted hash for the claimproc. Will return an empty string if the calling program is unable to use
-    ///     CDT.dll.
-    /// </summary>
     public static string HashFields(ClaimProc claimProc)
     {
-        var unhashedText = claimProc.ClaimNum + ((int) claimProc.Status) + claimProc.InsPayEst.ToString("F2") + claimProc.InsPayAmt.ToString("F2");
+        var unhashedText = claimProc.ClaimNum + (int) claimProc.Status + claimProc.InsPayEst.ToString("F2") + claimProc.InsPayAmt.ToString("F2");
         try
         {
             return Class1.CreateSaltedHash(unhashedText);
@@ -2286,10 +1957,6 @@ public class ClaimProcs
         }
     }
 
-    /// <summary>
-    ///     Validates the hash string in claimproc.SecurityHash. Returns true if it matches the expected hash, otherwise
-    ///     false.
-    /// </summary>
     public static bool IsClaimProcHashValid(ClaimProc claimProc)
     {
         if (claimProc == null) return true;
@@ -2300,22 +1967,13 @@ public class ClaimProcs
         return false;
     }
 
-    ///<summary>Bite-Sized ClaimProc class for speed enhancement</summary>
     public class ClaimProcQueued
     {
         public long ClaimNum;
-        public long ClaimProcNum;
         public long ProcNum;
     }
 
-    #region Get Methods
-
-    /// <summary>
-    ///     Can be used to calculate the patient portion estimate for a procedure from a list of claimprocs and list of
-    ///     adjustments.
-    /// </summary>
-    public static decimal GetPatPortion(Procedure procedure, List<ClaimProc> listClaimProcs, List<Adjustment> listAdjustments = null,
-        bool includeEstimates = true)
+    public static decimal GetPatPortion(Procedure procedure, List<ClaimProc> listClaimProcs, List<Adjustment> listAdjustments = null, bool includeEstimates = true)
     {
         if (procedure == null || listClaimProcs == null) return 0;
         //PPO patient portion calculation is: Office Fee - Write-off - Insurance Payment + Adjustments = Patient Portion
@@ -2335,7 +1993,7 @@ public class ClaimProcs
 
         #region Adjustments (optional)
 
-        listAdjustments = listAdjustments ?? new List<Adjustment>();
+        listAdjustments = listAdjustments ?? [];
         patPort += listAdjustments
             .FindAll(x => x.ProcNum == procedure.ProcNum)
             .Sum(x => (decimal) x.AdjAmt);
@@ -2345,10 +2003,6 @@ public class ClaimProcs
         return Math.Round(patPort, 2);
     }
 
-    /// <summary>
-    ///     Returns the sum of what insurance paid, including write-offs, based off of each claimproc status. Optionally
-    ///     ignore estimates.
-    /// </summary>
     public static decimal GetInsPay(List<ClaimProc> listClaimProcs, bool includeEstimates = true)
     {
         decimal insPay = 0;
@@ -2366,10 +2020,9 @@ public class ClaimProcs
         return insPay;
     }
 
-    ///<summary>Returns the patient portion for an entire claim.</summary>
     public static decimal GetPatPortionForClaim(Claim claim)
     {
-        var listProcedures = Procedures.GetCompleteForPats(new List<long> {claim.PatNum});
+        var listProcedures = Procedures.GetCompleteForPats([claim.PatNum]);
         var listClaimProcs = RefreshForClaim(claim.ClaimNum, listProcedures);
         var listAdjustments = Adjustments.GetForProcs(listProcedures.Select(x => x.ProcNum).ToList());
         decimal totalPatPort = 0;
@@ -2399,13 +2052,6 @@ public class ClaimProcs
         return listClaimProcStatuses;
     }
 
-    /// <summary>
-    ///     Attempts to group up pay as totals on each claim and return at most, 1 pay as total per claim group. This is to
-    ///     balance the
-    ///     pay as totals so we do not transfer after a transfer has already been performed. Returns a list of PayAsTotals that
-    ///     can be transferred.
-    ///     Does not currently support capitation claims.  Throws exceptions.
-    /// </summary>
     public static List<PayAsTotal> GetOutstandingClaimPayByTotal(List<long> listFamilyPatNums, List<ClaimProc> listClaimsAsTotalForPats = null)
     {
         var listClaimProcsTotal = listClaimsAsTotalForPats ?? GetByTotForPats(listFamilyPatNums)
@@ -2420,7 +2066,7 @@ public class ClaimProcs
         }
 
         listClaimProcsTotal.RemoveAll(x => listClaimNums.Contains(x.ClaimNum));
-        if (listClaimProcsTotal.Count == 0) return new List<PayAsTotal>();
+        if (listClaimProcsTotal.Count == 0) return [];
         var listPayAsTotalsOutstanding = new List<PayAsTotal>(); //will hold claims pay by total that have not yet been transferred.
         // Need all unique combinations of these keys, each ClaimProc will act as the 'seed' for a group with this combination.
         var listClaimProcsGroups = listClaimProcsTotal.DistinctBy(x => new {x.ClaimNum, x.PatNum, x.ProvNum, x.ClinicNum}).ToList();
@@ -2444,7 +2090,6 @@ public class ClaimProcs
             payAsTotal.CodeSent = listClaimProcsGroups[i].CodeSent;
             payAsTotal.InsSubNum = listClaimProcsGroups[i].InsSubNum;
             payAsTotal.PlanNum = listClaimProcsGroups[i].PlanNum;
-            payAsTotal.PayPlanNum = listClaimProcsGroups[i].PayPlanNum;
             payAsTotal.ProcNum = listClaimProcsGroups[i].ProcNum;
             payAsTotal.ProcDate = listClaimProcsGroups[i].ProcDate;
             payAsTotal.DateEntry = listClaimProcsGroups[i].DateEntry;
@@ -2458,33 +2103,22 @@ public class ClaimProcs
         return listPayAsTotalsOutstanding;
     }
 
-    ///<summary>Gets one ClaimProc from db. Returns null if not found.</summary>
     public static ClaimProc GetOneClaimProc(long claimProcNum)
     {
         if (claimProcNum == 0) return null;
         var command = "SELECT * FROM claimproc "
-                      + "WHERE ClaimProcNum = '" + SOut.Long(claimProcNum) + "'";
+                      + "WHERE ClaimProcNum = '" + claimProcNum + "'";
         return ClaimProcCrud.SelectOne(command);
     }
 
-    #endregion
-
-    #region Insert
-
-    ///<summary>Inserts the ClaimProcs passed in. Does set ClaimProcNum.</summary>
     public static List<ClaimProc> InsertMany(List<ClaimProc> listClaimProcs)
     {
-        if (listClaimProcs.Count == 0) return new List<ClaimProc>();
+        if (listClaimProcs.Count == 0) return [];
         //Not using Crud.InsertMany because we need to set the PrimaryKeys
         for (var i = 0; i < listClaimProcs.Count; i++) Insert(listClaimProcs[i]);
         return listClaimProcs;
     }
 
-    /// <summary>
-    ///     Finds all the claim pay by totals for this family and attempts to transfer them to their respective procedures.
-    ///     If successful, lists will be inserted into the database. Does not currently support capitation claims.
-    ///     Throws exceptions.
-    /// </summary>
     public static ClaimTransferResult TransferClaimsAsTotalToProcedures(List<long> listFamilyPatNums, List<ClaimProc> listClaimProcsForPats = null)
     {
         var claimTransferResult = new ClaimTransferResult();
@@ -2633,36 +2267,20 @@ public class ClaimProcs
         #endregion
     }
 
-    #endregion
-
-    #region Update
-
-    /// <summary>Set all ClaimProcs attached to the claim to have the same clinic num.</summary>
     public static void UpdateClinicNumForClaim(long claimNum, long clinicNum)
     {
         if (claimNum <= 0) return;
-        var command = $"UPDATE claimproc SET ClinicNum={SOut.Long(clinicNum)} WHERE ClaimNum={SOut.Long(claimNum)}";
+        var command = $"UPDATE claimproc SET ClinicNum={clinicNum} WHERE ClaimNum={claimNum}";
         Db.NonQ(command);
     }
 
-    ///<summary>Updates the ClaimProcs passed in.</summary>
     public static void UpdateMany(List<ClaimProc> listClaimProcsUpdate)
     {
         if (listClaimProcsUpdate.Count == 0) return;
         for (var i = 0; i < listClaimProcsUpdate.Count; i++) Update(listClaimProcsUpdate[i]);
     }
 
-    /// <summary>
-    ///     Sets the overrides for primary and/or secondary insurance ClaimProcs when the procedure is linked to an OrthoCase.
-    ///     All overrides for OrthoCases are set to zero, save for the InsEstTotalOverride and InsPayEst.
-    ///     These fields are set to the procedure's fee multiplied by the percent that insurance covers for the OrthoCase. For
-    ///     the OrthoCase's final visit,
-    ///     this estimate may be adjusted up or down so that the total of estimates for all procedures linked to the OrthoCase
-    ///     is not dissimilar to the total insurance coverage for the OrthoCase once it is complete.
-    /// </summary>
-    public static void ComputeEstimatesByOrthoCase(Procedure procedure, OrthoProcLink orthoProcLink, OrthoCase orthoCase, OrthoSchedule orthoSchedule
-        , bool saveToDb, List<ClaimProc> listClaimProcsAll, List<ClaimProc> listClaimProcsToUpdate, List<PatPlan> listPatPlans
-        , List<OrthoProcLink> listOrthoProcLinksForCase)
+    public static void ComputeEstimatesByOrthoCase(Procedure procedure, OrthoProcLink orthoProcLink, OrthoCase orthoCase, OrthoSchedule orthoSchedule, bool saveToDb, List<ClaimProc> listClaimProcsAll, List<ClaimProc> listClaimProcsToUpdate, List<PatPlan> listPatPlans, List<OrthoProcLink> listOrthoProcLinksForCase)
     {
         //Iterate through each claimproc to update, only process claimProcs that have the correct/desired ProcNum.
         var listClaimProcsToUpdateFiltered = listClaimProcsToUpdate.FindAll(x => x.ProcNum == procedure.ProcNum);
@@ -2741,11 +2359,6 @@ public class ClaimProcs
         claimProc.InsPayEst = 0;
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Creates and returns a claimproc object used for insurance adjustments.  Does not insert into the db.</summary>
     public static ClaimProc CreateInsPlanAdjustment(long patNum, long planNum, long insSubNum)
     {
         var claimProc = new ClaimProc();
@@ -2757,7 +2370,6 @@ public class ClaimProcs
         return claimProc;
     }
 
-    ///<summary>Creates a new claimproc based off of the existing claimproc passed in.</summary>
     public static ClaimProc CreateSuppClaimProcForTransfer(ClaimProc claimProc)
     {
         var claimProcNew = new ClaimProc(); //or set to copy
@@ -2780,10 +2392,6 @@ public class ClaimProcs
         return claimProcNew;
     }
 
-    /// <summary>
-    ///     Creates a new claimproc based off of the existing claimproc passed in. Made as offset supplemental for the
-    ///     original.
-    /// </summary>
     public static ClaimProc CreateSuppClaimProcForTransfer(PayAsTotal payAsTotal)
     {
         var claimProc = new ClaimProc();
@@ -2809,18 +2417,12 @@ public class ClaimProcs
         return claimProc;
     }
 
-    /// <summary>
-    ///     This method is specifically aimed at fixing claims that were created with no claim procedures, only as totals.
-    ///     The fix is to create a dummy procedure and claimproc for each as total on the claim for the matching
-    ///     pat/prov/clinic group.
-    ///     Returns true if a fix was needed and applied, otherwise false.
-    /// </summary>
     public static bool FixClaimsNoProcedures(List<long> listPatNumsFamily)
     {
         var listClaimNumsNoProcedures = new List<long>();
         //Get all ClaimNums for claims that have no claimprocs associated to procedures, regardless of claim status.
         var command = $@"SELECT claimproc.ClaimNum FROM claimproc 
-												WHERE claimproc.PatNum IN ({string.Join(",", listPatNumsFamily.Select(x => SOut.Long(x)))}) 
+												WHERE claimproc.PatNum IN ({string.Join(",", listPatNumsFamily.Select(x => x))}) 
 												AND claimproc.ClaimNum > 0
 												GROUP BY claimproc.ClaimNum 
 												HAVING SUM(claimproc.ProcNum)=0 ";
@@ -2847,13 +2449,6 @@ public class ClaimProcs
         return false;
     }
 
-    /// <summary>
-    ///     Helper method for fixing claims without any claim procedures with proc nums (claims having only as total payments).
-    ///     The fix is to create a $0 dummy procedure and a dummy claimproc associated to said procedure.  This method will
-    ///     create the dummy procedure
-    ///     if it doesn't already exist because the ProcNum is needed to associate with the dummy claimproc that gets created
-    ///     as well.
-    /// </summary>
     private static List<ClaimProc> CreateDummyDataForClaimMissingClaimProcs(Claim claim, List<ClaimProc> listClaimProcsTotals)
     {
         var listClaimProcs = new List<ClaimProc>();
@@ -2933,10 +2528,6 @@ public class ClaimProcs
         return listClaimProcs;
     }
 
-    /// <summary>
-    ///     Goes through logic to apply an AsTotal payment to specific procedures depending on their current amount of
-    ///     allocated money.
-    /// </summary>
     public static void ApplyAsTotalPayment(ref ClaimProc[] claimProcArray, double totalPayAmt, List<Procedure> listProcedures)
     {
         if (!PrefC.GetBool(PrefName.ClaimPayByTotalSplitsAuto))
@@ -3016,8 +2607,7 @@ public class ClaimProcs
         if (remainingAlotment >= 0) listClaimProcsSorted[0].InsPayAmt += remainingAlotment;
     }
 
-    ///<summary>Creates InsWriteOffEdit, InsPayEdit, and InsPayCreate logs for a claimproc as needed.</summary>
-    public static void CreateAuditTrailEntryForClaimProcPayment(ClaimProc claimProcNew, ClaimProc claimProcOld, bool isInsPayCreate, bool isPaymentFromERA = false)
+    public static void CreateAuditTrailEntryForClaimProcPayment(ClaimProc claimProcNew, ClaimProc claimProcOld, bool isInsPayCreate, bool isPaymentFromEra = false)
     {
         if (claimProcNew == null || claimProcOld == null) return;
         //Will be "" if claimProcNew.ProcNum is 0 or resulting CodeNum is 0.
@@ -3028,7 +2618,7 @@ public class ClaimProcs
         var strClaimProcNewWriteOff = claimProcNew.WriteOff.ToString("C");
         var strClaimProcOldInsPayAmt = claimProcOld.InsPayAmt.ToString("C");
         var strClaimProcNewInsPayAmt = claimProcNew.InsPayAmt.ToString("C");
-        var strERA = isPaymentFromERA ? " (Payment from ERA)" : "";
+        var strERA = isPaymentFromEra ? " (Payment from ERA)" : "";
         var patNum = claimProcNew.PatNum;
         var permissionInsPay = EnumPermType.InsPayEdit;
         if (isInsPayCreate) permissionInsPay = EnumPermType.InsPayCreate;
@@ -3051,54 +2641,23 @@ public class ClaimProcs
                                                                 + $"changed from {strClaimProcOldInsPayAmt} to {strClaimProcNewInsPayAmt}" + strERA);
         }
     }
-
-    #endregion
 }
 
-/// <summary>
-///     During the ClaimProc.ComputeBaseEst() and related sections, this holds historical payment information for one
-///     procedure or an adjustment to insurance benefits from patplan.
-/// </summary>
 public class ClaimProcHist
 {
-    ///<summary>Insurance paid or est, depending on the status.</summary>
     public double Amount;
-
-    ///<summary>So that we can exclude history from the claim that we are in.</summary>
     public long ClaimNum;
-
-    ///<summary>Deductible paid or est.</summary>
     public double Deduct;
-
-    
     public long InsSubNum;
-
-    ///<summary>Copied from claimproc.NoBillIns</summary>
     public bool NoBillIns;
-
-    ///<summary>Because a list can store info for an entire family.</summary>
     public long PatNum;
-
-    ///<summary>Because a list can store info about multiple plans.</summary>
     public long PlanNum;
-
     public DateTime ProcDate;
-
-    ///<summary>This is needed to filter out primary histList entries on secondary claims.</summary>
     public long ProcNum;
-
-    ///<summary>Only 4 statuses get used anyway.  This helps us filter the pending items sometimes.</summary>
     public ClaimProcStatus Status;
-
     public string StrProcCode;
-
-    ///<summary>This value is formatted exactly the same as it is within the database for procedurelog.Surf</summary>
     public string Surf;
-
-    ///<summary>This value is formatted exactly the same as it is within the database for procedurelog.ToothNum</summary>
     public string ToothNum;
-
-    ///<summary>This value is formatted exactly the same as it is within the database for procedurelog.ToothRange</summary>
     public string ToothRange;
 
     public override string ToString()
@@ -3107,24 +2666,14 @@ public class ClaimProcHist
     }
 }
 
-/// <summary>
-///     Jordan I would like to eliminate this class. It represents PayAsTotal claimprocs. This is used specifically
-///     with ClaimProc pay as total transfers where we create a singular PayAsTotal to represent a group of summed pay as
-///     totals, which is where the SummedInsPayAmt and SummedInsWriteOff comes from.
-/// </summary>
-[Serializable]
 public class PayAsTotal
 {
-    //Jordan All of the fields are already present in ClaimProc, so this class is not necessary.
-    //The two "Summed" fields also have corresponding fields in ClaimProc.
-    //Eventually, all PayAsTotal objects already make their way into the db as a claimproc.
     public long ClaimNum;
     public long ClinicNum;
     public string CodeSent;
     public DateTime DateEntry;
     public long InsSubNum;
     public long PatNum;
-    public long PayPlanNum;
     public long PlanNum;
     public DateTime ProcDate;
     public long ProcNum;
@@ -3137,19 +2686,17 @@ public class PayAsTotal
     }
 }
 
-///<summary>A helper class that stores inserted claimprocs and their corresponding paysplits.</summary>
 public class ClaimTransferResult
 {
-    public List<ClaimProc> ListClaimProcsInserted = new();
-    public List<ClaimProcTxfr> ListClaimProcTxfrs = new();
-    public List<PaySplit> ListPaySplitsInserted = new();
+    public List<ClaimProc> ListClaimProcsInserted = [];
+    public readonly List<ClaimProcTxfr> ListClaimProcTxfrs = [];
+    public readonly List<PaySplit> ListPaySplitsInserted = [];
 
     public ClaimProcTxfr GetForClaimAndProc(long claimNum, long procNum)
     {
         return ListClaimProcTxfrs.Find(x => !x.IsOffset && x.ClaimNum == claimNum && x.ProcNum == procNum);
     }
 
-    ///<summary>Returns the total InsPayAmt from other claims that are associated with the procedure passed in.</summary>
     public double GetInsPayAmtForOtherClaims(long claimNum, long procNum)
     {
         double insPayAmt = 0;
@@ -3173,7 +2720,6 @@ public class ClaimTransferResult
         return true;
     }
 
-    ///<summary>Inserts the ClaimProcTxfrs and PaySplits into the database.</summary>
     public void Insert()
     {
         ListClaimProcTxfrs.RemoveAll(x => CompareDouble.IsZero(x.ClaimProc.InsPayAmt) && CompareDouble.IsZero(x.ClaimProc.WriteOff));
@@ -3185,31 +2731,11 @@ public class ClaimTransferResult
 
 public class ClaimProcTxfr
 {
-	/// <summary>
-	///     The maximum value that can be transferred. This is the larger value between the procedure fee and the
-	///     insurance estimate.
-	/// </summary>
-	public double AmountTxfrMax;
-
-	/// <summary>
-	///     The minimum value that can be transferred. This is the smaller value between the procedure fee and the
-	///     insurance estimate.
-	/// </summary>
-	public double AmountTxfrMin;
-
-    
-    public ClaimProc ClaimProc;
-
-    
-    public double InsPayAmtSupplemental;
-
-    
-    public bool IsOffset;
-
-    ///<summary>For serialization. Do not use.</summary>
-    public ClaimProcTxfr()
-    {
-    }
+    public readonly double AmountTxfrMax;
+    public readonly double AmountTxfrMin;
+    public readonly ClaimProc ClaimProc;
+    public readonly double InsPayAmtSupplemental;
+    public readonly bool IsOffset;
 
     public ClaimProcTxfr(PayAsTotal payAsTotal)
     {
@@ -3234,10 +2760,8 @@ public class ClaimProcTxfr
         AmountTxfrMax = Math.Max(amountCanTransfer, procFee);
     }
 
-    
     public long ClaimNum => ClaimProc.ClaimNum;
 
-    
     public long ProcNum => ClaimProc.ProcNum;
 
     public double GetInsPayAmtMin(double insPayAmtToAllocate)

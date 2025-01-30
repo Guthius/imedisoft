@@ -1,75 +1,84 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using OpenDentBusiness;
-using System.IO;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 
-namespace OpenDental {
-	public partial class FormCvxs:FormODBase {
-		public bool IsSelectionMode;
-		public Cvx CvxSelected;
-		private List<Cvx> _listCvxs;
+namespace OpenDental.Forms;
 
-		public FormCvxs() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormCvxs : FormODBase
+{
+    public bool IsSelectionMode;
+    public Cvx CvxSelected;
+    private List<Cvx> _cvxs;
 
-		private void FormCvxs_Load(object sender,EventArgs e) {
-			if(!IsSelectionMode) {
-				butOK.Visible=false;
-			}
-			ActiveControl=textCode;
-		}
-		
-		private void butSearch_Click(object sender,EventArgs e) {
-			FillGrid();
-		}
+    public FormCvxs()
+    {
+        InitializeComponent();
+    }
 
-		private void FillGrid() {
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col;
-			col=new GridColumn("CVX Code",100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn("Description",500);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			_listCvxs=Cvxs.GetBySearchText(textCode.Text);
-			for(int i=0;i<_listCvxs.Count;i++) {
-				row=new GridRow();
-				row.Cells.Add(_listCvxs[i].CvxCode);
-				row.Cells.Add(_listCvxs[i].Description);
-				row.Tag=_listCvxs[i];
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-		}
+    private void FormCvxs_Load(object sender, EventArgs e)
+    {
+        if (!IsSelectionMode)
+        {
+            butOK.Visible = false;
+        }
 
-		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			if(IsSelectionMode) {
-				CvxSelected=(Cvx)gridMain.ListGridRows[e.Row].Tag;
-				DialogResult=DialogResult.OK;
-				return;
-			}
-		}
+        ActiveControl = textCode;
+    }
 
-		private void butOK_Click(object sender,EventArgs e) {
-			//not even visible unless IsSelectionMode
-			if(gridMain.GetSelectedIndex()==-1) {
-				MsgBox.Show(this,"Please select an item first.");
-				return;
-			}
-			CvxSelected=(Cvx)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-			DialogResult=DialogResult.OK;
-		}
+    private void ButtonSearch_Click(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	}
+    private void FillGrid()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("CVX Code", 100));
+        gridMain.Columns.Add(new GridColumn("Description", 500));
+
+        gridMain.ListGridRows.Clear();
+
+        _cvxs = Cvxs.GetBySearchText(textCode.Text);
+
+        foreach (var cvx in _cvxs)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(cvx.CvxCode);
+            gridRow.Cells.Add(cvx.Description);
+            gridRow.Tag = cvx;
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        if (!IsSelectionMode)
+        {
+            return;
+        }
+
+        CvxSelected = (Cvx) gridMain.ListGridRows[e.Row].Tag;
+        DialogResult = DialogResult.OK;
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            MsgBox.Show(this, "Please select an item first.");
+            return;
+        }
+
+        CvxSelected = (Cvx) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
+        DialogResult = DialogResult.OK;
+    }
 }

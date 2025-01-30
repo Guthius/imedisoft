@@ -12,6 +12,7 @@ using CodeBase;//for PrintoutErrorCode
 using System.IO;
 using System.ServiceProcess;
 using System.Linq;
+using Imedisoft.Core.Entities;
 
 namespace WpfControls {
 //Jordan is the only one allowed to edit this file.
@@ -93,9 +94,9 @@ then change:
 
 		///<summary>Returns a translated error code description.</summary>
 		public static string GetErrorStringFromCode(PrintoutErrorCode printoutErrorCode) {
-			string message=Lang.g(nameof(PrinterL),printoutErrorCode.GetDescription());
+			string message=printoutErrorCode.GetDescription();
 			if(printoutErrorCode!=PrintoutErrorCode.Success) {
-				message+="\r\n"+Lang.g(nameof(PrinterL),"If you do have a printer installed, restarting the workstation may solve the problem.");
+				message+="\r\nIf you do have a printer installed, restarting the workstation may solve the problem.";
 			}
 			return message;
 		}
@@ -104,7 +105,7 @@ then change:
 			if(!printer.IsVirtualPrinter){
 				return "";
 			}
-			string aToZFullPath=ODFileUtils.RemoveTrailingSeparators(ImageStore.GetPreferredAtoZpath());
+			string aToZFullPath=ODFileUtils.RemoveTrailingSeparators(ImageStore.GetDataFolder());
 			return Path.Combine(aToZFullPath,DateTime.Now.ToString("MM_dd_yy_H_mm_ss_fff")+"."+printer.FileExtension);
 		}
 
@@ -132,7 +133,7 @@ then change:
 		///If using msgOverride, must be translated before passing in.
 		///Optionally pass an exception to include the exception.Message text at the end of the pop up.</summary>
 		private static void ShowError(string msgOverride="",Exception ex=null) {
-			string message=Lang.g(nameof(PrinterL),"There was an error while trying to print.");
+			string message="There was an error while trying to print.";
 			if(!string.IsNullOrEmpty(msgOverride)) {
 				message=msgOverride;
 			}

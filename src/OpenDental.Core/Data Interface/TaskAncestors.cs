@@ -2,25 +2,17 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class TaskAncestors
 {
-    
-    public static long Insert(TaskAncestor taskAncestor)
+    public static void Insert(TaskAncestor taskAncestor)
     {
-        return TaskAncestorCrud.Insert(taskAncestor);
+        TaskAncestorCrud.Insert(taskAncestor);
     }
-
-    /*
-    
-    public static void Update(TaskAncestor ancestor) {
-
-        Crud.TaskAncestorCrud.Update(ancestor);
-    }*/
 
     public static void Synch(Task task)
     {
@@ -47,10 +39,6 @@ public class TaskAncestors
         }
     }
 
-    /// <summary>
-    ///     This should only be used when synching ancestors for multiple tasks in the same tasklist.
-    ///     Limits DELETE, SELECT and INSERT calls to DB.
-    /// </summary>
     public static void SynchManyForSameTasklist(List<Task> listTasks, long taskListNum, long taskListParent)
     {
         //Return if the task list passed in is invalid or trying to manipulate ancestors associated to the trunk (main).
@@ -82,7 +70,6 @@ public class TaskAncestors
         }
     }
 
-    ///<summary>Only run once after the upgrade to version 5.5.</summary>
     public static void SynchAll()
     {
         var listTasks = Tasks.RefreshAll();

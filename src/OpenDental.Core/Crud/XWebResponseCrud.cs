@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class XWebResponseCrud
 {
@@ -158,7 +160,7 @@ public class XWebResponseCrud
                                            + SOut.Long(xWebResponse.ProvNum) + ","
                                            + SOut.Long(xWebResponse.ClinicNum) + ","
                                            + SOut.Long(xWebResponse.PaymentNum) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            + SOut.DateTime(xWebResponse.DateTUpdate) + ","
                                            + SOut.Int((int) xWebResponse.TransactionStatus) + ","
                                            + SOut.Int(xWebResponse.ResponseCode) + ","
@@ -191,11 +193,11 @@ public class XWebResponseCrud
                                            + "'" + SOut.String(xWebResponse.EmailResponse) + "',"
                                            + "'" + SOut.String(xWebResponse.LogGuid) + "')";
         if (xWebResponse.HpfUrl == null) xWebResponse.HpfUrl = "";
-        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", OdDbType.Text, SOut.StringParam(xWebResponse.HpfUrl));
+        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", SOut.StringParam(xWebResponse.HpfUrl));
         if (xWebResponse.DebugError == null) xWebResponse.DebugError = "";
-        var paramDebugError = new OdSqlParameter("paramDebugError", OdDbType.Text, SOut.StringParam(xWebResponse.DebugError));
+        var paramDebugError = new OdSqlParameter("paramDebugError", SOut.StringParam(xWebResponse.DebugError));
         if (xWebResponse.PayNote == null) xWebResponse.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringParam(xWebResponse.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringParam(xWebResponse.PayNote));
         {
             xWebResponse.XWebResponseNum = Db.NonQ(command, true, "XWebResponseNum", "xWebResponse", paramHpfUrl, paramDebugError, paramPayNote);
         }
@@ -219,7 +221,7 @@ public class XWebResponseCrud
                                            + SOut.Long(xWebResponse.ProvNum) + ","
                                            + SOut.Long(xWebResponse.ClinicNum) + ","
                                            + SOut.Long(xWebResponse.PaymentNum) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            + SOut.DateTime(xWebResponse.DateTUpdate) + ","
                                            + SOut.Int((int) xWebResponse.TransactionStatus) + ","
                                            + SOut.Int(xWebResponse.ResponseCode) + ","
@@ -252,11 +254,11 @@ public class XWebResponseCrud
                                            + "'" + SOut.String(xWebResponse.EmailResponse) + "',"
                                            + "'" + SOut.String(xWebResponse.LogGuid) + "')";
         if (xWebResponse.HpfUrl == null) xWebResponse.HpfUrl = "";
-        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", OdDbType.Text, SOut.StringParam(xWebResponse.HpfUrl));
+        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", SOut.StringParam(xWebResponse.HpfUrl));
         if (xWebResponse.DebugError == null) xWebResponse.DebugError = "";
-        var paramDebugError = new OdSqlParameter("paramDebugError", OdDbType.Text, SOut.StringParam(xWebResponse.DebugError));
+        var paramDebugError = new OdSqlParameter("paramDebugError", SOut.StringParam(xWebResponse.DebugError));
         if (xWebResponse.PayNote == null) xWebResponse.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringParam(xWebResponse.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringParam(xWebResponse.PayNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramHpfUrl, paramDebugError, paramPayNote);
         else
@@ -305,11 +307,11 @@ public class XWebResponseCrud
                       + "LogGuid              = '" + SOut.String(xWebResponse.LogGuid) + "' "
                       + "WHERE XWebResponseNum = " + SOut.Long(xWebResponse.XWebResponseNum);
         if (xWebResponse.HpfUrl == null) xWebResponse.HpfUrl = "";
-        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", OdDbType.Text, SOut.StringParam(xWebResponse.HpfUrl));
+        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", SOut.StringParam(xWebResponse.HpfUrl));
         if (xWebResponse.DebugError == null) xWebResponse.DebugError = "";
-        var paramDebugError = new OdSqlParameter("paramDebugError", OdDbType.Text, SOut.StringParam(xWebResponse.DebugError));
+        var paramDebugError = new OdSqlParameter("paramDebugError", SOut.StringParam(xWebResponse.DebugError));
         if (xWebResponse.PayNote == null) xWebResponse.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringParam(xWebResponse.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringParam(xWebResponse.PayNote));
         Db.NonQ(command, paramHpfUrl, paramDebugError, paramPayNote);
     }
 
@@ -529,11 +531,11 @@ public class XWebResponseCrud
 
         if (command == "") return false;
         if (xWebResponse.HpfUrl == null) xWebResponse.HpfUrl = "";
-        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", OdDbType.Text, SOut.StringParam(xWebResponse.HpfUrl));
+        var paramHpfUrl = new OdSqlParameter("paramHpfUrl", SOut.StringParam(xWebResponse.HpfUrl));
         if (xWebResponse.DebugError == null) xWebResponse.DebugError = "";
-        var paramDebugError = new OdSqlParameter("paramDebugError", OdDbType.Text, SOut.StringParam(xWebResponse.DebugError));
+        var paramDebugError = new OdSqlParameter("paramDebugError", SOut.StringParam(xWebResponse.DebugError));
         if (xWebResponse.PayNote == null) xWebResponse.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringParam(xWebResponse.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringParam(xWebResponse.PayNote));
         command = "UPDATE xwebresponse SET " + command
                                              + " WHERE XWebResponseNum = " + SOut.Long(xWebResponse.XWebResponseNum);
         Db.NonQ(command, paramHpfUrl, paramDebugError, paramPayNote);

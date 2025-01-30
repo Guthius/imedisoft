@@ -6,11 +6,11 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace OpenDental.UI {
-	public interface IFrameSource {
-		event Action<IFrameSource,byte[],System.Drawing.Size> NewFrame;
+namespace OpenDental.UI;
 
-		void StartFrameCapture();
-		void StopFrameCapture();
-	}
+public interface IFrameSource {
+	event Action<IFrameSource,byte[],System.Drawing.Size> NewFrame;
+
+	void StartFrameCapture();
+	void StopFrameCapture();
 }

@@ -3,52 +3,23 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class RecallTypes
 {
-    /*
-    ///<summary>Gets a list of all inactive recall types.  Only those without triggers are included.</summary>
-    public static List<RecallType> GetInactive(){
-        Meth.NoCheckMiddleTierRole();
-        List<RecallType> retVal=new List<RecallType>();
-        List<RecallTrigger> triggers;
-        for(int i=0;i<RecallTypes.ListShallow.Count;i++){
-            triggers=RecallTriggers.GetForType(RecallTypes.ListShallow[i].RecallTypeNum);
-            if(triggers.Count==0){
-                retVal.Add(RecallTypes.ListShallow[i].Clone());
-            }
-        }
-        return retVal;
-    }*/
+    public static long ProphyType => PrefC.GetLong(PrefName.RecallTypeSpecialProphy);
+    public static long PerioType => PrefC.GetLong(PrefName.RecallTypeSpecialPerio);
+    public static long ChildProphyType => PrefC.GetLong(PrefName.RecallTypeSpecialChildProphy);
 
-    ///<summary>Gets the pref table RecallTypeSpecialProphy RecallTypeNum.</summary>
-    public static long ProphyType =>
-        //No need to check MiddleTierRole; no call to db.
-        PrefC.GetLong(PrefName.RecallTypeSpecialProphy);
-
-    ///<summary>Gets the pref table RecallTypeSpecialPerio RecallTypeNum.</summary>
-    public static long PerioType =>
-        //No need to check MiddleTierRole; no call to db.
-        PrefC.GetLong(PrefName.RecallTypeSpecialPerio);
-
-    ///<summary>Gets the pref table RecallTypeSpecialChildProphy RecallTypeNum.</summary>
-    public static long ChildProphyType =>
-        //No need to check MiddleTierRole; no call to db.
-        PrefC.GetLong(PrefName.RecallTypeSpecialChildProphy);
-
-    
-    public static long Insert(RecallType recallType)
+    public static void Insert(RecallType recallType)
     {
-        return RecallTypeCrud.Insert(recallType);
+        RecallTypeCrud.Insert(recallType);
     }
 
-    
     public static void Update(RecallType recallType)
     {
         RecallTypeCrud.Update(recallType);
@@ -66,14 +37,12 @@ public class RecallTypes
         return recallType == null ? new Interval(0, 0, 0, 0) : recallType.DefaultInterval;
     }
 
-    ///<summary>Returns a collection of proccodes (D####).  Count could be zero.</summary>
     public static List<string> GetProcs(long recallTypeNum)
     {
         var recallType = GetFirstOrDefault(x => x.RecallTypeNum == recallTypeNum);
         return recallType == null || string.IsNullOrEmpty(recallType.Procedures) ? new List<string>() : recallType.Procedures.Split(',').ToList();
     }
 
-    ///<summary>Also makes sure both types are defined as special types.</summary>
     public static bool PerioAndProphyBothHaveTriggers()
     {
         if (PerioType == 0 || ProphyType == 0) return false;
@@ -88,13 +57,6 @@ public class RecallTypes
         return recallType == null ? "" : recallType.TimePattern;
     }
 
-    /// <summary>
-    ///     Converts the passed in time pattern into 5 minute increments.
-    ///     The time pattern returned is altered based on the AppointmentTimeIncrement preference.
-    ///     E.g. "/XX/" passed in with 10 minute increments set will return "//XXXX//"
-    ///     If an empty timePattern is passed in, a default pattern of //XX// will be returned (unless using 15 min inc, then
-    ///     ///XXX///)
-    /// </summary>
     public static string ConvertTimePattern(string timePattern)
     {
         //convert time pattern to 5 minute increment
@@ -137,10 +99,6 @@ public class RecallTypes
         return false;
     }
 
-    /// <summary>
-    ///     Gets a list of all active recall types.  Those without triggers are excluded.  Perio and Prophy are both
-    ///     included.  One of them should later be removed from the collection.
-    /// </summary>
     public static List<RecallType> GetActive()
     {
         var retVal = new List<RecallType>();
@@ -155,26 +113,6 @@ public class RecallTypes
         return retVal;
     }
 
-    ///<summary>Gets one RecallType from the DB. Returns null if not found.</summary>
-    public static RecallType GetOne(long recallTypeNum)
-    {
-        var command = "SELECT * FROM recalltype WHERE RecallTypeNum=" + SOut.Long(recallTypeNum);
-        return RecallTypeCrud.SelectOne(command);
-    }
-
-    ///<summary>Gets a list of RecallTypes from database. Returns null if not found.</summary>
-    public static List<RecallType> GetRecallTypesForApi(int limit, int offset)
-    {
-        var command = "SELECT * FROM recalltype ";
-        command += "ORDER BY RecallTypeNum " //Ensure order for limit and offset.
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return RecallTypeCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Deletes the current recalltype and recalltrigger tables and fills them with our USA default.  Typically ran to
-    ///     switch T codes to D codes.
-    /// </summary>
     public static void SetToDefault()
     {
         var command = "DELETE FROM recalltype WHERE RecallTypeNum >= 1 AND RecallTypeNum <= 7"; //Don't delete manually added recall types
@@ -232,10 +170,6 @@ public class RecallTypes
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Deletes the current recalltype and recalltrigger tables and fills them with our Canadian default.  Typically
-    ///     ran to switch T codes to D codes.
-    /// </summary>
     public static void SetToDefaultCA()
     {
         var command = "DELETE FROM recalltype WHERE RecallTypeNum >= 1 AND RecallTypeNum <= 5"; //Don't delete manually added recall types
@@ -296,19 +230,7 @@ public class RecallTypes
         command = "DELETE FROM recall WHERE RecallTypeNum < 1 OR RecallTypeNum > 5";
         Db.NonQ(command);
     }
-
-    ///<summary>Returns true if any recall types that are not the default types are in use in patient recalls.</summary>
-    public static bool IsUsingManuallyAddedTypes()
-    {
-        var command = "SELECT COUNT(*) "
-                      + "FROM recall "
-                      + "WHERE RecallTypeNum < 1 OR RecallTypeNum > 6"; //1 through 6 are the default recall types
-        if (Db.GetCount(command) == "0") return false;
-        return true;
-    }
-
-    #region CachePattern
-
+    
     private class RecallTypeCache : CacheListAbs<RecallType>
     {
         protected override List<RecallType> GetCacheFromDb()
@@ -337,79 +259,36 @@ public class RecallTypes
             RecallTypes.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly RecallTypeCache _recallTypeCache = new();
+    
+    private static readonly RecallTypeCache Cache = new();
 
     public static List<RecallType> GetDeepCopy(bool isShort = false)
     {
-        return _recallTypeCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<RecallType> GetWhere(Predicate<RecallType> match, bool isShort = false)
     {
-        return _recallTypeCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static RecallType GetFirstOrDefault(Func<RecallType, bool> match, bool isShort = false)
     {
-        return _recallTypeCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        var list = RecallTypeCrud.TableToList(table);
-        //reorder rows for better usability
-        var listRecallTypes = new List<RecallType>();
-        for (var i = 0; i < list.Count; i++)
-            if (list[i].RecallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialProphy))
-            {
-                listRecallTypes.Add(list[i]);
-                break;
-            }
-
-        for (var i = 0; i < list.Count; i++)
-            if (list[i].RecallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialChildProphy))
-            {
-                listRecallTypes.Add(list[i]);
-                break;
-            }
-
-        for (var i = 0; i < list.Count; i++)
-            if (list[i].RecallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialPerio))
-            {
-                listRecallTypes.Add(list[i]);
-                break;
-            }
-
-        for (var i = 0; i < list.Count; i++) //now add the rest
-            if (!listRecallTypes.Contains(list[i]))
-                listRecallTypes.Add(list[i]);
-
-        var tableRecallTypes = RecallTypeCrud.ListToTable(listRecallTypes);
-        _recallTypeCache.FillCacheFromTable(tableRecallTypes);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _recallTypeCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _recallTypeCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

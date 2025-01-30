@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAccountPick {
 		/// <summary>
 		/// Required designer variable.
@@ -57,7 +52,7 @@ namespace OpenDental {
 			this.checkInactive.Size = new System.Drawing.Size(150, 17);
 			this.checkInactive.TabIndex = 2;
 			this.checkInactive.Text = "Include Inactive Accounts";
-			this.checkInactive.Click += new System.EventHandler(this.checkInactive_Click);
+			this.checkInactive.Click += new System.EventHandler(this.CheckBoxInactive_Click);
 			// 
 			// gridMain
 			// 
@@ -70,7 +65,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 1;
 			this.gridMain.Title = "Accounts";
 			this.gridMain.TranslationName = "TableChartOfAccounts";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butOK
 			// 
@@ -80,7 +75,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 26);
 			this.butOK.TabIndex = 10;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// FormAccountPick
 			// 

@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAutomationConditionEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -78,7 +78,7 @@ namespace OpenDental{
 			this.listCompareField.Name = "listCompareField";
 			this.listCompareField.Size = new System.Drawing.Size(181,211);
 			this.listCompareField.TabIndex = 71;
-			this.listCompareField.Click += new System.EventHandler(this.listCompareField_Click);
+			this.listCompareField.Click += new System.EventHandler(this.ListBoxCompareField_Click);
 			// 
 			// listComparison
 			// 
@@ -112,7 +112,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 69;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSave
 			// 
@@ -122,7 +122,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butSelect
 			// 
@@ -133,7 +133,7 @@ namespace OpenDental{
 			this.butSelect.TabIndex = 74;
 			this.butSelect.Text = "...";
 			this.butSelect.Visible = false;
-			this.butSelect.Click += new System.EventHandler(this.butSelect_Click);
+			this.butSelect.Click += new System.EventHandler(this.ButtonSelect_Click);
 			// 
 			// FormAutomationConditionEdit
 			// 

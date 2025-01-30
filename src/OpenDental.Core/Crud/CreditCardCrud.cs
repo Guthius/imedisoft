@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class CreditCardCrud
 {
@@ -98,7 +100,7 @@ public class CreditCardCrud
                                          + SOut.Bool(creditCard.IsRecurringActive) + ","
                                          + "'" + SOut.String(creditCard.Nickname) + "')";
         if (creditCard.Procedures == null) creditCard.Procedures = "";
-        var paramProcedures = new OdSqlParameter("paramProcedures", OdDbType.Text, SOut.StringParam(creditCard.Procedures));
+        var paramProcedures = new OdSqlParameter("paramProcedures", SOut.StringParam(creditCard.Procedures));
         {
             creditCard.CreditCardNum = Db.NonQ(command, true, "CreditCardNum", "creditCard", paramProcedures);
         }
@@ -134,7 +136,7 @@ public class CreditCardCrud
                       + "Nickname          = '" + SOut.String(creditCard.Nickname) + "' "
                       + "WHERE CreditCardNum = " + SOut.Long(creditCard.CreditCardNum);
         if (creditCard.Procedures == null) creditCard.Procedures = "";
-        var paramProcedures = new OdSqlParameter("paramProcedures", OdDbType.Text, SOut.StringParam(creditCard.Procedures));
+        var paramProcedures = new OdSqlParameter("paramProcedures", SOut.StringParam(creditCard.Procedures));
         Db.NonQ(command, paramProcedures);
     }
 }

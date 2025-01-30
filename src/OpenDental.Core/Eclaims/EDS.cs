@@ -10,6 +10,7 @@ using System.Text;
 using System.Xml;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -357,7 +358,7 @@ namespace OpenDentBusiness.Eclaims
                 listIdNameAttributes.Add(idNameAttribute);
             }
 
-            ElectIDs.UpsertFromEDS(listIdNameAttributes);
+            ElectIDs.UpsertFromEds(listIdNameAttributes);
             return strResponse;
         }
 

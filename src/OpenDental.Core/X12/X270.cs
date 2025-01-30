@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -338,7 +339,7 @@ IEA*1*000012145~";
 					strb.Append("Dependent Birthdate");
 				}
 			}
-			ElectID eID=ElectIDs.GetID(carrier.ElectID);
+			ElectID eID=ElectIDs.GetId(carrier.ElectID);
 			//Medicaid uses the patient First/Last/DOB to get benefits, not group number, so skip this validation if this is medicaid
 			bool isMedicaid=(eID!=null && eID.IsMedicaid) || carrier.CarrierName.ToLower().Contains("medicaid");
 			if(!isMedicaid) {

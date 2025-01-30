@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PopupCrud
 {
@@ -92,12 +94,12 @@ public class PopupCrud
                                     + SOut.Bool(popup.IsDisabled) + ","
                                     + SOut.Int((int) popup.PopupLevel) + ","
                                     + SOut.Long(popup.UserNum) + ","
-                                    + DbHelper.Now() + ","
+                                    + "NOW()" + ","
                                     + SOut.Bool(popup.IsArchived) + ","
                                     + SOut.Long(popup.PopupNumArchive) + ","
                                     + SOut.DateTime(popup.DateTimeDisabled) + ")";
         if (popup.Description == null) popup.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(popup.Description));
         {
             popup.PopupNum = Db.NonQ(command, true, "PopupNum", "popup", paramDescription);
         }
@@ -122,12 +124,12 @@ public class PopupCrud
                                     + SOut.Bool(popup.IsDisabled) + ","
                                     + SOut.Int((int) popup.PopupLevel) + ","
                                     + SOut.Long(popup.UserNum) + ","
-                                    + DbHelper.Now() + ","
+                                    + "NOW()" + ","
                                     + SOut.Bool(popup.IsArchived) + ","
                                     + SOut.Long(popup.PopupNumArchive) + ","
                                     + SOut.DateTime(popup.DateTimeDisabled) + ")";
         if (popup.Description == null) popup.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(popup.Description));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDescription);
         else
@@ -149,7 +151,7 @@ public class PopupCrud
                       + "DateTimeDisabled=  " + SOut.DateTime(popup.DateTimeDisabled) + " "
                       + "WHERE PopupNum = " + SOut.Long(popup.PopupNum);
         if (popup.Description == null) popup.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(popup.Description));
         Db.NonQ(command, paramDescription);
     }
 
@@ -207,7 +209,7 @@ public class PopupCrud
 
         if (command == "") return false;
         if (popup.Description == null) popup.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(popup.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(popup.Description));
         command = "UPDATE popup SET " + command
                                       + " WHERE PopupNum = " + SOut.Long(popup.PopupNum);
         Db.NonQ(command, paramDescription);

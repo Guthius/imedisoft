@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAuditOrtho {
 		/// <summary>
 		/// Required designer variable.
@@ -53,7 +53,7 @@ namespace OpenDental{
 			this.gridHist.TabIndex = 6;
 			this.gridHist.Title = "Date Service";
 			this.gridHist.TranslationName = "OrthoAudit";
-			this.gridHist.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridHist_CellClick);
+			this.gridHist.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridHist_CellClick);
 			// 
 			// FormAuditOrtho
 			// 

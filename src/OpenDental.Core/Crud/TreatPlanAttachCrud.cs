@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TreatPlanAttachCrud
 {
-    public static TreatPlanAttach SelectOne(long treatPlanAttachNum)
-    {
-        var command = "SELECT * FROM treatplanattach "
-                      + "WHERE TreatPlanAttachNum = " + SOut.Long(treatPlanAttachNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static TreatPlanAttach SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<TreatPlanAttach> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -50,25 +32,7 @@ public class TreatPlanAttachCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<TreatPlanAttach> listTreatPlanAttachs, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "TreatPlanAttach";
-        var table = new DataTable(tableName);
-        table.Columns.Add("TreatPlanAttachNum");
-        table.Columns.Add("TreatPlanNum");
-        table.Columns.Add("ProcNum");
-        table.Columns.Add("Priority");
-        foreach (var treatPlanAttach in listTreatPlanAttachs)
-            table.Rows.Add(SOut.Long(treatPlanAttach.TreatPlanAttachNum), SOut.Long(treatPlanAttach.TreatPlanNum), SOut.Long(treatPlanAttach.ProcNum), SOut.Long(treatPlanAttach.Priority));
-        return table;
-    }
-
-    public static long Insert(TreatPlanAttach treatPlanAttach)
-    {
-        return Insert(treatPlanAttach, false);
-    }
-
-    public static long Insert(TreatPlanAttach treatPlanAttach, bool useExistingPK)
+    public static void Insert(TreatPlanAttach treatPlanAttach)
     {
         var command = "INSERT INTO treatplanattach (";
 
@@ -81,40 +45,6 @@ public class TreatPlanAttachCrud
         {
             treatPlanAttach.TreatPlanAttachNum = Db.NonQ(command, true, "TreatPlanAttachNum", "treatPlanAttach");
         }
-        return treatPlanAttach.TreatPlanAttachNum;
-    }
-
-    public static long InsertNoCache(TreatPlanAttach treatPlanAttach)
-    {
-        return InsertNoCache(treatPlanAttach, false);
-    }
-
-    public static long InsertNoCache(TreatPlanAttach treatPlanAttach, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO treatplanattach (";
-        if (isRandomKeys || useExistingPK) command += "TreatPlanAttachNum,";
-        command += "TreatPlanNum,ProcNum,Priority) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(treatPlanAttach.TreatPlanAttachNum) + ",";
-        command +=
-            SOut.Long(treatPlanAttach.TreatPlanNum) + ","
-                                                    + SOut.Long(treatPlanAttach.ProcNum) + ","
-                                                    + SOut.Long(treatPlanAttach.Priority) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            treatPlanAttach.TreatPlanAttachNum = Db.NonQ(command, true, "TreatPlanAttachNum", "treatPlanAttach");
-        return treatPlanAttach.TreatPlanAttachNum;
-    }
-
-    public static void Update(TreatPlanAttach treatPlanAttach)
-    {
-        var command = "UPDATE treatplanattach SET "
-                      + "TreatPlanNum      =  " + SOut.Long(treatPlanAttach.TreatPlanNum) + ", "
-                      + "ProcNum           =  " + SOut.Long(treatPlanAttach.ProcNum) + ", "
-                      + "Priority          =  " + SOut.Long(treatPlanAttach.Priority) + " "
-                      + "WHERE TreatPlanAttachNum = " + SOut.Long(treatPlanAttach.TreatPlanAttachNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(TreatPlanAttach treatPlanAttach, TreatPlanAttach oldTreatPlanAttach)
@@ -145,21 +75,6 @@ public class TreatPlanAttachCrud
         return true;
     }
 
-    public static bool UpdateComparison(TreatPlanAttach treatPlanAttach, TreatPlanAttach oldTreatPlanAttach)
-    {
-        if (treatPlanAttach.TreatPlanNum != oldTreatPlanAttach.TreatPlanNum) return true;
-        if (treatPlanAttach.ProcNum != oldTreatPlanAttach.ProcNum) return true;
-        if (treatPlanAttach.Priority != oldTreatPlanAttach.Priority) return true;
-        return false;
-    }
-
-    public static void Delete(long treatPlanAttachNum)
-    {
-        var command = "DELETE FROM treatplanattach "
-                      + "WHERE TreatPlanAttachNum = " + SOut.Long(treatPlanAttachNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listTreatPlanAttachNums)
     {
         if (listTreatPlanAttachNums == null || listTreatPlanAttachNums.Count == 0) return;
@@ -168,7 +83,7 @@ public class TreatPlanAttachCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<TreatPlanAttach> listNew, List<TreatPlanAttach> listDB)
+    public static void Sync(List<TreatPlanAttach> listNew, List<TreatPlanAttach> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<TreatPlanAttach>();
@@ -237,7 +152,6 @@ public class TreatPlanAttachCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.TreatPlanAttachNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

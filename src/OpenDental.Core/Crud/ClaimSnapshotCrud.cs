@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClaimSnapshotCrud
 {
@@ -46,7 +48,7 @@ public class ClaimSnapshotCrud
                                              + SOut.Double(claimSnapshot.Writeoff) + ","
                                              + SOut.Double(claimSnapshot.InsPayEst) + ","
                                              + SOut.Double(claimSnapshot.Fee) + ","
-                                             + DbHelper.Now() + ","
+                                             + "NOW()" + ","
                                              + SOut.Long(claimSnapshot.ClaimProcNum) + ","
                                              + SOut.Int((int) claimSnapshot.SnapshotTrigger) + ")";
         {

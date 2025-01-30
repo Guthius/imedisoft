@@ -5,17 +5,13 @@ using System.Globalization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class RequiredFields
 {
-    #region Get Methods
-
-    /// <summary>Returns a hardcoded list. Needs to be updated whenever a new field or type is added.</summary>
-    /// If we are going to continue adding to the RequiredField class, we should consider refactoring to get rid of methods like this one.
     public static List<RequiredFieldName> GetFieldNamesForType(RequiredFieldType requiredFieldType)
     {
         var retVal = new List<RequiredFieldName>();
@@ -55,21 +51,11 @@ public class RequiredFields
         return retVal;
     }
 
-    #endregion
-
-    
-    public static long Insert(RequiredField requiredField)
+    public static void Insert(RequiredField requiredField)
     {
-        return RequiredFieldCrud.Insert(requiredField);
+        RequiredFieldCrud.Insert(requiredField);
     }
 
-    
-    public static void Update(RequiredField requiredField)
-    {
-        RequiredFieldCrud.Update(requiredField);
-    }
-
-    
     public static void Delete(long requiredFieldNum)
     {
         var command = "DELETE FROM requiredfieldcondition WHERE RequiredFieldNum=" + SOut.Long(requiredFieldNum);
@@ -77,7 +63,6 @@ public class RequiredFields
         RequiredFieldCrud.Delete(requiredFieldNum);
     }
 
-    ///<summary>Fills a list of RequiredFields from the cache with required fields that are visible on the PatientEdit form.</summary>
     public static List<RequiredField> GetRequiredFields()
     {
         var listRequiredFields = GetWhere(x => x.FieldType == RequiredFieldType.PatientInfo);
@@ -117,9 +102,7 @@ public class RequiredFields
             ));
         return listRequiredFields;
     }
-
-    #region CachePattern
-
+    
     private class RequiredFieldCache : CacheListAbs<RequiredField>
     {
         protected override List<RequiredField> GetCacheFromDb()
@@ -149,61 +132,30 @@ public class RequiredFields
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly RequiredFieldCache _requiredFieldCache = new();
+    private static readonly RequiredFieldCache Cache = new();
 
     public static List<RequiredField> GetDeepCopy(bool isShort = false)
     {
-        return _requiredFieldCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<RequiredField> GetWhere(Predicate<RequiredField> match, bool isShort = false)
     {
-        return _requiredFieldCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _requiredFieldCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _requiredFieldCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _requiredFieldCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<RequiredField> Refresh(long patNum){
-
-        string command="SELECT * FROM requiredfield WHERE PatNum = "+POut.Long(patNum);
-        return Crud.RequiredFieldCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one RequiredField from the db.</summary>
-    public static RequiredField GetOne(long requiredFieldNum){
-
-        return Crud.RequiredFieldCrud.SelectOne(requiredFieldNum);
-    }
-    */
 }

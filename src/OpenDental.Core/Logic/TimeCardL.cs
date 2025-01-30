@@ -4,281 +4,248 @@ using System.Globalization;
 using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
-namespace OpenDentBusiness
+namespace OpenDentBusiness;
+
+public class TimeCardL
 {
-    public class TimeCardL
+    public static DateTime GetStartOfWeek(DateTime dateTime)
     {
-        ///<summary>Returns the date that represents the start of the week in regard to the week of the date passed in.
-        ///The first day for the start of the week is determined by the TimeCardOvertimeFirstDayOfWeek preference.
-        ///Returns the date passed in when it is the start of the week.</summary>
-        public static DateTime GetStartOfWeek(DateTime dateTime)
-        {
-            //Figure out what week of the year the date passed in part of.
-            int weekOfYear = GetWeekOfYear(dateTime.Date);
-            int weekOfYearPrevious = -1;
-            //Find the date that is the official beginning of the week by subtracting one day at a time until the week of the year value changes.
-            DateTime dateTimeStartOfWeek = new DateTime(dateTime.Ticks); //Make a deep copy of the date passed in that is safe to manipulate.
-            for (int i = 1; i < 7; i++)
-            {
-                //This assumes every calendar has 7 days in a week.
-                //Subtract one day at a time in order to find the official start of the week.
-                weekOfYearPrevious = GetWeekOfYear(dateTime.AddDays(-i));
-                if (weekOfYear != weekOfYearPrevious)
-                {
-                    //This day is within a different week and we have already found the beginning of the week at this point.
-                    return dateTimeStartOfWeek;
-                }
+        var weekOfYear = GetWeekOfYear(dateTime.Date);
+        var dateTimeStartOfWeek = new DateTime(dateTime.Ticks);
 
-                //This day is within the same week so subtract yet another day.
-                dateTimeStartOfWeek = dateTime.AddDays(-i);
+        for (var i = 1; i < 7; i++)
+        {
+            var weekOfYearPrevious = GetWeekOfYear(dateTime.AddDays(-i));
+            if (weekOfYear != weekOfYearPrevious)
+            {
+                return dateTimeStartOfWeek;
             }
 
-            return dateTimeStartOfWeek;
+            dateTimeStartOfWeek = dateTime.AddDays(-i);
         }
 
-        ///<summary>Returns the date that represents the end of the week in regard to the week of the date passed in.
-        ///The end of the week is determined by the TimeCardOvertimeFirstDayOfWeek preference.
-        ///Returns the date passed in when it is the end of the week.
-        ///Always goes backwards to find the most recent end of the week.
-        ///Meaning, this method can purposefully return a date that represents the end of the week prior to the week passed in.
-        ///E.g. If the preference is set to Wednesday and a date with a day of week set to Monday is passed in then this method will loop backwards until it comes across Tuesday (end of the week).
-        ///The first Tuesday this method comes across will be within a different week than the date passed in (the previous week).</summary>
-        public static DateTime GetEndOfWeekForOvertime(DateTime dateTime)
-        {
-            DayOfWeek dayOfWeek = dateTime.DayOfWeek;
-            DayOfWeek timeCardOvertimeFirstDayOfWeek = (DayOfWeek) PrefC.GetInt(PrefName.TimeCardOvertimeFirstDayOfWeek);
-            //Figure out the day of the week that is considered the end of a complete week.
-            DayOfWeek dayOfWeekComplete;
-            if (timeCardOvertimeFirstDayOfWeek == DayOfWeek.Sunday)
-            {
-                //Enum value of 0 needs to wrap around to 6 - Saturday.
-                dayOfWeekComplete = DayOfWeek.Saturday;
-            }
-            else
-            {
-                //Simply subtract one day from the day of week.
-                int dayOfWeekCompleteWeek = (int) timeCardOvertimeFirstDayOfWeek - 1;
-                dayOfWeekComplete = (DayOfWeek) dayOfWeekCompleteWeek;
-            }
-
-            DateTime dateTimeEndOfCompleteWeek = new DateTime(dateTime.Ticks); //Make a deep copy of the date passed in that is safe to manipulate.
-            //Find the date that is the last date in the last 'official week' in relation to the date that was passed in.
-            for (int i = 0; i < 7; i++)
-            {
-                //This assumes every calendar has 7 days in a week.
-                dateTimeEndOfCompleteWeek = dateTime.AddDays(-i);
-                if (dateTimeEndOfCompleteWeek.DayOfWeek == dayOfWeekComplete)
-                {
-                    return dateTimeEndOfCompleteWeek;
-                }
-            }
-
-            throw new ODException("End of week could not be found."); //This can only happen if the calendar has more than 7 days in a week.
-        }
-
-        ///<summary>Returns the week of the year for the date passed in. The first day of the week is determined by the TimeCardOvertimeFirstDayOfWeek preference.</summary>
-        public static int GetWeekOfYear(DateTime dateTime)
-        {
-            Calendar calendar = CultureInfo.CurrentCulture.Calendar;
-            CalendarWeekRule calendarWeekRule = CalendarWeekRule.FirstFullWeek;
-            DayOfWeek timeCardOvertimeFirstDayOfWeek = (DayOfWeek) PrefC.GetInt(PrefName.TimeCardOvertimeFirstDayOfWeek);
-            //Figure out what week of the year the date passed in is.
-            return calendar.GetWeekOfYear(dateTime.Date, calendarWeekRule, timeCardOvertimeFirstDayOfWeek);
-        }
-
-        ///<summary>Returns a list of objects that represent groupings of both clock events and time adjusts as individual weeks.</summary>
-        public static List<TimeCardWeek> GetTimeCardWeeks(List<ClockEvent> listClockEvents, List<TimeAdjust> listTimeAdjusts)
-        {
-            List<TimeCardWeek> listTimeCardWeeks = new List<TimeCardWeek>();
-            //Merge the list of ClockEvent and the list of TimeAdjust objects into a list of TimeCardObjects sorted by ClockEvent.TimeDisplayed1 and TimeAdjust.TimeEntry.
-            List<TimeCardObject> listTimeCardObjects = new List<TimeCardObject>();
-            for (int i = 0; i < listClockEvents.Count; i++)
-            {
-                listTimeCardObjects.Add(new TimeCardObject(listClockEvents[i]));
-            }
-
-            for (int i = 0; i < listTimeAdjusts.Count; i++)
-            {
-                listTimeCardObjects.Add(new TimeCardObject(listTimeAdjusts[i]));
-            }
-
-            listTimeCardObjects = listTimeCardObjects.OrderBy(x => x.TimeEntry).ToList();
-            //Group up all of the time card objects into their respective weeks.
-            int weekOfYearPrevious = -1;
-            for (int i = 0; i < listTimeCardObjects.Count; i++)
-            {
-                int weekOfYear = GetWeekOfYear(listTimeCardObjects[i].TimeEntry);
-                if (weekOfYear != weekOfYearPrevious)
-                {
-                    weekOfYearPrevious = weekOfYear;
-                }
-
-                TimeCardWeek timeCardWeek = listTimeCardWeeks.Find(x => x.WeekOfYear == weekOfYear);
-                if (timeCardWeek == null)
-                {
-                    timeCardWeek = new TimeCardWeek(weekOfYear);
-                    listTimeCardWeeks.Add(timeCardWeek);
-                }
-
-                timeCardWeek.ListTimeCardObjects.Add(listTimeCardObjects[i]);
-            }
-
-            return listTimeCardWeeks;
-        }
+        return dateTimeStartOfWeek;
     }
 
-    public class TimeCardWeek
+    public static DateTime GetEndOfWeekForOvertime(DateTime dateTime)
     {
-        public int WeekOfYear = 1;
-        public List<TimeCardObject> ListTimeCardObjects = new List<TimeCardObject>();
+        var timeCardOvertimeFirstDayOfWeek = (DayOfWeek) PrefC.GetInt(PrefName.TimeCardOvertimeFirstDayOfWeek);
 
-        //Parameterless constructor for XmlConverterSerializer
-        public TimeCardWeek()
+        DayOfWeek dayOfWeekComplete;
+        if (timeCardOvertimeFirstDayOfWeek == DayOfWeek.Sunday)
         {
+            dayOfWeekComplete = DayOfWeek.Saturday;
+        }
+        else
+        {
+            var dayOfWeekCompleteWeek = (int) timeCardOvertimeFirstDayOfWeek - 1;
+
+            dayOfWeekComplete = (DayOfWeek) dayOfWeekCompleteWeek;
         }
 
-        public TimeCardWeek(int weekOfYear)
+        var dateTimeEndOfCompleteWeek = new DateTime(dateTime.Ticks);
+
+        for (var i = 0; i < 7; i++)
         {
-            WeekOfYear = weekOfYear;
-            ListTimeCardObjects = new List<TimeCardObject>();
+            dateTimeEndOfCompleteWeek = dateTime.AddDays(-i);
+            if (dateTimeEndOfCompleteWeek.DayOfWeek == dayOfWeekComplete)
+            {
+                return dateTimeEndOfCompleteWeek;
+            }
         }
+
+        throw new ODException("End of week could not be found.");
     }
 
-    ///<summary>A wrapper class for ClockEvent and TimeAdjust objects.</summary>
-    public class TimeCardObject
+    public static int GetWeekOfYear(DateTime dateTime)
     {
-        ///<summary>Set to TimeDisplayed1 for ClockEvent objects and TimeEntry for TimeAdjust objects.</summary>
-        public DateTime TimeEntry = DateTime.MinValue;
+        var calendar = CultureInfo.CurrentCulture.Calendar;
+        var timeCardOvertimeFirstDayOfWeek = (DayOfWeek) PrefC.GetInt(PrefName.TimeCardOvertimeFirstDayOfWeek);
+        return calendar.GetWeekOfYear(dateTime.Date, CalendarWeekRule.FirstFullWeek, timeCardOvertimeFirstDayOfWeek);
+    }
 
-        ///<summary>The ClinicNum set on the corresponding object.</summary>
-        public long ClinicNum;
+    public static List<TimeCardWeek> GetTimeCardWeeks(List<ClockEvent> clockEvents, List<TimeAdjust> timeAdjusts)
+    {
+        var listTimeCardWeeks = new List<TimeCardWeek>();
+        var timeCardObjects = new List<TimeCardObject>();
 
-        ///<summary>Shallow copy of the original object that this TimeCardObject was created from.</summary>
-        public object Tag;
-        
-        public TimeCardObject(ClockEvent clockEvent)
+        foreach (var clockEvent in clockEvents)
         {
-            TimeEntry = clockEvent.TimeDisplayed1;
-            ClinicNum = clockEvent.ClinicNum;
-            Tag = clockEvent;
+            timeCardObjects.Add(new TimeCardObject(clockEvent));
         }
 
-        public TimeCardObject(TimeAdjust timeAdjust)
+        foreach (var timeAdjust in timeAdjusts)
         {
-            TimeEntry = timeAdjust.TimeEntry;
-            ClinicNum = timeAdjust.ClinicNum;
-            Tag = timeAdjust;
+            timeCardObjects.Add(new TimeCardObject(timeAdjust));
         }
 
-        ///<summary>Returns a TimeSpan that represents the sum of time worked and adjustments.</summary>
-        public TimeSpan GetTimeSpanStraightTime()
-        {
-            TimeSpan timeSpanWorked = GetTimeSpanWorked();
-            TimeSpan timeSpanAdjust = GetTimeSpanAdjust();
-            TimeSpan timeSpan = timeSpanWorked + timeSpanAdjust;
-            return timeSpan;
-        }
+        timeCardObjects = timeCardObjects.OrderBy(x => x.TimeEntry).ToList();
 
-        ///<summary>Returns a TimeSpan that represents the sum of time worked, adjustments, and overtime.</summary>
-        public TimeSpan GetTimeSpanTotal()
+        var weekOfYearPrevious = -1;
+        foreach (var timeCardObject in timeCardObjects)
         {
-            TimeSpan timeSpan = GetTimeSpanWorked();
-            timeSpan = timeSpan.Add(GetTimeSpanAdjust());
-            timeSpan = timeSpan.Add(GetTimeSpanOvertime());
-            return timeSpan;
-        }
-
-        ///<summary>Returns a TimeSpan that represents the difference between TimeDisplayed2 and TimeDisplayed1 when this object is a ClockEvent.
-        ///Returns TimeSpan.Zero if TimeDisplayed2 has not been set (user still clocked in) or this object is not a ClockEvent.</summary>
-        private TimeSpan GetTimeSpanWorked()
-        {
-            TimeSpan timeSpan = TimeSpan.Zero;
-            //Time worked is only supported for ClockEvent objects where the user has clocked out.
-            if (Tag is ClockEvent clockEvent && clockEvent.TimeDisplayed2.Year > 1880)
+            var weekOfYear = GetWeekOfYear(timeCardObject.TimeEntry);
+            if (weekOfYear != weekOfYearPrevious)
             {
-                timeSpan = (clockEvent.TimeDisplayed2 - clockEvent.TimeDisplayed1);
+                weekOfYearPrevious = weekOfYear;
             }
 
-            return timeSpan;
+            var timeCardWeek = listTimeCardWeeks.Find(x => x.WeekOfYear == weekOfYear);
+            if (timeCardWeek == null)
+            {
+                timeCardWeek = new TimeCardWeek(weekOfYear);
+                listTimeCardWeeks.Add(timeCardWeek);
+            }
+
+            timeCardWeek.ListTimeCardObjects.Add(timeCardObject);
         }
 
-        ///<summary>Returns a TimeSpan that represents the amount of time that has been adjusted.
-        ///Returns AdjustAuto or Adjust when this object is a ClockEvent.
-        ///Returns RegHours when this object is a TimeAdjust.</summary>
-        private TimeSpan GetTimeSpanAdjust()
+        return listTimeCardWeeks;
+    }
+}
+
+public class TimeCardWeek(int weekOfYear)
+{
+    public readonly int WeekOfYear = weekOfYear;
+    public readonly List<TimeCardObject> ListTimeCardObjects = [];
+}
+
+public class TimeCardObject
+{
+    public DateTime TimeEntry;
+    public readonly long ClinicNum;
+    public readonly object Tag;
+
+    public TimeCardObject(ClockEvent clockEvent)
+    {
+        TimeEntry = clockEvent.TimeDisplayed1;
+        ClinicNum = clockEvent.ClinicNum;
+        Tag = clockEvent;
+    }
+
+    public TimeCardObject(TimeAdjust timeAdjust)
+    {
+        TimeEntry = timeAdjust.TimeEntry;
+        ClinicNum = timeAdjust.ClinicNum;
+        Tag = timeAdjust;
+    }
+
+    public TimeSpan GetTimeSpanStraightTime()
+    {
+        var timeSpanWorked = GetTimeSpanWorked();
+        var timeSpanAdjust = GetTimeSpanAdjust();
+        var timeSpan = timeSpanWorked + timeSpanAdjust;
+
+        return timeSpan;
+    }
+
+    public TimeSpan GetTimeSpanTotal()
+    {
+        var timeSpan = GetTimeSpanWorked();
+
+        timeSpan = timeSpan.Add(GetTimeSpanAdjust());
+        timeSpan = timeSpan.Add(GetTimeSpanOvertime());
+
+        return timeSpan;
+    }
+
+    private TimeSpan GetTimeSpanWorked()
+    {
+        var timeSpan = TimeSpan.Zero;
+
+        if (Tag is ClockEvent {TimeDisplayed2.Year: > 1880} clockEvent)
         {
-            TimeSpan timeSpan = TimeSpan.Zero;
-            if (Tag is ClockEvent clockEvent)
+            timeSpan = (clockEvent.TimeDisplayed2 - clockEvent.TimeDisplayed1);
+        }
+
+        return timeSpan;
+    }
+
+    private TimeSpan GetTimeSpanAdjust()
+    {
+        var timeSpan = TimeSpan.Zero;
+
+        switch (Tag)
+        {
+            case ClockEvent clockEvent:
             {
                 timeSpan = clockEvent.AdjustAuto;
                 if (clockEvent.AdjustIsOverridden)
                 {
                     timeSpan = clockEvent.Adjust;
                 }
+
+                break;
             }
-            else if (Tag is TimeAdjust timeAdjust)
-            {
+
+            case TimeAdjust timeAdjust:
                 timeSpan = timeAdjust.RegHours;
-            }
+                break;
+        }
 
+        return timeSpan;
+    }
+
+    public TimeSpan GetTimeSpanRate2()
+    {
+        var timeSpan = TimeSpan.Zero;
+
+        if (Tag is not ClockEvent clockEvent)
+        {
             return timeSpan;
         }
 
-        ///<summary>Returns a TimeSpan that represents hours worked at Rate 2.</summary>
-        public TimeSpan GetTimeSpanRate2()
+        timeSpan = clockEvent.Rate2Auto;
+        if (clockEvent.Rate2Hours != TimeSpan.FromHours(-1))
         {
-            TimeSpan timeSpan = TimeSpan.Zero;
-            if (Tag is ClockEvent clockEvent)
-            {
-                timeSpan = clockEvent.Rate2Auto;
-                if (clockEvent.Rate2Hours != TimeSpan.FromHours(-1))
-                {
-                    //Manual override
-                    timeSpan = clockEvent.Rate2Hours;
-                }
-            }
+            timeSpan = clockEvent.Rate2Hours;
+        }
 
+        return timeSpan;
+    }
+
+    public TimeSpan GetTimeSpanRate3()
+    {
+        var timeSpan = TimeSpan.Zero;
+
+        if (Tag is not ClockEvent clockEvent)
+        {
             return timeSpan;
         }
 
-        ///<summary>Returns a TimeSpan that represents hours worked at Rate 3.</summary>
-        public TimeSpan GetTimeSpanRate3()
+        timeSpan = clockEvent.Rate3Auto;
+        if (clockEvent.Rate3Hours != TimeSpan.FromHours(-1))
         {
-            TimeSpan timeSpan = TimeSpan.Zero;
-            if (Tag is ClockEvent clockEvent)
-            {
-                timeSpan = clockEvent.Rate3Auto;
-                if (clockEvent.Rate3Hours != TimeSpan.FromHours(-1))
-                {
-                    //Manual override
-                    timeSpan = clockEvent.Rate3Hours;
-                }
-            }
-
-            return timeSpan;
+            timeSpan = clockEvent.Rate3Hours;
         }
 
-        ///<summary>Returns a TimeSpan that represents overtime.
-        ///Returns OTimeAuto or OTimeHours when this object is a ClockEvent.
-        ///Returns OTimeHours when this object is a TimeAdjust.</summary>
-        public TimeSpan GetTimeSpanOvertime()
+        return timeSpan;
+    }
+
+    public TimeSpan GetTimeSpanOvertime()
+    {
+        var timeSpan = TimeSpan.Zero;
+
+        switch (Tag)
         {
-            TimeSpan timeSpan = TimeSpan.Zero;
-            if (Tag is ClockEvent clockEvent)
+            case ClockEvent clockEvent:
             {
                 timeSpan = clockEvent.OTimeAuto;
                 if (clockEvent.OTimeHours != TimeSpan.FromHours(-1))
                 {
-                    timeSpan = clockEvent.OTimeHours; //Manual overtime entry.
+                    timeSpan = clockEvent.OTimeHours;
                 }
-            }
-            else if (Tag is TimeAdjust timeAdjust)
-            {
-                timeSpan = timeAdjust.OTimeHours;
+
+                break;
             }
 
-            return timeSpan;
+            case TimeAdjust timeAdjust:
+                timeSpan = timeAdjust.OTimeHours;
+                break;
         }
+
+        return timeSpan;
     }
 }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -13,13 +15,11 @@ public class Vitalsigns
         return VitalsignCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one Vitalsign from the db.</summary>
     public static Vitalsign GetOne(long vitalsignNum)
     {
         return VitalsignCrud.SelectOne(vitalsignNum);
     }
 
-    ///<summary>Get most recent Vitalsign that has a valid height and weight from the db.</summary>
     public static Vitalsign GetOneWithValidHeightAndWeight(long patNum)
     {
         var command = $@"
@@ -32,30 +32,27 @@ public class Vitalsigns
         return VitalsignCrud.SelectOne(command);
     }
 
-    ///<summary>Get vitalsign that this EhrNotPerformed object is linked to. Returns null if not found.</summary>
     public static Vitalsign GetFromEhrNotPerformedNum(long ehrNotPerfNum)
     {
         var command = "SELECT * FROM vitalsign WHERE EhrNotPerformedNum=" + SOut.Long(ehrNotPerfNum);
         return VitalsignCrud.SelectOne(command);
     }
 
-    ///<summary>Gets one Vitalsign with the given DiseaseNum as the PregDiseaseNum.</summary>
     public static List<Vitalsign> GetListFromPregDiseaseNum(long pregDiseaseNum)
     {
         var command = "SELECT * FROM vitalsign WHERE vitalsign.PregDiseaseNum=" + SOut.Long(pregDiseaseNum);
         return VitalsignCrud.SelectMany(command);
     }
 
-    public static long Insert(Vitalsign vitalsign)
+    public static void Insert(Vitalsign vitalsign)
     {
-        return VitalsignCrud.Insert(vitalsign);
+        VitalsignCrud.Insert(vitalsign);
     }
 
     public static void Update(Vitalsign vitalsign)
     {
         VitalsignCrud.Update(vitalsign);
     }
-
 
     public static void Delete(long vitalsignNum)
     {
@@ -72,10 +69,6 @@ public class Vitalsigns
         return bmi;
     }
 
-    /// <summary>
-    ///     Takes in bmi and age and returns an intervention code. Possible return codes are None, Nutrition,
-    ///     BelowNormalWeight, and AboveNormalWeight.
-    /// </summary>
     public static InterventionCodeSet GetBMIInterventionCode(float bmi, int ageBeforeJanFirst)
     {
         if (ageBeforeJanFirst < 18)
@@ -98,12 +91,6 @@ public class Vitalsigns
         return InterventionCodeSet.AboveNormalWeight;
     }
 
-    /// <summary>
-    ///     Fills a list with GenderAge_LMS objects. The GenderAge field is a string containing the gender (m or f) and age in
-    ///     months. The LMS field is list of floats, the L=power of Box-Cox transformation, M=median,
-    ///     and S=generalized coefficient of variation. The L, M, and S values are from the CDC website
-    ///     http://www.cdc.gov/nchs/data/series/sr_11/sr11_246.pdf page 178-186.
-    /// </summary>
     public static List<GenderAge_LMS> GetListLMS()
     {
         var listGenderAge_LMSs = new List<GenderAge_LMS>();
@@ -476,7 +463,6 @@ public class Vitalsigns
         return listGenderAge_LMSs;
     }
 
-    ///<summary>Returns the percentile for BMI the passed in z-score is in.</summary>
     public static int GetBMIPercentileUsingZScore(float z)
     {
         var listPercentiles = new List<float>();
@@ -593,7 +579,6 @@ public class Vitalsigns
         return -1;
     }
 
-    ///<summary>Should only be called if patient is under 18 at the time of the exam. Calculates BMI percentile.</summary>
     public static int GetBMIPercentile(float bmi, Patient patient, DateTime dateExam, List<GenderAge_LMS> listGenderAge_LMSs)
     {
         //get age at time of exam for BMI percentile in months.  Examples: 13 years 11 months = 13*12+11 = 167.
@@ -627,49 +612,24 @@ public class Vitalsigns
         return GetBMIPercentileUsingZScore(zScore);
     }
 
-    ///<summary>Returns list of Loinc records related to BMI from DB.</summary>
     public static List<Loinc> GetLoincsBMI()
     {
         //The list returned will only contain the Loincs that are actually in the loinc table.
         return Loincs.GetForCodeList("59574-4,59575-1,59576-9"); //Body mass index (BMI) [Percentile],Body mass index (BMI) [Percentile] Per age,Body mass index (BMI) [Percentile] Per age and gender
     }
 
-    ///<summary>Returns list of Loinc records related to height from DB.</summary>
     public static List<Loinc> GetLoincsHeight()
     {
         //The list returned will only contain the Loincs that are actually in the loinc table.
         return Loincs.GetForCodeList("8302-2,3137-7,3138-5,8306-3,8307-1,8308-9"); //Body height,Body height Measured,Body height Stated,Body height --lying,Body height --pre surgery,Body height --standing
     }
 
-    ///<summary>Returns list of Loinc records related to weight from DB.</summary>
     public static List<Loinc> GetLoincsWeight()
     {
         //The list returned will only contain the Loincs that are actually in the loinc table.
         return Loincs.GetForCodeList("29463-7,18833-4,3141-9,3142-7,8350-1,8351-9"); //Body weight,First Body weight,Body weight Measured,Body weight Stated,Body weight Measured --with clothes,Body weight Measured --without clothes
     }
 
-    ///<summary>Returns list of Loinc records related to blood pressure from DB.</summary>
-    public static List<Loinc> GetLoincsBloodPressure()
-    {
-        //The list returned will only contain the Loincs that are actually in the loinc table.
-        return Loincs.GetForCodeList("8480-6,8462-4"); //BP Systolic exan,BP Diastolic exam
-    }
-
-    ///<summary>Returns list of Loinc records related to BMI Exam procedure from DB.</summary>
-    public static List<Loinc> GetLoincsBMIExam()
-    {
-        //The list returned will only contain the Loincs that are actually in the loinc table.
-        return Loincs.GetForCodeList("39156-5"); //BMI Exam procedure
-    }
-
-    ///<summary>Returns list of Loinc records related to BMI Percentiles from DB.</summary>
-    public static List<Loinc> GetLoincsBMIPercentile()
-    {
-        //The list returned will only contain the Loincs that are actually in the loinc table.
-        return Loincs.GetForCodeList("59576-9"); //Body mass index (BMI) [Percentile] Per age and gender, only code we will allow for percentile
-    }
-
-    ///<summary>Takes in vitalsign and various fields. Assigns the vitalsign's fields to those passed in.</summary>
     public static Vitalsign SetFields(Vitalsign vitalsign, DateTime date, int pulse, float height, float weight, int bpDiastolic, int bpSystolic, int bmiPercentile, Loinc loincHeightCode, Loinc loincWeightCode)
     {
         vitalsign.DateTaken = date;
@@ -691,7 +651,6 @@ public class Vitalsigns
         return vitalsign;
     }
 
-    ///<summary>Returns the Weightcode for it depending on the passed-in InterventionCodeSet enum value.</summary>
     public static string SetWeightCodes(InterventionCodeSet interventionCodeSet)
     {
         switch (interventionCodeSet)
@@ -713,10 +672,6 @@ public class Vitalsigns
         return "";
     }
 
-    /// <summary>
-    ///     Takes in a vitalsign object and returns its PregDiseaseNum. If set, verifies the exam is within the active
-    ///     dates of the attached pregnancy problem.
-    /// </summary>
     public static long SetPregnancyDisease(Vitalsign vitalsign, long diseaseDefNumPreg)
     {
         if (diseaseDefNumPreg == 0)
@@ -744,22 +699,9 @@ public class Vitalsigns
     }
 }
 
-///<summary>Nested class used to remove dictionary from FormVitalSignEdit2014.cs.</summary>
-public class GenderAge_LMS
+public class GenderAge_LMS(string genderAge, List<float> listFloats)
 {
-    ///<summary>String containing the gender (m or f) and age in months.</summary>
-    public string GenderAge;
+    public string GenderAge = genderAge;
 
-    /// <summary>
-    ///     Contains 3 floats, the L=power of Box-Cox transformation, M=median, and S=generalized coefficient of
-    ///     variation. The L, M, and S values are from the CDC website http://www.cdc.gov/nchs/data/series/sr_11/sr11_246.pdf
-    ///     page 178-186.
-    /// </summary>
-    public List<float> ListFloats;
-
-    public GenderAge_LMS(string genderAge, List<float> listFloats)
-    {
-        GenderAge = genderAge;
-        ListFloats = listFloats;
-    }
+    public List<float> ListFloats = listFloats;
 }

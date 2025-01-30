@@ -1,197 +1,224 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using OpenDentBusiness;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormAllocationsSetup:FormODBase {
-		private bool _didChange;
-		private YN _yNPrePayAllowedForTpProcs;
+namespace OpenDental.Forms;
 
-		public FormAllocationsSetup() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormAllocationsSetup : FormODBase
+{
+    private bool _changed;
+    private YN _prePayAllowedForTpProcs;
 
-		private void FormAllocationsSetup_Load(object sender,EventArgs e) {
-			if(Security.IsAuthorized(EnumPermType.Setup)) {
-				labelPermission.Visible=false;
-			}
-			else{
-				butOK.Enabled=false;
-			}
-			RigorousAccounting rigorousAccounting=(RigorousAccounting)PrefC.GetInt(PrefName.RigorousAccounting);
-			switch(rigorousAccounting){
-				case RigorousAccounting.EnforceFully:
-					radioPayEnforce.Checked=true;
-					break;
-				case RigorousAccounting.AutoSplitOnly:
-					radioPayAuto.Checked=true;
-					break;
-				case RigorousAccounting.DontEnforce:
-					radioPayDont.Checked=true;
-					break;
-			}
-			RigorousAdjustments rigorousAdjustments=(RigorousAdjustments)PrefC.GetInt(PrefName.RigorousAdjustments);
-			switch(rigorousAdjustments){
-				case RigorousAdjustments.EnforceFully:
-					radioAdjustEnforce.Checked=true;
-					break;
-				case RigorousAdjustments.LinkOnly:
-					radioAdjustLink.Checked=true;
-					break;
-				case RigorousAdjustments.DontEnforce:
-					radioAdjustDont.Checked=true;
-					break;
-			}
-			checkHidePaysplits.Checked=PrefC.GetBool(PrefName.PaymentWindowDefaultHideSplits);
-			checkShowIncomeTransferManager.Checked=PrefC.GetBool(PrefName.ShowIncomeTransferManager);
-			checkClaimPayByTotalSplitsAuto.Checked=PrefC.GetBool(PrefName.ClaimPayByTotalSplitsAuto);
-			checkAdjustmentsOffset.Checked=PrefC.GetBool(PrefName.AdjustmentsOffsetEachOther);
-			//Treatment Plan
-			_yNPrePayAllowedForTpProcs=PrefC.GetEnum<YN>(PrefName.PrePayAllowedForTpProcs);
-			YN yNAutoTransferOnClaimReceive=PrefC.GetEnum<YN>(PrefName.IncomeTransfersMadeUponClaimReceived);
-			switch(yNAutoTransferOnClaimReceive) {
-				case YN.Unknown:
-					checkIncomeTransfersMadeUponClaimReceived.CheckState=CheckState.Indeterminate;
-					break;
-				case YN.Yes:
-					checkIncomeTransfersMadeUponClaimReceived.CheckState=CheckState.Checked;
-					break;
-				case YN.No:
-					checkIncomeTransfersMadeUponClaimReceived.CheckState=CheckState.Unchecked;
-					break;
-			}
-			SetIncomeTransfersMadeUponClaimReceivedDesc();
-			checkAllowPrePayToTpProcs.Checked=PrefC.GetYN(PrefName.PrePayAllowedForTpProcs);
-			checkIsRefundable.Checked=PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
-			checkIsRefundable.Visible=checkAllowPrePayToTpProcs.Checked;//pref will be unchecked if parent gets turned off.
-			labelRefundable.Visible=checkAllowPrePayToTpProcs.Checked;
-			comboTpUnearnedType.Items.AddDefs(Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType,true));
-			comboTpUnearnedType.SetSelectedDefNum(PrefC.GetLong(PrefName.TpUnearnedType));
-		}
+    public FormAllocationsSetup()
+    {
+        InitializeComponent();
+    }
 
-		private void SetIncomeTransfersMadeUponClaimReceivedDesc() {
-			//Make claim specific income transfers when received
-			if(checkIncomeTransfersMadeUponClaimReceived.CheckState==CheckState.Checked) {
-				labelIncomeTransfersMadeUponClaimReceivedDesc.Text=Lan.g(this,"Automatically transfer patient overpayment when necessary.");
-			}
-			if(checkIncomeTransfersMadeUponClaimReceived.CheckState==CheckState.Unchecked) {
-				labelIncomeTransfersMadeUponClaimReceivedDesc.Text=Lan.g(this,"Never make transfers automatically.");
-			}
-			if(checkIncomeTransfersMadeUponClaimReceived.CheckState==CheckState.Indeterminate) {
-				labelIncomeTransfersMadeUponClaimReceivedDesc.Text=Lan.g(this,"Only transfer patient overpayment if Paysplits - Rigorous is enabled.");
-			}
-		}
+    private void FormAllocationsSetup_Load(object sender, EventArgs e)
+    {
+        if (Security.IsAuthorized(EnumPermType.Setup))
+        {
+            labelPermission.Visible = false;
+        }
+        else
+        {
+            butOK.Enabled = false;
+        }
 
-		private void butLineItem_Click(object sender, EventArgs e){
-			radioPayEnforce.Checked=true;
-			radioAdjustEnforce.Checked=true;
-			checkAllowPrePayToTpProcs.Checked=false;
-			checkIsRefundable.Checked=false;
-			checkIsRefundable.Visible=false;
-			labelRefundable.Visible=false;
-			checkHidePaysplits.Checked=false;
-			checkShowIncomeTransferManager.Checked=true;
-			checkClaimPayByTotalSplitsAuto.Checked=true;
-			checkAdjustmentsOffset.Checked=true;
-		}
+        var rigorousAccounting = (RigorousAccounting) PrefC.GetInt(PrefName.RigorousAccounting);
+        switch (rigorousAccounting)
+        {
+            case RigorousAccounting.EnforceFully:
+                radioPayEnforce.Checked = true;
+                break;
+            case RigorousAccounting.AutoSplitOnly:
+                radioPayAuto.Checked = true;
+                break;
+            case RigorousAccounting.DontEnforce:
+                radioPayDont.Checked = true;
+                break;
+        }
 
-		private void butDefault_Click(object sender, EventArgs e){
-			radioPayAuto.Checked=true;
-			radioAdjustLink.Checked=true;
-			checkAllowPrePayToTpProcs.Checked=false;
-			checkIsRefundable.Checked=false;
-			checkIsRefundable.Visible=false;
-			labelRefundable.Visible=false;
-			checkHidePaysplits.Checked=false;
-			checkShowIncomeTransferManager.Checked=true;
-			checkClaimPayByTotalSplitsAuto.Checked=true;
-			checkAdjustmentsOffset.Checked=true;
-		}
+        var rigorousAdjustments = (RigorousAdjustments) PrefC.GetInt(PrefName.RigorousAdjustments);
+        switch (rigorousAdjustments)
+        {
+            case RigorousAdjustments.EnforceFully:
+                radioAdjustEnforce.Checked = true;
+                break;
+            case RigorousAdjustments.LinkOnly:
+                radioAdjustLink.Checked = true;
+                break;
+            case RigorousAdjustments.DontEnforce:
+                radioAdjustDont.Checked = true;
+                break;
+        }
 
-		private void butSimple_Click(object sender, EventArgs e){
-			radioPayDont.Checked=true;
-			radioAdjustDont.Checked=true;
-			checkAllowPrePayToTpProcs.Checked=false;
-			checkIsRefundable.Checked=false;
-			checkIsRefundable.Visible=false;
-			labelRefundable.Visible=false;
-			checkHidePaysplits.Checked=false;
-			checkShowIncomeTransferManager.Checked=false;
-			checkClaimPayByTotalSplitsAuto.Checked=true;
-			checkAdjustmentsOffset.Checked=true;
-		}
+        checkHidePaysplits.Checked = PrefC.GetBool(PrefName.PaymentWindowDefaultHideSplits);
+        checkShowIncomeTransferManager.Checked = PrefC.GetBool(PrefName.ShowIncomeTransferManager);
+        checkClaimPayByTotalSplitsAuto.Checked = PrefC.GetBool(PrefName.ClaimPayByTotalSplitsAuto);
+        checkAdjustmentsOffset.Checked = PrefC.GetBool(PrefName.AdjustmentsOffsetEachOther);
 
-		private void checkAllowPrePayToTpProcs_Click(object sender,EventArgs e) {
-			if(checkAllowPrePayToTpProcs.Checked) {
-				checkIsRefundable.Visible=true;
-				checkIsRefundable.Checked=PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
-				labelRefundable.Visible=true;
-				_yNPrePayAllowedForTpProcs=YN.Yes;
-			}
-			else {
-				checkIsRefundable.Visible=false;
-				checkIsRefundable.Checked=false;
-				labelRefundable.Visible=false;
-				_yNPrePayAllowedForTpProcs=YN.No;
-			}
-		}
+        _prePayAllowedForTpProcs = PrefC.GetEnum<YN>(PrefName.PrePayAllowedForTpProcs);
 
-		private void checkAutoIncomeTransfer_CheckedStateChanged(object sender,EventArgs e) {
-			SetIncomeTransfersMadeUponClaimReceivedDesc();
-		}
+        var autoTransferOnClaimReceive = PrefC.GetEnum<YN>(PrefName.IncomeTransfersMadeUponClaimReceived);
 
-		private void butSave_Click(object sender,EventArgs e) {
-			RigorousAccounting rigorousAccounting=RigorousAccounting.EnforceFully;
-			if(radioPayAuto.Checked){
-				rigorousAccounting=RigorousAccounting.AutoSplitOnly;
-			}
-			if(radioPayDont.Checked){
-				rigorousAccounting=RigorousAccounting.DontEnforce;
-			}
-			int prefRigorousAccounting=PrefC.GetInt(PrefName.RigorousAccounting);
-			if(Prefs.UpdateInt(PrefName.RigorousAccounting,(int)rigorousAccounting)) {
-				_didChange=true;
-				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Rigorous accounting changed from "+
-					((RigorousAccounting)prefRigorousAccounting).GetDescription()+" to "
-					+rigorousAccounting.GetDescription()+".");
-			}
-			RigorousAdjustments rigorousAdjustments=RigorousAdjustments.EnforceFully;
-			if(radioAdjustLink.Checked){
-				rigorousAdjustments=RigorousAdjustments.LinkOnly;
-			}
-			if(radioAdjustDont.Checked){
-				rigorousAdjustments=RigorousAdjustments.DontEnforce;
-			}
-			int prefRigorousAdjustments=PrefC.GetInt(PrefName.RigorousAdjustments);
-			if(Prefs.UpdateInt(PrefName.RigorousAdjustments,(int)rigorousAdjustments)) {
-				_didChange=true;
-				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Rigorous adjustments changed from "+
-					((RigorousAdjustments)prefRigorousAdjustments).GetDescription()+" to "
-					+rigorousAdjustments.GetDescription()+".");
-			}
-			_didChange|=Prefs.UpdateBool(PrefName.PaymentWindowDefaultHideSplits,checkHidePaysplits.Checked);
-			_didChange|=Prefs.UpdateBool(PrefName.ShowIncomeTransferManager,checkShowIncomeTransferManager.Checked);
-			_didChange|=Prefs.UpdateBool(PrefName.ClaimPayByTotalSplitsAuto,checkClaimPayByTotalSplitsAuto.Checked);
-			_didChange|=Prefs.UpdateYN(PrefName.PrePayAllowedForTpProcs,_yNPrePayAllowedForTpProcs);
-			_didChange|=Prefs.UpdateYN(PrefName.IncomeTransfersMadeUponClaimReceived,checkIncomeTransfersMadeUponClaimReceived.CheckState);
-			_didChange|=Prefs.UpdateLong(PrefName.TpUnearnedType,comboTpUnearnedType.GetSelectedDefNum());
-			_didChange|=Prefs.UpdateBool(PrefName.TpPrePayIsNonRefundable,checkIsRefundable.Checked);
-			_didChange|=Prefs.UpdateBool(PrefName.AdjustmentsOffsetEachOther,checkAdjustmentsOffset.Checked);
-			if(_didChange){
-				DataValid.SetInvalid(InvalidType.Prefs);
-				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Auto Codes");
-			}
-			DialogResult=DialogResult.OK;
-		}
+        checkIncomeTransfersMadeUponClaimReceived.CheckState = autoTransferOnClaimReceive switch
+        {
+            YN.Unknown => CheckState.Indeterminate,
+            YN.Yes => CheckState.Checked,
+            YN.No => CheckState.Unchecked,
+            _ => checkIncomeTransfersMadeUponClaimReceived.CheckState
+        };
 
-	}
+        SetIncomeTransfersMadeUponClaimReceivedDesc();
+
+        checkAllowPrePayToTpProcs.Checked = PrefC.GetYN(PrefName.PrePayAllowedForTpProcs);
+        checkIsRefundable.Checked = PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
+        checkIsRefundable.Visible = checkAllowPrePayToTpProcs.Checked; //pref will be unchecked if parent gets turned off.
+        labelRefundable.Visible = checkAllowPrePayToTpProcs.Checked;
+        comboTpUnearnedType.Items.AddDefs(Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType, true));
+        comboTpUnearnedType.SetSelectedDefNum(PrefC.GetLong(PrefName.TpUnearnedType));
+    }
+
+    private void SetIncomeTransfersMadeUponClaimReceivedDesc()
+    {
+        labelIncomeTransfersMadeUponClaimReceivedDesc.Text = checkIncomeTransfersMadeUponClaimReceived.CheckState switch
+        {
+            CheckState.Checked => "Automatically transfer patient overpayment when necessary.",
+            CheckState.Unchecked => "Never make transfers automatically.",
+            CheckState.Indeterminate => "Only transfer patient overpayment if Paysplits - Rigorous is enabled.",
+            _ => labelIncomeTransfersMadeUponClaimReceivedDesc.Text
+        };
+    }
+
+    private void ButtonLineItem_Click(object sender, EventArgs e)
+    {
+        radioPayEnforce.Checked = true;
+        radioAdjustEnforce.Checked = true;
+        checkAllowPrePayToTpProcs.Checked = false;
+        checkIsRefundable.Checked = false;
+        checkIsRefundable.Visible = false;
+        labelRefundable.Visible = false;
+        checkHidePaysplits.Checked = false;
+        checkShowIncomeTransferManager.Checked = true;
+        checkClaimPayByTotalSplitsAuto.Checked = true;
+        checkAdjustmentsOffset.Checked = true;
+    }
+
+    private void ButtonDefault_Click(object sender, EventArgs e)
+    {
+        radioPayAuto.Checked = true;
+        radioAdjustLink.Checked = true;
+        checkAllowPrePayToTpProcs.Checked = false;
+        checkIsRefundable.Checked = false;
+        checkIsRefundable.Visible = false;
+        labelRefundable.Visible = false;
+        checkHidePaysplits.Checked = false;
+        checkShowIncomeTransferManager.Checked = true;
+        checkClaimPayByTotalSplitsAuto.Checked = true;
+        checkAdjustmentsOffset.Checked = true;
+    }
+
+    private void ButtonSimple_Click(object sender, EventArgs e)
+    {
+        radioPayDont.Checked = true;
+        radioAdjustDont.Checked = true;
+        checkAllowPrePayToTpProcs.Checked = false;
+        checkIsRefundable.Checked = false;
+        checkIsRefundable.Visible = false;
+        labelRefundable.Visible = false;
+        checkHidePaysplits.Checked = false;
+        checkShowIncomeTransferManager.Checked = false;
+        checkClaimPayByTotalSplitsAuto.Checked = true;
+        checkAdjustmentsOffset.Checked = true;
+    }
+
+    private void CheckBoxAllowPrePayToTpProcs_Click(object sender, EventArgs e)
+    {
+        if (checkAllowPrePayToTpProcs.Checked)
+        {
+            checkIsRefundable.Visible = true;
+            checkIsRefundable.Checked = PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
+            labelRefundable.Visible = true;
+            _prePayAllowedForTpProcs = YN.Yes;
+        }
+        else
+        {
+            checkIsRefundable.Visible = false;
+            checkIsRefundable.Checked = false;
+            labelRefundable.Visible = false;
+            _prePayAllowedForTpProcs = YN.No;
+        }
+    }
+
+    private void CheckBoxAutoIncomeTransfer_CheckedStateChanged(object sender, EventArgs e)
+    {
+        SetIncomeTransfersMadeUponClaimReceivedDesc();
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        var rigorousAccounting = RigorousAccounting.EnforceFully;
+        if (radioPayAuto.Checked)
+        {
+            rigorousAccounting = RigorousAccounting.AutoSplitOnly;
+        }
+
+        if (radioPayDont.Checked)
+        {
+            rigorousAccounting = RigorousAccounting.DontEnforce;
+        }
+
+        var prefRigorousAccounting = PrefC.GetInt(PrefName.RigorousAccounting);
+        if (Prefs.UpdateInt(PrefName.RigorousAccounting, (int) rigorousAccounting))
+        {
+            _changed = true;
+            SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0,
+                "Rigorous accounting changed from " +
+                ((RigorousAccounting) prefRigorousAccounting).GetDescription() + " to "
+                + rigorousAccounting.GetDescription() + ".");
+        }
+
+        var rigorousAdjustments = RigorousAdjustments.EnforceFully;
+        if (radioAdjustLink.Checked)
+        {
+            rigorousAdjustments = RigorousAdjustments.LinkOnly;
+        }
+
+        if (radioAdjustDont.Checked)
+        {
+            rigorousAdjustments = RigorousAdjustments.DontEnforce;
+        }
+
+        var prefRigorousAdjustments = PrefC.GetInt(PrefName.RigorousAdjustments);
+        if (Prefs.UpdateInt(PrefName.RigorousAdjustments, (int) rigorousAdjustments))
+        {
+            _changed = true;
+            SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0,
+                "Rigorous adjustments changed from " +
+                ((RigorousAdjustments) prefRigorousAdjustments).GetDescription() + " to "
+                + rigorousAdjustments.GetDescription() + ".");
+        }
+
+        _changed |= Prefs.UpdateBool(PrefName.PaymentWindowDefaultHideSplits, checkHidePaysplits.Checked);
+        _changed |= Prefs.UpdateBool(PrefName.ShowIncomeTransferManager, checkShowIncomeTransferManager.Checked);
+        _changed |= Prefs.UpdateBool(PrefName.ClaimPayByTotalSplitsAuto, checkClaimPayByTotalSplitsAuto.Checked);
+        _changed |= Prefs.UpdateYN(PrefName.PrePayAllowedForTpProcs, _prePayAllowedForTpProcs);
+        _changed |= Prefs.UpdateYN(PrefName.IncomeTransfersMadeUponClaimReceived, checkIncomeTransfersMadeUponClaimReceived.CheckState);
+        _changed |= Prefs.UpdateLong(PrefName.TpUnearnedType, comboTpUnearnedType.GetSelectedDefNum());
+        _changed |= Prefs.UpdateBool(PrefName.TpPrePayIsNonRefundable, checkIsRefundable.Checked);
+        _changed |= Prefs.UpdateBool(PrefName.AdjustmentsOffsetEachOther, checkAdjustmentsOffset.Checked);
+        
+        if (_changed)
+        {
+            DataValid.SetInvalid(InvalidType.Prefs);
+            
+            SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0, "Auto Codes");
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

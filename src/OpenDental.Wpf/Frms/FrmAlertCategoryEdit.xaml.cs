@@ -8,6 +8,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -42,7 +44,7 @@ namespace OpenDental {
 			listBoxAlertTypes.Items.Clear();
 			List<AlertType> listAlertTypes=_listAlertCategoryLinksOld.Select(x => x.AlertType).ToList();
 			for(int i=0;i<_listAlertTypesShown.Count;i++) {
-				listBoxAlertTypes.Items.Add(Lans.g(this,_listAlertTypesShown[i].GetDescription()));
+				listBoxAlertTypes.Items.Add(Lans.g(_listAlertTypesShown[i].GetDescription()));
 				int index=listBoxAlertTypes.Items.Count-1;
 				listBoxAlertTypes.SetSelected(index,listAlertTypes.Contains(_listAlertTypesShown[i]));
 			}

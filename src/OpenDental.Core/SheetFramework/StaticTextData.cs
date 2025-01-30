@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class StaticTextData {

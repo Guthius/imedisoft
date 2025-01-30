@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using NDde;
 using OpenDental.UI;
 using OpenDentBusiness;

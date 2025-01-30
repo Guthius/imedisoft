@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -55,7 +56,7 @@ namespace OpenDental {
 				+" ("+ProcedureCodes.GetProcCode(_verifyCodeNum).Descript+") "
 				+Lans.g("FormProcEdit","is the recommended procedure code for this procedure.  Change procedure code and fee?");
 			if(PrefC.GetBool(PrefName.ProcEditRequireAutoCodes)) {
-				butNo.Text=Lans.g(this,"Edit Proc");//Button will otherwise say 'No'.
+				butNo.Text=Lans.g("Edit Proc");//Button will otherwise say 'No'.
 			}
 		}
 

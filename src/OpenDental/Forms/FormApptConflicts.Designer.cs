@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormApptConflicts {
 		/// <summary>
 		/// Required designer variable.
@@ -40,7 +40,7 @@
 			this.butPrint.Size = new System.Drawing.Size(87, 24);
 			this.butPrint.TabIndex = 24;
 			this.butPrint.Text = "Print List";
-			this.butPrint.Click += new System.EventHandler(this.butPrint_Click);
+			this.butPrint.Click += new System.EventHandler(this.ButtonPrint_Click);
 			// 
 			// gridConflicts
 			// 
@@ -53,7 +53,7 @@
 			this.gridConflicts.TabIndex = 23;
 			this.gridConflicts.Title = "Conflicting Appointments";
 			this.gridConflicts.TranslationName = "TableApptConflicts";
-			this.gridConflicts.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridConflicts_DoubleClick);
+			this.gridConflicts.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridConflicts_DoubleClick);
 			// 
 			// contextRightClick
 			// 
@@ -65,13 +65,13 @@
 			// 
 			this.menuItemSelectPatient.Index = 0;
 			this.menuItemSelectPatient.Text = "Select Patient";
-			this.menuItemSelectPatient.Click += new System.EventHandler(this.menuItemSelectPatient_Click);
+			this.menuItemSelectPatient.Click += new System.EventHandler(this.MenuItemSelectPatient_Click);
 			// 
 			// menuItemPin
 			// 
 			this.menuItemPin.Index = 1;
 			this.menuItemPin.Text = "Send to Pinboard";
-			this.menuItemPin.Click += new System.EventHandler(this.menuItemPin_Click);
+			this.menuItemPin.Click += new System.EventHandler(this.MenuItemPin_Click);
 			// 
 			// FormApptConflicts
 			// 

@@ -9,6 +9,8 @@ using System.Xml;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
 
@@ -18,35 +20,34 @@ public class BillingL
 {
     public static void SendStatements(SendStatementsIO sendStatementsIO)
     {
-        //Run aging for all patients. May be skipped if aging has already run today.
         if (!RunAgingEnterprise(sendStatementsIO))
         {
             return;
         }
 
         //Statements will be ordered in GetStatements.
-        List<Statement> listStatements = Statements.GetStatements(sendStatementsIO.ListStatementNumsToSend);
-        Statement popUpCheck = listStatements.FirstOrDefault(x => x.Mode_ == StatementMode.Electronic);
+        var listStatements = Statements.GetStatements(sendStatementsIO.ListStatementNumsToSend);
+        var popUpCheck = listStatements.FirstOrDefault(x => x.Mode_ == StatementMode.Electronic);
         //In case the user didn't come directly from FormBillingOptions check the DateRangeFrom on an electronic statement to see if we need to
         //display the warning message. Spot checking to save time. 
         if (popUpCheck != null && (sendStatementsIO.FuncGetIsHistoryStartMinDate() || popUpCheck.DateRangeFrom.Year < 1880))
         {
-            if (!sendStatementsIO.FuncAskQuestion(Lans.g("FormBilling", "Sending statements electronically for all account history could result in many pages. Continue?")))
+            if (!sendStatementsIO.FuncAskQuestion("Sending statements electronically for all account history could result in many pages. Continue?"))
             {
                 return;
             }
 
             SecurityLogs.MakeLogEntry(EnumPermType.Billing, 0, "User proceeded with electronic billing for all dates.");
-            sendStatementsIO.LogWrite(Lans.g("FormBilling", "User proceeded with electronic billing for all dates."), LogLevel.Information);
+            sendStatementsIO.LogWrite("User proceeded with electronic billing for all dates.", LogLevel.Information);
         }
 
         sendStatementsIO.DictionaryFamilies = Statements.GetFamiliesForStatements(listStatements);
         //Installment plans don't get added to db. They get retrieved from db and appended to the appropriate statement passed in.
         //We will use installments later in Statements.CreateStatementPdfSheets.
         Statements.AddInstallmentPlansToStatements(listStatements, sendStatementsIO.DictionaryFamilies);
-        List<Patient> listPatients = sendStatementsIO.DictionaryFamilies.Values.SelectMany(x => x.ListPats).DistinctBy(x => x.PatNum).ToList();
+        var listPatients = sendStatementsIO.DictionaryFamilies.Values.SelectMany(x => x.ListPats).DistinctBy(x => x.PatNum).ToList();
         sendStatementsIO.ListStatementBatches = Statements.GetBatchesForStatements(listStatements, listPatients);
-        for (int i = 0; i < sendStatementsIO.ListStatementBatches.Count; i++)
+        for (var i = 0; i < sendStatementsIO.ListStatementBatches.Count; i++)
         {
             sendStatementsIO.CurStatementBatch = sendStatementsIO.ListStatementBatches[i];
             if (!BillingProgressPause(sendStatementsIO))
@@ -59,7 +60,7 @@ public class BillingL
             sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Preparing Batch") + " " + sendStatementsIO.CurStatementBatch.BatchNum);
             //Now to print, send eBills, and text messages.
             //If any return false, the user canceled during execution OR other catastrophic failure occurred.
-            bool isBatchValid = PrintBatch(sendStatementsIO);
+            var isBatchValid = PrintBatch(sendStatementsIO);
             if (isBatchValid)
             {
                 //Only send eBills if batch ok.
@@ -84,55 +85,57 @@ public class BillingL
         }
 
         //Pass back all temp files to FormBilling for file delete.
-        for (int i = 0; i < sendStatementsIO.ListTempPdfFiles.Count; i++)
+        for (var i = 0; i < sendStatementsIO.ListTempPdfFiles.Count; i++)
         {
             //Any failures will most likely get cleaned up when the user closes OD.
             ODException.SwallowAnyException(() => sendStatementsIO.ActionDeleteTempPdfFile(sendStatementsIO.ListTempPdfFiles[i]));
         }
 
         //Reporting on billing results.
-        string message = "";
-        int count = sendStatementsIO.ListSkippedPatients.Count(x => x.Reason == SkipReason.BadEmailAddress);
+        var message = "";
+        var count = sendStatementsIO.ListSkippedPatients.Count(x => x.Reason == SkipReason.BadEmailAddress);
         if (count > 0)
         {
-            message += Lans.g("FormBilling", "Skipped due to missing or bad email address:") + " " + count.ToString() + "\r\n";
+            message += "Skipped due to missing or bad email address: " + count + "\r\n";
         }
 
         count = sendStatementsIO.ListSkippedPatients.Count(x => x.Reason == SkipReason.BadMailingAddress);
         if (count > 0)
         {
-            message += Lans.g("FormBilling", "Skipped due to missing or bad mailing address:") + " " + count.ToString() + "\r\n";
+            message += "Skipped due to missing or bad mailing address: " + count + "\r\n";
         }
 
         count = sendStatementsIO.ListSkippedPatients.Count(x => x.Reason == SkipReason.BadSmsSetup);
         if (count > 0)
         {
-            message += Lans.g("FormBilling", "No text message sent due to SMS setup issue:") + " " + count.ToString() + "\r\n";
+            message += "No text message sent due to SMS setup issue: " + count + "\r\n";
         }
 
         if (sendStatementsIO.CountStatementsSkippedForDeletion > 0)
         {
-            message += Lans.g("FormBilling", "Skipped due to being deleted by another user:") + " " + sendStatementsIO.CountStatementsSkippedForDeletion.ToString() + "\r\n";
+            message += "Skipped due to being deleted by another user: " + sendStatementsIO.CountStatementsSkippedForDeletion + "\r\n";
         }
 
         count = sendStatementsIO.ListSkippedPatients.Count(x => x.Reason == SkipReason.Misc);
         if (count > 0)
         {
-            message += Lans.g("FormBilling", "Skipped due to miscellaneous error") + ": " + count.ToString() + "\r\n";
+            message += "Skipped due to miscellaneous error: " + count + "\r\n";
         }
 
-        message += Lans.g("FormBilling", "Printed:") + " " + sendStatementsIO.CountStatementsPrinted.ToString() + "\r\n"
-                   + Lans.g("FormBilling", "Emailed:") + " " + sendStatementsIO.CountStatementsEmailed.ToString() + "\r\n"
-                   + Lans.g("FormBilling", "SentElect:") + " " + sendStatementsIO.CountStatementsSentElectronic.ToString() + "\r\n"
-                   + Lans.g("FormBilling", "Texted:") + " " + sendStatementsIO.CountStatmentsSentPayPortalText.ToString();
+        message +=
+            "Printed: " + sendStatementsIO.CountStatementsPrinted + "\r\n" +
+            "Emailed: " + sendStatementsIO.CountStatementsEmailed + "\r\n" +
+            "SentElect: " + sendStatementsIO.CountStatementsSentElectronic + "\r\n" +
+            "Texted: " + sendStatementsIO.CountStatmentsSentPayPortalText;
+
         sendStatementsIO.LogWrite(message, LogLevel.Error);
         if (sendStatementsIO.ListSkippedPatients.Count > 0)
         {
             //Modify original box to have yes/no buttons to see if they want to see who errored out
-            message += "\r\n\r\n" + Lans.g("FormBilling", "Would you like to see skipped patnums?");
-            string skippedPatNums = Lans.g("FormBilling", "Skipped Patients...") + "\r\n" + string.Join("\r\n", sendStatementsIO.ListSkippedPatients
+            message += "\r\n\r\nWould you like to see skipped patnums?";
+            var skippedPatNums = "Skipped Patients...\r\n" + string.Join("\r\n", sendStatementsIO.ListSkippedPatients
                 .OrderBy(x => (int) x.Reason)
-                .Select(x => $"{Lans.g("FormBilling", "PatNum:")} {x.PatNum} ({x.Reason}) {x.Error}"));
+                .Select(x => $"PatNum: {x.PatNum} ({x.Reason}) {x.Error}"));
             if (sendStatementsIO.FuncAskQuestion(message))
             {
                 sendStatementsIO.ActionPrompt(skippedPatNums, true);
@@ -140,31 +143,21 @@ public class BillingL
         }
         else
         {
-            //If there were no errors, we simply show this.
             sendStatementsIO.ActionPrompt(message, false);
         }
     }
-    
+
     private static bool PrintBatch(SendStatementsIO sendStatementsIO)
     {
-        EmailMessage emailMessage;
-        EmailAttach emailAttach;
-        EmailAddress emailAddress;
-        Patient patient;
-        string patFolder;
-        PdfDocument pdfDocumentInput;
-        PdfPage pdfPage;
-        string savedPdfPath;
-        DataSet dataSet;
-        List<EmailAutograph> listEmailAutographs = EmailAutographs.GetDeepCopy();
-        BillingUseElectronicEnum electronicBillingType = PrefC.GetEnum<BillingUseElectronicEnum>(PrefName.BillingUseElectronic);
+        var listEmailAutographs = EmailAutographs.GetDeepCopy();
+        var electronicBillingType = PrefC.GetEnum<BillingUseElectronicEnum>(PrefName.BillingUseElectronic);
         //From Saul/Derek attempted fix B31268.
         //If we don't send emails first and there are a lot of e-bills and email address is set to implicit ssl then the emails fail to send sometimes.
         //This ordering will ensure that each batch will process emails before electronic.
         sendStatementsIO.CurStatementBatch.ListStatements = sendStatementsIO.CurStatementBatch.ListStatements.OrderBy(x => x.Mode_).ToList();
-        for (int i = 0; i < sendStatementsIO.CurStatementBatch.ListStatements.Count; i++)
+        for (var i = 0; i < sendStatementsIO.CurStatementBatch.ListStatements.Count; i++)
         {
-            Statement statement = sendStatementsIO.CurStatementBatch.ListStatements[i];
+            var statement = sendStatementsIO.CurStatementBatch.ListStatements[i];
             if (!BillingProgressPause(sendStatementsIO))
             {
                 return false;
@@ -193,16 +186,16 @@ public class BillingL
             sendStatementsIO.FireStatementProgress(5);
             sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Generating Single PDFs") + "...");
             //We need the family of this patient so we can use the guarantor address later.
-            if (!sendStatementsIO.DictionaryFamilies.TryGetValue(statement.PatNum, out Family family))
+            if (!sendStatementsIO.DictionaryFamilies.TryGetValue(statement.PatNum, out var family))
             {
                 family = Patients.GetFamily(statement.PatNum);
             }
 
-            patient = family.GetPatient(statement.PatNum);
-            patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
-            dataSet = AccountModules.GetStatementDataSet(statement, isComputeAging: false, doIncludePatLName: false);
+            var patient = family.GetPatient(statement.PatNum);
+            var patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder());
+            var dataSet = AccountModules.GetStatementDataSet(statement, isComputeAging: false, doIncludePatLName: false);
             //Verify send email before trying to loop through any statements. If it's bad, we won't continue.
-            emailAddress = sendStatementsIO.FuncGetSenderEmailAddress(patient.ClinicNum);
+            var emailAddress = sendStatementsIO.FuncGetSenderEmailAddress(patient.ClinicNum);
             sendStatementsIO.FireStatementProgress(10);
             if (statement.Mode_ == StatementMode.Email)
             {
@@ -227,7 +220,7 @@ public class BillingL
 
             #region Print PDFs
 
-            string tempPdfFile = "";
+            var tempPdfFile = "";
             if (statement.Mode_ == StatementMode.Electronic && electronicBillingType.In(BillingUseElectronicEnum.EHG, BillingUseElectronicEnum.ClaimX) && !PrefC.GetBool(PrefName.BillingElectCreatePDF))
             {
                 //Do not create a pdf
@@ -253,7 +246,7 @@ public class BillingL
                 }
                 catch (Exception ex)
                 {
-                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, Lans.g("FormBilling", "Error creating PDF") + ": " + ex.ToString());
+                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, Lans.g("FormBilling", "Error creating PDF") + ": " + ex);
                     continue;
                 }
 
@@ -270,16 +263,16 @@ public class BillingL
 
             //imageStore = OpenDental.Imaging.ImageStore.GetImageStore(pat);
             //If stmt.DocNum==0, savedPdfPath will be "".  A blank savedPdfPath is fine for electronic statements.
-            Document documentStatement = Documents.GetByNum(statement.DocNum);
-            savedPdfPath = sendStatementsIO.FuncGetPatientPdfPath(tempPdfFile, ImageStore.GetFilePath(documentStatement, patFolder));
+            var documentStatement = Documents.GetByNum(statement.DocNum);
+            var savedPdfPath = sendStatementsIO.FuncGetPatientPdfPath(tempPdfFile, ImageStore.GetFilePath(documentStatement, patFolder));
             if (statement.Mode_ == StatementMode.InPerson || statement.Mode_ == StatementMode.Mail)
             {
                 //Will be null by default to indicate no printing necessary.
                 sendStatementsIO.PdfMasterDocument = sendStatementsIO.PdfMasterDocument ?? new PdfDocument();
-                pdfDocumentInput = sendStatementsIO.FuncGetPdfDocument(documentStatement.RawBase64, savedPdfPath);
-                for (int idx = 0; idx < pdfDocumentInput.PageCount; idx++)
+                var pdfDocumentInput = sendStatementsIO.FuncGetPdfDocument(documentStatement.RawBase64, savedPdfPath);
+                for (var idx = 0; idx < pdfDocumentInput.PageCount; idx++)
                 {
-                    pdfPage = pdfDocumentInput.Pages[idx];
+                    var pdfPage = pdfDocumentInput.Pages[idx];
                     sendStatementsIO.PdfMasterDocument.AddPage(pdfPage);
                     sendStatementsIO.FirePdfProgress(idx, pdfDocumentInput.PageCount);
                     sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "PDF Added to Print List") + "...");
@@ -300,15 +293,15 @@ public class BillingL
                 sendStatementsIO.FireStatementProgress(40);
                 try
                 {
-                    emailMessage = Statements.GetEmailMessageForStatement(statement, patient, emailAddress);
-                    emailAttach = sendStatementsIO.FuncGetEmailAttachment(savedPdfPath, documentStatement, patient);
+                    var emailMessage = Statements.GetEmailMessageForStatement(statement, patient, emailAddress);
+                    var emailAttach = sendStatementsIO.FuncGetEmailAttachment(savedPdfPath, documentStatement, patient);
                     sendStatementsIO.FireStatementProgress(70);
                     emailMessage.Attachments.Add(emailAttach);
                     emailMessage.SentOrReceived = EmailSentOrReceived.Sent;
                     emailMessage.MsgDateTime = DateTime.Now;
                     if (PrefC.GetBool(PrefName.BillingEmailIncludeAutograph))
                     {
-                        EmailAutograph emailAutograph = EmailAutographs.GetForOutgoing(listEmailAutographs, emailAddress);
+                        var emailAutograph = EmailAutographs.GetForOutgoing(listEmailAutographs, emailAddress);
                         if (emailAutograph != null)
                         {
                             //Always set the BodyText, we will additionally set HtmlText below if necessary (mimics FormEmailMessageEdit).
@@ -319,7 +312,7 @@ public class BillingL
                                 ODException.SwallowAnyException(() =>
                                 {
                                     //This will format the entire body at HTML, not just the autograph. This now becomes an undocumented loophole to deploy an html statement email.
-                                    string markup = MarkupEdit.TranslateToXhtml(EmailMessages.InsertAutograph(emailMessage.BodyText, emailAutograph), false, isEmail: true);
+                                    var markup = MarkupEdit.TranslateToXhtml(EmailMessages.InsertAutograph(emailMessage.BodyText, emailAutograph), isEmail: true);
                                     //We got this far so change the message body and html type.
                                     emailMessage.HtmlText = markup;
                                     emailMessage.HtmlType = EmailType.Html;
@@ -339,7 +332,7 @@ public class BillingL
                         }
                     }
 
-                    bool useSecureEmail =
+                    var useSecureEmail =
                         Enum.TryParse(ClinicPrefs.GetPrefValue(PrefName.EmailStatementsSecure, clinicNumPat), out EmailPlatform emailPlatform)
                         && emailPlatform == EmailPlatform.Secure
                         && Clinics.IsSecureEmailEnabled(clinicNumPat);
@@ -351,11 +344,11 @@ public class BillingL
                     sendStatementsIO.ActionSendEmail(clinicNumPat, emailMessage, emailAddress, useSecureEmail);
                     sendStatementsIO.FireStatementProgress(90);
                     sendStatementsIO.CountStatementsEmailed++;
-                    sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Email Sent") + "...");
+                    sendStatementsIO.FireTextMsgProgress("Email Sent...");
                 }
                 catch (Exception ex)
                 {
-                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, Lans.g("FormBilling", "Error sending email") + ": " + ex.ToString());
+                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, "Error sending email: " + ex);
                     sendStatementsIO.FireStatementProgress(100);
                     continue;
                 }
@@ -371,25 +364,28 @@ public class BillingL
             if (statement.Mode_ == StatementMode.Electronic)
             {
                 sendStatementsIO.FireStatementProgress(65);
-                sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Preparing E-Bills") + "...");
-                Patient guarantor = family.ListPats[0];
+                sendStatementsIO.FireTextMsgProgress("Preparing E-Bills...");
+                var guarantor = family.ListPats[0];
                 if (guarantor.Address.Trim() == "" || guarantor.City.Trim() == "" || guarantor.State.Trim() == "" || guarantor.Zip.Trim() == "")
                 {
-                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadMailingAddress, Lans.g("FormBilling", "Error with patient address"));
+                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadMailingAddress, "Error with patient address");
                     continue;
                 }
 
                 //Eventually will not use Statement.IsRecipt or Statement.IsInvoice but rather StmtType.Invoice and StmtType.Receipt.
                 if (statement.StatementType == StmtType.LimitedStatement || statement.IsReceipt || statement.IsInvoice)
                 {
-                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, Lans.g("FormBilling", "Limited statements, Receipts, and Invoices cannot be sent electronically."));
+                    sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, "Limited statements, Receipts, and Invoices cannot be sent electronically.");
                     continue;
                 }
 
-                EbillStatement ebillStatement = new EbillStatement();
-                ebillStatement.Family = family;
-                ebillStatement.Statement = statement;
-                long clinicNum = 0; //If clinics are disabled, then all bills will go into the same "bucket"
+                var ebillStatement = new EbillStatement
+                {
+                    Family = family,
+                    Statement = statement
+                };
+
+                long clinicNum;
                 if (true)
                 {
                     clinicNum = family.Guarantor.ClinicNum;
@@ -397,7 +393,7 @@ public class BillingL
 
                 if (electronicBillingType == BillingUseElectronicEnum.EHG)
                 {
-                    List<string> listElectErrors = Bridges.EHG_statements.Validate(clinicNum);
+                    var listElectErrors = Bridges.EHG_statements.Validate(clinicNum);
                     if (!listElectErrors.IsNullOrEmpty())
                     {
                         sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.Misc, listElectErrors.Last());
@@ -405,13 +401,10 @@ public class BillingL
                     }
                 }
 
-                //We made it this far so this statement will be processed by SendEBills.
-                //Let's decrement here since we already incremented at the top of this loop.
-                //We will re-increment in SendEBills when we truly process this statement.
                 sendStatementsIO.CurStatementBatch.CountStatementsProcessed--;
                 sendStatementsIO.CurStatementBatch.ListEbillStatements.Add(ebillStatement);
                 sendStatementsIO.FireStatementProgress(70);
-                sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "E-Bill Added To Send List") + "...");
+                sendStatementsIO.FireTextMsgProgress("E-Bill Added To Send List...");
             }
 
             #endregion
@@ -425,7 +418,7 @@ public class BillingL
     private static bool SendEBills(SendStatementsIO sendStatementsIO)
     {
         sendStatementsIO.FireStatementProgress(80);
-        sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Sending E-Bills") + "...");
+        sendStatementsIO.FireTextMsgProgress("Sending E-Bills...");
         if (!BillingProgressPause(sendStatementsIO))
         {
             return false;
@@ -434,24 +427,26 @@ public class BillingL
         if (sendStatementsIO.CurStatementBatch.ListEbillStatements.Count == 0)
         {
             //All statements have been sent for the current batch.  Nothing more to do.
-            sendStatementsIO.LogWrite(Lans.g("FormBilling", "No ebills need to be sent."), LogLevel.Information);
+            sendStatementsIO.LogWrite("No ebills need to be sent.", LogLevel.Information);
             return true;
         }
 
-        sendStatementsIO.LogWrite(Lans.g("FormBilling", "Sending ebills for ClinicNum") + " " + sendStatementsIO.CurStatementBatch.ClinicNum.ToString(), LogLevel.Information);
-        BillingUseElectronicEnum electronicBillingType = PrefC.GetEnum<BillingUseElectronicEnum>(PrefName.BillingUseElectronic);
-        XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
-        xmlWriterSettings.OmitXmlDeclaration = true;
-        xmlWriterSettings.Encoding = Encoding.UTF8;
-        xmlWriterSettings.Indent = true;
-        xmlWriterSettings.IndentChars = "   ";
+        sendStatementsIO.LogWrite("Sending ebills for ClinicNum " + sendStatementsIO.CurStatementBatch.ClinicNum, LogLevel.Information);
+        var electronicBillingType = PrefC.GetEnum<BillingUseElectronicEnum>(PrefName.BillingUseElectronic);
+        var xmlWriterSettings = new XmlWriterSettings
+        {
+            OmitXmlDeclaration = true,
+            Encoding = Encoding.UTF8,
+            Indent = true,
+            IndentChars = "   "
+        };
         //Holds all statements. Will be sent to 1 of 4 electronic billing vendors.
         //Each vendor will perform 3 phases on this string.
         //1) Append general practice info
         //2) Append each individual statement's info to an xml writer
         //3) Send xlm string to vendor
-        StringBuilder strBuildElect = new StringBuilder();
-        XmlWriter xmlWriterElect = XmlWriter.Create(strBuildElect, xmlWriterSettings);
+        var strBuildElect = new StringBuilder();
+        var xmlWriterElect = XmlWriter.Create(strBuildElect, xmlWriterSettings);
 
         #region 1) Append general practice info
 
@@ -473,21 +468,18 @@ public class BillingL
         }
         else
         {
-            sendStatementsIO.LogWrite(Lans.g("FormBilling", "\'No billing electronic\' is currently selected in Billing Defaults."), LogLevel.Error);
+            sendStatementsIO.LogWrite("\'No billing electronic\' is currently selected in Billing Defaults.", LogLevel.Error);
         }
 
         #endregion 1) Append general practice info
 
         #region 2) Append each individual statement's info to an xml writer
 
-        Family family;
-        Patient patient;
-        DataSet dataSet;
         List<long> listElectStmtNums = [];
         sendStatementsIO.FireStatementProgress(85);
         //This loop has iterated backwards since day 1. Many years ago, we would batch and remove from the end of this list instead of just making a new list.
         //Batching was solved in a different way sometime along the way so iterating backwards is no longer important. Leaving backwards iteration in-tact just in case.
-        for (int i = 0; i < sendStatementsIO.CurStatementBatch.ListEbillStatements.Count; i++)
+        for (var i = 0; i < sendStatementsIO.CurStatementBatch.ListEbillStatements.Count; i++)
         {
             if (!BillingProgressPause(sendStatementsIO))
             {
@@ -498,7 +490,7 @@ public class BillingL
             sendStatementsIO.FireOverallProgress();
             //It is finally time to increment for this statement.
             sendStatementsIO.CurStatementBatch.CountStatementsProcessed++;
-            Statement statementCur = sendStatementsIO.CurStatementBatch.ListEbillStatements[i].Statement;
+            var statementCur = sendStatementsIO.CurStatementBatch.ListEbillStatements[i].Statement;
             if (statementCur == null)
             {
                 //The statement was probably deleted by another user.
@@ -509,44 +501,44 @@ public class BillingL
             if (sendStatementsIO.ListStatementNumsToSkipAfterPause.Contains(statementCur.StatementNum))
             {
                 //The statement was deleted or marked sent elsewhere while this billing session was paused and subsequently resumed.
-                sendStatementsIO.AddSkippedPatient(statementCur.PatNum, SkipReason.Misc, Lans.g("FormBilling", "Statement was adjusted elsewhere."));
+                sendStatementsIO.AddSkippedPatient(statementCur.PatNum, SkipReason.Misc, "Statement was adjusted elsewhere.");
                 continue;
             }
 
-            family = sendStatementsIO.CurStatementBatch.ListEbillStatements[i].Family;
-            patient = family.GetPatient(statementCur.PatNum);
-            dataSet = AccountModules.GetStatementDataSet(statementCur, isComputeAging: false, doIncludePatLName: false);
+            var family = sendStatementsIO.CurStatementBatch.ListEbillStatements[i].Family;
+            var patient = family.GetPatient(statementCur.PatNum);
+            var dataSet = AccountModules.GetStatementDataSet(statementCur, isComputeAging: false, doIncludePatLName: false);
+
             try
             {
-                //Write the statement into a temporary string builder, so that if the statement fails to generate (due to exception),
-                //then the partially generated statement will not be added to the strBuildElect.
-                StringBuilder strBuildStatement = new StringBuilder();
-                using (XmlWriter xmlWriterStatement = XmlWriter.Create(strBuildStatement, xmlWriterElect.Settings))
+                var strBuildStatement = new StringBuilder();
+                using (var xmlWriterStatement = XmlWriter.Create(strBuildStatement, xmlWriterElect.Settings))
                 {
-                    if (electronicBillingType == BillingUseElectronicEnum.None)
+                    switch (electronicBillingType)
                     {
-                        throw new Exception(Lans.g("FormBilling", "\'No billing electronic\' is currently selected in Billing Defaults."));
-                    }
-                    else if (electronicBillingType == BillingUseElectronicEnum.EHG)
-                    {
-                        Bridges.EHG_statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
-                    }
-                    else if (electronicBillingType == BillingUseElectronicEnum.POS)
-                    {
-                        Bridges.POS_statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
-                    }
-                    else if (electronicBillingType == BillingUseElectronicEnum.ClaimX)
-                    {
-                        Bridges.ClaimX_Statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
-                    }
-                    else if (electronicBillingType == BillingUseElectronicEnum.EDS)
-                    {
-                        Bridges.EDS_Statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
+                        case BillingUseElectronicEnum.None:
+                            throw new Exception("\'No billing electronic\' is currently selected in Billing Defaults.");
+
+                        case BillingUseElectronicEnum.EHG:
+                            Bridges.EHG_statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
+                            break;
+
+                        case BillingUseElectronicEnum.POS:
+                            Bridges.POS_statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
+                            break;
+
+                        case BillingUseElectronicEnum.ClaimX:
+                            Bridges.ClaimX_Statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
+                            break;
+
+                        case BillingUseElectronicEnum.EDS:
+                            Bridges.EDS_Statements.GenerateOneStatement(xmlWriterStatement, statementCur, patient, family, dataSet);
+                            break;
                     }
                 }
 
                 //Write this statement's XML to the XML document with all the statements.
-                using (XmlReader readerStatement = XmlReader.Create(new StringReader(strBuildStatement.ToString())))
+                using (var readerStatement = XmlReader.Create(new StringReader(strBuildStatement.ToString())))
                 {
                     xmlWriterElect.WriteNode(readerStatement, true);
                 }
@@ -556,7 +548,7 @@ public class BillingL
             }
             catch (Exception ex)
             {
-                sendStatementsIO.AddSkippedPatient(patient.PatNum, SkipReason.Misc, Lans.g("FormBilling", "Error sending statement") + ": " + ex.ToString());
+                sendStatementsIO.AddSkippedPatient(patient.PatNum, SkipReason.Misc, "Error sending statement: " + ex);
             }
         }
 
@@ -574,18 +566,17 @@ public class BillingL
         #region 3) Send xlm string to vendor
 
         //Each vendor uses initial directory and xml pref slightly different.
-        string xmlFilePathFromPref = "";
-        string initialSaveDirectory = "";
-        bool doMarkSent = false;
+        var xmlFilePathFromPref = "";
+        var initialSaveDirectory = "";
+        var doMarkSent = false;
         if (electronicBillingType == BillingUseElectronicEnum.EHG)
         {
             //This is a web call to DentalXChange so we will try 3 times before we consider it failed.
-            for (int attempts = 0; attempts < 3; attempts++)
+            for (var attempts = 0; attempts < 3; attempts++)
             {
-                string alertMsg = null;
                 try
                 {
-                    alertMsg = sendStatementsIO.FuncSendEhgStatement(strBuildElect.ToString(), sendStatementsIO.CurStatementBatch.ClinicNum);
+                    var alertMsg = sendStatementsIO.FuncSendEhgStatement(strBuildElect.ToString(), sendStatementsIO.CurStatementBatch.ClinicNum);
                     if (!string.IsNullOrEmpty(alertMsg))
                     {
                         sendStatementsIO.ActionPrompt(alertMsg, false);
@@ -599,24 +590,20 @@ public class BillingL
                 {
                     if (attempts < 2)
                     {
-                        //Don't indicate the error unless it failed on the last attempt.
-                        continue; //The only thing skipped besides the error message is evaluating if the statement was written, which it wasn't.
+                        continue;
                     }
 
-                    //This batch was not sent
                     if (ex.Message.Contains("(404) Not Found"))
                     {
-                        //Custom 404 error message
-                        sendStatementsIO.AppendMiscSystemError(Lans.g("FormBilling", "The connection to the server could not be established or was lost, or the upload timed out.  "
-                                                                                     + "Ensure your internet connection is working and that your firewall is not blocking this application.  "
-                                                                                     + "If the upload timed out after 10 minutes, try sending 25 statements or less in each batch to reduce upload time."));
+                        sendStatementsIO.AppendMiscSystemError(
+                            "The connection to the server could not be established or was lost, or the upload timed out.  " +
+                            "Ensure your internet connection is working and that your firewall is not blocking this application.  " +
+                            "If the upload timed out after 10 minutes, try sending 25 statements or less in each batch to reduce upload time.");
                     }
                     else
                     {
-                        //Document any other errors to make troubleshooting much easier.
-                        sendStatementsIO.AppendMiscSystemError(Lans.g("FormBilling", ex.Message));
+                        sendStatementsIO.AppendMiscSystemError(ex.Message);
                     }
-                    //An API exception will return true below, which will allow subsequent batches to continue to run.
                 }
             }
         }
@@ -642,9 +629,9 @@ public class BillingL
             //DentalXChange does not write to a file. All others do.
             if (!sendStatementsIO.SetXmlFilePath(xmlFilePathFromPref, initialSaveDirectory))
             {
-                if (!sendStatementsIO.AllowXmlFileSelection)
+                if (!SendStatementsIO.AllowXmlFileSelection)
                 {
-                    sendStatementsIO.AppendMiscSystemError(Lans.g("FormBilling", $"The preference for {electronicBillingType} does not have a valid path."));
+                    sendStatementsIO.AppendMiscSystemError($"The preference for {electronicBillingType} does not have a valid path.");
                 }
 
                 //User elected to cancel when prompted for a file path on current or previous iteration.
@@ -653,7 +640,7 @@ public class BillingL
             }
 
             //Convert base path to clinic specific path.
-            string xmlFilePathClinic = Statements.GetEbillFilePathForClinic(sendStatementsIO.XmlFilePath, sendStatementsIO.CurStatementBatch.ClinicNum);
+            var xmlFilePathClinic = Statements.GetEbillFilePathForClinic(sendStatementsIO.XmlFilePath, sendStatementsIO.CurStatementBatch.ClinicNum);
             File.WriteAllText(xmlFilePathClinic, strBuildElect.ToString());
             doMarkSent = true;
         }
@@ -661,7 +648,7 @@ public class BillingL
         if (doMarkSent)
         {
             //Loop through all statements in the batch and mark them sent.
-            for (int i = 0; i < listElectStmtNums.Count; i++)
+            for (var i = 0; i < listElectStmtNums.Count; i++)
             {
                 //Adding here assures that only IsSent=true statements will be attempted in SendTextMessages.
                 sendStatementsIO.ListStatementNumsSent.Add(listElectStmtNums[i]);
@@ -670,11 +657,11 @@ public class BillingL
                 sendStatementsIO.FireStatementProgress(100);
             }
 
-            sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "E-Bills Sent") + "...");
+            sendStatementsIO.FireTextMsgProgress("E-Bills Sent...");
         }
         else
         {
-            sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "E-Bills Not Sent") + "...");
+            sendStatementsIO.FireTextMsgProgress("E-Bills Not Sent...");
         }
 
         #endregion 3) Send to vendor
@@ -687,12 +674,12 @@ public class BillingL
     private static bool SendTextMessages(SendStatementsIO sendStatementsIO)
     {
         List<SmsToMobile> listTextsToSend = [];
-        List<Patient> listPatients = sendStatementsIO.DictionaryFamilies.Values.SelectMany(x => x.ListPats).DistinctBy(x => x.PatNum).ToList();
-        List<PatComm> listPatComms = Patients.GetPatComms(listPatients);
+        var listPatients = sendStatementsIO.DictionaryFamilies.Values.SelectMany(x => x.ListPats).DistinctBy(x => x.PatNum).ToList();
+        var listPatComms = Patients.GetPatComms(listPatients);
         string guidBatch = null;
-        for (int i = 0; i < sendStatementsIO.CurStatementBatch.ListStatements.Count; i++)
+        for (var i = 0; i < sendStatementsIO.CurStatementBatch.ListStatements.Count; i++)
         {
-            Statement statement = sendStatementsIO.CurStatementBatch.ListStatements[i];
+            var statement = sendStatementsIO.CurStatementBatch.ListStatements[i];
             if (!BillingProgressPause(sendStatementsIO))
             {
                 return false;
@@ -724,14 +711,14 @@ public class BillingL
                 //User has opted to allow billing to run despite not having a valide sms template.
                 //This combination would previously cause this method to return false, which would cause billing to halt after already having sent first batch of statements.
                 //2/29/24 - SamO decided that this is not a haltable offense since user opted to allow it to happen. Instead we will just add this failed comm to the error list.
-                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, Lans.g("FormBilling", "SMS Statements template not setup"));
+                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, "SMS Statements template not setup");
                 continue;
             }
 
-            PatComm patComm = listPatComms.Find(x => x.PatNum == statement.PatNum);
+            var patComm = listPatComms.Find(x => x.PatNum == statement.PatNum);
             if (patComm == null)
             {
-                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, Lans.g("FormBilling", "Unable to find patient communication method"));
+                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, "Unable to find patient communication method");
                 continue;
             }
 
@@ -742,30 +729,32 @@ public class BillingL
 
             if (patComm.CommOptOut.IsOptedOut(CommOptOutMode.Text, CommOptOutType.Statements))
             {
-                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, Lans.g("FormBilling", "Patient is opted out of automated messaging."));
+                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, "Patient is opted out of automated messaging.");
                 continue;
             }
 
-            Patient patient = listPatients.Find(x => x.PatNum == statement.PatNum) ?? Patients.GetPat(statement.PatNum);
+            var patient = listPatients.Find(x => x.PatNum == statement.PatNum) ?? Patients.GetPat(statement.PatNum);
             if (patient == null)
             {
-                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, Lans.g("FormBilling", "Unable to find patient"));
+                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, "Unable to find patient");
                 continue;
             }
 
-            SmsToMobile textToSend = new SmsToMobile();
-            textToSend.ClinicNum = patient.ClinicNum;
-            textToSend.GuidMessage = Guid.NewGuid().ToString();
-            textToSend.IsTimeSensitive = false;
-            textToSend.MobilePhoneNumber = patComm.SmsPhone;
-            textToSend.PatNum = statement.PatNum;
+            var textToSend = new SmsToMobile
+            {
+                ClinicNum = patient.ClinicNum,
+                GuidMessage = Guid.NewGuid().ToString(),
+                IsTimeSensitive = false,
+                MobilePhoneNumber = patComm.SmsPhone,
+                PatNum = statement.PatNum
+            };
             try
             {
                 textToSend.MsgText = new MsgToPayTagReplacer().ReplaceTagsForStatement(PrefC.GetString(PrefName.BillingDefaultsSmsTemplate), patient, statement);
             }
             catch (Exception e)
             {
-                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, Lans.g("FormBilling", "Failed to format text message correctly") + ": " + e.Message);
+                sendStatementsIO.AddSkippedPatient(statement.PatNum, SkipReason.BadSmsSetup, "Failed to format text message correctly: " + e.Message);
                 continue;
             }
 
@@ -790,20 +779,20 @@ public class BillingL
 
         try
         {
-            sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Sending text messages") + "...");
-            List<SmsToMobile> listSmsToMobiles = SmsToMobiles.SendSmsMany(listTextsToSend, userod: Security.CurUser);
-            List<SmsToMobile> listSmsToMobilesFails = Statements.HandleSmsSent(listSmsToMobiles, sendStatementsIO.CurStatementBatch.ListStatements);
-            for (int i = 0; i < listSmsToMobilesFails.Count; ++i)
+            sendStatementsIO.FireTextMsgProgress("Sending text messages...");
+            var listSmsToMobiles = SmsToMobiles.SendSmsMany(listTextsToSend, userod: Security.CurUser);
+            var listSmsToMobilesFails = Statements.HandleSmsSent(listSmsToMobiles, sendStatementsIO.CurStatementBatch.ListStatements);
+            for (var i = 0; i < listSmsToMobilesFails.Count; ++i)
             {
-                sendStatementsIO.AddSkippedPatient(listSmsToMobilesFails[i].PatNum, SkipReason.BadSmsSetup, Lans.g("Statements", "Error Sending text messages") + ": " + listSmsToMobilesFails[i].CustErrorText);
+                sendStatementsIO.AddSkippedPatient(listSmsToMobilesFails[i].PatNum, SkipReason.BadSmsSetup, "Error Sending text messages: " + listSmsToMobilesFails[i].CustErrorText);
             }
 
             sendStatementsIO.CountStatmentsSentPayPortalText += listSmsToMobiles.Where(x => x.SmsStatus != SmsDeliveryStatus.FailNoCharge).Count();
         }
         catch (Exception ex)
         {
-            sendStatementsIO.AppendMiscSystemError(Lans.g("FormBilling", "Error Sending text messages") + ": " + ex.ToString());
-            List<long> listFailedStatementNums = sendStatementsIO.CurStatementBatch.ListStatements
+            sendStatementsIO.AppendMiscSystemError("Error Sending text messages: " + ex);
+            var listFailedStatementNums = sendStatementsIO.CurStatementBatch.ListStatements
                 //Statement.TagOD was set to SmsToMobile.GuidMessage above. Match all of those back here so we can fail them all.
                 .FindAll(x => x.TagOD is string guidMessage && listTextsToSend.Any(y => y.GuidMessage == guidMessage))
                 .Select(x => x.StatementNum).ToList();
@@ -816,14 +805,14 @@ public class BillingL
     public static bool BillingProgressPause(SendStatementsIO sendStatementsIO)
     {
         sendStatementsIO.ListStatementNumsToSkipAfterPause = [];
-        bool hasEventFired = false;
+        var hasEventFired = false;
         //Pause until resume.
         while (sendStatementsIO.FunctGetIsPaused())
         {
             if (!hasEventFired)
             {
                 //Don't fire this event more than once.
-                sendStatementsIO.FireTextMsgProgress(Lans.g("FormBilling", "Warning"), isWarningOffEvent: true);
+                sendStatementsIO.FireTextMsgProgress("Warning", isWarningOffEvent: true);
                 hasEventFired = true;
             }
 
@@ -832,10 +821,10 @@ public class BillingL
             if (!sendStatementsIO.FunctGetIsPaused())
             {
                 //Get remaining statements given original constraints from UI.
-                DataTable table = sendStatementsIO.FuncGetBillingDataTable();
-                List<long> listStatementNumsFromDb = table.Select().Select(x => SIn.Long(x["StatementNum"].ToString())).ToList();
+                var table = sendStatementsIO.FuncGetBillingDataTable();
+                var listStatementNumsFromDb = table.Select().Select(x => SIn.Long(x["StatementNum"].ToString())).ToList();
                 //Get statement nums yet to be sent from original run.
-                List<long> listStatementNumsUnsent = sendStatementsIO.ListStatementNumsToSend.Except(sendStatementsIO.ListStatementNumsSent).ToList();
+                var listStatementNumsUnsent = sendStatementsIO.ListStatementNumsToSend.Except(sendStatementsIO.ListStatementNumsSent).ToList();
                 //Capture any statements that were deleted while this billing progress was paused.
                 sendStatementsIO.ListStatementNumsToSkipAfterPause = listStatementNumsUnsent.Except(listStatementNumsFromDb).ToList();
             }
@@ -858,9 +847,9 @@ public class BillingL
 
     public static bool RunAgingEnterprise(SendStatementsIO sendStatementsIO)
     {
-        DateTime dateTimeNow = MiscData.GetNowDateTime();
-        DateTime dateTimeToday = dateTimeNow.Date;
-        DateTime dateTimeLastAging = PrefC.GetDate(PrefName.DateLastAging);
+        var dateTimeNow = MiscData.GetNowDateTime();
+        var dateTimeToday = dateTimeNow.Date;
+        var dateTimeLastAging = PrefC.GetDate(PrefName.DateLastAging);
         if (dateTimeLastAging.Date == dateTimeToday)
         {
             return true; //already ran aging for this date, just move on
@@ -869,10 +858,12 @@ public class BillingL
         Prefs.RefreshCache();
         if (!PrefC.IsAgingAllowedToStart())
         {
-            string prompt = Lans.g("FormBilling", "In order to print or send statments, aging must be re-calculated, but you cannot run aging until it has "
-                                                  + "finished the current calculations which began on") + " " + PrefC.GetDateT(PrefName.AgingBeginDateTime).ToString() + ".\r\n" + Lans.g("FormBilling", "If you believe the current "
-                                                                                                                                                                                                         + "aging process has finished, a user with SecurityAdmin permission can manually clear the date and time by going to Setup | Preferences | Account - General "
-                                                                                                                                                                                                         + "and pressing the 'Clear' button.");
+            var prompt =
+                "In order to print or send statments, aging must be re-calculated, but you cannot run aging until it has " +
+                "finished the current calculations which began on" + " " + PrefC.GetDateT(PrefName.AgingBeginDateTime) + ".\r\n" +
+                "If you believe the current " +
+                "aging process has finished, a user with SecurityAdmin permission can manually clear the date and time by going to Setup | Preferences | Account - General " +
+                "and pressing the 'Clear' button.";
             sendStatementsIO.ActionPrompt(prompt, false);
             return false;
         }
@@ -880,8 +871,8 @@ public class BillingL
         SecurityLogs.MakeLogEntry(EnumPermType.AgingRan, 0, "Starting Aging - " + sendStatementsIO.Source);
         Prefs.UpdateString(PrefName.AgingBeginDateTime, SOut.DateTime(dateTimeNow, false)); //get lock on pref to block others
         Signalods.SetInvalid(InvalidType.Prefs); //signal a cache refresh so other computers will have the updated pref as quickly as possible
-        sendStatementsIO.LogWrite(Lans.g("FormBilling", "Calculating enterprise aging for all patients as of") + " " + dateTimeToday.ToShortDateString() + "...", LogLevel.Information);
-        bool ret = sendStatementsIO.FuncComputeAging(dateTimeToday);
+        sendStatementsIO.LogWrite("Calculating enterprise aging for all patients as of " + dateTimeToday.ToShortDateString() + "...", LogLevel.Information);
+        var ret = sendStatementsIO.FuncComputeAging(dateTimeToday);
         Prefs.UpdateString(PrefName.AgingBeginDateTime, ""); //clear lock on pref whether aging was successful or not
         if (ret)
         {
@@ -894,7 +885,7 @@ public class BillingL
         return ret;
     }
 }
-    
+
 public enum SkipReason
 {
     BadEmailAddress,
@@ -919,11 +910,11 @@ public class SendStatementsIO
     public List<long> ListStatementNumsToSend = [];
 
     ///<summary>Use for logging.</summary>
-    public LogWriter LogWriter = null;
+    public readonly LogWriter LogWriter = null;
 
     ///<summary>ODService will not allow user to select xml file for e-bill generation. Default folder for e-billing type must exist or billing will fail.
     ///True by default.</summary>
-    public bool AllowXmlFileSelection = true;
+    public const bool AllowXmlFileSelection = true;
 
     ///<summary>Used for aging security logs. This Source will print to SecurityLog.LogText.</summary>
     public string Source = "Undefined";
@@ -1102,7 +1093,7 @@ public class SendStatementsIO
         }
 
         //Directory did not exist, force user to choose a valid path.
-        ChooseSaveFile chooseSaveFile = FuncChooseSaveFile(initialSaveDirectory);
+        var chooseSaveFile = FuncChooseSaveFile(initialSaveDirectory);
         if (!chooseSaveFile.IsSelectionOk)
         {
             //To remember that the user canceled the first time through.  User only needs to cancel once to cancel all batches.
@@ -1119,10 +1110,12 @@ public class SendStatementsIO
     ///<summary>Adds a patient and reason to ListSkippedPatients when a patient statement cannot be processed.</summary>
     public void AddSkippedPatient(long patNum, SkipReason skipReason, string error)
     {
-        SendStatementsSkipped sendStatementsSkipped = new SendStatementsSkipped();
-        sendStatementsSkipped.PatNum = patNum;
-        sendStatementsSkipped.Reason = skipReason;
-        sendStatementsSkipped.Error = error;
+        var sendStatementsSkipped = new SendStatementsSkipped
+        {
+            PatNum = patNum,
+            Reason = skipReason,
+            Error = error
+        };
         ListSkippedPatients.Add(sendStatementsSkipped);
     }
 
@@ -1130,14 +1123,16 @@ public class SendStatementsIO
     ///This method will append to that error or create it where necessary.</summary>
     public void AppendMiscSystemError(string error)
     {
-        SendStatementsSkipped sendStatementsSkipped = ListSkippedPatients.Find(x => x.PatNum == 0 && x.Reason == SkipReason.Misc);
+        var sendStatementsSkipped = ListSkippedPatients.Find(x => x.PatNum == 0 && x.Reason == SkipReason.Misc);
         if (sendStatementsSkipped == null)
         {
             //Insert new item.
-            sendStatementsSkipped = new SendStatementsSkipped();
-            sendStatementsSkipped.PatNum = 0;
-            sendStatementsSkipped.Reason = SkipReason.Misc;
-            sendStatementsSkipped.Error = error;
+            sendStatementsSkipped = new SendStatementsSkipped
+            {
+                PatNum = 0,
+                Reason = SkipReason.Misc,
+                Error = error
+            };
             ListSkippedPatients.Add(sendStatementsSkipped);
         }
         else if (!sendStatementsSkipped.Error.Contains(error))
@@ -1160,7 +1155,7 @@ public class SendStatementsIO
                 tagString: "1")));
         ActionProgressEvent?.Invoke(new ODEventArgs(ODEventType.Billing,
             new ProgressBarHelper(
-                labelValue: Lans.g(this, "Batch") + "\r\n" + CurStatementBatch.BatchNum + " / " + ListStatementBatches.Count,
+                labelValue: Lans.g("Batch") + "\r\n" + CurStatementBatch.BatchNum + " / " + ListStatementBatches.Count,
                 percentValue: Math.Ceiling(((double) CurStatementBatch.CountStatementsProcessed / CurStatementBatch.ListStatements.Count) * 100) + "%",
                 blockValue: CurStatementBatch.CountStatementsProcessed,
                 blockMax: CurStatementBatch.ListStatements.Count,
@@ -1186,7 +1181,7 @@ public class SendStatementsIO
     public void FirePdfProgress(int pageIndex, int totalPageCount)
     {
         //Start with 15% base and add percentage of pages complete.
-        int percentComplete = ((pageIndex / totalPageCount) * 85) + 15;
+        var percentComplete = ((pageIndex / totalPageCount) * 85) + 15;
         ActionProgressEvent?.Invoke(new ODEventArgs(ODEventType.Billing,
             new ProgressBarHelper(
                 labelValue: Lans.g("FormBilling", "Statement") + "\r\n" + CurStatementIdx + " / " + ListStatementNumsToSend.Count,
@@ -1206,7 +1201,7 @@ public class SendStatementsIO
     ///<summary>Helper method to log message to logger file for Statement action type.</summary>
     public void LogWrite(string logMsg, LogLevel logLevel)
     {
-        LogWriter?.WriteLine(logMsg, logLevel, "Statements");
+        LogWriter?.WriteLine(logMsg, logLevel);
     }
 
     #endregion

@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness {

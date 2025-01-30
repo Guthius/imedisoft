@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -86,11 +87,11 @@ namespace OpenDental {
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
 			GridColumn col;
-			col=new GridColumn(Lang.g("TableProviders","Abbrev"),80);
+			col=new GridColumn("Abbrev",80);
 			gridMain.Columns.Add(col);
-			col=new GridColumn(Lang.g("TableProviders","LName"),100);
+			col=new GridColumn("LName",100);
 			gridMain.Columns.Add(col);
-			col=new GridColumn(Lang.g("TableProviders","FName"),100);
+			col=new GridColumn("FName",100);
 			gridMain.Columns.Add(col);
 			gridMain.ListGridRows.Clear();
 			GridRow row;

@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PatientNoteCrud
 {
@@ -109,23 +111,23 @@ public class PatientNoteCrud
                                + "'" + SOut.String(patientNote.ICEPhone) + "',"
                                + SOut.Int(patientNote.OrthoMonthsTreatOverride) + ","
                                + SOut.Date(patientNote.DateOrthoPlacementOverride) + ","
-                               + DbHelper.Now() + ","
+                               + "NOW()" + ","
                                //SecDateTEdit can only be set by MySQL
                                + SOut.Int((int) patientNote.Consent) + ","
                                + SOut.Long(patientNote.UserNumOrthoLocked) + ","
                                + SOut.Int((int) patientNote.Pronoun) + ")";
         if (patientNote.FamFinancial == null) patientNote.FamFinancial = "";
-        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", OdDbType.Text, SOut.StringNote(patientNote.FamFinancial));
+        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", SOut.StringNote(patientNote.FamFinancial));
         if (patientNote.ApptPhone == null) patientNote.ApptPhone = "";
-        var paramApptPhone = new OdSqlParameter("paramApptPhone", OdDbType.Text, SOut.StringParam(patientNote.ApptPhone));
+        var paramApptPhone = new OdSqlParameter("paramApptPhone", SOut.StringParam(patientNote.ApptPhone));
         if (patientNote.Medical == null) patientNote.Medical = "";
-        var paramMedical = new OdSqlParameter("paramMedical", OdDbType.Text, SOut.StringNote(patientNote.Medical));
+        var paramMedical = new OdSqlParameter("paramMedical", SOut.StringNote(patientNote.Medical));
         if (patientNote.Service == null) patientNote.Service = "";
-        var paramService = new OdSqlParameter("paramService", OdDbType.Text, SOut.StringNote(patientNote.Service));
+        var paramService = new OdSqlParameter("paramService", SOut.StringNote(patientNote.Service));
         if (patientNote.MedicalComp == null) patientNote.MedicalComp = "";
-        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", OdDbType.Text, SOut.StringNote(patientNote.MedicalComp));
+        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", SOut.StringNote(patientNote.MedicalComp));
         if (patientNote.Treatment == null) patientNote.Treatment = "";
-        var paramTreatment = new OdSqlParameter("paramTreatment", OdDbType.Text, SOut.StringNote(patientNote.Treatment));
+        var paramTreatment = new OdSqlParameter("paramTreatment", SOut.StringNote(patientNote.Treatment));
         {
             patientNote.PatNum = Db.NonQ(command, true, "PatNum", "patientNote", paramFamFinancial, paramApptPhone, paramMedical, paramService, paramMedicalComp, paramTreatment);
         }
@@ -155,23 +157,23 @@ public class PatientNoteCrud
                                + "'" + SOut.String(patientNote.ICEPhone) + "',"
                                + SOut.Int(patientNote.OrthoMonthsTreatOverride) + ","
                                + SOut.Date(patientNote.DateOrthoPlacementOverride) + ","
-                               + DbHelper.Now() + ","
+                               + "NOW()" + ","
                                //SecDateTEdit can only be set by MySQL
                                + SOut.Int((int) patientNote.Consent) + ","
                                + SOut.Long(patientNote.UserNumOrthoLocked) + ","
                                + SOut.Int((int) patientNote.Pronoun) + ")";
         if (patientNote.FamFinancial == null) patientNote.FamFinancial = "";
-        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", OdDbType.Text, SOut.StringNote(patientNote.FamFinancial));
+        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", SOut.StringNote(patientNote.FamFinancial));
         if (patientNote.ApptPhone == null) patientNote.ApptPhone = "";
-        var paramApptPhone = new OdSqlParameter("paramApptPhone", OdDbType.Text, SOut.StringParam(patientNote.ApptPhone));
+        var paramApptPhone = new OdSqlParameter("paramApptPhone", SOut.StringParam(patientNote.ApptPhone));
         if (patientNote.Medical == null) patientNote.Medical = "";
-        var paramMedical = new OdSqlParameter("paramMedical", OdDbType.Text, SOut.StringNote(patientNote.Medical));
+        var paramMedical = new OdSqlParameter("paramMedical", SOut.StringNote(patientNote.Medical));
         if (patientNote.Service == null) patientNote.Service = "";
-        var paramService = new OdSqlParameter("paramService", OdDbType.Text, SOut.StringNote(patientNote.Service));
+        var paramService = new OdSqlParameter("paramService", SOut.StringNote(patientNote.Service));
         if (patientNote.MedicalComp == null) patientNote.MedicalComp = "";
-        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", OdDbType.Text, SOut.StringNote(patientNote.MedicalComp));
+        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", SOut.StringNote(patientNote.MedicalComp));
         if (patientNote.Treatment == null) patientNote.Treatment = "";
-        var paramTreatment = new OdSqlParameter("paramTreatment", OdDbType.Text, SOut.StringNote(patientNote.Treatment));
+        var paramTreatment = new OdSqlParameter("paramTreatment", SOut.StringNote(patientNote.Treatment));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramFamFinancial, paramApptPhone, paramMedical, paramService, paramMedicalComp, paramTreatment);
         else
@@ -199,17 +201,17 @@ public class PatientNoteCrud
                       + "Pronoun                   =  " + SOut.Int((int) patientNote.Pronoun) + " "
                       + "WHERE PatNum = " + SOut.Long(patientNote.PatNum);
         if (patientNote.FamFinancial == null) patientNote.FamFinancial = "";
-        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", OdDbType.Text, SOut.StringNote(patientNote.FamFinancial));
+        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", SOut.StringNote(patientNote.FamFinancial));
         if (patientNote.ApptPhone == null) patientNote.ApptPhone = "";
-        var paramApptPhone = new OdSqlParameter("paramApptPhone", OdDbType.Text, SOut.StringParam(patientNote.ApptPhone));
+        var paramApptPhone = new OdSqlParameter("paramApptPhone", SOut.StringParam(patientNote.ApptPhone));
         if (patientNote.Medical == null) patientNote.Medical = "";
-        var paramMedical = new OdSqlParameter("paramMedical", OdDbType.Text, SOut.StringNote(patientNote.Medical));
+        var paramMedical = new OdSqlParameter("paramMedical", SOut.StringNote(patientNote.Medical));
         if (patientNote.Service == null) patientNote.Service = "";
-        var paramService = new OdSqlParameter("paramService", OdDbType.Text, SOut.StringNote(patientNote.Service));
+        var paramService = new OdSqlParameter("paramService", SOut.StringNote(patientNote.Service));
         if (patientNote.MedicalComp == null) patientNote.MedicalComp = "";
-        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", OdDbType.Text, SOut.StringNote(patientNote.MedicalComp));
+        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", SOut.StringNote(patientNote.MedicalComp));
         if (patientNote.Treatment == null) patientNote.Treatment = "";
-        var paramTreatment = new OdSqlParameter("paramTreatment", OdDbType.Text, SOut.StringNote(patientNote.Treatment));
+        var paramTreatment = new OdSqlParameter("paramTreatment", SOut.StringNote(patientNote.Treatment));
         Db.NonQ(command, paramFamFinancial, paramApptPhone, paramMedical, paramService, paramMedicalComp, paramTreatment);
     }
 
@@ -293,17 +295,17 @@ public class PatientNoteCrud
 
         if (command == "") return false;
         if (patientNote.FamFinancial == null) patientNote.FamFinancial = "";
-        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", OdDbType.Text, SOut.StringNote(patientNote.FamFinancial));
+        var paramFamFinancial = new OdSqlParameter("paramFamFinancial", SOut.StringNote(patientNote.FamFinancial));
         if (patientNote.ApptPhone == null) patientNote.ApptPhone = "";
-        var paramApptPhone = new OdSqlParameter("paramApptPhone", OdDbType.Text, SOut.StringParam(patientNote.ApptPhone));
+        var paramApptPhone = new OdSqlParameter("paramApptPhone", SOut.StringParam(patientNote.ApptPhone));
         if (patientNote.Medical == null) patientNote.Medical = "";
-        var paramMedical = new OdSqlParameter("paramMedical", OdDbType.Text, SOut.StringNote(patientNote.Medical));
+        var paramMedical = new OdSqlParameter("paramMedical", SOut.StringNote(patientNote.Medical));
         if (patientNote.Service == null) patientNote.Service = "";
-        var paramService = new OdSqlParameter("paramService", OdDbType.Text, SOut.StringNote(patientNote.Service));
+        var paramService = new OdSqlParameter("paramService", SOut.StringNote(patientNote.Service));
         if (patientNote.MedicalComp == null) patientNote.MedicalComp = "";
-        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", OdDbType.Text, SOut.StringNote(patientNote.MedicalComp));
+        var paramMedicalComp = new OdSqlParameter("paramMedicalComp", SOut.StringNote(patientNote.MedicalComp));
         if (patientNote.Treatment == null) patientNote.Treatment = "";
-        var paramTreatment = new OdSqlParameter("paramTreatment", OdDbType.Text, SOut.StringNote(patientNote.Treatment));
+        var paramTreatment = new OdSqlParameter("paramTreatment", SOut.StringNote(patientNote.Treatment));
         command = "UPDATE patientnote SET " + command
                                             + " WHERE PatNum = " + SOut.Long(patientNote.PatNum);
         Db.NonQ(command, paramFamFinancial, paramApptPhone, paramMedical, paramService, paramMedicalComp, paramTreatment);

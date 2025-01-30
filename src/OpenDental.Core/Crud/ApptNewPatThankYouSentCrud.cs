@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ApptNewPatThankYouSentCrud
 {
@@ -49,7 +51,7 @@ public class ApptNewPatThankYouSentCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(apptNewPatThankYouSent.MessageFk));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.DateTime(apptNewPatThankYouSent.DateTimeSent));
             sbRow.Append(",");

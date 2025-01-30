@@ -1,53 +1,52 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace OpenDental.Graph.Base
+namespace OpenDental.Graph.Base;
+
+public partial class GroupingOptionsCtrl : UserControl
 {
-    public partial class GroupingOptionsCtrl : UserControl
+    public event EventHandler InputsChanged;
+
+    public enum Grouping
     {
-        public event EventHandler InputsChanged;
+        Provider,
+        Clinic
+    }
 
-        public enum Grouping
+    public Grouping CurGrouping
+    {
+        get => radioGroupProvs.Checked ? Grouping.Provider : Grouping.Clinic;
+        set
         {
-            Provider,
-            Clinic
-        }
-
-        public Grouping CurGrouping
-        {
-            get => radioGroupProvs.Checked ? Grouping.Provider : Grouping.Clinic;
-            set
+            switch (value)
             {
-                switch (value)
-                {
-                    case Grouping.Provider:
-                        radioGroupProvs.Checked = true;
-                        break;
-                    case Grouping.Clinic:
-                        radioGroupClinics.Checked = true;
-                        break;
-                }
+                case Grouping.Provider:
+                    radioGroupProvs.Checked = true;
+                    break;
+                case Grouping.Clinic:
+                    radioGroupClinics.Checked = true;
+                    break;
             }
         }
+    }
 
-        public GroupingOptionsCtrl()
+    public GroupingOptionsCtrl()
+    {
+        InitializeComponent();
+    }
+
+    protected void OnBaseInputsChanged()
+    {
+        InputsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RadioGroupByChanged(object sender, EventArgs e)
+    {
+        if (sender is RadioButton {Checked: false})
         {
-            InitializeComponent();
+            return;
         }
 
-        protected void OnBaseInputsChanged()
-        {
-            InputsChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void RadioGroupByChanged(object sender, EventArgs e)
-        {
-            if (sender is RadioButton {Checked: false})
-            {
-                return;
-            }
-
-            OnBaseInputsChanged();
-        }
+        OnBaseInputsChanged();
     }
 }

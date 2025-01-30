@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EbillCrud
 {
-    public static Ebill SelectOne(long ebillNum)
-    {
-        var command = "SELECT * FROM ebill "
-                      + "WHERE EbillNum = " + SOut.Long(ebillNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static Ebill SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<Ebill> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -71,11 +53,6 @@ public class EbillCrud
 
     public static long Insert(Ebill ebill)
     {
-        return Insert(ebill, false);
-    }
-
-    public static long Insert(Ebill ebill, bool useExistingPK)
-    {
         var command = "INSERT INTO ebill (";
 
         command += "ClinicNum,ClientAcctNumber,ElectUserName,ElectPassword,PracticeAddress,RemitAddress) VALUES(";
@@ -91,45 +68,6 @@ public class EbillCrud
             ebill.EbillNum = Db.NonQ(command, true, "EbillNum", "ebill");
         }
         return ebill.EbillNum;
-    }
-
-    public static long InsertNoCache(Ebill ebill)
-    {
-        return InsertNoCache(ebill, false);
-    }
-
-    public static long InsertNoCache(Ebill ebill, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO ebill (";
-        if (isRandomKeys || useExistingPK) command += "EbillNum,";
-        command += "ClinicNum,ClientAcctNumber,ElectUserName,ElectPassword,PracticeAddress,RemitAddress) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(ebill.EbillNum) + ",";
-        command +=
-            SOut.Long(ebill.ClinicNum) + ","
-                                       + "'" + SOut.String(ebill.ClientAcctNumber) + "',"
-                                       + "'" + SOut.String(ebill.ElectUserName) + "',"
-                                       + "'" + SOut.String(ebill.ElectPassword) + "',"
-                                       + SOut.Int((int) ebill.PracticeAddress) + ","
-                                       + SOut.Int((int) ebill.RemitAddress) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            ebill.EbillNum = Db.NonQ(command, true, "EbillNum", "ebill");
-        return ebill.EbillNum;
-    }
-
-    public static void Update(Ebill ebill)
-    {
-        var command = "UPDATE ebill SET "
-                      + "ClinicNum       =  " + SOut.Long(ebill.ClinicNum) + ", "
-                      + "ClientAcctNumber= '" + SOut.String(ebill.ClientAcctNumber) + "', "
-                      + "ElectUserName   = '" + SOut.String(ebill.ElectUserName) + "', "
-                      + "ElectPassword   = '" + SOut.String(ebill.ElectPassword) + "', "
-                      + "PracticeAddress =  " + SOut.Int((int) ebill.PracticeAddress) + ", "
-                      + "RemitAddress    =  " + SOut.Int((int) ebill.RemitAddress) + " "
-                      + "WHERE EbillNum = " + SOut.Long(ebill.EbillNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(Ebill ebill, Ebill oldEbill)
@@ -176,24 +114,6 @@ public class EbillCrud
                                       + " WHERE EbillNum = " + SOut.Long(ebill.EbillNum);
         Db.NonQ(command);
         return true;
-    }
-
-    public static bool UpdateComparison(Ebill ebill, Ebill oldEbill)
-    {
-        if (ebill.ClinicNum != oldEbill.ClinicNum) return true;
-        if (ebill.ClientAcctNumber != oldEbill.ClientAcctNumber) return true;
-        if (ebill.ElectUserName != oldEbill.ElectUserName) return true;
-        if (ebill.ElectPassword != oldEbill.ElectPassword) return true;
-        if (ebill.PracticeAddress != oldEbill.PracticeAddress) return true;
-        if (ebill.RemitAddress != oldEbill.RemitAddress) return true;
-        return false;
-    }
-
-    public static void Delete(long ebillNum)
-    {
-        var command = "DELETE FROM ebill "
-                      + "WHERE EbillNum = " + SOut.Long(ebillNum);
-        Db.NonQ(command);
     }
 
     public static void DeleteMany(List<long> listEbillNums)

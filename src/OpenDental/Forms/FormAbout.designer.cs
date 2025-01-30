@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental{
+namespace OpenDental.Forms{
 	public partial class FormAbout {
 		/// <summary>
 		/// Required designer variable.
@@ -96,7 +88,7 @@ namespace OpenDental{
 			this.butLicense.Size = new System.Drawing.Size(88, 25);
 			this.butLicense.TabIndex = 50;
 			this.butLicense.Text = "View Licenses";
-			this.butLicense.Click += new System.EventHandler(this.butLicense_Click);
+			this.butLicense.Click += new System.EventHandler(this.ButtonLicense_Click);
 			// 
 			// label9
 			// 
@@ -203,7 +195,7 @@ namespace OpenDental{
 			this.butDiagnostics.Size = new System.Drawing.Size(88, 25);
 			this.butDiagnostics.TabIndex = 59;
 			this.butDiagnostics.Text = "Diagnostics";
-			this.butDiagnostics.Click += new System.EventHandler(this.butDiagnostics_Click);
+			this.butDiagnostics.Click += new System.EventHandler(this.ButtonDiagnostics_Click);
 			// 
 			// labelMariaDBCopyright
 			// 

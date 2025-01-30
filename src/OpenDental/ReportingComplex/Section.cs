@@ -1,28 +1,21 @@
-namespace OpenDental.ReportingComplex
+namespace OpenDental.ReportingComplex;
+
+public class Section(AreaSectionType type, int height)
 {
-    public class Section
-    {
-        public Section(AreaSectionType type, int height)
-        {
-            SectionType = type;
-            Height = height;
-        }
+    public int Height { get; set; } = height;
+    public AreaSectionType SectionType { get; } = type;
+}
 
-        public int Height { get; set; }
-        public AreaSectionType SectionType { get; }
-    }
-
-    public enum AreaSectionType
-    {
-        None,
-        ReportHeader,
-        PageHeader,
-        GroupTitle,
-        GroupHeader,
-        Detail,
-        GroupFooter,
-        PageFooter,
-        ReportFooter,
-        Query
-    }
+public enum AreaSectionType
+{
+    None,
+    ReportHeader,
+    PageHeader,
+    GroupTitle,
+    GroupHeader,
+    Detail,
+    GroupFooter,
+    PageFooter,
+    ReportFooter,
+    Query
 }

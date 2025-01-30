@@ -1,60 +1,59 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public class ClaimTrackings
 {
-    public static List<ClaimTracking> RefreshForUsers(ClaimTrackingType claimTrackingType, List<long> listUserNums)
+    public static List<ClaimTracking> RefreshForUsers(ClaimTrackingType claimTrackingType, List<long> userNums)
     {
-        if (listUserNums == null || listUserNums.Count == 0) return new List<ClaimTracking>();
+        if (userNums == null || userNums.Count == 0)
+        {
+            return [];
+        }
 
-        var command = "SELECT * FROM claimtracking WHERE TrackingType='" + SOut.String(claimTrackingType.ToString()) + "' "
-                      + "AND UserNum IN (" + string.Join(",", listUserNums) + ")";
-        return ClaimTrackingCrud.SelectMany(command);
+        return ClaimTrackingCrud.SelectMany("SELECT * FROM claimtracking WHERE TrackingType='" + claimTrackingType + "' AND UserNum IN (" + string.Join(",", userNums) + ")");
     }
 
     public static List<ClaimTracking> RefreshForClaim(ClaimTrackingType claimTrackingType, long claimNum)
     {
-        if (claimNum == 0) return new List<ClaimTracking>();
-
-        var command = "SELECT * FROM claimtracking WHERE TrackingType='" + SOut.String(claimTrackingType.ToString()) + "' "
-                      + "AND ClaimNum=" + SOut.Long(claimNum);
-        return ClaimTrackingCrud.SelectMany(command);
+        return claimNum == 0 ? [] : ClaimTrackingCrud.SelectMany("SELECT * FROM claimtracking WHERE TrackingType='" + claimTrackingType + "' AND ClaimNum=" + claimNum);
     }
 
     public static List<ClaimTracking> GetForClaim(long claimNum)
     {
-        if (claimNum == 0) return new List<ClaimTracking>();
-
-        var command = "SELECT * FROM claimtracking WHERE ClaimNum=" + SOut.Long(claimNum);
-        return ClaimTrackingCrud.SelectMany(command);
+        return claimNum == 0 ? [] : ClaimTrackingCrud.SelectMany("SELECT * FROM claimtracking WHERE ClaimNum=" + claimNum);
     }
 
-    public static long Insert(ClaimTracking claimTracking)
+    public static void Insert(ClaimTracking claimTracking)
     {
-        return ClaimTrackingCrud.Insert(claimTracking);
+        ClaimTrackingCrud.Insert(claimTracking);
     }
 
-    public static long InsertClaimProcReceived(long claimNum, long userNum, string note = "")
+    public static void InsertClaimProcReceived(long claimNum, long userNum, string note = "")
     {
-        var command = "SELECT COUNT(*) FROM claimtracking WHERE TrackingType='" + SOut.String(ClaimTrackingType.ClaimProcReceived.ToString())
-                                                                                + "' AND ClaimNum=" + SOut.Long(claimNum) + " AND UserNum='" + userNum + "'";
-        if (Db.GetCount(command) != "0") return 0; //Do nothing.
-
-        var claimTracking = new ClaimTracking
+        var commandText = 
+            "SELECT COUNT(*) FROM claimtracking " +
+            "WHERE TrackingType='" + ClaimTrackingType.ClaimProcReceived + "' " +
+            "AND ClaimNum=" + claimNum + " " +
+            "AND UserNum=" + userNum;
+        
+        if (Db.GetCount(commandText) != "0")
+        {
+            return;
+        }
+        
+        ClaimTrackingCrud.Insert(new ClaimTracking
         {
             TrackingType = ClaimTrackingType.ClaimProcReceived,
             ClaimNum = claimNum,
             UserNum = userNum,
             Note = note
-        };
-
-        return ClaimTrackingCrud.Insert(claimTracking);
+        });
     }
 
     public static void Update(ClaimTracking claimTracking)
@@ -67,165 +66,84 @@ public class ClaimTrackings
         ClaimTrackingCrud.Sync(listClaimTrackings, listClaimTrackingsOld);
     }
 
-    public static void Delete(long claimTrackingNum)
+    public static List<ClaimTracking> Assign(List<Tuple<long, long>> trackingNumsAndClaimNums, long assignUserNum)
     {
-        ClaimTrackingCrud.Delete(claimTrackingNum);
-    }
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Attempts to create or update ClaimTrackings and calls sync to update the database at the end.
-    ///     Will update ClaimTracking if one has been inserted for a given claim that did not have one prior to calling this
-    ///     method.
-    ///     When called please ensure dictClaimTracking has entries.
-    /// </summary>
-    public static List<ClaimTracking> Assign(List<ODTuple<long, long>> listTrackingNumsAndClaimNums, long assignUserNum)
-    {
-        var command = "SELECT * FROM claimtracking WHERE claimtracking.TrackingType='" + SOut.String(ClaimTrackingType.ClaimUser.ToString()) + "' "
-                      + "AND claimtracking.ClaimNum IN(" + string.Join(",", listTrackingNumsAndClaimNums.Select(x => x.Item2).ToList()) + ")";
-        var listClaimTrackingsDb = ClaimTrackingCrud.SelectMany(command); //up to date copy from the database
-        var listClaimTrackingsNew = listClaimTrackingsDb.Select(x => x.Copy()).ToList();
-        foreach (Tuple<long, long> claimTrackingEntry in listTrackingNumsAndClaimNums)
+        var commandText = 
+            "SELECT * FROM claimtracking " +
+            "WHERE claimtracking.TrackingType = '" + SOut.String(ClaimTrackingType.ClaimUser.ToString()) + "' " + 
+            "AND claimtracking.ClaimNum IN (" + string.Join(",", trackingNumsAndClaimNums.Select(x => x.Item2)) + ")";
+        
+        var claimTrackingsDb = ClaimTrackingCrud.SelectMany(commandText);
+        var claimTrackingsNew = claimTrackingsDb.Select(x => x.Copy()).ToList();
+        
+        foreach (var (claimTrackingNum, claimNum) in trackingNumsAndClaimNums)
         {
-            //Item1=>claim tracking num & Item2=>claim num
             var claimTracking = new ClaimTracking();
-            if (claimTrackingEntry.Item1 == 0 //Given claim did not have an existing ClaimTracking when dictClaimTracking was constructed.
-                && !listClaimTrackingsDb.Exists(x => x.ClaimNum == claimTrackingEntry.Item2)) //DB does not contain ClaimTracking row for this claimNum.
+            switch (claimTrackingNum)
             {
-                if (assignUserNum == 0) continue;
+                case 0 when !claimTrackingsDb.Exists(x => x.ClaimNum == claimNum):
+                {
+                    if (assignUserNum == 0)
+                    {
+                        continue;
+                    }
 
-                claimTracking.UserNum = assignUserNum;
-                claimTracking.ClaimNum = claimTrackingEntry.Item2; //dict value is ClaimNum
-                claimTracking.TrackingType = ClaimTrackingType.ClaimUser;
-                listClaimTrackingsNew.Add(claimTracking);
-                continue;
+                    claimTracking.UserNum = assignUserNum;
+                    claimTracking.ClaimNum = claimNum;
+                    claimTracking.TrackingType = ClaimTrackingType.ClaimUser;
+                    claimTrackingsNew.Add(claimTracking);
+                    continue;
+                }
+                
+                case 0:
+                    claimTracking = claimTrackingsNew.FirstOrDefault(x => x.ClaimNum == claimNum);
+                    claimTracking.UserNum = assignUserNum;
+                    continue;
             }
-
-            if (claimTrackingEntry.Item1 == 0)
+            
+            claimTracking = claimTrackingsNew.FirstOrDefault(x => x.ClaimTrackingNum == claimTrackingNum);
+            if (claimTracking is null)
             {
-                //claim tracking did not originally exist but someone modified while we were here and it exists in the database now.
-                claimTracking = listClaimTrackingsNew.FirstOrDefault(x => x.ClaimNum == claimTrackingEntry.Item2);
-                claimTracking.UserNum = assignUserNum;
-                continue;
-            }
+                if (assignUserNum == 0)
+                {
+                    continue;
+                }
 
-            //claim tracking already exsisted in the db for this claim
-            claimTracking = listClaimTrackingsNew.FirstOrDefault(x => x.ClaimTrackingNum == claimTrackingEntry.Item1);
-            if (claimTracking == null)
-            {
-                //ClaimTracking existed when method called but has been removed since.
-                if (assignUserNum == 0) continue; //ClaimTracking was already removed for us.
-
-                claimTracking = new ClaimTracking();
-                claimTracking.UserNum = assignUserNum;
-                claimTracking.ClaimNum = claimTrackingEntry.Item2; //dict value is ClaimNum
-                claimTracking.TrackingType = ClaimTrackingType.ClaimUser;
-                listClaimTrackingsNew.Add(claimTracking);
+                claimTracking = new ClaimTracking
+                {
+                    UserNum = assignUserNum,
+                    ClaimNum = claimNum,
+                    TrackingType = ClaimTrackingType.ClaimUser
+                };
+                
+                claimTrackingsNew.Add(claimTracking);
             }
 
             if (assignUserNum == 0)
-                listClaimTrackingsNew.Remove(claimTracking);
+            {
+                claimTrackingsNew.Remove(claimTracking);
+            }
             else
+            {
                 claimTracking.UserNum = assignUserNum;
+            }
         }
 
-        Sync(listClaimTrackingsNew, listClaimTrackingsDb);
-        return listClaimTrackingsNew;
+        Sync(claimTrackingsNew, claimTrackingsDb);
+        
+        return claimTrackingsNew;
     }
 
-    /// <summary>
-    ///     Supplied two claims, this function will make new copies of the custom trackings for claimOrig, attach them to
-    ///     claimDest, and insert them.
-    /// </summary>
     public static void CopyToClaim(long claimOrigNum, long claimDestNum)
     {
-        var listClaimTrackings = GetForClaim(claimOrigNum).OrderByDescending(x => x.DateTimeEntry).ToList();
-        for (var i = 0; i < listClaimTrackings.Count; i++)
+        var claimTrackings = GetForClaim(claimOrigNum).OrderByDescending(x => x.DateTimeEntry).ToList();
+        
+        foreach (var claimTracking in claimTrackings)
         {
-            listClaimTrackings[i].ClaimNum = claimDestNum;
-            listClaimTrackings[i].Note = "Split claim original entry timestamp: "
-                                         + listClaimTrackings[i].DateTimeEntry + "\r\n"
-                                         + listClaimTrackings[i].Note;
-            Insert(listClaimTrackings[i]);
+            claimTracking.ClaimNum = claimDestNum;
+            claimTracking.Note = "Split claim original entry timestamp: " + claimTracking.DateTimeEntry + "\r\n" + claimTracking.Note;
+            
+            Insert(claimTracking);
         }
     }
-
-    #endregion
-
-    /*
-    //If this table type will exist as cached data, uncomment the CachePattern region below and edit.
-    #region CachePattern
-
-    private class ClaimTrackingCache : CacheListAbs<ClaimTracking> {
-        protected override List<ClaimTracking> GetCacheFromDb() {
-            string command="SELECT * FROM ClaimTracking ORDER BY ItemOrder";
-            return Crud.ClaimTrackingCrud.SelectMany(command);
-        }
-        protected override List<ClaimTracking> TableToList(DataTable table) {
-            return Crud.ClaimTrackingCrud.TableToList(table);
-        }
-        protected override ClaimTracking Copy(ClaimTracking ClaimTracking) {
-            return ClaimTracking.Clone();
-        }
-        protected override DataTable ListToTable(List<ClaimTracking> listClaimTrackings) {
-            return Crud.ClaimTrackingCrud.ListToTable(listClaimTrackings,"ClaimTracking");
-        }
-        protected override void FillCacheIfNeeded() {
-            ClaimTrackings.GetTableFromCache(false);
-        }
-        protected override bool IsInListShort(ClaimTracking ClaimTracking) {
-            return !ClaimTracking.IsHidden;
-        }
-    }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static ClaimTrackingCache _ClaimTrackingCache=new ClaimTrackingCache();
-
-    ///<summary>A list of all ClaimTrackings. Returns a deep copy.</summary>
-    public static List<ClaimTracking> ListDeep {
-        get {
-            return _ClaimTrackingCache.ListDeep;
-        }
-    }
-
-    ///<summary>A list of all visible ClaimTrackings. Returns a deep copy.</summary>
-    public static List<ClaimTracking> ListShortDeep {
-        get {
-            return _ClaimTrackingCache.ListShortDeep;
-        }
-    }
-
-    ///<summary>A list of all ClaimTrackings. Returns a shallow copy.</summary>
-    public static List<ClaimTracking> ListShallow {
-        get {
-            return _ClaimTrackingCache.ListShallow;
-        }
-    }
-
-    ///<summary>A list of all visible ClaimTrackings. Returns a shallow copy.</summary>
-    public static List<ClaimTracking> ListShort {
-        get {
-            return _ClaimTrackingCache.ListShallowShort;
-        }
-    }
-
-    ///<summary>Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's cache.</summary>
-    public static DataTable RefreshCache() {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table) {
-        _ClaimTrackingCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
-    public static DataTable GetTableFromCache(bool doRefreshCache) {
-
-        return _ClaimTrackingCache.GetTableFromCache(doRefreshCache);
-    }
-
-    #endregion
-    */
 }

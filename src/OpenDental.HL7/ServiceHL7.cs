@@ -18,6 +18,8 @@ using Tamir.SharpSsh.jsch;
 using System.Collections;
 using System.Text.RegularExpressions;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentHL7 {
 	public partial class ServiceHL7:ServiceBase {
@@ -259,15 +261,15 @@ namespace OpenDentHL7 {
 			string msgArchivePath="";
 			try {
 				if(isMedLab && true) {//only MedLab HL7 interfaces will archive inbound messages
-					msgArchivePath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"MedLabHL7");
-					msgArchiveProcessedPath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"MedLabHL7","Processed");
+					msgArchivePath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"MedLabHL7");
+					msgArchiveProcessedPath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"MedLabHL7","Processed");
 					if(!Directory.Exists(msgArchiveProcessedPath)) {
 						Directory.CreateDirectory(msgArchiveProcessedPath);
 					}
 				}
 				else if(isMedLab && false) {
-					msgArchivePath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"MedLabHL7").Replace("\\","/");
-					msgArchiveProcessedPath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"MedLabHL7","Processed").Replace("\\","/");
+					msgArchivePath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"MedLabHL7").Replace("\\","/");
+					msgArchiveProcessedPath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"MedLabHL7","Processed").Replace("\\","/");
 				}
 			}
 			catch(Exception ex) {

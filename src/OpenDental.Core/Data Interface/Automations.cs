@@ -6,25 +6,23 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Automations
 {
-    
-    public static long Insert(Automation automation)
+    public static void Insert(Automation automation)
     {
-        return AutomationCrud.Insert(automation);
+        AutomationCrud.Insert(automation);
     }
-
     
     public static void Update(Automation automation)
     {
         AutomationCrud.Update(automation);
     }
-
     
     public static void Delete(Automation automation)
     {
@@ -32,8 +30,7 @@ public class Automations
                       + " WHERE AutomationNum = " + SOut.Long(automation.AutomationNum);
         Db.NonQ(command);
     }
-
-    ///<summary>Returns true if automation happened.</summary>
+    
     public static bool Trigger<T>(
         EnumAutomationTrigger automationTrigger,
         List<string> listProcCodes,
@@ -349,41 +346,36 @@ public class Automations
                 case AutoCondField.Gender:
                     if (!GenderComparison(listAutomationConditions[i], patNum)) return false;
                     break;
-                case AutoCondField.Labresult:
-                    if (!LabresultComparison(listAutomationConditions[i], patNum)) return false;
-                    break;
                 case AutoCondField.InsuranceNotEffective:
-                    if (!InsuranceNotEffectiveComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!InsuranceNotEffectiveComparison(patNum)) return false;
                     break;
                 case AutoCondField.BillingType:
                     if (!BillingTypeComparison(listAutomationConditions[i], patNum)) return false;
                     break;
                 case AutoCondField.IsProcRequired:
                     //ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-                    if (!IsProcRequiredComparison(listAutomationConditions[i], patNum, triggerObj)) return false;
+                    if (!IsProcRequiredComparison(triggerObj)) return false;
                     break;
                 case AutoCondField.IsControlled:
                     //ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-                    if (!IsControlledComparison(listAutomationConditions[i], patNum, triggerObj)) return false;
+                    if (!IsControlledComparison(triggerObj)) return false;
                     break;
                 case AutoCondField.IsPatientInstructionPresent:
                     //ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-                    if (!IsPatientInstructionPresent(listAutomationConditions[i], patNum, triggerObj)) return false;
+                    if (!IsPatientInstructionPresent(triggerObj)) return false;
                     break;
                 case AutoCondField.PlanNum:
                     if (!PlanNumComparison(listAutomationConditions[i], patNum)) return false;
                     break;
                 case AutoCondField.ClaimContainsProcCode:
                     //ONLY TO BE USED FOR CreateClaim AND OpenClaim AUTOMATION TRIGGERS
-                    if (!DoesClaimContainProcCode(listAutomationConditions[i], patNum, triggerObj)) return false;
+                    if (!DoesClaimContainProcCode(listAutomationConditions[i], triggerObj)) return false;
                     break;
             }
 
         return true;
     }
-
-    #region Cache Pattern
-
+    
     private class AutomationCache : CacheListAbs<Automation>
     {
         protected override List<Automation> GetCacheFromDb()
@@ -412,50 +404,34 @@ public class Automations
             Automations.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly AutomationCache _automationCache = new();
+    
+    private static readonly AutomationCache Cache = new();
 
     public static List<Automation> GetDeepCopy(bool isShort = false)
     {
-        return _automationCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static Automation GetFirstOrDefault(Func<Automation, bool> match, bool isShort = false)
     {
-        return _automationCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _automationCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _automationCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _automationCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
-
-    #region Comparisons
-
+    
     private static bool NeedsSheet(AutomationCondition automationCondition, long patNum)
     {
         var listSheets = Sheets.GetForPatientForToday(patNum);
@@ -575,33 +551,7 @@ public class Automations
         }
     }
 
-    private static bool LabresultComparison(AutomationCondition automationCondition, long patNum)
-    {
-        var listLabResults = LabResults.GetAllForPatient(patNum);
-        switch (automationCondition.Comparison)
-        {
-            case AutoCondComparison.Equals:
-                for (var i = 0; i < listLabResults.Count; i++)
-                    if (listLabResults[i].TestName == automationCondition.CompareString)
-                        return true;
-
-                break;
-            case AutoCondComparison.Contains:
-                for (var i = 0; i < listLabResults.Count; i++)
-                    if (listLabResults[i].TestName.ToLower().Contains(automationCondition.CompareString.ToLower()))
-                        return true;
-
-                break;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    ///     Returns false if the insurance plan is effective.  True if today is outside of the insurance effective date
-    ///     range.
-    /// </summary>
-    private static bool InsuranceNotEffectiveComparison(AutomationCondition automationCondition, long patNum)
+    private static bool InsuranceNotEffectiveComparison(long patNum)
     {
         var patPlan = PatPlans.GetPatPlan(patNum, 1);
         if (patPlan == null) return false;
@@ -611,7 +561,6 @@ public class Automations
         return true;
     }
 
-    ///<summary>Returns true if the patient's billing type matches the autocondition billing type.</summary>
     private static bool BillingTypeComparison(AutomationCondition automationCondition, long patNum)
     {
         var patient = Patients.GetPat(patNum);
@@ -628,9 +577,7 @@ public class Automations
         }
     }
 
-    /// <summary>Returns true if the patient is a RxPat and if IsProcRequired is true</summary>
-    /// ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-    private static bool IsProcRequiredComparison<T>(AutomationCondition automationCondition, long patNum, T triggerObj)
+    private static bool IsProcRequiredComparison<T>(T triggerObj)
     {
         try
         {
@@ -643,9 +590,7 @@ public class Automations
         }
     }
 
-    /// <summary>Returns true if the patient is a RxPat and if IsControlled is true</summary>
-    /// ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-    private static bool IsControlledComparison<T>(AutomationCondition automationCondition, long patNum, T triggerObj)
+    private static bool IsControlledComparison<T>(T triggerObj)
     {
         try
         {
@@ -658,8 +603,7 @@ public class Automations
         }
     }
 
-    ///<summary>Returns true if at least one RxPat has a patient letter filled out.</summary>
-    private static bool IsPatientInstructionPresent<T>(AutomationCondition automationCondition, long patNum, T triggerObj)
+    private static bool IsPatientInstructionPresent<T>(T triggerObj)
     {
         try
         {
@@ -672,7 +616,6 @@ public class Automations
         }
     }
 
-    ///<summary>Returns true if the patient's insurance plan ID matches the autocondition PlanNum.</summary>
     private static bool PlanNumComparison(AutomationCondition automationCondition, long patNum)
     {
         var listPatPlans = PatPlans.Refresh(patNum);
@@ -688,10 +631,8 @@ public class Automations
                 return false;
         }
     }
-
-    ///<summary>Returns true if the claim contains the ProcCode supplied.</summary>
-    //ONLY TO BE USED FOR CreateClaim AND OpenClaim AUTOMATION TRIGGERS
-    private static bool DoesClaimContainProcCode<T>(AutomationCondition automationCondition, long patNum, T triggerObj)
+    
+    private static bool DoesClaimContainProcCode<T>(AutomationCondition automationCondition, T triggerObj)
     {
         try
         {
@@ -706,6 +647,4 @@ public class Automations
             return false;
         }
     }
-
-    #endregion
 }

@@ -4,14 +4,13 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class LabCases
 {
-    ///<summary>Gets a filtered list of all labcases.</summary>
     public static DataTable Refresh(DateTime dateApptStart, DateTime dateApptEnd, bool showCompleted, bool showUnattached)
     {
         var table = new DataTable();
@@ -159,10 +158,6 @@ public class LabCases
         return table;
     }
 
-    /// <summary>
-    ///     Used when drawing the appointments for a day. Send in operatory nums to limit selection, null for all, useful
-    ///     for clinic filtering.
-    /// </summary>
     public static List<LabCase> GetForPeriod(DateTime dateStart, DateTime dateEnd, List<long> listOperatoryNums)
     {
         if (listOperatoryNums != null && listOperatoryNums.Count == 0) return new List<LabCase>();
@@ -176,7 +171,6 @@ public class LabCases
         return LabCaseCrud.SelectMany(command);
     }
 
-    ///<summary>Used when drawing the planned appointment.</summary>
     public static List<LabCase> GetForPlanned(long aptNum)
     {
         var command = "SELECT * FROM labcase "
@@ -184,17 +178,12 @@ public class LabCases
         return LabCaseCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one labcase from database.</summary>
     public static LabCase GetOne(long labCaseNum)
     {
         var command = "SELECT * FROM labcase WHERE LabCaseNum=" + SOut.Long(labCaseNum);
         return LabCaseCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Gets all labcases for a patient which have not been attached to an appointment.  Usually one or none.  Only
-    ///     used when attaching a labcase from within an appointment.
-    /// </summary>
     public static List<LabCase> GetForPat(long patNum, bool isPlanned)
     {
         var command = "SELECT * FROM labcase WHERE PatNum=" + SOut.Long(patNum) + " AND ";
@@ -205,33 +194,16 @@ public class LabCases
         return LabCaseCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of labCases optionally filtered for the API. Returns an empty list if not found.</summary>
-    public static List<LabCase> GetLabCasesForApi(int limit, int offset, long patNum, long laboratoryNum, long aptNum, long plannedAptNum, long provNum)
+    public static void Insert(LabCase labCase)
     {
-        var command = "SELECT * FROM labcase WHERE DateTStamp>=" + SOut.DateTime(DateTime.MinValue) + " ";
-        if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
-        if (laboratoryNum > 0) command += "AND LaboratoryNum=" + SOut.Long(laboratoryNum) + " ";
-        if (aptNum > -1) command += "AND AptNum=" + SOut.Long(aptNum) + " ";
-        if (plannedAptNum > -1) command += "AND PlannedAptNum=" + SOut.Long(plannedAptNum) + " ";
-        if (provNum > 0) command += "AND ProvNum=" + SOut.Long(provNum) + " ";
-        command += "ORDER BY LabCaseNum " //Ensure order for limit and offset.
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return LabCaseCrud.SelectMany(command);
+        LabCaseCrud.Insert(labCase);
     }
-
-    
-    public static long Insert(LabCase labCase)
-    {
-        return LabCaseCrud.Insert(labCase);
-    }
-
     
     public static void Update(LabCase labCase)
     {
         LabCaseCrud.Update(labCase);
     }
 
-    ///<summary>Surround with try/catch.  Checks dependencies first.  Throws exception if can't delete.</summary>
     public static void Delete(long labCaseNum)
     {
         //check for dependencies
@@ -249,7 +221,6 @@ public class LabCases
         Db.NonQ(command);
     }
 
-    ///<summary>Attaches labcases to an appointment.</summary>
     public static void AttachToAppt(List<long> listLabCaseNums, long aptNum)
     {
         if (listLabCaseNums.IsNullOrEmpty()) return;
@@ -259,7 +230,6 @@ public class LabCases
         Db.NonQ(command);
     }
 
-    ///<summary>Attaches labcases to a planned appointment.</summary>
     public static void AttachToPlannedAppt(List<long> listLabCaseNums, long plannedAptNum)
     {
         if (listLabCaseNums.IsNullOrEmpty()) return;
@@ -269,17 +239,6 @@ public class LabCases
         Db.NonQ(command);
     }
 
-    ///<summary>Frequently returns null.</summary>
-    public static LabCase GetOneFromList(List<LabCase> listLabCases, long aptNum)
-    {
-        for (var i = 0; i < listLabCases.Count; i++)
-            if (listLabCases[i].AptNum == aptNum)
-                return listLabCases[i];
-
-        return null;
-    }
-
-    ///<summary>Gets labcases for an appointment. Used when creating routing slips.</summary>
     public static List<LabCase> GetForApt(long aptNum)
     {
         var command = "SELECT * FROM labcase "
@@ -287,7 +246,6 @@ public class LabCases
         return LabCaseCrud.SelectMany(command);
     }
 
-    ///<summary>Gets the labcase for an appointment.  Used in the Appointment Edit window.</summary>
     public static List<LabCase> GetForApt(Appointment appointment)
     {
         if (appointment.AptNum == 0)

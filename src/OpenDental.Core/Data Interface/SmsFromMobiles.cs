@@ -3,61 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class SmsFromMobiles
 {
-	/// <summary>
-	///     Returns the number of messages which have not yet been read.  If there are no unread messages, then empty
-	///     string is returned.  If more than 99 messages are unread, then "99" is returned.  The count limit is 99, because
-	///     only 2 digits can fit in the SMS notification text.
-	/// </summary>
-	public static string GetSmsNotification()
-    {
-        var command = "SELECT COUNT(*) FROM smsfrommobile WHERE SmsStatus=" + SOut.Int((int) SmsFromStatus.ReceivedUnread);
-        var smsUnreadCount = SIn.Int(Db.GetCount(command));
-        if (smsUnreadCount == 0) return "";
-        if (smsUnreadCount > 99) return "99";
-        return smsUnreadCount.ToString();
-    }
-
-    ///<summary>Call ProcessInboundSms instead.</summary>
-    public static long Insert(SmsFromMobile smsFromMobile)
-    {
-        return SmsFromMobileCrud.Insert(smsFromMobile);
-    }
-
-    /// <summary>
-    ///     Gets all SmsFromMobile entries that have been inserted or updated since dateStart, which should be in server
-    ///     time.
-    /// </summary>
-    public static List<SmsFromMobile> GetAllChangedSince(DateTime dateStart)
-    {
-        var command = "SELECT * from smsfrommobile WHERE SecDateTEdit >= " + SOut.DateTime(dateStart);
-        return SmsFromMobileCrud.SelectMany(command);
-    }
-
-    /// <summary>Gets all SMS incoming messages for the specified filters.</summary>
-    /// <param name="dateStart">If dateStart is 01/01/0001, then no start date will be used.</param>
-    /// <param name="dateEnd">If dateEnd is 01/01/0001, then no end date will be used.</param>
-    /// <param name="listClinicNums">Will filter by clinic only if not empty and patNum is -1.</param>
-    /// <param name="patNum">
-    ///     If patNum is not -1, then only the messages for the specified patient will be returned, otherwise messages for all
-    ///     patients will be returned.
-    /// </param>
-    /// <param name="isMessageThread">Indicates if this is a message thread.</param>
-    /// <param name="phoneNumber">The phone number to search by. Should be just the digits, no formatting.</param>
-    /// <param name="arrayStatuses">Messages with these statuses will be found. If none, all statuses will be returned.</param>
-    public static List<SmsFromMobile> GetMessages(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, long patNum,
-        bool isMessageThread, string phoneNumber, List<SmsFromStatus> listSmsFromStatuses)
+    public static List<SmsFromMobile> GetMessages(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, long patNum, bool isMessageThread, string phoneNumber, List<SmsFromStatus> listSmsFromStatuses)
     {
         var listCommandFilters = new List<string>();
-        if (dateStart > DateTime.MinValue) listCommandFilters.Add(DbHelper.DtimeToDate("DateTimeReceived") + ">=" + SOut.Date(dateStart));
-        if (dateEnd > DateTime.MinValue) listCommandFilters.Add(DbHelper.DtimeToDate("DateTimeReceived") + "<=" + SOut.Date(dateEnd));
+        if (dateStart > DateTime.MinValue) listCommandFilters.Add("DATE(DateTimeReceived)>=" + SOut.Date(dateStart));
+        if (dateEnd > DateTime.MinValue) listCommandFilters.Add("DATE(DateTimeReceived)<=" + SOut.Date(dateEnd));
         if (patNum == -1)
         {
             //Only limit clinic if not searching for a particular PatNum.
@@ -84,55 +42,11 @@ public class SmsFromMobiles
         return "";
     }
 
-    ///<summary>Updates only the changed fields of the SMS text message (if any).</summary>
-    public static bool Update(SmsFromMobile smsFromMobile, SmsFromMobile smsFromMobileOld)
+    public static void Update(SmsFromMobile smsFromMobile, SmsFromMobile smsFromMobileOld)
     {
-        return SmsFromMobileCrud.Update(smsFromMobile, smsFromMobileOld);
+        SmsFromMobileCrud.Update(smsFromMobile, smsFromMobileOld);
     }
 
-    ///<summary>Sets the status of the passed in list of SmsFromMobileNums to read.</summary>
-    public static void MarkManyAsRead(List<long> listSmsFromMobileNums)
-    {
-        if (listSmsFromMobileNums.IsNullOrEmpty()) return;
-
-        var command = "UPDATE smsfrommobile "
-                      + "SET SmsStatus=" + SOut.Enum(SmsFromStatus.ReceivedRead) + " "
-                      + "WHERE SmsFromMobileNum IN (" + string.Join(",", listSmsFromMobileNums) + ")";
-        Db.NonQ(command);
-    }
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<SmsFromMobile> Refresh(long patNum){
-
-        string command="SELECT * FROM smsfrommobile WHERE PatNum = "+POut.Long(patNum);
-        return Crud.SmsFromMobileCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one SmsFromMobile from the db.</summary>
-    public static SmsFromMobile GetOne(long smsFromMobileNum){
-
-        return Crud.SmsFromMobileCrud.SelectOne(smsFromMobileNum);
-    }
-
-
-
-    
-    public static void Update(SmsFromMobile smsFromMobile){
-
-        Crud.SmsFromMobileCrud.Update(smsFromMobile);
-    }
-
-    
-    public static void Delete(long smsFromMobileNum) {
-
-        string command= "DELETE FROM smsfrommobile WHERE SmsFromMobileNum = "+POut.Long(smsFromMobileNum);
-        Db.NonQ(command);
-    }
-    */
-
-    ///<summary>Structured data to be stored as json List in Signalod.MsgValue for InvalidType.SmsTextMsgReceivedUnreadCount.</summary>
     public class SmsNotification
     {
         [JsonProperty(PropertyName = "A")]

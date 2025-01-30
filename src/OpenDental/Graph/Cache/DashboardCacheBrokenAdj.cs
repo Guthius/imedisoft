@@ -3,55 +3,54 @@ using System.Data;
 using DataConnectionBase;
 using OpenDental.Graph.Base;
 
-namespace OpenDental.Graph.Cache
+namespace OpenDental.Graph.Cache;
+
+public class DashboardCacheBrokenAdj : DashboardCacheWithQuery<BrokenAdj>
 {
-    public class DashboardCacheBrokenAdj : DashboardCacheWithQuery<BrokenAdj>
+    protected override string GetCommand(DashboardFilter filter)
     {
-        protected override string GetCommand(DashboardFilter filter)
+        var where = "";
+        var listWhereClauses = new List<string>();
+        if (filter.UseDateFilter)
         {
-            var where = "";
-            var listWhereClauses = new List<string>();
-            if (filter.UseDateFilter)
-            {
-                listWhereClauses.Add("DATE(AdjDate) BETWEEN " + SOut.Date(filter.DateFrom) + " AND " + SOut.Date(filter.DateTo) + " ");
-            }
-
-            if (filter.UseProvFilter)
-            {
-                listWhereClauses.Add("ProvNum=" + SOut.Long(filter.ProvNum) + " ");
-            }
-
-            if (listWhereClauses.Count > 0)
-            {
-                where = "WHERE " + string.Join("AND ", listWhereClauses);
-            }
-
-            return
-                "SELECT AdjDate,ProvNum,COUNT(AdjNum) AdjCount,ClinicNum,AdjType, SUM(AdjAmt) AdjAmt "
-                + "FROM adjustment "
-                + "INNER JOIN definition ON definition.DefNum=adjustment.AdjType "
-                + "AND definition.ItemValue = '+' "
-                + where
-                + "GROUP BY AdjDate,ProvNum,ClinicNum,AdjType "
-                + "ORDER BY AdjDate,ProvNum,ClinicNum ";
+            listWhereClauses.Add("DATE(AdjDate) BETWEEN " + SOut.Date(filter.DateFrom) + " AND " + SOut.Date(filter.DateTo) + " ");
         }
 
-        protected override BrokenAdj GetInstanceFromDataRow(DataRow x)
+        if (filter.UseProvFilter)
         {
-            return new BrokenAdj
-            {
-                ProvNum = SIn.Long(x["ProvNum"].ToString()),
-                ClinicNum = SIn.Long(x["ClinicNum"].ToString()),
-                DateStamp = SIn.Date(x["AdjDate"].ToString()),
-                Val = SIn.Double(x["AdjAmt"].ToString()),
-                AdjType = SIn.Long(x["AdjType"].ToString()),
-                Count = SIn.Long(x["AdjCount"].ToString()),
-            };
+            listWhereClauses.Add("ProvNum=" + SOut.Long(filter.ProvNum) + " ");
         }
+
+        if (listWhereClauses.Count > 0)
+        {
+            where = "WHERE " + string.Join("AND ", listWhereClauses);
+        }
+
+        return
+            "SELECT AdjDate,ProvNum,COUNT(AdjNum) AdjCount,ClinicNum,AdjType, SUM(AdjAmt) AdjAmt "
+            + "FROM adjustment "
+            + "INNER JOIN definition ON definition.DefNum=adjustment.AdjType "
+            + "AND definition.ItemValue = '+' "
+            + where
+            + "GROUP BY AdjDate,ProvNum,ClinicNum,AdjType "
+            + "ORDER BY AdjDate,ProvNum,ClinicNum ";
     }
 
-    public class BrokenAdj : GraphQuantityOverTime.GraphDataPointClinic
+    protected override BrokenAdj GetInstanceFromDataRow(DataRow x)
     {
-        public long AdjType;
+        return new BrokenAdj
+        {
+            ProvNum = SIn.Long(x["ProvNum"].ToString()),
+            ClinicNum = SIn.Long(x["ClinicNum"].ToString()),
+            DateStamp = SIn.Date(x["AdjDate"].ToString()),
+            Val = SIn.Double(x["AdjAmt"].ToString()),
+            AdjType = SIn.Long(x["AdjType"].ToString()),
+            Count = SIn.Long(x["AdjCount"].ToString()),
+        };
     }
+}
+
+public class BrokenAdj : GraphQuantityOverTime.GraphDataPointClinic
+{
+    public long AdjType;
 }

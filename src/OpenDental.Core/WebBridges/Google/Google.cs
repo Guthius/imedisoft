@@ -14,6 +14,7 @@ using System.Xml;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.UI;
 
 namespace OpenDentBusiness {

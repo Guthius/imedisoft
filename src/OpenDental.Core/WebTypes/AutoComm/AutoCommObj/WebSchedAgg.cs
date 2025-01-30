@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.AutoComm;
 
@@ -86,8 +88,8 @@ public class WebSchedAgg : AutoCommObj
     {
         get
         {
-            return WebSchedRecalls.HasURLTag(MsgTextToMobileTemplate) || WebSchedRecalls.HasURLTag(EmailTextTemplate)
-                                                                      || WebSchedRecalls.HasURLTag(EmailSubjTemplate);
+            return WebSchedRecalls.HasUrlTag(MsgTextToMobileTemplate) || WebSchedRecalls.HasUrlTag(EmailTextTemplate)
+                                                                      || WebSchedRecalls.HasUrlTag(EmailSubjTemplate);
         }
     }
 

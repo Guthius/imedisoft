@@ -46,7 +46,7 @@ namespace OpenDentBusiness {
 			if(isByAptStatus) {
 				queryBrokenApts=ByApptStatusQuery(hasClinicsEnabled,dateStart,dateEnd,whereProv,whereClin);
 			}
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(queryBrokenApts));
+			return ReportsComplex.GetTable(queryBrokenApts);
 		}
 
 		private static string ByProceduresQuery(bool hasClinicsEnabled,DateTime dateStart,DateTime dateEnd,string whereProv,string whereClin,BrokenApptProcedure brokenApptOption) {
@@ -135,7 +135,7 @@ namespace OpenDentBusiness {
 					queryBrokenApts+="LEFT JOIN clinic ON clinic.ClinicNum=appointment.ClinicNum ";
 				}
 				queryBrokenApts+=
-					"WHERE "+DbHelper.DtimeToDate("appointment.AptDateTime")+" BETWEEN "+SOut.Date(dateStart)
+					"WHERE DATE(appointment.AptDateTime) BETWEEN "+SOut.Date(dateStart)
 					+" AND "+SOut.Date(dateEnd)+" "
 					+"AND appointment.AptStatus="+SOut.Int((int)ApptStatus.Broken)+" "
 					+whereProv;

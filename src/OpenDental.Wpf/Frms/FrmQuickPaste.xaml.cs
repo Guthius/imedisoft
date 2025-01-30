@@ -10,6 +10,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -148,10 +150,10 @@ namespace OpenDental {
 
 		private void butDeleteCat_Click(object sender,System.EventArgs e) {
 			if(listCat.SelectedIndex==-1) {
-				MessageBox.Show(Lans.g(this,"Please select a category first."));
+				MessageBox.Show(Lans.g("Please select a category first."));
 				return;
 			}
-			if(MessageBox.Show(Lans.g(this,"Are you sure you want to delete the entire category and all notes in it?"),"",MessageBoxButton.OKCancel)!=MessageBoxResult.OK){
+			if(MessageBox.Show(Lans.g("Are you sure you want to delete the entire category and all notes in it?"),"",MessageBoxButton.OKCancel)!=MessageBoxResult.OK){
 				return;
 			}
 			QuickPasteCat quickPasteCat=_listQuickPasteCats[listCat.SelectedIndex];
@@ -163,7 +165,7 @@ namespace OpenDental {
 
 		private void butUpCat_Click(object sender,System.EventArgs e) {
 			if(listCat.SelectedIndex==-1) {
-				MessageBox.Show(Lans.g(this,"Please select a category first."));
+				MessageBox.Show(Lans.g("Please select a category first."));
 				return;
 			}
 			if(listCat.SelectedIndex==0) {
@@ -177,7 +179,7 @@ namespace OpenDental {
 
 		private void butDownCat_Click(object sender,System.EventArgs e) {
 			if(listCat.SelectedIndex==-1) {
-				MessageBox.Show(Lans.g(this,"Please select a category first."));
+				MessageBox.Show(Lans.g("Please select a category first."));
 				return;
 			}
 			if(listCat.SelectedIndex==_listQuickPasteCats.Count-1) {
@@ -215,7 +217,7 @@ namespace OpenDental {
 
 		private void butAddNote_Click(object sender,System.EventArgs e) {
 			if(listCat.SelectedIndex==-1) {
-				MessageBox.Show(Lans.g(this,"Please select a category first."));
+				MessageBox.Show(Lans.g("Please select a category first."));
 				return;
 			}
 			QuickPasteNote quickPasteNote=new QuickPasteNote();
@@ -238,7 +240,7 @@ namespace OpenDental {
 
 		private void butEditNote_Click(object sender,System.EventArgs e) {
 			if(gridMain.GetSelectedIndex()==-1) {
-				MessageBox.Show(Lans.g(this,"Please select a note first."));
+				MessageBox.Show(Lans.g("Please select a note first."));
 				return;
 			}
 			QuickPasteNote quickPasteNote=(QuickPasteNote)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
@@ -274,7 +276,7 @@ namespace OpenDental {
 			int selectedIndex=gridMain.GetSelectedIndex();
 			int destinationIndex=(selectedIndex+(isDown?1:-1));
 			if(selectedIndex==-1) {
-				MessageBox.Show(Lans.g(this,"Please select a note first."));
+				MessageBox.Show(Lans.g("Please select a note first."));
 				return;
 			}
 			if(!destinationIndex.Between(0,gridMain.ListGridRows.Count-1)) {
@@ -343,7 +345,7 @@ namespace OpenDental {
 			if(IsSelectionMode){
 				//this button says "OK"
 				if(gridMain.GetSelectedIndex()==-1) {
-					MessageBox.Show(Lans.g(this,"Please select a note first."));
+					MessageBox.Show(Lans.g("Please select a note first."));
 					return;
 				}
 				ActionInsertVal(((QuickPasteNote)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).Note);

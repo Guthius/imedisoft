@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class FeeSchedCrud
 {
@@ -91,7 +93,7 @@ public class FeeSchedCrud
             + SOut.Bool(feeSched.IsHidden) + ","
             + SOut.Bool(feeSched.IsGlobal) + ","
             + SOut.Long(feeSched.SecUserNumEntry) + ","
-            + DbHelper.Now() + ")";
+            + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
 
         feeSched.FeeSchedNum = Db.NonQ(command, true, "FeeSchedNum", "feeSched");
@@ -117,7 +119,7 @@ public class FeeSchedCrud
             + SOut.Bool(feeSched.IsHidden) + ","
             + SOut.Bool(feeSched.IsGlobal) + ","
             + SOut.Long(feeSched.SecUserNumEntry) + ","
-            + DbHelper.Now() + ")";
+            + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);

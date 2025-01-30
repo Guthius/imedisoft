@@ -9,6 +9,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 

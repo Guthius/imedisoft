@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	///<summary>A collection of specific properties for PDMP links. Used to more easily pass information around</summary>

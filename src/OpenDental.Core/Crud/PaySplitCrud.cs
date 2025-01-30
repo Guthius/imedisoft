@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PaySplitCrud
 {
@@ -120,7 +122,7 @@ public class PaySplitCrud
                                            + SOut.Long(paySplit.PayPlanNum) + ","
                                            + SOut.Date(paySplit.DatePay) + ","
                                            + SOut.Long(paySplit.ProcNum) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            + SOut.Long(paySplit.UnearnedType) + ","
                                            + SOut.Long(paySplit.ClinicNum) + ","
                                            + SOut.Long(paySplit.SecUserNumEntry) + ","
@@ -190,7 +192,7 @@ public class PaySplitCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(paySplit.ProcNum));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.Long(paySplit.UnearnedType));
             sbRow.Append(",");
@@ -248,7 +250,7 @@ public class PaySplitCrud
                                            + SOut.Long(paySplit.PayPlanNum) + ","
                                            + SOut.Date(paySplit.DatePay) + ","
                                            + SOut.Long(paySplit.ProcNum) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            + SOut.Long(paySplit.UnearnedType) + ","
                                            + SOut.Long(paySplit.ClinicNum) + ","
                                            + SOut.Long(paySplit.SecUserNumEntry) + ","

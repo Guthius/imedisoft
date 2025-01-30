@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class FieldDefLinkCrud
 {
-    public static FieldDefLink SelectOne(long fieldDefLinkNum)
-    {
-        var command = "SELECT * FROM fielddeflink "
-                      + "WHERE FieldDefLinkNum = " + SOut.Long(fieldDefLinkNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static FieldDefLink SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<FieldDefLink> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -63,12 +45,7 @@ public class FieldDefLinkCrud
         return table;
     }
 
-    public static long Insert(FieldDefLink fieldDefLink)
-    {
-        return Insert(fieldDefLink, false);
-    }
-
-    public static long Insert(FieldDefLink fieldDefLink, bool useExistingPK)
+    public static void Insert(FieldDefLink fieldDefLink)
     {
         var command = "INSERT INTO fielddeflink (";
 
@@ -81,40 +58,6 @@ public class FieldDefLinkCrud
         {
             fieldDefLink.FieldDefLinkNum = Db.NonQ(command, true, "FieldDefLinkNum", "fieldDefLink");
         }
-        return fieldDefLink.FieldDefLinkNum;
-    }
-
-    public static long InsertNoCache(FieldDefLink fieldDefLink)
-    {
-        return InsertNoCache(fieldDefLink, false);
-    }
-
-    public static long InsertNoCache(FieldDefLink fieldDefLink, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO fielddeflink (";
-        if (isRandomKeys || useExistingPK) command += "FieldDefLinkNum,";
-        command += "FieldDefNum,FieldDefType,FieldLocation) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(fieldDefLink.FieldDefLinkNum) + ",";
-        command +=
-            SOut.Long(fieldDefLink.FieldDefNum) + ","
-                                                + SOut.Int((int) fieldDefLink.FieldDefType) + ","
-                                                + SOut.Int((int) fieldDefLink.FieldLocation) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            fieldDefLink.FieldDefLinkNum = Db.NonQ(command, true, "FieldDefLinkNum", "fieldDefLink");
-        return fieldDefLink.FieldDefLinkNum;
-    }
-
-    public static void Update(FieldDefLink fieldDefLink)
-    {
-        var command = "UPDATE fielddeflink SET "
-                      + "FieldDefNum    =  " + SOut.Long(fieldDefLink.FieldDefNum) + ", "
-                      + "FieldDefType   =  " + SOut.Int((int) fieldDefLink.FieldDefType) + ", "
-                      + "FieldLocation  =  " + SOut.Int((int) fieldDefLink.FieldLocation) + " "
-                      + "WHERE FieldDefLinkNum = " + SOut.Long(fieldDefLink.FieldDefLinkNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(FieldDefLink fieldDefLink, FieldDefLink oldFieldDefLink)
@@ -145,21 +88,6 @@ public class FieldDefLinkCrud
         return true;
     }
 
-    public static bool UpdateComparison(FieldDefLink fieldDefLink, FieldDefLink oldFieldDefLink)
-    {
-        if (fieldDefLink.FieldDefNum != oldFieldDefLink.FieldDefNum) return true;
-        if (fieldDefLink.FieldDefType != oldFieldDefLink.FieldDefType) return true;
-        if (fieldDefLink.FieldLocation != oldFieldDefLink.FieldLocation) return true;
-        return false;
-    }
-
-    public static void Delete(long fieldDefLinkNum)
-    {
-        var command = "DELETE FROM fielddeflink "
-                      + "WHERE FieldDefLinkNum = " + SOut.Long(fieldDefLinkNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listFieldDefLinkNums)
     {
         if (listFieldDefLinkNums == null || listFieldDefLinkNums.Count == 0) return;
@@ -168,7 +96,7 @@ public class FieldDefLinkCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<FieldDefLink> listNew, List<FieldDefLink> listDB)
+    public static void Sync(List<FieldDefLink> listNew, List<FieldDefLink> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<FieldDefLink>();
@@ -237,7 +165,6 @@ public class FieldDefLinkCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.FieldDefLinkNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

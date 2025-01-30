@@ -1,4 +1,4 @@
-namespace OpenDental
+namespace OpenDental.Forms
 {
 	partial class FormAutoNoteControls
     {
@@ -46,7 +46,6 @@ namespace OpenDental
 					this.gridMain.TabIndex = 106;
 					this.gridMain.Title = "Controls";
 					this.gridMain.TranslationName = "FormAutoNoteEdit";
-					this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
 					// 
 					// butAdd
 					// 
@@ -59,7 +58,7 @@ namespace OpenDental
 					this.butAdd.Size = new System.Drawing.Size(78,24);
 					this.butAdd.TabIndex = 105;
 					this.butAdd.Text = "Add";
-					this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+					this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 					// 
 					// butOK
 					// 
@@ -69,7 +68,7 @@ namespace OpenDental
 					this.butOK.Size = new System.Drawing.Size(78,24);
 					this.butOK.TabIndex = 5;
 					this.butOK.Text = "OK";
-					this.butOK.Click += new System.EventHandler(this.butOK_Click);
+					this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 					// 
 					// butEdit
 					// 
@@ -82,7 +81,7 @@ namespace OpenDental
 					this.butEdit.Size = new System.Drawing.Size(78,24);
 					this.butEdit.TabIndex = 107;
 					this.butEdit.Text = "Edit";
-					this.butEdit.Click += new System.EventHandler(this.butEdit_Click);
+					this.butEdit.Click += new System.EventHandler(this.ButtonEdit_Click);
 					// 
 					// FormAutoNoteControls
 					// 

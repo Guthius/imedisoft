@@ -14,6 +14,8 @@ using System.Windows.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -97,7 +99,7 @@ namespace OpenDental {
 				RefreshUserOdPrefs();
 				labelCommlogNum.Visible=false;
 				textCommlogNum.Visible=false;
-				butSave.Text=Lans.g(this,"Create");
+				butSave.Text=Lans.g("Create");
 				butDelete.Visible=false;
 			}
 			else{
@@ -235,14 +237,14 @@ namespace OpenDental {
 		private bool IsValid(bool showMsg) {
 			string errorText="";
 			if(String.IsNullOrEmpty(textDateTime.Text)) {
-				errorText+=Lans.g(this,"Date / Time is required")+"\r\n";
+				errorText+=Lans.g("Date / Time is required")+"\r\n";
 			}
 			else {
 				try {
 					DateTime.Parse(textDateTime.Text);
 				}
 				catch {
-					errorText+=Lans.g(this,"Date / Time is invalid")+"\r\n";
+					errorText+=Lans.g("Date / Time is invalid")+"\r\n";
 				}
 			}
 			if(!String.IsNullOrEmpty(textDateTimeEnd.Text)) {
@@ -250,25 +252,25 @@ namespace OpenDental {
 					DateTime.Parse(textDateTimeEnd.Text);
 				}
 				catch {
-					errorText+=Lans.g(this,"End date is invalid")+"\r\n";
+					errorText+=Lans.g("End date is invalid")+"\r\n";
 				}
 			}
 			if(DoOmitDefaults) { //Only validate if in enterprise mode
 				if(listType.SelectedIndex==-1) {
-					errorText+=Lans.g(this,"Type is required.")+"\r\n";
+					errorText+=Lans.g("Type is required.")+"\r\n";
 				}
 				if(listMode.SelectedIndex==-1) {
-					errorText+=Lans.g(this,"Mode is required.")+"\r\n";
+					errorText+=Lans.g("Mode is required.")+"\r\n";
 				}
 				if(listSentOrReceived.SelectedIndex==-1) {
-					errorText+=Lans.g(this,"SentOrReceived is required.")+"\r\n";
+					errorText+=Lans.g("SentOrReceived is required.")+"\r\n";
 				}
 			}
 			if(String.IsNullOrEmpty(errorText)) {//no errors
 				return true;
 			}
 			if(showMsg) {
-				MessageBox.Show(Lans.g(this,"Please fix the following error(s)")+":\r\n\r\n"+errorText);
+				MessageBox.Show(Lans.g("Please fix the following error(s)")+":\r\n\r\n"+errorText);
 			}
 			return false;
 		}
@@ -359,7 +361,7 @@ namespace OpenDental {
 			if(doUpdateCommlogNum) {
 				textCommlogNum.Text=this._commlog.CommlogNum.ToString();
 			}
-			this.Text=Lans.g(this,"Communication Item - Saved:")+" "+DateTime.Now;
+			this.Text=Lans.g("Communication Item - Saved:")+" "+DateTime.Now;
 		}
 
 		private void butUserPrefs_Click(object sender,EventArgs e) {
@@ -389,7 +391,7 @@ namespace OpenDental {
 
 		private void butEditAutoNote_Click(object sender,EventArgs e) {
 			if(!GetHasAutoNotePrompt()) {
-				MessageBox.Show(Lans.g(this,"No Auto Note available to edit."));
+				MessageBox.Show(Lans.g("No Auto Note available to edit."));
 				return;
 			}
 			FrmAutoNoteCompose frmAutoNoteCompose=new FrmAutoNoteCompose();

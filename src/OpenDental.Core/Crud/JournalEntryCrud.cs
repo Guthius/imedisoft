@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class JournalEntryCrud
 {
@@ -105,13 +107,13 @@ public class JournalEntryCrud
                                                    + "'" + SOut.String(journalEntry.CheckNumber) + "',"
                                                    + SOut.Long(journalEntry.ReconcileNum) + ","
                                                    + SOut.Long(journalEntry.SecUserNumEntry) + ","
-                                                   + DbHelper.Now() + ","
+                                                   + "NOW()" + ","
                                                    + SOut.Long(journalEntry.SecUserNumEdit) + ")";
         //SecDateTEdit can only be set by MySQL
         if (journalEntry.Memo == null) journalEntry.Memo = "";
-        var paramMemo = new OdSqlParameter("paramMemo", OdDbType.Text, SOut.StringParam(journalEntry.Memo));
+        var paramMemo = new OdSqlParameter("paramMemo", SOut.StringParam(journalEntry.Memo));
         if (journalEntry.Splits == null) journalEntry.Splits = "";
-        var paramSplits = new OdSqlParameter("paramSplits", OdDbType.Text, SOut.StringParam(journalEntry.Splits));
+        var paramSplits = new OdSqlParameter("paramSplits", SOut.StringParam(journalEntry.Splits));
         {
             journalEntry.JournalEntryNum = Db.NonQ(command, true, "JournalEntryNum", "journalEntry", paramMemo, paramSplits);
         }
@@ -141,13 +143,13 @@ public class JournalEntryCrud
                                                    + "'" + SOut.String(journalEntry.CheckNumber) + "',"
                                                    + SOut.Long(journalEntry.ReconcileNum) + ","
                                                    + SOut.Long(journalEntry.SecUserNumEntry) + ","
-                                                   + DbHelper.Now() + ","
+                                                   + "NOW()" + ","
                                                    + SOut.Long(journalEntry.SecUserNumEdit) + ")";
         //SecDateTEdit can only be set by MySQL
         if (journalEntry.Memo == null) journalEntry.Memo = "";
-        var paramMemo = new OdSqlParameter("paramMemo", OdDbType.Text, SOut.StringParam(journalEntry.Memo));
+        var paramMemo = new OdSqlParameter("paramMemo", SOut.StringParam(journalEntry.Memo));
         if (journalEntry.Splits == null) journalEntry.Splits = "";
-        var paramSplits = new OdSqlParameter("paramSplits", OdDbType.Text, SOut.StringParam(journalEntry.Splits));
+        var paramSplits = new OdSqlParameter("paramSplits", SOut.StringParam(journalEntry.Splits));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramMemo, paramSplits);
         else
@@ -173,9 +175,9 @@ public class JournalEntryCrud
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE JournalEntryNum = " + SOut.Long(journalEntry.JournalEntryNum);
         if (journalEntry.Memo == null) journalEntry.Memo = "";
-        var paramMemo = new OdSqlParameter("paramMemo", OdDbType.Text, SOut.StringParam(journalEntry.Memo));
+        var paramMemo = new OdSqlParameter("paramMemo", SOut.StringParam(journalEntry.Memo));
         if (journalEntry.Splits == null) journalEntry.Splits = "";
-        var paramSplits = new OdSqlParameter("paramSplits", OdDbType.Text, SOut.StringParam(journalEntry.Splits));
+        var paramSplits = new OdSqlParameter("paramSplits", SOut.StringParam(journalEntry.Splits));
         Db.NonQ(command, paramMemo, paramSplits);
     }
 
@@ -247,9 +249,9 @@ public class JournalEntryCrud
         //SecDateTEdit can only be set by MySQL
         if (command == "") return false;
         if (journalEntry.Memo == null) journalEntry.Memo = "";
-        var paramMemo = new OdSqlParameter("paramMemo", OdDbType.Text, SOut.StringParam(journalEntry.Memo));
+        var paramMemo = new OdSqlParameter("paramMemo", SOut.StringParam(journalEntry.Memo));
         if (journalEntry.Splits == null) journalEntry.Splits = "";
-        var paramSplits = new OdSqlParameter("paramSplits", OdDbType.Text, SOut.StringParam(journalEntry.Splits));
+        var paramSplits = new OdSqlParameter("paramSplits", SOut.StringParam(journalEntry.Splits));
         command = "UPDATE journalentry SET " + command
                                              + " WHERE JournalEntryNum = " + SOut.Long(journalEntry.JournalEntryNum);
         Db.NonQ(command, paramMemo, paramSplits);

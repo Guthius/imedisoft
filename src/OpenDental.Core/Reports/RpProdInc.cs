@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -772,8 +773,7 @@ namespace OpenDentBusiness {
 				return Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue))
 					.Select(x => x.DefNum).ToList();
 			}
-			return ReportsComplex.RunFuncOnReportServer(() => Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue))
-					.Select(x => x.DefNum).ToList());
+			return Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 		}
 
 		///<summary>Returns a dataset that contains 6 tables used to generate the daily report.  If not using clinics then simply supply an empty list of clinicNums.  Also used for the CEMT Provider P and I report</summary>
@@ -815,12 +815,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY procedurelog.ProcNum "
 				+"ORDER BY Date,namelf";
 			DataTable tableProduction=new DataTable();
-			if(isCEMT) {
-				tableProduction=DataCore.GetTable(command);
-			}
-			else { 
-				tableProduction=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableProduction=DataCore.GetTable(command);
 			tableProduction.TableName="tableProduction";
 			#endregion
 			#region Adjustments
@@ -846,12 +841,7 @@ namespace OpenDentBusiness {
 					+whereClin+" "
 				+"ORDER BY Date,namelf";
 			DataTable tableAdj=new DataTable();
-			if(isCEMT) {
-				tableAdj=DataCore.GetTable(command);
-			}
-			else { 
-				tableAdj=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableAdj=DataCore.GetTable(command);
 			tableAdj.TableName="tableAdj";
 			#endregion
 			#region InsWriteoff
@@ -947,12 +937,7 @@ namespace OpenDentBusiness {
 					+"ORDER BY Date,namelf";
 			}
 			DataTable tableInsWriteoff=new DataTable();
-			if(isCEMT) {
-				tableInsWriteoff=DataCore.GetTable(command);
-			}
-			else { 
-				tableInsWriteoff=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableInsWriteoff=DataCore.GetTable(command);
 			tableInsWriteoff.TableName="tableInsWriteoff";
 			#endregion
 			#region PtIncome
@@ -996,7 +981,7 @@ namespace OpenDentBusiness {
 				tablePay=DataCore.GetTable(command);
 			}
 			else { 
-				tablePay=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+				tablePay=DataCore.GetTable(command);
 			}
 			tablePay.TableName="tablePay";
 			#endregion
@@ -1030,12 +1015,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY claimproc.PatNum,claimproc.ProvNum,claimproc.PlanNum,claimproc.ClinicNum,claimpayment.CheckDate "
 				+"ORDER BY Date,namelf";
 			DataTable tableIns=new DataTable();
-			if(isCEMT) {
-				tableIns=DataCore.GetTable(command);
-			}
-			else { 
-				tableIns=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableIns=DataCore.GetTable(command);
 			tableIns.TableName="tableIns";
 			#endregion
 			#region WriteOffAdjustments
@@ -1073,12 +1053,7 @@ namespace OpenDentBusiness {
 					+whereClin
 					+"GROUP BY claimproc.ClaimProcNum "
 					+"ORDER BY Date,namelf";
-				if(isCEMT) {
-					tableWriteOffAdjustments=DataCore.GetTable(command);
-				}
-				else { 
-					tableWriteOffAdjustments=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-				}
+				tableWriteOffAdjustments=DataCore.GetTable(command);
 			}
 			tableWriteOffAdjustments.TableName="tableWriteOffAdjustments";
 			#endregion
@@ -1097,9 +1072,7 @@ namespace OpenDentBusiness {
 		public static DataSet GetProviderPayrollDataSet(DateTime dateFrom,DateTime dateTo,List<Provider> listProvs,List<ClinicDto> listClinics
 			,bool hasAllProvs,bool hasAllClinics) 
 		{
-			List<long> listHiddenUnearnedDefNums=ReportsComplex.RunFuncOnReportServer(() => 
-				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList()
-			);
+			List<long> listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			DataTable tableProduction;
 			DataTable tableInsWOEst;
 			DataTable tableAdj;
@@ -1154,7 +1127,7 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+"AND procedurelog.DateComplete BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" ";
-			tableProduction=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableProduction=DataCore.GetTable(command);
 			tableProduction.TableName=tableProductionName;
 			//Insurance WriteOff Estimates----------------------------------------------------------------------------
 			if(hasProvs) {
@@ -1172,7 +1145,7 @@ namespace OpenDentBusiness {
 				+"WHERE procedurelog.DateComplete BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin;
-			tableInsWOEst=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableInsWOEst=DataCore.GetTable(command);
 			tableInsWOEst.TableName=tableInsWOEstName;
 			//Adjustments----------------------------------------------------------------------------
 			if(hasProvs) {
@@ -1181,7 +1154,7 @@ namespace OpenDentBusiness {
 			if(hasClinics) {
 				whereClin="AND adjustment.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			}
-			string listBadDebtAdj= ReportsComplex.RunFuncOnReportServer(() => PrefC.GetStringNoCache(PrefName.BadDebtAdjustmentTypes));
+			string listBadDebtAdj= PrefC.GetStringNoCache(PrefName.BadDebtAdjustmentTypes);
 			if(String.IsNullOrEmpty(listBadDebtAdj)) {
 				listBadDebtAdj="0";
 			}
@@ -1194,7 +1167,7 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+"AND adjustment.DateEntry BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" ";
-			tableAdj=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableAdj=DataCore.GetTable(command);
 			tableAdj.TableName=tableAdjName;
 			//InsWriteoff--------------------------------------------------------------------------
 			if(hasProvs) {
@@ -1210,7 +1183,7 @@ namespace OpenDentBusiness {
 				+"WHERE claimproc.DateSuppReceived BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" "
 				+whereProv
 				+whereClin;
-			tableInsWriteOff=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableInsWriteOff=DataCore.GetTable(command);
 			tableInsWriteOff.TableName=tableInsWriteOffName;
 			//AllocatedPtIncome--------------------------------------------------------------------------------
 			if(hasProvs) {
@@ -1229,7 +1202,7 @@ namespace OpenDentBusiness {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 			}
 			command+="AND paysplit.DateEntry BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" ";
-			tableAllocatedPatInc=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableAllocatedPatInc=DataCore.GetTable(command);
 			tableAllocatedPatInc.TableName=tableAllocatedPatIncName;
 			//UnallocatedPtIncome--------------------------------------------------------------------------------
 			whereProv="";
@@ -1249,7 +1222,7 @@ namespace OpenDentBusiness {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 			}
 			command+="AND paysplit.DateEntry BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" ";
-			tableUnallocatedPatInc=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableUnallocatedPatInc=DataCore.GetTable(command);
 			tableUnallocatedPatInc.TableName=tableUnallocatedPatIncName;
 			//InsIncome---------------------------------------------------------------------------------
 			if(hasProvs) {
@@ -1265,7 +1238,7 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+"AND claimproc.DateSuppReceived BETWEEN "+SOut.Date(dateFrom)+" AND "+SOut.Date(dateTo)+" ";
-			tableInsIncome=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableInsIncome=DataCore.GetTable(command);
 			tableInsIncome.TableName=tableInsIncomeName;
 			//InsIncomeNotFinalized---------------------------------------------------------------------------------
 			if(hasProvs) {
@@ -1280,7 +1253,7 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+"AND claimproc.ClaimPaymentNum=0";
-			tableInsIncomeNotFinalized=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			tableInsIncomeNotFinalized=DataCore.GetTable(command);
 			tableInsIncomeNotFinalized.TableName=tableInsIncomeNotFinalizedName;
 			DataSet dataSet=new DataSet();
 			dataSet.Tables.Add(tableProduction);
@@ -1406,7 +1379,7 @@ namespace OpenDentBusiness {
 			if(hasClinics) {
 				whereClin="AND adjustment.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			}
-			string listBadDebtAdj = ReportsComplex.RunFuncOnReportServer(() => PrefC.GetStringNoCache(PrefName.BadDebtAdjustmentTypes));
+			string listBadDebtAdj = PrefC.GetStringNoCache(PrefName.BadDebtAdjustmentTypes);
 			if(String.IsNullOrEmpty(listBadDebtAdj)) {
 				listBadDebtAdj="0";
 			}
@@ -1460,7 +1433,7 @@ namespace OpenDentBusiness {
 				LEFT JOIN procedurecode on procedurecode.CodeNum=procedurelog.CodeNum
 				WHERE NOT (UCR=0 AND OrigEstWO=0 AND EstVsActualWO=0 AND Adjustment=0 AND NPR=0)
 				ORDER BY TranType,CalendarDate,PatNum";
-			DataTable retVal=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			DataTable retVal=DataCore.GetTable(command);
 			return retVal;
 		}
 
@@ -1813,7 +1786,7 @@ namespace OpenDentBusiness {
 		{
 			List<long> listClinicNums=listClinics.Select(x => x.Id).ToList();
 			List<long> listProvNums=listProvs.Select(x => x.ProvNum).ToList();
-			List<long> listHiddenUnearnedDefNums=GetHiddenUnearnedDefNums(isCEMT);
+			List<long> listHiddenUnearnedDefNums=GetHiddenUnearnedDefNums(false);
 			#region Procedures
 			string whereProv="";
 			if(!hasAllProvs && listProvNums.Count>0) {
@@ -1839,13 +1812,7 @@ namespace OpenDentBusiness {
 				+"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
 				+"GROUP BY ClinicNum,YEAR(procedurelog.ProcDate),MONTH(procedurelog.ProcDate),DAY(procedurelog.ProcDate)";//Does not work for Oracle. Consider enhancing with DbHelper.Year(),DbHelper.Month()
 			command+=" ORDER BY ClinicNum,ProcDate";
-			DataTable tableProduction=new DataTable();
-			if(isCEMT) {
-				tableProduction=DataCore.GetTable(command);
-			}
-			else {
-				tableProduction=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			var tableProduction = DataCore.GetTable(command);
 			tableProduction.TableName="tableProduction";
 			#endregion
 			#region Adjustments
@@ -1874,7 +1841,7 @@ namespace OpenDentBusiness {
 				+whereClin
 				+"UNION ALL "
 				+"SELECT "
-				+DbHelper.DtimeToDate("appointment.AptDateTime")+" AdjDate, "
+				+"DATE(appointment.AptDateTime) AdjDate, "
 				+"procedurelog.ClinicNum, "
 				+"-(procedurelog.Discount + procedurelog.DiscountPlanAmt) Adjustment "
 				+"FROM appointment "
@@ -1887,12 +1854,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(U.AdjDate),MONTH(U.AdjDate),DAY(U.AdjDate) "
 				+"ORDER BY ClinicNum,AdjDate";
 			DataTable tableAdj=new DataTable();
-			if(isCEMT) {
-				tableAdj=DataCore.GetTable(command);
-			}
-			else { 
-				tableAdj=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableAdj=DataCore.GetTable(command);
 			tableAdj.TableName="tableAdj";
 			#endregion
 			#region TableInsWriteoff
@@ -1945,12 +1907,8 @@ namespace OpenDentBusiness {
 				command+=" ORDER BY ClinicNum,ProcDate";
 			}
 			DataTable tableInsWriteoff=new DataTable();
-			if(isCEMT) {
-				tableInsWriteoff=DataCore.GetTable(command);
-			}
-			else { 
-				tableInsWriteoff=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+
+			tableInsWriteoff=DataCore.GetTable(command);
 			tableInsWriteoff.TableName="tableInsWriteoff";
 			#endregion
 			#region TableSched
@@ -1962,14 +1920,14 @@ namespace OpenDentBusiness {
 			if(!hasAllClinics && listClinicNums.Count>0) {
 				whereClin=" AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			}
-			command= "SELECT "+DbHelper.DtimeToDate("t.AptDateTime")+" SchedDate,SUM(t.Fee-t.WriteoffEstimate) Amount,ClinicNum "
+			command= "SELECT DATE(t.AptDateTime) SchedDate,SUM(t.Fee-t.WriteoffEstimate) Amount,ClinicNum "
 				+"FROM (SELECT appointment.AptDateTime,IFNULL(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits),0) Fee,appointment.ClinicNum,";
 			bool isSchedSubWO;
 			if(isCEMT) {
 				isSchedSubWO=Prefs.GetBoolNoCache(PrefName.ReportPandIschedProdSubtractsWO);
 			}
 			else {
-				isSchedSubWO=ReportsComplex.RunFuncOnReportServer(() => Prefs.GetBoolNoCache(PrefName.ReportPandIschedProdSubtractsWO));
+				isSchedSubWO=Prefs.GetBoolNoCache(PrefName.ReportPandIschedProdSubtractsWO);
 			}
 			if(isSchedSubWO) {
 				//Subtract both PPO and capitation writeoffs
@@ -1993,12 +1951,7 @@ namespace OpenDentBusiness {
 				+" GROUP BY procedurelog.ProcNum) t "//without this, there can be duplicate proc rows due to the claimproc join with dual insurance.
 				+"GROUP BY SchedDate,ClinicNum "
 				+"ORDER BY SchedDate";
-			if(isCEMT) {
-				tableSched=DataCore.GetTable(command);
-			}
-			else { 
-				tableSched=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableSched=DataCore.GetTable(command);
 			tableSched.TableName="tableSched";
 			#endregion
 			#region PtIncome
@@ -2029,12 +1982,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(paysplit.DatePay),MONTH(paysplit.DatePay),DAY(paysplit.DatePay)";
 			command+=" ORDER BY ClinicNum,DatePay";
 			DataTable tablePay=new DataTable();
-			if(isCEMT) {
-				tablePay=DataCore.GetTable(command);
-			}
-			else { 
-				tablePay=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tablePay=DataCore.GetTable(command);
 			tablePay.TableName="tablePay";
 			#endregion
 			#region InsIncome
@@ -2054,12 +2002,7 @@ namespace OpenDentBusiness {
 				+whereClin
 				+" GROUP BY claimpayment.CheckDate,ClinicNum ORDER BY ClinicNum,CheckDate";
 			DataTable tableIns=new DataTable();
-			if(isCEMT) {
-				tableIns=DataCore.GetTable(command);
-			}
-			else { 
-				tableIns=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableIns=DataCore.GetTable(command);
 			tableIns.TableName="tableIns";
 			#endregion
 			#region WriteOffAdjustments
@@ -2078,12 +2021,7 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+"GROUP BY ClinicNum,YEAR(claimproc.DateCP), MONTH(claimproc.DateCP),DAY(claimproc.DateCP)";
-				if(isCEMT) {
-					tableWriteOffAdjustments=DataCore.GetTable(command);
-				}
-				else { 
-					tableWriteOffAdjustments=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-				}
+				tableWriteOffAdjustments=DataCore.GetTable(command);
 			}
 			tableWriteOffAdjustments.TableName="tableWriteOffAdjustments";
 			#endregion
@@ -2431,12 +2369,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(procedurelog.ProcDate),MONTH(procedurelog.ProcDate)";//Does not work for Oracle. Consider enhancing with DbHelper.Year(),DbHelper.Month()
 			command+=" ORDER BY ClinicNum,ProcDate";
 			DataTable tableProduction=new DataTable();
-			if(isCEMT) {
-				tableProduction=DataCore.GetTable(command);
-			}
-			else { 
-				tableProduction=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableProduction=DataCore.GetTable(command);
 			tableProduction.TableName="tableProduction";
 			#endregion
 			#region Adjustments
@@ -2458,12 +2391,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(adjustment.AdjDate),MONTH(adjustment.AdjDate)";
 			command+=" ORDER BY ClinicNum,AdjDate";
 			DataTable tableAdj=new DataTable();
-			if(isCEMT) {
-				tableAdj=DataCore.GetTable(command);
-			}
-			else { 
-				tableAdj=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableAdj=DataCore.GetTable(command);
 			tableAdj.TableName="tableAdj";
 			#endregion
 			#region InsWriteoff
@@ -2516,12 +2444,7 @@ namespace OpenDentBusiness {
 				command+=" ORDER BY ClinicNum,ProcDate";
 			}
 			DataTable tableInsWriteoff=new DataTable();
-			if(isCEMT) {
-				tableInsWriteoff=DataCore.GetTable(command);
-			}
-			else { 
-				tableInsWriteoff=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableInsWriteoff=DataCore.GetTable(command);
 			tableInsWriteoff.TableName="tableInsWriteoff";
 			#endregion
 			#region PtIncome
@@ -2553,12 +2476,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,YEAR(paysplit.DatePay),MONTH(paysplit.DatePay)";
 			command+=" ORDER BY ClinicNum,DatePay";
 			DataTable tablePay=new DataTable();
-			if(isCEMT) {
-				tablePay=DataCore.GetTable(command);
-			}
-			else { 
-				tablePay=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tablePay=DataCore.GetTable(command);
 			tablePay.TableName="tablePay";
 			#endregion
 			#region InsIncome
@@ -2578,12 +2496,7 @@ namespace OpenDentBusiness {
 				+whereClin
 				+" GROUP BY claimpayment.CheckDate,ClinicNum ORDER BY ClinicNum,CheckDate";
 			DataTable tableIns=new DataTable();
-			if(isCEMT) {
-				tableIns=DataCore.GetTable(command);
-			}
-			else { 
-				tableIns=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-			}
+			tableIns=DataCore.GetTable(command);
 			tableIns.TableName="tableIns";
 			#endregion
 			#region WriteOffAdjustments
@@ -2602,12 +2515,7 @@ namespace OpenDentBusiness {
 				+whereProv
 				+whereClin
 				+" GROUP BY ClinicNum,YEAR(claimproc.DateCP), MONTH(claimproc.DateCP) ";
-				if(isCEMT) {
-					tableWriteOffAdjustments=DataCore.GetTable(command);
-				}
-				else { 
-					tableWriteOffAdjustments=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
-				}
+				tableWriteOffAdjustments=DataCore.GetTable(command);
 			}
 			tableWriteOffAdjustments.TableName="tableWriteOffAdjustments";
 			#endregion

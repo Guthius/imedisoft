@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TsiTransLogCrud
 {
@@ -103,7 +105,7 @@ public class TsiTransLogCrud
             SOut.Long(tsiTransLog.PatNum) + ","
                                           + SOut.Long(tsiTransLog.UserNum) + ","
                                           + SOut.Int((int) tsiTransLog.TransType) + ","
-                                          + DbHelper.Now() + ","
+                                          + "NOW()" + ","
                                           + SOut.Int((int) tsiTransLog.ServiceType) + ","
                                           + SOut.Int((int) tsiTransLog.ServiceCode) + ","
                                           + "'" + SOut.String(tsiTransLog.ClientId) + "',"
@@ -116,7 +118,7 @@ public class TsiTransLogCrud
                                           + SOut.Long(tsiTransLog.ClinicNum) + ","
                                           + SOut.Long(tsiTransLog.AggTransLogNum) + ")";
         if (tsiTransLog.TransJson == null) tsiTransLog.TransJson = "";
-        var paramTransJson = new OdSqlParameter("paramTransJson", OdDbType.Text, SOut.StringParam(tsiTransLog.TransJson));
+        var paramTransJson = new OdSqlParameter("paramTransJson", SOut.StringParam(tsiTransLog.TransJson));
         {
             tsiTransLog.TsiTransLogNum = Db.NonQ(command, true, "TsiTransLogNum", "tsiTransLog", paramTransJson);
         }
@@ -163,7 +165,7 @@ public class TsiTransLogCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) tsiTransLog.TransType));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) tsiTransLog.ServiceType));
             sbRow.Append(",");
@@ -219,7 +221,7 @@ public class TsiTransLogCrud
             SOut.Long(tsiTransLog.PatNum) + ","
                                           + SOut.Long(tsiTransLog.UserNum) + ","
                                           + SOut.Int((int) tsiTransLog.TransType) + ","
-                                          + DbHelper.Now() + ","
+                                          + "NOW()" + ","
                                           + SOut.Int((int) tsiTransLog.ServiceType) + ","
                                           + SOut.Int((int) tsiTransLog.ServiceCode) + ","
                                           + "'" + SOut.String(tsiTransLog.ClientId) + "',"
@@ -232,7 +234,7 @@ public class TsiTransLogCrud
                                           + SOut.Long(tsiTransLog.ClinicNum) + ","
                                           + SOut.Long(tsiTransLog.AggTransLogNum) + ")";
         if (tsiTransLog.TransJson == null) tsiTransLog.TransJson = "";
-        var paramTransJson = new OdSqlParameter("paramTransJson", OdDbType.Text, SOut.StringParam(tsiTransLog.TransJson));
+        var paramTransJson = new OdSqlParameter("paramTransJson", SOut.StringParam(tsiTransLog.TransJson));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramTransJson);
         else
@@ -260,7 +262,7 @@ public class TsiTransLogCrud
                       + "AggTransLogNum=  " + SOut.Long(tsiTransLog.AggTransLogNum) + " "
                       + "WHERE TsiTransLogNum = " + SOut.Long(tsiTransLog.TsiTransLogNum);
         if (tsiTransLog.TransJson == null) tsiTransLog.TransJson = "";
-        var paramTransJson = new OdSqlParameter("paramTransJson", OdDbType.Text, SOut.StringParam(tsiTransLog.TransJson));
+        var paramTransJson = new OdSqlParameter("paramTransJson", SOut.StringParam(tsiTransLog.TransJson));
         Db.NonQ(command, paramTransJson);
     }
 
@@ -354,7 +356,7 @@ public class TsiTransLogCrud
 
         if (command == "") return false;
         if (tsiTransLog.TransJson == null) tsiTransLog.TransJson = "";
-        var paramTransJson = new OdSqlParameter("paramTransJson", OdDbType.Text, SOut.StringParam(tsiTransLog.TransJson));
+        var paramTransJson = new OdSqlParameter("paramTransJson", SOut.StringParam(tsiTransLog.TransJson));
         command = "UPDATE tsitranslog SET " + command
                                             + " WHERE TsiTransLogNum = " + SOut.Long(tsiTransLog.TsiTransLogNum);
         Db.NonQ(command, paramTransJson);

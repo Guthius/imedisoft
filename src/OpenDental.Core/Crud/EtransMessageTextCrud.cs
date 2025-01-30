@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EtransMessageTextCrud
 {
@@ -73,7 +75,7 @@ public class EtransMessageTextCrud
         command +=
             DbHelper.ParamChar + "paramMessageText)";
         if (etransMessageText.MessageText == null) etransMessageText.MessageText = "";
-        var paramMessageText = new OdSqlParameter("paramMessageText", OdDbType.Text, SOut.StringParam(etransMessageText.MessageText));
+        var paramMessageText = new OdSqlParameter("paramMessageText", SOut.StringParam(etransMessageText.MessageText));
         {
             etransMessageText.EtransMessageTextNum = Db.NonQ(command, true, "EtransMessageTextNum", "etransMessageText", paramMessageText);
         }
@@ -95,7 +97,7 @@ public class EtransMessageTextCrud
         command +=
             DbHelper.ParamChar + "paramMessageText)";
         if (etransMessageText.MessageText == null) etransMessageText.MessageText = "";
-        var paramMessageText = new OdSqlParameter("paramMessageText", OdDbType.Text, SOut.StringParam(etransMessageText.MessageText));
+        var paramMessageText = new OdSqlParameter("paramMessageText", SOut.StringParam(etransMessageText.MessageText));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramMessageText);
         else
@@ -109,7 +111,7 @@ public class EtransMessageTextCrud
                       + "MessageText         =  " + DbHelper.ParamChar + "paramMessageText "
                       + "WHERE EtransMessageTextNum = " + SOut.Long(etransMessageText.EtransMessageTextNum);
         if (etransMessageText.MessageText == null) etransMessageText.MessageText = "";
-        var paramMessageText = new OdSqlParameter("paramMessageText", OdDbType.Text, SOut.StringParam(etransMessageText.MessageText));
+        var paramMessageText = new OdSqlParameter("paramMessageText", SOut.StringParam(etransMessageText.MessageText));
         Db.NonQ(command, paramMessageText);
     }
 
@@ -124,7 +126,7 @@ public class EtransMessageTextCrud
 
         if (command == "") return false;
         if (etransMessageText.MessageText == null) etransMessageText.MessageText = "";
-        var paramMessageText = new OdSqlParameter("paramMessageText", OdDbType.Text, SOut.StringParam(etransMessageText.MessageText));
+        var paramMessageText = new OdSqlParameter("paramMessageText", SOut.StringParam(etransMessageText.MessageText));
         command = "UPDATE etransmessagetext SET " + command
                                                   + " WHERE EtransMessageTextNum = " + SOut.Long(etransMessageText.EtransMessageTextNum);
         Db.NonQ(command, paramMessageText);

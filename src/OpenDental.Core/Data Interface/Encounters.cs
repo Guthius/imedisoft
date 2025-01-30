@@ -2,30 +2,19 @@ using System;
 using System.Collections.Generic;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Encounters
 {
-    
     public static List<Encounter> Refresh(long patNum)
     {
         var command = "SELECT * FROM encounter WHERE PatNum = " + SOut.Long(patNum) + " ORDER BY DateEncounter";
         return EncounterCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one Encounter from the db.</summary>
-    public static Encounter GetOne(long encounterNum)
-    {
-        return EncounterCrud.SelectOne(encounterNum);
-    }
-
-    /// <summary>
-    ///     Automatically generate and insert encounter as long as there is no other encounter with that date and provider
-    ///     for that patient.  Does not insert an encounter if one of the CQM default encounter prefs are invalid.
-    /// </summary>
     public static void InsertDefaultEncounter(long patNum, long provNum, DateTime date)
     {
         //Validate prefs. If they are not set, we have nothing to insert so no reason to check.
@@ -47,11 +36,6 @@ public class Encounters
         Insert(encounter);
     }
 
-    /// <summary>
-    ///     Inserts encounters for a specified code for a specified date range if there is not already an encounter for that
-    ///     code, patient,
-    ///     provider, and procdate.
-    /// </summary>
     public static long InsertEncsFromProcDates(DateTime startDate, DateTime endDate, string codeValue, string codeSystem)
     {
         var command = "INSERT INTO encounter (PatNum,ProvNum,CodeValue,CodeSystem,Note,DateEncounter) "
@@ -70,19 +54,16 @@ public class Encounters
                       + "GROUP BY PatNum,ProvNum,ProcDate)";
         return Db.NonQ(command);
     }
-
     
-    public static long Insert(Encounter encounter)
+    public static void Insert(Encounter encounter)
     {
-        return EncounterCrud.Insert(encounter);
+        EncounterCrud.Insert(encounter);
     }
-
     
     public static void Update(Encounter encounter)
     {
         EncounterCrud.Update(encounter);
     }
-
     
     public static void Delete(long encounterNum)
     {

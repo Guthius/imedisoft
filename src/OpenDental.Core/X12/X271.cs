@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using CodeBase;
 using System.Linq;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness
 {
@@ -120,8 +122,8 @@ namespace OpenDentBusiness
 				case "66": return "Invalid/Missing Patient Gender Code"; 
 				case "67": return "Patient Not Found"; 
 				case "68": return "Duplicate Patient ID Number";
-				case "69": return "Inconsistent with Patient’s Age";
-				case "70": return "Inconsistent with Patient’s Gender";
+				case "69": return "Inconsistent with Patientï¿½s Age";
+				case "70": return "Inconsistent with Patientï¿½s Gender";
 				case "71": return "Patient Birth Date Does Not Match That for the Patient on the Database"; 
 				case "72": return "Invalid/Missing Subscriber/Insured ID"; 
 				case "73": return "Invalid/Missing Subscriber/Insured Name"; 

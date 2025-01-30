@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAudit {
 		/// <summary>
 		/// Required designer variable.
@@ -116,7 +111,7 @@ namespace OpenDental {
 			this.butPrint.Size = new System.Drawing.Size(82, 24);
 			this.butPrint.TabIndex = 60;
 			this.butPrint.Text = "Print";
-			this.butPrint.Click += new System.EventHandler(this.butPrint_Click);
+			this.butPrint.Click += new System.EventHandler(this.ButtonPrint_Click);
 			// 
 			// butCurrent
 			// 
@@ -125,7 +120,7 @@ namespace OpenDental {
 			this.butCurrent.Size = new System.Drawing.Size(63, 24);
 			this.butCurrent.TabIndex = 59;
 			this.butCurrent.Text = "Current";
-			this.butCurrent.Click += new System.EventHandler(this.butCurrent_Click);
+			this.butCurrent.Click += new System.EventHandler(this.ButtonCurrent_Click);
 			// 
 			// butAll
 			// 
@@ -134,7 +129,7 @@ namespace OpenDental {
 			this.butAll.Size = new System.Drawing.Size(63, 24);
 			this.butAll.TabIndex = 58;
 			this.butAll.Text = "All";
-			this.butAll.Click += new System.EventHandler(this.butAll_Click);
+			this.butAll.Click += new System.EventHandler(this.ButtonAll_Click);
 			// 
 			// butFind
 			// 
@@ -143,7 +138,7 @@ namespace OpenDental {
 			this.butFind.Size = new System.Drawing.Size(63, 24);
 			this.butFind.TabIndex = 57;
 			this.butFind.Text = "Find";
-			this.butFind.Click += new System.EventHandler(this.butFind_Click);
+			this.butFind.Click += new System.EventHandler(this.ButtonFind_Click);
 			// 
 			// textPatient
 			// 
@@ -167,7 +162,7 @@ namespace OpenDental {
 			this.comboUser.Name = "comboUser";
 			this.comboUser.Size = new System.Drawing.Size(170, 21);
 			this.comboUser.TabIndex = 54;
-			this.comboUser.SelectionChangeCommitted += new System.EventHandler(this.comboUser_SelectionChangeCommitted);
+			this.comboUser.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxUser_SelectionChangeCommitted);
 			// 
 			// label4
 			// 
@@ -193,7 +188,7 @@ namespace OpenDental {
 			this.comboPermission.Name = "comboPermission";
 			this.comboPermission.Size = new System.Drawing.Size(170, 21);
 			this.comboPermission.TabIndex = 50;
-			this.comboPermission.SelectionChangeCommitted += new System.EventHandler(this.comboPermission_SelectionChangeCommitted);
+			this.comboPermission.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxPermission_SelectionChangeCommitted);
 			// 
 			// butRefresh
 			// 
@@ -202,7 +197,7 @@ namespace OpenDental {
 			this.butRefresh.Size = new System.Drawing.Size(82, 24);
 			this.butRefresh.TabIndex = 49;
 			this.butRefresh.Text = "Refresh";
-			this.butRefresh.Click += new System.EventHandler(this.butRefresh_Click);
+			this.butRefresh.Click += new System.EventHandler(this.ButtonRefresh_Click);
 			// 
 			// textDateFrom
 			// 
@@ -249,7 +244,7 @@ namespace OpenDental {
 			this.grid.TabIndex = 2;
 			this.grid.Title = "Audit Trail";
 			this.grid.TranslationName = "TableAudit";
-			this.grid.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.grid_CellDoubleClick);
+			this.grid.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.Grid_CellDoubleClick);
 			// 
 			// comboLogSource
 			// 
@@ -257,7 +252,7 @@ namespace OpenDental {
 			this.comboLogSource.Name = "comboLogSource";
 			this.comboLogSource.Size = new System.Drawing.Size(170, 21);
 			this.comboLogSource.TabIndex = 277;
-			this.comboLogSource.SelectionChangeCommitted += new System.EventHandler(this.comboLogSource_SelectionChangeCommitted);
+			this.comboLogSource.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxLogSource_SelectionChangeCommitted);
 			// 
 			// labelLogSource
 			// 

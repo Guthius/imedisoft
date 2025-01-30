@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PaymentCrud
 {
@@ -123,7 +125,7 @@ public class PaymentCrud
                                        + SOut.Bool(payment.IsSplit) + ","
                                        + SOut.Long(payment.PatNum) + ","
                                        + SOut.Long(payment.ClinicNum) + ","
-                                       + DbHelper.Now() + ","
+                                       + "NOW()" + ","
                                        + SOut.Long(payment.DepositNum) + ","
                                        + DbHelper.ParamChar + "paramReceipt,"
                                        + SOut.Bool(payment.IsRecurringCC) + ","
@@ -137,9 +139,9 @@ public class PaymentCrud
                                        + SOut.Bool(payment.IsCcCompleted) + ","
                                        + SOut.Double(payment.MerchantFee) + ")";
         if (payment.PayNote == null) payment.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringNote(payment.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringNote(payment.PayNote));
         if (payment.Receipt == null) payment.Receipt = "";
-        var paramReceipt = new OdSqlParameter("paramReceipt", OdDbType.Text, SOut.StringParam(payment.Receipt));
+        var paramReceipt = new OdSqlParameter("paramReceipt", SOut.StringParam(payment.Receipt));
         {
             payment.PayNum = Db.NonQ(command, true, "PayNum", "payment", paramPayNote, paramReceipt);
         }
@@ -198,7 +200,7 @@ public class PaymentCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(payment.ClinicNum));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.Long(payment.DepositNum));
             sbRow.Append(",");
@@ -261,7 +263,7 @@ public class PaymentCrud
                                        + SOut.Bool(payment.IsSplit) + ","
                                        + SOut.Long(payment.PatNum) + ","
                                        + SOut.Long(payment.ClinicNum) + ","
-                                       + DbHelper.Now() + ","
+                                       + "NOW()" + ","
                                        + SOut.Long(payment.DepositNum) + ","
                                        + DbHelper.ParamChar + "paramReceipt,"
                                        + SOut.Bool(payment.IsRecurringCC) + ","
@@ -275,9 +277,9 @@ public class PaymentCrud
                                        + SOut.Bool(payment.IsCcCompleted) + ","
                                        + SOut.Double(payment.MerchantFee) + ")";
         if (payment.PayNote == null) payment.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringNote(payment.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringNote(payment.PayNote));
         if (payment.Receipt == null) payment.Receipt = "";
-        var paramReceipt = new OdSqlParameter("paramReceipt", OdDbType.Text, SOut.StringParam(payment.Receipt));
+        var paramReceipt = new OdSqlParameter("paramReceipt", SOut.StringParam(payment.Receipt));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPayNote, paramReceipt);
         else
@@ -312,9 +314,9 @@ public class PaymentCrud
                       + "MerchantFee        =  " + SOut.Double(payment.MerchantFee) + " "
                       + "WHERE PayNum = " + SOut.Long(payment.PayNum);
         if (payment.PayNote == null) payment.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringNote(payment.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringNote(payment.PayNote));
         if (payment.Receipt == null) payment.Receipt = "";
-        var paramReceipt = new OdSqlParameter("paramReceipt", OdDbType.Text, SOut.StringParam(payment.Receipt));
+        var paramReceipt = new OdSqlParameter("paramReceipt", SOut.StringParam(payment.Receipt));
         Db.NonQ(command, paramPayNote, paramReceipt);
     }
 
@@ -435,9 +437,9 @@ public class PaymentCrud
 
         if (command == "") return false;
         if (payment.PayNote == null) payment.PayNote = "";
-        var paramPayNote = new OdSqlParameter("paramPayNote", OdDbType.Text, SOut.StringNote(payment.PayNote));
+        var paramPayNote = new OdSqlParameter("paramPayNote", SOut.StringNote(payment.PayNote));
         if (payment.Receipt == null) payment.Receipt = "";
-        var paramReceipt = new OdSqlParameter("paramReceipt", OdDbType.Text, SOut.StringParam(payment.Receipt));
+        var paramReceipt = new OdSqlParameter("paramReceipt", SOut.StringParam(payment.Receipt));
         command = "UPDATE payment SET " + command
                                         + " WHERE PayNum = " + SOut.Long(payment.PayNum);
         Db.NonQ(command, paramPayNote, paramReceipt);

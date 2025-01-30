@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	///<summary>Provides bridging functionality to Schick CDR.

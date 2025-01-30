@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DiscountPlanSubCrud
 {
@@ -85,7 +87,7 @@ public class DiscountPlanSubCrud
                                                        + SOut.Date(discountPlanSub.DateTerm) + ","
                                                        + DbHelper.ParamChar + "paramSubNote)";
         if (discountPlanSub.SubNote == null) discountPlanSub.SubNote = "";
-        var paramSubNote = new OdSqlParameter("paramSubNote", OdDbType.Text, SOut.StringParam(discountPlanSub.SubNote));
+        var paramSubNote = new OdSqlParameter("paramSubNote", SOut.StringParam(discountPlanSub.SubNote));
         {
             discountPlanSub.DiscountSubNum = Db.NonQ(command, true, "DiscountSubNum", "discountPlanSub", paramSubNote);
         }
@@ -111,7 +113,7 @@ public class DiscountPlanSubCrud
                                                        + SOut.Date(discountPlanSub.DateTerm) + ","
                                                        + DbHelper.ParamChar + "paramSubNote)";
         if (discountPlanSub.SubNote == null) discountPlanSub.SubNote = "";
-        var paramSubNote = new OdSqlParameter("paramSubNote", OdDbType.Text, SOut.StringParam(discountPlanSub.SubNote));
+        var paramSubNote = new OdSqlParameter("paramSubNote", SOut.StringParam(discountPlanSub.SubNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramSubNote);
         else
@@ -129,7 +131,7 @@ public class DiscountPlanSubCrud
                       + "SubNote        =  " + DbHelper.ParamChar + "paramSubNote "
                       + "WHERE DiscountSubNum = " + SOut.Long(discountPlanSub.DiscountSubNum);
         if (discountPlanSub.SubNote == null) discountPlanSub.SubNote = "";
-        var paramSubNote = new OdSqlParameter("paramSubNote", OdDbType.Text, SOut.StringParam(discountPlanSub.SubNote));
+        var paramSubNote = new OdSqlParameter("paramSubNote", SOut.StringParam(discountPlanSub.SubNote));
         Db.NonQ(command, paramSubNote);
     }
 
@@ -168,7 +170,7 @@ public class DiscountPlanSubCrud
 
         if (command == "") return false;
         if (discountPlanSub.SubNote == null) discountPlanSub.SubNote = "";
-        var paramSubNote = new OdSqlParameter("paramSubNote", OdDbType.Text, SOut.StringParam(discountPlanSub.SubNote));
+        var paramSubNote = new OdSqlParameter("paramSubNote", SOut.StringParam(discountPlanSub.SubNote));
         command = "UPDATE discountplansub SET " + command
                                                 + " WHERE DiscountSubNum = " + SOut.Long(discountPlanSub.DiscountSubNum);
         Db.NonQ(command, paramSubNote);

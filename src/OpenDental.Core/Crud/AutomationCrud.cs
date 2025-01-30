@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AutomationCrud
 {
@@ -74,11 +76,11 @@ public class AutomationCrud
                                + SOut.Long(automation.AppointmentTypeNum) + ","
                                + SOut.Int((int) automation.PatStatus) + ")";
         if (automation.Description == null) automation.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(automation.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(automation.Description));
         if (automation.ProcCodes == null) automation.ProcCodes = "";
-        var paramProcCodes = new OdSqlParameter("paramProcCodes", OdDbType.Text, SOut.StringParam(automation.ProcCodes));
+        var paramProcCodes = new OdSqlParameter("paramProcCodes", SOut.StringParam(automation.ProcCodes));
         if (automation.MessageContent == null) automation.MessageContent = "";
-        var paramMessageContent = new OdSqlParameter("paramMessageContent", OdDbType.Text, SOut.StringParam(automation.MessageContent));
+        var paramMessageContent = new OdSqlParameter("paramMessageContent", SOut.StringParam(automation.MessageContent));
         {
             automation.AutomationNum = Db.NonQ(command, true, "AutomationNum", "automation", paramDescription, paramProcCodes, paramMessageContent);
         }
@@ -100,11 +102,11 @@ public class AutomationCrud
                       + "PatStatus         =  " + SOut.Int((int) automation.PatStatus) + " "
                       + "WHERE AutomationNum = " + SOut.Long(automation.AutomationNum);
         if (automation.Description == null) automation.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(automation.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(automation.Description));
         if (automation.ProcCodes == null) automation.ProcCodes = "";
-        var paramProcCodes = new OdSqlParameter("paramProcCodes", OdDbType.Text, SOut.StringParam(automation.ProcCodes));
+        var paramProcCodes = new OdSqlParameter("paramProcCodes", SOut.StringParam(automation.ProcCodes));
         if (automation.MessageContent == null) automation.MessageContent = "";
-        var paramMessageContent = new OdSqlParameter("paramMessageContent", OdDbType.Text, SOut.StringParam(automation.MessageContent));
+        var paramMessageContent = new OdSqlParameter("paramMessageContent", SOut.StringParam(automation.MessageContent));
         Db.NonQ(command, paramDescription, paramProcCodes, paramMessageContent);
     }
 }

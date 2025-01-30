@@ -8,6 +8,8 @@ using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDental.Bridges{

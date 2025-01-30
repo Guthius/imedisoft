@@ -128,8 +128,8 @@ namespace WpfControls.UI {
 			}
 			if(HasHistory && !HistoryClose){
 				Dispatcher.Invoke(() => { 
-					butCancel.Text=Lans.g(this,"Close");
-					labelMsg.Text=Lans.g(this,"Done");
+					butCancel.Text=Lans.g("Close");
+					labelMsg.Text=Lans.g("Done");
 					labelMsg.Visible=true;
 					progressBar.Visibility=Visibility.Collapsed;
 				});

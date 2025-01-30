@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	///<summary>This class is just an example template that we use when we build a new bridge.  Start with a copy of this.</summary>

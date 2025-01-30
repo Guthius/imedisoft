@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness.HL7 {
@@ -115,7 +117,7 @@ namespace OpenDentBusiness.HL7 {
 					if(apt==null) {
 						return "";
 					}
-					List<OIDExternal> listAptOidsExt=OIDExternals.GetByInternalIDAndType(apt.AptNum,IdentifierType.Appointment);
+					List<OIDExternal> listAptOidsExt=OIDExternals.GetByInternalIdAndType(apt.AptNum,IdentifierType.Appointment);
 					if(listAptOidsExt.Count==0) {
 						return "";
 					}
@@ -273,7 +275,7 @@ namespace OpenDentBusiness.HL7 {
 					}
 					string guarIdCheckDigitStr=MessageParser.M11CheckDigit(guar.PatNum.ToString()).ToString();
 					retval=gConcat(def.ComponentSeparator,guar.PatNum.ToString(),guarIdCheckDigitStr,"M11",def.SubcomponentSeparator+guarOidRoot+def.SubcomponentSeparator+"HL7","PI");
-					List<OIDExternal> listGuarOidsExt=OIDExternals.GetByInternalIDAndType(guar.PatNum,IdentifierType.Patient);
+					List<OIDExternal> listGuarOidsExt=OIDExternals.GetByInternalIdAndType(guar.PatNum,IdentifierType.Patient);
 					for(int i=0;i<listGuarOidsExt.Count;i++) {
 						guarIdCheckDigitStr=MessageParser.M11CheckDigit(listGuarOidsExt[i].IDExternal).ToString();
 						if(guarIdCheckDigitStr=="-1") {//could not get a check digit from the external ID, could contain characters that are not numbers
@@ -394,7 +396,7 @@ namespace OpenDentBusiness.HL7 {
 					}
 					string patIdCheckDigitStr=MessageParser.M11CheckDigit(pat.PatNum.ToString()).ToString();
 					retval=gConcat(def.ComponentSeparator,pat.PatNum.ToString(),patIdCheckDigitStr,"M11",def.SubcomponentSeparator+patOidRoot+def.SubcomponentSeparator+"HL7","PI");
-					List<OIDExternal> listPatOidsExt=OIDExternals.GetByInternalIDAndType(pat.PatNum,IdentifierType.Patient);
+					List<OIDExternal> listPatOidsExt=OIDExternals.GetByInternalIdAndType(pat.PatNum,IdentifierType.Patient);
 					for(int i=0;i<listPatOidsExt.Count;i++) {
 						patIdCheckDigitStr=MessageParser.M11CheckDigit(listPatOidsExt[i].IDExternal).ToString();
 						if(patIdCheckDigitStr=="-1") {//could not get a check digit from the external ID, could contain characters that are not numbers
@@ -441,7 +443,7 @@ namespace OpenDentBusiness.HL7 {
 						if(retval!="") {
 							retval+=def.RepetitionSeparator;
 						}
-						ICD9 icd9Cur=ICD9s.GetByCode(listDiagCodes[i]);
+						ICD9 icd9Cur=Icd9s.GetByCode(listDiagCodes[i]);
 						Icd10 icd10Cur=Icd10s.GetByCode(listDiagCodes[i]);
 						if(icd9Cur!=null && icd10Cur==null) {
 							retval+=gConcat(def.ComponentSeparator,listDiagCodes[i],icd9Cur.Description,"I9C","","","","31");//See HL7 v2.6 Ch 6.5.2.3
@@ -527,7 +529,7 @@ namespace OpenDentBusiness.HL7 {
 					//AIG Example: |2.16.840.1.113883.3.4337.1486.6566.3.1^Abbott, Sarah L, DMD^^DrAbbott~OtherSoftware.Root.Provider.ProvID^Abbott, Sarah L, DMD^^DrAbbott|
 					//PV1 or AIP Example: 2.16.840.1.113883.3.4337.1486.6566.3.1^Abbott^Sarah^L^DMD^DrAbbott~OtherSoftware.Root.Provider.ProvID^Abbott^Sarah^L^DMD^DrAbbott
 					//For the '_V2_3' field names, the abbreviation field will not be populated
-					List<OIDExternal> listProvOidExt=OIDExternals.GetByInternalIDAndType(prov.ProvNum,IdentifierType.Provider);
+					List<OIDExternal> listProvOidExt=OIDExternals.GetByInternalIdAndType(prov.ProvNum,IdentifierType.Provider);
 					string provName;
 					string provAbbr=fieldName.EndsWith("_V2_3")?"":prov.Abbr;
 					if(fieldName.In("prov.provIdName","prov.provIdName_V2_3")) {

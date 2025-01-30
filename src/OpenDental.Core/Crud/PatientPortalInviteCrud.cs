@@ -6,10 +6,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PatientPortalInviteCrud
 {
@@ -100,7 +102,7 @@ public class PatientPortalInviteCrud
                                                   + SOut.Int((int) patientPortalInvite.SendStatus) + ","
                                                   + SOut.Int((int) patientPortalInvite.MessageType) + ","
                                                   + SOut.Long(patientPortalInvite.MessageFk) + ","
-                                                  + DbHelper.Now() + ","
+                                                  + "NOW()" + ","
                                                   + SOut.DateTime(patientPortalInvite.DateTimeSent) + ","
                                                   + DbHelper.ParamChar + "paramResponseDescript,"
                                                   + SOut.Long(patientPortalInvite.ApptReminderRuleNum) + ","
@@ -108,7 +110,7 @@ public class PatientPortalInviteCrud
                                                   + SOut.DateTime(patientPortalInvite.ApptDateTime) + ","
                                                   + "'" + SOut.Long(patientPortalInvite.TSPrior.Ticks) + "')";
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(patientPortalInvite.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(patientPortalInvite.ResponseDescript));
         {
             patientPortalInvite.PatientPortalInviteNum = Db.NonQ(command, true, "PatientPortalInviteNum", "patientPortalInvite", paramResponseDescript);
         }
@@ -159,7 +161,7 @@ public class PatientPortalInviteCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(patientPortalInvite.MessageFk));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.DateTime(patientPortalInvite.DateTimeSent));
             sbRow.Append(",");
@@ -207,7 +209,7 @@ public class PatientPortalInviteCrud
                                                   + SOut.Int((int) patientPortalInvite.SendStatus) + ","
                                                   + SOut.Int((int) patientPortalInvite.MessageType) + ","
                                                   + SOut.Long(patientPortalInvite.MessageFk) + ","
-                                                  + DbHelper.Now() + ","
+                                                  + "NOW()" + ","
                                                   + SOut.DateTime(patientPortalInvite.DateTimeSent) + ","
                                                   + DbHelper.ParamChar + "paramResponseDescript,"
                                                   + SOut.Long(patientPortalInvite.ApptReminderRuleNum) + ","
@@ -215,7 +217,7 @@ public class PatientPortalInviteCrud
                                                   + SOut.DateTime(patientPortalInvite.ApptDateTime) + ","
                                                   + "'" + SOut.Long(patientPortalInvite.TSPrior.Ticks) + "')";
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(patientPortalInvite.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(patientPortalInvite.ResponseDescript));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramResponseDescript);
         else
@@ -240,7 +242,7 @@ public class PatientPortalInviteCrud
                       + "TSPrior               =  " + SOut.Long(patientPortalInvite.TSPrior.Ticks) + " "
                       + "WHERE PatientPortalInviteNum = " + SOut.Long(patientPortalInvite.PatientPortalInviteNum);
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(patientPortalInvite.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(patientPortalInvite.ResponseDescript));
         Db.NonQ(command, paramResponseDescript);
     }
 
@@ -316,7 +318,7 @@ public class PatientPortalInviteCrud
 
         if (command == "") return false;
         if (patientPortalInvite.ResponseDescript == null) patientPortalInvite.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(patientPortalInvite.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(patientPortalInvite.ResponseDescript));
         command = "UPDATE patientportalinvite SET " + command
                                                     + " WHERE PatientPortalInviteNum = " + SOut.Long(patientPortalInvite.PatientPortalInviteNum);
         Db.NonQ(command, paramResponseDescript);

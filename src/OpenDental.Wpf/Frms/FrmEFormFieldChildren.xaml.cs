@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	/// <summary></summary>

@@ -1,160 +1,159 @@
 using System;
 using System.Windows.Forms;
-using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
-namespace OpenDental {
-	/// <summary>
-	/// Summary description for FormBasicTemplate.
-	/// </summary>
-	public partial class FormBlockoutCutCopyPaste:FormODBase {
-		private static DateTime _dateCopyStart=DateTime.MinValue;
-		private static DateTime _dateCopyEnd=DateTime.MinValue;
-		public long ApptViewNum;
-		private static long _apptViewNumPrevious;
-		public DateTime DateSelected;
+namespace OpenDental.Forms;
 
-		
-		public FormBlockoutCutCopyPaste()
-		{
-			//
-			// Required for Windows Form Designer support
-			//
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormBlockoutCutCopyPaste : FormODBase
+{
+    private static DateTime _dateCopyStart = DateTime.MinValue;
+    private static DateTime _dateCopyEnd = DateTime.MinValue;
+    private static long _previousApptViewNum;
 
-		private void FormBlockoutCutCopyPaste_Load(object sender,EventArgs e) {
-			if(DateSelected.DayOfWeek==DayOfWeek.Saturday || DateSelected.DayOfWeek==DayOfWeek.Sunday) {
-				checkWeekend.Checked=true;
-			}			
-			if(ApptViewNum!=_apptViewNumPrevious){
-				_dateCopyStart=DateTime.MinValue;
-				_dateCopyEnd=DateTime.MinValue;
-			}
-			FillClipboard();
-			_apptViewNumPrevious=ApptViewNum;//remember the appt view for next time.
-		}
+    public long ApptViewNum;
 
-		private void butClearDay_Click(object sender,EventArgs e) {
-			if(true) {
-				string clinicAbbr=(Clinics.ClinicNum==0?Lan.g(this,"Headquarters"):Clinics.GetAbbr(Clinics.ClinicNum));
-				if(ODMessageBox.Show(Lan.g(this,"Clear all blockouts for day for clinic: ")+clinicAbbr+Lan.g(this,"?")+"\r\n"
-					+Lan.g(this,"(This may include blockouts not shown in the current appointment view)")
-					,Lan.g(this,"Clear Blockouts"),MessageBoxButtons.OKCancel)!=DialogResult.OK) 
-				{ 
-					return;
-				}
-				Schedules.ClearBlockoutsForClinic(Clinics.ClinicNum,DateSelected);//currently selected clinic only, works for daily or weekly
-				Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:DateSelected,clinicNum:Clinics.ClinicNum);
-			}
-			else {
-				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Clear all blockouts for day? (This may include blockouts not shown in the current appointment view)")) {
-					return;
-				}
-				Schedules.ClearBlockoutsForDay(DateSelected);//works for daily or weekly
-				Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:DateSelected);
-			}
-			Close();
-		}
+    public DateTime SelectedDate { get; set; }
 
-		private void FillClipboard(){
-			if(_dateCopyStart.Year<1880){
-				textClipboard.Text="";
-			}
-			else if(_dateCopyStart==_dateCopyEnd) {
-				textClipboard.Text=_dateCopyStart.ToShortDateString();
-			}
-			else {
-				textClipboard.Text=_dateCopyStart.ToShortDateString()+"-"+_dateCopyEnd.ToShortDateString();
-			}
-		}
+    public FormBlockoutCutCopyPaste()
+    {
+        InitializeComponent();
+    }
 
-		private void butCopyDay_Click(object sender,EventArgs e) {
-			_dateCopyStart=DateSelected;
-			_dateCopyEnd=DateSelected;
-			Close();
-		}
+    private void FormBlockoutCutCopyPaste_Load(object sender, EventArgs e)
+    {
+        if (SelectedDate.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        {
+            checkWeekend.Checked = true;
+        }
 
-		private void butCopyWeek_Click(object sender,EventArgs e) {
-			//Always start week on Monday
-			if(DateSelected.DayOfWeek==DayOfWeek.Sunday) {//if selecting Sunday, go back to the previous Monday.
-				_dateCopyStart=DateSelected.AddDays(-6);
-			}
-			else {//Any other day. eg Wed.AddDays(1-3)=Wed.AddDays(-2)=Monday
-				_dateCopyStart=DateSelected.AddDays(1-(int)DateSelected.DayOfWeek);//eg Wed.AddDays(1-3)=Wed.AddDays(-2)=Monday
-			}
-			if(checkWeekend.Checked){
-				_dateCopyEnd=_dateCopyStart.AddDays(6);
-			}
-			else{
-				_dateCopyEnd=_dateCopyStart.AddDays(4);
-			}
-			Close();
-		}
+        if (ApptViewNum != _previousApptViewNum)
+        {
+            _dateCopyStart = DateTime.MinValue;
+            _dateCopyEnd = DateTime.MinValue;
+        }
 
-		private void butPaste_Click(object sender,EventArgs e) {
-			CopyOverBlockouts(1);
-		}
+        FillClipboard();
 
-		private void butRepeat_Click(object sender,EventArgs e) {
-			try {
-				int.Parse(textRepeat.Text);
-			}
-			catch {
-				MsgBox.Show(this,"Please fix number box first.");
-				return;
-			}
-			CopyOverBlockouts(SIn.Int(textRepeat.Text));
-		}
+        _previousApptViewNum = ApptViewNum;
+    }
 
-		private void CopyOverBlockouts(int numRepeat) {
-			if(_dateCopyStart.Year < 1880) {
-				MsgBox.Show(this,"Please copy a selection to the clipboard first.");
-				return;
-			}
-			if(DateSelected.DayOfWeek==DayOfWeek.Saturday || DateSelected.DayOfWeek==DayOfWeek.Sunday) {//copying from a weekend
-				if(!checkWeekend.Checked) {//but they didn't indicate pasting onto weekends
-					MsgBox.Show(this,"You must check 'Include Weekends' if you would like to paste into weekends.");
-					return;
-				}
-			}
-			//calculate which day or week is currently selected.
-			DateTime dateSelectedStart;
-			DateTime dateSelectedEnd;
-			bool isWeek=_dateCopyStart!=_dateCopyEnd;
-			if(isWeek) {
-				//Always start week on Monday
-				if(DateSelected.DayOfWeek==DayOfWeek.Sunday) {//if selecting Sunday, go back to the previous Monday.
-					dateSelectedStart=DateSelected.AddDays(-6);
-				}
-				else {//Any other day. eg Wed.AddDays(1-3)=Wed.AddDays(-2)=Monday
-					dateSelectedStart=DateSelected.AddDays(1-(int)DateSelected.DayOfWeek);//eg Wed.AddDays(1-3)=Wed.AddDays(-2)=Monday
-				}
-				//DateCopyEnd is greater than DateCopyStart and is either 4 days greater or 6 days greater, so clear/paste the same number of days
-				dateSelectedEnd=dateSelectedStart.AddDays((_dateCopyEnd-_dateCopyStart).Days);
-			}
-			else {
-				dateSelectedStart=DateSelected;
-				dateSelectedEnd=DateSelected;
-			}
-			//When pasting, it's not allowed to paste back over the same day or week.
-			if(dateSelectedStart==_dateCopyStart && numRepeat==1) {
-				MsgBox.Show(this,"Not allowed to paste back onto the same date as is on the clipboard.");
-				return;
-			}
-			Cursor=Cursors.WaitCursor;
-			string errors=Schedules.CopyBlockouts(ApptViewNum,isWeek,checkWeekend.Checked,checkReplace.Checked,_dateCopyStart,_dateCopyEnd,
-				dateSelectedStart,dateSelectedEnd,numRepeat);
-			Cursor=Cursors.Default;
-			if(!string.IsNullOrEmpty(errors)) {
-				ODMessageBox.Show(errors);//Error was translated inside of the S class method.
-				return;
-			}
-			Close();
-		}
-	}
+    private void ButtonClearDay_Click(object sender, EventArgs e)
+    {
+        var abbr = Clinics.GetAbbr(Clinics.ClinicNum);
+
+        if (!ConfirmOk(
+                "Clear all blockouts for day for clinic: " + abbr + "?\r\n" +
+                "(This may include blockouts not shown in the current appointment view)"))
+        {
+            return;
+        }
+
+        Schedules.ClearBlockoutsForClinic(Clinics.ClinicNum, SelectedDate);
+        Schedules.BlockoutLogHelper(BlockoutAction.Clear, dateTime: SelectedDate, clinicNum: Clinics.ClinicNum);
+
+        Close();
+    }
+
+    private void FillClipboard()
+    {
+        if (_dateCopyStart.Year < 1880)
+        {
+            textClipboard.Text = "";
+        }
+        else if (_dateCopyStart == _dateCopyEnd)
+        {
+            textClipboard.Text = _dateCopyStart.ToShortDateString();
+        }
+        else
+        {
+            textClipboard.Text = _dateCopyStart.ToShortDateString() + "-" + _dateCopyEnd.ToShortDateString();
+        }
+    }
+
+    private void ButtonCopyDay_Click(object sender, EventArgs e)
+    {
+        _dateCopyStart = SelectedDate;
+        _dateCopyEnd = SelectedDate;
+
+        Close();
+    }
+
+    private void ButtonCopyWeek_Click(object sender, EventArgs e)
+    {
+        _dateCopyStart = SelectedDate.DayOfWeek == DayOfWeek.Sunday ? SelectedDate.AddDays(-6) : SelectedDate.AddDays(1 - (int) SelectedDate.DayOfWeek);
+        _dateCopyEnd = _dateCopyStart.AddDays(checkWeekend.Checked ? 6 : 4);
+
+        Close();
+    }
+
+    private void ButtonPaste_Click(object sender, EventArgs e)
+    {
+        CopyOverBlockouts(1);
+    }
+
+    private void ButtonRepeat_Click(object sender, EventArgs e)
+    {
+        if (!int.TryParse(textRepeat.Text, out var repeat))
+        {
+            ShowError("Please fix number box first.");
+
+            return;
+        }
+
+        CopyOverBlockouts(repeat);
+    }
+
+    private void CopyOverBlockouts(int repeat)
+    {
+        if (_dateCopyStart.Year < 1880)
+        {
+            ShowError("Please copy a selection to the clipboard first.");
+            return;
+        }
+
+        if (SelectedDate.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        {
+            if (!checkWeekend.Checked)
+            {
+                ShowError("You must check 'Include Weekends' if you would like to paste into weekends.");
+                return;
+            }
+        }
+
+        DateTime dateStart;
+        DateTime dateEnd;
+
+        var isWeek = _dateCopyStart != _dateCopyEnd;
+        if (isWeek)
+        {
+            dateStart = SelectedDate.DayOfWeek == DayOfWeek.Sunday ? SelectedDate.AddDays(-6) : SelectedDate.AddDays(1 - (int) SelectedDate.DayOfWeek);
+            dateEnd = dateStart.AddDays((_dateCopyEnd - _dateCopyStart).Days);
+        }
+        else
+        {
+            dateStart = SelectedDate;
+            dateEnd = SelectedDate;
+        }
+
+        if (dateStart == _dateCopyStart && repeat == 1)
+        {
+            ShowError("Not allowed to paste back onto the same date as is on the clipboard.");
+            return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+
+        var errors = Schedules.CopyBlockouts(ApptViewNum, isWeek, checkWeekend.Checked, checkReplace.Checked, _dateCopyStart, _dateCopyEnd, dateStart, dateEnd, repeat);
+
+        Cursor = Cursors.Default;
+
+        if (!string.IsNullOrEmpty(errors))
+        {
+            ShowError(errors);
+            return;
+        }
+
+        Close();
+    }
 }

@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class OrthoChartRows
 {
-    #region Methods - Misc
-
-    public static bool Sync(List<OrthoChartRow> listOrthoChartRowsNew, long patNum)
+    public static void Sync(List<OrthoChartRow> listOrthoChartRowsNew, long patNum)
     {
         var listOrthoChartRowsDB = GetAllForPatient(patNum, false);
         //This code is just a straight copy of the Crud sync.  It's here in preparation for possibly adding logging for signature.
@@ -105,15 +104,9 @@ public class OrthoChartRows
         }
 
         OrthoChartRowCrud.DeleteMany(listOrthoChartRowsDel.Select(x => x.OrthoChartRowNum).ToList());
-        if (rowsUpdatedCount > 0 || listOrthoChartRowsIns.Count > 0 || listOrthoChartRowsDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listOrthoChartRowsIns.Count > 0 || listOrthoChartRowsDel.Count > 0) return;
     }
 
-    #endregion Methods - Misc
-
-    #region Methods - Get
-
-    ///<summary>Returns a list of all OrthoChartRows for the patnum passed in. Includes the list of orthocharts by default.</summary>
     public static List<OrthoChartRow> GetAllForPatient(long patNum, bool doIncludeOrthoCharts = true)
     {
         var command = "SELECT * FROM orthochartrow WHERE PatNum = " + SOut.Long(patNum);
@@ -138,33 +131,13 @@ public class OrthoChartRows
         return listOrthoChartRows;
     }
 
-    ///<summary>Gets one OrthoChartRow from the db.</summary>
-    public static OrthoChartRow GetOne(long orthoChartRowNum)
+    public static void Insert(OrthoChartRow orthoChartRow)
     {
-        return OrthoChartRowCrud.SelectOne(orthoChartRowNum);
+        OrthoChartRowCrud.Insert(orthoChartRow);
     }
 
-    #endregion Methods - Get
-
-    #region Methods - Modify
-
-    
-    public static long Insert(OrthoChartRow orthoChartRow)
-    {
-        return OrthoChartRowCrud.Insert(orthoChartRow);
-    }
-
-    
-    public static void Update(OrthoChartRow orthoChartRow)
-    {
-        OrthoChartRowCrud.Update(orthoChartRow);
-    }
-
-    
     public static void Delete(long orthoChartRowNum)
     {
         OrthoChartRowCrud.Delete(orthoChartRowNum);
     }
-
-    #endregion Methods - Modify
 }

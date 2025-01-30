@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Sparks3D;
 using System.Windows.Forms;
+using PerioSequenceType = Imedisoft.Core.Entities.PerioSequenceType;
 
 //Notes about how this DLL works:  There are two DLLs and a readme.txt nested inside a subfolder called Sparks3D. 
 //First of all, as a separate issue, the DLL must be present in the Required dlls folder in order to compile.  No local copy is made during compile.
@@ -180,27 +181,27 @@ namespace OpenDental.UI{
 			_toothChart.AddOrthoElastic(toothIDstart,toothIDend,color);
 		}
 
-		public void AddPerioMeasure(int intTooth,OpenDentBusiness.PerioSequenceType perioSequenceType,int mb,int b,int db,int ml,int l, int dl){
+		public void AddPerioMeasure(int intTooth,PerioSequenceType perioSequenceType,int mb,int b,int db,int ml,int l, int dl){
 			Sparks3D.PerioSequenceType perioSequenceType3D;
 			switch(perioSequenceType){
 				default:
 					throw new ApplicationException("PerioSequenceType not allowed.");
-				case OpenDentBusiness.PerioSequenceType.Furcation:
+				case PerioSequenceType.Furcation:
 					perioSequenceType3D=Sparks3D.PerioSequenceType.Furcation;
 					break;
-				case OpenDentBusiness.PerioSequenceType.GingMargin:
+				case PerioSequenceType.GingMargin:
 					perioSequenceType3D=Sparks3D.PerioSequenceType.GingMargin;
 					break;
-				case OpenDentBusiness.PerioSequenceType.MGJ:
+				case PerioSequenceType.MGJ:
 					perioSequenceType3D=Sparks3D.PerioSequenceType.MGJ;
 					break;
-				case OpenDentBusiness.PerioSequenceType.Probing:
+				case PerioSequenceType.Probing:
 					perioSequenceType3D=Sparks3D.PerioSequenceType.Probing;
 					break;
-				case OpenDentBusiness.PerioSequenceType.BleedSupPlaqCalc:
+				case PerioSequenceType.BleedSupPlaqCalc:
 					perioSequenceType3D=Sparks3D.PerioSequenceType.Bleeding;
 					break;
-				case OpenDentBusiness.PerioSequenceType.CAL:
+				case PerioSequenceType.CAL:
 					perioSequenceType3D=Sparks3D.PerioSequenceType.CAL;
 					break;
 			}

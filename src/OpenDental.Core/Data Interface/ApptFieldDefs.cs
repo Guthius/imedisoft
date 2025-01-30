@@ -3,18 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ApptFieldDefs
 {
-	/// <summary>
-	///     Must supply the old field name so that the apptFields attached to appointments can be updated.  Will throw
-	///     exception if new FieldName is already in use.
-	/// </summary>
-	public static void Update(ApptFieldDef apptFieldDef, string fieldNameOld)
+    public static void Update(ApptFieldDef apptFieldDef, string fieldNameOld)
     {
         var command = "SELECT COUNT(*) FROM apptfielddef WHERE FieldName='" + SOut.String(apptFieldDef.FieldName) + "' "
                       + "AND ApptFieldDefNum != " + SOut.Long(apptFieldDef.ApptFieldDefNum);
@@ -25,15 +21,13 @@ public class ApptFieldDefs
         Db.NonQ(command);
     }
 
-    ///<summary>Surround with try/catch in case field name already in use.</summary>
-    public static long Insert(ApptFieldDef apptFieldDef)
+    public static void Insert(ApptFieldDef apptFieldDef)
     {
         var command = "SELECT COUNT(*) FROM apptfielddef WHERE FieldName='" + SOut.String(apptFieldDef.FieldName) + "'";
         if (Db.GetCount(command) != "0") throw new ApplicationException(Lans.g("FormApptFieldDefEdit", "Field name already in use."));
-        return ApptFieldDefCrud.Insert(apptFieldDef);
+        ApptFieldDefCrud.Insert(apptFieldDef);
     }
 
-    ///<summary>Surround with try/catch, because it will throw an exception if any appointment is using this def.</summary>
     public static void Delete(ApptFieldDef apptFieldDef)
     {
         var command = "SELECT LName,FName,AptDateTime "
@@ -61,11 +55,11 @@ public class ApptFieldDefs
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<ApptFieldDef> listApptFieldDefsNew)
+    public static void Sync(List<ApptFieldDef> listApptFieldDefsNew)
     {
         var command = "SELECT * FROM apptfielddef";
         var listApptFieldDefsDB = ApptFieldDefCrud.SelectMany(command);
-        return ApptFieldDefCrud.Sync(listApptFieldDefsNew, listApptFieldDefsDB);
+        ApptFieldDefCrud.Sync(listApptFieldDefsNew, listApptFieldDefsDB);
     }
 
     public static string GetFieldName(long apptFieldDefNum)
@@ -75,7 +69,6 @@ public class ApptFieldDefs
         return fieldName;
     }
 
-    /// <summary>GetPickListByFieldName returns the pick list identified by the field name passed as a parameter.</summary>
     public static string GetPickListByFieldName(string fieldName)
     {
         var apptFieldDef = GetFirstOrDefault(x => x.FieldName == fieldName);
@@ -83,24 +76,17 @@ public class ApptFieldDefs
         return pickList;
     }
 
-    ///<summary>Returns true if there are any duplicate field names in the entire apptfielddef table.</summary>
     public static bool HasDuplicateFieldNames()
     {
         var command = "SELECT COUNT(*) FROM apptfielddef GROUP BY FieldName HAVING COUNT(FieldName) > 1";
         return DataCore.GetScalar(command) != "";
     }
 
-    /// <summary>
-    ///     Returns the ApptFieldDef for the specified field name. Returns null if an ApptFieldDef does not exist for that
-    ///     field name.
-    /// </summary>
     public static ApptFieldDef GetFieldDefByFieldName(string fieldName)
     {
         return GetFirstOrDefault(x => x.FieldName == fieldName);
     }
-
-    #region CachePattern
-
+    
     private class ApptFieldDefCache : CacheListAbs<ApptFieldDef>
     {
         protected override List<ApptFieldDef> GetCacheFromDb()
@@ -130,54 +116,35 @@ public class ApptFieldDefs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ApptFieldDefCache _apptFieldDefCache = new();
-
-    public static int GetCount(bool isShort = false)
-    {
-        return _apptFieldDefCache.GetCount(isShort);
-    }
+    private static readonly ApptFieldDefCache Cache = new();
 
     public static bool GetExists(Predicate<ApptFieldDef> match, bool isShort = false)
     {
-        return _apptFieldDefCache.GetExists(match, isShort);
+        return Cache.GetExists(match, isShort);
     }
 
     public static List<ApptFieldDef> GetDeepCopy(bool isShort = false)
     {
-        return _apptFieldDefCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static ApptFieldDef GetFirstOrDefault(Func<ApptFieldDef, bool> match, bool isShort = false)
     {
-        return _apptFieldDefCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _apptFieldDefCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _apptFieldDefCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _apptFieldDefCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

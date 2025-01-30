@@ -3,34 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class OrthoCases
 {
-    #region Insert
-
-    ///<summary>Insert an OrthoCase into the database. Returns OrthoCaseNum.</summary>
     public static long Insert(OrthoCase orthoCase)
     {
         return OrthoCaseCrud.Insert(orthoCase);
     }
 
-    #endregion Insert
-
-    #region Delete
-
-    /////<summary>Deletes an OrthoCase from the database, does not delete all items associated to the ortho case, call DeleteAllAssociated.</summary>
-    //public static void Delete(long orthoCaseNum) {
-    //	
-    //	Crud.OrthoCaseCrud.Delete(orthoCaseNum);
-    //}
-
-    ///<summary>Throws exceptions. Deletes the OrthoCase and all items associated to the ortho case.</summary>
-    public static void Delete(long orthoCaseNum, OrthoSchedule orthoSchedule = null, OrthoPlanLink orthoPlanLinkSchedule = null
-        , List<OrthoProcLink> listOrthoProcLinks = null, OrthoPlanLink orthoPlanLinkPatPayPlan = null)
+    public static void Delete(long orthoCaseNum, OrthoSchedule orthoSchedule = null, OrthoPlanLink orthoPlanLinkSchedule = null, List<OrthoProcLink> listOrthoProcLinks = null, OrthoPlanLink orthoPlanLinkPatPayPlan = null)
     {
         //Get associated objects if they were not passed in.
         if (orthoPlanLinkSchedule == null) orthoPlanLinkSchedule = OrthoPlanLinks.GetOneForOrthoCaseByType(orthoCaseNum, OrthoPlanLinkType.OrthoSchedule);
@@ -58,29 +43,22 @@ public class OrthoCases
         if (orthoPlanLinkPatPayPlan != null) OrthoPlanLinkCrud.Delete(orthoPlanLinkPatPayPlan.OrthoPlanLinkNum);
     }
 
-    #endregion Delete
-
-    #region Get Methods
-
     public static List<OrthoCase> GetPatientData(long patNum)
     {
         return Refresh(patNum);
     }
 
-    ///<summary>Gets one OrthoCase from the db.</summary>
     public static OrthoCase GetOne(long orthoCaseNum)
     {
         return OrthoCaseCrud.SelectOne(orthoCaseNum);
     }
 
-    ///<summary>Gets all Ortho Cases for a patient.</summary>
     public static List<OrthoCase> Refresh(long patNum)
     {
         var command = "SELECT * FROM orthocase WHERE orthocase.PatNum = " + SOut.Long(patNum);
         return OrthoCaseCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all Ortho Cases for a list of OrthoCaseNums.</summary>
     public static List<OrthoCase> GetMany(List<long> listOrthoCaseNums)
     {
         if (listOrthoCaseNums.Count == 0) return new List<OrthoCase>();
@@ -89,23 +67,6 @@ public class OrthoCases
         return OrthoCaseCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all Ortho Cases from db for a list of PatNums.</summary>
-    public static List<OrthoCase> GetManyForPats(List<long> listPatNums)
-    {
-        if (listPatNums.Count == 0) return new List<OrthoCase>();
-
-        var command = $"SELECT * FROM orthocase WHERE orthocase.PatNum IN({string.Join(",", listPatNums)})";
-        return OrthoCaseCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets a Patients Active OrthoCase. Patient can only have one active OrthoCase so it is OK to return 1.</summary>
-    public static OrthoCase GetActiveForPat(long patNum)
-    {
-        var command = $"SELECT * FROM orthocase WHERE orthocase.PatNum={SOut.Long(patNum)} AND orthocase.IsActive={SOut.Bool(true)}";
-        return OrthoCaseCrud.SelectOne(command);
-    }
-
-    ///<summary>Gets a list of active ortho cases for several patients. There should only be 1 active ortho case per patient.</summary>
     public static List<OrthoCase> GetActiveForPats(List<long> listPatNums)
     {
         if (listPatNums.Count == 0) return new List<OrthoCase>();
@@ -114,21 +75,11 @@ public class OrthoCases
         return OrthoCaseCrud.SelectMany(command);
     }
 
-    #endregion Get Methods
-
-    #region Update
-
-    ///<summary>Update only data that is different in newOrthoCase.</summary>
     public static void Update(OrthoCase orthoCaseNew, OrthoCase orthoCaseOld)
     {
         OrthoCaseCrud.Update(orthoCaseNew, orthoCaseOld);
     }
 
-    /// <summary>
-    ///     Activates an OrthoCase and its associated OrthoSchedule and OrthoPlanLink. Sets all other OrthoCases for Pat
-    ///     inactive.
-    ///     Returns the refreshed list of OrthoCases.
-    /// </summary>
     public static List<OrthoCase> Activate(OrthoCase orthoCaseToActivate, long patNum)
     {
         var orthoPlanLinkSchedule = OrthoPlanLinks.GetOneForOrthoCaseByType(orthoCaseToActivate.OrthoCaseNum, OrthoPlanLinkType.OrthoSchedule);
@@ -138,7 +89,6 @@ public class OrthoCases
         return Refresh(patNum);
     }
 
-    ///<summary>Set all objects related to orthocases for a patient inactive besides the ones passed in.</summary>
     public static void DeactivateOthersForPat(long orthoCaseNumActive, long orthoScheduleNumActive, long patNum)
     {
         //Get all orthocase nums to deactivate.
@@ -162,12 +112,7 @@ public class OrthoCases
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Update the IsActive property for the OrthoCase, OrthoSchedule, and OrthoPlanLink between them.
-    ///     Old ortho case can be passed in if other fields need to be updated so that update doesn't have to be called twice.
-    /// </summary>
-    public static void SetActiveState(OrthoCase orthoCase, OrthoPlanLink orthoPlanLinkSchedule, OrthoSchedule orthoSchedule, bool isActive
-        , OrthoCase orthoCaseOld = null)
+    public static void SetActiveState(OrthoCase orthoCase, OrthoPlanLink orthoPlanLinkSchedule, OrthoSchedule orthoSchedule, bool isActive, OrthoCase orthoCaseOld = null)
     {
         if (orthoCaseOld == null) orthoCaseOld = orthoCase.Copy();
         var orthoScheduleOld = orthoSchedule.Copy();
@@ -180,7 +125,6 @@ public class OrthoCases
         OrthoPlanLinks.Update(orthoPlanLinkSchedule, oldScheduleOrthoPlanLink);
     }
 
-    ///<summary>Sets the BandingDate or DebondDate for an OrthoCase.</summary>
     public static void UpdateDatesByLinkedProc(OrthoProcLink orthoProcLink, Procedure procedure)
     {
         if (orthoProcLink.ProcLinkType == OrthoProcType.Visit) return;
@@ -193,26 +137,11 @@ public class OrthoCases
         Update(orthoCase, orthoCaseOld);
     }
 
-    //
-    //public static void Update(OrthoCase orthoCase) {
-    //	
-    //	Crud.OrthoCaseCrud.Update(orthoCase);
-    //}
-
-    #endregion Update
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Parses comma delimited list of procCodes from the specified OrthoCase proc type preference
-    ///     (OrthoBandingCodes, OrthoDebondCodes, OrthoVisitCodes). Returns as list of proc codes.
-    /// </summary>
     public static List<string> GetListProcTypeProcCodes(PrefName prefName)
     {
         return PrefC.GetString(prefName).Split(',').Select(x => x.Trim()).ToList();
     }
 
-    ///<summary>Returns true if any of the preferences: OrthoBandingCodes, OrthoDebondCodes, OrthoVisitCodes aren't blank.</summary>
     public static bool HasOrthoCasesEnabled()
     {
         if (PrefC.GetStringSilent(PrefName.OrthoBandingCodes) != "") return true;
@@ -221,14 +150,7 @@ public class OrthoCases
         return false;
     }
 
-    /// <summary>
-    ///     This fills a list of all OrthoProcLinks, a dictionary of OrthoProcLinks, a dictionary of OrthoCases associated to
-    ///     these OrthoProcLinks,
-    ///     and a dictionary of OrthoSchedules for the OrthoCases.
-    /// </summary>
-    public static void GetDataForAllProcLinks(ref List<OrthoProcLink> listOrthoProcLinksAll,
-        ref Dictionary<long, OrthoProcLink> dictionaryOrthoProcLinks, ref Dictionary<long, OrthoCase> dictionaryOrthoCases,
-        ref Dictionary<long, OrthoSchedule> dictionaryOrthoSchedules)
+    public static void GetDataForAllProcLinks(ref List<OrthoProcLink> listOrthoProcLinksAll, ref Dictionary<long, OrthoProcLink> dictionaryOrthoProcLinks, ref Dictionary<long, OrthoCase> dictionaryOrthoCases, ref Dictionary<long, OrthoSchedule> dictionaryOrthoSchedules)
     {
         listOrthoProcLinksAll = OrthoProcLinks.GetAll();
         if (listOrthoProcLinksAll.Count > 0)
@@ -242,13 +164,7 @@ public class OrthoCases
         }
     }
 
-    /// <summary>
-    ///     Fills ref parameters for an orthoProcLink, orthoCase, orthoSchedule, and list of orthoProcLinks for the orthoCase.
-    ///     These objects are used in several places to call Procedures.ComputeEstimates()
-    /// </summary>
-    public static void FillOrthoCaseObjectsForProc(long procNum, ref OrthoProcLink orthoProcLink, ref OrthoCase orthoCase, ref OrthoSchedule orthoSchedule,
-        ref List<OrthoProcLink> listOrthoProcLinksForOrthoCase, Dictionary<long, OrthoProcLink> dictionaryOrthoProcLinksForProcList,
-        Dictionary<long, OrthoCase> dictionaryOrthoCases, Dictionary<long, OrthoSchedule> dictionaryOrthoSchedules, List<OrthoProcLink> listOrthoProcLinksAll)
+    public static void FillOrthoCaseObjectsForProc(long procNum, ref OrthoProcLink orthoProcLink, ref OrthoCase orthoCase, ref OrthoSchedule orthoSchedule, ref List<OrthoProcLink> listOrthoProcLinksForOrthoCase, Dictionary<long, OrthoProcLink> dictionaryOrthoProcLinksForProcList, Dictionary<long, OrthoCase> dictionaryOrthoCases, Dictionary<long, OrthoSchedule> dictionaryOrthoSchedules, List<OrthoProcLink> listOrthoProcLinksAll)
     {
         listOrthoProcLinksForOrthoCase = null;
         dictionaryOrthoProcLinksForProcList.TryGetValue(procNum, out orthoProcLink);
@@ -261,6 +177,4 @@ public class OrthoCases
             listOrthoProcLinksForOrthoCase = listOrthoProcLinksAll.Where(x => x.OrthoCaseNum == orthoCaseNum).ToList();
         }
     }
-
-    #endregion Misc Methods
 }

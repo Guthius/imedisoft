@@ -1,72 +1,71 @@
 using System;
 using System.Windows.Forms;
 
-namespace OpenDental.UI.Voice {
-	public partial class FormMsgBox:FormODBase {
-		private string _messageText;
-		private MsgBoxButtons _buttons;
-		private VoiceController _voiceController;
-		private bool _doJustShowOk;
+namespace OpenDental.UI.Voice;
 
-		private FormMsgBox() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			try {
-				_voiceController=new VoiceController(VoiceCommandArea.VoiceMsgBox);
-				_voiceController.SpeechRecognized+=_voiceController_SpeechRecognized;
-				_voiceController.StartListening();
-			}
-			catch(Exception ex) {
-			}
-		}
+public partial class FormMsgBox:FormODBase {
+	private string _messageText;
+	private MsgBoxButtons _buttons;
+	private VoiceController _voiceController;
+	private bool _doJustShowOk;
 
-		public FormMsgBox(string text) : this() {
-			_messageText=text;
-			_doJustShowOk=true;
+	private FormMsgBox() {
+		InitializeComponent();
+		try {
+			_voiceController=new VoiceController(VoiceCommandArea.VoiceMsgBox);
+			_voiceController.SpeechRecognized+=_voiceController_SpeechRecognized;
+			_voiceController.StartListening();
 		}
+		catch(Exception ex) {
+		}
+	}
 
-		public FormMsgBox(string text,MsgBoxButtons buttons) : this() {
-			_messageText=text;
-			_buttons=buttons;
-		}
+	public FormMsgBox(string text) : this() {
+		_messageText=text;
+		_doJustShowOk=true;
+	}
 
-		private void _voiceController_SpeechRecognized(object sender,ODSpeechRecognizedEventArgs e) {
-			switch(e.Command.ActionToPerform) {
-				case VoiceCommandAction.Ok:
-				case VoiceCommandAction.Yes:
-					DialogResult=DialogResult.OK;
-					break;
-				case VoiceCommandAction.Cancel:
-				case VoiceCommandAction.No:
-					DialogResult=DialogResult.Cancel;
-					break;
-			}
-		}
+	public FormMsgBox(string text,MsgBoxButtons buttons) : this() {
+		_messageText=text;
+		_buttons=buttons;
+	}
 
-		private void FormMsgBox_Load(object sender,EventArgs e) {
-			labelText.Text=_messageText;
-			//add resizing later
-			if (_buttons==MsgBoxButtons.YesNo) {
-				butOK.Text="&Yes";
-				butCancel.Text="&No";
-			}
-			if(_doJustShowOk) {
-				butCancel.Visible=false;
-				LayoutManager.MoveLocation(butOK,butCancel.Location);
-			}
-			_voiceController?.SayResponseAsync(_messageText);
+	private void _voiceController_SpeechRecognized(object sender,ODSpeechRecognizedEventArgs e) {
+		switch(e.Command.ActionToPerform) {
+			case VoiceCommandAction.Ok:
+			case VoiceCommandAction.Yes:
+				DialogResult=DialogResult.OK;
+				break;
+			case VoiceCommandAction.Cancel:
+			case VoiceCommandAction.No:
+				DialogResult=DialogResult.Cancel;
+				break;
 		}
+	}
 
-		private void butOK_Click(object sender,EventArgs e) {
-			DialogResult=DialogResult.OK;
+	private void FormMsgBox_Load(object sender,EventArgs e) {
+		labelText.Text=_messageText;
+		//add resizing later
+		if (_buttons==MsgBoxButtons.YesNo) {
+			butOK.Text="&Yes";
+			butCancel.Text="&No";
 		}
+		if(_doJustShowOk) {
+			butCancel.Visible=false;
+			LayoutManagerForms.MoveLocation(butOK,butCancel.Location);
+		}
+		_voiceController?.SayResponseAsync(_messageText);
+	}
 
-		private void butCancel_Click(object sender,EventArgs e) {
-			DialogResult=DialogResult.Cancel;
-		}
+	private void butOK_Click(object sender,EventArgs e) {
+		DialogResult=DialogResult.OK;
+	}
 
-		private void FormMsgBox_FormClosing(object sender,FormClosingEventArgs e) {
-			_voiceController?.Dispose();
-		}
+	private void butCancel_Click(object sender,EventArgs e) {
+		DialogResult=DialogResult.Cancel;
+	}
+
+	private void FormMsgBox_FormClosing(object sender,FormClosingEventArgs e) {
+		_voiceController?.Dispose();
 	}
 }

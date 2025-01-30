@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ConfirmationRequestCrud
 {
@@ -70,14 +72,14 @@ public class ConfirmationRequestCrud
                                                                   + SOut.Int((int) confirmationRequest.SendStatus) + ","
                                                                   + SOut.Int((int) confirmationRequest.MessageType) + ","
                                                                   + SOut.Long(confirmationRequest.MessageFk) + ","
-                                                                  + DbHelper.Now() + ","
+                                                                  + "NOW()" + ","
                                                                   + SOut.DateTime(confirmationRequest.DateTimeSent) + ","
                                                                   + DbHelper.ParamChar + "paramResponseDescript,"
                                                                   + SOut.Long(confirmationRequest.ApptReminderRuleNum) + ")";
         if (confirmationRequest.GuidMessageFromMobile == null) confirmationRequest.GuidMessageFromMobile = "";
-        var paramGuidMessageFromMobile = new OdSqlParameter("paramGuidMessageFromMobile", OdDbType.Text, SOut.StringParam(confirmationRequest.GuidMessageFromMobile));
+        var paramGuidMessageFromMobile = new OdSqlParameter("paramGuidMessageFromMobile", SOut.StringParam(confirmationRequest.GuidMessageFromMobile));
         if (confirmationRequest.ResponseDescript == null) confirmationRequest.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(confirmationRequest.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(confirmationRequest.ResponseDescript));
         {
             confirmationRequest.ConfirmationRequestNum = Db.NonQ(command, true, "ConfirmationRequestNum", "confirmationRequest", paramGuidMessageFromMobile, paramResponseDescript);
         }
@@ -109,9 +111,9 @@ public class ConfirmationRequestCrud
                       + "ApptReminderRuleNum    =  " + SOut.Long(confirmationRequest.ApptReminderRuleNum) + " "
                       + "WHERE ConfirmationRequestNum = " + SOut.Long(confirmationRequest.ConfirmationRequestNum);
         if (confirmationRequest.GuidMessageFromMobile == null) confirmationRequest.GuidMessageFromMobile = "";
-        var paramGuidMessageFromMobile = new OdSqlParameter("paramGuidMessageFromMobile", OdDbType.Text, SOut.StringParam(confirmationRequest.GuidMessageFromMobile));
+        var paramGuidMessageFromMobile = new OdSqlParameter("paramGuidMessageFromMobile", SOut.StringParam(confirmationRequest.GuidMessageFromMobile));
         if (confirmationRequest.ResponseDescript == null) confirmationRequest.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(confirmationRequest.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(confirmationRequest.ResponseDescript));
         Db.NonQ(command, paramGuidMessageFromMobile, paramResponseDescript);
     }
 }

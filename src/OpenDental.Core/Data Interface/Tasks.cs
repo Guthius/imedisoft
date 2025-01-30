@@ -6,33 +6,26 @@ using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-///<summary>Not part of cache refresh.</summary>
 public class Tasks
 {
-    ///<summary>Defines delegate signature to be used for Tasks.NavTaskDelegate.</summary>
     public delegate void NavToTaskDelegate(long taskNum);
 
-    /// <summary>
-    ///     Sent in from FormOpenDental. Allows static method for business layer to cause task navigation in
-    ///     FormOpenDental.
-    /// </summary>
     public static NavToTaskDelegate NavTaskDelegate;
 
     private static long _defaultTaskPriorityDefNum;
     private static bool _isSortApptDateTime;
 
-    ///<summary>Only used from UI.  The index of the last open tab.</summary>
     public static int LastOpenGroup;
 
-    ///<summary>Only used from UI.</summary>
     public static DateTime dateLastOpen;
 
-    ///<summary>This is needed because of the extra column that is not part of the database.</summary>
     private static List<Task> TableToList(DataTable table)
     {
         var listTasks = TaskCrud.TableToList(table);
@@ -54,35 +47,19 @@ public class Tasks
         return listTasks;
     }
 
-    /*
-    ///<summary>There are NO tasks on the user trunk, so this is not needed.</summary>
-    public static List<Task> RefreshUserTrunk(int userNum) {
-        string command="SELECT task.* FROM tasksubscription "
-            +"LEFT JOIN task ON task.TaskNum=tasksubscription.TaskNum "
-            +"WHERE tasksubscription.UserNum="+POut.PInt(userNum)
-            +" AND tasksubscription.TaskNum!=0 "
-            +"ORDER BY DateTimeEntry";
-        return RefreshAndFill(command);
-    }*/
-
-    ///<summary>Gets one Task from database.</summary>
     public static Task GetOne(long TaskNum)
     {
         var command = "SELECT * FROM task WHERE TaskNum = " + SOut.Long(TaskNum);
         return TaskCrud.SelectOne(command);
     }
 
-    ///<summary>Gets all tasks for the Task Search function, limited to 50 by default.</summary>
-    public static DataTable GetDataSet(long userNum, List<long> listTaskListNums, List<long> listTaskNums, string taskDateCreatedFrom,
-        string taskDateCreatedTo, string taskDateCompletedFrom, string taskDateCompletedTo, string taskIncluding, string taskExcluding,
-        long taskPriorityNum, long patNum, bool doIncludeTaskNote, bool doIncludeCompleted, bool doIncludeAttachments, bool reachedLimit,
-        bool doRunOnReportServer)
+    public static DataTable GetDataSet(long userNum, List<long> listTaskListNums, List<long> listTaskNums, string taskDateCreatedFrom, string taskDateCreatedTo, string taskDateCompletedFrom, string taskDateCompletedTo, string taskIncluding, string taskExcluding, long taskPriorityNum, long patNum, bool doIncludeTaskNote, bool doIncludeCompleted, bool doIncludeAttachments, bool reachedLimit)
     {
         var dateCreatedFrom = SIn.Date(taskDateCreatedFrom); //will be DateTime.MinValue if not set, i.e. if " "
         var dateCreatedTo = SIn.Date(taskDateCreatedTo); //will be DateTime.MinValue if not set, i.e. if " "
         var dateCompletedFrom = SIn.Date(taskDateCompletedFrom); //will be DateTime.MinValue if not set, i.e. if " "
         var dateCompletedTo = SIn.Date(taskDateCompletedTo); //will be DateTime.MinValue if not set, i.e. if " "
-        var listTaskNumsSearch = ReportsComplex.RunFuncOnReportServer(() => GetTasksNumsForSearch(userNum, listTaskListNums, listTaskNums, dateCreatedFrom, dateCreatedTo, dateCompletedFrom, dateCompletedTo, taskIncluding, taskExcluding, taskPriorityNum, patNum, doIncludeTaskNote, doIncludeCompleted, doIncludeAttachments, reachedLimit));
+        var listTaskNumsSearch = GetTasksNumsForSearch(userNum, listTaskListNums, listTaskNums, dateCreatedFrom, dateCreatedTo, dateCompletedFrom, dateCompletedTo, taskIncluding, taskExcluding, taskPriorityNum, patNum, doIncludeTaskNote, doIncludeCompleted, doIncludeAttachments, reachedLimit);
         var table = new DataTable();
         table.Columns.Add(new DataColumn("description"));
         table.Columns.Add(new DataColumn("note"));
@@ -94,7 +71,7 @@ public class Tasks
         table.Columns.Add(new DataColumn("color"));
         if (listTaskNumsSearch.Count == 0) return table; //empty table with correct structure.
         //listTaskNums contains too many items. Tasks found from matching task notes must be filtered too. (This prevents a costly join in the query.)
-        var listTasks = ReportsComplex.RunFuncOnReportServer(() => GetMany(listTaskNumsSearch)) //All tasks for the notes and tasks
+        var listTasks = GetMany(listTaskNumsSearch) //All tasks for the notes and tasks
             .Where(x => listTaskListNums.Count == 0 || listTaskListNums.Contains(x.TaskListNum)) //filter by TaskListNum, if neccesary
             .Where(x => taskPriorityNum == 0 || taskPriorityNum == x.PriorityDefNum) //filter by priority, if neccesary
             .Where(x => patNum == 0 || (x.ObjectType == TaskObjectType.Patient && x.KeyNum == patNum)) //filter by patnum, if neccesary
@@ -104,11 +81,11 @@ public class Tasks
         var listTaskNotes = new List<TaskNote>();
         if (doIncludeTaskNote)
             //All notes for the tasks.	(Ordered by dateTime)		
-            listTaskNotes = ReportsComplex.RunFuncOnReportServer(() => TaskNotes.RefreshForTasks(listTaskNumsSearch));
+            listTaskNotes = TaskNotes.RefreshForTasks(listTaskNumsSearch);
         var listDefs = Defs.GetDefsForCategory(DefCat.ProgNoteColors, true);
         var textColor = Defs.GetColor(DefCat.ProgNoteColors, listDefs[18].DefNum).ToArgb(); //18="Patient Note Text"
         var textCompletedColor = Defs.GetColor(DefCat.ProgNoteColors, listDefs[20].DefNum).ToArgb(); //20="Completed Pt Note Text"
-        var listTaskLists = ReportsComplex.RunFuncOnReportServer(() => TaskLists.GetMany(listTaskListNums));
+        var listTaskLists = TaskLists.GetMany(listTaskListNums);
         string txt;
         DataRow row;
         for (var i = 0; i < listTasks.Count; i++)
@@ -156,10 +133,7 @@ public class Tasks
         return table;
     }
 
-    ///<summary>Gets the task nums for the tasks based on the search parameters passed in.</summary>
-    public static List<long> GetTasksNumsForSearch(long userNum, List<long> listTaskListNums, List<long> listTaskNums, DateTime dateCreatedFrom,
-        DateTime dateCreatedTo, DateTime dateCompletedFrom, DateTime dateCompletedTo, string taskIncluding, string taskExcluding, long taskPriorityNum,
-        long patNum, bool doIncludeTaskNote, bool doIncludeCompleted, bool doIncludeAttachments, bool reachedLimit)
+    public static List<long> GetTasksNumsForSearch(long userNum, List<long> listTaskListNums, List<long> listTaskNums, DateTime dateCreatedFrom, DateTime dateCreatedTo, DateTime dateCompletedFrom, DateTime dateCompletedTo, string taskIncluding, string taskExcluding, long taskPriorityNum, long patNum, bool doIncludeTaskNote, bool doIncludeCompleted, bool doIncludeAttachments, bool reachedLimit)
     {
         var listWhereClauses = new List<string>();
         var listWhereNoteClauses = new List<string>();
@@ -366,7 +340,6 @@ public class Tasks
         return Db.GetListLong(command);
     }
 
-    ///<summary>Returns a string array parsed by one or many quoted elements.</summary>
     private static List<string> TaskQuoteHelper(string taskSearch)
     {
         #region Escape Special Characters
@@ -423,7 +396,6 @@ public class Tasks
         return listTaskSearches;
     }
 
-    ///<summary>Gets all tasks for a supplied list of task nums.</summary>
     public static List<Task> GetMany(List<long> listTaskNums)
     {
         if (listTaskNums == null || listTaskNums.Count == 0) return new List<Task>();
@@ -431,27 +403,12 @@ public class Tasks
         return TaskCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all tasks for a supplied AptNum.</summary>
     public static List<Task> GetMany(long AptNum)
     {
         var command = $@"SELECT * FROM task WHERE ObjectType={SOut.Int((int) TaskObjectType.Appointment)} AND task.KeyNum={SOut.Long(AptNum)}";
         return TaskCrud.SelectMany(command);
     }
 
-    ///<summary>Gets multiple Tasks from database. Returns empty list if not found.</summary>
-    public static List<Task> GetTasksForApi(int limit, int offset, long taskListNum, long keyNum, int objectType, int taskStatus, DateTime dateTimeOriginal)
-    {
-        var command = "SELECT * FROM task WHERE DateTimeOriginal >= " + SOut.DateTime(dateTimeOriginal) + " ";
-        if (taskListNum > -1) command += "AND TaskListNum=" + SOut.Long(taskListNum) + " ";
-        if (keyNum > -1) command += "AND KeyNum=" + SOut.Long(keyNum) + " ";
-        if (objectType > -1) command += "AND ObjectType=" + SOut.Int(objectType) + " ";
-        if (taskStatus > -1) command += "AND TaskStatus=" + SOut.Int(taskStatus) + " ";
-        command += "ORDER BY TaskNum " //same fixed order each time
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return TaskCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets the count of reminder tasks on or after the specified dateTimeAsOf.</summary>
     public static int GetCountReminderTasks(string reminderGroupId, DateTime dateTimeAsOf)
     {
         var command = "SELECT COUNT(*) FROM task "
@@ -459,16 +416,9 @@ public class Tasks
         return SIn.Int(Db.GetCount(command));
     }
 
-    /// <summary>
-    ///     After a refresh, this is used to determine whether the Current user has received any new tasks through
-    ///     subscription.
-    ///     Must supply the current usernum.  If the listTaskNums is null, then all subscribed tasks for the user will be
-    ///     returned.
-    ///     The signal list will include any task changes including status changes and deletions.
-    /// </summary>
     public static List<Task> GetNewTasksThisUser(long userNum, long clinicNum, List<long> listTaskNums = null)
     {
-        Logger.LogToPath("", LogPath.Signals, LogPhase.Start);
+        Logger.LogToPath();
         if (userNum == 0) return new List<Task>(); //Return early because userNum is invalid.
         if (listTaskNums != null && listTaskNums.Count == 0) //no task popup signals
             return new List<Task>(); //Return early to avoid running a query.
@@ -486,11 +436,10 @@ public class Tasks
         }
 
         var listTasks = TableToList(DataCore.GetTable(command)); //This is how we set the IsUnread column.
-        Logger.LogToPath("", LogPath.Signals, LogPhase.End);
+        Logger.LogToPath();
         return listTasks;
     }
 
-    ///<summary>Gets a string using the aptNum as the key. String consits of patient name and some appointment information.</summary>
     public static Dictionary<long, string> GetApptObjDescripts(List<long> listPatApts)
     {
         if (listPatApts.Count == 0) return new Dictionary<long, string>();
@@ -519,7 +468,6 @@ public class Tasks
         return dictTaskString;
     }
 
-    ///<summary>Sets the task.ReminderGroupId to a brand new and unique value.</summary>
     public static void SetReminderGroupId(Task task)
     {
         task.ReminderGroupId = MiscUtils.CreateRandomAlphaNumericString(20);
@@ -532,7 +480,6 @@ public class Tasks
         }
     }
 
-    /// <summary>Sets ReminderType to NoReminder for all tasks in a task list </summary>
     public static void DisableRemindersFromTasklist(long taskListNum)
     {
         var command = "UPDATE task SET ReminderType=" + SOut.Long((long) TaskReminderType.NoReminder) + " "
@@ -540,9 +487,7 @@ public class Tasks
         Db.NonQ(command);
     }
 
-    ///<summary>Gets all tasks for the main trunk.</summary>
-    public static List<Task> RefreshMainTrunk(bool showDone, DateTime dateStart, long userNum, TaskType taskType,
-        List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
+    public static List<Task> RefreshMainTrunk(bool showDone, DateTime dateStart, long userNum, TaskType taskType, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         //startDate only applies if showing Done tasks.
         var command = "SELECT task.*,"
@@ -556,7 +501,7 @@ public class Tasks
                    + "AND IsRepeating=0 ";
         if (taskType == TaskType.Reminder)
             command += "AND COALESCE(task.ReminderGroupId,'') != '' "; //reminders only
-        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") "; //no future reminders
+        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") "; //no future reminders
 
         //No filter.
         if (showDone)
@@ -570,7 +515,6 @@ public class Tasks
         return TableToList(table);
     }
 
-    ///<summary>Gets all 'new' tasks for a user.</summary>
     public static List<Task> RefreshUserNew(long userNum, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         var command = "";
@@ -586,7 +530,7 @@ public class Tasks
                    + "LEFT JOIN patient ON task.KeyNum=patient.PatNum "
                    + "AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " ";
         command += BuildFilterJoins(true, listClinicNumsFilter, listDefNumsRegionFilter);
-        command += "WHERE NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") " //no future reminders
+        command += "WHERE NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") " //no future reminders
                    + "AND task.TaskStatus!=" + SOut.Int((int) TaskStatusEnum.Done) + " ";
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "GROUP BY task.TaskNum " //in case there are duplicate unreads
@@ -625,10 +569,6 @@ public class Tasks
         return listTasks;
     }
 
-    /// <summary>
-    ///     Gets all 'open ticket' tasks for a user.  An open ticket is a task that was created by this user, is attached
-    ///     to a patient, and is not done.
-    /// </summary>
     public static List<Task> RefreshOpenTickets(long userNum, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         var command = "SELECT task.*, "
@@ -649,7 +589,7 @@ public class Tasks
                    + "AND task.DateType=0 " //this only handles tasks directly in the dated trunks
                    + "AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " "
                    + "AND task.IsRepeating=0 "
-                   + "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") " //no future reminders
+                   + "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") " //no future reminders
                    + "AND task.UserNum=" + SOut.Long(userNum) + " "
                    + "AND TaskStatus!=" + SOut.Int((int) TaskStatusEnum.Done) + " ";
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
@@ -658,10 +598,6 @@ public class Tasks
         return TableToList(table);
     }
 
-    /// <summary>
-    ///     Gets all 'open ticket' tasks for a patient.  An open ticket is a task that was created with the attached
-    ///     patient and is not done.
-    /// </summary>
     public static List<Task> RefreshPatientTickets(long patNum, long userNum = 0, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         var command = "SELECT task.*, "
@@ -680,7 +616,6 @@ public class Tasks
         return TableToList(table);
     }
 
-    ///<summary>Gets all tasks for the repeating trunk.  Always includes "done".</summary>
     public static List<Task> RefreshRepeatingTrunk(long userNum, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         var command = "SELECT task.*, "
@@ -698,26 +633,12 @@ public class Tasks
         return TableToList(table);
     }
 
-    /// <summary>
-    ///     0 is not allowed, because that would be a trunk.
-    ///     Also, if this is in someone's inbox, then pass in the userNum whose inbox it is in.  If not in an inbox, pass in 0.
-    /// </summary>
-    public static List<Task> RefreshChildren(long listNum, bool showDone, DateTime dateStart, long userNum, long userNumInbox,
-        TaskType taskType, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
+    public static List<Task> RefreshChildren(long listNum, bool showDone, DateTime dateStart, long userNum, long userNumInbox, TaskType taskType, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         return RefreshChildren(listNum, showDone, dateStart, userNum, userNumInbox, taskType, false, listClinicNumsFilter, listDefNumsRegionFilter);
     }
 
-    /// <summary>
-    ///     0 is not allowed, because that would be a trunk.
-    ///     Also, if this is in someone's inbox, then pass in the userNum whose inbox it is in.  If not in an inbox, pass in 0.
-    ///     If isTaskSortApptDateTime==true and parent task list is an appointment type task list, TaskComparer oders
-    ///     appointment tasks to the top and
-    ///     then by AptDateTime.
-    /// </summary>
-    public static List<Task> RefreshChildren(long listNum, bool showDone, DateTime dateStart, long userNum, long userNumInbox, TaskType taskType,
-        bool isTaskSortApptDateTime, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null,
-        DateTime dateStartFilter = new(), DateTime dateEndFilter = new(), Patient patientFilter = null)
+    public static List<Task> RefreshChildren(long listNum, bool showDone, DateTime dateStart, long userNum, long userNumInbox, TaskType taskType, bool isTaskSortApptDateTime, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null, DateTime dateStartFilter = new(), DateTime dateEndFilter = new(), Patient patientFilter = null)
     {
         //startDate only applies if showing Done tasks.
         var command = "SELECT task.*, "
@@ -744,7 +665,7 @@ public class Tasks
         command += "WHERE TaskListNum=" + SOut.Long(listNum) + " ";
         if (taskType == TaskType.Reminder)
             command += "AND COALESCE(task.ReminderGroupId,'') != '' "; //reminders only
-        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") "; //no future reminders
+        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") "; //no future reminders
 
         //No filter.
         if (showDone)
@@ -801,7 +722,6 @@ public class Tasks
         return listTasks;
     }
 
-    ///<summary>All repeating items for one date type with no heirarchy.</summary>
     public static List<Task> RefreshRepeating(TaskDateType taskDataType, long userNum, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         var command =
@@ -821,9 +741,7 @@ public class Tasks
         return TableToList(table);
     }
 
-    ///<summary>Gets all tasks for one of the 3 dated trunks. startDate only applies if showing Done.</summary>
-    public static List<Task> RefreshDatedTrunk(DateTime date, TaskDateType taskDateType, bool showDone, DateTime dateStart, long userNum
-        , List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
+    public static List<Task> RefreshDatedTrunk(DateTime date, TaskDateType taskDateType, bool showDone, DateTime dateStart, long userNum, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null)
     {
         var dateFrom = DateTime.MinValue;
         var dateTo = DateTime.MaxValue;
@@ -866,9 +784,7 @@ public class Tasks
         return TableToList(table);
     }
 
-    ///<summary>Builds JOIN clauses appropriate to the type of GlobalFilterType.  Returns empty string if not filtering.</summary>
-    private static string BuildFilterJoins(bool hasPatientJoinAlready, List<long> listClinicNumsFilter = null,
-        List<long> listDefNumsRegionFilter = null, DateTime dateStartFilter = new(), DateTime dateEndFilter = new(), Patient patientFilter = null)
+    private static string BuildFilterJoins(bool hasPatientJoinAlready, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null, DateTime dateStartFilter = new(), DateTime dateEndFilter = new(), Patient patientFilter = null)
     {
         var command = string.Empty;
         //Only add JOINs if filtering.  Clinic/Region filtering will never happen if clinics are turned off, because regions link via clinics.
@@ -886,9 +802,7 @@ public class Tasks
         return command;
     }
 
-    ///<summary>Builds WHERE clauses appropriate to the task filters that are applied.  Returns empty string if not filtering.</summary>
-    private static string BuildFilterWhereClause(long currentUserNum, List<long> listClinicNumsFilter = null,
-        List<long> listDefNumsRegionFilter = null, DateTime dateStartFilter = new(), DateTime dateEndFilter = new(), Patient patientFilter = null)
+    private static string BuildFilterWhereClause(long currentUserNum, List<long> listClinicNumsFilter = null, List<long> listDefNumsRegionFilter = null, DateTime dateStartFilter = new(), DateTime dateEndFilter = new(), Patient patientFilter = null)
     {
         if (currentUserNum == 0) //The currentUserNum will be zero when merging patients; cannot build the filter without a valid patnum
             return "";
@@ -911,7 +825,7 @@ public class Tasks
             //Make sure user is not restricted for these clinics.
             listClinicNumsForQuery.AddRange(listClinicsUnrestricted.Where(x => listClinicNumsFilter.Contains(x.Id)).Select(x => x.Id));
         else if (listDefNumsRegionFilter.Count > 0 && !isHQRegion)
-            listClinicNumsForQuery.AddRange(listClinicsUnrestricted.FindAll(x => listDefNumsRegionFilter.Contains(x.RegionId??0)).Select(x => x.Id));
+            listClinicNumsForQuery.AddRange(listClinicsUnrestricted.FindAll(x => listDefNumsRegionFilter.Contains(x.RegionId ?? 0)).Select(x => x.Id));
         else if (isHQClinic && isHQRegion)
             listClinicNumsForQuery.AddRange(listClinicNumsUnrestricted);
         else //No clinic/region filtering
@@ -938,42 +852,12 @@ public class Tasks
         return clinicAnd + dateRangeAnd + patientAnd;
     }
 
-    ///<summary>The full refresh is only used once when first synching all the tasks for taskAncestors.</summary>
     public static List<Task> RefreshAll()
     {
         var command = "SELECT * FROM task WHERE TaskListNum != 0";
         return TaskCrud.SelectMany(command);
     }
 
-    /*
-    public static List<Task> RefreshAndFill(DataTable table){
-        Meth.NoCheckMiddleTierRole();
-        List<Task> retVal=new List<Task>();
-        Task task;
-        for(int i=0;i<table.Rows.Count;i++) {
-            task=new Task();
-            task.TaskNum        = PIn.Long(table.Rows[i][0].ToString());
-            task.TaskListNum    = PIn.Long(table.Rows[i][1].ToString());
-            task.DateTask       = PIn.Date(table.Rows[i][2].ToString());
-            task.KeyNum         = PIn.Long(table.Rows[i][3].ToString());
-            task.Descript       = PIn.String(table.Rows[i][4].ToString());
-            task.TaskStatus     = (TaskStatusEnum)PIn.Long(table.Rows[i][5].ToString());
-            task.IsRepeating    = PIn.Bool(table.Rows[i][6].ToString());
-            task.DateType       = (TaskDateType)PIn.Long(table.Rows[i][7].ToString());
-            task.FromNum        = PIn.Long(table.Rows[i][8].ToString());
-            task.ObjectType     = (TaskObjectType)PIn.Long(table.Rows[i][9].ToString());
-            task.DateTimeEntry  = PIn.DateT(table.Rows[i][10].ToString());
-            task.UserNum        = PIn.Long(table.Rows[i][11].ToString());
-            task.DateTimeFinished= PIn.DateT(table.Rows[i][12].ToString());
-            retVal.Add(task);
-        }
-        return retVal;
-    }*/
-
-    /// <summary>
-    ///     Surround with try/catch.  Must supply the supposedly unaltered oldTask.  Will throw an exception if oldTask
-    ///     does not exactly match the database state.  Keeps users from overwriting each other's changes.
-    /// </summary>
     public static void Update(Task task, Task taskOld)
     {
         Validate(task, taskOld); //No try/catch here, we want the exception to be thrown back to the calling form.
@@ -985,12 +869,7 @@ public class Tasks
         TaskAncestors.Synch(task);
     }
 
-    /// <summary>
-    ///     Creates a copy of reminderTask with DateTimeEntry set to the next date due in the future.  Ensures new copy is
-    ///     marked new.
-    ///     Returns the newly created task, or null if the new task could not be created.
-    /// </summary>
-    public static Task CopyReminderToNextDueDate(Task taskReminder)
+    public static void CopyReminderToNextDueDate(Task taskReminder)
     {
         //Do not copy reminder task if a copy already exists in the future.
         if (taskReminder.ReminderType == TaskReminderType.Once //Never make a copy of a 'once' reminder.
@@ -998,7 +877,7 @@ public class Tasks
                     , TaskReminderType.Weekly, TaskReminderType.Monthly, TaskReminderType.Yearly) //Is repeating
                 && !taskReminder.IsNew //and is existing reminder task,
                 && GetCountReminderTasks(taskReminder.ReminderGroupId, taskReminder.DateTimeEntry) > 0)) //with copies in the future
-            return null;
+            return;
         var taskNext = taskReminder.Copy(); //This is where taskNext.DateTimeEntry is initially set.
         taskNext.TaskNum = 0; //This causes a new PK to be created for the new task.
         taskNext.TaskStatus = TaskStatusEnum.New;
@@ -1010,13 +889,8 @@ public class Tasks
         //Here we do our best to follow the signal logic in OpenDental namespace.  This may be unneccessary because the copied task isn't due 
         //for at least a day.  There will already be one signal for the old task being marked due, this is just for the copied task.
         Signalods.SetInvalid(InvalidType.TaskPopup, KeyType.Task, newTaskNum);
-        return taskNext;
     }
 
-    /// <summary>
-    ///     Calculates the forward date for the task's DateTimeEntry field based on its ReminderType. Returns the
-    ///     forwarded date.
-    /// </summary>
     public static DateTime CalcTaskForwardDate(Task task)
     {
         var dateMin = DateTime.Today;
@@ -1065,7 +939,6 @@ public class Tasks
         return task.DateTimeEntry;
     }
 
-    ///<summary>Returns true if the dateTimeEntry is on a day of the week specified by the day schedule inside reminderType.</summary>
     private static bool IsWeekDayFound(DateTime dateTimeEntry, TaskReminderType taskReminderType)
     {
         if (dateTimeEntry.Date.DayOfWeek == DayOfWeek.Monday && taskReminderType.HasFlag(TaskReminderType.Monday)) return true;
@@ -1195,16 +1068,11 @@ public class Tasks
         }
     }
 
-    /// <summary>
-    ///     This update method doesn't do any of the typical checks for the Task update.Do not use this method. Instead
-    ///     use Update(Task task,Task oldTask).
-    /// </summary>
     public static void Update(Task task)
     {
         TaskCrud.Update(task);
     }
 
-    
     public static long Insert(Task task)
     {
         if (task.IsRepeating && task.DateTask.Year > 1880) throw new Exception(Lans.g("Tasks", "Task cannot be tagged repeating and also have a date."));
@@ -1217,7 +1085,6 @@ public class Tasks
         return task.TaskNum;
     }
 
-    
     public static bool WasTaskAltered(Task task)
     {
         var command = "SELECT * FROM task WHERE TaskNum=" + SOut.Long(task.TaskNum);
@@ -1239,7 +1106,6 @@ public class Tasks
         return false;
     }
 
-    ///<summary>Deleting a task never causes a problem, so no dependencies are checked.</summary>
     public static void Delete(long taskNum)
     {
         ClearFkey(taskNum); //Zero securitylog FKey column for rows to be deleted.
@@ -1255,28 +1121,6 @@ public class Tasks
         Db.NonQ(command);
     }
 
-    /*
-    ///<summary>Appends a carriage return as well as the text to any task.  If a taskListNum is specified, then it also changes the taskList.</summary>
-    public static void Append(long taskNum,string text) {
-        Meth.NoCheckMiddleTierRole();
-        Append(taskNum,text,-1);
-    }
-
-    ///<summary>Appends a carriage return as well as the text to any task.  If a taskListNum is specified, then it also changes the taskList.    Must call TaskAncestors.Synch after this.</summary>
-    public static void Append(long taskNum,string text,long taskListNum) {
-
-        string command;
-        if(taskListNum==-1) {
-            command="UPDATE task SET Descript=CONCAT(Descript,'"+POut.String("\r\n"+text)+"') WHERE TaskNum="+POut.Long(taskNum);
-        }
-        else {
-            command="UPDATE task SET Descript=CONCAT(Descript,'"+POut.String("\r\n"+text)+"'), "
-                +"TaskListNum="+POut.Long(taskListNum)+" "
-                +"WHERE TaskNum="+POut.Long(taskNum);
-        }
-        Db.NonQ(command);
-    }*/
-
     public static int GetCountOpenTickets(long userNum)
     {
         var command = "SELECT COUNT(*) "
@@ -1288,7 +1132,7 @@ public class Tasks
                       + "AND task.DateType=0 " //this only handles tasks directly in the dated trunks
                       + "AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " "
                       + "AND task.IsRepeating=0 "
-                      + "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") " //no future reminders
+                      + "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") " //no future reminders
                       + "AND task.UserNum=" + SOut.Long(userNum) + " "
                       + "AND TaskStatus != " + SOut.Int((int) TaskStatusEnum.Done);
         return SIn.Int(Db.GetCount(command));
@@ -1310,12 +1154,6 @@ public class Tasks
         TaskEditCreateLog(EnumPermType.TaskEdit, logText, task);
     }
 
-    /// <summary>
-    ///     Makes audit trail entry for the task passed in.
-    ///     If this task has an object type set, the log will show up under the corresponding patient for the selected object
-    ///     type.
-    ///     Used for both TaskEdit and TaskNoteEdit permissions.
-    /// </summary>
     public static void TaskEditCreateLog(EnumPermType permissions, string logText, Task task)
     {
         if (task == null) //Something went wrong before calling this function, and somehow task wasn't passed in
@@ -1344,7 +1182,6 @@ public class Tasks
         SecurityLogs.MakeLogEntry(permissions, patNum, logText, task.TaskNum, DateTime.MinValue); //tasks do not track DateTStamp
     }
 
-    ///<summary>Sorted in Ascending order: Unread/Read, </summary>
     public static int TaskComparer(TaskCompareObj taskCompareObjX, TaskCompareObj taskCompareObjY)
     {
         if (_isSortApptDateTime)
@@ -1384,10 +1221,6 @@ public class Tasks
         return CompareTimes(taskCompareObjX.DataRowTask, taskCompareObjY.DataRowTask);
     }
 
-    /// <summary>
-    ///     Compares the most recent times of the task or task notes associated to the tasks passed in.  Most recently
-    ///     updated tasks will be farther down in the list.
-    /// </summary>
     public static int CompareTimes(DataRow dataRowX, DataRow dataRowY)
     {
         //Sort everything else based on task creation date
@@ -1396,12 +1229,6 @@ public class Tasks
         return dateTimeXMax.CompareTo(dateTimeYMax);
     }
 
-    /// <summary>
-    ///     Compares the AptDateTime of appointments attached to tasks.  Most recently updated tasks will be farther down in
-    ///     the list.
-    ///     If there is no appointment attached, it appears at the bottom. When the ApptStatus is UnschedList then the
-    ///     AptDateTime will be DateTime.MaxValue.
-    /// </summary>
     public static int CompareAptDateTimes(DataRow dataRowX, DataRow dataRowY)
     {
         var dateAptX = SIn.DateTime(dataRowX["AptDateTime"].ToString());
@@ -1415,50 +1242,17 @@ public class Tasks
         return dateAptX.CompareTo(dateAptY);
     }
 
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching taskNum as FKey and are related to Task.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Task table type.
-    /// </summary>
     public static void ClearFkey(long taskNum)
     {
         TaskCrud.ClearFkey(taskNum);
     }
 
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching taskNums as FKey and are related to Task.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Task table type.
-    /// </summary>
-    public static void ClearFkey(List<long> listTaskNums)
-    {
-        TaskCrud.ClearFkey(listTaskNums);
-    }
-
-    ///<summary>Helper object so that TaskComparer() doesn't have to make deep copies of caches.</summary>
     public class TaskCompareObj
     {
         public DataRow DataRowTask;
         public List<Def> ListDefsTaskPriority;
     }
 
-    public class TaskAptShort
-    {
-        public DateTime AptDateTime;
-        public ApptStatus AptStatus;
-    }
-
-    #region Misc Methods
-
-    ///<summary>Returns true if there are any rows that have a Descript with char length greater than 65,535</summary>
-    public static bool HasAnyLongDescripts()
-    {
-        var command = "SELECT COUNT(*) FROM task WHERE CHAR_LENGTH(task.Descript)>65535";
-        return Db.GetCount(command) != "0";
-    }
-
-    /// <summary>
-    ///     Returns true if either the current user created this task, or if they have permission to edit read only tasks,
-    ///     otherwise false.
-    /// </summary>
     public static bool IsAuthorizedOrOwner(Task task)
     {
         //If the task is new then there is no point in checking permissions or for other task notes (even if other people added them somehow).
@@ -1476,14 +1270,12 @@ public class Tasks
         return true;
     }
 
-    ///<summary>Returns true if task does not exist in the database.</summary>
     public static bool IsTaskDeleted(long taskNum)
     {
         var command = "SELECT COUNT(*) FROM task WHERE TaskNum=" + SOut.Long(taskNum) + "";
         return Db.GetCount(command) == "0";
     }
 
-    ///<summary>Returns true if task is a Reminder Task.</summary>
     public static bool IsReminderTask(Task task)
     {
         if (!PrefC.GetBool(PrefName.TasksUseRepeating) && !string.IsNullOrEmpty(task.ReminderGroupId)
@@ -1491,6 +1283,4 @@ public class Tasks
             return true;
         return false;
     }
-
-    #endregion
 }

@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -92,7 +93,7 @@ namespace OpenDental {
 			textOrder.ReadOnly=true;//It can be reordered by the Up/Down buttons on FormReferralsPatient.
 			comboRefToStatus.Items.Clear();
 			for(int i=0;i<Enum.GetNames(typeof(ReferralToStatus)).Length;i++){
-				comboRefToStatus.Items.Add(Lang.g("enumReferralToStatus",Enum.GetNames(typeof(ReferralToStatus))[i]));
+				comboRefToStatus.Items.Add(Enum.GetNames(typeof(ReferralToStatus))[i]);
 				if((int)RefAttachCur.RefToStatus==i){
 					comboRefToStatus.SelectedIndex=i;
 				}
@@ -237,17 +238,17 @@ namespace OpenDental {
 			if((ReferralType)listRefType.SelectedIndex==ReferralType.RefTo && PrefC.GetBool(PrefName.ShowFeatureEhr)) {
 				string warning="";
 				if(comboProvNum.SelectedIndex<0) {
-					warning+=Lans.g(this,"Selected patient referral does not have a referring provider set.");
+					warning+=Lans.g("Selected patient referral does not have a referring provider set.");
 				}
 				if(checkIsTransitionOfCare.Checked==false) {
 					if(warning!="") {
 						warning+="\r\n";
 					}
-					warning+=Lans.g(this,"Selected patient referral is not flagged as a transition of care.");
+					warning+=Lans.g("Selected patient referral is not flagged as a transition of care.");
 				}
 				if(warning!="") {
-					warning+="\r\n"+Lans.g(this,"It will not meet the EHR summary of care requirements.")+"  "+Lans.g(this,"Continue anyway?");
-					if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,warning,Lans.g(this,"EHR Measure Warning"))){
+					warning+="\r\n"+Lans.g("It will not meet the EHR summary of care requirements.")+"  "+Lans.g("Continue anyway?");
+					if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,warning,Lans.g("EHR Measure Warning"))){
 						return;
 					}
 				}

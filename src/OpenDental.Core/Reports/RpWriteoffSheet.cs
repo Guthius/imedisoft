@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpWriteoffSheet {
@@ -20,7 +21,7 @@ namespace OpenDentBusiness {
 			}
 			string query="SET @FromDate="+SOut.Date(dateStart)+", @ToDate="+SOut.Date(dateEnd)+";";
 			if(writeoffPayType==PPOWriteoffDateCalc.InsPayDate) {
-				query+="SELECT "+DbHelper.DtimeToDate("claimproc.DateCP")+" date,"
+				query+="SELECT DATE(claimproc.DateCP) date,"
 					+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+","
 					+"carrier.CarrierName,"
 					+"provider.Abbr,";
@@ -38,14 +39,14 @@ namespace OpenDentBusiness {
 					+"WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+") "
 					+whereProv
 					+whereClin
-					+"AND "+DbHelper.DtimeToDate("claimproc.DateCP")+" >= @FromDate "
-					+"AND "+DbHelper.DtimeToDate("claimproc.DateCP")+" <= @ToDate "
+					+"AND DATE(claimproc.DateCP) >= @FromDate "
+					+"AND DATE(claimproc.DateCP) <= @ToDate "
 					+"AND (claimproc.WriteOff > .0001 OR claimproc.WriteOff < -.0001) "
 					+"GROUP BY claimproc.ProvNum,claimproc.DateCP,claimproc.ClinicNum,claimproc.PatNum "
 					+"ORDER BY claimproc.DateCP,claimproc.PatNum";
 			}
 			else if(writeoffPayType==PPOWriteoffDateCalc.ProcDate) {	//Means PPOWiteoffDateCalc==ProcDate, so we use the procedure date.
-				query+="SELECT "+DbHelper.DtimeToDate("claimproc.ProcDate")+" date, "
+				query+="SELECT DATE(claimproc.ProcDate) date, "
 					+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+", "
 					+"carrier.CarrierName, "
 					+"provider.Abbr,";
@@ -62,8 +63,8 @@ namespace OpenDentBusiness {
 					+"WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+","+(int)ClaimProcStatus.NotReceived+") "
 					+whereProv
 					+whereClin
-					+"AND "+DbHelper.DtimeToDate("claimproc.ProcDate")+" >= @FromDate "
-					+"AND "+DbHelper.DtimeToDate("claimproc.ProcDate")+" <= @ToDate "
+					+"AND DATE(claimproc.ProcDate) >= @FromDate "
+					+"AND DATE(claimproc.ProcDate) <= @ToDate "
 					+"AND (claimproc.WriteOff > .0001 OR claimproc.WriteOff < -.0001) "
 					+"GROUP BY claimproc.ProvNum,claimproc.ProcDate,claimproc.ClinicNum,claimproc.PatNum "
 					+"ORDER BY claimproc.ProcDate,claimproc.PatNum";
@@ -133,7 +134,7 @@ namespace OpenDentBusiness {
 										ORDER BY date,PatNum
 									) writeoff";
 			}
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
+			return ReportsComplex.GetTable(query);
 		}	
 	}
 

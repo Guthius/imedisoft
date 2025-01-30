@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -57,9 +58,9 @@ namespace OpenDental {
 			_listSites=Sites.GetDeepCopy();
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSites","Description"),220));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSites","PlaceOfService"),142));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSites","Note"),90){ IsWidthDynamic=true });
+			gridMain.Columns.Add(new GridColumn("Description",220));
+			gridMain.Columns.Add(new GridColumn("PlaceOfService",142));
+			gridMain.Columns.Add(new GridColumn("Note",90){ IsWidthDynamic=true });
 			gridMain.ListGridRows.Clear();
 			GridRow row;
 			for(int i=0;i<_listSites.Count;i++){

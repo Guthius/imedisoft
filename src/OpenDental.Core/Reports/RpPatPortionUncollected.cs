@@ -8,19 +8,15 @@ using System.Reflection;
 using System.Text;
 using System.Diagnostics;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpPatPortionUncollected {
 		
 		public static DataTable GetPatUncollected(DateTime dateFrom,DateTime dateTo,List<long> listClinicNums) {
 			Stopwatch s=new Stopwatch();;
-			if(/* ODBuild.IsDebug() */ false) {
-				s.Start();
-			}
-			bool hasClinicsEnabled=ReportsComplex.RunFuncOnReportServer(() => true);
-			List<long> listHiddenUnearnedDefNums=ReportsComplex.RunFuncOnReportServer(() => 
-				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList()
-			);
+			const bool hasClinicsEnabled = true;
+			List<long> listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			string query=$@"SELECT proc.PatNum, proc.ProcDate,CONCAT(patient.LName,', ',patient.FName) Patient,procedurecode.AbbrDesc,proc.Fee,
 				proc.Fee-proc.InsEst PatPortion,
 				COALESCE(adj.adjAmt,0) Adjustment,
@@ -76,13 +72,7 @@ namespace OpenDentBusiness {
 				) pay ON pay.ProcNum=proc.ProcNum
 				WHERE proc.Fee-proc.InsEst+COALESCE(adj.adjAmt,0)-COALESCE(pay.splitAmt,0)>0.005
 				ORDER BY proc.ProcDate,patient.LName,patient.FName,procedurecode.ProcCode";
-			DataTable table=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
-			if(/* ODBuild.IsDebug() */ false) {
-				s.Stop();
-				Console.WriteLine("Total time to generate report with "+string.Format("{0:#,##0.##}",table.Rows.Count)+" rows: "
-					+(s.Elapsed.Hours>0?(s.Elapsed.Hours+" hours "):"")+(s.Elapsed.Minutes>0?(s.Elapsed.Minutes+" min "):"")
-					+(s.Elapsed.TotalSeconds-(s.Elapsed.Hours*60*60)-(s.Elapsed.Minutes*60))+" sec");
-			}
+			DataTable table=DataCore.GetTable(query);
 			return table;
 		}
 	}

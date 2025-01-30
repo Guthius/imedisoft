@@ -6,10 +6,10 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
-
 
 public class Prefs
 {
@@ -33,7 +33,7 @@ public class Prefs
         if (prefValueType == PrefValueType.YN_DEFAULT_TRUE) return true;
         throw new ArgumentException("Invalid type");
     }
-    
+
     public static void Update(Pref pref)
     {
         //Don't use CRUD here because we want to update based on PrefName instead of PrefNum.  Otherwise, it might fail the first time someone runs 7.6.
@@ -184,7 +184,7 @@ public class Prefs
     {
         return GetOne(PrefName);
     }
-    
+
     public static PrefName GetSheetDefPref(SheetTypeEnum sheetType)
     {
         var retVal = PrefName.SheetsDefaultConsent;
@@ -216,7 +216,7 @@ public class Prefs
             PrefName.InsHistPerioMaintCodes, PrefName.InsHistDebridementCodes
         };
     }
-    
+
     private class PrefCache : CacheDictNonPkAbs<Pref, string, Pref>
     {
         public OnCacheRefreshDelegate OnCacheRefresh;
@@ -336,9 +336,9 @@ public class Prefs
         return PrefCaches.GetWhere(x => listPrefNames.Contains(x.PrefName));
     }
 
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
     public static DataTable GetTableFromCache(bool doRefreshCache)

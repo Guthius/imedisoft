@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAdjustmentPicker {
 		/// <summary>
 		/// Required designer variable.
@@ -37,7 +37,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// checkUnattached
 			// 
@@ -48,7 +48,7 @@ namespace OpenDental{
 			this.checkUnattached.Size = new System.Drawing.Size(136, 17);
 			this.checkUnattached.TabIndex = 5;
 			this.checkUnattached.Text = "Show Unattached Only";
-			this.checkUnattached.Click += new System.EventHandler(this.checkUnattached_Click);
+			this.checkUnattached.Click += new System.EventHandler(this.CheckBoxUnattached_Click);
 			// 
 			// gridMain
 			// 
@@ -61,7 +61,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 4;
 			this.gridMain.Title = "Adjustments";
 			this.gridMain.TranslationName = "TableAjdustmentPicker";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// FormAdjustmentPicker
 			// 

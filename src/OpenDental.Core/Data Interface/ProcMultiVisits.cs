@@ -5,36 +5,23 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ProcMultiVisits
 {
-    #region Delete
-
-    ///<summary>Does not send cache refresh signal.  Send the signal from calling code.</summary>
     public static void Delete(long procMultiVisitNum)
     {
         ProcMultiVisitCrud.Delete(procMultiVisitNum);
     }
 
-    #endregion Delete
-
-    #region Cache Pattern
-
-    /// <summary>
-    ///     The procmultivisit table could be quite large after a few years of use by a big organization.  However, the
-    ///     number of In Process procedures should be a few thousand or less, even for a large organization. So we currently
-    ///     store all of them in the cache. =Jordan We need to remove this cache pattern.
-    /// </summary>
     private class ProcMultiVisitCache : CacheListAbs<ProcMultiVisit>
     {
         protected override List<ProcMultiVisit> GetCacheFromDb()
         {
-            var command = "SELECT * FROM procmultivisit WHERE IsInProcess=1";
-            return ProcMultiVisitCrud.SelectMany(command);
+            return ProcMultiVisitCrud.SelectMany("SELECT * FROM procmultivisit WHERE IsInProcess=1");
         }
 
         protected override List<ProcMultiVisit> TableToList(DataTable dataTable)
@@ -58,105 +45,54 @@ public class ProcMultiVisits
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ProcMultiVisitCache _procMultiVisitCache = new();
-
-    public static List<ProcMultiVisit> GetDeepCopy(bool isShort = false)
-    {
-        return _procMultiVisitCache.GetDeepCopy(isShort);
-    }
-
-    public static int GetCount(bool isShort = false)
-    {
-        return _procMultiVisitCache.GetCount(isShort);
-    }
-
-    public static bool GetExists(Predicate<ProcMultiVisit> match, bool isShort = false)
-    {
-        return _procMultiVisitCache.GetExists(match, isShort);
-    }
-
-    public static int GetFindIndex(Predicate<ProcMultiVisit> match, bool isShort = false)
-    {
-        return _procMultiVisitCache.GetFindIndex(match, isShort);
-    }
-
-    public static ProcMultiVisit GetFirst(bool isShort = false)
-    {
-        return _procMultiVisitCache.GetFirst(isShort);
-    }
-
-    public static ProcMultiVisit GetFirst(Func<ProcMultiVisit, bool> match, bool isShort = false)
-    {
-        return _procMultiVisitCache.GetFirst(match, isShort);
-    }
+    private static readonly ProcMultiVisitCache Cache = new();
 
     public static ProcMultiVisit GetFirstOrDefault(Func<ProcMultiVisit, bool> match, bool isShort = false)
     {
-        return _procMultiVisitCache.GetFirstOrDefault(match, isShort);
-    }
-
-    public static ProcMultiVisit GetLast(bool isShort = false)
-    {
-        return _procMultiVisitCache.GetLast(isShort);
-    }
-
-    public static ProcMultiVisit GetLastOrDefault(Func<ProcMultiVisit, bool> match, bool isShort = false)
-    {
-        return _procMultiVisitCache.GetLastOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
     public static List<ProcMultiVisit> GetWhere(Predicate<ProcMultiVisit> match, bool isShort = false)
     {
-        return _procMultiVisitCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _procMultiVisitCache.FillCacheFromTable(table);
-    }
-
-    /// <summary>Returns the cache in the form of a DataTable. Always refreshes the ClientWeb's cache.</summary>
-    /// <param name="doRefreshCache">If true, will refresh the cache if RemotingRole is ClientDirect or ServerWeb.</param>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _procMultiVisitCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _procMultiVisitCache.ClearCache();
+        Cache.ClearCache();
     }
 
-    #endregion Cache Pattern
-
-    #region Insert
-
-    ///<summary>Does not send cache refresh signal.  Send the signal from calling code.</summary>
     public static long Insert(ProcMultiVisit procMultiVisit)
     {
         return ProcMultiVisitCrud.Insert(procMultiVisit);
     }
 
-    ///<summary>Will not create a group if there are less than 2 items in listProcs.  Also sends signal and refreshes cache.</summary>
     public static void CreateGroup(List<Procedure> listProcedures)
     {
-        if (listProcedures.Count < 2) //No reason to make a "group" with 0 or 1 items.
-            return;
-        var listProcMultiVisits = new List<ProcMultiVisit>();
-        for (var i = 0; i < listProcedures.Count; i++)
+        if (listProcedures.Count < 2)
         {
-            var procMultiVisit = new ProcMultiVisit();
-            procMultiVisit.ProcNum = listProcedures[i].ProcNum;
-            procMultiVisit.ProcStatus = listProcedures[i].ProcStatus;
-            procMultiVisit.PatNum = listProcedures[i].PatNum;
-            listProcMultiVisits.Add(procMultiVisit);
+            return;
+        }
+
+        var listProcMultiVisits = new List<ProcMultiVisit>();
+        foreach (var t in listProcedures)
+        {
+            listProcMultiVisits.Add(new ProcMultiVisit
+            {
+                ProcNum = t.ProcNum,
+                ProcStatus = t.ProcStatus,
+                PatNum = t.PatNum
+            });
         }
 
         var isGroupInProcess = IsGroupInProcess(listProcMultiVisits); //Could be in process if grouped procs which are different statuses via menu.
@@ -178,26 +114,23 @@ public class ProcMultiVisits
                 Insert(procMultiVisit);
             }
 
-            var listClaimProcs = ClaimProcs.GetForProcs(new List<long> {procMultiVisit.ProcNum});
+            var listClaimProcs = ClaimProcs.GetForProcs([procMultiVisit.ProcNum]);
             var listClaims = Claims.GetClaimsFromClaimNums(listClaimProcs.Select(x => x.ClaimNum).ToList());
-            for (var j = 0; j < listClaims.Count; j++)
-                if (listClaims[j].ClaimStatus.In("U", "W", "H"))
+            foreach (var claim in listClaims)
+            {
+                if (claim.ClaimStatus.In("U", "W", "H"))
                 {
-                    var claimOld = listClaims[j].Copy();
-                    listClaims[j].ClaimStatus = "I";
-                    Claims.Update(listClaims[j], claimOld);
+                    var claimOld = claim.Copy();
+                    claim.ClaimStatus = "I";
+                    Claims.Update(claim, claimOld);
                 }
+            }
         }
 
         Signalods.SetInvalid(InvalidType.ProcMultiVisits);
         RefreshCache();
     }
 
-    #endregion Insert
-
-    #region Update
-
-    ///<summary>Does not send cache refresh signal.  Send the signal from calling code.</summary>
     public static void Update(ProcMultiVisit procMultiVisit, ProcMultiVisit oldProcMultiVisit)
     {
         if (!ProcMultiVisitCrud.UpdateComparison(procMultiVisit, oldProcMultiVisit)) return; //No changes.  Save middle tier call.
@@ -205,17 +138,11 @@ public class ProcMultiVisits
         ProcMultiVisitCrud.Update(procMultiVisit, oldProcMultiVisit);
     }
 
-    /// <summary>
-    ///     Responsible for updating procedures in the group to "In Process" or "Not In Process", depending on the stat passed
-    ///     in.
-    ///     Also sends signal to cause cache refresh.  Returns list of ClaimNums which had claimClaimStatus modified (can be
-    ///     empty list).
-    /// </summary>
-    public static List<long> UpdateGroupForProc(long procNum, ProcStat stat)
+    public static void UpdateGroupForProc(long procNum, ProcStat stat)
     {
         var listPmvs = GetGroupsForProcsFromDb(procNum);
         var pmv = listPmvs.FirstOrDefault(x => x.ProcNum == procNum);
-        if (pmv == null) return new List<long>(); //Rare edge case.  Might happen is someone deletes the procedure at the same time another person is updating it.
+        if (pmv == null) return;
         var isGroupInProcessOld = IsGroupInProcess(listPmvs);
         if (stat == ProcStat.D)
         {
@@ -332,14 +259,8 @@ public class ProcMultiVisits
             Claims.Update(listClaims[i], claimOld);
             listModifiedClaimNums.Add(listClaims[i].ClaimNum);
         }
-
-        return listModifiedClaimNums;
     }
 
-    /// <summary>
-    ///     Updates the group IsInProcess values for all procedures to the specified bool value.
-    ///     Does not send cache refresh signal.  Send the signal from calling code.
-    /// </summary>
     public static void UpdateInProcessForGroup(long groupProcMultiVisitNum, bool isGroupInProcess)
     {
         var command = "UPDATE procmultivisit "
@@ -348,10 +269,6 @@ public class ProcMultiVisits
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Update the parameter GroupProcMultiVisitNum to a new value.
-    ///     Does not send cache refresh signal.  Send the signal from calling code.
-    /// </summary>
     public static void UpdateGroupProcMultiVisitNumForGroup(long groupProcMultiVisitNumOld, long groupProcMultiVisitNumNew)
     {
         var command = "UPDATE procmultivisit "
@@ -360,11 +277,6 @@ public class ProcMultiVisits
         Db.NonQ(command);
     }
 
-    #endregion Update
-
-    #region Get Methods
-
-    
     public static List<ProcMultiVisit> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM procmultivisit "
@@ -372,35 +284,21 @@ public class ProcMultiVisits
         return ProcMultiVisitCrud.SelectMany(command);
     }
 
-    ///<summary>Calls db to get most up to date information.</summary>
     public static List<ProcMultiVisit> GetGroupsForProcsFromDb(params long[] arrayProcNums)
     {
-        if (arrayProcNums.IsNullOrEmpty()) return new List<ProcMultiVisit>();
+        if (arrayProcNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM procmultivisit "
                       + "WHERE GroupProcMultiVisitNum IN (SELECT GroupProcMultiVisitNum FROM procmultivisit p2 WHERE p2.ProcNum IN (" + string.Join(",", arrayProcNums) + "))";
         return ProcMultiVisitCrud.SelectMany(command);
     }
 
-    #endregion Get Methods
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Returns true if the group of multi visits passed in is "In Process".
-    ///     This method assumes that all ProcMultiVisits passed in are all of the entities for the group.
-    ///     No db call.  Only uses the passed in list.
-    /// </summary>
     public static bool IsGroupInProcess(List<ProcMultiVisit> listPmvs)
     {
         //A group is considered "In Process" if at least one procedure is treatment planned and at least one is complete.
         return listPmvs.Exists(x => x.ProcStatus.In(ProcStat.TP, ProcStat.TPi)) && listPmvs.Exists(x => x.ProcStatus.In(ProcStat.C));
     }
 
-    /// <summary>
-    ///     Returns true if the group the procedure belongs to is in process and the procedure status is set to "complete".
-    ///     If isAssumedComplete, then will pretend the procedure for procNum is complete regardless of current status.
-    /// </summary>
     public static bool IsProcInProcess(long procNum, bool isAssumedComplete = false)
     {
         var pmv = GetFirstOrDefault(x => x.ProcNum == procNum);
@@ -422,6 +320,4 @@ public class ProcMultiVisits
 
         return pmv.IsInProcess && pmv.ProcStatus == ProcStat.C; //Part of an in process group and is complete.
     }
-
-    #endregion
 }

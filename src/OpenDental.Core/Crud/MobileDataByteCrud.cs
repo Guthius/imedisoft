@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MobileDataByteCrud
 {
@@ -88,14 +90,14 @@ public class MobileDataByteCrud
                                + DbHelper.ParamChar + "paramRawBase64Tag,"
                                + SOut.Long(mobileDataByte.PatNum) + ","
                                + SOut.Int((int) mobileDataByte.ActionType) + ","
-                               + DbHelper.Now() + ","
+                               + "NOW()" + ","
                                + SOut.DateTime(mobileDataByte.DateTimeExpires) + ")";
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
-        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
+        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", SOut.StringParam(mobileDataByte.RawBase64Data));
         if (mobileDataByte.RawBase64Code == null) mobileDataByte.RawBase64Code = "";
-        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Code));
+        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", SOut.StringParam(mobileDataByte.RawBase64Code));
         if (mobileDataByte.RawBase64Tag == null) mobileDataByte.RawBase64Tag = "";
-        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Tag));
+        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", SOut.StringParam(mobileDataByte.RawBase64Tag));
         {
             mobileDataByte.MobileDataByteNum = Db.NonQ(command, true, "MobileDataByteNum", "mobileDataByte", paramRawBase64Data, paramRawBase64Code, paramRawBase64Tag);
         }
@@ -120,14 +122,14 @@ public class MobileDataByteCrud
                                + DbHelper.ParamChar + "paramRawBase64Tag,"
                                + SOut.Long(mobileDataByte.PatNum) + ","
                                + SOut.Int((int) mobileDataByte.ActionType) + ","
-                               + DbHelper.Now() + ","
+                               + "NOW()" + ","
                                + SOut.DateTime(mobileDataByte.DateTimeExpires) + ")";
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
-        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
+        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", SOut.StringParam(mobileDataByte.RawBase64Data));
         if (mobileDataByte.RawBase64Code == null) mobileDataByte.RawBase64Code = "";
-        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Code));
+        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", SOut.StringParam(mobileDataByte.RawBase64Code));
         if (mobileDataByte.RawBase64Tag == null) mobileDataByte.RawBase64Tag = "";
-        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Tag));
+        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", SOut.StringParam(mobileDataByte.RawBase64Tag));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramRawBase64Data, paramRawBase64Code, paramRawBase64Tag);
         else
@@ -147,11 +149,11 @@ public class MobileDataByteCrud
                       + "DateTimeExpires  =  " + SOut.DateTime(mobileDataByte.DateTimeExpires) + " "
                       + "WHERE MobileDataByteNum = " + SOut.Long(mobileDataByte.MobileDataByteNum);
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
-        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
+        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", SOut.StringParam(mobileDataByte.RawBase64Data));
         if (mobileDataByte.RawBase64Code == null) mobileDataByte.RawBase64Code = "";
-        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Code));
+        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", SOut.StringParam(mobileDataByte.RawBase64Code));
         if (mobileDataByte.RawBase64Tag == null) mobileDataByte.RawBase64Tag = "";
-        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Tag));
+        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", SOut.StringParam(mobileDataByte.RawBase64Tag));
         Db.NonQ(command, paramRawBase64Data, paramRawBase64Code, paramRawBase64Tag);
     }
 
@@ -197,11 +199,11 @@ public class MobileDataByteCrud
 
         if (command == "") return false;
         if (mobileDataByte.RawBase64Data == null) mobileDataByte.RawBase64Data = "";
-        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Data));
+        var paramRawBase64Data = new OdSqlParameter("paramRawBase64Data", SOut.StringParam(mobileDataByte.RawBase64Data));
         if (mobileDataByte.RawBase64Code == null) mobileDataByte.RawBase64Code = "";
-        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Code));
+        var paramRawBase64Code = new OdSqlParameter("paramRawBase64Code", SOut.StringParam(mobileDataByte.RawBase64Code));
         if (mobileDataByte.RawBase64Tag == null) mobileDataByte.RawBase64Tag = "";
-        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", OdDbType.Text, SOut.StringParam(mobileDataByte.RawBase64Tag));
+        var paramRawBase64Tag = new OdSqlParameter("paramRawBase64Tag", SOut.StringParam(mobileDataByte.RawBase64Tag));
         command = "UPDATE mobiledatabyte SET " + command
                                                + " WHERE MobileDataByteNum = " + SOut.Long(mobileDataByte.MobileDataByteNum);
         Db.NonQ(command, paramRawBase64Data, paramRawBase64Code, paramRawBase64Tag);

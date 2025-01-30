@@ -5,21 +5,18 @@ using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class EmailHostingTemplates
 {
-    private const string MASS_EMAIL_LOG_DIR = "MassEmail";
-
     public static IAccountApi GetAccountApi(long clinicNum)
     {
         var guid = ClinicPrefs.GetPrefValue(PrefName.MassEmailGuid, clinicNum);
         var secret = ClinicPrefs.GetPrefValue(PrefName.MassEmailSecret, clinicNum);
-        if (/* ODBuild.IsDebug() */ false) return AccountApiMock.Get(clinicNum, guid, secret);
         var emailHostingEndpoint = PrefC.GetString(PrefName.EmailHostingEndpoint);
         return new AccountApi(guid, secret, emailHostingEndpoint);
     }
@@ -37,8 +34,7 @@ public class EmailHostingTemplates
             }
             catch (Exception ex)
             {
-                Logger.WriteLine(Lans.g("MassEmail", "Unable to sync MassEmail templates for clinicNum:") + " " + t + ".\n" + MiscUtils.GetExceptionText(ex)
-                    , ODFileUtils.CombinePaths(MASS_EMAIL_LOG_DIR, t.ToString()));
+                Logger.WriteLine(Lans.g("MassEmail", "Unable to sync MassEmail templates for clinicNum:") + " " + t + ".\n" + MiscUtils.GetExceptionText(ex));
             }
         }
     }
@@ -149,7 +145,7 @@ public class EmailHostingTemplates
             var createTemplateResponse = api.CreateTemplate(createTemplateRequest);
             if (createTemplateResponse.TemplateNum == 0)
             {
-                Logger.WriteError(Lans.g("EmailHostingTemplates", "Upload failed for EmailHostingTemplateNum:") + " " + listEmailHostingTemplatesDatabase[i].TemplateName, logSubDir);
+                Logger.WriteError(Lans.g("EmailHostingTemplates", "Upload failed for EmailHostingTemplateNum:") + " " + listEmailHostingTemplatesDatabase[i].TemplateName);
                 continue;
             }
 
@@ -179,7 +175,7 @@ public class EmailHostingTemplates
 
     private static string GetHtmlBody(EmailHostingTemplate emailHostingTemplate)
     {
-        if (emailHostingTemplate.EmailTemplateType == EmailType.Html) return MarkupEdit.TranslateToXhtml(emailHostingTemplate.BodyHTML, true, false, true);
+        if (emailHostingTemplate.EmailTemplateType == EmailType.Html) return MarkupEdit.TranslateToXhtml(emailHostingTemplate.BodyHTML, true);
         return emailHostingTemplate.BodyHTML;
     }
 
@@ -242,20 +238,6 @@ public class EmailHostingTemplates
     public static long Insert(EmailHostingTemplate emailHostingTemplate)
     {
         return EmailHostingTemplateCrud.Insert(emailHostingTemplate);
-    }
-
-    public static EmailHostingTemplate CreateDefaultTemplate(long clinicNum, PromotionType promotionType)
-    {
-        var emailHostingTemplate = new EmailHostingTemplate();
-        emailHostingTemplate.ClinicNum = clinicNum;
-        emailHostingTemplate.Subject = "Happy Birthday";
-        emailHostingTemplate.BodyPlainText = "Wishing you a happy and healthy Birthday! Hope your day is full of smiles and memorable moments. " +
-                                             "From your friends at [{[{ OfficeName }]}]";
-        emailHostingTemplate.BodyHTML = "";
-        emailHostingTemplate.EmailTemplateType = EmailType.Regular;
-        emailHostingTemplate.TemplateName = "Automated Birthday Message";
-        emailHostingTemplate.TemplateType = promotionType;
-        return emailHostingTemplate;
     }
 
     public static void Update(EmailHostingTemplate emailHostingTemplate)

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDentBusiness.WebTypes.WebForms;

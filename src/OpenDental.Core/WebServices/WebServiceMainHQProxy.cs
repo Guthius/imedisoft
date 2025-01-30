@@ -5,10 +5,11 @@ using ODCrypt;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
 using System.Xml.Serialization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Remoting;
@@ -84,119 +85,10 @@ namespace OpenDentBusiness
                 GetWebServiceMainHQInstance().SetEConnectorType(WebSerializer.SerializePrimitive<string>(PrefC.GetString(PrefName.RegistrationKey)), true));
         }
 
-        ///<summary>Throws exceptions.</summary>
-        public static void BuildWebSchedNewPatApptURLs(List<long> listClinicNums, Action<XmlNode> aNodeParsed)
-        {
-            //Make a web call to HQ to get the URLs for all the clinics.
-            var response = GetWebServiceMainHQInstance()
-                .BuildWebSchedNewPatApptURLs(PrefC.GetString(PrefName.RegistrationKey), String.Join("|", listClinicNums));
-            //Parse Response
-            var doc = new XmlDocument();
-            XmlNode nodeError = null;
-            XmlNode nodeResponse = null;
-            XmlNodeList nodeURLs = null;
-            //Invalid web service response passed in.  Node will be null and will throw correctly.
-            ODException.SwallowAnyException(() =>
-            {
-                doc.LoadXml(response);
-                nodeError = doc.SelectSingleNode("//Error");
-                nodeResponse = doc.SelectSingleNode("//GetWebSchedURLsResponse");
-            });
-
-            #region Error Handling
-
-            if (nodeError != null || nodeResponse == null)
-            {
-                var error = Lans.g("WebSched", "There was an error with the web request.  Please try again or give us a call.");
-                //Either something went wrong or someone tried to get cute and use our Web Sched service when they weren't supposed to.
-                if (nodeError != null)
-                {
-                    error += "\r\n" + Lans.g("WebSched", "Error Details") + ":\r\n" + nodeError.InnerText;
-                }
-
-                throw new Exception(error);
-            }
-
-            nodeURLs = doc.GetElementsByTagName("URL");
-            if (nodeURLs == null)
-            {
-                throw new Exception("Invalid response from server received.");
-            }
-
-            #endregion
-
-            //At this point we know we got a valid response from our web service.
-            //Loop through all the URL nodes that were returned.
-            foreach (XmlNode node in nodeURLs)
-            {
-                aNodeParsed(node);
-            }
-        }
-
-        ///<summary>Test the connection to WebServiceMainHQ</summary>
-        public static bool CanReachWebService()
-        {
-            try
-            {
-                GetWebServiceMainHQInstance().TestConnection("");
-                //Communication succeeded so that is considered a pass.
-                return true;
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-        }
-
         ///<summary>Returns a serialized list of ClinicProgramPropertyContainer objects to pass from the office to HQ. Public for unit testing</summary>
         public static string GetSerializedProgramProperties(List<ClinicDto> listClinics)
         {
-            var listProviders = new List<Provider>();
             var listToSerialize = new List<EServiceSetup.SignupIn.ClinicProgramPropertyContainer>();
-            if (Programs.IsEnabled(ProgramName.CareCredit))
-            {
-                //small helper method to check for blanks, remove any unwanted chars, and make sure we're not adding duplicates
-                bool tryAdd(string merchID, List<string> curMerchIds)
-                {
-                    if (!string.IsNullOrWhiteSpace(merchID) && !curMerchIds.Contains(merchID))
-                    {
-                        //This means that the merchant number is technically inactive but that doesn't mean that web responses might not come in for older merch numbers
-                        //Offices can also remove the x themselves at any point so we might as well update our records with it
-                        if (merchID.StartsWith("x"))
-                        {
-                            merchID = merchID.Substring(1);
-                        }
-
-                        curMerchIds.Add(merchID);
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                var listMerchantIdProviderClinics = ProviderClinics.GetCareCreditRows();
-                //Loop through this list and add any clinic and provider merch numbers. Whether or not they're in use doesn't feel that important but we should strip any leading x's so that we only have clean data
-                for (var i = 0; i < listClinics.Count(); i++)
-                {
-                    var clinicMerchIds = new List<string>();
-                    var clinic = listClinics[i];
-                    var merchIdForClinic = CareCredit.GetMerchantNumberByClinic(clinic.Id);
-                    var merchIdForProvider = listMerchantIdProviderClinics.FirstOrDefault(x => x.ClinicNum == clinic.Id)?.CareCreditMerchantId ?? "";
-                    if (!tryAdd(merchIdForClinic, clinicMerchIds) && !tryAdd(merchIdForProvider, clinicMerchIds))
-                    {
-                        continue;
-                    }
-
-                    listToSerialize.Add(new EServiceSetup.SignupIn.ClinicProgramPropertyContainer()
-                    {
-                        ClinicNum = clinic.Id,
-                        ProgramName = ProgramName.CareCredit.ToString(),
-                        ProgramProperty = "MerchantIDs",
-                        ProgramValue = JsonConvert.SerializeObject(clinicMerchIds)
-                    });
-                }
-            }
-
             return JsonConvert.SerializeObject(listToSerialize);
         }
 
@@ -441,7 +333,7 @@ namespace OpenDentBusiness
 
             #region Limited Beta
 
-            LimitedBetaFeatures.SyncFromHQ(signupOut.ListLimitedBetaFeatures);
+            LimitedBetaFeatures.SyncFromHq(signupOut.ListLimitedBetaFeatures);
 
             #endregion
 
@@ -1479,40 +1371,6 @@ namespace OpenDentBusiness
             GetWebServiceMainHQInstance().CustomerUpdateCommitted(PayloadHelper.CreatePayload(listPayloadItems, eServiceCode.CustomerVersion));
         }
 
-        public static string GetLatestCloudClientVersion()
-        {
-            var result = GetWebServiceMainHQInstance().GetLatestCloudClientVersion();
-            return WebSerializer.DeserializePrimitive<string>(result);
-        }
-
-        ///<summary>Returns a DateTime set by HQ or minval if we failed to retrieve the value.</summary>
-        public static DateTime GetCareCreditBatchProcessTime()
-        {
-            var payload = PayloadHelper.CreatePayload("", eServiceCode.Undefined); //Undefined to only check if they were ever a customer. Doesn't require support
-            try
-            {
-                return WebSerializer.DeserializeTag<DateTime>(GetWebServiceMainHQInstance().GetCareCreditBatchTimes(payload), "DateTimeBatchProcess");
-            }
-            catch
-            {
-                return DateTime.MinValue;
-            }
-        }
-
-        ///<summary>Returns a DateTime set by HQ or minval if we failed to retrieve the value.</summary>
-        public static DateTime GetCareCreditBatchPullbackTime()
-        {
-            var payload = PayloadHelper.CreatePayload("", eServiceCode.Undefined); //Undefined to only check if they were ever a customer. Doesn't require support
-            try
-            {
-                return WebSerializer.DeserializeTag<DateTime>(GetWebServiceMainHQInstance().GetCareCreditBatchTimes(payload), "DateTimeBatchPullback");
-            }
-            catch
-            {
-                return DateTime.MinValue;
-            }
-        }
-
         ///<summary>WebServiceMainHQ.GenerateShortGUIDs returns a list of these.</summary>
         [Serializable]
         public class ShortGuidResult
@@ -1573,33 +1431,6 @@ namespace OpenDentBusiness
             };
             var officeData = PayloadHelper.CreatePayload(listPayloadItems, eServiceCode.Undefined);
             return WebSerializer.DeserializeTag<string>(GetWebServiceMainHQInstance().UpsertMobileSettings(officeData), "Success");
-        }
-
-        /// <summary> Builds a OCRIID request, and sends it off to azure. </summary>
-        public static string ProcessOCRIIDRequest(byte[] imgRequest, long clinicNum)
-        {
-            var payload = PayloadHelper.CreatePayload(
-                new List<PayloadItem>
-                {
-                    new PayloadItem(imgRequest, "ocrIIDRequest"),
-                    new PayloadItem(clinicNum, "ClinicNum"),
-                },
-                eServiceCode.EClipboard
-            );
-            return GetWebServiceMainHQInstance().ProcessOCRIIDRequest(payload);
-        }
-
-        /// <summary> Takes in an open dental address. Packs it up and sends it off to USPS to validate. This service is available to all customers on support. </summary>
-        public static string ProcessUSPSAddressValidationRequest(Address address)
-        {
-            var payload = PayloadHelper.CreatePayload(
-                new List<PayloadItem>
-                {
-                    new PayloadItem(address, "address"),
-                },
-                eServiceCode.SoftwareUpdate
-            );
-            return GetWebServiceMainHQInstance().ProcessUSPSAddressValidationRequest(payload);
         }
 
         ///<summary>Proxy class that interfaces with OpenDentalWebCore.EClipboard2FactorAuthFP</summary>

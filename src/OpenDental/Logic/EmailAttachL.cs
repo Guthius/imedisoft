@@ -6,192 +6,132 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental
+namespace OpenDental.Logic;
+
+public class EmailAttachL
 {
-    public class EmailAttachL
+    public static List<EmailAttach> PickAttachments(Patient patient)
     {
-        ///<summary>Allow the user to pick the files to be attached. The 'pat' argument can be null. If the user cancels at any step, the return value
-        ///will be an empty list.</summary>
-        public static List<EmailAttach> PickAttachments(Patient patient)
+        var emailAttaches = new List<EmailAttach>();
+
+        using var openFileDialog = new OpenFileDialog();
+
+        openFileDialog.Multiselect = true;
+        openFileDialog.InitialDirectory = patient != null ? ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder()) : "";
+
+        if (openFileDialog.ShowDialog() != DialogResult.OK)
         {
-            List<EmailAttach> listEmailAttaches = new List<EmailAttach>();
-            List<string> listFileNames;
-            bool isLocalFileSelected = false;
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Multiselect = true;
-            if (patient != null && true)
+            return emailAttaches;
+        }
+
+        var filenames = openFileDialog.FileNames.ToList();
+
+        foreach (var filename in filenames)
+        {
+            try
             {
-                string patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
-                openFileDialog.InitialDirectory = patFolder;
-                if (openFileDialog.ShowDialog() != DialogResult.OK)
+                emailAttaches.Add(EmailAttaches.CreateAttach(Path.GetFileName(filename), File.ReadAllBytes(filename)));
+            }
+            catch (Exception ex)
+            {
+                MsgBox.Show(ex.Message);
+
+                return emailAttaches;
+            }
+        }
+
+        return emailAttaches;
+    }
+
+    public static EmailAttach PickAttachmentsImages(Patient patient)
+    {
+        Bitmap bitmap = null;
+        var filename = "";
+        byte[] bytes = [];
+
+        if (patient == null)
+        {
+            return null;
+        }
+
+        using var formImagePickerPatient = new FormImagePickerPatient();
+
+        formImagePickerPatient.PatientCur = patient;
+
+        if (formImagePickerPatient.ShowDialog() != DialogResult.OK)
+        {
+            return null;
+        }
+
+        if (formImagePickerPatient.DocNumSelected > 0)
+        {
+            var document = Documents.GetByNum(formImagePickerPatient.DocNumSelected);
+
+            if (!ImageHelper.HasImageExtension(document.FileName) && !document.FileName.EndsWith(".pdf") && document.ImgType is not (ImageType.Photo or ImageType.Radiograph))
+            {
+                MsgBox.Show("Not allowed to attach selected file type as an image. Attach as a file instead.");
+                return null;
+            }
+
+            if (document.FileName.EndsWith(".pdf"))
+            {
+                document.FileName = Path.Combine(ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder()), document.FileName);
+
+                try
                 {
-                    return listEmailAttaches;
+                    bytes = File.ReadAllBytes(document.FileName);
+                }
+                catch (Exception ex)
+                {
+                    ODMessageBox.Show(ex.Message);
+
+                    return null;
                 }
 
-                listFileNames = openFileDialog.FileNames.ToList();
+                filename = Path.GetFileName(document.FileName);
             }
             else
             {
-                //No patient selected or images in database
-                //Use the OS default directory for this type of file viewer.
-                openFileDialog.InitialDirectory = "";
-                if (openFileDialog.ShowDialog() != DialogResult.OK)
-                {
-                    return listEmailAttaches;
-                }
+                var extension = ImageStore.GetExtension(document);
 
-                isLocalFileSelected = true;
-                listFileNames = openFileDialog.FileNames.ToList();
+                bitmap = ImageHelper.GetBitmapOfDocumentFromDb(formImagePickerPatient.DocNumSelected);
+
+                filename = document.FileName.Replace(extension, ".jpg");
             }
-
-            for (int i = 0; i < listFileNames.Count; i++)
-            {
-                if (!false)
-                {
-                    try
-                    {
-                        listEmailAttaches.Add(EmailAttaches.CreateAttach(Path.GetFileName(listFileNames[i]), File.ReadAllBytes(listFileNames[i])));
-                    }
-                    catch (Exception ex)
-                    {
-                        MsgBox.Show(ex.Message);
-                        return listEmailAttaches;
-                    }
-
-                    continue;
-                }
-
-                FileAtoZSourceDestination fileAtoZSourceDestination;
-                if (isLocalFileSelected)
-                {
-                    fileAtoZSourceDestination = FileAtoZSourceDestination.LocalToAtoZ;
-                }
-                else
-                {
-                    fileAtoZSourceDestination = FileAtoZSourceDestination.AtoZToAtoZ;
-                }
-
-                //Create EmailAttach using EmailAttaches.CreateAttach logic, shortened for our specific purpose.
-                EmailAttach emailAttach = new EmailAttach();
-                emailAttach.DisplayedFileName = Path.GetFileName(listFileNames[i]);
-                string attachDir = EmailAttaches.GetAttachPath();
-                string subDir = "Out";
-                emailAttach.ActualFileName = ODFileUtils.CombinePaths(subDir,
-                    DateTime.Now.ToString("yyyyMMdd") + "_" + DateTime.Now.TimeOfDay.Ticks.ToString()
-                    + "_" + MiscUtils.CreateRandomAlphaNumericString(4) + "_" + emailAttach.DisplayedFileName).Replace("\\", "/");
-                try
-                {
-                    FileAtoZ.Copy(listFileNames[i], FileAtoZ.CombinePaths(attachDir, emailAttach.ActualFileName));
-                }
-                catch (Exception ex)
-                {
-                    ODMessageBox.Show(ex.Message);
-                    return listEmailAttaches;
-                }
-
-                listEmailAttaches.Add(emailAttach);
-            }
-
-            return listEmailAttaches;
         }
-
-        public static EmailAttach PickAttachmentsImages(Patient patient)
+        else if (formImagePickerPatient.MountNumSelected > 0)
         {
-            EmailAttach emailAttach;
-            using FormImagePickerPatient formImagePickerPatient = new FormImagePickerPatient();
-            formImagePickerPatient.PatientCur = patient;
-            Document document = new Document();
-            document.FileName = "";
-            Bitmap bitmap = null;
-            string displayedFileName = "";
-            byte[] byteArray = { };
-            if (patient == null)
-            {
-                return null;
-            }
+            bitmap = MountHelper.GetBitmapOfMountFromDb(formImagePickerPatient.MountNumSelected);
 
-            if (formImagePickerPatient.ShowDialog() != DialogResult.OK)
-            {
-                return null;
-            }
+            var uniqueIdentifier = "Mount" + formImagePickerPatient.MountNumSelected;
 
-            //A document or mount has been selected by this point.
-            //Very similar approach for Cloud Storage and local files since most attachments are getting byteArrays from the database
-            if (formImagePickerPatient.DocNumSelected > 0)
-            {
-                document = Documents.GetByNum(formImagePickerPatient.DocNumSelected);
-                //We don't want to allow specific files to be attached here so warn the end user when they attempt to add an incompatible document as an image
-                if (!ImageHelper.HasImageExtension(document.FileName) && !document.FileName.EndsWith(".pdf") && !document.ImgType.In(ImageType.Photo, ImageType.Radiograph))
-                {
-                    MsgBox.Show("Not allowed to attach selected file type as an image. Attach as a file instead.");
-                    return null;
-                }
-
-                if (document.FileName.EndsWith(".pdf"))
-                {
-                    {
-                        //grab the file directly from A to Z folder, no manipulations needed
-                        string patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
-                        document.FileName = ODFileUtils.CombinePaths(patFolder, document.FileName);
-                        if (!false)
-                        {
-                            //PDF's in Cloud Storage won't need the byteArray
-                            try
-                            {
-                                byteArray = File.ReadAllBytes(document.FileName);
-                            }
-                            catch (Exception ex)
-                            {
-                                //most likely exception is file not found
-                                ODMessageBox.Show(ex.Message);
-                                return null;
-                            }
-                        }
-
-                        displayedFileName = Path.GetFileName(document.FileName);
-                    }
-                }
-                else
-                {
-                    string extension = ImageStore.GetExtension(document);
-                    bitmap = ImageHelper.GetBitmapOfDocumentFromDb(formImagePickerPatient.DocNumSelected);
-                    displayedFileName = document.FileName.Replace(extension, ".jpg");
-                }
-            }
-            else if (formImagePickerPatient.MountNumSelected > 0)
-            {
-                bitmap = MountHelper.GetBitmapOfMountFromDb(formImagePickerPatient.MountNumSelected);
-                string uniqueIdentifier = "Mount" + formImagePickerPatient.MountNumSelected;
-                displayedFileName = Documents.GenerateUniqueFileName(".jpg", patient, uniqueIdentifier);
-            }
-
-            if (bitmap != null)
-            {
-                using MemoryStream memoryStream = new MemoryStream();
-                //Save creates a system ref to the resources, preventing proper disposal of image,
-                //so we use a second image
-                bitmap.Save(memoryStream, ImageFormat.Jpeg); //consider setting our own quality
-                byteArray = memoryStream.ToArray();
-                bitmap.Dispose();
-            }
-
-            if (!false)
-            {
-                try
-                {
-                    emailAttach = EmailAttaches.CreateAttach(displayedFileName, byteArray);
-                }
-                catch (Exception ex)
-                {
-                    //most likely exception is file not found
-                    ODMessageBox.Show(ex.Message);
-                    return null;
-                }
-
-                return emailAttach;
-            }
+            filename = Documents.GenerateUniqueFileName(".jpg", patient, uniqueIdentifier);
         }
+
+        if (bitmap is not null)
+        {
+            using var memoryStream = new MemoryStream();
+
+            bitmap.Save(memoryStream, ImageFormat.Jpeg);
+            bytes = memoryStream.ToArray();
+            bitmap.Dispose();
+        }
+
+        EmailAttach emailAttach;
+        try
+        {
+            emailAttach = EmailAttaches.CreateAttach(filename, bytes);
+        }
+        catch (Exception ex)
+        {
+            ODMessageBox.Show(ex.Message);
+
+            return null;
+        }
+
+        return emailAttach;
     }
 }

@@ -1,0 +1,808 @@
+using System;
+using System.Data;
+using System.Drawing;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows.Forms;
+using OpenDental.UI;
+using OpenDentBusiness;
+using System.Linq;
+using CodeBase;
+using DataConnectionBase;
+using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
+
+namespace OpenDental;
+
+public partial class FormProviderSetup : FormODBase
+{
+    ///<summary>Indicates that something about the providers has changed and needs to send out an invalid signal to the other workstations.</summary>
+    private bool _hasChanged;
+
+    //private User user;
+    private DataTable _tableProvs;
+
+    ///<summary>Set when prov picker button is used.  textMoveTo shows this prov in human readable format.</summary>
+    private long _provNumMoveTo = -1;
+
+    private List<UserGroup> _listUserGroups;
+    private ToolTip _toolTipPriProvEdit = new ToolTip {ShowAlways = true};
+
+    ///<summary>A stale copy of all providers.  Gets a lazy update whenever needed (e.g. after ProvEdit window closes with changes)/</summary>
+    private List<Provider> _listProviders;
+
+    ///<summary>Not used for selection.  Use FormProviderPick or FormProviderMultiPick for that.</summary>
+    public FormProviderSetup()
+    {
+        InitializeComponent();
+
+        if (FormODBase.AreBordersMs)
+        {
+            this.AutoSize = true;
+        }
+
+        if (true)
+        {
+            this.Width = 960;
+        }
+
+        WaitFilterMs = 200; //because we are not doing any database calls, we want a lower time to make the application feel more responsive
+    }
+
+    private void FormProviderSetup_Load(object sender, System.EventArgs e)
+    {
+        SetFilterControlsAndAction(() => FillGrid(false), textSearch);
+        //There are two permissions which allow access to this window: Providers and AdminDentalStudents.  SecurityAdmin allows some extra functions.
+        if (!Security.IsAuthorized(EnumPermType.ProviderAlphabetize, true))
+        {
+            butAlphabetize.Enabled = false;
+        }
+
+        if (!Security.IsAuthorized(EnumPermType.ProviderAdd, suppressMessage: true))
+        {
+            butAdd.Enabled = false;
+        }
+
+        _listProviders = Providers.GetDeepCopy();
+        if (Security.IsAuthorized(EnumPermType.SecurityAdmin, true))
+        {
+            _listUserGroups = UserGroups.GetList();
+            for (var i = 0; i < _listUserGroups.Count; i++)
+            {
+                comboUserGroup.Items.Add(_listUserGroups[i].Description, _listUserGroups[i]);
+            }
+
+            if (comboUserGroup.Items.Count > 0)
+            {
+                comboUserGroup.SetSelected(0, true);
+            }
+        }
+        else
+        {
+            groupCreateUsers.Enabled = false;
+            groupMovePats.Enabled = false;
+        }
+
+        checkShowHidden.Checked = true;
+        if (Security.IsAuthorized(EnumPermType.PatPriProvEdit, DateTime.MinValue, true, true))
+        {
+            return;
+        }
+
+        var strToolTip = Lan.g("Security", "Not authorized for") + " " + GroupPermissions.GetDesc(EnumPermType.PatPriProvEdit);
+        _toolTipPriProvEdit.SetToolTip(butReassign, strToolTip);
+        _toolTipPriProvEdit.SetToolTip(butMovePri, strToolTip);
+    }
+
+    ///<summary>There is a bug in ODProgress.cs that forces windows that use a progress bar on load to go behind other applications. 
+    ///This is a temporary workaround until we decide how to address the issue.</summary>
+    private void FormProviderSetup_Shown(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void FillGrid(bool needsRefresh = true)
+    {
+        var listProvNumsSelected = gridMain.SelectedIndices.OfType<int>().Select(x => ((Provider) gridMain.ListGridRows[x].Tag).ProvNum).ToList();
+        var scroll = gridMain.ScrollValue;
+        var indexSortCol = gridMain.GetSortedByColumnIdx();
+        var isSortAsc = gridMain.IsSortedAscending();
+        gridMain.BeginUpdate();
+        gridMain.Columns.Clear();
+        if (!true)
+        {
+            gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "ProvNum"), 60, GridSortingStrategy.AmountParse));
+        }
+
+        gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "Abbrev"), 90));
+        gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "Last Name"), 90));
+        gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "First Name"), 90));
+        gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "User Name"), 90));
+        gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "Hidden"), 50, HorizontalAlignment.Center));
+        gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "HideOnReports"), 100, HorizontalAlignment.Center));
+        if (!true)
+        {
+            gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "Class"), 90));
+            gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "Instructor"), 60, HorizontalAlignment.Center));
+        }
+
+        if (checkShowPatientCount.Checked)
+        {
+            gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "PriPats"), 50, HorizontalAlignment.Center, GridSortingStrategy.AmountParse));
+            gridMain.Columns.Add(new GridColumn(Lan.g("TableProviderSetup", "SecPats"), 50, HorizontalAlignment.Center, GridSortingStrategy.AmountParse));
+        }
+
+        gridMain.ListGridRows.Clear();
+        GridRow row;
+        var listSearchWords = textSearch.Text.ToLower().Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
+        for (var i = 0; i < _tableProvs.Rows.Count; i++)
+        {
+            if (!checkShowHidden.Checked && _tableProvs.Rows[i]["IsHidden"].ToString() == "1")
+            {
+                continue;
+            }
+
+            var listColsToSearch = new List<string> {"Abbr", "LName", "FName"};
+            //Do not add the row if the user typed something into the search box and no cell contains the text that was typed in.
+            if (listSearchWords.Count > 0 && !listSearchWords.All(x => listColsToSearch.Any(y => _tableProvs.Rows[i][y].ToString().ToLower().Contains(x))))
+            {
+                continue;
+            }
+
+            row = new GridRow();
+            if (_tableProvs.Rows[i]["ProvStatus"].ToString() == ((int) ProviderStatus.Deleted).ToString())
+            {
+                if (!checkShowDeleted.Checked)
+                {
+                    continue;
+                }
+
+                row.ColorText = Color.Red;
+            }
+
+            if (!true)
+            {
+                row.Cells.Add(_tableProvs.Rows[i]["ProvNum"].ToString());
+            }
+
+            row.Cells.Add(_tableProvs.Rows[i]["Abbr"].ToString());
+            row.Cells.Add(_tableProvs.Rows[i]["LName"].ToString());
+            row.Cells.Add(_tableProvs.Rows[i]["FName"].ToString());
+            row.Cells.Add(_tableProvs.Rows[i]["UserName"].ToString());
+            row.Cells.Add(_tableProvs.Rows[i]["IsHidden"].ToString() == "1" ? "X" : "");
+            row.Cells.Add(_tableProvs.Rows[i]["IsHiddenReport"].ToString() == "1" ? "X" : "");
+            if (!true)
+            {
+                row.Cells.Add(_tableProvs.Rows[i]["GradYear"].ToString() != "" ? (_tableProvs.Rows[i]["GradYear"] + "-" + _tableProvs.Rows[i]["Descript"]) : "");
+                row.Cells.Add(_tableProvs.Rows[i]["IsInstructor"].ToString() == "1" ? "X" : "");
+            }
+
+            if (checkShowPatientCount.Checked)
+            {
+                row.Cells.Add(_tableProvs.Rows[i]["PatCountPri"].ToString());
+                row.Cells.Add(_tableProvs.Rows[i]["PatCountSec"].ToString());
+            }
+
+            var provNumCur = SIn.Long(_tableProvs.Rows[i]["ProvNum"].ToString());
+            row.Tag = _listProviders.Find(x => x.ProvNum == provNumCur);
+            gridMain.ListGridRows.Add(row);
+        }
+
+        gridMain.EndUpdate();
+        if (indexSortCol > -1 && indexSortCol < gridMain.Columns.Count)
+        {
+            gridMain.SortForced(indexSortCol, isSortAsc);
+        }
+
+        for (var i = 0; i < gridMain.ListGridRows.Count; i++)
+        {
+            var provNumCur = ((Provider) gridMain.ListGridRows[i].Tag).ProvNum;
+            if (listProvNumsSelected.Contains(provNumCur))
+            {
+                gridMain.SetSelected(i, true);
+            }
+        }
+
+        gridMain.ScrollValue = scroll;
+    }
+
+    private void butAdd_Click(object sender, System.EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.ProviderAdd))
+        {
+            return; //Should not be possible, button should be disabled. This is just in case.
+        }
+
+        using var formProvEdit = new FormProvEdit();
+        formProvEdit.ProviderCur = new Provider();
+        formProvEdit.ProviderCur.IsNew = true;
+        var provider = new Provider();
+
+        //Not using Dental Schools feature.
+        if (gridMain.SelectedIndices.Length > 0)
+        {
+            //place new provider after the first selected index. No changes are made to DB until after provider is actually inserted.
+            formProvEdit.ProviderCur.ItemOrder = ((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag).ItemOrder; //now two with this itemorder
+        }
+        else if (gridMain.ListGridRows.Count > 0)
+        {
+            formProvEdit.ProviderCur.ItemOrder = ((Provider) gridMain.ListGridRows[gridMain.ListGridRows.Count - 1].Tag).ItemOrder + 1;
+        }
+        else
+        {
+            formProvEdit.ProviderCur.ItemOrder = 0;
+        }
+            
+        formProvEdit.IsNew = true;
+        formProvEdit.ShowDialog();
+        if (formProvEdit.DialogResult != DialogResult.OK)
+        {
+            return;
+        }
+
+        provider = formProvEdit.ProviderCur;
+        SecurityLogs.MakeLogEntry(EnumPermType.ProviderAdd, 0, "Provider: " + formProvEdit.ProviderCur.Abbr + " added.");
+
+        //new provider has already been inserted into DB from above
+        Providers.MoveDownBelow(provider); //safe to run even if none selected.
+        _hasChanged = true;
+        Cache.Refresh(InvalidType.Providers);
+        _listProviders = Providers.GetDeepCopy();
+        FillGrid();
+        gridMain.ScrollToEnd(); //should change this to scroll to the same place as before.
+        for (var i = 0; i < gridMain.ListGridRows.Count; i++)
+        {
+            //Providers.ListShallow.Count;i++) {
+            if (((Provider) gridMain.ListGridRows[i].Tag).ProvNum == provider.ProvNum)
+            {
+                gridMain.SetSelected(i, true);
+                break;
+            }
+        }
+    }
+
+    ///<summary>Won't be visible if using Dental Schools.  So list will be unfiltered and ItemOrders won't get messed up.</summary>
+    private void butUp_Click(object sender, System.EventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length != 1)
+        {
+            MsgBox.Show(this, "Please select exactly one provider first.");
+            return;
+        }
+
+        if (gridMain.SelectedIndices[0] == 0)
+        {
+            //already at top
+            return;
+        }
+
+        //Note: sourceProv will always be the selected prov, but destProv isn't necessarily the provider that is +1 idx in the table.
+        //The grid is filtered, the table is not.
+        //The provider's position in the table needs to reflect their item orders.
+        var providerSource = ((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag);
+        var providerDestination = ((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0] - 1].Tag);
+        var indexSource = providerSource.ItemOrder;
+        providerSource.ItemOrder = providerDestination.ItemOrder;
+        Providers.Update(providerSource);
+        providerDestination.ItemOrder = indexSource;
+        Providers.Update(providerDestination);
+        _hasChanged = true;
+        var indexSelected = gridMain.SelectedIndices[0];
+        SwapGridMainLocations(indexSelected, indexSelected - 1);
+        gridMain.SetSelected(indexSelected - 1, true);
+    }
+
+    ///<summary>Won't be visible if using Dental Schools.  So list will be unfiltered and ItemOrders won't get messed up.</summary>
+    private void butDown_Click(object sender, System.EventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length != 1)
+        {
+            MsgBox.Show(this, "Please select exactly one provider first.");
+            return;
+        }
+
+        if (gridMain.SelectedIndices[0] == gridMain.ListGridRows.Count - 1)
+        {
+            //already at bottom
+            return;
+        }
+
+        //Note: sourceProv will always be the selected prov, but destProv isn't necessarily the provider that is +1 idx in the table.
+        //The grid is filtered, the table is not.
+        //The provider's position in the table needs to reflect their item orders.
+        var providerSource = ((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag);
+        var providerDestination = ((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0] + 1].Tag);
+        var indexSource = providerSource.ItemOrder;
+        providerSource.ItemOrder = providerDestination.ItemOrder;
+        Providers.Update(providerSource);
+        providerDestination.ItemOrder = indexSource;
+        Providers.Update(providerDestination);
+        _hasChanged = true;
+        var selectedIdx = gridMain.SelectedIndices[0];
+        SwapGridMainLocations(selectedIdx, selectedIdx + 1);
+        gridMain.SetSelected(selectedIdx + 1, true);
+    }
+
+    private void SwapGridMainLocations(int indexMoveFrom, int indexMoveTo)
+    {
+        gridMain.BeginUpdate();
+        var row = gridMain.ListGridRows[indexMoveFrom];
+        gridMain.ListGridRows.RemoveAt(indexMoveFrom);
+        gridMain.ListGridRows.Insert(indexMoveTo, row);
+        gridMain.EndUpdate();
+    }
+
+    private void checkShowHidden_Click(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void gridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.ProviderEdit))
+        {
+            return;
+        }
+
+        using var formProvEdit = new FormProvEdit();
+        formProvEdit.ProviderCur = (Provider) gridMain.ListGridRows[e.Row].Tag;
+        formProvEdit.ShowDialog();
+        if (formProvEdit.DialogResult != DialogResult.OK)
+        {
+            return;
+        }
+
+        SecurityLogs.MakeLogEntry(EnumPermType.ProviderEdit, 0, "Provider: " + formProvEdit.ProviderCur.Abbr + " edited.", formProvEdit.ProviderCur.ProvNum, SecurityLogs.LogSource, DateTime.MinValue);
+
+        _hasChanged = true;
+        Cache.Refresh(InvalidType.Providers);
+        _listProviders = Providers.GetDeepCopy();
+        FillGrid();
+    }
+
+    private void butProvPick_Click(object sender, EventArgs e)
+    {
+        //This button is used instead of a dropdown because the order of providers can frequently change in the grid.
+        var frmProviderPick = new FrmProviderPick();
+        frmProviderPick.IsNoneAvailable = true;
+        frmProviderPick.ShowDialog();
+        if (!frmProviderPick.IsDialogOK)
+        {
+            return;
+        }
+
+        _provNumMoveTo = frmProviderPick.ProvNumSelected;
+        if (_provNumMoveTo > 0)
+        {
+            var provider = _listProviders.Find(x => x.ProvNum == _provNumMoveTo);
+            textMoveTo.Text = provider.GetLongDesc();
+            return;
+        }
+
+        textMoveTo.Text = "None";
+    }
+
+    ///<summary>Not possible if no security admin or no PatPriProvEdit permission.</summary>
+    private void butMovePri_Click(object sender, EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.PatPriProvEdit))
+        {
+            //shouldn't be possible, button should be disabled if not authorized, just in case
+            return;
+        }
+
+        if (gridMain.SelectedIndices.Length < 1)
+        {
+            MsgBox.Show(this, "You must select at least one provider to move patients from.");
+            return;
+        }
+
+        var listProvidersFrom = gridMain.SelectedIndices.OfType<int>().Select(x => (Provider) gridMain.ListGridRows[x].Tag).ToList();
+        if (_provNumMoveTo == -1)
+        {
+            MsgBox.Show(this, "You must pick a 'To' provider in the box above to move patients to.");
+            return;
+        }
+
+        if (_provNumMoveTo == 0)
+        {
+            MsgBox.Show(this, "'None' is not a valid primary provider.");
+            return;
+        }
+
+        var provider = _listProviders.FirstOrDefault(x => x.ProvNum == _provNumMoveTo);
+        if (provider == null)
+        {
+            MsgBox.Show(this, "The provider could not be found.");
+            return;
+        }
+
+        Lookup<long, long> lookupPriProvPats = null;
+        var progressOD = new ProgressWin();
+        progressOD.ActionMain = () =>
+        {
+            //get pats with original (from) priprov
+            var listProvNums = listProvidersFrom.Select(x => x.ProvNum).ToList();
+            var table = Patients.GetPatNumsByPriProvs(listProvNums);
+            var dataRowArray = table.Select();
+            //key=ProvNum, gives list of PatNums
+            lookupPriProvPats = (Lookup<long, long>) dataRowArray.ToLookup(x => SIn.Long(x["PriProv"].ToString()), x => SIn.Long(x["PatNum"].ToString()));
+        };
+        progressOD.StartingMessage = Lan.g(this, "Gathering patient data") + "...";
+        progressOD.ShowDialog();
+        if (progressOD.IsCancelled)
+        {
+            return;
+        }
+
+        var patCountTotal = 0;
+        var listKeys = lookupPriProvPats.Select(x => x.Key).ToList();
+        for (var i = 0; i < listKeys.Count; i++)
+        {
+            patCountTotal += lookupPriProvPats[listKeys[i]].Count();
+        }
+
+        if (patCountTotal == 0)
+        {
+            MsgBox.Show(this, "The selected providers are not primary providers for any patients.");
+            return;
+        }
+
+        var strProvFromDesc = string.Join(", ", listProvidersFrom.FindAll(x => lookupPriProvPats.Contains(x.ProvNum)).Select(x => x.Abbr));
+        var strProvToDesc = provider.Abbr;
+        var msg = Lan.g(this, "Move all primary patients to") + " " + strProvToDesc + " " + Lan.g(this, "from the following providers") + ": " + strProvFromDesc + "?";
+        if (ODMessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+        {
+            return;
+        }
+
+        var patsMoved = 0;
+        progressOD = new ProgressWin();
+        progressOD.ActionMain = () =>
+        {
+            var listActions = lookupPriProvPats.Select(x => new Action(() =>
+            {
+                patsMoved += x.Count();
+                ODEvent.Fire(ODEventType.ProgressBar, Lan.g(this, "Moving patients") + ": " + patsMoved + " out of " + patCountTotal);
+                Patients.ChangePrimaryProviders(x.Key, provider.ProvNum); //update all priprovs to new provider
+                SecurityLogs.MakeLogEntry(EnumPermType.PatPriProvEdit, 0, "Primary provider changed for " + x.Count() + " patients from "
+                                                                          + Providers.GetLongDesc(x.Key) + " to " + provider.GetLongDesc() + ".");
+            })).ToList();
+            ODThread.RunParallel(listActions, TimeSpan.FromMinutes(2));
+        };
+        progressOD.StartingMessage = Lan.g(this, "Moving patients") + "...";
+        progressOD.TestSleep = true;
+        progressOD.ShowDialog();
+        //if(!progressOD.IsSuccess){//it might be partly done, so we will continue.
+        _hasChanged = true;
+        FillGrid();
+    }
+
+    ///<summary>Not possible if no security admin.</summary>
+    private void butMoveSec_Click(object sender, EventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length < 1)
+        {
+            MsgBox.Show(this, "You must select at least one provider to move patients from.");
+            return;
+        }
+
+        var listProvidersFrom = gridMain.SelectedIndices.OfType<int>().Select(x => (Provider) gridMain.ListGridRows[x].Tag).ToList();
+        if (_provNumMoveTo == -1)
+        {
+            MsgBox.Show(this, "You must pick a 'To' provider in the box above to move patients to.");
+            return;
+        }
+
+        var provider = _listProviders.FirstOrDefault(x => x.ProvNum == _provNumMoveTo);
+        string msg;
+        if (provider == null)
+        {
+            msg = Lan.g(this, "Remove all secondary patients from the selected providers") + "?";
+        }
+        else
+        {
+            var strProvsFrom = string.Join(", ", listProvidersFrom.Select(x => x.Abbr));
+            msg = Lan.g(this, "Move all secondary patients to") + " " + provider.Abbr + " " + Lan.g(this, "from the following providers") + ": " + strProvsFrom + "?";
+        }
+
+        if (ODMessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+        {
+            return;
+        }
+
+        var progressOD = new ProgressWin();
+        progressOD.ActionMain = () =>
+        {
+            var listActions = listProvidersFrom.Select(x => new Action(() =>
+            {
+                Patients.ChangeSecondaryProviders(x.ProvNum,
+                    provider?.ProvNum ?? 0);
+            })).ToList();
+            ODThread.RunParallel(listActions, TimeSpan.FromMinutes(2)); //each group of actions gets 2 minutes
+        };
+        progressOD.StartingMessage = Lan.g(this, "Reassigning patients") + "...";
+        progressOD.TestSleep = true;
+        progressOD.ShowDialog();
+        _hasChanged = true;
+        FillGrid();
+    }
+
+    //used to map which pats have which providers
+    private class PatProv
+    {
+        public long PatNum;
+        public long ProvNum;
+    }
+
+    private void butReassign_Click(object sender, EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.PatPriProvEdit))
+        {
+            //shouldn't be possible, button should be disabled if not authorized, just in case
+            return;
+        }
+
+        if (gridMain.SelectedIndices.Length == 0)
+        {
+            MsgBox.Show(this, "Please select a provider, first.");
+            return;
+        }
+
+        if (!MsgBox.Show(this, MsgBoxButtons.OKCancel, "Ready to look for possible reassignments.  This will take a few minutes, and may make the program unresponsive on other computers during that time.  You will be given one more chance after this to cancel before changes are made to the database.  Running this for one provider at a time can help minimize database slowdown.  Continue?"))
+        {
+            return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+        List<long> listProvNumsFrom = listProvNumsFrom = gridMain.SelectedIndices.OfType<int>().Select(x => ((Provider) gridMain.ListGridRows[x].Tag).ProvNum).ToList();
+        var tablePatNums = Patients.GetPatNumsByPriProvs(listProvNumsFrom); //list of all patients who are using the selected providers.
+        if (tablePatNums.Rows.Count == 0)
+        {
+            Cursor = Cursors.Default;
+            MsgBox.Show(this, "No patients to reassign.");
+            return;
+        }
+
+        var listPatProvsFrom = new List<PatProv>();
+        for (var i = 0; i < tablePatNums.Rows.Count; i++)
+        {
+            var patProv = new PatProv();
+            patProv.PatNum = SIn.Long(tablePatNums.Rows[i]["PatNum"].ToString());
+            patProv.ProvNum = SIn.Long(tablePatNums.Rows[i]["PriProv"].ToString());
+            listPatProvsFrom.Add(patProv);
+        }
+
+        //This will contain one row per patient.
+        //Excludes patients that we don't want to reassign because they are already set to the correct provider.
+        var listPatProvsSeen = new List<PatProv>();
+        var progressOD = new ProgressWin();
+        progressOD.ActionMain = () =>
+        {
+            var listPatNums = listPatProvsFrom.Select(x => x.PatNum).ToList();
+            var table = Procedures.GetTablePatProvUsed(listPatNums); //big list getting passed in.
+            //Result table will be huge.
+            //It will contain multiple rows for some patients if they saw multiple providers.
+            for (var i = 0; i < table.Rows.Count; i++)
+            {
+                var patProv = new PatProv();
+                patProv.PatNum = SIn.Long(table.Rows[i]["PatNum"].ToString());
+                patProv.ProvNum = SIn.Long(table.Rows[i]["ProvNum"].ToString());
+                if (listPatProvsSeen.Any(x => x.PatNum == patProv.PatNum))
+                {
+                    continue; // exclude Patients already added
+                }
+
+                var patProvOld = listPatProvsFrom.Find(x => x.PatNum == patProv.PatNum); //guaranteed to work
+                var provNumOld = patProvOld.ProvNum;
+                if (patProv.ProvNum == provNumOld)
+                {
+                    continue; //exclude if patNum is already correctly assigned
+                }
+
+                listPatProvsSeen.Add(patProv);
+            }
+        };
+        progressOD.StartingMessage = Lan.g(this, "Gathering patient and provider details") + "...";
+        progressOD.ShowDialog();
+        Cursor = Cursors.Default;
+        if (listPatProvsSeen.Count == 0)
+        {
+            MsgBox.Show(this, "No patients to reassign.");
+            return;
+        }
+
+        var msg = Lan.g(this, "You are about to reassign") + " " + listPatProvsSeen.Count + " " + Lan.g(this, "patients to different providers.  Continue?");
+        if (ODMessageBox.Show(msg, "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+        {
+            return;
+        }
+
+        //display the progress bar, updated by odThread.ProgressLog.UpdateProgress()
+        Cursor = Cursors.WaitCursor;
+        progressOD = new ProgressWin();
+        progressOD.ActionMain = () =>
+        {
+            for (var i = 0; i < listPatProvsSeen.Count; i++)
+            {
+                var patNum = listPatProvsSeen[i].PatNum;
+                var provNumNew = listPatProvsSeen[i].ProvNum;
+                Patients.UpdateProv(patNum, provNumNew);
+            }
+        };
+        progressOD.StartingMessage = Lan.g(this, "Reassigning patients") + "...";
+        progressOD.ShowDialog();
+        Cursor = Cursors.Default;
+        //changed=true;//We didn't change any providers
+        FillGrid();
+        MsgBox.Show(this, "Done");
+    }
+
+    ///<summary>Not possible if no security admin.</summary>
+    private void butCreateUsers_Click(object sender, EventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length == 0)
+        {
+            MsgBox.Show(this, "Please select one or more providers first.");
+            return;
+        }
+
+        for (var i = 0; i < gridMain.SelectedIndices.Length; i++)
+        {
+            if (Providers.IsAttachedToUser(((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag).ProvNum))
+            {
+                MsgBox.Show(this, "Not allowed to create users on providers which already have users.");
+                return;
+            }
+        }
+
+        if (comboUserGroup.GetListSelected<UserGroup>().Count == 0)
+        {
+            MsgBox.Show(this, "Please select at least one User Group first.");
+            return;
+        }
+
+        for (var i = 0; i < gridMain.SelectedIndices.Length; i++)
+        {
+            var provider = (Provider) gridMain.ListGridRows[gridMain.SelectedIndices[i]].Tag;
+            var userod = new Userod();
+            userod.ProvNum = provider.ProvNum;
+            userod.UserName = GetUniqueUserName(provider.LName, provider.FName);
+            if (userod.UserName.TrimEnd() != userod.UserName)
+            {
+                MsgBox.Show(this, "User Name cannot end with white space.");
+                _hasChanged = true;
+                return;
+            }
+
+            userod.SetPassword(Authentication.GenerateLoginDetailsSHA512(userod.UserName));
+            try
+            {
+                Userods.Insert(userod, comboUserGroup.GetListSelected<UserGroup>().Select(x => x.UserGroupNum).ToList());
+            }
+            catch (ApplicationException ex)
+            {
+                ODMessageBox.Show(ex.Message);
+                _hasChanged = true;
+                return;
+            }
+        }
+
+        _hasChanged = true;
+        FillGrid();
+    }
+
+    private string GetUniqueUserName(string lname, string fname)
+    {
+        var name = lname;
+        if (fname.Length > 0)
+        {
+            name += fname.Substring(0, 1);
+        }
+
+        if (Userods.IsUserNameUnique(name, 0, false))
+        {
+            return name;
+        }
+
+        var fnameI = 1;
+        while (fnameI < fname.Length)
+        {
+            name += fname.Substring(fnameI, 1);
+            if (Userods.IsUserNameUnique(name, 0, false))
+            {
+                return name;
+            }
+
+            fnameI++;
+        }
+
+        //should be entire lname+fname at this point, but still not unique
+        do
+        {
+            name += "x";
+        } while (!Userods.IsUserNameUnique(name, 0, false));
+
+        return name;
+    }
+
+    private void checkShowDeleted_CheckedChanged(object sender, EventArgs e)
+    {
+        if (checkShowDeleted.Checked)
+        {
+            checkShowHidden.Checked = true;
+        }
+
+        FillGrid(checkShowDeleted.Checked);
+    }
+
+    private void checkShowPatientCount_CheckedChanged(object sender, EventArgs e)
+    {
+        FillGrid(checkShowPatientCount.Checked);
+    }
+
+    private void butAlphabetize_Click(object sender, EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.ProviderAlphabetize, false))
+        {
+            return; //should not be possible, button should be disabled. This is just in case.
+        }
+
+        if (!MsgBox.Show(this, MsgBoxButtons.OKCancel, "Alphabetize all providers (by Abbrev) and move hidden providers to the bottom, followed by all non-person providers? This cannot be undone."))
+        {
+            return;
+        }
+
+        //According to original task the form should display providers in the following order:
+        //1) Is a person, not hidden -sorted alphabetically by abbreviation
+        //2) Is not a person, not hidden - sorted alphabetically by abbreviation
+        //3) all hidden providers, sorted alphabetically by abbreviation (is a person and is not a person would be mixed)
+        var listProvidersAll = Providers.GetAll()
+            .OrderBy(x => x.IsHidden)
+            .ThenBy(x => x.IsHidden || x.IsNotPerson)
+            .ThenBy(x => x.GetAbbr()).ToList();
+        var changed = false;
+        for (var i = 0; i < listProvidersAll.Count; i++)
+        {
+            var provider = listProvidersAll[i];
+            if (provider.ItemOrder == i)
+            {
+                continue;
+            }
+
+            provider.ItemOrder = i;
+            Providers.Update(provider);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            Signalods.SetInvalid(InvalidType.Providers);
+        }
+
+        _listProviders = listProvidersAll;
+        FillGrid();
+    }
+
+    private void FormProviderSelect_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+    {
+        var duplicates = Providers.GetDuplicateAbbrs();
+        if (duplicates != "" && true)
+        {
+            if (ODMessageBox.Show(Lan.g(this, "Warning.  The following abbreviations are duplicates.  Continue anyway?\r\n") + duplicates,
+                    "", MessageBoxButtons.OKCancel) != DialogResult.OK)
+            {
+                e.Cancel = true;
+                return;
+            }
+        }
+
+        if (_hasChanged)
+        {
+            DataValid.SetInvalid(InvalidType.Providers, InvalidType.Security);
+        }
+        //SecurityLogs.MakeLogEntry("Providers","Altered Providers",user);
+    }
+}

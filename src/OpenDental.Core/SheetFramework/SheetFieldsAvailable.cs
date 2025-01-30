@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness{
 	public class SheetFieldsAvailable {

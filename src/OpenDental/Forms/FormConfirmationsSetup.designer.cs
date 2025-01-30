@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormConfirmationSetup {
 		/// <summary>
 		/// Required designer variable.
@@ -42,7 +42,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 27);
 			this.butSave.TabIndex = 97;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// label7
 			// 
@@ -61,7 +61,7 @@ namespace OpenDental{
 			this.butSetup.Size = new System.Drawing.Size(279, 24);
 			this.butSetup.TabIndex = 95;
 			this.butSetup.Text = "Automated eConfirmation && eReminder Setup";
-			this.butSetup.Click += new System.EventHandler(this.butSetup_Click);
+			this.butSetup.Click += new System.EventHandler(this.ButtonSetup_Click);
 			// 
 			// gridMain
 			// 
@@ -74,7 +74,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 87;
 			this.gridMain.Title = "Messages";
 			this.gridMain.TranslationName = "TableConfirmMsgs";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// comboStatusTextMessagedConfirm
 			// 

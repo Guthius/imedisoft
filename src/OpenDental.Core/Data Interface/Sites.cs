@@ -3,32 +3,23 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Sites
 {
-    ///<Summary>Gets one Site from the database.</Summary>
-    public static Site CreateObject(long siteNum)
+    public static void Insert(Site site)
     {
-        return SiteCrud.SelectOne(siteNum);
+        SiteCrud.Insert(site);
     }
 
-    
-    public static long Insert(Site site)
-    {
-        return SiteCrud.Insert(site);
-    }
-
-    
     public static void Update(Site site)
     {
         SiteCrud.Update(site);
     }
 
-    
     public static void DeleteObject(long siteNum)
     {
         //validate that not already in use.
@@ -58,10 +49,6 @@ public class Sites
         return GetWhere(x => x.Description.ToLower().Contains(snippet.ToLower()));
     }
 
-    /// <summary>
-    ///     Will return -1 if no match, 0 if a description of empty string was passed in, otherwise the corresponding
-    ///     SiteNum.
-    /// </summary>
     public static long FindMatchSiteNum(string description)
     {
         if (description == "") return 0; //Preserving old behavior...
@@ -69,8 +56,6 @@ public class Sites
         if (site == null) return -1;
         return site.SiteNum;
     }
-
-    #region CachePattern
 
     private class SiteCache : CacheListAbs<Site>
     {
@@ -101,59 +86,35 @@ public class Sites
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly SiteCache _siteCache = new();
+    private static readonly SiteCache Cache = new();
 
     public static List<Site> GetDeepCopy(bool isShort = false)
     {
-        return _siteCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<Site> GetWhere(Predicate<Site> match, bool isShort = false)
     {
-        return _siteCache.GetWhere(match, isShort);
-    }
-
-    public static Site GetFirst(bool isShort = false)
-    {
-        return _siteCache.GetFirst(isShort);
-    }
-
-    public static Site GetFirst(Func<Site, bool> match, bool isShort = false)
-    {
-        return _siteCache.GetFirst(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static Site GetFirstOrDefault(Func<Site, bool> match, bool isShort = false)
     {
-        return _siteCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _siteCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _siteCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _siteCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

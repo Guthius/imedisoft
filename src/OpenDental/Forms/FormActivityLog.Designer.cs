@@ -1,5 +1,5 @@
 ﻿
-namespace OpenDental {
+namespace OpenDental.Forms {
 	partial class FormActivityLog {
 		/// <summary>
 		/// Required designer variable.
@@ -61,7 +61,7 @@ namespace OpenDental {
 			this.butRefresh.TabIndex = 52;
 			this.butRefresh.Text = "Refresh";
 			this.butRefresh.UseVisualStyleBackColor = true;
-			this.butRefresh.Click += new System.EventHandler(this.butRefresh_Click);
+			this.butRefresh.Click += new System.EventHandler(this.ButtonRefresh_Click);
 			// 
 			// comboBoxClinicMulti
 			// 
@@ -92,7 +92,7 @@ namespace OpenDental {
 			this.checkDistinctLogGuid.Size = new System.Drawing.Size(125, 17);
 			this.checkDistinctLogGuid.TabIndex = 54;
 			this.checkDistinctLogGuid.Text = "Group By LogGuid";
-			this.checkDistinctLogGuid.CheckedChanged += new System.EventHandler(this.checkDistinctLogGuid_CheckedChanged);
+			this.checkDistinctLogGuid.CheckedChanged += new System.EventHandler(this.CheckBoxDistinctLogGuid_CheckedChanged);
 			// 
 			// groupBoxFilters
 			// 
@@ -120,7 +120,7 @@ namespace OpenDental {
 			this.textPatNum.Name = "textPatNum";
 			this.textPatNum.Size = new System.Drawing.Size(48, 20);
 			this.textPatNum.TabIndex = 66;
-			this.textPatNum.TextChanged += new System.EventHandler(this.textbox_TextChanged);
+			this.textPatNum.TextChanged += new System.EventHandler(this.Textbox_TextChanged);
 			// 
 			// labelEserviceType
 			// 
@@ -166,7 +166,7 @@ namespace OpenDental {
 			this.textLogGuid.Name = "textLogGuid";
 			this.textLogGuid.Size = new System.Drawing.Size(130, 20);
 			this.textLogGuid.TabIndex = 61;
-			this.textLogGuid.TextChanged += new System.EventHandler(this.textbox_TextChanged);
+			this.textLogGuid.TextChanged += new System.EventHandler(this.Textbox_TextChanged);
 			// 
 			// comboBoxTypes
 			// 
@@ -175,7 +175,7 @@ namespace OpenDental {
 			this.comboBoxTypes.Size = new System.Drawing.Size(160, 21);
 			this.comboBoxTypes.TabIndex = 58;
 			this.comboBoxTypes.Text = "eServiceType";
-			this.comboBoxTypes.SelectionChangeCommitted += new System.EventHandler(this.comboBoxTypes_SelectionChangeCommitted);
+			this.comboBoxTypes.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxTypes_SelectionChangeCommitted);
 			// 
 			// comboBoxActions
 			// 
@@ -184,7 +184,7 @@ namespace OpenDental {
 			this.comboBoxActions.Size = new System.Drawing.Size(345, 21);
 			this.comboBoxActions.TabIndex = 59;
 			this.comboBoxActions.Text = "eServiceAction";
-			this.comboBoxActions.SelectionChangeCommitted += new System.EventHandler(this.comboBoxActions_SelectionChangeCommitted);
+			this.comboBoxActions.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxActions_SelectionChangeCommitted);
 			// 
 			// labelRows
 			// 

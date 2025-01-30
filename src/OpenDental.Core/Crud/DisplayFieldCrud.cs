@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DisplayFieldCrud
 {
@@ -94,7 +96,7 @@ public class DisplayFieldCrud
             + DbHelper.ParamChar + "paramPickList,"
             + "'" + SOut.String(displayField.DescriptionOverride) + "')";
         if (displayField.PickList == null) displayField.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(displayField.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(displayField.PickList));
         {
             displayField.DisplayFieldNum = Db.NonQ(command, true, "DisplayFieldNum", "displayField", paramPickList);
         }
@@ -123,7 +125,7 @@ public class DisplayFieldCrud
             + DbHelper.ParamChar + "paramPickList,"
             + "'" + SOut.String(displayField.DescriptionOverride) + "')";
         if (displayField.PickList == null) displayField.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(displayField.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(displayField.PickList));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPickList);
         else
@@ -144,7 +146,7 @@ public class DisplayFieldCrud
                       + "DescriptionOverride= '" + SOut.String(displayField.DescriptionOverride) + "' "
                       + "WHERE DisplayFieldNum = " + SOut.Long(displayField.DisplayFieldNum);
         if (displayField.PickList == null) displayField.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(displayField.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(displayField.PickList));
         Db.NonQ(command, paramPickList);
     }
 
@@ -201,7 +203,7 @@ public class DisplayFieldCrud
 
         if (command == "") return false;
         if (displayField.PickList == null) displayField.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(displayField.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(displayField.PickList));
         command = "UPDATE displayfield SET " + command
                                              + " WHERE DisplayFieldNum = " + SOut.Long(displayField.DisplayFieldNum);
         Db.NonQ(command, paramPickList);

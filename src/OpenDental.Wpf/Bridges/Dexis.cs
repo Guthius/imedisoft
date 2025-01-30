@@ -7,6 +7,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	///<summary>Also used by the XDR bridge until 19.2 when XDR was broken out into its own bridge.</summary>

@@ -1,179 +1,184 @@
-using CodeBase;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
+using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
-namespace OpenDentBusiness
+namespace OpenDentBusiness;
+
+public class Family
 {
-	///<summary>Family is now Deprecated. We will just use a list of patients from now on. We already have methods for converting patients to name strings, etc. Other methods that are currently in family simply belong in the Patients class.</summary>
-	public class Family{
-		
-		public Family(){
-			ListPats=new Patient[0];
-		}
+    public Family()
+    {
+        ListPats = [];
+    }
 
-		
-		public Family(List<Patient> listPats){
-			ListPats=listPats.ToArray();
-		}
+    public Family(List<Patient> listPats)
+    {
+        ListPats = listPats.ToArray();
+    }
 
-		///<summary>List of patients in the family.</summary>
-		public Patient[] ListPats;
+    public Patient[] ListPats;
 
-		///<summary>The guarantor of the family.</summary>
-		public Patient Guarantor {
-			get {
-				return ListPats.FirstOrDefault(x => x.Guarantor==x.PatNum);
-			}
-		}
+    public Patient Guarantor
+    {
+        get { return ListPats.FirstOrDefault(x => x.Guarantor == x.PatNum); }
+    }
 
-		///<summary>Tries to get the LastName,FirstName of the patient from this family.  If not found, then gets the name from the database.</summary>
-		public string GetNameInFamLF(long myPatNum) {
-			for(int i=0;i<ListPats.Length;i++){
-				if(ListPats[i].PatNum==myPatNum){
-					return ListPats[i].GetNameLF();
-				}
-			}
-			return GetLim(myPatNum).GetNameLF();
-		}
+    public string GetNameInFamLF(long myPatNum)
+    {
+        foreach (var patient in ListPats)
+        {
+            if (patient.PatNum == myPatNum)
+            {
+                return patient.GetNameLF();
+            }
+        }
 
-		///<summary>Gets last, (preferred) first middle</summary>
-		public string GetNameInFamLFI(int myi){
-			return Patients.GetNameLF(ListPats[myi].LName,ListPats[myi].FName,ListPats[myi].Preferred,ListPats[myi].MiddleI);
-		}
+        return GetLim(myPatNum).GetNameLF();
+    }
 
-		///<summary>Gets a formatted name from the family list.  If the patient is not in the family list, then it gets that info from the database.</summary>
-		public string GetNameInFamFL(long myPatNum) {
-			for(int i=0;i<ListPats.Length;i++){
-				if(ListPats[i].PatNum==myPatNum){
-					return ListPats[i].GetNameFL();
-				}
-			}
-			return GetLim(myPatNum).GetNameFL();
-		}
+    public string GetNameInFamLFI(int myi)
+    {
+        return Patients.GetNameLF(ListPats[myi].LName, ListPats[myi].FName, ListPats[myi].Preferred, ListPats[myi].MiddleI);
+    }
 
-		///<summary>Gets a formatted name from the family list.  If the patient is not in the family list, then it gets that info from the database.</summary>
-		public string GetNameInFamFLnoPref(long myPatNum) {
-			for(int i=0;i<ListPats.Length;i++) {
-				if(ListPats[i].PatNum==myPatNum) {
-					return ListPats[i].GetNameFLnoPref();
-				}
-			}
-			return GetLim(myPatNum).GetNameFLnoPref();
-		}
+    public string GetNameInFamFL(long myPatNum)
+    {
+        foreach (var patient in ListPats)
+        {
+            if (patient.PatNum == myPatNum)
+            {
+                return patient.GetNameFL();
+            }
+        }
 
-		///<summary>Gets (preferred)first middle last</summary>
-		public string GetNameInFamFLI(int myi){
-			string retStr="";
-			if(ListPats[myi].Preferred!=""){
-				retStr="'"+ListPats[myi].Preferred+"' ";
-			}
-			retStr+=Patients.GetNameFLnoPref(ListPats[myi].LName,ListPats[myi].FName,ListPats[myi].MiddleI);
-			return retStr;
-		}
+        return GetLim(myPatNum).GetNameFL();
+    }
 
-		///<summary>Gets first name from the family list.  If the patient is not in the family list, then it gets that info from the database.  Includes preferred.</summary>
-		public string GetNameInFamFirst(long myPatNum) {
-			for(int i=0;i<ListPats.Length;i++){
-				if(ListPats[i].PatNum==myPatNum){
-					return ListPats[i].GetNameFirst();
-				}
-			}
-			return GetLim(myPatNum).GetNameFirst();
-		}
+    public string GetNameInFamFLnoPref(long myPatNum)
+    {
+        foreach (var patient in ListPats)
+        {
+            if (patient.PatNum == myPatNum)
+            {
+                return patient.GetNameFLnoPref();
+            }
+        }
 
-		///<summary>Gets first name from the family list.  If the patient is not in the family list, then it gets that info from the database.  Includes preferred and last name.</summary>
-		public string GetNameInFamFirstOrPreferredOrLast(long myPatNum) {
-			for(int i = 0;i<ListPats.Length;i++) {
-				if(ListPats[i].PatNum==myPatNum) {
-					return ListPats[i].GetNameFirstOrPreferredOrLast();
-				}
-			}
-			return GetLim(myPatNum).GetNameFirstOrPreferredOrLast();
-		}
+        return GetLim(myPatNum).GetNameFLnoPref();
+    }
 
-		///<summary>Returns a list of all PatNums for the family.</summary>
-		public List<long> GetPatNums() {
-			if(ListPats.IsNullOrEmpty()) {
-				return new List<long>();
-			}
-			return ListPats.Select(x => x.PatNum).Distinct().ToList();
-		}
+    public string GetNameInFamFLI(int myi)
+    {
+        var retStr = "";
+        if (ListPats[myi].Preferred != "")
+        {
+            retStr = "'" + ListPats[myi].Preferred + "' ";
+        }
 
-		///<summary>The index of the patient within the family.  Returns -1 if not found.</summary>
-		public int GetIndex(long patNum) {
-			for(int i=0;i<ListPats.Length;i++){
-				if(ListPats[i].PatNum==patNum){
-					return i;
-				}
-			}
-			return -1;
-		}
+        retStr += Patients.GetNameFLnoPref(ListPats[myi].LName, ListPats[myi].FName, ListPats[myi].MiddleI);
+        return retStr;
+    }
 
-		///<summary>Gets a copy of a specific patient from within the family. Does not make a call to the database.</summary>
-		public Patient GetPatient(long patNum) {
-			Patient retVal=null;
-			for(int i=0;i<ListPats.Length;i++){
-				if(ListPats[i].PatNum==patNum){
-					retVal=ListPats[i].Copy();
-					break;
-				}
-			}
-			return retVal;
-		}
+    public string GetNameInFamFirst(long myPatNum)
+    {
+        foreach (var patient in ListPats)
+        {
+            if (patient.PatNum == myPatNum)
+            {
+                return patient.GetNameFirst();
+            }
+        }
 
-		/// <summary>Duplicate of the same class in Patients.  Gets nine of the most useful fields from the db for the given patnum.</summary>
-		public static Patient GetLim(long patNum) {
-			if(patNum==0){
-				return new Patient();
-			}
-			string command= 
-				"SELECT PatNum,LName,FName,MiddleI,Preferred,CreditType,Guarantor,HasIns,SSN " 
-				+"FROM patient "
-				+"WHERE PatNum = '"+patNum.ToString()+"'";
- 			DataTable table=DataCore.GetTable(command);
-			if(table.Rows.Count==0){
-				return new Patient();
-			}
-			Patient Lim=new Patient();
-			Lim.PatNum     = SIn.Long  (table.Rows[0][0].ToString());
-			Lim.LName      = SIn.String(table.Rows[0][1].ToString());
-			Lim.FName      = SIn.String(table.Rows[0][2].ToString());
-			Lim.MiddleI    = SIn.String(table.Rows[0][3].ToString());
-			Lim.Preferred  = SIn.String(table.Rows[0][4].ToString());
-			Lim.CreditType = SIn.String(table.Rows[0][5].ToString());
-			Lim.Guarantor  = SIn.Long  (table.Rows[0][6].ToString());
-			Lim.HasIns     = SIn.String(table.Rows[0][7].ToString());
-			Lim.SSN        = SIn.String(table.Rows[0][8].ToString());
-			return Lim;
-		}
+        return GetLim(myPatNum).GetNameFirst();
+    }
 
-		public bool IsInFamily(long patNum) {
-			return ListPats.Any(x => x.PatNum==patNum);
-		}
+    public string GetNameInFamFirstOrPreferredOrLast(long myPatNum)
+    {
+        foreach (var patient in ListPats)
+        {
+            if (patient.PatNum == myPatNum)
+            {
+                return patient.GetNameFirstOrPreferredOrLast();
+            }
+        }
 
-		public bool HasArchivedMember() {
-			return ListPats.Any(x => x.PatStatus==PatientStatus.Archived);
-		}
+        return GetLim(myPatNum).GetNameFirstOrPreferredOrLast();
+    }
 
-		///<summary>Replaces all patient family fields in the given message with the given patient's family information.  Returns the resulting string.
-		///Replaces: [FamilyList]</summary>
-		public static string ReplaceFamily(string message,Patient pat) {
-			if(pat==null) {
-				return message;
-			}
-			Family fam=Patients.GetFamily(pat.PatNum);
-			if(fam==null) {
-				return message;
-			}
-			string retVal=message;
-			retVal=retVal.Replace("[FamilyList]",string.Join(",",fam.ListPats
-				.Select(x => Patients.GetNameFirstOrPrefML(x.LName,x.FName,x.Preferred,x.MiddleI))));
-			return retVal;
-		}
+    public List<long> GetPatNums()
+    {
+        return ListPats.IsNullOrEmpty() ? [] : ListPats.Select(x => x.PatNum).Distinct().ToList();
+    }
 
-	}
+    public int GetIndex(long patNum)
+    {
+        for (var i = 0; i < ListPats.Length; i++)
+        {
+            if (ListPats[i].PatNum == patNum)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public Patient GetPatient(long patNum)
+    {
+        return ListPats.Where(patient => patient.PatNum == patNum).Select(patient => patient.Copy()).FirstOrDefault();
+    }
+
+    public static Patient GetLim(long patNum)
+    {
+        if (patNum == 0)
+        {
+            return new Patient();
+        }
+
+        var commandText = "SELECT PatNum,LName,FName,MiddleI,Preferred,CreditType,Guarantor,HasIns,SSN FROM patient WHERE PatNum = '" + patNum + "'";
+        
+        var dataTable = DataCore.GetTable(commandText);
+        if (dataTable.Rows.Count == 0)
+        {
+            return new Patient();
+        }
+
+        return new Patient
+        {
+            PatNum = SIn.Long(dataTable.Rows[0][0].ToString()),
+            LName = SIn.String(dataTable.Rows[0][1].ToString()),
+            FName = SIn.String(dataTable.Rows[0][2].ToString()),
+            MiddleI = SIn.String(dataTable.Rows[0][3].ToString()),
+            Preferred = SIn.String(dataTable.Rows[0][4].ToString()),
+            CreditType = SIn.String(dataTable.Rows[0][5].ToString()),
+            Guarantor = SIn.Long(dataTable.Rows[0][6].ToString()),
+            HasIns = SIn.String(dataTable.Rows[0][7].ToString()),
+            SSN = SIn.String(dataTable.Rows[0][8].ToString())
+        };
+    }
+
+    public bool IsInFamily(long patNum)
+    {
+        return ListPats.Any(x => x.PatNum == patNum);
+    }
+
+    public bool HasArchivedMember()
+    {
+        return ListPats.Any(x => x.PatStatus == PatientStatus.Archived);
+    }
+
+    public static string ReplaceFamily(string message, Patient pat)
+    {
+        if (pat == null)
+        {
+            return message;
+        }
+
+        var fam = Patients.GetFamily(pat.PatNum);
+        
+        return fam == null ? message : message.Replace("[FamilyList]", string.Join(",", fam.ListPats.Select(x => Patients.GetNameFirstOrPrefML(x.LName, x.FName, x.Preferred, x.MiddleI))));
+    }
 }

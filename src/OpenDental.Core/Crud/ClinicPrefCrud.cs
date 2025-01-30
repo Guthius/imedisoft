@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClinicPrefCrud
 {
@@ -67,7 +69,7 @@ public class ClinicPrefCrud
                                             + "'" + SOut.String(clinicPref.PrefName.ToString()) + "',"
                                             + DbHelper.ParamChar + "paramValueString)";
         if (clinicPref.ValueString == null) clinicPref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(clinicPref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(clinicPref.ValueString));
         {
             clinicPref.ClinicPrefNum = Db.NonQ(command, true, "ClinicPrefNum", "clinicPref", paramValueString);
         }
@@ -82,7 +84,7 @@ public class ClinicPrefCrud
                       + "ValueString  =  " + DbHelper.ParamChar + "paramValueString "
                       + "WHERE ClinicPrefNum = " + SOut.Long(clinicPref.ClinicPrefNum);
         if (clinicPref.ValueString == null) clinicPref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(clinicPref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(clinicPref.ValueString));
         Db.NonQ(command, paramValueString);
     }
 
@@ -109,7 +111,7 @@ public class ClinicPrefCrud
 
         if (command == "") return false;
         if (clinicPref.ValueString == null) clinicPref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(clinicPref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(clinicPref.ValueString));
         command = "UPDATE clinicpref SET " + command
                                            + " WHERE ClinicPrefNum = " + SOut.Long(clinicPref.ClinicPrefNum);
         Db.NonQ(command, paramValueString);

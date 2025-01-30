@@ -1,161 +1,206 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Windows.Forms;
-using OpenDental.Bridges;
-using OpenDental.UI;
-using OpenDentBusiness;
-using CodeBase;
 using System.Linq;
+using System.Windows.Forms;
+using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
+using OpenDental.UI;
+using OpenDentBusiness;
+using GridRow = OpenDental.UI.GridRow;
 
-namespace OpenDental{
-	
-	public partial class FormAccountingSetup : FormODBase {
-		///<summary>Each item in the list is a long for an AccountNum for the deposit accounts.</summary>
-		private List<long> _listDepAccountNums;
-		private long _selectedDepAccountNum;
-		//private ArrayList cashAL;
-		private long _selectedPayAccountNum;
-		///<summary>Arraylist of AccountingAutoPays.</summary>
-		private List<AccountingAutoPay> _listAccountingAutoPays;
+namespace OpenDental.Forms;
 
-		
-		public FormAccountingSetup()
-		{
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormAccountingSetup : FormODBase
+{
+    private List<long> _depositAccountNums;
+    private long _selectedDepositAccountNum;
+    private long _selectedPayAccountNum;
+    private List<AccountingAutoPay> _accountingAutoPays;
 
-		private void FormAccountingSetup_Load(object sender,EventArgs e) {
-			string strAccountingDepositAccounts=PrefC.GetString(PrefName.AccountingDepositAccounts);
-			List<string> listStrings=strAccountingDepositAccounts.Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
-			_listDepAccountNums=new List<long>();
-			for(int i=0;i<listStrings.Count;i++) {
-				_listDepAccountNums.Add(SIn.Long(listStrings[i]));
-			}
-			FillDepList();
-			_selectedDepAccountNum=PrefC.GetLong(PrefName.AccountingIncomeAccount);
-			textAccountInc.Text=Accounts.GetDescript(_selectedDepAccountNum);
-			//pay----------------------------------------------------------
-			_listAccountingAutoPays=AccountingAutoPays.GetDeepCopy();
-			FillPayGrid();
-			_selectedPayAccountNum=PrefC.GetLong(PrefName.AccountingCashIncomeAccount);
-			textAccountCashInc.Text=Accounts.GetDescript(_selectedPayAccountNum);
-		}
+    public FormAccountingSetup()
+    {
+        InitializeComponent();
+    }
 
-		private void FillDepList(){
-			listAccountsDep.Items.Clear();
-			for(int i=0;i<_listDepAccountNums.Count;i++){
-				listAccountsDep.Items.Add(Accounts.GetDescript(_listDepAccountNums[i]));
-			}
-		}
+    private void FormAccountingSetup_Load(object sender, EventArgs e)
+    {
+        var accountingDepositAccounts = PrefC.GetString(PrefName.AccountingDepositAccounts);
+        var accountingDepositAccountNums = accountingDepositAccounts.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
 
-		private void FillPayGrid(){
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn(Lan.g("TableAccountingAutoPay","Payment Type"),200);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableAccountingAutoPay","Pick List"),250);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			for(int i=0;i<_listAccountingAutoPays.Count;i++){
-				row=new GridRow();
-				row.Cells.Add(Defs.GetName(DefCat.PaymentTypes,_listAccountingAutoPays[i].PayType));
-				row.Cells.Add(AccountingAutoPays.GetPickListDesc(_listAccountingAutoPays[i]));
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-		}
+        _depositAccountNums = [];
 
-		private void butAdd_Click(object sender,EventArgs e) {
-			using FormAccountPick formAccountPick=new FormAccountPick();
-			formAccountPick.ShowDialog();
-			if(formAccountPick.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			_listDepAccountNums.Add(formAccountPick.SelectedAccount.AccountNum);
-			FillDepList();
-		}
+        foreach (var str in accountingDepositAccountNums)
+        {
+            _depositAccountNums.Add(SIn.Long(str));
+        }
 
-		private void butRemove_Click(object sender,EventArgs e) {
-			if(listAccountsDep.SelectedIndex==-1){
-				MsgBox.Show(this,"Please select an item first.");
-				return;
-			}
-			_listDepAccountNums.RemoveAt(listAccountsDep.SelectedIndex);
-			FillDepList();
-		}
+        FillDepList();
 
-		private void butChange_Click(object sender,EventArgs e) {
-			using FormAccountPick formAccountPick=new FormAccountPick();
-			formAccountPick.ShowDialog();
-			if(formAccountPick.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			_selectedDepAccountNum=formAccountPick.SelectedAccount.AccountNum;
-			textAccountInc.Text=Accounts.GetDescript(_selectedDepAccountNum);
-		}
+        _selectedDepositAccountNum = PrefC.GetLong(PrefName.AccountingIncomeAccount);
 
-		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			using FormAccountingAutoPayEdit formAccountingAutoPayEdit=new FormAccountingAutoPayEdit();
-			formAccountingAutoPayEdit.AccountingAutoPayCur=_listAccountingAutoPays[e.Row];
-			formAccountingAutoPayEdit.ShowDialog();
-			if(formAccountingAutoPayEdit.AccountingAutoPayCur==null){//user deleted
-				_listAccountingAutoPays.RemoveAt(e.Row);
-			}
-			FillPayGrid();
-		}
+        textAccountInc.Text = Accounts.GetDescript(_selectedDepositAccountNum);
 
-		private void butAddPay_Click(object sender,EventArgs e) {
-			AccountingAutoPay accountingAutoPay=new AccountingAutoPay();
-			using FormAccountingAutoPayEdit formAccountingAutoPayEdit=new FormAccountingAutoPayEdit();
-			formAccountingAutoPayEdit.AccountingAutoPayCur=accountingAutoPay;
-			formAccountingAutoPayEdit.IsNew=true;
-			if(formAccountingAutoPayEdit.ShowDialog()!=DialogResult.OK) {
-				return;
-			}
-			_listAccountingAutoPays.Add(accountingAutoPay);
-			FillPayGrid();
-		}
+        _accountingAutoPays = AccountingAutoPays.GetDeepCopy();
 
-		private void butChangeCash_Click(object sender,EventArgs e) {
-			using FormAccountPick formAccountPick=new FormAccountPick();
-			formAccountPick.ShowDialog();
-			if(formAccountPick.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			_selectedPayAccountNum=formAccountPick.SelectedAccount.AccountNum;
-			textAccountCashInc.Text=Accounts.GetDescript(_selectedPayAccountNum);
-		}
+        FillPayGrid();
 
-		private void butSave_Click(object sender, System.EventArgs e) {
-			string accountingDepositAccounts="";
-			for(int i=0;i<_listDepAccountNums.Count;i++) {
-				if(i>0) {
-					accountingDepositAccounts+=",";
-				}
-				accountingDepositAccounts+=_listDepAccountNums[i].ToString();
-			}
-			if(Prefs.UpdateString(PrefName.AccountingDepositAccounts,accountingDepositAccounts)) {
-				DataValid.SetInvalid(InvalidType.Prefs);
-			}
-			if(Prefs.UpdateLong(PrefName.AccountingIncomeAccount,_selectedDepAccountNum)) {
-				DataValid.SetInvalid(InvalidType.Prefs);
-			}
-			//pay------------------------------------------------------------------------------------------
-			AccountingAutoPays.SaveList(_listAccountingAutoPays);//just deletes them all and starts over
-			DataValid.SetInvalid(InvalidType.AccountingAutoPays);
-			if(Prefs.UpdateLong(PrefName.AccountingCashIncomeAccount,_selectedPayAccountNum)) {
-				DataValid.SetInvalid(InvalidType.Prefs);
-			}
-			DialogResult=DialogResult.OK;
-		}
+        _selectedPayAccountNum = PrefC.GetLong(PrefName.AccountingCashIncomeAccount);
 
-	}
+        textAccountCashInc.Text = Accounts.GetDescript(_selectedPayAccountNum);
+    }
+
+    private void FillDepList()
+    {
+        listAccountsDep.Items.Clear();
+
+        foreach (var accountNum in _depositAccountNums)
+        {
+            listAccountsDep.Items.Add(Accounts.GetDescript(accountNum));
+        }
+    }
+
+    private void FillPayGrid()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Payment Type", 200));
+        gridMain.Columns.Add(new GridColumn("Pick List", 250));
+
+        gridMain.ListGridRows.Clear();
+
+        foreach (var accountingAutoPay in _accountingAutoPays)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(Defs.GetName(DefCat.PaymentTypes, accountingAutoPay.PayType));
+            gridRow.Cells.Add(AccountingAutoPays.GetPickListDescription(accountingAutoPay));
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        using var formAccountPick = new FormAccountPick();
+
+        if (formAccountPick.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _depositAccountNums.Add(formAccountPick.SelectedAccount.AccountNum);
+
+        FillDepList();
+    }
+
+    private void ButtonRemove_Click(object sender, EventArgs e)
+    {
+        if (listAccountsDep.SelectedIndex == -1)
+        {
+            ShowError("Please select an item first.");
+            return;
+        }
+
+        _depositAccountNums.RemoveAt(listAccountsDep.SelectedIndex);
+
+        FillDepList();
+    }
+
+    private void ButtonChange_Click(object sender, EventArgs e)
+    {
+        using var formAccountPick = new FormAccountPick();
+
+        if (formAccountPick.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _selectedDepositAccountNum = formAccountPick.SelectedAccount.AccountNum;
+
+        textAccountInc.Text = Accounts.GetDescript(_selectedDepositAccountNum);
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var accountingAutoPay = _accountingAutoPays[e.Row];
+
+        using var formAccountingAutoPayEdit = new FormAccountingAutoPayEdit(accountingAutoPay);
+
+        if (formAccountingAutoPayEdit.ShowDialog() == DialogResult.Abort)
+        {
+            _accountingAutoPays.Remove(accountingAutoPay);
+        }
+
+        FillPayGrid();
+    }
+
+    private void ButtonAddPay_Click(object sender, EventArgs e)
+    {
+        var accountingAutoPay = new AccountingAutoPay();
+
+        using var formAccountingAutoPayEdit = new FormAccountingAutoPayEdit(accountingAutoPay);
+
+        if (formAccountingAutoPayEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _accountingAutoPays.Add(accountingAutoPay);
+
+        FillPayGrid();
+    }
+
+    private void ButtonChangeCash_Click(object sender, EventArgs e)
+    {
+        using var formAccountPick = new FormAccountPick();
+
+        if (formAccountPick.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _selectedPayAccountNum = formAccountPick.SelectedAccount.AccountNum;
+
+        textAccountCashInc.Text = Accounts.GetDescript(_selectedPayAccountNum);
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        var accountingDepositAccounts = "";
+        for (var i = 0; i < _depositAccountNums.Count; i++)
+        {
+            if (i > 0)
+            {
+                accountingDepositAccounts += ",";
+            }
+
+            accountingDepositAccounts += _depositAccountNums[i].ToString();
+        }
+
+        if (Prefs.UpdateString(PrefName.AccountingDepositAccounts, accountingDepositAccounts))
+        {
+            DataValid.SetInvalid(InvalidType.Prefs);
+        }
+
+        if (Prefs.UpdateLong(PrefName.AccountingIncomeAccount, _selectedDepositAccountNum))
+        {
+            DataValid.SetInvalid(InvalidType.Prefs);
+        }
+
+        AccountingAutoPays.SaveList(_accountingAutoPays);
+
+        DataValid.SetInvalid(InvalidType.AccountingAutoPays);
+        if (Prefs.UpdateLong(PrefName.AccountingCashIncomeAccount, _selectedPayAccountNum))
+        {
+            DataValid.SetInvalid(InvalidType.Prefs);
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

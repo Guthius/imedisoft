@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.HL7 {
 	

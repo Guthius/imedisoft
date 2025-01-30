@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
@@ -10,589 +9,470 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDental.Thinfinity;
+using Imedisoft.Core.Entities;
+using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
 
-namespace OpenDental.ReportingComplex
+namespace OpenDental.ReportingComplex;
+
+public partial class FormReportComplex : FormODBase
 {
-    public partial class FormReportComplex : FormODBase
+    public bool IsRetailStorePAndI = false;
+    public bool IsRetailStoreInventory = false;
+
+    private ODprintout _printout;
+    private readonly ReportComplex _myReport;
+    private AreaSectionType _lastSectionPrinted;
+    private int _rowsPrinted;
+    private int _totalRowsPrinted;
+    private int _totalPages;
+    private int _pagesProcessed;
+    private int _totalNumberPagesPrinted;
+    private int _heightRemaining;
+    private bool _isWrappingText;
+    private const int GROUP_FOOTER_BUFFER = 20;
+
+    private int _currentPage => _pagesProcessed + 1;
+
+    public FormReportComplex(ReportComplex myReport)
     {
-        public bool IsRetailStorePAndI = false;
-        public bool IsRetailStoreInventory = false;
+        InitializeComponent();
+        _myReport = myReport;
+    }
 
-        private ODprintout _printout;
-        private readonly ReportComplex _myReport;
-        private AreaSectionType _lastSectionPrinted;
-        private int _rowsPrinted;
-        private int _totalRowsPrinted;
-        private int _totalPages;
-        private int _pagesProcessed;
-        private int _totalNumberPagesPrinted;
-        private int _heightRemaining = 0;
-        private bool _isWrappingText;
-        private const int GROUP_FOOTER_BUFFER = 20;
+    private void FormReport_Load(object sender, EventArgs e)
+    {
+        _isWrappingText = PrefC.GetBoolSilent(PrefName.ReportsWrapColumns, false);
+        RefreshWindow();
+    }
 
-        private int _currentPage => _pagesProcessed + 1;
-
-        public FormReportComplex(ReportComplex myReport)
+    public void RefreshWindow()
+    {
+        LayoutToolBar();
+        if (ResetODprintout())
         {
-            InitializeComponent();
-            InitializeLayoutManager();
-            _myReport = myReport;
+            SetDefaultZoom();
+            printPreviewControl2.Document = _printout.PrintDoc;
         }
 
-        private void FormReport_Load(object sender, EventArgs e)
+        printPreviewControl2.Bounds = new Rectangle(0, ToolBarMain.Bottom, ClientSize.Width, ClientSize.Height - ToolBarMain.Bottom - 28);
+    }
+
+    public void LayoutToolBar()
+    {
+        ToolBarMain.Buttons.Clear();
+        ToolBarMain.Buttons.Add(new ODToolBarButton("Print", 0, "", "Print"));
+        ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
+        ToolBarMain.Buttons.Add(new ODToolBarButton("", 1,"Go Back One Page", "Back"));
+        ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.PageNav) {Text = "/", Tag = "PageNum"});
+        ToolBarMain.Buttons.Add(new ODToolBarButton("", 2, "Go Forward One Page", "Fwd"));
+        ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
+        ToolBarMain.Buttons.Add(new ODToolBarButton("", 4, "", "ZoomIn"));
+        ToolBarMain.Buttons.Add(new ODToolBarButton("", 5, "", "ZoomOut"));
+        ToolBarMain.Buttons.Add(new ODToolBarButton("100", -1, "", "ZoomReset"));
+        ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
+        ToolBarMain.Buttons.Add(new ODToolBarButton("Wrap Text", -1, "Wrap Text In Columns", "WrapText")
         {
-            _isWrappingText = PrefC.GetBoolSilent(PrefName.ReportsWrapColumns, false);
-            RefreshWindow();
+            Style = ODToolBarButtonStyle.ToggleButton,
+            IsTogglePushed = _isWrappingText
+        });
+        ToolBarMain.Buttons.Add(new ODToolBarButton("Export", 3, "", "Export"));
+    }
+
+    private void SetDefaultZoom()
+    {
+        if (_myReport.IsLandscape)
+        {
+            printPreviewControl2.Zoom = printPreviewControl2.ClientSize.Height / (double) _printout.PrintDoc.DefaultPageSettings.PaperSize.Width;
+        }
+        else
+        {
+            printPreviewControl2.Zoom = printPreviewControl2.ClientSize.Height / (double) _printout.PrintDoc.DefaultPageSettings.PaperSize.Height;
+        }
+    }
+
+    private void FormReportComplex_SizeChanged(object sender, EventArgs e)
+    {
+        printPreviewControl2.Bounds = new Rectangle(0, ToolBarMain.Bottom, ClientSize.Width, ClientSize.Height - ToolBarMain.Bottom - 28);
+    }
+
+    private bool ResetODprintout()
+    {
+        ODEvent.Fire(ODEventType.ReportComplex, "Retrieving Printer Settings...");
+            
+        _printout = PrinterL.CreateODprintout(
+            pd2_PrintPage,
+            auditDescription: Lan.g(this, "Report printed ") + _myReport.ReportName,
+            printoutOrientation: _myReport.IsLandscape ? PrintoutOrientation.Landscape : PrintoutOrientation.Default,
+            margins: new Margins(0, 0, 0, 0),
+            printoutOrigin: PrintoutOrigin.AtMargin,
+            isErrorSuppressed: true //The error is handled by firing error event below.
+        );
+            
+        if (_printout.SettingsErrorCode != PrintoutErrorCode.Success)
+        {
+            MsgBox.Show(PrinterL.GetErrorStringFromCode(_printout.SettingsErrorCode));
+            Close(); //Close form because print preview would only show a gray box otherwise.
+            return false;
         }
 
-        public void RefreshWindow()
+        _printout.PrintDoc.EndPrint += pd2_EndPrint;
+        _lastSectionPrinted = AreaSectionType.None;
+        _rowsPrinted = 0;
+        _totalRowsPrinted = 0;
+        _pagesProcessed = 0;
+        ODEvent.Fire(ODEventType.ReportComplex, "Calculating Row Heights...");
+        foreach (ReportObject reportObject in _myReport.ReportObjects)
         {
-            LayoutToolBar();
-            if (ResetODprintout())
+            if (reportObject.ObjectType == ReportObjectType.QueryObject)
             {
-                SetDefaultZoom();
-                printPreviewControl2.Document = _printout.PrintDoc;
-            }
-
-            LayoutManager.Move(printPreviewControl2, new Rectangle(0, ToolBarMain.Bottom, ClientSize.Width, ClientSize.Height - ToolBarMain.Bottom - LayoutManager.Scale(28)));
-        }
-
-        public void LayoutToolBar()
-        {
-            ToolBarMain.Buttons.Clear();
-            ToolBarMain.Buttons.Add(new ODToolBarButton(Lan.g(this, "Print"), 0, "", "Print"));
-            ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
-            ToolBarMain.Buttons.Add(new ODToolBarButton("", 1, Lan.g(this, "Go Back One Page"), "Back"));
-            ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.PageNav) {Text = "/", Tag = "PageNum"});
-            ToolBarMain.Buttons.Add(new ODToolBarButton("", 2, Lan.g(this, "Go Forward One Page"), "Fwd"));
-            ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
-            ToolBarMain.Buttons.Add(new ODToolBarButton("", 4, "", "ZoomIn"));
-            ToolBarMain.Buttons.Add(new ODToolBarButton("", 5, "", "ZoomOut"));
-            ToolBarMain.Buttons.Add(new ODToolBarButton("100", -1, "", "ZoomReset"));
-            ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
-            ODToolBarButton butWrapText = new ODToolBarButton(Lan.g(this, "Wrap Text"), -1, Lan.g(this, "Wrap Text In Columns"), "WrapText");
-            butWrapText.Style = ODToolBarButtonStyle.ToggleButton;
-            butWrapText.IsTogglePushed = _isWrappingText;
-            ToolBarMain.Buttons.Add(butWrapText);
-            ToolBarMain.Buttons.Add(new ODToolBarButton(Lan.g(this, "Export"), 3, "", "Export"));
-            //ToolBarMain.Invalidate();
-        }
-
-        private void SetDefaultZoom()
-        {
-            if (_myReport.IsLandscape)
-            {
-                printPreviewControl2.Zoom = printPreviewControl2.ClientSize.Height / (double) _printout.PrintDoc.DefaultPageSettings.PaperSize.Width;
-            }
-            else
-            {
-                printPreviewControl2.Zoom = printPreviewControl2.ClientSize.Height / (double) _printout.PrintDoc.DefaultPageSettings.PaperSize.Height;
-            }
-        }
-
-        private void FormReportComplex_SizeChanged(object sender, EventArgs e)
-        {
-            LayoutManager.Move(printPreviewControl2, new Rectangle(
-                0, ToolBarMain.Bottom, ClientSize.Width, ClientSize.Height - ToolBarMain.Bottom - LayoutManager.Scale(28)));
-        }
-
-        private bool ResetODprintout()
-        {
-            ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Retrieving Printer Settings") + "...");
-            _printout = PrinterL.CreateODprintout(
-                pd2_PrintPage,
-                auditDescription: Lan.g(this, "Report printed ") + _myReport.ReportName,
-                printoutOrientation: _myReport.IsLandscape ? PrintoutOrientation.Landscape : PrintoutOrientation.Default,
-                margins: new Margins(0, 0, 0, 0),
-                printoutOrigin: PrintoutOrigin.AtMargin,
-                isErrorSuppressed: true //The error is handled by firing error event below.
-            );
-            if (_printout.SettingsErrorCode != PrintoutErrorCode.Success)
-            {
-                MsgBox.Show(PrinterL.GetErrorStringFromCode(_printout.SettingsErrorCode));
-                Close(); //Close form because print preview would only show a gray box otherwise.
-                return false;
-            }
-
-            _printout.PrintDoc.EndPrint += new PrintEventHandler(pd2_EndPrint);
-            _lastSectionPrinted = AreaSectionType.None;
-            _rowsPrinted = 0;
-            _totalRowsPrinted = 0;
-            _pagesProcessed = 0;
-            ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Calculating Row Heights") + "...");
-            foreach (ReportObject reportObject in _myReport.ReportObjects)
-            {
-                if (reportObject.ObjectType == ReportObjectType.QueryObject)
+                var queryObject = (QueryObject) reportObject;
+                queryObject.CalculateRowHeights(_isWrappingText);
+                if (queryObject.IsPrinted)
                 {
-                    QueryObject queryObject = (QueryObject) reportObject;
-                    queryObject.CalculateRowHeights(_isWrappingText);
-                    if (queryObject.IsPrinted == true)
-                    {
-                        queryObject.IsPrinted = false;
-                    }
+                    queryObject.IsPrinted = false;
                 }
             }
-
-            return true;
         }
 
-        private void ToolBarMain_ButtonClick(object sender, ODToolBarButtonClickEventArgs e)
+        return true;
+    }
+
+    private void ToolBarMain_ButtonClick(object sender, ODToolBarButtonClickEventArgs e)
+    {
+        switch (e.Button.Tag.ToString())
         {
-            switch (e.Button.Tag.ToString())
-            {
-                case "Print":
-                    Print_Click();
-                    break;
-                case "Back":
-                    OnBack_Click();
-                    break;
-                case "Fwd":
-                    OnFwd_Click();
-                    break;
-                case "ZoomIn":
-                    OnZoomIn_Click();
-                    break;
-                case "ZoomOut":
-                    OnZoomOut_Click();
-                    break;
-                case "ZoomReset":
-                    OnZoomReset_Click();
-                    break;
-                case "Export":
-                    OnExport_Click();
-                    break;
-                case "WrapText":
-                    OnWrapText_Click();
-                    break;
-            }
+            case "Print":
+                Print_Click();
+                break;
+            case "Back":
+                OnBack_Click();
+                break;
+            case "Fwd":
+                OnFwd_Click();
+                break;
+            case "ZoomIn":
+                OnZoomIn_Click();
+                break;
+            case "ZoomOut":
+                OnZoomOut_Click();
+                break;
+            case "ZoomReset":
+                OnZoomReset_Click();
+                break;
+            case "Export":
+                OnExport_Click();
+                break;
+            case "WrapText":
+                OnWrapText_Click();
+                break;
+        }
+    }
+
+    private void ToolBarMain_PageNav(object sender, ODToolBarButtonPageNavEventArgs e)
+    {
+        if (e.NavValue == 0)
+        {
+            return;
         }
 
-        private void ToolBarMain_PageNav(object sender, ODToolBarButtonPageNavEventArgs e)
-        {
-            if (e.NavValue == 0)
-            {
-                return;
-            }
+        printPreviewControl2.StartPage = e.NavValue - 1;
+        SetPageNavString();
+    }
 
-            printPreviewControl2.StartPage = e.NavValue - 1;
-            SetPageNavString();
+    private void pd2_PrintPage(object sender, PrintPageEventArgs ev)
+    {
+        do
+        {
+            pagePrinter(ev);
+        } while (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.FromPage >= _currentPage);
+
+        if (_lastSectionPrinted == AreaSectionType.ReportFooter || (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.ToPage < _currentPage))
+        {
+            ev.HasMorePages = false;
+        }
+        else
+        {
+            ev.HasMorePages = true;
+            ODEvent.Fire(ODEventType.ReportComplex,
+                "Printing Page " + _currentPage + " - " +
+                "Page Printed. Preparing Next Page...");
         }
 
-        private void pd2_PrintPage(object sender, PrintPageEventArgs ev)
+        _totalNumberPagesPrinted += 1;
+    }
+
+    private void pagePrinter(PrintPageEventArgs ev)
+    {
+        //Is a printable page if we're printing (or viewing) all pages, or only printing the pages between the FromPage and ToPage designated by the user.
+        var isPrintablePage = ev.PageSettings.PrinterSettings.PrintRange == PrintRange.AllPages
+                              || (ev.PageSettings.PrinterSettings.FromPage <= _currentPage && ev.PageSettings.PrinterSettings.ToPage >= _currentPage);
+        ODEvent.Fire(ODEventType.ReportComplex, new ProgressBarHelper("Printing Page " + _currentPage + "..."
+            , "", _totalRowsPrinted, _myReport.TotalRows, ProgBarStyle.Blocks));
+        //Note that the locations of the reportObjects are not absolute.  They depend entirely upon the margins.  When the report is initially created, it is pushed up against the upper and the left.
+        var grfx = ev.Graphics;
+        //xPos and yPos represent the upper left of current section after margins are accounted for.
+        //All reportObjects are then placed relative to this origin.
+        Size paperSize;
+        if (_myReport.IsLandscape)
         {
-            do
-            {
-                pagePrinter(ev);
-            } while (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.FromPage >= _currentPage);
-
-            if (_lastSectionPrinted == AreaSectionType.ReportFooter || (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.ToPage < _currentPage))
-            {
-                ev.HasMorePages = false;
-            }
-            else
-            {
-                ev.HasMorePages = true;
-                ODEvent.Fire(ODEventType.ReportComplex,
-                    Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - " +
-                    Lan.g("ReportComplex", "Page Printed. Preparing Next Page") + "...");
-            }
-
-            _totalNumberPagesPrinted += 1;
+            paperSize = new Size(1100, 850);
+        }
+        else
+        {
+            paperSize = new Size(850, 1100);
         }
 
-        private void pagePrinter(PrintPageEventArgs ev)
+        var xPos = _myReport.PrintMargins.Left;
+        var yPos = _myReport.PrintMargins.Top;
+        var printableHeight = paperSize.Height - _myReport.PrintMargins.Top - _myReport.PrintMargins.Bottom;
+        var yLimit = paperSize.Height - _myReport.PrintMargins.Bottom; //the largest yPos allowed
+        //Now calculate and layout each section in sequence.
+        Section section;
+        //Technically the ReportFooter should only be subtracted from the printableHeight of the last page, but we have no way to know how many pages
+        //the report will end up taking so we will subtract it from the printable height of all pages.
+        //Used to determine the max height of a single grid cell.
+        var maxGridCellHeight = printableHeight - _myReport.GetSectionHeight(AreaSectionType.PageHeader)
+                                                - _myReport.GetSectionHeight(AreaSectionType.GroupFooter) - _myReport.GetSectionHeight(AreaSectionType.GroupTitle)
+                                                - _myReport.GetSectionHeight(AreaSectionType.GroupHeader) - _myReport.GetSectionHeight(AreaSectionType.ReportFooter);
+        if (_pagesProcessed == 0)
         {
-            //Is a printable page if we're printing (or viewing) all pages, or only printing the pages between the FromPage and ToPage designated by the user.
-            bool isPrintablePage = ev.PageSettings.PrinterSettings.PrintRange == PrintRange.AllPages
-                                   || (ev.PageSettings.PrinterSettings.FromPage <= _currentPage && ev.PageSettings.PrinterSettings.ToPage >= _currentPage);
-            ODEvent.Fire(ODEventType.ReportComplex, new ProgressBarHelper(Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + "..."
-                , "", _totalRowsPrinted, _myReport.TotalRows, ProgBarStyle.Blocks));
-            //Note that the locations of the reportObjects are not absolute.  They depend entirely upon the margins.  When the report is initially created, it is pushed up against the upper and the left.
-            Graphics grfx = ev.Graphics;
-            //xPos and yPos represent the upper left of current section after margins are accounted for.
-            //All reportObjects are then placed relative to this origin.
-            Size paperSize;
-            if (_myReport.IsLandscape)
+            maxGridCellHeight -= _myReport.GetSectionHeight(AreaSectionType.ReportHeader);
+        }
+
+        foreach (ReportObject reportObject in _myReport.ReportObjects)
+        {
+            if (reportObject.ObjectType != ReportObjectType.QueryObject)
             {
-                paperSize = new Size(1100, 850);
-            }
-            else
-            {
-                paperSize = new Size(850, 1100);
+                continue;
             }
 
-            int xPos = _myReport.PrintMargins.Left;
-            int yPos = _myReport.PrintMargins.Top;
-            int printableHeight = paperSize.Height - _myReport.PrintMargins.Top - _myReport.PrintMargins.Bottom;
-            int yLimit = paperSize.Height - _myReport.PrintMargins.Bottom; //the largest yPos allowed
-            //Now calculate and layout each section in sequence.
-            Section section;
-            //Technically the ReportFooter should only be subtracted from the printableHeight of the last page, but we have no way to know how many pages
-            //the report will end up taking so we will subtract it from the printable height of all pages.
-            //Used to determine the max height of a single grid cell.
-            int maxGridCellHeight = printableHeight - _myReport.GetSectionHeight(AreaSectionType.PageHeader)
-                                                    - _myReport.GetSectionHeight(AreaSectionType.GroupFooter) - _myReport.GetSectionHeight(AreaSectionType.GroupTitle)
-                                                    - _myReport.GetSectionHeight(AreaSectionType.GroupHeader) - _myReport.GetSectionHeight(AreaSectionType.ReportFooter);
-            if (_pagesProcessed == 0)
+            var queryObject = (QueryObject) reportObject;
+            for (var i = 0; i < queryObject.RowHeightValues.Count; i++)
             {
-                maxGridCellHeight -= _myReport.GetSectionHeight(AreaSectionType.ReportHeader);
+                queryObject.RowHeightValues[i] = Math.Min(queryObject.RowHeightValues[i], maxGridCellHeight);
             }
 
-            foreach (ReportObject reportObject in _myReport.ReportObjects)
+            foreach (ReportObject rObject in queryObject.ReportObjects)
             {
-                if (reportObject.ObjectType != ReportObjectType.QueryObject)
+                if (rObject.SectionType != AreaSectionType.Detail && rObject.SectionType != AreaSectionType.GroupFooter)
                 {
+                    rObject.ContentAlignment = ContentAlignment.TopCenter;
                     continue;
                 }
 
-                QueryObject queryObject = (QueryObject) reportObject;
-                for (int i = 0; i < queryObject.RowHeightValues.Count; i++)
+                if (rObject.ObjectType == ReportObjectType.FieldObject && rObject.FieldValueType == FieldValueType.Number)
                 {
-                    queryObject.RowHeightValues[i] = Math.Min(queryObject.RowHeightValues[i], maxGridCellHeight);
+                    rObject.ContentAlignment = ContentAlignment.TopRight;
+                }
+            }
+        }
+
+        while (true)
+        {
+            //will break out if no more room on page
+            //if no sections have been printed yet, print a report header.
+            if (_lastSectionPrinted == AreaSectionType.None)
+            {
+                if (_myReport.Sections.Contains(AreaSectionType.ReportHeader))
+                {
+                    ODEvent.Fire(ODEventType.ReportComplex, "Printing Page " + _currentPage + " - "
+                                                            + "Printing Report Header...");
+                    section = _myReport.Sections[AreaSectionType.ReportHeader];
+                    PrintSection(grfx, section, xPos, yPos, isPrintablePage);
+                    yPos += section.Height;
+                    if (section.Height > printableHeight)
+                    {
+                        //this can happen if the reportHeader takes up the full page
+                        //if there are no other sections to print
+                        //this will keep the second page from printing:
+                        _lastSectionPrinted = AreaSectionType.ReportFooter;
+                        break;
+                    }
                 }
 
-                foreach (ReportObject rObject in queryObject.ReportObjects)
+                //no report header
+                //it will still be marked as printed on the next line
+                _lastSectionPrinted = AreaSectionType.ReportHeader;
+            }
+
+            //always print a page header if it exists
+            if (_myReport.Sections.Contains(AreaSectionType.PageHeader))
+            {
+                ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                                                        + Lan.g("ReportComplex", "Printing Page Header") + "...");
+                section = _myReport.Sections[AreaSectionType.PageHeader];
+                PrintSection(grfx, section, xPos, yPos, isPrintablePage);
+                yPos += section.Height;
+            }
+
+            _heightRemaining = yLimit - yPos - _myReport.GetSectionHeight(AreaSectionType.PageFooter);
+            section = _myReport.Sections[AreaSectionType.Query];
+            PrintQuerySection(grfx, section, xPos, yPos, isPrintablePage);
+            yPos += section.Height;
+            var isRoomForReportFooter = !(_heightRemaining - _myReport.GetSectionHeight(AreaSectionType.ReportFooter) <= 0);
+
+            //print the reportfooter section if there is room
+            if (isRoomForReportFooter)
+            {
+                if (_myReport.Sections.Contains(AreaSectionType.ReportFooter))
                 {
-                    if (rObject.SectionType != AreaSectionType.Detail && rObject.SectionType != AreaSectionType.GroupFooter)
+                    ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                                                            + Lan.g("ReportComplex", "Printing Report Footer") + "...");
+                    section = _myReport.Sections[AreaSectionType.ReportFooter];
+                    PrintSection(grfx, section, xPos, yPos, isPrintablePage);
+                    yPos += section.Height;
+                }
+
+                //mark the reportfooter as printed. This will prevent another loop.
+                _lastSectionPrinted = AreaSectionType.ReportFooter;
+            }
+
+            //print the pagefooter
+            if (_myReport.Sections.Contains(AreaSectionType.PageFooter))
+            {
+                ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                                                        + Lan.g("ReportComplex", "Printing Page Footer") + "...");
+                section = _myReport.Sections[AreaSectionType.PageFooter];
+                yPos = yLimit - section.Height;
+                PrintSection(grfx, section, xPos, yPos, isPrintablePage);
+                yPos += section.Height;
+            }
+
+            break;
+        } //while		
+
+        _pagesProcessed++;
+    }
+
+    private void pd2_EndPrint(object sender, PrintEventArgs ev)
+    {
+        _totalPages = _pagesProcessed;
+        SetPageNavString();
+    }
+
+    private void PrintSection(Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
+    {
+        ReportObject textObject;
+        ReportObject fieldObject;
+        ReportObject lineObject;
+        ReportObject boxObject;
+        foreach (ReportObject reportObject in _myReport.ReportObjects)
+        {
+            if (reportObject.SectionType != section.SectionType)
+            {
+                continue;
+            }
+
+            using (var strFormat = ReportObject.GetStringFormatAlignment(reportObject.ContentAlignment))
+            {
+                #region TextObject
+
+                if (reportObject.ObjectType == ReportObjectType.TextObject)
+                {
+                    textObject = reportObject;
+                    var newFont = new Font(textObject.Font, textObject.Font.Style | (textObject.IsUnderlined ? FontStyle.Underline : FontStyle.Regular));
+                    var layoutRect = new RectangleF(xPos + textObject.Location.X
+                        , yPos + textObject.Location.Y
+                        , textObject.Size.Width, textObject.Size.Height);
+
+                    #region ReportFooter
+
+                    if (section.SectionType == AreaSectionType.ReportFooter)
                     {
-                        rObject.ContentAlignment = ContentAlignment.TopCenter;
+                        if (textObject.Name == "ReportSummaryText")
+                        {
+                            xPos += _myReport.ReportObjects["ReportSummaryLabel"].Size.Width;
+                            newFont = new Font(textObject.Font, textObject.Font.Style | FontStyle.Bold);
+                            var size = g.MeasureString(textObject.StaticText, newFont);
+                            textObject.Size = new Size((int) size.Width + 1, (int) size.Height + 1);
+                        }
+
+                        layoutRect = new RectangleF(xPos + textObject.Location.X + textObject.OffSetX
+                            , yPos + textObject.Location.Y + textObject.OffSetY
+                            , textObject.Size.Width, textObject.Size.Height);
+                    }
+
+                    #endregion ReportFooter
+
+                    if (isPrintablePage)
+                    {
+                        g.DrawString(textObject.StaticText, newFont, Brushes.Black, layoutRect, strFormat);
+                    }
+
+                    newFont.Dispose();
+                }
+
+                #endregion TextObject
+
+                #region FieldObject
+
+                else if (reportObject.ObjectType == ReportObjectType.FieldObject)
+                {
+                    if (reportObject.FieldDefKind != FieldDefKind.SpecialField
+                        || reportObject.SpecialFieldType != SpecialFieldType.PageNumber
+                        || !isPrintablePage)
+                    {
                         continue;
                     }
 
-                    if (rObject.ObjectType == ReportObjectType.FieldObject && rObject.FieldValueType == FieldValueType.Number)
-                    {
-                        rObject.ContentAlignment = ContentAlignment.TopRight;
-                    }
+                    fieldObject = reportObject;
+                    var layoutRect = new RectangleF(xPos + fieldObject.Location.X
+                        , yPos + fieldObject.Location.Y
+                        , fieldObject.Size.Width, fieldObject.Size.Height);
+                    g.DrawString(Lan.g(this, "Page") + " " + _currentPage, fieldObject.Font, Brushes.Black, layoutRect, strFormat);
                 }
-            }
 
-            while (true)
-            {
-                //will break out if no more room on page
-                //if no sections have been printed yet, print a report header.
-                if (_lastSectionPrinted == AreaSectionType.None)
+                #endregion FieldObject
+
+                #region BoxObject
+
+                else if (reportObject.ObjectType == ReportObjectType.BoxObject)
                 {
-                    if (_myReport.Sections.Contains(AreaSectionType.ReportHeader))
+                    if (!isPrintablePage)
                     {
-                        ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
-                                                                + Lan.g("ReportComplex", "Printing Report Header") + "...");
-                        section = _myReport.Sections[AreaSectionType.ReportHeader];
-                        PrintSection(grfx, section, xPos, yPos, isPrintablePage);
-                        yPos += section.Height;
-                        if (section.Height > printableHeight)
-                        {
-                            //this can happen if the reportHeader takes up the full page
-                            //if there are no other sections to print
-                            //this will keep the second page from printing:
-                            _lastSectionPrinted = AreaSectionType.ReportFooter;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        //no report header
-                        //it will still be marked as printed on the next line
+                        continue;
                     }
 
-                    _lastSectionPrinted = AreaSectionType.ReportHeader;
-                }
-
-                //always print a page header if it exists
-                if (_myReport.Sections.Contains(AreaSectionType.PageHeader))
-                {
-                    ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
-                                                            + Lan.g("ReportComplex", "Printing Page Header") + "...");
-                    section = _myReport.Sections[AreaSectionType.PageHeader];
-                    PrintSection(grfx, section, xPos, yPos, isPrintablePage);
-                    yPos += section.Height;
-                }
-
-                _heightRemaining = yLimit - yPos - _myReport.GetSectionHeight(AreaSectionType.PageFooter);
-                section = _myReport.Sections[AreaSectionType.Query];
-                PrintQuerySection(grfx, section, xPos, yPos, isPrintablePage);
-                yPos += section.Height;
-                bool isRoomForReportFooter = true;
-                if (_heightRemaining - _myReport.GetSectionHeight(AreaSectionType.ReportFooter) <= 0)
-                {
-                    isRoomForReportFooter = false;
-                }
-
-                //print the reportfooter section if there is room
-                if (isRoomForReportFooter)
-                {
-                    if (_myReport.Sections.Contains(AreaSectionType.ReportFooter))
-                    {
-                        ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
-                                                                + Lan.g("ReportComplex", "Printing Report Footer") + "...");
-                        section = _myReport.Sections[AreaSectionType.ReportFooter];
-                        PrintSection(grfx, section, xPos, yPos, isPrintablePage);
-                        yPos += section.Height;
-                    }
-
-                    //mark the reportfooter as printed. This will prevent another loop.
-                    _lastSectionPrinted = AreaSectionType.ReportFooter;
-                }
-
-                //print the pagefooter
-                if (_myReport.Sections.Contains(AreaSectionType.PageFooter))
-                {
-                    ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
-                                                            + Lan.g("ReportComplex", "Printing Page Footer") + "...");
-                    section = _myReport.Sections[AreaSectionType.PageFooter];
-                    yPos = yLimit - section.Height;
-                    PrintSection(grfx, section, xPos, yPos, isPrintablePage);
-                    yPos += section.Height;
-                }
-
-                break;
-            } //while		
-
-            _pagesProcessed++;
-        }
-
-        private void pd2_EndPrint(object sender, PrintEventArgs ev)
-        {
-            _totalPages = _pagesProcessed;
-            SetPageNavString();
-        }
-
-        private void PrintSection(Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
-        {
-            ReportObject textObject;
-            ReportObject fieldObject;
-            ReportObject lineObject;
-            ReportObject boxObject;
-            foreach (ReportObject reportObject in _myReport.ReportObjects)
-            {
-                if (reportObject.SectionType != section.SectionType)
-                {
-                    continue;
-                }
-
-                using (StringFormat strFormat = ReportObject.GetStringFormatAlignment(reportObject.ContentAlignment))
-                {
-                    #region TextObject
-
-                    if (reportObject.ObjectType == ReportObjectType.TextObject)
-                    {
-                        textObject = reportObject;
-                        Font newFont = new Font(textObject.Font, textObject.Font.Style | (textObject.IsUnderlined ? FontStyle.Underline : FontStyle.Regular));
-                        RectangleF layoutRect = new RectangleF(xPos + textObject.Location.X
-                            , yPos + textObject.Location.Y
-                            , textObject.Size.Width, textObject.Size.Height);
-
-                        #region ReportFooter
-
-                        if (section.SectionType == AreaSectionType.ReportFooter)
-                        {
-                            if (textObject.Name == "ReportSummaryText")
-                            {
-                                xPos += _myReport.ReportObjects["ReportSummaryLabel"].Size.Width;
-                                newFont = new Font(textObject.Font, textObject.Font.Style | FontStyle.Bold);
-                                SizeF size = g.MeasureString(textObject.StaticText, newFont);
-                                textObject.Size = new Size((int) size.Width + 1, (int) size.Height + 1);
-                            }
-
-                            layoutRect = new RectangleF(xPos + textObject.Location.X + textObject.OffSetX
-                                , yPos + textObject.Location.Y + textObject.OffSetY
-                                , textObject.Size.Width, textObject.Size.Height);
-                        }
-
-                        #endregion ReportFooter
-
-                        if (isPrintablePage)
-                        {
-                            g.DrawString(textObject.StaticText, newFont, Brushes.Black, layoutRect, strFormat);
-                        }
-
-                        newFont.Dispose();
-                    }
-
-                    #endregion TextObject
-
-                    #region FieldObject
-
-                    else if (reportObject.ObjectType == ReportObjectType.FieldObject)
-                    {
-                        if (reportObject.FieldDefKind != FieldDefKind.SpecialField
-                            || reportObject.SpecialFieldType != SpecialFieldType.PageNumber
-                            || !isPrintablePage)
-                        {
-                            continue;
-                        }
-
-                        fieldObject = reportObject;
-                        RectangleF layoutRect = new RectangleF(xPos + fieldObject.Location.X
-                            , yPos + fieldObject.Location.Y
-                            , fieldObject.Size.Width, fieldObject.Size.Height);
-                        g.DrawString(Lan.g(this, "Page") + " " + _currentPage, fieldObject.Font, Brushes.Black, layoutRect, strFormat);
-                    }
-
-                    #endregion FieldObject
-
-                    #region BoxObject
-
-                    else if (reportObject.ObjectType == ReportObjectType.BoxObject)
-                    {
-                        if (!isPrintablePage)
-                        {
-                            continue;
-                        }
-
-                        boxObject = reportObject;
-                        int x1 = xPos + boxObject.OffSetX;
-                        int x2 = xPos - boxObject.OffSetX;
-                        int y1 = yPos + boxObject.OffSetY;
-                        int y2 = yPos - boxObject.OffSetY;
-                        int maxHorizontalLength = 1100;
-                        if (!_myReport.IsLandscape)
-                        {
-                            maxHorizontalLength = 850;
-                        }
-
-                        x2 += maxHorizontalLength;
-                        y2 += _myReport.GetSectionHeight(boxObject.SectionType);
-                        g.DrawRectangle(new Pen(boxObject.ForeColor, boxObject.FloatLineThickness), x1, y1, x2 - x1, y2 - y1);
-                    }
-
-                    #endregion BoxObject
-
-                    #region LineObject
-
-                    else if (reportObject.ObjectType == ReportObjectType.LineObject)
-                    {
-                        if (!isPrintablePage)
-                        {
-                            continue;
-                        }
-
-                        lineObject = reportObject;
-                        int length;
-                        int x = lineObject.OffSetX;
-                        int y = yPos + lineObject.OffSetY;
-                        int maxHorizontalLength = 1100;
-                        if (!_myReport.IsLandscape)
-                        {
-                            maxHorizontalLength = 850;
-                        }
-
-                        #region Horizontal Line
-
-                        if (lineObject.LineOrientation == LineOrientation.Horizontal)
-                        {
-                            length = maxHorizontalLength * lineObject.IntLinePercent / 100;
-                            if (lineObject.LinePosition == LinePosition.South)
-                            {
-                                y += _myReport.GetSectionHeight(lineObject.SectionType);
-                            }
-                            else if (lineObject.LinePosition == LinePosition.North)
-                            {
-                                //Do Nothing Here
-                            }
-                            else if (lineObject.LinePosition == LinePosition.Center)
-                            {
-                                y += _myReport.GetSectionHeight(lineObject.SectionType) / 2;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            x += maxHorizontalLength / 2 - length / 2;
-                            g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x + length, y);
-                        }
-
-                        #endregion Horizontal Line
-
-                        #region Vertical Line
-
-                        else if (lineObject.LineOrientation == LineOrientation.Vertical)
-                        {
-                            length = _myReport.GetSectionHeight(lineObject.SectionType) * lineObject.IntLinePercent / 100;
-                            if (lineObject.LinePosition == LinePosition.West)
-                            {
-                                //Do Nothing Here
-                            }
-                            else if (lineObject.LinePosition == LinePosition.East)
-                            {
-                                x += maxHorizontalLength;
-                            }
-                            else if (lineObject.LinePosition == LinePosition.Center)
-                            {
-                                x += maxHorizontalLength / 2;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            y += _myReport.GetSectionHeight(lineObject.SectionType) / 2 - length / 2;
-                            g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x, y + length);
-                        }
-
-                        #endregion Vertical Line
-                    }
-
-                    #endregion LineObject
-                }
-            }
-        }
-
-        private void PrintQuerySection(Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
-        {
-            ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
-                                                    + Lan.g("ReportComplex", "Printing Query Section") + "...");
-            section.Height = 0;
-            ReportObject textObject;
-            ReportObject lineObject;
-            ReportObject boxObject;
-            QueryObject queryObject;
-            StringFormat strFormat; //used each time text is drawn to handle alignment issues
-
-            #region Lines And Boxes
-
-            foreach (ReportObject reportObject in _myReport.ReportObjects)
-            {
-                if (reportObject.SectionType != section.SectionType)
-                {
-                    //skip any reportObjects that are not in this section
-                    continue;
-                }
-
-                if (reportObject.ObjectType == ReportObjectType.BoxObject)
-                {
                     boxObject = reportObject;
-                    int x1 = xPos + boxObject.OffSetX;
-                    int x2 = xPos - boxObject.OffSetX;
-                    int y1 = yPos + boxObject.OffSetY;
-                    int y2 = yPos - boxObject.OffSetY;
-                    int maxHorizontalLength = 1100;
+                    var x1 = xPos + boxObject.OffSetX;
+                    var x2 = xPos - boxObject.OffSetX;
+                    var y1 = yPos + boxObject.OffSetY;
+                    var y2 = yPos - boxObject.OffSetY;
+                    var maxHorizontalLength = 1100;
                     if (!_myReport.IsLandscape)
                     {
                         maxHorizontalLength = 850;
                     }
 
-                    x2 += maxHorizontalLength - xPos;
-                    y2 += _heightRemaining * _myReport.GetSectionHeight(boxObject.SectionType);
-                    if (isPrintablePage)
-                    {
-                        g.DrawRectangle(new Pen(boxObject.ForeColor, boxObject.FloatLineThickness), x1, y1, x2 - x1, y2 - y1);
-                    }
+                    x2 += maxHorizontalLength;
+                    y2 += _myReport.GetSectionHeight(boxObject.SectionType);
+                    g.DrawRectangle(new Pen(boxObject.ForeColor, boxObject.FloatLineThickness), x1, y1, x2 - x1, y2 - y1);
                 }
+
+                #endregion BoxObject
+
+                #region LineObject
+
                 else if (reportObject.ObjectType == ReportObjectType.LineObject)
                 {
+                    if (!isPrintablePage)
+                    {
+                        continue;
+                    }
+
                     lineObject = reportObject;
                     int length;
-                    int x = lineObject.OffSetX;
-                    int y = yPos + lineObject.OffSetY;
-                    int maxHorizontalLength = 1100;
+                    var x = lineObject.OffSetX;
+                    var y = yPos + lineObject.OffSetY;
+                    var maxHorizontalLength = 1100;
                     if (!_myReport.IsLandscape)
                     {
                         maxHorizontalLength = 850;
                     }
+
+                    #region Horizontal Line
 
                     if (lineObject.LineOrientation == LineOrientation.Horizontal)
                     {
@@ -615,11 +495,13 @@ namespace OpenDental.ReportingComplex
                         }
 
                         x += maxHorizontalLength / 2 - length / 2;
-                        if (isPrintablePage)
-                        {
-                            g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x + length, y);
-                        }
+                        g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x + length, y);
                     }
+
+                    #endregion Horizontal Line
+
+                    #region Vertical Line
+
                     else if (lineObject.LineOrientation == LineOrientation.Vertical)
                     {
                         length = _myReport.GetSectionHeight(lineObject.SectionType) * lineObject.IntLinePercent / 100;
@@ -629,869 +511,979 @@ namespace OpenDental.ReportingComplex
                         }
                         else if (lineObject.LinePosition == LinePosition.East)
                         {
-                            x = maxHorizontalLength;
+                            x += maxHorizontalLength;
                         }
                         else if (lineObject.LinePosition == LinePosition.Center)
                         {
-                            x = maxHorizontalLength / 2;
+                            x += maxHorizontalLength / 2;
                         }
                         else
                         {
                             continue;
                         }
 
-                        y = y + _myReport.GetSectionHeight(lineObject.SectionType) / 2 - length / 2;
-                        if (isPrintablePage)
-                        {
-                            g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x, y + length);
-                        }
+                        y += _myReport.GetSectionHeight(lineObject.SectionType) / 2 - length / 2;
+                        g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x, y + length);
                     }
-                    else
-                    {
-                        //Do nothing since it has already been done for each row.
-                    }
+
+                    #endregion Vertical Line
                 }
+
+                #endregion LineObject
+            }
+        }
+    }
+
+    private void PrintQuerySection(Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
+    {
+        ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                                                + Lan.g("ReportComplex", "Printing Query Section") + "...");
+        section.Height = 0;
+        ReportObject textObject;
+        ReportObject lineObject;
+        ReportObject boxObject;
+        QueryObject queryObject;
+        StringFormat strFormat; //used each time text is drawn to handle alignment issues
+
+        #region Lines And Boxes
+
+        foreach (ReportObject reportObject in _myReport.ReportObjects)
+        {
+            if (reportObject.SectionType != section.SectionType)
+            {
+                //skip any reportObjects that are not in this section
+                continue;
             }
 
-            #endregion
-
-            foreach (ReportObject reportObject in _myReport.ReportObjects)
+            if (reportObject.ObjectType == ReportObjectType.BoxObject)
             {
-                if (reportObject.SectionType != section.SectionType)
+                boxObject = reportObject;
+                var x1 = xPos + boxObject.OffSetX;
+                var x2 = xPos - boxObject.OffSetX;
+                var y1 = yPos + boxObject.OffSetY;
+                var y2 = yPos - boxObject.OffSetY;
+                var maxHorizontalLength = 1100;
+                if (!_myReport.IsLandscape)
                 {
-                    //skip any reportObjects that are not in this section
-                    continue;
+                    maxHorizontalLength = 850;
                 }
 
-                if (reportObject.ObjectType == ReportObjectType.TextObject)
+                x2 += maxHorizontalLength - xPos;
+                y2 += _heightRemaining * _myReport.GetSectionHeight(boxObject.SectionType);
+                if (isPrintablePage)
                 {
-                    //not typical to print textobject in details section, but allowed
-                    textObject = reportObject;
-                    strFormat = ReportObject.GetStringFormatAlignment(textObject.ContentAlignment);
-                    RectangleF layoutRect = new RectangleF(xPos + textObject.Location.X
-                        , yPos + textObject.Location.Y
-                        , textObject.Size.Width, textObject.Size.Height);
-                    if (isPrintablePage)
-                    {
-                        g.DrawString(textObject.StaticText, textObject.Font
-                            , new SolidBrush(textObject.ForeColor), layoutRect, strFormat);
-                        if (textObject.IsUnderlined)
-                        {
-                            g.DrawLine(new Pen(textObject.ForeColor), xPos + textObject.Location.X, yPos + textObject.Location.Y + textObject.Size.Height, xPos + textObject.Location.X + textObject.Size.Width, yPos + textObject.Location.Y + textObject.Size.Height);
-                        }
-                    }
+                    g.DrawRectangle(new Pen(boxObject.ForeColor, boxObject.FloatLineThickness), x1, y1, x2 - x1, y2 - y1);
                 }
-                else if (reportObject.ObjectType == ReportObjectType.QueryObject)
+            }
+            else if (reportObject.ObjectType == ReportObjectType.LineObject)
+            {
+                lineObject = reportObject;
+                int length;
+                var x = lineObject.OffSetX;
+                var y = yPos + lineObject.OffSetY;
+                var maxHorizontalLength = 1100;
+                if (!_myReport.IsLandscape)
                 {
-                    queryObject = (QueryObject) reportObject;
-                    if (queryObject.IsPrinted == true)
+                    maxHorizontalLength = 850;
+                }
+
+                if (lineObject.LineOrientation == LineOrientation.Horizontal)
+                {
+                    length = maxHorizontalLength * lineObject.IntLinePercent / 100;
+                    if (lineObject.LinePosition == LinePosition.South)
+                    {
+                        y += _myReport.GetSectionHeight(lineObject.SectionType);
+                    }
+                    else if (lineObject.LinePosition == LinePosition.North)
+                    {
+                        //Do Nothing Here
+                    }
+                    else if (lineObject.LinePosition == LinePosition.Center)
+                    {
+                        y += _myReport.GetSectionHeight(lineObject.SectionType) / 2;
+                    }
+                    else
                     {
                         continue;
                     }
 
-                    if (queryObject.IsCentered)
+                    x += maxHorizontalLength / 2 - length / 2;
+                    if (isPrintablePage)
                     {
-                        if (_myReport.IsLandscape)
-                        {
-                            xPos = 1100 / 2 - queryObject.QueryWidth / 2;
-                        }
-                        else
-                        {
-                            xPos = 850 / 2 - queryObject.QueryWidth / 2;
-                        }
+                        g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x + length, y);
+                    }
+                }
+                else if (lineObject.LineOrientation == LineOrientation.Vertical)
+                {
+                    length = _myReport.GetSectionHeight(lineObject.SectionType) * lineObject.IntLinePercent / 100;
+                    if (lineObject.LinePosition == LinePosition.West)
+                    {
+                        //Do Nothing Here
+                    }
+                    else if (lineObject.LinePosition == LinePosition.East)
+                    {
+                        x = maxHorizontalLength;
+                    }
+                    else if (lineObject.LinePosition == LinePosition.Center)
+                    {
+                        x = maxHorizontalLength / 2;
+                    }
+                    else
+                    {
+                        continue;
                     }
 
-                    if (_heightRemaining > 0)
+                    y = y + _myReport.GetSectionHeight(lineObject.SectionType) / 2 - length / 2;
+                    if (isPrintablePage)
                     {
-                        PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.GroupTitle], xPos, yPos, isPrintablePage);
-                        yPos += queryObject.Sections[AreaSectionType.GroupTitle].Height;
-                        section.Height += queryObject.Sections[AreaSectionType.GroupTitle].Height;
+                        g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x, y + length);
                     }
-
-                    if (_heightRemaining > 0)
-                    {
-                        PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.GroupHeader], xPos, yPos, isPrintablePage);
-                        yPos += queryObject.Sections[AreaSectionType.GroupHeader].Height;
-                        section.Height += queryObject.Sections[AreaSectionType.GroupHeader].Height;
-                    }
-
-                    if (_heightRemaining > 0)
-                    {
-                        PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.Detail], xPos, yPos, isPrintablePage);
-                        yPos += queryObject.Sections[AreaSectionType.Detail].Height;
-                        section.Height += queryObject.Sections[AreaSectionType.Detail].Height;
-                    }
-
-                    if (_heightRemaining > 0)
-                    {
-                        PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.GroupFooter], xPos, yPos, isPrintablePage);
-                        yPos += queryObject.Sections[AreaSectionType.GroupFooter].Height;
-                        section.Height += queryObject.Sections[AreaSectionType.GroupFooter].Height;
-                    }
-
-                    if (_heightRemaining <= 0)
-                    {
-                        return;
-                    }
+                }
+                else
+                {
+                    //Do nothing since it has already been done for each row.
                 }
             }
         }
 
-        private void PrintQueryObjectSection(QueryObject queryObj, Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
+        #endregion
+
+        foreach (ReportObject reportObject in _myReport.ReportObjects)
         {
-            section.Height = 0;
-            ReportObject textObject;
-            ReportObject fieldObject;
-            ReportObject lineObject;
-            ReportObject boxObject;
-            string displayText = ""; //The formatted text to print
-            string prevDisplayText = ""; //The formatted text of the previous row. Used to test suppress dupl.	
-            StringFormat strFormat; //used each time text is drawn to handle alignment issues
-            int yPosAdd = 0;
-            if (queryObj.SuppressIfDuplicate
-                && section.SectionType == AreaSectionType.GroupTitle && _rowsPrinted > 0)
+            if (reportObject.SectionType != section.SectionType)
             {
-                return; //Only print the group title for each query object once.
+                //skip any reportObjects that are not in this section
+                continue;
             }
 
-            //loop through each row in the table and make sure that the row can fit.  If it can fit, print it.  Otherwise go to next page.
-            for (int i = _rowsPrinted; i < queryObj.ReportTable.Rows.Count; i++)
+            if (reportObject.ObjectType == ReportObjectType.TextObject)
             {
-                //Figure out the current row height
-                if (section.SectionType == AreaSectionType.Detail && queryObj.RowHeightValues[i] > _heightRemaining)
+                //not typical to print textobject in details section, but allowed
+                textObject = reportObject;
+                strFormat = ReportObject.GetStringFormatAlignment(textObject.ContentAlignment);
+                var layoutRect = new RectangleF(xPos + textObject.Location.X
+                    , yPos + textObject.Location.Y
+                    , textObject.Size.Width, textObject.Size.Height);
+                if (isPrintablePage)
+                {
+                    g.DrawString(textObject.StaticText, textObject.Font
+                        , new SolidBrush(textObject.ForeColor), layoutRect, strFormat);
+                    if (textObject.IsUnderlined)
+                    {
+                        g.DrawLine(new Pen(textObject.ForeColor), xPos + textObject.Location.X, yPos + textObject.Location.Y + textObject.Size.Height, xPos + textObject.Location.X + textObject.Size.Width, yPos + textObject.Location.Y + textObject.Size.Height);
+                    }
+                }
+            }
+            else if (reportObject.ObjectType == ReportObjectType.QueryObject)
+            {
+                queryObject = (QueryObject) reportObject;
+                if (queryObject.IsPrinted)
+                {
+                    continue;
+                }
+
+                if (queryObject.IsCentered)
+                {
+                    if (_myReport.IsLandscape)
+                    {
+                        xPos = 1100 / 2 - queryObject.QueryWidth / 2;
+                    }
+                    else
+                    {
+                        xPos = 850 / 2 - queryObject.QueryWidth / 2;
+                    }
+                }
+
+                if (_heightRemaining > 0)
+                {
+                    PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.GroupTitle], xPos, yPos, isPrintablePage);
+                    yPos += queryObject.Sections[AreaSectionType.GroupTitle].Height;
+                    section.Height += queryObject.Sections[AreaSectionType.GroupTitle].Height;
+                }
+
+                if (_heightRemaining > 0)
+                {
+                    PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.GroupHeader], xPos, yPos, isPrintablePage);
+                    yPos += queryObject.Sections[AreaSectionType.GroupHeader].Height;
+                    section.Height += queryObject.Sections[AreaSectionType.GroupHeader].Height;
+                }
+
+                if (_heightRemaining > 0)
+                {
+                    PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.Detail], xPos, yPos, isPrintablePage);
+                    yPos += queryObject.Sections[AreaSectionType.Detail].Height;
+                    section.Height += queryObject.Sections[AreaSectionType.Detail].Height;
+                }
+
+                if (_heightRemaining > 0)
+                {
+                    PrintQueryObjectSection(queryObject, g, queryObject.Sections[AreaSectionType.GroupFooter], xPos, yPos, isPrintablePage);
+                    yPos += queryObject.Sections[AreaSectionType.GroupFooter].Height;
+                    section.Height += queryObject.Sections[AreaSectionType.GroupFooter].Height;
+                }
+
+                if (_heightRemaining <= 0)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    private void PrintQueryObjectSection(QueryObject queryObj, Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
+    {
+        section.Height = 0;
+        ReportObject textObject;
+        ReportObject fieldObject;
+        ReportObject lineObject;
+        ReportObject boxObject;
+        var displayText = ""; //The formatted text to print
+        var prevDisplayText = ""; //The formatted text of the previous row. Used to test suppress dupl.	
+        StringFormat strFormat; //used each time text is drawn to handle alignment issues
+        var yPosAdd = 0;
+        if (queryObj.SuppressIfDuplicate
+            && section.SectionType == AreaSectionType.GroupTitle && _rowsPrinted > 0)
+        {
+            return; //Only print the group title for each query object once.
+        }
+
+        //loop through each row in the table and make sure that the row can fit.  If it can fit, print it.  Otherwise go to next page.
+        for (var i = _rowsPrinted; i < queryObj.ReportTable.Rows.Count; i++)
+        {
+            //Figure out the current row height
+            if (section.SectionType == AreaSectionType.Detail && queryObj.RowHeightValues[i] > _heightRemaining)
+            {
+                _heightRemaining = 0;
+                return;
+            }
+
+            //Find the Group Header height to see if printing at least one row is possible.
+            if (section.SectionType == AreaSectionType.GroupTitle)
+            {
+                var titleHeight = 0;
+                var headerHeight = 0;
+                foreach (ReportObject reportObject in queryObj.ReportObjects)
+                {
+                    if (reportObject.SectionType == AreaSectionType.GroupTitle)
+                    {
+                        titleHeight += reportObject.Size.Height;
+                    }
+                    else if (reportObject.SectionType == AreaSectionType.GroupHeader && reportObject.Size.Height > headerHeight)
+                    {
+                        headerHeight = reportObject.Size.Height;
+                    }
+                }
+
+                //This is a new table and we want to know if we can print the first row
+                if (titleHeight + headerHeight + queryObj.RowHeightValues[0] > _heightRemaining)
+                {
+                    _heightRemaining = 0;
+                    return;
+                }
+            }
+
+            //Find the Group Footer height to see if printing the last row should happen on another page.
+            if (section.SectionType == AreaSectionType.Detail && _rowsPrinted == queryObj.ReportTable.Rows.Count - 1)
+            {
+                var groupSummaryLabelHeight = 0;
+                var tallestTotalSummaryHeight = 0;
+                foreach (ReportObject reportObject in queryObj.ReportObjects)
+                {
+                    if (reportObject.SectionType == AreaSectionType.GroupFooter
+                        && !reportObject.Name.Contains("GroupSummaryLabel")
+                        && !reportObject.Name.Contains("GroupSummaryText")
+                        && tallestTotalSummaryHeight < reportObject.Size.Height + reportObject.OffSetY)
+                    {
+                        tallestTotalSummaryHeight = reportObject.Size.Height + reportObject.OffSetY;
+                    }
+
+                    //Find the height of the group footer using GroupSummaryLabel because GroupSummaryText has not been filled yet.
+                    if (reportObject.SectionType == AreaSectionType.GroupFooter && reportObject.Name.Contains("GroupSummaryLabel"))
+                    {
+                        groupSummaryLabelHeight += reportObject.Size.Height + reportObject.OffSetY;
+                        //If it is North or South then we need to add its height a second time because the GroupSummaryLabel is located above or below the text.
+                        if (reportObject.SummaryOrientation == SummaryOrientation.North || reportObject.SummaryOrientation == SummaryOrientation.South)
+                        {
+                            groupSummaryLabelHeight += reportObject.Size.Height;
+                        }
+                    }
+                }
+
+                var groupFooterHeight = groupSummaryLabelHeight + tallestTotalSummaryHeight + GROUP_FOOTER_BUFFER;
+                //For reports without group footers, check to see if we can print the last row. 
+                if (groupFooterHeight == GROUP_FOOTER_BUFFER && queryObj.RowHeightValues[queryObj.ReportTable.Rows.Count - 1] > _heightRemaining)
+                {
+                    _heightRemaining = 0;
+                    return;
+                }
+                //See if we can print the Group Footer and the Last row
+                else if (groupFooterHeight + queryObj.RowHeightValues[queryObj.ReportTable.Rows.Count - 1] > _heightRemaining)
+                {
+                    _heightRemaining = 0;
+                    return;
+                }
+            }
+
+            var greatestObjectHeight = 0;
+            var groupTitleHeight = 0;
+            //Now figure out if anything in the header, footer, or title sections can still fit on the page
+            foreach (ReportObject reportObject in queryObj.ReportObjects)
+            {
+                if (reportObject.SectionType != section.SectionType)
+                {
+                    continue;
+                }
+
+                if (reportObject.ObjectType != ReportObjectType.FieldObject && reportObject.Size.Height > _heightRemaining)
                 {
                     _heightRemaining = 0;
                     return;
                 }
 
-                //Find the Group Header height to see if printing at least one row is possible.
-                if (section.SectionType == AreaSectionType.GroupTitle)
+                if (reportObject.SectionType == AreaSectionType.GroupFooter && reportObject.Name.Contains("GroupSummary"))
                 {
-                    int titleHeight = 0;
-                    int headerHeight = 0;
-                    foreach (ReportObject reportObject in queryObj.ReportObjects)
-                    {
-                        if (reportObject.SectionType == AreaSectionType.GroupTitle)
-                        {
-                            titleHeight += reportObject.Size.Height;
-                        }
-                        else if (reportObject.SectionType == AreaSectionType.GroupHeader && reportObject.Size.Height > headerHeight)
-                        {
-                            headerHeight = reportObject.Size.Height;
-                        }
-                    }
-
-                    //This is a new table and we want to know if we can print the first row
-                    if (titleHeight + headerHeight + queryObj.RowHeightValues[0] > _heightRemaining)
-                    {
-                        _heightRemaining = 0;
-                        return;
-                    }
-                }
-
-                //Find the Group Footer height to see if printing the last row should happen on another page.
-                if (section.SectionType == AreaSectionType.Detail && _rowsPrinted == queryObj.ReportTable.Rows.Count - 1)
-                {
-                    int groupSummaryLabelHeight = 0;
-                    int tallestTotalSummaryHeight = 0;
-                    foreach (ReportObject reportObject in queryObj.ReportObjects)
-                    {
-                        if (reportObject.SectionType == AreaSectionType.GroupFooter
-                            && !reportObject.Name.Contains("GroupSummaryLabel")
-                            && !reportObject.Name.Contains("GroupSummaryText")
-                            && tallestTotalSummaryHeight < reportObject.Size.Height + reportObject.OffSetY)
-                        {
-                            tallestTotalSummaryHeight = reportObject.Size.Height + reportObject.OffSetY;
-                        }
-
-                        //Find the height of the group footer using GroupSummaryLabel because GroupSummaryText has not been filled yet.
-                        if (reportObject.SectionType == AreaSectionType.GroupFooter && reportObject.Name.Contains("GroupSummaryLabel"))
-                        {
-                            groupSummaryLabelHeight += reportObject.Size.Height + reportObject.OffSetY;
-                            //If it is North or South then we need to add its height a second time because the GroupSummaryLabel is located above or below the text.
-                            if (reportObject.SummaryOrientation == SummaryOrientation.North || reportObject.SummaryOrientation == SummaryOrientation.South)
-                            {
-                                groupSummaryLabelHeight += reportObject.Size.Height;
-                            }
-                        }
-                    }
-
-                    int groupFooterHeight = groupSummaryLabelHeight + tallestTotalSummaryHeight + GROUP_FOOTER_BUFFER;
-                    //For reports without group footers, check to see if we can print the last row. 
-                    if (groupFooterHeight == GROUP_FOOTER_BUFFER && queryObj.RowHeightValues[queryObj.ReportTable.Rows.Count - 1] > _heightRemaining)
-                    {
-                        _heightRemaining = 0;
-                        return;
-                    }
-                    //See if we can print the Group Footer and the Last row
-                    else if (groupFooterHeight + queryObj.RowHeightValues[queryObj.ReportTable.Rows.Count - 1] > _heightRemaining)
-                    {
-                        _heightRemaining = 0;
-                        return;
-                    }
-                }
-
-                int greatestObjectHeight = 0;
-                int groupTitleHeight = 0;
-                //Now figure out if anything in the header, footer, or title sections can still fit on the page
-                foreach (ReportObject reportObject in queryObj.ReportObjects)
-                {
-                    if (reportObject.SectionType != section.SectionType)
+                    if (!queryObj.IsLastSplit)
                     {
                         continue;
                     }
 
-                    if (reportObject.ObjectType != ReportObjectType.FieldObject && reportObject.Size.Height > _heightRemaining)
+                    if (reportObject.Name.Contains("GroupSummaryText"))
                     {
-                        _heightRemaining = 0;
-                        return;
+                        if (reportObject.SummaryOperation == SummaryOperation.Sum)
+                        {
+                            if (reportObject.StringFormat == "")
+                            {
+                                reportObject.StaticText = GetGroupSummaryValue(reportObject.DataField, reportObject.SummaryGroups, reportObject.SummaryOperation).ToString("c");
+                            }
+                            else
+                            {
+                                reportObject.StaticText = GetGroupSummaryValue(reportObject.DataField, reportObject.SummaryGroups, reportObject.SummaryOperation)
+                                    .ToString(reportObject.StringFormat);
+                            }
+                        }
+                        else if (reportObject.SummaryOperation == SummaryOperation.Count)
+                        {
+                            reportObject.StaticText = GetGroupSummaryValue(reportObject.DataField, reportObject.SummaryGroups, reportObject.SummaryOperation).ToString();
+                        }
+
+                        var width = (int) g.MeasureString(reportObject.StaticText, reportObject.Font).Width + 2;
+                        var height = (int) g.MeasureString(reportObject.StaticText, reportObject.Font).Height + 2;
+                        if (width < queryObj.GetObjectByName(reportObject.SummarizedField + "Header").Size.Width)
+                        {
+                            width = queryObj.GetObjectByName(reportObject.SummarizedField + "Header").Size.Width;
+                        }
+
+                        reportObject.Size = new Size(width, height);
+                    }
+                }
+
+                if (section.SectionType == AreaSectionType.GroupTitle && _rowsPrinted > 0 && reportObject.Name == "Initial Group Title")
+                {
+                    continue;
+                }
+
+                if (section.SectionType == AreaSectionType.GroupFooter && reportObject.SummaryOrientation == SummaryOrientation.South)
+                {
+                    var summaryField = queryObj.GetObjectByName(reportObject.DataField + "Footer");
+                    yPos += summaryField.Size.Height;
+                }
+
+                if (reportObject.ObjectType == ReportObjectType.TextObject)
+                {
+                    textObject = reportObject;
+                    strFormat = ReportObject.GetStringFormatAlignment(textObject.ContentAlignment);
+                    var layoutRect = new RectangleF(xPos + textObject.Location.X + textObject.OffSetX
+                        , yPos + textObject.Location.Y + textObject.OffSetY
+                        , textObject.Size.Width, textObject.Size.Height);
+                    if (isPrintablePage)
+                    {
+                        if (textObject.IsUnderlined)
+                        {
+                            g.DrawString(textObject.StaticText, new Font(textObject.Font.FontFamily, textObject.Font.Size, textObject.Font.Style | FontStyle.Underline), Brushes.Black, layoutRect, strFormat);
+                        }
+                        else
+                        {
+                            g.DrawString(textObject.StaticText, textObject.Font, Brushes.Black, layoutRect, strFormat);
+                        }
                     }
 
-                    if (reportObject.SectionType == AreaSectionType.GroupFooter && reportObject.Name.Contains("GroupSummary"))
+                    if (section.SectionType == AreaSectionType.GroupHeader)
                     {
-                        if (!queryObj.IsLastSplit)
+                        greatestObjectHeight = Math.Max(greatestObjectHeight, textObject.Size.Height);
+                    }
+
+                    if (section.SectionType == AreaSectionType.GroupTitle)
+                    {
+                        groupTitleHeight += textObject.Size.Height;
+                        yPos += textObject.Size.Height;
+                    }
+
+                    if (section.SectionType == AreaSectionType.GroupFooter
+                        && (reportObject.SummaryOrientation == SummaryOrientation.North || reportObject.SummaryOrientation == SummaryOrientation.South
+                                                                                        || reportObject.Name.Contains("GroupSummaryText")))
+                    {
+                        yPosAdd += textObject.Size.Height;
+                        yPos += textObject.Size.Height + textObject.OffSetY;
+                    }
+                }
+                else if (reportObject.ObjectType == ReportObjectType.BoxObject)
+                {
+                    boxObject = reportObject;
+                    var x1 = xPos + boxObject.OffSetX;
+                    var x2 = xPos - boxObject.OffSetX;
+                    var y1 = yPos + boxObject.OffSetY;
+                    var y2 = yPos - boxObject.OffSetY;
+                    var maxHorizontalLength = 1100;
+                    if (!_myReport.IsLandscape)
+                    {
+                        maxHorizontalLength = 850;
+                    }
+
+                    x2 += maxHorizontalLength;
+                    y2 += queryObj.GetSectionHeight(boxObject.SectionType);
+                    if (isPrintablePage)
+                    {
+                        g.DrawRectangle(new Pen(boxObject.ForeColor, boxObject.FloatLineThickness), x1, y1, x2 - x1, y2 - y1);
+                    }
+
+                    if (section.SectionType == AreaSectionType.GroupHeader)
+                    {
+                        greatestObjectHeight = Math.Max(greatestObjectHeight, boxObject.Size.Height);
+                    }
+
+                    if (section.SectionType == AreaSectionType.GroupTitle)
+                    {
+                        groupTitleHeight += boxObject.Size.Height;
+                    }
+                }
+                else if (reportObject.ObjectType == ReportObjectType.LineObject)
+                {
+                    lineObject = reportObject;
+                    int length;
+                    var x = lineObject.OffSetX;
+                    var y = yPos + lineObject.OffSetY;
+                    var maxHorizontalLength = 1100;
+                    if (!_myReport.IsLandscape)
+                    {
+                        maxHorizontalLength = 850;
+                    }
+
+                    if (lineObject.LineOrientation == LineOrientation.Horizontal)
+                    {
+                        length = maxHorizontalLength * lineObject.IntLinePercent / 100;
+                        if (lineObject.LinePosition == LinePosition.South)
+                        {
+                            y += queryObj.GetSectionHeight(lineObject.SectionType);
+                        }
+                        else if (lineObject.LinePosition == LinePosition.North)
+                        {
+                            //Do Nothing Here
+                        }
+                        else if (lineObject.LinePosition == LinePosition.Center)
+                        {
+                            y += queryObj.GetSectionHeight(lineObject.SectionType) / 2;
+                        }
+                        else
                         {
                             continue;
                         }
 
-                        if (reportObject.Name.Contains("GroupSummaryText"))
-                        {
-                            if (reportObject.SummaryOperation == SummaryOperation.Sum)
-                            {
-                                if (reportObject.StringFormat == "")
-                                {
-                                    reportObject.StaticText = GetGroupSummaryValue(reportObject.DataField, reportObject.SummaryGroups, reportObject.SummaryOperation).ToString("c");
-                                }
-                                else
-                                {
-                                    reportObject.StaticText = GetGroupSummaryValue(reportObject.DataField, reportObject.SummaryGroups, reportObject.SummaryOperation)
-                                        .ToString(reportObject.StringFormat);
-                                }
-                            }
-                            else if (reportObject.SummaryOperation == SummaryOperation.Count)
-                            {
-                                reportObject.StaticText = GetGroupSummaryValue(reportObject.DataField, reportObject.SummaryGroups, reportObject.SummaryOperation).ToString();
-                            }
-
-                            int width = (int) g.MeasureString(reportObject.StaticText, reportObject.Font).Width + 2;
-                            int height = (int) g.MeasureString(reportObject.StaticText, reportObject.Font).Height + 2;
-                            if (width < queryObj.GetObjectByName(reportObject.SummarizedField + "Header").Size.Width)
-                            {
-                                width = queryObj.GetObjectByName(reportObject.SummarizedField + "Header").Size.Width;
-                            }
-
-                            reportObject.Size = new Size(width, height);
-                        }
-                    }
-
-                    if (section.SectionType == AreaSectionType.GroupTitle && _rowsPrinted > 0 && reportObject.Name == "Initial Group Title")
-                    {
-                        continue;
-                    }
-
-                    if (section.SectionType == AreaSectionType.GroupFooter && reportObject.SummaryOrientation == SummaryOrientation.South)
-                    {
-                        ReportObject summaryField = queryObj.GetObjectByName(reportObject.DataField + "Footer");
-                        yPos += summaryField.Size.Height;
-                    }
-
-                    if (reportObject.ObjectType == ReportObjectType.TextObject)
-                    {
-                        textObject = reportObject;
-                        strFormat = ReportObject.GetStringFormatAlignment(textObject.ContentAlignment);
-                        RectangleF layoutRect = new RectangleF(xPos + textObject.Location.X + textObject.OffSetX
-                            , yPos + textObject.Location.Y + textObject.OffSetY
-                            , textObject.Size.Width, textObject.Size.Height);
+                        x += maxHorizontalLength / 2 - length / 2;
                         if (isPrintablePage)
                         {
-                            if (textObject.IsUnderlined)
-                            {
-                                g.DrawString(textObject.StaticText, new Font(textObject.Font.FontFamily, textObject.Font.Size, textObject.Font.Style | FontStyle.Underline), Brushes.Black, layoutRect, strFormat);
-                            }
-                            else
-                            {
-                                g.DrawString(textObject.StaticText, textObject.Font, Brushes.Black, layoutRect, strFormat);
-                            }
-                        }
-
-                        if (section.SectionType == AreaSectionType.GroupHeader)
-                        {
-                            greatestObjectHeight = Math.Max(greatestObjectHeight, textObject.Size.Height);
-                        }
-
-                        if (section.SectionType == AreaSectionType.GroupTitle)
-                        {
-                            groupTitleHeight += textObject.Size.Height;
-                            yPos += textObject.Size.Height;
-                        }
-
-                        if (section.SectionType == AreaSectionType.GroupFooter
-                            && (reportObject.SummaryOrientation == SummaryOrientation.North || reportObject.SummaryOrientation == SummaryOrientation.South
-                                                                                            || reportObject.Name.Contains("GroupSummaryText")))
-                        {
-                            yPosAdd += textObject.Size.Height;
-                            yPos += textObject.Size.Height + textObject.OffSetY;
+                            g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x + length, y);
                         }
                     }
-                    else if (reportObject.ObjectType == ReportObjectType.BoxObject)
+                    else if (lineObject.LineOrientation == LineOrientation.Vertical)
                     {
-                        boxObject = reportObject;
-                        int x1 = xPos + boxObject.OffSetX;
-                        int x2 = xPos - boxObject.OffSetX;
-                        int y1 = yPos + boxObject.OffSetY;
-                        int y2 = yPos - boxObject.OffSetY;
-                        int maxHorizontalLength = 1100;
-                        if (!_myReport.IsLandscape)
+                        length = queryObj.GetSectionHeight(lineObject.SectionType) * lineObject.IntLinePercent / 100;
+                        if (lineObject.LinePosition == LinePosition.West)
                         {
-                            maxHorizontalLength = 850;
+                            //Do Nothing Here
                         }
-
-                        x2 += maxHorizontalLength;
-                        y2 += queryObj.GetSectionHeight(boxObject.SectionType);
-                        if (isPrintablePage)
+                        else if (lineObject.LinePosition == LinePosition.East)
                         {
-                            g.DrawRectangle(new Pen(boxObject.ForeColor, boxObject.FloatLineThickness), x1, y1, x2 - x1, y2 - y1);
+                            x += maxHorizontalLength;
                         }
-
-                        if (section.SectionType == AreaSectionType.GroupHeader)
+                        else if (lineObject.LinePosition == LinePosition.Center)
                         {
-                            greatestObjectHeight = Math.Max(greatestObjectHeight, boxObject.Size.Height);
-                        }
-
-                        if (section.SectionType == AreaSectionType.GroupTitle)
-                        {
-                            groupTitleHeight += boxObject.Size.Height;
-                        }
-                    }
-                    else if (reportObject.ObjectType == ReportObjectType.LineObject)
-                    {
-                        lineObject = reportObject;
-                        int length;
-                        int x = lineObject.OffSetX;
-                        int y = yPos + lineObject.OffSetY;
-                        int maxHorizontalLength = 1100;
-                        if (!_myReport.IsLandscape)
-                        {
-                            maxHorizontalLength = 850;
-                        }
-
-                        if (lineObject.LineOrientation == LineOrientation.Horizontal)
-                        {
-                            length = maxHorizontalLength * lineObject.IntLinePercent / 100;
-                            if (lineObject.LinePosition == LinePosition.South)
-                            {
-                                y += queryObj.GetSectionHeight(lineObject.SectionType);
-                            }
-                            else if (lineObject.LinePosition == LinePosition.North)
-                            {
-                                //Do Nothing Here
-                            }
-                            else if (lineObject.LinePosition == LinePosition.Center)
-                            {
-                                y += queryObj.GetSectionHeight(lineObject.SectionType) / 2;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            x += maxHorizontalLength / 2 - length / 2;
-                            if (isPrintablePage)
-                            {
-                                g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x + length, y);
-                            }
-                        }
-                        else if (lineObject.LineOrientation == LineOrientation.Vertical)
-                        {
-                            length = queryObj.GetSectionHeight(lineObject.SectionType) * lineObject.IntLinePercent / 100;
-                            if (lineObject.LinePosition == LinePosition.West)
-                            {
-                                //Do Nothing Here
-                            }
-                            else if (lineObject.LinePosition == LinePosition.East)
-                            {
-                                x += maxHorizontalLength;
-                            }
-                            else if (lineObject.LinePosition == LinePosition.Center)
-                            {
-                                x += maxHorizontalLength / 2;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            y += queryObj.GetSectionHeight(lineObject.SectionType) / 2 - length / 2;
-                            if (isPrintablePage)
-                            {
-                                g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x, y + length);
-                            }
-                        }
-
-                        if (section.SectionType == AreaSectionType.GroupHeader)
-                        {
-                            greatestObjectHeight = Math.Max(greatestObjectHeight, lineObject.Size.Height);
-                        }
-
-                        if (section.SectionType == AreaSectionType.GroupTitle)
-                        {
-                            groupTitleHeight += lineObject.Size.Height;
-                        }
-                    }
-                    else if (reportObject.ObjectType == ReportObjectType.FieldObject)
-                    {
-                        fieldObject = reportObject;
-                        RectangleF layoutRect;
-                        strFormat = ReportObject.GetStringFormatAlignment(fieldObject.ContentAlignment);
-                        if (fieldObject.FieldDefKind == FieldDefKind.DataTableField)
-                        {
-                            layoutRect = new RectangleF(xPos + fieldObject.Location.X, yPos + fieldObject.Location.Y, fieldObject.Size.Width, queryObj.RowHeightValues[i]);
-                            if (_myReport.HasGridLines() && isPrintablePage)
-                            {
-                                g.DrawRectangle(new Pen(Brushes.LightGray), Rectangle.Round(layoutRect));
-                            }
-
-                            displayText = queryObj.ReportTable.Rows[i][queryObj.ArrDataFields.IndexOf(fieldObject.DataField)].ToString();
-                            List<string> listString = GetDisplayString(displayText, prevDisplayText, fieldObject, i, queryObj);
-                            displayText = listString[0];
-                            prevDisplayText = listString[1];
-                            //suppress if duplicate:
-                            if (i > 0 && fieldObject.SuppressIfDuplicate && displayText == prevDisplayText)
-                            {
-                                displayText = "";
-                            }
+                            x += maxHorizontalLength / 2;
                         }
                         else
                         {
-                            displayText = fieldObject.GetSummaryValue(queryObj.ReportTable, queryObj.ArrDataFields.IndexOf(fieldObject.SummarizedField)).ToString(fieldObject.StringFormat);
-                            using (Font fontBold = new Font(fieldObject.Font.FontFamily, fieldObject.Font.Size, FontStyle.Bold))
-                            {
-                                layoutRect = new RectangleF(xPos + fieldObject.Location.X, yPos + fieldObject.Location.Y, fieldObject.Size.Width,
-                                    g.MeasureString(displayText, fontBold, fieldObject.Size.Width).Height);
-                            }
+                            continue;
                         }
 
+                        y += queryObj.GetSectionHeight(lineObject.SectionType) / 2 - length / 2;
                         if (isPrintablePage)
                         {
-                            g.DrawString(displayText, fieldObject.Font
-                                , new SolidBrush(fieldObject.ForeColor), new RectangleF(layoutRect.X + 1, layoutRect.Y + 1, layoutRect.Width, layoutRect.Height - 1), strFormat);
+                            g.DrawLine(new Pen(reportObject.ForeColor, reportObject.FloatLineThickness), x, y, x, y + length);
                         }
+                    }
 
-                        yPosAdd = (int) layoutRect.Height;
+                    if (section.SectionType == AreaSectionType.GroupHeader)
+                    {
+                        greatestObjectHeight = Math.Max(greatestObjectHeight, lineObject.Size.Height);
+                    }
+
+                    if (section.SectionType == AreaSectionType.GroupTitle)
+                    {
+                        groupTitleHeight += lineObject.Size.Height;
                     }
                 }
-
-                if (section.SectionType == AreaSectionType.GroupFooter)
+                else if (reportObject.ObjectType == ReportObjectType.FieldObject)
                 {
-                    yPosAdd += GROUP_FOOTER_BUFFER; //Added to give a buffer between split tables.
-                    section.Height += yPosAdd;
-                    _heightRemaining -= section.Height;
-                    break;
-                }
-                else if (section.SectionType == AreaSectionType.GroupTitle)
-                {
-                    section.Height += groupTitleHeight;
-                    _heightRemaining -= section.Height;
-                    break;
-                }
-                else if (section.SectionType == AreaSectionType.GroupHeader)
-                {
-                    section.Height = greatestObjectHeight;
-                    _heightRemaining -= section.Height;
-                    break;
-                }
-                else if (section.SectionType == AreaSectionType.Detail)
-                {
-                    _rowsPrinted++;
-                    _totalRowsPrinted++;
-                    yPos += yPosAdd;
-                    _heightRemaining -= yPosAdd;
-                    section.Height += yPosAdd;
-                    yPosAdd = 0; //reset for next loop
-                }
-            }
-
-            if (_rowsPrinted == queryObj.ReportTable.Rows.Count)
-            {
-                _rowsPrinted = 0;
-                queryObj.IsPrinted = true;
-            }
-        }
-
-        private double GetGroupSummaryValue(string columnName, List<int> summaryGroups, SummaryOperation operation)
-        {
-            double retVal = 0;
-            for (int i = 0; i < _myReport.ReportObjects.Count; i++)
-            {
-                if (_myReport.ReportObjects[i].ObjectType != ReportObjectType.QueryObject)
-                {
-                    continue;
-                }
-
-                QueryObject queryObj = (QueryObject) _myReport.ReportObjects[i];
-                if (!summaryGroups.Contains(queryObj.QueryGroupValue))
-                {
-                    continue;
-                }
-
-                for (int j = 0; j < queryObj.ReportTable.Rows.Count; j++)
-                {
-                    if (operation == SummaryOperation.Sum)
+                    fieldObject = reportObject;
+                    RectangleF layoutRect;
+                    strFormat = ReportObject.GetStringFormatAlignment(fieldObject.ContentAlignment);
+                    if (fieldObject.FieldDefKind == FieldDefKind.DataTableField)
                     {
-                        //This could be enhanced in the future to only sum up the cells that match the column name within the current query group.
-                        //Right now, if multiple query groups share the same column name that is being summed, the total will include both sets.
-                        if (queryObj.IsNegativeSummary)
+                        layoutRect = new RectangleF(xPos + fieldObject.Location.X, yPos + fieldObject.Location.Y, fieldObject.Size.Width, queryObj.RowHeightValues[i]);
+                        if (_myReport.HasGridLines() && isPrintablePage)
                         {
-                            retVal -= SIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
+                            g.DrawRectangle(new Pen(Brushes.LightGray), Rectangle.Round(layoutRect));
                         }
-                        else
+
+                        displayText = queryObj.ReportTable.Rows[i][queryObj.ArrDataFields.IndexOf(fieldObject.DataField)].ToString();
+                        var listString = GetDisplayString(displayText, prevDisplayText, fieldObject, i, queryObj);
+                        displayText = listString[0];
+                        prevDisplayText = listString[1];
+                        //suppress if duplicate:
+                        if (i > 0 && fieldObject.SuppressIfDuplicate && displayText == prevDisplayText)
                         {
-                            retVal += SIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
+                            displayText = "";
                         }
                     }
-                    else if (operation == SummaryOperation.Count)
+                    else
                     {
-                        retVal++;
+                        displayText = fieldObject.GetSummaryValue(queryObj.ReportTable, queryObj.ArrDataFields.IndexOf(fieldObject.SummarizedField)).ToString(fieldObject.StringFormat);
+                        using (var fontBold = new Font(fieldObject.Font.FontFamily, fieldObject.Font.Size, FontStyle.Bold))
+                        {
+                            layoutRect = new RectangleF(xPos + fieldObject.Location.X, yPos + fieldObject.Location.Y, fieldObject.Size.Width,
+                                g.MeasureString(displayText, fontBold, fieldObject.Size.Width).Height);
+                        }
+                    }
+
+                    if (isPrintablePage)
+                    {
+                        g.DrawString(displayText, fieldObject.Font
+                            , new SolidBrush(fieldObject.ForeColor), new RectangleF(layoutRect.X + 1, layoutRect.Y + 1, layoutRect.Width, layoutRect.Height - 1), strFormat);
+                    }
+
+                    yPosAdd = (int) layoutRect.Height;
+                }
+            }
+
+            if (section.SectionType == AreaSectionType.GroupFooter)
+            {
+                yPosAdd += GROUP_FOOTER_BUFFER; //Added to give a buffer between split tables.
+                section.Height += yPosAdd;
+                _heightRemaining -= section.Height;
+                break;
+            }
+            else if (section.SectionType == AreaSectionType.GroupTitle)
+            {
+                section.Height += groupTitleHeight;
+                _heightRemaining -= section.Height;
+                break;
+            }
+            else if (section.SectionType == AreaSectionType.GroupHeader)
+            {
+                section.Height = greatestObjectHeight;
+                _heightRemaining -= section.Height;
+                break;
+            }
+            else if (section.SectionType == AreaSectionType.Detail)
+            {
+                _rowsPrinted++;
+                _totalRowsPrinted++;
+                yPos += yPosAdd;
+                _heightRemaining -= yPosAdd;
+                section.Height += yPosAdd;
+                yPosAdd = 0; //reset for next loop
+            }
+        }
+
+        if (_rowsPrinted == queryObj.ReportTable.Rows.Count)
+        {
+            _rowsPrinted = 0;
+            queryObj.IsPrinted = true;
+        }
+    }
+
+    private double GetGroupSummaryValue(string columnName, List<int> summaryGroups, SummaryOperation operation)
+    {
+        double retVal = 0;
+        for (var i = 0; i < _myReport.ReportObjects.Count; i++)
+        {
+            if (_myReport.ReportObjects[i].ObjectType != ReportObjectType.QueryObject)
+            {
+                continue;
+            }
+
+            var queryObj = (QueryObject) _myReport.ReportObjects[i];
+            if (!summaryGroups.Contains(queryObj.QueryGroupValue))
+            {
+                continue;
+            }
+
+            for (var j = 0; j < queryObj.ReportTable.Rows.Count; j++)
+            {
+                if (operation == SummaryOperation.Sum)
+                {
+                    //This could be enhanced in the future to only sum up the cells that match the column name within the current query group.
+                    //Right now, if multiple query groups share the same column name that is being summed, the total will include both sets.
+                    if (queryObj.IsNegativeSummary)
+                    {
+                        retVal -= SIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
+                    }
+                    else
+                    {
+                        retVal += SIn.Double(queryObj.ReportTable.Rows[j][queryObj.ReportTable.Columns.IndexOf(columnName)].ToString());
                     }
                 }
-            }
-
-            return retVal;
-        }
-
-        private List<string> GetDisplayString(string rawText, string prevDisplayText, ReportObject reportObject, int i, QueryObject queryObj)
-        {
-            return GetDisplayString(rawText, prevDisplayText, reportObject, i, queryObj, false);
-        }
-
-        private List<string> GetDisplayString(string rawText, string prevDisplayText, ReportObject reportObject, int i, QueryObject queryObj, bool isExport)
-        {
-            string displayText = "";
-            List<string> retVals = new List<string>();
-            DataTable dt = queryObj.ReportTable;
-            //For exporting, we need to use the ExportTable which is the data that is visible to the user.  Using ReportTable would show raw query data (potentially different than what the user sees).
-            if (isExport)
-            {
-                dt = queryObj.ExportTable;
-            }
-
-            if (reportObject.FieldValueType == FieldValueType.Age)
-            {
-                displayText = Patients.AgeToString(Patients.DateToAge(SIn.Date(rawText))); //(fieldObject.FormatString);
-            }
-            else if (reportObject.FieldValueType == FieldValueType.Boolean)
-            {
-                if (SIn.Bool(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()))
+                else if (operation == SummaryOperation.Count)
                 {
-                    displayText = "X";
-                }
-                else
-                {
-                    displayText = "";
-                }
-
-                if (i > 0 && reportObject.SuppressIfDuplicate)
-                {
-                    prevDisplayText = SIn.Bool(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString();
+                    retVal++;
                 }
             }
-            else if (reportObject.FieldValueType == FieldValueType.Date)
-            {
-                DateTime rowDateTime = SIn.DateTime(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
-                if (rowDateTime.Year > 1880)
-                {
-                    displayText = rowDateTime.ToString(reportObject.StringFormat);
-                }
-
-                if (i > 0 && reportObject.SuppressIfDuplicate)
-                {
-                    rowDateTime = SIn.DateTime(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
-                    prevDisplayText = "";
-                    if (rowDateTime.Year > 1880)
-                    {
-                        prevDisplayText = rowDateTime.ToString(reportObject.StringFormat);
-                    }
-                }
-            }
-            else if (reportObject.FieldValueType == FieldValueType.Integer)
-            {
-                displayText = SIn.Long(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
-                if (i > 0 && reportObject.SuppressIfDuplicate)
-                {
-                    prevDisplayText = SIn.Long(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
-                }
-            }
-            else if (reportObject.FieldValueType == FieldValueType.Number)
-            {
-                displayText = SIn.Double(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
-                if (i > 0 && reportObject.SuppressIfDuplicate)
-                {
-                    prevDisplayText = SIn.Double(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
-                }
-            }
-            else if (reportObject.FieldValueType == FieldValueType.String)
-            {
-                displayText = rawText;
-                if (i > 0 && reportObject.SuppressIfDuplicate)
-                {
-                    prevDisplayText = dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString();
-                }
-            }
-
-            retVals.Add(displayText);
-            retVals.Add(prevDisplayText);
-            return retVals;
         }
 
-        private void Print_Click()
+        return retVal;
+    }
+
+    private List<string> GetDisplayString(string rawText, string prevDisplayText, ReportObject reportObject, int i, QueryObject queryObj)
+    {
+        return GetDisplayString(rawText, prevDisplayText, reportObject, i, queryObj, false);
+    }
+
+    private List<string> GetDisplayString(string rawText, string prevDisplayText, ReportObject reportObject, int i, QueryObject queryObj, bool isExport)
+    {
+        var displayText = "";
+        var retVals = new List<string>();
+        var dt = queryObj.ReportTable;
+        //For exporting, we need to use the ExportTable which is the data that is visible to the user.  Using ReportTable would show raw query data (potentially different than what the user sees).
+        if (isExport)
         {
-            _totalNumberPagesPrinted = 0;
-            int totalPages = _totalPages; //_totalPages gets set to _pagesProcessed in the RestedODPrintout function. 
-            if (IsRetailStorePAndI || IsRetailStoreInventory)
+            dt = queryObj.ExportTable;
+        }
+
+        if (reportObject.FieldValueType == FieldValueType.Age)
+        {
+            displayText = Patients.AgeToString(Patients.DateToAge(SIn.Date(rawText))); //(fieldObject.FormatString);
+        }
+        else if (reportObject.FieldValueType == FieldValueType.Boolean)
+        {
+            if (SIn.Bool(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()))
             {
-                PrinterL.HasComputerTable = false;
-            }
-
-            if (ResetODprintout() && PrinterL.TryPrint(_printout) && _totalNumberPagesPrinted != totalPages)
-            {
-                //We must refresh the window here or it will display the printout as missing any pages beyond ex.PageSettings.PrinterSettings.ToPage.
-                RefreshWindow();
-            }
-        }
-
-        private void OnBack_Click()
-        {
-            PrevPage();
-        }
-
-        private void OnFwd_Click()
-        {
-            NextPage();
-        }
-
-        private void OnZoomIn_Click()
-        {
-            printPreviewControl2.Zoom = printPreviewControl2.Zoom * 2;
-        }
-
-        private void OnZoomOut_Click()
-        {
-            printPreviewControl2.Zoom = printPreviewControl2.Zoom / 2;
-        }
-
-        private void OnZoomReset_Click()
-        {
-            SetDefaultZoom();
-        }
-
-        private void PrevPage()
-        {
-            if (printPreviewControl2.StartPage == 0)
-            {
-                return;
-            }
-
-            printPreviewControl2.StartPage--;
-            SetPageNavString();
-        }
-
-        private void NextPage()
-        {
-            if (printPreviewControl2.StartPage == _totalPages - 1)
-            {
-                return;
-            }
-
-            printPreviewControl2.StartPage++;
-            SetPageNavString();
-        }
-
-        public void SetPageNavString()
-        {
-            ToolBarMain.Buttons["PageNum"].PageValue = printPreviewControl2.StartPage + 1;
-            ToolBarMain.Buttons["PageNum"].PageMax = _totalPages;
-            ToolBarMain.Invalidate();
-        }
-
-        private void OnExport_Click()
-        {
-            string filePath;
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
-            saveFileDialog.DefaultExt = "txt";
-            saveFileDialog.FileName = _myReport.ReportName;
-            if (false)
-            {
-                if (saveFileDialog.ShowDialog() != DialogResult.OK)
-                {
-                    return;
-                }
-
-                if (saveFileDialog.FileName.IsNullOrEmpty())
-                {
-                    MsgBox.Show("Failed to save the file.");
-                    return;
-                }
-
-                filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), saveFileDialog.FileName.Split('\\').Last());
-            }
-            else if (false)
-            {
-                //Don't show save file dialog in AppStream environment.
-                string fileName = _myReport.ReportName;
-                filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), fileName);
-            }
-            else if (IsRetailStorePAndI)
-            {
-                filePath = @"\\opendental.od\serverfiles\My\KaitlynW\SnackShack_Reports\P&I_Report_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
-            }
-            else if (IsRetailStoreInventory)
-            {
-                filePath = @"\\opendental.od\serverfiles\My\KaitlynW\SnackShack_Reports\Inventory_Report_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+                displayText = "X";
             }
             else
             {
-                //saveFileDialog2.Title=Lan.g(this,"Select Folder to Save File To");
-                if (!Directory.Exists(PrefC.GetString(PrefName.ExportPath)))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
-                        saveFileDialog.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
-                    }
-                    catch
-                    {
-                        //initialDirectory will be blank
-                    }
-                }
-                else
-                {
-                    saveFileDialog.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
-                }
-
-                if (saveFileDialog.ShowDialog() != DialogResult.OK)
-                {
-                    return;
-                }
-
-                if (saveFileDialog.FileName.IsNullOrEmpty())
-                {
-                    MsgBox.Show("Failed to save the file.");
-                    return;
-                }
-
-                filePath = saveFileDialog.FileName;
+                displayText = "";
             }
 
-            try
+            if (i > 0 && reportObject.SuppressIfDuplicate)
             {
-                using (StreamWriter sw = new StreamWriter(filePath, false))
+                prevDisplayText = SIn.Bool(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString();
+            }
+        }
+        else if (reportObject.FieldValueType == FieldValueType.Date)
+        {
+            var rowDateTime = SIn.DateTime(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
+            if (rowDateTime.Year > 1880)
+            {
+                displayText = rowDateTime.ToString(reportObject.StringFormat);
+            }
+
+            if (i > 0 && reportObject.SuppressIfDuplicate)
+            {
+                rowDateTime = SIn.DateTime(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString());
+                prevDisplayText = "";
+                if (rowDateTime.Year > 1880)
                 {
-                    String line = "";
-                    foreach (ReportObject reportObject in _myReport.ReportObjects)
+                    prevDisplayText = rowDateTime.ToString(reportObject.StringFormat);
+                }
+            }
+        }
+        else if (reportObject.FieldValueType == FieldValueType.Integer)
+        {
+            displayText = SIn.Long(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+            if (i > 0 && reportObject.SuppressIfDuplicate)
+            {
+                prevDisplayText = SIn.Long(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+            }
+        }
+        else if (reportObject.FieldValueType == FieldValueType.Number)
+        {
+            displayText = SIn.Double(dt.Rows[i][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+            if (i > 0 && reportObject.SuppressIfDuplicate)
+            {
+                prevDisplayText = SIn.Double(dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString()).ToString(reportObject.StringFormat);
+            }
+        }
+        else if (reportObject.FieldValueType == FieldValueType.String)
+        {
+            displayText = rawText;
+            if (i > 0 && reportObject.SuppressIfDuplicate)
+            {
+                prevDisplayText = dt.Rows[i - 1][queryObj.ArrDataFields.IndexOf(reportObject.DataField)].ToString();
+            }
+        }
+
+        retVals.Add(displayText);
+        retVals.Add(prevDisplayText);
+        return retVals;
+    }
+
+    private void Print_Click()
+    {
+        _totalNumberPagesPrinted = 0;
+        var totalPages = _totalPages; //_totalPages gets set to _pagesProcessed in the RestedODPrintout function. 
+        if (IsRetailStorePAndI || IsRetailStoreInventory)
+        {
+            PrinterL.HasComputerTable = false;
+        }
+
+        if (ResetODprintout() && PrinterL.TryPrint(_printout) && _totalNumberPagesPrinted != totalPages)
+        {
+            //We must refresh the window here or it will display the printout as missing any pages beyond ex.PageSettings.PrinterSettings.ToPage.
+            RefreshWindow();
+        }
+    }
+
+    private void OnBack_Click()
+    {
+        PrevPage();
+    }
+
+    private void OnFwd_Click()
+    {
+        NextPage();
+    }
+
+    private void OnZoomIn_Click()
+    {
+        printPreviewControl2.Zoom = printPreviewControl2.Zoom * 2;
+    }
+
+    private void OnZoomOut_Click()
+    {
+        printPreviewControl2.Zoom = printPreviewControl2.Zoom / 2;
+    }
+
+    private void OnZoomReset_Click()
+    {
+        SetDefaultZoom();
+    }
+
+    private void PrevPage()
+    {
+        if (printPreviewControl2.StartPage == 0)
+        {
+            return;
+        }
+
+        printPreviewControl2.StartPage--;
+        SetPageNavString();
+    }
+
+    private void NextPage()
+    {
+        if (printPreviewControl2.StartPage == _totalPages - 1)
+        {
+            return;
+        }
+
+        printPreviewControl2.StartPage++;
+        SetPageNavString();
+    }
+
+    public void SetPageNavString()
+    {
+        ToolBarMain.Buttons["PageNum"].PageValue = printPreviewControl2.StartPage + 1;
+        ToolBarMain.Buttons["PageNum"].PageMax = _totalPages;
+        ToolBarMain.Invalidate();
+    }
+
+    private void OnExport_Click()
+    {
+        string filePath;
+        var saveFileDialog = new SaveFileDialog();
+        saveFileDialog.Filter = "Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
+        saveFileDialog.DefaultExt = "txt";
+        saveFileDialog.FileName = _myReport.ReportName;
+        if (false)
+        {
+            if (saveFileDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            if (saveFileDialog.FileName.IsNullOrEmpty())
+            {
+                MsgBox.Show("Failed to save the file.");
+                return;
+            }
+
+            filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), saveFileDialog.FileName.Split('\\').Last());
+        }
+        else if (false)
+        {
+            //Don't show save file dialog in AppStream environment.
+            var fileName = _myReport.ReportName;
+            filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), fileName);
+        }
+        else if (IsRetailStorePAndI)
+        {
+            filePath = @"\\opendental.od\serverfiles\My\KaitlynW\SnackShack_Reports\P&I_Report_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+        }
+        else if (IsRetailStoreInventory)
+        {
+            filePath = @"\\opendental.od\serverfiles\My\KaitlynW\SnackShack_Reports\Inventory_Report_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+        }
+        else
+        {
+            //saveFileDialog2.Title=Lan.g(this,"Select Folder to Save File To");
+            if (!Directory.Exists(PrefC.GetString(PrefName.ExportPath)))
+            {
+                try
+                {
+                    Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
+                    saveFileDialog.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
+                }
+                catch
+                {
+                    //initialDirectory will be blank
+                }
+            }
+            else
+            {
+                saveFileDialog.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
+            }
+
+            if (saveFileDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            if (saveFileDialog.FileName.IsNullOrEmpty())
+            {
+                MsgBox.Show("Failed to save the file.");
+                return;
+            }
+
+            filePath = saveFileDialog.FileName;
+        }
+
+        try
+        {
+            using (var sw = new StreamWriter(filePath, false))
+            {
+                var line = "";
+                foreach (ReportObject reportObject in _myReport.ReportObjects)
+                {
+                    if (reportObject.ObjectType == ReportObjectType.QueryObject)
                     {
-                        if (reportObject.ObjectType == ReportObjectType.QueryObject)
+                        var query = (QueryObject) reportObject;
+                        line = query.GetGroupTitle().StaticText;
+                        sw.WriteLine(line);
+                        line = "";
+                        for (var i = 0; i < query.ExportTable.Columns.Count; i++)
                         {
-                            QueryObject query = (QueryObject) reportObject;
-                            line = query.GetGroupTitle().StaticText;
-                            sw.WriteLine(line);
-                            line = "";
-                            for (int i = 0; i < query.ExportTable.Columns.Count; i++)
+                            var col = query.ExportTable.Columns[i];
+                            if (Regex.IsMatch(col.Caption, @"^[@\-+=']{1}"))
                             {
-                                DataColumn col = query.ExportTable.Columns[i];
-                                if (Regex.IsMatch(col.Caption, @"^[@\-+=']{1}"))
+                                line += "'"; //start with ' to escape one of the special characters @, -, +, =, or '
+                            }
+
+                            line += col.Caption;
+                            if (i < query.ExportTable.Columns.Count - 1)
+                            {
+                                line += "\t";
+                            }
+                        }
+
+                        //To preserve forms with multi line headers, we are just stripping any carriage returns and newlines on exporting a report
+                        line = line.Replace("\r\n", " ");
+                        sw.WriteLine(line);
+                        string cell;
+                        for (var i = 0; i < query.ExportTable.Rows.Count; i++)
+                        {
+                            line = "";
+                            var displayText = "";
+                            foreach (ReportObject reportObj in query.ReportObjects)
+                            {
+                                if (reportObj.SectionType != AreaSectionType.Detail)
                                 {
-                                    line += "'"; //start with ' to escape one of the special characters @, -, +, =, or '
+                                    continue;
                                 }
 
-                                line += col.Caption;
-                                if (i < query.ExportTable.Columns.Count - 1)
+                                var rawText = "";
+                                if (reportObj.ObjectType == ReportObjectType.FieldObject)
+                                {
+                                    rawText = query.ExportTable.Rows[i][query.ArrDataFields.IndexOf(reportObj.DataField)].ToString();
+                                    if (string.IsNullOrWhiteSpace(rawText))
+                                    {
+                                        line += "\t";
+                                        continue;
+                                    }
+
+                                    var listString = GetDisplayString(rawText, "", reportObj, i, query, true);
+                                    displayText = listString[0];
+                                }
+
+                                cell = displayText;
+                                cell = cell.Replace("\r", "");
+                                cell = cell.Replace("\n", "");
+                                cell = cell.Replace("\t", "");
+                                cell = cell.Replace("\"", "");
+                                line += cell;
+                                if (query.ArrDataFields.IndexOf(reportObj.DataField) < query.ArrDataFields.Count - 1)
                                 {
                                     line += "\t";
                                 }
                             }
 
-                            //To preserve forms with multi line headers, we are just stripping any carriage returns and newlines on exporting a report
-                            line = line.Replace("\r\n", " ");
-                            sw.WriteLine(line);
-                            string cell;
-                            for (int i = 0; i < query.ExportTable.Rows.Count; i++)
-                            {
-                                line = "";
-                                string displayText = "";
-                                foreach (ReportObject reportObj in query.ReportObjects)
-                                {
-                                    if (reportObj.SectionType != AreaSectionType.Detail)
-                                    {
-                                        continue;
-                                    }
-
-                                    string rawText = "";
-                                    if (reportObj.ObjectType == ReportObjectType.FieldObject)
-                                    {
-                                        rawText = query.ExportTable.Rows[i][query.ArrDataFields.IndexOf(reportObj.DataField)].ToString();
-                                        if (String.IsNullOrWhiteSpace(rawText))
-                                        {
-                                            line += "\t";
-                                            continue;
-                                        }
-
-                                        List<string> listString = GetDisplayString(rawText, "", reportObj, i, query, true);
-                                        displayText = listString[0];
-                                    }
-
-                                    cell = displayText;
-                                    cell = cell.Replace("\r", "");
-                                    cell = cell.Replace("\n", "");
-                                    cell = cell.Replace("\t", "");
-                                    cell = cell.Replace("\"", "");
-                                    line += cell;
-                                    if (query.ArrDataFields.IndexOf(reportObj.DataField) < query.ArrDataFields.Count - 1)
-                                    {
-                                        line += "\t";
-                                    }
-                                }
-
-                                sw.WriteLine(line);
-                            }
-
-                            int columnValue = -1;
-                            line = "";
-                            foreach (ReportObject reportObjQuery in query.ReportObjects)
-                            {
-                                if (reportObjQuery.SectionType == AreaSectionType.GroupFooter && reportObjQuery.Name.Contains("Footer"))
-                                {
-                                    if (columnValue == -1)
-                                    {
-                                        columnValue = query.ArrDataFields.IndexOf(reportObjQuery.SummarizedField);
-                                        for (int i = 0; i < columnValue; i++)
-                                        {
-                                            line += " \t";
-                                        }
-                                    }
-
-                                    line += reportObjQuery.GetSummaryValue(query.ExportTable, query.ArrDataFields.IndexOf(reportObjQuery.SummarizedField)).ToString(reportObjQuery.StringFormat) + "\t";
-                                }
-                            }
-
                             sw.WriteLine(line);
                         }
-                    }
-                } //using
-            }
-            catch
-            {
-                ODMessageBox.Show(Lan.g(this, "File in use by another program.  Close and try again."));
-                return;
-            }
-            
-            ODMessageBox.Show(Lan.g(this, "File created successfully"));
-        }
 
-        private void OnWrapText_Click()
-        {
-            _isWrappingText = !_isWrappingText;
-            RefreshWindow();
+                        var columnValue = -1;
+                        line = "";
+                        foreach (ReportObject reportObjQuery in query.ReportObjects)
+                        {
+                            if (reportObjQuery.SectionType == AreaSectionType.GroupFooter && reportObjQuery.Name.Contains("Footer"))
+                            {
+                                if (columnValue == -1)
+                                {
+                                    columnValue = query.ArrDataFields.IndexOf(reportObjQuery.SummarizedField);
+                                    for (var i = 0; i < columnValue; i++)
+                                    {
+                                        line += " \t";
+                                    }
+                                }
+
+                                line += reportObjQuery.GetSummaryValue(query.ExportTable, query.ArrDataFields.IndexOf(reportObjQuery.SummarizedField)).ToString(reportObjQuery.StringFormat) + "\t";
+                            }
+                        }
+
+                        sw.WriteLine(line);
+                    }
+                }
+            }
         }
+        catch
+        {
+            ODMessageBox.Show("File in use by another program.  Close and try again.");
+            return;
+        }
+            
+        ODMessageBox.Show("File created successfully");
+    }
+
+    private void OnWrapText_Click()
+    {
+        _isWrappingText = !_isWrappingText;
+        RefreshWindow();
     }
 }

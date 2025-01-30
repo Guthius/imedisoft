@@ -1,13 +1,10 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EmployeeCrud
 {
@@ -15,13 +12,6 @@ public class EmployeeCrud
     {
         var command = "SELECT * FROM employee "
                       + "WHERE EmployeeNum = " + SOut.Long(employeeNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static Employee SelectOne(string command)
-    {
         var list = TableToList(DataCore.GetTable(command));
         if (list.Count == 0) return null;
         return list[0];
@@ -83,12 +73,7 @@ public class EmployeeCrud
         return table;
     }
 
-    public static long Insert(Employee employee)
-    {
-        return Insert(employee, false);
-    }
-
-    public static long Insert(Employee employee, bool useExistingPK)
+    public static void Insert(Employee employee)
     {
         var command = "INSERT INTO employee (";
 
@@ -111,60 +96,6 @@ public class EmployeeCrud
         {
             employee.EmployeeNum = Db.NonQ(command, true, "EmployeeNum", "employee");
         }
-        return employee.EmployeeNum;
-    }
-
-    public static long InsertNoCache(Employee employee)
-    {
-        return InsertNoCache(employee, false);
-    }
-
-    public static long InsertNoCache(Employee employee, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO employee (";
-        if (isRandomKeys || useExistingPK) command += "EmployeeNum,";
-        command += "LName,FName,MiddleI,IsHidden,ClockStatus,PhoneExt,PayrollID,WirelessPhone,EmailWork,EmailPersonal,IsFurloughed,IsWorkingHome,ReportsTo) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(employee.EmployeeNum) + ",";
-        command +=
-            "'" + SOut.String(employee.LName) + "',"
-            + "'" + SOut.String(employee.FName) + "',"
-            + "'" + SOut.String(employee.MiddleI) + "',"
-            + SOut.Bool(employee.IsHidden) + ","
-            + "'" + SOut.String(employee.ClockStatus) + "',"
-            + SOut.Int(employee.PhoneExt) + ","
-            + "'" + SOut.String(employee.PayrollID) + "',"
-            + "'" + SOut.String(employee.WirelessPhone) + "',"
-            + "'" + SOut.String(employee.EmailWork) + "',"
-            + "'" + SOut.String(employee.EmailPersonal) + "',"
-            + SOut.Bool(employee.IsFurloughed) + ","
-            + SOut.Bool(employee.IsWorkingHome) + ","
-            + SOut.Long(employee.ReportsTo) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            employee.EmployeeNum = Db.NonQ(command, true, "EmployeeNum", "employee");
-        return employee.EmployeeNum;
-    }
-
-    public static void Update(Employee employee)
-    {
-        var command = "UPDATE employee SET "
-                      + "LName        = '" + SOut.String(employee.LName) + "', "
-                      + "FName        = '" + SOut.String(employee.FName) + "', "
-                      + "MiddleI      = '" + SOut.String(employee.MiddleI) + "', "
-                      + "IsHidden     =  " + SOut.Bool(employee.IsHidden) + ", "
-                      + "ClockStatus  = '" + SOut.String(employee.ClockStatus) + "', "
-                      + "PhoneExt     =  " + SOut.Int(employee.PhoneExt) + ", "
-                      + "PayrollID    = '" + SOut.String(employee.PayrollID) + "', "
-                      + "WirelessPhone= '" + SOut.String(employee.WirelessPhone) + "', "
-                      + "EmailWork    = '" + SOut.String(employee.EmailWork) + "', "
-                      + "EmailPersonal= '" + SOut.String(employee.EmailPersonal) + "', "
-                      + "IsFurloughed =  " + SOut.Bool(employee.IsFurloughed) + ", "
-                      + "IsWorkingHome=  " + SOut.Bool(employee.IsWorkingHome) + ", "
-                      + "ReportsTo    =  " + SOut.Long(employee.ReportsTo) + " "
-                      + "WHERE EmployeeNum = " + SOut.Long(employee.EmployeeNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(Employee employee, Employee oldEmployee)
@@ -253,38 +184,5 @@ public class EmployeeCrud
                                          + " WHERE EmployeeNum = " + SOut.Long(employee.EmployeeNum);
         Db.NonQ(command);
         return true;
-    }
-
-    public static bool UpdateComparison(Employee employee, Employee oldEmployee)
-    {
-        if (employee.LName != oldEmployee.LName) return true;
-        if (employee.FName != oldEmployee.FName) return true;
-        if (employee.MiddleI != oldEmployee.MiddleI) return true;
-        if (employee.IsHidden != oldEmployee.IsHidden) return true;
-        if (employee.ClockStatus != oldEmployee.ClockStatus) return true;
-        if (employee.PhoneExt != oldEmployee.PhoneExt) return true;
-        if (employee.PayrollID != oldEmployee.PayrollID) return true;
-        if (employee.WirelessPhone != oldEmployee.WirelessPhone) return true;
-        if (employee.EmailWork != oldEmployee.EmailWork) return true;
-        if (employee.EmailPersonal != oldEmployee.EmailPersonal) return true;
-        if (employee.IsFurloughed != oldEmployee.IsFurloughed) return true;
-        if (employee.IsWorkingHome != oldEmployee.IsWorkingHome) return true;
-        if (employee.ReportsTo != oldEmployee.ReportsTo) return true;
-        return false;
-    }
-
-    public static void Delete(long employeeNum)
-    {
-        var command = "DELETE FROM employee "
-                      + "WHERE EmployeeNum = " + SOut.Long(employeeNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listEmployeeNums)
-    {
-        if (listEmployeeNums == null || listEmployeeNums.Count == 0) return;
-        var command = "DELETE FROM employee "
-                      + "WHERE EmployeeNum IN(" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AdjustmentCrud
 {
@@ -66,7 +68,7 @@ public class AdjustmentCrud
                                           + DbHelper.ParamChar + "paramAdjNote,"
                                           + SOut.Date(adjustment.ProcDate) + ","
                                           + SOut.Long(adjustment.ProcNum) + ","
-                                          + DbHelper.Now() + ","
+                                          + "NOW()" + ","
                                           + SOut.Long(adjustment.ClinicNum) + ","
                                           + SOut.Long(adjustment.StatementNum) + ","
                                           + SOut.Long(adjustment.SecUserNumEntry) + ","
@@ -74,7 +76,7 @@ public class AdjustmentCrud
                                           + SOut.Long(adjustment.TaxTransID) + ")";
         if (adjustment.AdjNote == null) adjustment.AdjNote = "";
 
-        var paramAdjNote = new OdSqlParameter("paramAdjNote", OdDbType.Text, SOut.StringNote(adjustment.AdjNote));
+        var paramAdjNote = new OdSqlParameter("paramAdjNote", SOut.StringNote(adjustment.AdjNote));
         {
             adjustment.AdjNum = Db.NonQ(command, true, "AdjNum", "adjustment", paramAdjNote);
         }
@@ -101,7 +103,7 @@ public class AdjustmentCrud
                       + "WHERE AdjNum = " + SOut.Long(adjustment.AdjNum);
         if (adjustment.AdjNote == null) adjustment.AdjNote = "";
 
-        var paramAdjNote = new OdSqlParameter("paramAdjNote", OdDbType.Text, SOut.StringNote(adjustment.AdjNote));
+        var paramAdjNote = new OdSqlParameter("paramAdjNote", SOut.StringNote(adjustment.AdjNote));
         Db.NonQ(command, paramAdjNote);
     }
 

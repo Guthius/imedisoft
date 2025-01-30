@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -8,6 +7,8 @@ using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Caching;
@@ -75,66 +76,6 @@ public class PrefC
             }
 
             return prefString.Split(',').Select(long.Parse).ToList();
-        }
-    }
-
-    ///<summary>True if a) Computer name of this session is included in the HasVerboseLogging PrefValue OR b) OD program directory includes (blank) Verbose.txt file.</summary>
-    public static bool IsVerboseLoggingSession()
-    {
-        var ynIsVerboseLoggingSession = _isVerboseLoggingSession;
-        try
-        {
-            if (_isVerboseLoggingSession != YN.Unknown)
-            {
-                //Pref flag is already set so return it.
-                return _isVerboseLoggingSession == YN.Yes;
-            }
-
-            //Do not allow PrefC.GetString below if we haven't loaded the Pref cache yet. This would cause a recursive loop and stack overflow.
-            if (Prefs.DictIsNull())
-            {
-                //Pref flag is not set but Prefs are not available yet so try to get flag from file existence.
-                if (File.Exists(Path.Combine(Application.StartupPath, "Verbose.txt")))
-                {
-                    //Switch logger to a directory that won't have permissions issues.
-                    Logger.UseMyDocsDirectory();
-                    //Verbose file is present so always log.
-                    _isVerboseLoggingSession = YN.Yes;
-                    return true;
-                }
-
-                //Prefs not available and Verbose file does not exist. Logging is off.
-                return false;
-            }
-
-            //Prefs are available so try to get flag from pref.
-            if (GetString(PrefName.HasVerboseLogging).ToLower()
-                .Split(",", StringSplitOptions.RemoveEmptyEntries).ToList()
-                .Exists(x => x == ODEnvironment.MachineName.ToLower()))
-            {
-                _isVerboseLoggingSession = YN.Yes;
-                //Switch logger to a directory that won't have permissions issues.
-                Logger.UseMyDocsDirectory();
-            }
-            else
-            {
-                _isVerboseLoggingSession = YN.No;
-            }
-
-            //Pref flag was just set so return it.
-            return _isVerboseLoggingSession == YN.Yes;
-        }
-        catch (Exception e)
-        {
-            return false;
-        }
-        finally
-        {
-            if (ynIsVerboseLoggingSession != _isVerboseLoggingSession)
-            {
-                var message = "Logging Verbosity has changed from " + ynIsVerboseLoggingSession.ToString() + " to " + _isVerboseLoggingSession.ToString();
-                ODException.SwallowAnyException(() => { Logger.WriteLine(message, "Meta" + "\\" + Process.GetCurrentProcess().Id.ToString()); });
-            }
         }
     }
 
@@ -417,7 +358,6 @@ public class PrefC
         var progXCharge = Programs.GetCur(ProgramName.Xcharge);
         var progEdgeExpress = Programs.GetCur(ProgramName.EdgeExpress);
         var progPayConnect = Programs.GetCur(ProgramName.PayConnect);
-        var progCareCredit = Programs.GetCur(ProgramName.CareCredit);
         var progPaySimple = Programs.GetCur(ProgramName.PaySimple);
         if (progEdgeExpress.Enabled)
         {
@@ -458,13 +398,7 @@ public class PrefC
                 return true;
             }
         }
-
-        if (progCareCredit.Enabled && !isForMobile)
-        {
-            progEnabledForPayments = ProgramName.CareCredit;
-            return true;
-        }
-
+        
         return false;
     }
 

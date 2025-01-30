@@ -2,19 +2,13 @@ using System;
 using System.Collections.Generic;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Diseases
 {
-    /// <summary>
-    ///     This returns a single disease, but a patient may have multiple instances of the same disease.  For example,
-    ///     they may have multiple pregnancy instances with the same DiseaseDefNum.  This will return a single instance of the
-    ///     disease, chosen at random by MySQL.  Would be better to use GetDiseasesForPatient below which returns a list of
-    ///     diseases with this DiseaseDefNum for the patient.
-    /// </summary>
     public static Disease GetSpecificDiseaseForPatient(long patNum, long diseaseDefNum)
     {
         var command = "SELECT * FROM disease WHERE PatNum=" + SOut.Long(patNum)
@@ -22,11 +16,6 @@ public class Diseases
         return DiseaseCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Gets a list of every disease for the patient that has the specified DiseaseDefNum.  Set showActiveOnly true to
-    ///     only show active Diseases based on status (i.e. it could have a stop date but still be active, or marked inactive
-    ///     with no stop date).
-    /// </summary>
     public static List<Disease> GetDiseasesForPatient(long patNum, long diseaseDefNum, bool showActiveOnly)
     {
         var command = "SELECT * FROM disease WHERE PatNum=" + SOut.Long(patNum)
@@ -36,7 +25,6 @@ public class Diseases
         return DiseaseCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a list of PatNums that have a disease from the PatNums that are passed in.</summary>
     public static List<long> GetPatientsWithDisease(List<long> listPatNums)
     {
         if (listPatNums.Count == 0) return new List<long>();
@@ -46,19 +34,16 @@ public class Diseases
         return Db.GetListLong(command);
     }
 
-    ///<summary>Gets one disease by DiseaseNum from the db.</summary>
     public static Disease GetOne(long diseaseNum)
     {
         return DiseaseCrud.SelectOne(diseaseNum);
     }
 
-    ///<summary>Gets a list of all Diseases for a given patient.  Includes hidden. Sorted by diseasedef.ItemOrder.</summary>
     public static List<Disease> Refresh(long patNum)
     {
         return Refresh(patNum, false);
     }
 
-    ///<summary>Gets a list of all Diseases for a given patient. Set showActive true to only show active Diseases.</summary>
     public static List<Disease> Refresh(long patNum, bool showActiveOnly)
     {
         var command = "SELECT disease.* FROM disease "
@@ -68,10 +53,6 @@ public class Diseases
         return DiseaseCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets a list of all Diseases for a given patient. Setting includeInactive to true returns all, otherwise only
-    ///     resolved and active problems.
-    /// </summary>
     public static List<Disease> GetPatientDiseases(long patNum, bool includeInactive)
     {
         var command = "SELECT disease.* FROM disease "
@@ -82,7 +63,6 @@ public class Diseases
         return DiseaseCrud.SelectMany(command);
     }
 
-    
     public static List<Disease> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM disease "
@@ -90,35 +70,27 @@ public class Diseases
         return DiseaseCrud.SelectMany(command);
     }
 
-    
     public static void Update(Disease disease)
     {
         DiseaseCrud.Update(disease);
     }
 
-    
     public static void Update(Disease disease, Disease diseaseOld)
     {
         DiseaseCrud.Update(disease, diseaseOld);
     }
 
-    
     public static long Insert(Disease disease)
     {
         return DiseaseCrud.Insert(disease);
     }
 
-    
     public static void Delete(Disease disease)
     {
         var command = "DELETE FROM disease WHERE DiseaseNum =" + SOut.Long(disease.DiseaseNum);
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Changes the value of the DateTStamp column to the current time stamp for all diseases of a patient that are
-    ///     the status specified.
-    /// </summary>
     public static void ResetTimeStamps(long patNum, ProblemStatus problemStatus)
     {
         var command = "UPDATE disease SET DateTStamp = CURRENT_TIMESTAMP WHERE PatNum =" + SOut.Long(patNum);
@@ -126,11 +98,6 @@ public class Diseases
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Checks if disease(problem) can be deleted. If can't delete, throws exception with error containing the number of
-    ///     vital signs the disease is attached to and the
-    ///     dates of the vital sign exams. If disease can be deleted, does not throw exception and simply returns.
-    /// </summary>
     public static void VerifyCanDelete(long diseaseNum)
     {
         var listVitalsigns = Vitalsigns.GetListFromPregDiseaseNum(diseaseNum);
@@ -148,11 +115,6 @@ public class Diseases
         throw new Exception("Not allowed to delete this problem. It is attached to " + listVitalsigns.Count + " vital sign exams with dates including: " + strDates + ".");
     }
 
-    /// <summary>
-    ///     Checks if disease(problem) can be updated. If can't be updated, throws exception with message containing the dates
-    ///     of the preganancy vital sign exams whose dates no longer fall
-    ///     within the active dates of the disease. If disease can be updated, does not throw exception and simply returns.
-    /// </summary>
     public static void VerifyCanUpdate(Disease disease)
     {
         //See if this problem is the pregnancy linked to a vitalsign exam
@@ -172,12 +134,7 @@ public class Diseases
                                 "the diagnosis to be outside the dates of the exam(s).  You must first remove the diagnosis from the vital sign exam(s).");
     }
 
-    /// <summary>
-    ///     Takes in vitalsign object and sets its fields to the other passed in arguments. Does not set all of the
-    ///     vitalsign object's fields.
-    /// </summary>
-    public static Disease SetDiseaseFields(Disease disease, DateTime dateStart, DateTime dateStop, ProblemStatus problemStatus, string patNote, SnomedProblemTypes snomedProblemTypes,
-        FunctionalStatus functionalStatus)
+    public static Disease SetDiseaseFields(Disease disease, DateTime dateStart, DateTime dateStop, ProblemStatus problemStatus, string patNote, SnomedProblemTypes snomedProblemTypes, FunctionalStatus functionalStatus)
     {
         disease.DateStart = dateStart;
         disease.DateStop = dateStop;

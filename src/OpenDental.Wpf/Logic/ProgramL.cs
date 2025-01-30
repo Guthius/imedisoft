@@ -10,6 +10,7 @@ using OpenDental.Bridges;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using xBridges=Bridges;//Bridges is ambiguous with OpenDental.Bridges
 
@@ -71,20 +72,6 @@ namespace WpfControls {
 			}
 			else if(program.ProgName==ProgramName.CaptureLink.ToString()) {
 				CaptureLink.SendData(program,patient);
-				return;
-			}
-			else if(program.ProgName==ProgramName.CareCredit.ToString()) {
-				if(!program.Enabled) {
-					xBridges.CareCredit.ShowPage(xBridges.CareCredit.ProviderSignupURL);
-					return;
-				}
-				if(patient==null) {
-					MsgBox.Show("ProgramLinks","No patient selected.");
-					return;
-				}
-				FormLauncher formLauncher=new FormLauncher(EnumFormName.FormCareCredit);
-				formLauncher.SetField("PatientCur",patient);
-				formLauncher.ShowDialog();
 				return;
 			}
 			else if(program.ProgName==ProgramName.Carestream.ToString()) {
@@ -577,27 +564,6 @@ namespace WpfControls {
 					MenuItem menuItem=new MenuItem();
 					menuItem.Text=Lans.g("Oryx","User Settings");
 					menuItem.Click+=OpenDental.Bridges.Oryx.menuItemUserSettingsClick;
-					contextMenu.Add(menuItem);
-					toolBarButton.ToolBarButtonStyle=ToolBarButtonStyle.DropDownButton;
-					toolBarButton.ContextMenuDropDown=contextMenu;
-				}
-				else if(program.ProgName==ProgramName.CareCredit.ToString()) {
-					if(Programs.IsEnabled(ProgramName.CareCredit)) {
-						return; //no need to create the drop down if CareCredit is already enabled
-					}
-					ContextMenu contextMenu=new ContextMenu();
-					MenuItem menuItem=new MenuItem();
-					menuItem.Text=Lans.g("CareCredit","Disable Advertising");
-					menuItem.Click+=(s,e) => {
-						List<ProgramProperty> listProgProps=ProgramProperties.GetForProgram(program.ProgramNum);
-						for(int i=0;i<listProgProps.Count;i++){
-							if(listProgProps[i].PropertyDesc==ProgramProperties.PropertyDescs.CareCredit.CareCreditDoDisableAdvertising){ 
-								listProgProps[i].PropertyValue=SOut.Bool(true);
-							}
-						}
-						ProgramProperties.Sync(listProgProps,program.ProgramNum);
-						DataValid.SetInvalid(InvalidType.Programs, InvalidType.ToolButsAndMounts);
-					};
 					contextMenu.Add(menuItem);
 					toolBarButton.ToolBarButtonStyle=ToolBarButtonStyle.DropDownButton;
 					toolBarButton.ContextMenuDropDown=contextMenu;

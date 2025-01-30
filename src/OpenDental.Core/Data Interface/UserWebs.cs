@@ -5,36 +5,24 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using ODCrypt;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public class UserWebs
 {
-    #region Insert
-
-    
-    public static long Insert(UserWeb userWeb)
+    public static void Insert(UserWeb userWeb)
     {
-        return UserWebCrud.Insert(userWeb);
+        UserWebCrud.Insert(userWeb);
     }
 
-    #endregion
-
-    #region Delete
-
-    
     public static void Delete(long userWebNum)
     {
         UserWebCrud.Delete(userWebNum);
     }
 
-    #endregion
-
-    #region Get Methods
-
-    ///<summary>Returns true if the patient has portal access.</summary>
     public static bool HasPatientPortalAccess(long patNum)
     {
         var command = "SELECT * FROM userweb WHERE FKeyType=" + SOut.Int((int) UserWebFKeyType.PatientPortal) + " "
@@ -55,31 +43,16 @@ public class UserWebs
         return UserWebCrud.SelectOne(command);
     }
 
-    #endregion
-
-    #region Update
-
-    
     public static void Update(UserWeb userWeb)
     {
         UserWebCrud.Update(userWeb);
     }
 
-    
     public static void Update(UserWeb userWeb, UserWeb userWebOld)
     {
         UserWebCrud.Update(userWeb, userWebOld);
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Creates a username that is not yet in use. Should typically call UserWebs.GetNewPatientPortalCredentials() instead.
-    ///     If you are not inserting the name into UserWeb immediately then listExcludedNames should persist across multiple
-    ///     calls.
-    /// </summary>
     public static string CreateUserNameFromPat(Patient patient, UserWebFKeyType userWebFKeyType, List<string> listExcludedNames)
     {
         var userName = "";
@@ -99,42 +72,6 @@ public class UserWebs
         return userName;
     }
 
-    ///<summary>Generates a random password 8 char long containing at least one uppercase, one lowercase, and one number.</summary>
-    public static string PassGen(int length)
-    {
-        if (length < 0) length = 0;
-
-        //Leave out characters that can cause confusion (o,O,0,l,1,I).
-        var lowerCase = "abcdefgijkmnopqrstwxyz";
-        var upperCase = "ABCDEFGHJKLMNPQRSTWXYZ";
-        var numbers = "23456789";
-        var allChars = lowerCase + upperCase + numbers;
-        var passChars = "";
-        //Grab a letter from each so know we have one of each.
-        var stringArrayAllChars = new[] {lowerCase, upperCase, numbers};
-        for (var i = 0; i < stringArrayAllChars.Length; i++) passChars += stringArrayAllChars[i][CryptUtil.Random<int>() % stringArrayAllChars[i].Length];
-
-        //Start at 3 because we already added 3 characters
-        for (var i = 3; i < length; i++) passChars += allChars[CryptUtil.Random<int>() % allChars.Length];
-
-        //Now that we have our character set, now we do a Fisher-Yates shuffle.
-        var charArray = passChars.ToCharArray();
-        var arraySize = charArray.Length;
-        int intRandom;
-        char charTemp;
-        for (var i = 0; i < arraySize; i++)
-        {
-            intRandom = i + CryptUtil.Random<int>() % (arraySize - i);
-            charTemp = charArray[intRandom];
-            charArray[intRandom] = charArray[i];
-            charArray[i] = charTemp;
-        }
-
-        //Take a substring in case the requested length is 1 or 2 characters.
-        return new string(charArray).Substring(0, length);
-    }
-
-    ///<summary>Generates a random password 8 char long containing at least one uppercase, one lowercase, and one number.</summary>
     public static string GenerateRandomPassword(int length)
     {
         //Chracters like o(letter O), 0 (Zero), l (letter l), 1 (one) etc are avoided because they can be ambigious.
@@ -266,12 +203,6 @@ public class UserWebs
         return stringBuilderErrors.ToString();
     }
 
-    /// <summary>
-    ///     Updates password info in db for given inputs if PlainTextPassword (Item2) is not empty.
-    ///     Insert EhrMeasureEvent OnlineAccessProvided if previous db version of UserWeb had no PasswordHash (access has now
-    ///     been granted to portal).
-    ///     Returns true if UserWeb row was updated. Otherwise returns false.
-    /// </summary>
     public static bool UpdateNewPatientPortalCredentials(PatientPortalCredential patientPortalCredential)
     {
         if (patientPortalCredential == null) return false;
@@ -280,17 +211,6 @@ public class UserWebs
         var passwordContainer = patientPortalCredential.PasswordContainer;
         if (userWeb != null && !patientPortalCredential.HasAccessedPatientPortal)
         {
-            //Only insert an EHR event if the password was previously blank (meaning they don't currently have access).
-            if (string.IsNullOrEmpty(userWeb.PasswordHash))
-            {
-                var ehrMeasureEvent = new EhrMeasureEvent();
-                ehrMeasureEvent.DateTEvent = DateTime.Now;
-                ehrMeasureEvent.EventType = EhrMeasureEventType.OnlineAccessProvided;
-                ehrMeasureEvent.PatNum = userWeb.FKey; //PatNum.
-                ehrMeasureEvent.MoreInfo = "";
-                EhrMeasureEvents.Insert(ehrMeasureEvent);
-            }
-
             //New password was created so set the flag for the user to change on next login and update the db accordingly.
             userWeb.RequirePasswordChange = true;
             userWeb.LoginDetails = passwordContainer;
@@ -301,18 +221,6 @@ public class UserWebs
         return false;
     }
 
-    /// <summary>
-    ///     Generates a username and password if necessary for this patient. If the patient is not eligible to be given access,
-    ///     this will return null.
-    ///     Otherwise returns the UserWeb (Item1), PlainTextPassword (Item2), PasswordContainer (Item3).
-    ///     If PlainTextPassword (Item2) is empty then assume new password generation was not necessary.
-    ///     Will insert a new UserWeb if none found for this Patient. Will leave UserWeb.PasswordHash blank.
-    ///     Call UpdateNewPatientPortalCredentials() using results of this method if you want to save password to db.
-    /// </summary>
-    /// <param name="passwordOverride">
-    ///     If a password has already been generated for this patient, pass it in here so that the password returned
-    ///     will match.
-    /// </param>
     public static PatientPortalCredential GetNewPatientPortalCredentials(Patient patient, string passwordOverride = "")
     {
         if (string.IsNullOrEmpty(PrefC.GetString(PrefName.PatientPortalURL))) return null; //Haven't set up patient portal yet.
@@ -382,6 +290,4 @@ public class UserWebs
         var command = "SELECT COUNT(*) FROM userweb WHERE UserName='" + SOut.String(userName) + "' AND FKeyType=" + SOut.Int((int) userWebFKeyType);
         return SIn.Int(Db.GetCount(command));
     }
-
-    #endregion
 }

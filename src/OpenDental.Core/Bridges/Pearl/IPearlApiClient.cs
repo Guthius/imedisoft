@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Imedisoft.Core.Entities;
 using SystemTask = System.Threading.Tasks.Task;
 
 namespace OpenDentBusiness.Pearl {

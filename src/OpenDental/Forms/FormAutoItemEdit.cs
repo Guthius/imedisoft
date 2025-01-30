@@ -1,107 +1,124 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using System.Collections.Generic;
-using System.Globalization;
-using CodeBase;
 
-namespace OpenDental{
-	
-	public partial class FormAutoItemEdit : FormODBase {
-		
-    public bool IsNew;
-		///<summary>Set this value externally before opening this form, even if IsNew.</summary>
-		public AutoCodeItem AutoCodeItemCur;
+namespace OpenDental.Forms;
 
-		protected override string GetHelpOverride() {
-			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {
-				return "FormAutoItemEditCanada";
-			}
-			return "FormAutoItemEdit";
-		}
+public partial class FormAutoItemEdit : FormODBase
+{
+    private readonly AutoCodeItem _autoCodeItem;
 
-		
-		public FormAutoItemEdit(){
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+    public FormAutoItemEdit(AutoCodeItem autoCodeItem)
+    {
+        _autoCodeItem = autoCodeItem;
 
- 		private void FormAutoItemEdit_Load(object sender, System.EventArgs e) {
-			AutoCodeConds.RefreshCache();    
-			if(IsNew){
-				this.Text=Lan.g(this,"Add Auto Code Item");  
-			}
-			else{ 
-				this.Text=Lan.g(this,"Edit Auto Code Item");
-				textADA.Text=ProcedureCodes.GetStringProcCode(AutoCodeItemCur.CodeNum);    
-			}
-			FillList();
-		}
+        InitializeComponent();
+    }
 
-		private void FillList() {
-			listConditions.Items.Clear();
-			for(int i=0;i<Enum.GetNames(typeof(AutoCondition)).Length;i++) {
-				listConditions.Items.Add(Lan.g("enumAutoConditions",Enum.GetNames(typeof(AutoCondition))[i]));
-			}
-			List<AutoCodeCond> listAutoCodeConds=AutoCodeConds.GetWhere(x => x.AutoCodeItemNum==AutoCodeItemCur.AutoCodeItemNum);
-			for(int i=0;i<listAutoCodeConds.Count;i++) {
-				listConditions.SetSelected((int)listAutoCodeConds[i].Cond,true);
-			}
-		}
+    private void FormAutoItemEdit_Load(object sender, EventArgs e)
+    {
+        AutoCodeConds.RefreshCache();
 
-		private void butSave_Click(object sender,System.EventArgs e) {
-			if(textADA.Text=="") {
-				ODMessageBox.Show(Lan.g(this,"Code cannot be left blank."));
-				listConditions.SelectedIndex=-1;
-				FillList();
-				return;
-			}
-			AutoCodeItemCur.CodeNum=ProcedureCodes.GetCodeNum(textADA.Text);
-			if(IsNew) {
-				AutoCodeItems.Insert(AutoCodeItemCur);
-			}
-			else {
-				AutoCodeItems.Update(AutoCodeItemCur);
-			}
-			AutoCodeConds.DeleteForItemNum(AutoCodeItemCur.AutoCodeItemNum);
-			for(int i=0;i<listConditions.SelectedIndices.Count;i++) {
-				AutoCodeCond autoCodeCond=new AutoCodeCond();
-				autoCodeCond.AutoCodeItemNum=AutoCodeItemCur.AutoCodeItemNum;
-				autoCodeCond.Cond=(AutoCondition)listConditions.SelectedIndices[i];
-				AutoCodeConds.Insert(autoCodeCond);
-			}
-			DialogResult=DialogResult.OK;
-		}
+        if (_autoCodeItem.AutoCodeItemNum == 0)
+        {
+            Text = "Add Auto Code Item";
+        }
+        else
+        {
+            Text = "Edit Auto Code Item";
 
-		private void butChange_Click(object sender,System.EventArgs e) {
-			using FormProcCodes formProcCodes=new FormProcCodes();
-			formProcCodes.IsSelectionMode=true;
-			formProcCodes.ShowDialog();
-			if(formProcCodes.DialogResult==DialogResult.Cancel) {
-				textADA.Text=ProcedureCodes.GetStringProcCode(AutoCodeItemCur.CodeNum);
-				return;
-			}
-			if(AutoCodeItems.GetContainsKey(formProcCodes.CodeNumSelected)
-				&& AutoCodeItems.GetOne(formProcCodes.CodeNumSelected).AutoCodeNum != AutoCodeItemCur.AutoCodeNum) 
-			{
-				//This section is a fix for an old bug that did not cause items to get deleted properly
-				if(AutoCodes.GetContainsKey(AutoCodeItems.GetOne(formProcCodes.CodeNumSelected).AutoCodeNum)) {
-					ODMessageBox.Show(Lan.g(this,"That procedure code is already in use in a different Auto Code.  Not allowed to use it here."));
-					textADA.Text=ProcedureCodes.GetStringProcCode(AutoCodeItemCur.CodeNum);
-				}
-				else {
-					AutoCodeItems.Delete(AutoCodeItems.GetOne(formProcCodes.CodeNumSelected));
-					textADA.Text=ProcedureCodes.GetStringProcCode(formProcCodes.CodeNumSelected);
-				}
-			}
-			else {
-				textADA.Text=ProcedureCodes.GetStringProcCode(formProcCodes.CodeNumSelected);
-			}
-		}
+            textADA.Text = ProcedureCodes.GetStringProcCode(_autoCodeItem.CodeNum);
+        }
 
-	}
+        FillList();
+    }
+
+    private void FillList()
+    {
+        var autoConditions = Enum.GetNames(typeof(AutoCondition));
+        
+        listConditions.Items.Clear();
+        foreach (var autoCondition in autoConditions)
+        {
+            listConditions.Items.Add(autoCondition);
+        }
+
+        var autoCodeConds = AutoCodeConds.GetWhere(x => x.AutoCodeItemNum == _autoCodeItem.AutoCodeItemNum);
+        foreach (var autoCodeCond in autoCodeConds)
+        {
+            listConditions.SetSelected((int) autoCodeCond.Cond);
+        }
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (textADA.Text == "")
+        {
+            ShowError("Code cannot be left blank.");
+
+            listConditions.SelectedIndex = -1;
+
+            FillList();
+
+            return;
+        }
+
+        _autoCodeItem.CodeNum = ProcedureCodes.GetCodeNum(textADA.Text);
+        if (_autoCodeItem.AutoCodeItemNum == 0)
+        {
+            AutoCodeItems.Insert(_autoCodeItem);
+        }
+        else
+        {
+            AutoCodeItems.Update(_autoCodeItem);
+        }
+
+        AutoCodeConds.DeleteForItemNum(_autoCodeItem.AutoCodeItemNum);
+
+        foreach (var index in listConditions.SelectedIndices)
+        {
+            AutoCodeConds.Insert(new AutoCodeCond
+            {
+                AutoCodeItemNum = _autoCodeItem.AutoCodeItemNum,
+                Cond = (AutoCondition) index
+            });
+        }
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void ButtonChange_Click(object sender, EventArgs e)
+    {
+        using var formProcCodes = new FormProcCodes();
+
+        formProcCodes.IsSelectionMode = true;
+
+        if (formProcCodes.ShowDialog() == DialogResult.Cancel)
+        {
+            textADA.Text = ProcedureCodes.GetStringProcCode(_autoCodeItem.CodeNum);
+            return;
+        }
+
+        if (AutoCodeItems.GetContainsKey(formProcCodes.CodeNumSelected) && AutoCodeItems.GetOne(formProcCodes.CodeNumSelected).AutoCodeNum != _autoCodeItem.AutoCodeNum)
+        {
+            if (AutoCodes.GetContainsKey(AutoCodeItems.GetOne(formProcCodes.CodeNumSelected).AutoCodeNum))
+            {
+                ShowError("That procedure code is already in use in a different Auto Code. Not allowed to use it here.");
+
+                textADA.Text = ProcedureCodes.GetStringProcCode(_autoCodeItem.CodeNum);
+            }
+            else
+            {
+                AutoCodeItems.Delete(AutoCodeItems.GetOne(formProcCodes.CodeNumSelected));
+
+                textADA.Text = ProcedureCodes.GetStringProcCode(formProcCodes.CodeNumSelected);
+            }
+        }
+        else
+        {
+            textADA.Text = ProcedureCodes.GetStringProcCode(formProcCodes.CodeNumSelected);
+        }
+    }
 }

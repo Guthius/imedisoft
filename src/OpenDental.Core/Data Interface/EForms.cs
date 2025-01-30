@@ -7,19 +7,16 @@ using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class EForms
 {
-	/// <summary>
-	///     Gets a single eForm from the database.  Then, gets all the fields for it.  So it returns a fully functional
-	///     eForm. Returns null if the eform isn't found in the database.
-	/// </summary>
-	public static EForm GetEForm(long eFormNum)
+    public static EForm GetEForm(long eFormNum)
     {
         var eForm = EFormCrud.SelectOne(eFormNum);
         if (eForm == null) return null; //eForm was deleted.
@@ -27,11 +24,7 @@ public class EForms
         return eForm;
     }
 
-	/// <summary>
-	///     Gets a list of eForms for a single patient from the database.
-	///     Optionally provide a list of EnumEFormStatus values to filter on.
-	/// </summary>
-	public static List<EForm> GetForPatient(long patNum, params EnumEFormStatus[] listEFormStatusFilter)
+    public static List<EForm> GetForPatient(long patNum, params EnumEFormStatus[] listEFormStatusFilter)
     {
         var command = "SELECT * FROM eform WHERE PatNum=" + SOut.Long(patNum) + " ";
         if (!listEFormStatusFilter.IsNullOrEmpty()) command += " AND eform.Status IN(" + string.Join(",", listEFormStatusFilter.Select(x => SOut.Int((int) x))) + ") ";
@@ -39,17 +32,12 @@ public class EForms
         for (var i = 0; i < listEForms.Count; i++) listEForms[i].ListEFormFields = EFormFields.GetForForm(listEForms[i].EFormNum);
         return listEForms;
     }
-
     
-    public static long Insert(EForm eForm)
+    public static void Insert(EForm eForm)
     {
-        return EFormCrud.Insert(eForm);
+        EFormCrud.Insert(eForm);
     }
 
-    /// <Summary>
-    ///     Saves a list of eForms, including their fields, to the Database. Only saves new eForms, ignores eForms that
-    ///     are not new.
-    /// </Summary>
     public static void SaveNewEForms(List<EForm> listEForms)
     {
         for (var i = 0; i < listEForms.Count; i++)
@@ -64,13 +52,11 @@ public class EForms
             }
         }
     }
-
     
     public static void Update(EForm eForm)
     {
         EFormCrud.Update(eForm);
     }
-
     
     public static void Delete(long eFormNum, long patNum)
     {
@@ -80,10 +66,6 @@ public class EForms
         MobileNotifications.CI_RemoveEForm(patNum, eFormNum);
     }
 
-    /// <summary>
-    ///     The eFormDef passed in must have ListEFormFieldDefs already filled. The resulting EForm will also have its
-    ///     fields already attached. Neither the form nor the fields get inserted into the db here.
-    /// </summary>
     public static EForm CreateEFormFromEFormDef(EFormDef eFormDef, long patNum, EnumEFormStatus status)
     {
         var eForm = new EForm();
@@ -105,13 +87,6 @@ public class EForms
         return eForm;
     }
 
-    /// <summary>
-    ///     Validates a few fields like phone numbers and state format. The eForm must contain a list of eFormFields. The
-    ///     maskedSSNOld is used to keep track of what masked SSN was shown when the form was loaded, and stop us from storing
-    ///     masked SSNs on accident.  Returns an object that stores the error message and the page number that the problem
-    ///     field is located on. Use the page number to go directly to the problem field. If the return object has an empty
-    ///     error message, everything passed validation.
-    /// </summary>
     public static EFormValidation Validate(EForm eForm, string maskedSSNOld)
     {
         var eFormValidation = new EFormValidation();
@@ -217,11 +192,6 @@ public class EForms
         return eFormValidation; //If we get to here, this object should still have default values and everything passed validation.
     }
 
-    /// <summary>
-    ///     This is not called from OD proper. Required fields are only enforced in eClipboard. Returns an object that
-    ///     stores the error message and the page number that the problem field is located on. Use the page number to go
-    ///     directly to the problem field. If the return object has an empty error message, everything passed validation.
-    /// </summary>
     public static EFormValidation ValidateRequired(EForm eForm, bool isMedNoneChecked)
     {
         var eFormValidation = new EFormValidation();
@@ -262,7 +232,6 @@ public class EForms
         return eFormValidation; //If we get to here, this object should still have default values and everything passed validation.
     }
 
-    ///<summary>Verify that the InputField of "State" is exactly 2 characters in length. </summary>
     public static bool ValidateStateField(EForm eForm)
     {
         if (eForm.FormType != EnumEFormType.PatientForm) return true;
@@ -302,31 +271,6 @@ public class EForms
         return true;
     }
 
-    /// <summary>
-    ///     Page numbers will be incremented for each PageBreak field type found. If no breaks are found, PageNum will be
-    ///     1.
-    /// </summary>
-    public static void SetPageNumber(EForm eForm)
-    {
-        var pageNum = 1;
-        for (var i = 0; i < eForm.ListEFormFields.Count; i++)
-        {
-            if (eForm.ListEFormFields[i].FieldType == EnumEFormFieldType.PageBreak)
-            {
-                pageNum++;
-                continue;
-            }
-
-            eForm.ListEFormFields[i].Page = pageNum;
-        }
-    }
-
-    /// <summary>
-    ///     Creates eForms for the patient to fill out. Starts by getting all EClipboardSheetDefs from the
-    ///     eClipboardSheetDef table. This includes sheets and eForms. We then filter out any eForms that are already created
-    ///     and need filling out. Next we will remove any that don't pass the MinAge, MaxAge settings and any that have already
-    ///     been completed and have a prefillStatus that is set to Once.
-    /// </summary>
     public static int CreateEFormForCheckIn(Appointment appointment)
     {
         if (!MobileAppDevices.IsClinicSignedUpForEClipboard(true ? appointment.ClinicNum : 0)) //this clinic isn't signed up for this feature
@@ -392,10 +336,6 @@ public class EForms
         return listEFormsNew.Count;
     }
 
-    /// <summary>
-    ///     Loops through all the fields and appends together all the ValueStrings. All the ValueStrings must have been
-    ///     filled first, and it excludes all SigBox types. The order is critical.
-    /// </summary>
     public static string GetSignatureKeyData(List<EFormField> listEFormFields)
     {
         //The fields will already be sorted by ItemOrder
@@ -409,7 +349,6 @@ public class EForms
         return stringBuilder.ToString();
     }
 
-    ///<summary>Language will be empty string if the patient does not have a language set.</summary>
     public static void TranslateFields(EForm eForm, string langIso3)
     {
         for (var i = 0; i < eForm.ListEFormFields.Count; i++)
@@ -454,12 +393,6 @@ public class EForms
         }
     }
 
-    /// <summary>
-    ///     Used by both FrmEFormDefs and FormEServicesEClipboard. If there are no EFormDefs or EForms in the db when this
-    ///     method is called, then this immediately copies all our internal forms into the db. This could have been done in the
-    ///     ConvertDb script, but it's easier here and we don't every run complex methods when updating versions. Returns true
-    ///     if internal forms were inserted, and returns false if eFormDefs already exist in the db.
-    /// </summary>
     public static bool InsertInternalToDb()
     {
         var listEFormDefsCustom = EFormDefs.GetDeepCopy();

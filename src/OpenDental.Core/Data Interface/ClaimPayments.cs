@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -21,7 +21,6 @@ public class ClaimPayments
         table.Columns.Add("checkDate");
         table.Columns.Add("CheckNum");
         table.Columns.Add("Note");
-        var listDataRows = new List<DataRow>();
         var command = "SELECT BankBranch,claimpayment.ClaimPaymentNum,CheckNum,CheckDate,"
                       + "SUM(claimproc.InsPayAmt) amount,Note,PayType "
                       + "FROM claimpayment,claimproc "
@@ -47,11 +46,6 @@ public class ClaimPayments
         return table;
     }
 
-    /// <summary>
-    ///     Gets all claimpayments of the specified claimpayment type, within the specified date range and from the specified
-    ///     clinic.
-    ///     0 for clinics means all clinics, 0 for claimpaytype means all types.
-    /// </summary>
     public static DataTable GetForDateRange(DateTime dateFrom, DateTime dateTo, long clinicNum, long claimpayGroup)
     {
         var command = "SELECT claimpayment.*,"
@@ -89,10 +83,6 @@ public class ClaimPayments
         return ClaimPaymentCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all unattached claimpayments for display in a new deposit.  Excludes payments before dateStart and
-    ///     partials.
-    /// </summary>
     public static List<ClaimPayment> GetForDeposit(DateTime dateStart, long clinicNum, List<long> listPayTypes)
     {
         var command =
@@ -122,7 +112,6 @@ public class ClaimPayments
         return ClaimPaymentCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all claimpayments for one specific deposit.</summary>
     public static ClaimPayment[] GetForDeposit(long depositNum)
     {
         var command =
@@ -137,7 +126,6 @@ public class ClaimPayments
         return ClaimPaymentCrud.SelectMany(command).ToArray();
     }
 
-    ///<summary>Gets one claimpayment directly from database.</summary>
     public static ClaimPayment GetOne(long claimPaymentNum)
     {
         var command =
@@ -146,15 +134,13 @@ public class ClaimPayments
         return ClaimPaymentCrud.SelectOne(command);
     }
 
-    
-    public static long Insert(ClaimPayment claimPayment)
+    public static void Insert(ClaimPayment claimPayment)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         claimPayment.SecUserNumEntry = Security.CurUser.UserNum;
-        return ClaimPaymentCrud.Insert(claimPayment);
+        ClaimPaymentCrud.Insert(claimPayment);
     }
 
-    ///<summary>If trying to change the amount and attached to a deposit, it will throw an error, so surround with try catch.</summary>
     public static void Update(ClaimPayment claimPayment, bool isDepNew = false)
     {
         if (!isDepNew && claimPayment.DepositNum != 0 && PrefC.GetBool(PrefName.ShowAutoDeposit))
@@ -184,10 +170,6 @@ public class ClaimPayments
         ClaimPaymentCrud.Update(claimPayment);
     }
 
-    /// <summary>
-    ///     Surround by try catch, because it will throw an exception if trying to delete a claimpayment attached to a
-    ///     deposit or if there are eobs attached.
-    /// </summary>
     public static void Delete(ClaimPayment claimPayment)
     {
         //validate deposits
@@ -198,7 +180,7 @@ public class ClaimPayments
 
         if (table.Rows[0][0].ToString() != "0" && !HasAutoDeposit(claimPayment))
             //if claimpayment is already attached to a deposit and was not created automatically
-            if (!/* ODBuild.IsDebug() */ false)
+            if (! /* ODBuild.IsDebug() */ false)
                 throw new ApplicationException(Lans.g("ClaimPayments", "Not allowed to delete a payment attached to a deposit."));
 
         //validate eobs
@@ -228,10 +210,6 @@ public class ClaimPayments
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Returns the number of payments from the passed in claimpaymentnums that are attached to a deposit other than
-    ///     IgnoreDepositNum.
-    /// </summary>
     public static int GetCountAttachedToDeposit(List<long> listClaimPaymentNums, long ignoreDepositNum)
     {
         if (listClaimPaymentNums.Count == 0) return 0;

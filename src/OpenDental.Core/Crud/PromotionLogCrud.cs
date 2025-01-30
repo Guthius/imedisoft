@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PromotionLogCrud
 {
@@ -102,12 +104,12 @@ public class PromotionLogCrud
                                                  + SOut.Int((int) promotionLog.SendStatus) + ","
                                                  + SOut.Int((int) promotionLog.MessageType) + ","
                                                  + SOut.Long(promotionLog.MessageFk) + ","
-                                                 + DbHelper.Now() + ","
+                                                 + "NOW()" + ","
                                                  + SOut.DateTime(promotionLog.DateTimeSent) + ","
                                                  + DbHelper.ParamChar + "paramResponseDescript,"
                                                  + SOut.Long(promotionLog.ApptReminderRuleNum) + ")";
         if (promotionLog.ResponseDescript == null) promotionLog.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(promotionLog.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(promotionLog.ResponseDescript));
         {
             promotionLog.PromotionLogNum = Db.NonQ(command, true, "PromotionLogNum", "promotionLog", paramResponseDescript);
         }
@@ -164,7 +166,7 @@ public class PromotionLogCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(promotionLog.MessageFk));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.DateTime(promotionLog.DateTimeSent));
             sbRow.Append(",");
@@ -209,12 +211,12 @@ public class PromotionLogCrud
                                                  + SOut.Int((int) promotionLog.SendStatus) + ","
                                                  + SOut.Int((int) promotionLog.MessageType) + ","
                                                  + SOut.Long(promotionLog.MessageFk) + ","
-                                                 + DbHelper.Now() + ","
+                                                 + "NOW()" + ","
                                                  + SOut.DateTime(promotionLog.DateTimeSent) + ","
                                                  + DbHelper.ParamChar + "paramResponseDescript,"
                                                  + SOut.Long(promotionLog.ApptReminderRuleNum) + ")";
         if (promotionLog.ResponseDescript == null) promotionLog.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(promotionLog.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(promotionLog.ResponseDescript));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramResponseDescript);
         else
@@ -239,7 +241,7 @@ public class PromotionLogCrud
                       + "ApptReminderRuleNum=  " + SOut.Long(promotionLog.ApptReminderRuleNum) + " "
                       + "WHERE PromotionLogNum = " + SOut.Long(promotionLog.PromotionLogNum);
         if (promotionLog.ResponseDescript == null) promotionLog.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(promotionLog.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(promotionLog.ResponseDescript));
         Db.NonQ(command, paramResponseDescript);
     }
 
@@ -315,7 +317,7 @@ public class PromotionLogCrud
 
         if (command == "") return false;
         if (promotionLog.ResponseDescript == null) promotionLog.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(promotionLog.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(promotionLog.ResponseDescript));
         command = "UPDATE promotionlog SET " + command
                                              + " WHERE PromotionLogNum = " + SOut.Long(promotionLog.PromotionLogNum);
         Db.NonQ(command, paramResponseDescript);

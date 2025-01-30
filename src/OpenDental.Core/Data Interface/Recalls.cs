@@ -7,9 +7,11 @@ using System.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.WebTypes.WebSched.TimeSlot;
 
 namespace OpenDentBusiness;
@@ -87,12 +89,6 @@ public class Recalls
 
     #endregion
 
-    ///<summary>http://www.patientviewer.com/WebSchedSignUp.html</summary>
-    public static string GetWebSchedPromoURL()
-    {
-        return WEB_SCHED_SIGN_UP_URL;
-    }
-
     /// <summary>
     ///     Gets all recalls for the supplied patients, usually a family or single pat.  Result might have a length of zero.
     ///     Each recall will also have the DateScheduled filled by pulling that info from other tables.
@@ -118,16 +114,6 @@ public class Recalls
         var patNums = new List<long>();
         for (var i = 0; i < patients.Count; i++) patNums.Add(patients[i].PatNum);
         return GetList(patNums);
-    }
-
-    ///<summary>Gets a list of recalls from the datbase. Used for API.</summary>
-    public static List<Recall> GetRecallsForApi(int limit, int offset, long patNum)
-    {
-        var command = "SELECT * FROM recall ";
-        if (patNum > 0) command += "WHERE recall.PatNum=" + SOut.Long(patNum) + " ";
-        command += "ORDER BY recallnum " //Ensure order for limit and offset.
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return RecallCrud.SelectMany(command);
     }
 
     public static Recall GetRecall(long recallNum)
@@ -248,12 +234,6 @@ public class Recalls
         return patCur.Birthdate.AddYears(PrefC.GetInt(PrefName.RecallAgeAdult)) > (recallDue > DateTime.Today ? recallDue : DateTime.Today);
     }
 
-    public static List<Recall> GetChangedSince(DateTime changedSince)
-    {
-        var command = "SELECT * FROM recall WHERE DateTStamp > " + SOut.DateTime(changedSince);
-        return RecallCrud.SelectMany(command);
-    }
-
     /// <summary>
     ///     Used by FromRecallList, FormASAP, AutoComm, and ODAPI to get list of patients with outstanding recalls.
     ///     Leave provNum or siteNum = 0 in order to avoid filtering on those columns.
@@ -322,7 +302,7 @@ public class Recalls
                            + ") coderange ON coderange.RecallTypeNum=recalltype.RecallTypeNum ";
             command +=
                 "WHERE recall.DateDue BETWEEN " + SOut.Date(fromDate) + " AND " + SOut.Date(toDate) + " "
-                + "AND " + DbHelper.Year("recall.DateScheduled") + " < 1880 "
+                + "AND YEAR(recall.DateScheduled) < 1880 "
                 + "AND recall.Priority=" + SOut.Int((int) ApptPriority.ASAP) + " ";
 
             #endregion
@@ -355,7 +335,7 @@ public class Recalls
             if (PrefC.GetBool(PrefName.RecallExcludeIfAnyFutureAppt))
                 command += "AND NOT EXISTS(SELECT * FROM appointment "
                            + "WHERE appointment.PatNum=recall.PatNum "
-                           + "AND appointment.AptDateTime>" + DbHelper.Curdate() + " " //early this morning
+                           + "AND appointment.AptDateTime>" + "CURDATE()" + " " //early this morning
                            + "AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + ") ";
             else
                 command += "AND recall.DateScheduled='0001-01-01' "; //Only show rows where no future recall appointment.
@@ -625,8 +605,8 @@ public class Recalls
         swTotal.Stop();
         if (/* ODBuild.IsDebug() */ false)
         {
-            Logger.WriteLine($"\r\n----------SUMMARY TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n", "FillRecallTableInfo");
-            Logger.WriteLine($"\r\n----------INFO TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n----------\r\n{verbose}\r\n\r\n", "FillRecallTableVerbose");
+            Logger.WriteLine($"\r\n----------SUMMARY TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n");
+            Logger.WriteLine($"\r\n----------INFO TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n----------\r\n{verbose}\r\n\r\n");
         }
 
         return table;
@@ -1149,12 +1129,12 @@ public class Recalls
                     .Where(x => dictPatBatch.ContainsKey(x.Key)).ToList()
                     .ForEach(x => dictPatBatch[x.Key].ListRecalls = x.ToList());
                 //Get the closest future scheduled date for the trigger codes.
-                command = "SELECT procedurelog.PatNum,recalltrigger.RecallTypeNum,MIN(" + DbHelper.DtimeToDate("appointment.AptDateTime") + ") AS aptDate "
+                command = "SELECT procedurelog.PatNum,recalltrigger.RecallTypeNum,MIN(DATE(appointment.AptDateTime)) AS aptDate "
                           + "FROM procedurelog "
                           + "INNER JOIN recalltrigger ON procedurelog.CodeNum=recalltrigger.CodeNum "
                           + "INNER JOIN appointment USE INDEX (StatusDate) ON appointment.AptNum=procedurelog.AptNum "
                           + "AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + " "
-                          + "AND appointment.AptDateTime > " + DbHelper.Curdate() + " ";
+                          + "AND appointment.AptDateTime > " + "CURDATE()" + " ";
                 if (_listPatNumMaxPerGroup.Count > 1) //if only one group, just include all PatNums
                     command += "WHERE " + (i < _listPatNumMaxPerGroup.Count - 1 ? "procedurelog.PatNum>" + _listPatNumMaxPerGroup[i + 1] + " " + (i > 0 ? "AND " : "") : "")
                                         + (i > 0 ? "procedurelog.PatNum<=" + _listPatNumMaxPerGroup[i] + " " : "");
@@ -1433,7 +1413,7 @@ public class Recalls
                       + "WHERE recall.PatNum=" + SOut.Long(patNum);
         Db.NonQ(command);
         //Get table of future appointments dates with recall type for this patient, where a procedure is attached that is a recall trigger procedure
-        command = "SELECT recalltrigger.RecallTypeNum,MIN(" + DbHelper.DtimeToDate("appointment.AptDateTime") + ") AS AptDateTime "
+        command = "SELECT recalltrigger.RecallTypeNum,MIN(DATE(appointment.AptDateTime)) AS AptDateTime "
                   + "FROM procedurelog "
                   + "INNER JOIN recalltrigger ON procedurelog.CodeNum=recalltrigger.CodeNum "
                   + "INNER JOIN recall ON recalltrigger.RecallTypeNum=recall.RecallTypeNum "
@@ -1441,7 +1421,7 @@ public class Recalls
                   + "INNER JOIN appointment ON appointment.AptNum=procedurelog.AptNum "
                   + "AND appointment.PatNum=" + SOut.Long(patNum) + " "
                   + "AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + " "
-                  + "AND appointment.AptDateTime > " + DbHelper.Curdate() + " " //early this morning
+                  + "AND appointment.AptDateTime > CURDATE() " //early this morning
                   + "WHERE procedurelog.PatNum=" + SOut.Long(patNum) + " "
                   + "GROUP BY recalltrigger.RecallTypeNum";
         var table = DataCore.GetTable(command);
@@ -1777,16 +1757,6 @@ public class Recalls
         return SIn.Int(Db.GetCount(command));
     }
 
-    ///<summary>Return RecallNums that have changed since a paticular time. </summary>
-    public static List<long> GetChangedSinceRecallNums(DateTime changedSince)
-    {
-        var command = "SELECT RecallNum FROM recall WHERE DateTStamp > " + SOut.DateTime(changedSince);
-        var dt = DataCore.GetTable(command);
-        var recallnums = new List<long>(dt.Rows.Count);
-        for (var i = 0; i < dt.Rows.Count; i++) recallnums.Add(SIn.Long(dt.Rows[i]["RecallNum"].ToString()));
-        return recallnums;
-    }
-
     ///<summary>Returns recalls with given list of RecallNums. Used along with GetChangedSinceRecallNums.</summary>
     public static List<Recall> GetMultRecalls(List<long> listRecallNums)
     {
@@ -1961,7 +1931,7 @@ public class Recalls
             //faster.
             var thread = new ODThread(o =>
             {
-                var eServiceCode = OpenDentBusiness.eServiceCode.WebSched;
+                var eServiceCode = Imedisoft.Core.Entities.eServiceCode.WebSched;
                 if (source == LogSources.WebSchedASAP) eServiceCode = eServiceCode.WebSchedASAP;
                 if (recallCur.Priority == RecallPriority.ASAP)
                 {

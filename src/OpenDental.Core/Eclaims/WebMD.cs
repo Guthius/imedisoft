@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using Ionic.Zip;
 
 namespace OpenDentBusiness.Eclaims {

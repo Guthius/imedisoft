@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class CodeGroupCrud
 {
@@ -49,7 +51,7 @@ public class CodeGroupCrud
         return table;
     }
 
-    public static long Insert(CodeGroup codeGroup)
+    public static void Insert(CodeGroup codeGroup)
     {
         var command = "INSERT INTO codegroup (";
 
@@ -63,26 +65,10 @@ public class CodeGroupCrud
             + SOut.Bool(codeGroup.IsHidden) + ","
             + SOut.Bool(codeGroup.ShowInAgeLimit) + ")";
         if (codeGroup.ProcCodes == null) codeGroup.ProcCodes = "";
-        var paramProcCodes = new OdSqlParameter("paramProcCodes", OdDbType.Text, SOut.StringParam(codeGroup.ProcCodes));
+        var paramProcCodes = new OdSqlParameter("paramProcCodes", SOut.StringParam(codeGroup.ProcCodes));
         {
             codeGroup.CodeGroupNum = Db.NonQ(command, true, "CodeGroupNum", "codeGroup", paramProcCodes);
         }
-        return codeGroup.CodeGroupNum;
-    }
-
-    public static void Update(CodeGroup codeGroup)
-    {
-        var command = "UPDATE codegroup SET "
-                      + "GroupName     = '" + SOut.String(codeGroup.GroupName) + "', "
-                      + "ProcCodes     =  " + DbHelper.ParamChar + "paramProcCodes, "
-                      + "ItemOrder     =  " + SOut.Int(codeGroup.ItemOrder) + ", "
-                      + "CodeGroupFixed=  " + SOut.Int((int) codeGroup.CodeGroupFixed) + ", "
-                      + "IsHidden      =  " + SOut.Bool(codeGroup.IsHidden) + ", "
-                      + "ShowInAgeLimit=  " + SOut.Bool(codeGroup.ShowInAgeLimit) + " "
-                      + "WHERE CodeGroupNum = " + SOut.Long(codeGroup.CodeGroupNum);
-        if (codeGroup.ProcCodes == null) codeGroup.ProcCodes = "";
-        var paramProcCodes = new OdSqlParameter("paramProcCodes", OdDbType.Text, SOut.StringParam(codeGroup.ProcCodes));
-        Db.NonQ(command, paramProcCodes);
     }
 
     public static bool Update(CodeGroup codeGroup, CodeGroup oldCodeGroup)
@@ -126,7 +112,7 @@ public class CodeGroupCrud
 
         if (command == "") return false;
         if (codeGroup.ProcCodes == null) codeGroup.ProcCodes = "";
-        var paramProcCodes = new OdSqlParameter("paramProcCodes", OdDbType.Text, SOut.StringParam(codeGroup.ProcCodes));
+        var paramProcCodes = new OdSqlParameter("paramProcCodes", SOut.StringParam(codeGroup.ProcCodes));
         command = "UPDATE codegroup SET " + command
                                           + " WHERE CodeGroupNum = " + SOut.Long(codeGroup.CodeGroupNum);
         Db.NonQ(command, paramProcCodes);

@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Linq;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 

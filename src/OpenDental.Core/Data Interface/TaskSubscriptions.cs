@@ -3,46 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class TaskSubscriptions
 {
-    #region Get Methods
-
-    /// <summary>
-    ///     Returns a list of TaskSubscriptions for the TaskLists userNum is directly subscribed to. Does not include any
-    ///     children/grandchildren
-    ///     of the TaskLists in TaskSubscription.
-    /// </summary>
     public static List<TaskSubscription> GetTaskSubscriptionsForUser(long userNum)
     {
         var command = "SELECT * FROM tasksubscription WHERE UserNum=" + SOut.Long(userNum);
         return TaskSubscriptionCrud.SelectMany(command);
     }
 
-    #endregion
-
-    
-    public static long Insert(TaskSubscription taskSubscription)
+    public static void Insert(TaskSubscription taskSubscription)
     {
-        return TaskSubscriptionCrud.Insert(taskSubscription);
+        TaskSubscriptionCrud.Insert(taskSubscription);
     }
 
-    /*
-    
-    public static void Update(TaskSubscription subsc) {
-
-        Crud.TaskSubscriptionCrud.Update(subsc);
-    }*/
-
-    /// <summary>
-    ///     Attempts to create a subscription to a TaskList with TaskListNum of subscribeToTaskListNum.
-    ///     The curUserNum must be the currently logged in user.
-    /// </summary>
     public static bool TrySubscList(long taskListNum, long userNum)
     {
         //Get the list of directly subscribed TaskListNums.  This avoids the concurrency issue of the same user logged in via multiple WS and 
@@ -69,7 +48,6 @@ public class TaskSubscriptions
         return true;
     }
 
-    ///<summary>Gets all Read Reminders in a TaskList/Task hierarchy that the user was not already subscribed to.</summary>
     private static List<Task> GetNewReadReminders(List<long> listTaskSubscriptionNumsExisting, long taskListNum, long userNum)
     {
         var listTasksReminders = new List<Task>();
@@ -84,7 +62,6 @@ public class TaskSubscriptions
         return listTasksReminders;
     }
 
-    ///<summary>Gets all unread Reminder Tasks for curUserNum.  Mimics logic in FormOpenDental.SignalsTick.</summary>
     private static List<Task> GetUnreadReminderTasks(long userNum)
     {
         var listTasksReminders = new List<Task>();
@@ -101,18 +78,6 @@ public class TaskSubscriptions
         return listTasksReminders;
     }
 
-    /// <summary>Returns a list of userNums for users that are subscribed to the task list a passed in task is currently in./// </summary>
-    public static List<long> GetSubscribersForTask(Task task)
-    {
-        var command = @"
-				SELECT tasksubscription.UserNum
-				FROM tasksubscription
-				INNER JOIN tasklist ON tasksubscription.TaskListNum=tasklist.TaskListNum 
-				INNER JOIN taskancestor ON taskancestor.TaskListNum=tasklist.TaskListNum AND taskancestor.TaskNum='" + SOut.Long(task.TaskNum) + "'";
-        return Db.GetListLong(command);
-    }
-
-    ///<summary>Removes a subscription to a list.</summary>
     public static void UnsubscList(long taskListNum, long userNum)
     {
         //Get all future unread reminders
@@ -130,7 +95,6 @@ public class TaskSubscriptions
         TaskUnreads.SetRead(userNum, listTasksUnsubForUser.ToArray());
     }
 
-    ///<summary>Removes all the subscribers from a given tasklist</summary>
     public static void RemoveAllSubscribers(long taskListNum)
     {
         var command = "DELETE FROM tasksubscription "
@@ -138,10 +102,6 @@ public class TaskSubscriptions
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Moves all subscriptions from taskListOld to taskListNew. Used when cutting and pasting a tasklist. Can also be
-    ///     used when deleting a tasklist to remove all subscriptions from the tasklist by sending in 0 as taskListNumNew.
-    /// </summary>
     public static void UpdateTaskListSubs(long taskListNumOld, long taskListNumNew)
     {
         var command = "";
@@ -149,14 +109,6 @@ public class TaskSubscriptions
             command = "DELETE FROM tasksubscription WHERE TaskListNum=" + SOut.Long(taskListNumOld);
         else
             command = "UPDATE tasksubscription SET TaskListNum=" + SOut.Long(taskListNumNew) + " WHERE TaskListNum=" + SOut.Long(taskListNumOld);
-        Db.NonQ(command);
-    }
-
-    ///<summary>Deletes rows for given PK tasksubscription.TaskSubscriptionNums.</summary>
-    public static void DeleteMany(List<long> listTaskSubscriptionNums)
-    {
-        if (listTaskSubscriptionNums.Count == 0) return;
-        var command = "DELETE FROM tasksubscription WHERE TaskSubscriptionNum IN (" + string.Join(",", listTaskSubscriptionNums) + ")";
         Db.NonQ(command);
     }
 }

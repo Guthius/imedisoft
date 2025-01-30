@@ -21,6 +21,7 @@ using System.Xml.XPath;
 using OpenDentBusiness;
 using Tamir.SharpSsh.jsch;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims
 {

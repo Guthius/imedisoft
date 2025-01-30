@@ -11,6 +11,7 @@ using OpenDentBusiness;
 using WpfControls;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	/// <summary></summary>

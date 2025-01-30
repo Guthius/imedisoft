@@ -1,35 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
 
 namespace OpenDentBusiness;
 
-
 public class Payments
 {
-    #region Get Methods
-
-    /// <summary>
-    ///     Gets all payments for the specified patient. This has NOTHING to do with pay splits.  Must use pay splits for
-    ///     accounting.  This is only for display in Account module.
-    /// </summary>
-    public static List<Payment> Refresh(long patNum)
-    {
-        var command =
-            "SELECT * from payment"
-            + " WHERE PatNum=" + patNum;
-        return PaymentCrud.SelectMany(command);
-    }
-
-    ///<summary>Get one specific payment from db.</summary>
     public static Payment GetPayment(long payNum)
     {
         var command =
@@ -38,7 +22,6 @@ public class Payments
         return PaymentCrud.SelectOne(command);
     }
 
-    ///<summary>Get all specified payments.</summary>
     public static List<Payment> GetPayments(List<long> listPayNums)
     {
         if (listPayNums.IsNullOrEmpty()) return new List<Payment>();
@@ -47,47 +30,13 @@ public class Payments
         return PaymentCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of PaymentForApi from db. Returns an empty list if not found.</summary>
-    public static List<PaymentForApi> GetPaymentsForApi(int limit, int offset, long patNum, long defNumPayType, DateTime dateEntry)
-    {
-        var listPaymentForApi = new List<PaymentForApi>();
-        var command = "SELECT * from payment WHERE DateEntry>=" + SOut.Date(dateEntry) + " ";
-        if (patNum > 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
-        if (defNumPayType > -1) //This will be 0 if this is an income transfer to another provider.
-            command += "AND PayType=" + SOut.Long(defNumPayType) + " ";
-        command += "ORDER BY PayNum "
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        var commandDatetime = "SELECT " + DbHelper.Now();
-        var dateTimeServer = SIn.DateTime(DataCore.GetScalar(commandDatetime)); //run before payments for rigorous inclusion of payments
-        var listPayments = PaymentCrud.SelectMany(command);
-        for (var i = 0; i < listPayments.Count; i++)
-        {
-            var paymentForApi = new PaymentForApi();
-            paymentForApi.PaymentCur = listPayments[i];
-            paymentForApi.DateTimeServer = dateTimeServer;
-            listPaymentForApi.Add(paymentForApi);
-        }
-
-        return listPaymentForApi;
-    }
-
-    /// <summary>
-    ///     Gets all payments flagged as a transfer.  Optionally pass in PatNums to only get transfers for specific
-    ///     patients.
-    /// </summary>
     public static List<Payment> GetTransfers(List<long> listPatNums)
     {
         var command = "SELECT * FROM payment WHERE PayType=0";
         if (!listPatNums.IsNullOrEmpty()) command += $" AND PatNum IN({string.Join(",", listPatNums.Select(x => SOut.Long(x)))})";
         return PaymentCrud.SelectMany(command);
     }
-
-    /// <summary>
-    ///     Gets all PayNums flagged as income transfers. Set isPayTypeIgnored to true to ignore payment.PayType and instead
-    ///     return all PayNums for payments that sum to $0.
-    ///     Set isPayTypeIgnored to false to only return PayNums where the PayType is 0. Optionally pass in PatNums to only get
-    ///     transfers for specific patients.
-    /// </summary>
+    
     public static List<long> GetPayNumsForTransfers(bool isPayTypeIgnored, params long[] arrayPatNums)
     {
         var command = "SELECT payment.PayNum FROM payment ";
@@ -106,17 +55,6 @@ public class Payments
         return Db.GetListLong(command);
     }
 
-    ///<summary>Gets all payments for a family.</summary>
-    public static List<Payment> GetNonSplitForPats(List<long> listPatNums)
-    {
-        var command = "SELECT * FROM payment "
-                      + "LEFT JOIN paysplit ON paysplit.PayNum=payment.PayNum "
-                      + "WHERE payment.PatNum IN(" + string.Join(", ", listPatNums) + ") "
-                      + "AND paysplit.SplitNum IS NULL"; //Getting all payments with no splits
-        return PaymentCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets all payments attached to a single deposit.</summary>
     public static List<Payment> GetForDeposit(long depositNum)
     {
         var command =
@@ -129,10 +67,6 @@ public class Payments
         return PaymentCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all unattached payments for a new deposit slip.  Excludes payments before dateStart.  There is a chance
-    ///     payTypes might be of length 1 or even 0.
-    /// </summary>
     public static List<Payment> GetForDeposit(DateTime dateStart, long clinicNum, List<long> payTypes)
     {
         var command =
@@ -159,22 +93,6 @@ public class Payments
         return PaymentCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all payments that have a ProcessStatus of OnlinePending. Pass in an empty list to get payments for all
-    ///     clinics. Referenced by OpenDentalService.
-    /// </summary>
-    public static List<Payment> GetNeedingProcessed(List<long> clinicNums)
-    {
-        var command = "SELECT * FROM payment WHERE ProcessStatus=" + SOut.Int((int) ProcessStat.OnlinePending)
-                                                                   + " AND PaymentSource IN (" + string.Join(",", CreditCards.GetCreditCardSourcesForOnlinePayments().Select(x => (long) x)) + ") ";
-        if (clinicNums.Count > 0) command += "AND payment.ClinicNum IN (" + string.Join(",", clinicNums) + ") ";
-        return PaymentCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets all payments with the specified process statuses and credit card sources. Pass in an empty list to get
-    ///     payments for all clinics.
-    /// </summary>
     public static List<Payment> GetPaymentsUsingFilters(List<long> clinicNums, DateTime startDate, DateTime endDate, List<ProcessStat> listProcessStatus, List<CreditCardSource> listCreditCardSources)
     {
         var command = $@"SELECT * FROM payment WHERE PayDate BETWEEN {SOut.Date(startDate)} AND {SOut.Date(endDate)}";
@@ -184,25 +102,6 @@ public class Payments
         return PaymentCrud.SelectMany(command);
     }
 
-    ///<summary>Used in OpenDentalWebApps to get the payment based off of paysimple's payment ID.</summary>
-    public static Payment GetForExternalId(string externalId)
-    {
-        var command = "SELECT * FROM payment WHERE ExternalId='" + SOut.String(externalId) + "'";
-        return PaymentCrud.SelectOne(command);
-    }
-
-    /// <summary>
-    ///     Gets all payments that have a ProcessStatus of OnlinePending for the clinic. Pass in a clinicNum of 0 to see
-    ///     all payments.
-    /// </summary>
-    public static int CountNeedingProcessed(long clinicNum)
-    {
-        var command = "SELECT COUNT(*) FROM payment WHERE ProcessStatus=" + SOut.Int((int) ProcessStat.OnlinePending) + " ";
-        if (clinicNum != 0) command += "AND payment.ClinicNum=" + SOut.Long(clinicNum);
-        return SIn.Int(Db.GetCount(command));
-    }
-
-    ///<summary>Used for display in ProcEdit. List MUST include the requested payment. Use GetPayments to get the list.</summary>
     public static Payment GetFromList(long payNum, List<Payment> List)
     {
         for (var i = 0; i < List.Count; i++)
@@ -212,10 +111,6 @@ public class Payments
         return null; //should never happen
     }
 
-    /// <summary>
-    ///     Returns the number of payments from the passed in paynums that are attached to a deposit other than
-    ///     IgnoreDepositNum.
-    /// </summary>
     public static int GetCountAttachedToDeposit(List<long> listPayNums, long ignoreDepositNum)
     {
         if (listPayNums.Count == 0) return 0;
@@ -225,24 +120,6 @@ public class Payments
         return SIn.Int(Db.GetCount(command));
     }
 
-    /*
-    
-    public static string GetInfo(int payNum){
-        string retStr;
-        Payment Cur=GetPayment(payNum);
-        retStr=DefB.GetName(DefCat.PaymentTypes,Cur.PayType);
-        if(Cur.IsSplit) retStr=retStr
-            +"  "+Cur.PayAmt.ToString("c")
-            +"  "+Cur.PayDate.ToString("d")
-            +" "+Lans.g("Payments","split between patients");
-        return retStr;
-    }*/
-
-    #endregion
-
-    #region Insert
-
-    
     public static long Insert(Payment pay)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -250,21 +127,13 @@ public class Payments
         return PaymentCrud.Insert(pay);
     }
 
-    /// <summary>
-    ///     There's only one place in the program where this is called from.  Date is today, so no need to validate the
-    ///     date.
-    /// </summary>
-    public static long Insert(Payment pay, bool useExistingPK)
+    public static void Insert(Payment pay, bool useExistingPK)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         pay.SecUserNumEntry = Security.CurUser.UserNum;
-        return PaymentCrud.Insert(pay, useExistingPK);
+        PaymentCrud.Insert(pay, useExistingPK);
     }
 
-    /// <summary>
-    ///     Inserts the payment passed in as long as at least one payment split is passed in.  Returns 0 if no payment was
-    ///     inserted.
-    /// </summary>
     public static long Insert(Payment pay, List<PaySplit> listPaySplits)
     {
         if (listPaySplits.IsNullOrEmpty()) return 0; //Never insert a payment without any payment splits.
@@ -274,21 +143,7 @@ public class Payments
         return pay.PayNum;
     }
 
-    
-    public static void InsertMany(List<Payment> listPayments)
-    {
-        if (listPayments.IsNullOrEmpty()) return;
-
-        //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
-        listPayments.ForEach(x => x.SecUserNumEntry = Security.CurUser.UserNum);
-        PaymentCrud.InsertMany(listPayments);
-    }
-
-    /// <summary>
-    ///     Insert Payment and PaySplit. Returns newly inserted Payment.PayNum.  Throws exceptions if XWeb Program
-    ///     Properties are invalid.
-    /// </summary>
-    public static long InsertFromXWeb(long patNum, long provNum, long clinicNum, double amount, string payNote, string receipt, CreditCardSource ccSource, string logGuid = "")
+    public static long InsertFromXWeb(long patNum, long clinicNum, double amount, string payNote, string receipt, CreditCardSource ccSource, string logGuid = "")
     {
         WebPaymentProperties xwebProperties;
         ProgramProperties.GetXWebCreds(clinicNum, out xwebProperties);
@@ -322,8 +177,7 @@ public class Payments
         return retVal;
     }
 
-    ///<summary>Insert Payment and PaySplit. Returns newly inserted Payment.PayNum.</summary>
-    public static long InsertFromPayConnect(long patNum, long provNum, long clinicNum, double amount, string payNote, string receipt, CreditCardSource ccSource, string logGuid = "", double merchantFee = 0)
+    public static long InsertFromPayConnect(long patNum, long clinicNum, double amount, string payNote, string receipt, CreditCardSource ccSource, string logGuid = "", double merchantFee = 0)
     {
         var payment = new Payment
         {
@@ -355,65 +209,6 @@ public class Payments
         return ret;
     }
 
-    public static long InsertFromCareCredit(long patNum, long provNum, long clinicNum, double amount, string payNote, CreditCardSource ccSource, double merchantFee = 0)
-    {
-        var payment = new Payment();
-        payment.ClinicNum = clinicNum;
-        payment.IsRecurringCC = false;
-        payment.IsSplit = false;
-        payment.PatNum = patNum;
-        payment.PayAmt = amount;
-        payment.PayDate = MiscData.GetNowDateTime();
-        payment.PaymentSource = ccSource;
-        payment.PayType = SIn.Long(ProgramProperties.GetPropVal(Programs.GetCur(ProgramName.CareCredit).ProgramNum,
-            ProgramProperties.PropertyDescs.CareCredit.CareCreditPaymentType, clinicNum));
-        payment.ProcessStatus = ProcessStat.OnlinePending;
-        payment.PayNote = payNote;
-        payment.MerchantFee = merchantFee;
-        payment.IsCcCompleted = true;
-        if (PrefC.GetBool(PrefName.OnlinePaymentsMarkAsProcessed)) payment.ProcessStatus = ProcessStat.OnlineProcessed;
-        var patient = Patients.GetPat(patNum);
-        var payNum = ProcessPaymentForWeb(payment, patient, amount);
-        SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, patNum, Lans.g("Payments.InsertFromCareCredit", "CareCredit payment by") + " "
-                                                                                                                                       + patient.GetNameLF() + ", " + amount.ToString("c"), LogSources.CareCredit);
-        return payNum;
-    }
-
-    public static long InsertFromPaySimple(long patNum, long provNum, long clinicNum, double amount, string payNote, CreditCardSource creditCardSource, string logGuid = "")
-    {
-        string strPayType;
-        if (creditCardSource.In(CreditCardSource.PaySimpleACH, CreditCardSource.PaySimplePaymentPortalACH))
-            strPayType = PaySimple.PropertyDescs.PaySimplePayTypeACH;
-        else
-            strPayType = PaySimple.PropertyDescs.PaySimplePayTypeCC;
-        var payment = new Payment();
-        payment.ClinicNum = clinicNum;
-        payment.IsRecurringCC = false;
-        payment.IsSplit = false;
-        payment.PatNum = patNum;
-        payment.PayAmt = amount;
-        payment.PayDate = MiscData.GetNowDateTime();
-        payment.PaymentSource = creditCardSource;
-        payment.PayType = SIn.Long(ProgramProperties.GetPropVal(Programs.GetCur(ProgramName.PaySimple).ProgramNum, strPayType, clinicNum));
-        var defNumPayTypeM2P = EServiceLogs.UseMessageToPayPrefPayType(logGuid);
-        if (defNumPayTypeM2P != 0) payment.PayType = defNumPayTypeM2P;
-        payment.ProcessStatus = ProcessStat.OnlinePending;
-        payment.PayNote = payNote;
-        payment.IsCcCompleted = true;
-        if (PrefC.GetBool(PrefName.OnlinePaymentsMarkAsProcessed)) payment.ProcessStatus = ProcessStat.OnlineProcessed;
-        var patient = Patients.GetPat(patNum);
-        var payNum = ProcessPaymentForWeb(payment, patient, amount);
-        var logSource = LogSources.None;
-        if (CreditCards.GetCreditCardSourcesForOnlinePayments().Contains(creditCardSource)) logSource = LogSources.PaymentPortal;
-        SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, patNum, Lans.g("Payments.InsertFromPaySimple", "PaySimple payment by") + " "
-                                                                                                                                     + Patients.GetLim(patNum).GetNameLF() + ", " + amount.ToString("c"), logSource);
-        return payNum;
-    }
-
-    /// <summary>
-    ///     Inserts and returns a Payment object that returns the payment passed in specifically for XWeb. Optionally set
-    ///     a credit card processing company needs specific values for returning payments.
-    /// </summary>
     public static Payment InsertReturnXWebPayment(Payment payment, string payNote, double payAmt, ProcessStat processStat = ProcessStat.OfficeProcessed)
     {
         var paymentReturn = payment.Clone();
@@ -458,10 +253,6 @@ public class Payments
         return paymentReturn;
     }
 
-    /// <summary>
-    ///     Inserts and returns a Payment object that voids the payment passed in. Optionally set a custom payAmt when the
-    ///     credit card processing company needs specific values for voiding payments.
-    /// </summary>
     public static Payment InsertVoidPayment(Payment payment, List<PaySplit> listPaySplits, string receipt, string payNote, CreditCardSource creditCardSource, ProcessStat processStat = ProcessStat.OfficeProcessed, double payAmt = 0)
     {
         var paymentVoid = payment.Clone();
@@ -489,10 +280,6 @@ public class Payments
         return paymentVoid;
     }
 
-    /// <summary>
-    ///     Populates a new payment with a negative paysplit for each paysplit in the payment passed in. Returns a list of
-    ///     negative paysplits and updates paymentRefund. Used to make refunds.
-    /// </summary>
     public static Payment MakeNegativePaymentsRefund(Payment paymentExisting)
     {
         #region Make Payment
@@ -532,17 +319,7 @@ public class Payments
         Insert(paymentRefund, listPaySplitsRefund);
         return paymentRefund;
     }
-
-    #endregion
-
-    #region Update
-
-    /// <summary>
-    ///     Updates this payment.  Must make sure to update the datePay of all attached paysplits so that they are always
-    ///     in synch.  Also need to manually set IsSplit before here.  Will throw an exception if bad date, so surround by
-    ///     try-catch.  Set excludeDepositNum to true from FormPayment to prevent collision from another worksation that just
-    ///     deleted a deposit.
-    /// </summary>
+    
     public static void Update(Payment pay, bool excludeDepositNum)
     {
         if (!PrefC.GetBool(PrefName.AccountAllowFutureDebits) && !PrefC.GetBool(PrefName.FutureTransDatesAllowed) && pay.PayDate.Date > DateTime.Today.Date) throw new ApplicationException(Lans.g("Payments", "Payment Date must not be a future date."));
@@ -567,29 +344,16 @@ public class Payments
         }
     }
 
-    ///<summary>Updates a payment based upon the comparison of an old one versus a new one, ensuring less modification.</summary>
     public static void Update(Payment payNew, Payment payOld)
     {
         PaymentCrud.Update(payNew, payOld);
     }
-
-    #endregion
-
-    #region Delete
-
-    /// <summary>
-    ///     Deletes the payment as well as all splits.
-    ///     Surround with try catch, throws an exception if trying to delete a payment attached to a deposit.
-    /// </summary>
+    
     public static void Delete(Payment pay)
     {
         Delete(pay.PayNum);
     }
-
-    /// <summary>
-    ///     Deletes the payment as well as all splits.
-    ///     Surround with try catch, throws an exception if trying to delete a payment attached to a deposit.
-    /// </summary>
+    
     public static void Delete(long payNum)
     {
         var command = "SELECT DepositNum,PayAmt FROM payment WHERE PayNum=" + SOut.Long(payNum);
@@ -606,15 +370,7 @@ public class Payments
         command = "UPDATE recurringcharge SET PayNum=0 WHERE PayNum=" + SOut.Long(payNum);
         Db.NonQ(command);
     }
-
-    #endregion
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Called just before Allocate in FormPayment.butOK click.  If true, then it will prompt the user before
-    ///     allocating.
-    /// </summary>
+    
     public static bool AllocationRequired(double payAmt, long patNum)
     {
         var command = "SELECT EstBalance FROM patient "
@@ -636,12 +392,6 @@ public class Payments
         return false;
     }
 
-    /// <summary>
-    ///     Only Called only from FormPayment.butOK click.  Only called if the user did not enter any splits.  Usually
-    ///     just adds one split for the current patient.  But if that would take the balance negative, then it loops through
-    ///     all other family members and creates splits for them.  It might still take the current patient negative once all
-    ///     other family members are zeroed out.
-    /// </summary>
     public static List<PaySplit> Allocate(Payment pay)
     {
         //double amtTot,int patNum,Payment payNum){
@@ -737,13 +487,7 @@ public class Payments
         return retVal;
     }
 
-    /// <summary>
-    ///     This does all the validation before calling AlterLinkedEntries.  It had to be separated like this because of
-    ///     the complexity of saving a payment.  Surround with try-catch.  Will throw an exception if user is trying to change,
-    ///     but not allowed.  Will return false if no synch with accounting is needed.  Use -1 for newAcct to indicate no
-    ///     change.
-    /// </summary>
-    public static bool ValidateLinkedEntries(double oldAmt, double newAmt, bool isNew, long payNum, long newAcct)
+    public static bool ValidateLinkedEntries(double oldAmt, double newAmt, long payNum, long newAcct)
     {
         if (!Accounts.PaymentsLinked()) return false; //user has not even set up accounting links, so no need to check any of this.
         var amtChanged = false;
@@ -788,14 +532,7 @@ public class Payments
         return true;
     }
 
-    /// <summary>
-    ///     Only called once from FormPayment when trying to change an amount or an account on a payment that's already
-    ///     linked to the Accounting section or when trying to create a new link.  This automates updating the Accounting
-    ///     section.  Do not surround with try-catch, because it was already validated in ValidateLinkedEntries above.  Use -1
-    ///     for newAcct to indicate no changed. The name is required to give descriptions to new entries.
-    /// </summary>
-    public static void AlterLinkedEntries(double oldAmt, double newAmt, bool isNew, long payNum, long newAcct, DateTime payDate,
-        string patName)
+    public static void AlterLinkedEntries(double oldAmt, double newAmt, long payNum, long newAcct, DateTime payDate, string patName)
     {
         if (!Accounts.PaymentsLinked()) return; //user has not even set up accounting links.
         var amtChanged = false;
@@ -920,20 +657,6 @@ public class Payments
         return paySplit;
     }
 
-    public static DataTable GetFamilyBalancePayDatesCounts()
-    {
-        var command = "SELECT DateEntry,COUNT(*) FROM payment WHERE PayNote LIKE '" + "Auto-created by Family Balancer tool%" + "' GROUP BY DateEntry";
-        var table = DataCore.GetTable(command);
-        return table;
-    }
-
-    public static DataTable GetFamilyBalanceTransferForDate(DateTime dateEntry)
-    {
-        var command = "SELECT PayNum,PatNum FROM payment WHERE DateEntry=" + SOut.Date(dateEntry) + " AND PayNote LIKE '" + "Auto-created by Family Balancer tool%" + "'";
-        return DataCore.GetTable(command);
-    }
-
-    ///<summary>Returns a string that can be used for securitylog entries.</summary>
     public static string GetSecuritylogEntryText(Payment paymentNew, Payment paymentOld, bool isNew, List<Def> listPayTypes = null)
     {
         string secLogText;
@@ -958,28 +681,18 @@ public class Payments
         return secLogText;
     }
 
-    ///<summary>Returns the payment type string for the payment.</summary>
     public static string GetPaymentTypeDesc(Payment payment, List<Def> listPayTypes = null)
     {
         if (listPayTypes == null) listPayTypes = Defs.GetDefsForCategory(DefCat.PaymentTypes);
         return payment.PayType == 0 ? "Income Transfer" : Defs.GetName(DefCat.PaymentTypes, payment.PayType, listPayTypes);
     }
 
-    ///<summary>Securitylog text helper that returns a string of value changes passed in. Returns empty string if no changes.</summary>
     private static string SecurityLogEntryTextHelper(string newVal, string oldVal, string textInLog)
     {
         return newVal != oldVal ? $"\r\n {textInLog} changed from '{oldVal}' to '{newVal}'" : "";
     }
 
-    /// <summary>
-    ///     Creates a transfer originating from the prepayment containing the procOriginal, back to the procOriginal.
-    ///     Used to transfer money from TP unearned back onto the procedure as an allocated non pre-pay split.
-    ///     Optionally pass in procNumAttaching when wanting to attach to a procedure other than the procOriginal.
-    ///     Optionally pass in transferAmountOverride when transferring an amount that is not the split amount, as in the case
-    ///     for broken procs.
-    /// </summary>
-    public static void CreateTransferForTpProcs(Procedure procOriginal, List<PaySplit> listSplitsForProc, Procedure procAttaching = null,
-        double transferAmountOverride = 0)
+    public static void CreateTransferForTpProcs(Procedure procOriginal, List<PaySplit> listSplitsForProc, Procedure procAttaching = null, double transferAmountOverride = 0)
     {
         if (listSplitsForProc.IsNullOrEmpty() || listSplitsForProc.Sum(x => x.SplitAmt) == 0) return;
         //Remove all TP that are associated to DPP/PP
@@ -1032,11 +745,6 @@ public class Payments
         SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, transferPayment.PatNum, "Automatic transfer of funds for treatment plan procedure pre-payments.");
     }
 
-    /// <summary>
-    ///     This method is a concise version of FormPayment.SavePaymentToDb() modified for the API, Patient Portal, and
-    ///     eClipboard. Only handles patient payments, not income transfers, insurance, or TSI payments. Also runs Aging for
-    ///     the patient's family. Returns Payment.PaymentNum.
-    /// </summary>
     public static long ProcessPaymentForWeb(Payment odbPayment, Patient odbPatient, double payAmt, bool isPatientPreferred = false, bool isPrepayment = false, List<AccountEntry> listAccountEntries = null, long payPlanNum = 0)
     {
         var autoSplitData = PaymentEdit.AutoSplitForPayment(odbPayment.PatNum, odbPayment, isPatPrefer: isPatientPreferred, listAccountEntriesPayFirst: listAccountEntries, payPlanNum: payPlanNum);
@@ -1085,10 +793,6 @@ public class Payments
         return ret;
     }
 
-    /// <summary>
-    ///     Determines if all the paysplits in the payment have valid hashes. Uses passed list, not database. Returns
-    ///     false if a single paysplit is invalid, otherwise true.
-    /// </summary>
     public static bool ArePaySplitHashesValid(long payNum, List<PaySplit> listPaySplits)
     {
         if (listPaySplits.Count == 0) return true;
@@ -1099,6 +803,4 @@ public class Payments
 
         return true;
     }
-
-    #endregion
 }

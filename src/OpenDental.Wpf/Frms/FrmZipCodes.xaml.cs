@@ -13,6 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -47,19 +49,19 @@ namespace OpenDental {
 			gridZipCode.BeginUpdate();
 			gridZipCode.Columns.Clear();
 			GridColumn gridColumn;
-			gridColumn=new GridColumn(Lans.g(this,"ZipCode"),75);
+			gridColumn=new GridColumn(Lans.g("ZipCode"),75);
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-				gridColumn=new GridColumn(Lans.g(this,"Postal"),75);
+				gridColumn=new GridColumn(Lans.g("Postal"),75);
 			}
 			gridZipCode.Columns.Add(gridColumn);
-			gridColumn=new GridColumn(Lans.g(this,"City"),270);
+			gridColumn=new GridColumn(Lans.g("City"),270);
 			gridZipCode.Columns.Add(gridColumn);
-			gridColumn=new GridColumn(Lans.g(this,"State"),80);
+			gridColumn=new GridColumn(Lans.g("State"),80);
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-				gridColumn=new GridColumn(Lans.g(this,"Prov"),80);
+				gridColumn=new GridColumn(Lans.g("Prov"),80);
 			}
 			gridZipCode.Columns.Add(gridColumn);
-			gridColumn=new GridColumn(Lans.g(this,"Frequent"),0);
+			gridColumn=new GridColumn(Lans.g("Frequent"),0);
 			gridColumn.IsWidthDynamic=true;
 			gridZipCode.Columns.Add(gridColumn);
 			gridZipCode.ListGridRows.Clear();
@@ -104,7 +106,7 @@ namespace OpenDental {
 				return;
 			}
 			ZipCode zipCode = gridZipCode.SelectedTag<ZipCode>();
-			if(!MsgBox.Show(MsgBoxButtons.OKCancel,Lans.g(this,"Delete Zipcode?"),"")) {
+			if(!MsgBox.Show(MsgBoxButtons.OKCancel,Lans.g("Delete Zipcode?"),"")) {
 				return;
 			}
 			_isChanged=true;

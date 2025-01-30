@@ -2,30 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing.Printing;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.UI;
 
 namespace OpenDentBusiness;
 
-
 public class Sheets
 {
-    ///<Summary>Gets one Sheet from the database.</Summary>
     public static Sheet GetOne(long sheetNum)
     {
         return SheetCrud.SelectOne(sheetNum);
     }
 
-    /// <summary>
-    ///     Gets a single sheet from the database.  Then, gets all the fields and parameters for it.  So it returns a
-    ///     fully functional sheet. Returns null if the sheet isn't found in the database.
-    /// </summary>
     public static Sheet GetSheet(long sheetNum)
     {
         var sheet = GetOne(sheetNum);
@@ -34,7 +29,6 @@ public class Sheets
         return sheet;
     }
 
-    ///<summary>Gets a list of Sheets from the database. The sheets returned will not have SheetFields.</summary>
     public static List<Sheet> GetSheets(List<long> listSheetNums)
     {
         if (listSheetNums.IsNullOrEmpty()) return new List<Sheet>();
@@ -43,12 +37,6 @@ public class Sheets
         return SheetCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns true if a sheet with the WebFormSheetID passed in already exists in the database. Otherwise; false.
-    ///     Multiple entities can be retrieving the same web forms from HQ at the same time so it is important to check the
-    ///     sheet table to see if the SheetID has been retrieved before.
-    ///     Typically called before invoking SaveNewSheet() to avoid making duplicate sheets.
-    /// </summary>
     public static bool HasWebFormSheetID(long webFormSheetID)
     {
         var command = "SELECT COUNT(*) FROM sheet WHERE WebFormSheetID = " + SOut.Long(webFormSheetID);
@@ -58,17 +46,7 @@ public class Sheets
         return true;
     }
 
-    /// <Summary>
-    ///     This is normally done in FormSheetFillEdit, but if we bypass that window for some reason, we can also save a new
-    ///     sheet here. Signature
-    ///     fields are inserted as they are, so they must be keyed to the field values already. Saves the sheet and sheetfields
-    ///     exactly as they are. Used by
-    ///     webforms, for example, when a sheet is retrieved from the web server and the sheet signatures have already been
-    ///     keyed to the field values and
-    ///     need to be inserted as-is into the user's db. Return the SheetNum in case we need to use it locally when using
-    ///     middle tier.
-    /// </Summary>
-    public static long SaveNewSheet(Sheet sheet)
+    public static void SaveNewSheet(Sheet sheet)
     {
         //This remoting role check is technically unnecessary but it significantly speeds up the retrieval process for Middle Tier users due to looping.
 
@@ -100,14 +78,8 @@ public class Sheets
             sheetField.SheetNum = sheet.SheetNum;
             SheetFields.Update(sheetField);
         }
-
-        return sheet.SheetNum;
     }
 
-    /// <summary>
-    ///     Gets sheets with PatNum=0 and IsDeleted=0. Sheets with no PatNums were most likely transferred from CEMT tool.
-    ///     Also sets the sheet's SheetFields.
-    /// </summary>
     public static List<Sheet> GetTransferSheets()
     {
         //Sheets with patnum=0 and the sheet has a sheetfield. 
@@ -122,7 +94,6 @@ public class Sheets
         return listSheets;
     }
 
-    ///<Summary>Saves a list of sheets to the Database. Only saves new sheets, ignores sheets that are not new.</Summary>
     public static void SaveNewSheetList(List<Sheet> listSheets)
     {
         for (var i = 0; i < listSheets.Count; i++)
@@ -135,7 +106,6 @@ public class Sheets
         }
     }
 
-    ///<summary>Used in FormRefAttachEdit to show all referral slips for the patient/referral combo.  Usually 0 or 1 results.</summary>
     public static List<Sheet> GetReferralSlips(long patNum, long referralNum)
     {
         var command = "SELECT * FROM sheet WHERE PatNum=" + SOut.Long(patNum)
@@ -150,7 +120,6 @@ public class Sheets
         return SheetCrud.SelectMany(command);
     }
 
-    ///<summary>Used in FormLabCaseEdit to view an existing lab slip.  Will return null if none exist.</summary>
     public static Sheet GetLabSlip(long patNum, long labCaseNum)
     {
         var command = "SELECT sheet.* FROM sheet,sheetfield "
@@ -164,7 +133,6 @@ public class Sheets
         return SheetCrud.SelectOne(command);
     }
 
-    ///<summary>Used in FormRxEdit to view an existing rx.  Will return null if none exist.</summary>
     public static Sheet GetRx(long patNum, long rxNum)
     {
         var command = "SELECT sheet.* FROM sheet,sheetfield "
@@ -177,7 +145,6 @@ public class Sheets
         return SheetCrud.SelectOne(command);
     }
 
-    ///<summary>Gets all sheets for a patient that have the terminal flag set.  Shallow list, no fields or parameters.</summary>
     public static List<Sheet> GetForTerminal(long patNum)
     {
         var command = "SELECT * FROM sheet WHERE PatNum=" + SOut.Long(patNum)
@@ -186,10 +153,6 @@ public class Sheets
         return SheetCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets the maximum Terminal Num for the selected patient.  Returns 0 if there's no sheets marked to show in
-    ///     terminal.
-    /// </summary>
     public static int GetMaxTerminalNum(long patNum)
     {
         var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE PatNum=" + SOut.Long(patNum)
@@ -197,12 +160,7 @@ public class Sheets
         return (int) Db.GetLong(command);
     }
 
-    /// <summary>
-    ///     Trys to set the out params with sheet fields valus for LName,FName,DOB,PhoneNumbers, and email. Used when
-    ///     importing CEMT patient transfers.
-    /// </summary>
-    public static void ParseTransferSheet(Sheet sheet, out string lName, out string fName, out DateTime dateBirth, out List<string> listPhoneNumbers,
-        out string email)
+    public static void ParseTransferSheet(Sheet sheet, out string lName, out string fName, out DateTime dateBirth, out List<string> listPhoneNumbers, out string email)
     {
         lName = "";
         fName = "";
@@ -236,7 +194,6 @@ public class Sheets
             }
     }
 
-    ///<summary>Returns a list of SheetNums of matching sheets.</summary>
     public static List<long> FindSheetsForPat(Sheet sheetToMatch, List<Sheet> listSheets)
     {
         string lName;
@@ -263,28 +220,21 @@ public class Sheets
         return listSheetNumsIdMatch;
     }
 
-    ///<summary>Get all sheets for a patient for today.</summary>
     public static List<Sheet> GetForPatientForToday(long patNum)
     {
         var dateSQL = "CURDATE()";
         var command = "SELECT * FROM sheet WHERE PatNum=" + SOut.Long(patNum) + " "
-                      + "AND " + DbHelper.DtimeToDate("DateTimeSheet") + " = " + dateSQL + " "
+                      + "AND DATE(DateTimeSheet) = " + dateSQL + " "
                       + "AND IsDeleted=0";
         return SheetCrud.SelectMany(command);
     }
 
-    ///<summary>Get all sheets for a patient.</summary>
     public static List<Sheet> GetForPatient(long patNum)
     {
         var command = "SELECT * FROM sheet WHERE IsDeleted=0 AND PatNum=" + SOut.Long(patNum);
         return SheetCrud.SelectMany(command);
     }
 
-    /// <summary>Get all sheets that reference a given document. Primarily used to prevent deleting an in use document.</summary>
-    /// <returns>
-    ///     List of sheets that have fields that reference the given DocNum. Returns empty list if document is not
-    ///     referenced.
-    /// </returns>
     public static List<Sheet> GetForDocument(long docNum)
     {
         var command = "";
@@ -303,7 +253,6 @@ public class Sheets
         return SheetCrud.SelectMany(command);
     }
 
-    ///<summary>Gets the most recent Exam Sheet based on description to fill a patient letter.</summary>
     public static Sheet GetMostRecentExamSheet(long patNum, string examDescript)
     {
         var command = "SELECT * FROM sheet WHERE DateTimeSheet="
@@ -316,23 +265,18 @@ public class Sheets
         return SheetCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Called by eClipboard check-in once an appointment has been moved to the waiting room and the patient is ready to
-    ///     fill out forms.
-    ///     Returns number of new sheets created and inserted into Sheet table.
-    /// </summary>
-    public static int CreateSheetsForCheckIn(Appointment appointment)
+    public static void CreateSheetsForCheckIn(Appointment appointment)
     {
         if (!MobileAppDevices.IsClinicSignedUpForEClipboard(true ? appointment.ClinicNum : 0)) //this clinic isn't signed up for this feature
-            return 0;
+            return;
         if (!ClinicPrefs.GetBool(PrefName.EClipboardCreateMissingFormsOnCheckIn, appointment.ClinicNum)) //This feature is turned off
-            return 0;
+            return;
         var useDefault = ClinicPrefs.GetBool(PrefName.EClipboardUseDefaults, appointment.ClinicNum);
         var listEClipboardSheetDefsToCreate = EClipboardSheetDefs.GetForClinic(useDefault ? 0 : appointment.ClinicNum);
         //This list can hold sheets and eForms. Lets remove all forms that are not sheets since this method is only for creating sheets.
         listEClipboardSheetDefsToCreate.RemoveAll(x => x.SheetDefNum == 0);
         if (listEClipboardSheetDefsToCreate.Count == 0) //There aren't any sheets to create here
-            return 0;
+            return;
         var listSheetsAlreadyCompleted = GetForPatient(appointment.PatNum);
         var listSheetsAlreadyInTerminal = GetForTerminal(appointment.PatNum);
         //if we already have sheets queued for the patient don't add duplicates
@@ -396,13 +340,8 @@ public class Sheets
         }
 
         SaveNewSheetList(listSheetsNew);
-        return listSheetsNew.Count;
     }
 
-    /// <summary>
-    ///     Creates a new sheet instance based on sheetDefOriginal, and fills it with values from the db, and then fills
-    ///     remaining with values from sheet. Returns the new, pre-filled sheet.
-    /// </summary>
     public static Sheet PreFillSheetFromPreviousAndDatabase(SheetDef sheetDefOriginal, Sheet sheet)
     {
         var sheetNew = SheetUtil.CreateSheet(sheetDefOriginal, sheet.PatNum);
@@ -536,22 +475,16 @@ public class Sheets
         return sheet;
     }
 
-    
-    public static long Insert(Sheet sheet)
+    public static void Insert(Sheet sheet)
     {
-        return SheetCrud.Insert(sheet);
+        SheetCrud.Insert(sheet);
     }
 
-    
     public static void Update(Sheet sheet)
     {
         SheetCrud.Update(sheet);
     }
 
-    /// <summary>
-    ///     Sets the IsDeleted flag to true (1) for the specified sheetNum.  The sheet and associated sheetfields are not
-    ///     deleted.
-    /// </summary>
     public static void Delete(long sheetNum, long patNum = 0, byte showInTerminal = 0)
     {
         var command = "UPDATE sheet SET IsDeleted=1,ShowInTerminal=0 WHERE SheetNum=" + SOut.Long(sheetNum);
@@ -569,11 +502,6 @@ public class Sheets
         }
     }
 
-    /// <summary>
-    ///     Converts parameters into sheetfield objects, and then saves those objects in the database.
-    ///     The parameters will never again enjoy full parameter status, but will just be read-only fields from here on out.
-    ///     It ignores PatNum parameters, since those are already part of the sheet itself.
-    /// </summary>
     public static void SaveParameters(Sheet sheet)
     {
         var listSheetFields = new List<SheetField>();
@@ -615,12 +543,6 @@ public class Sheets
         SheetFields.InsertMany(listSheetFields);
     }
 
-    /// <summary>
-    ///     Loops through all the fields in the sheet and appends together all the FieldValues.  It obviously excludes all
-    ///     SigBox fieldtypes.  It does include Drawing fieldtypes, so any change at all to any drawing will invalidate the
-    ///     signature.  It does include Image fieldtypes, although that's just a filename and does not really have any
-    ///     meaningful data about the image itself.  The order is absolutely critical.
-    /// </summary>
     public static string GetSignatureKey(Sheet sheet)
     {
         //The order of sheet fields is absolutely critical when it comes to the signature key.
@@ -745,10 +667,6 @@ public class Sheets
         return table;
     }
 
-    /// <summary>
-    ///     Returns all sheets for the given patient in the given date range which have a description matching the
-    ///     examDescript in a case insensitive manner. If examDescript is blank, then sheets with any description are returned.
-    /// </summary>
     public static List<Sheet> GetExamSheetsTable(long patNum, DateTime dateStart, DateTime dateEnd, long sheetDefNum = -1)
     {
         var command = "SELECT * "
@@ -756,15 +674,11 @@ public class Sheets
                       + "AND PatNum=" + SOut.Long(patNum) + " "
                       + "AND SheetType=" + SOut.Int((int) SheetTypeEnum.ExamSheet) + " ";
         if (sheetDefNum != -1) command += "AND SheetDefNum = " + SOut.Long(sheetDefNum) + " ";
-        command += "AND " + DbHelper.DtimeToDate("DateTimeSheet") + ">=" + SOut.Date(dateStart) + " AND " + DbHelper.DtimeToDate("DateTimeSheet") + "<=" + SOut.Date(dateEnd) + " "
+        command += "AND DATE(DateTimeSheet)>=" + SOut.Date(dateStart) + " AND DATE(DateTimeSheet)<=" + SOut.Date(dateEnd) + " "
                    + "ORDER BY DateTimeSheet";
         return SheetCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Used to get sheets that were automatically downloaded by the Open Dental Service. These are the sheets that
-    ///     have many or no matching patients that still need to be manually attached to an existing or new pat.
-    /// </summary>
     public static List<Sheet> GetUnmatchedWebFormSheets(List<long> listClinicNums)
     {
         var command = "SELECT * "
@@ -779,25 +693,6 @@ public class Sheets
         return listSheets;
     }
 
-    /// <summary>
-    ///     Used to get the count of sheets that are going to be downloaded by the Open Dental Service. Used for creating
-    ///     AlertItems.
-    /// </summary>
-    public static int GetUnmatchedWebFormSheetsCount(List<long> listClinicNums)
-    {
-        var command = "SELECT COUNT(SheetNum) "
-                      + "FROM sheet WHERE IsDeleted=0 "
-                      + "AND PatNum=0 "
-                      + "AND IsWebForm = " + SOut.Bool(true) + " "
-                      + "AND (SheetType=" + SOut.Long((int) SheetTypeEnum.PatientForm) + " OR SheetType=" + SOut.Long((int) SheetTypeEnum.MedicalHistory) + ") "
-                      + (true ? "AND ClinicNum IN (" + string.Join(",", listClinicNums) + ") " : "");
-        return (int) Db.GetLong(command);
-    }
-
-    /// <summary>
-    ///     Used to get sheets filled via the web.  Passing in a null or empty list of clinic nums will only return sheets
-    ///     that are not assigned to a clinic.
-    /// </summary>
     public static DataTable GetWebFormSheetsTable(DateTime dateFrom, DateTime dateTo, List<long> listClinicNums)
     {
         if (listClinicNums == null || listClinicNums.Count == 0) listClinicNums = new List<long> {0}; //To ensure we filter on at least one clinic (HQ).
@@ -847,25 +742,11 @@ public class Sheets
         return table;
     }
 
-    public static bool ContainsStaticField(Sheet sheet, string fieldName)
-    {
-        var listSheetFields = sheet.SheetFields;
-        for (var i = 0; i < listSheetFields.Count; i++)
-        {
-            if (listSheetFields[i].FieldType != SheetFieldType.StaticText) continue;
-            if (listSheetFields[i].FieldValue.Contains("[" + fieldName + "]")) return true;
-        }
-
-        return false;
-    }
-
-    
     public static byte GetBiggestShowInTerminal(long patNum)
     {
         var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE IsDeleted=0 AND PatNum=" + SOut.Long(patNum);
         return SIn.Byte(DataCore.GetScalar(command));
     }
-
     
     public static void ClearFromTerminal(long patNum)
     {
@@ -873,10 +754,6 @@ public class Sheets
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     This gives the number of pages required to print all fields. This must be calculated ahead of time when
-    ///     creating multi page pdfs.
-    /// </summary>
     public static int CalculatePageCount(Sheet sheet, Margins margins)
     {
         //HeightPage is the value of Width/Length depending on Landscape/Portrait.
@@ -955,38 +832,4 @@ public class Sheets
 
         return false;
     }
-
-    #region Xamarin Methods
-
-    ///<summary>This is supposed to be used explicity with Sheets and not the old Open Dental way of creating sheets.</summary>
-    public static string CreatePdfForXamarin(long sheetNum)
-    {
-        var sheet = GetSheet(sheetNum);
-        SheetFields.GetFieldsAndParameters(sheet);
-        var sheetDrawingJob = new SheetDrawingJob();
-        var tempFile = PrefC.GetRandomTempFile(".pdf");
-        var rawBase64 = "";
-        //Create a PDF with the given sheet and file. The other parameters can remain null, because they aren't used for TreatPlan sheets.
-        var pdfDocument = sheetDrawingJob.CreatePdf(sheet);
-        SheetDrawingJob.SavePdfToFile(pdfDocument, tempFile);
-        //Convert the pdf into its raw bytes
-        rawBase64 = Convert.ToBase64String(File.ReadAllBytes(tempFile));
-        return Convert.ToBase64String(File.ReadAllBytes(tempFile));
-    }
-
-    public static Sheet CreateExamSheet(long patNum, long sheetDefNum)
-    {
-        SheetDef sheetDef = null;
-        if (sheetDefNum == 0)
-            sheetDef = SheetDefs.GetSheetsDefault(SheetTypeEnum.ExamSheet);
-        else
-            sheetDef = SheetDefs.GetSheetDef(sheetDefNum);
-        var sheet = SheetUtil.CreateSheet(sheetDef, patNum);
-        SheetParameter.SetParameter(sheet, "PatNum", patNum);
-        SheetFiller.FillFields(sheet);
-        SheetUtil.CalculateHeights(sheet);
-        return sheet;
-    }
-
-    #endregion Xamarin Methods
 }

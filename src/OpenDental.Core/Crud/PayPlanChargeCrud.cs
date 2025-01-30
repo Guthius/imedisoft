@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PayPlanChargeCrud
 {
@@ -115,14 +117,14 @@ public class PayPlanChargeCrud
                                                 + SOut.Long(payPlanCharge.ClinicNum) + ","
                                                 + SOut.Int((int) payPlanCharge.ChargeType) + ","
                                                 + SOut.Long(payPlanCharge.ProcNum) + ","
-                                                + DbHelper.Now() + ","
+                                                + "NOW()" + ","
                                                 //SecDateTEdit can only be set by MySQL
                                                 + SOut.Long(payPlanCharge.StatementNum) + ","
                                                 + SOut.Long(payPlanCharge.FKey) + ","
                                                 + SOut.Int((int) payPlanCharge.LinkType) + ","
                                                 + SOut.Bool(payPlanCharge.IsOffset) + ")";
         if (payPlanCharge.Note == null) payPlanCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlanCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlanCharge.Note));
         {
             payPlanCharge.PayPlanChargeNum = Db.NonQ(command, true, "PayPlanChargeNum", "payPlanCharge", paramNote);
         }
@@ -185,7 +187,7 @@ public class PayPlanChargeCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(payPlanCharge.ProcNum));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             //SecDateTEdit can only be set by MySQL
             sbRow.Append(SOut.Long(payPlanCharge.StatementNum));
@@ -236,14 +238,14 @@ public class PayPlanChargeCrud
                                                 + SOut.Long(payPlanCharge.ClinicNum) + ","
                                                 + SOut.Int((int) payPlanCharge.ChargeType) + ","
                                                 + SOut.Long(payPlanCharge.ProcNum) + ","
-                                                + DbHelper.Now() + ","
+                                                + "NOW()" + ","
                                                 //SecDateTEdit can only be set by MySQL
                                                 + SOut.Long(payPlanCharge.StatementNum) + ","
                                                 + SOut.Long(payPlanCharge.FKey) + ","
                                                 + SOut.Int((int) payPlanCharge.LinkType) + ","
                                                 + SOut.Bool(payPlanCharge.IsOffset) + ")";
         if (payPlanCharge.Note == null) payPlanCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlanCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlanCharge.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -273,7 +275,7 @@ public class PayPlanChargeCrud
                       + "IsOffset        =  " + SOut.Bool(payPlanCharge.IsOffset) + " "
                       + "WHERE PayPlanChargeNum = " + SOut.Long(payPlanCharge.PayPlanChargeNum);
         if (payPlanCharge.Note == null) payPlanCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlanCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlanCharge.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -374,7 +376,7 @@ public class PayPlanChargeCrud
 
         if (command == "") return false;
         if (payPlanCharge.Note == null) payPlanCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlanCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlanCharge.Note));
         command = "UPDATE payplancharge SET " + command
                                               + " WHERE PayPlanChargeNum = " + SOut.Long(payPlanCharge.PayPlanChargeNum);
         Db.NonQ(command, paramNote);

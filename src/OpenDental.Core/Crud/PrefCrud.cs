@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PrefCrud
 {
@@ -79,9 +81,9 @@ public class PrefCrud
             + DbHelper.ParamChar + "paramValueString,"
             + DbHelper.ParamChar + "paramComments)";
         if (pref.ValueString == null) pref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(pref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(pref.ValueString));
         if (pref.Comments == null) pref.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(pref.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(pref.Comments));
         {
             pref.PrefNum = Db.NonQ(command, true, "PrefNum", "pref", paramValueString, paramComments);
         }
@@ -105,9 +107,9 @@ public class PrefCrud
             + DbHelper.ParamChar + "paramValueString,"
             + DbHelper.ParamChar + "paramComments)";
         if (pref.ValueString == null) pref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(pref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(pref.ValueString));
         if (pref.Comments == null) pref.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(pref.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(pref.Comments));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramValueString, paramComments);
         else
@@ -123,9 +125,9 @@ public class PrefCrud
                       + "Comments   =  " + DbHelper.ParamChar + "paramComments "
                       + "WHERE PrefNum = " + SOut.Long(pref.PrefNum);
         if (pref.ValueString == null) pref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(pref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(pref.ValueString));
         if (pref.Comments == null) pref.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(pref.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(pref.Comments));
         Db.NonQ(command, paramValueString, paramComments);
     }
 
@@ -152,9 +154,9 @@ public class PrefCrud
 
         if (command == "") return false;
         if (pref.ValueString == null) pref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(pref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(pref.ValueString));
         if (pref.Comments == null) pref.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(pref.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(pref.Comments));
         command = "UPDATE preference SET " + command
                                            + " WHERE PrefNum = " + SOut.Long(pref.PrefNum);
         Db.NonQ(command, paramValueString, paramComments);

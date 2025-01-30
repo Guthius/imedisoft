@@ -24,9 +24,7 @@ namespace OpenDental {
 			// 
 			// ValidDate
 			// 
-			this.Validated += new System.EventHandler(this.ValidDate_Validated);
 			this.Validating += new System.ComponentModel.CancelEventHandler(this.ValidDate_Validating);
-			this.TextChanged += new System.EventHandler(this.ValidDate_TextChanged);
 			this.ResumeLayout(false);
 
 		}

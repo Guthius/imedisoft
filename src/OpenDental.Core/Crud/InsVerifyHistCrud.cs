@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InsVerifyHistCrud
 {
@@ -106,7 +108,7 @@ public class InsVerifyHistCrud
                                                    + SOut.Double(insVerifyHist.HoursAvailableForVerification) + ")";
         //SecDateTEdit can only be set by MySQL
         if (insVerifyHist.Note == null) insVerifyHist.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerifyHist.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerifyHist.Note));
         {
             insVerifyHist.InsVerifyHistNum = Db.NonQ(command, true, "InsVerifyHistNum", "insVerifyHist", paramNote);
         }
@@ -139,7 +141,7 @@ public class InsVerifyHistCrud
                                                    + SOut.Double(insVerifyHist.HoursAvailableForVerification) + ")";
         //SecDateTEdit can only be set by MySQL
         if (insVerifyHist.Note == null) insVerifyHist.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerifyHist.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerifyHist.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -164,7 +166,7 @@ public class InsVerifyHistCrud
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE InsVerifyHistNum = " + SOut.Long(insVerifyHist.InsVerifyHistNum);
         if (insVerifyHist.Note == null) insVerifyHist.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerifyHist.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerifyHist.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -240,7 +242,7 @@ public class InsVerifyHistCrud
         //SecDateTEdit can only be set by MySQL
         if (command == "") return false;
         if (insVerifyHist.Note == null) insVerifyHist.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerifyHist.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerifyHist.Note));
         command = "UPDATE insverifyhist SET " + command
                                               + " WHERE InsVerifyHistNum = " + SOut.Long(insVerifyHist.InsVerifyHistNum);
         Db.NonQ(command, paramNote);

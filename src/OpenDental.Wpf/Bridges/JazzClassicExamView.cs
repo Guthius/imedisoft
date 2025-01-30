@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	///<summary>Launches the program using a combination of command line args and the patient data.</summary>

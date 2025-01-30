@@ -6,25 +6,19 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public class Defs
 {
-    #region Insert
-
-    ///<summary>Make sure to also do a security log entry. Use DefL for that if in the UI layer.</summary>
     public static long Insert(Def def)
     {
         return DefCrud.Insert(def);
     }
 
-    #endregion
-
-    #region Delete
-
-    ///<summary>CAUTION.  This does not perform all validations.  Throws exceptions.</summary>
     public static void Delete(Def def)
     {
         string command;
@@ -88,11 +82,6 @@ public class Defs
         Db.NonQ(command);
     }
 
-    #endregion
-
-    #region Get Methods
-
-    ///<summary>Gets all non-hidden definitions from the database.  The order mimics the cache.</summary>
     public static Def[][] GetArrayShortNoCache()
     {
         var command = "SELECT * FROM definition ORDER BY Category,ItemOrder";
@@ -103,7 +92,6 @@ public class Defs
         return defArray;
     }
 
-    ///<summary>Used by the refresh method above.</summary>
     private static Def[] GetForCategory(int idxCat, bool includeHidden, List<Def> listDefs)
     {
         var listDefsRet = new List<Def>();
@@ -117,7 +105,6 @@ public class Defs
         return listDefsRet.ToArray();
     }
 
-    ///<summary>Gets an array of definitions from the database.</summary>
     public static Def[] GetCatList(int category)
     {
         var command =
@@ -127,36 +114,22 @@ public class Defs
         return DefCrud.SelectMany(command).ToArray();
     }
 
-    ///<summary>Gets a list of defs from the list of defnums and passed-in cat.</summary>
     public static List<Def> GetDefs(DefCat defCat, List<long> listDefNums)
     {
         return GetDefsForCategory(defCat).FindAll(x => listDefNums.Contains(x.DefNum));
     }
 
-    /// <summary>
-    ///     Get one def from Long.  Returns null if not found.  Only used for very limited situations.
-    ///     Other Get functions tend to be much more useful since they don't return null.
-    ///     There is also BIG potential for silent bugs if you use this.ItemOrder instead of GetOrder().
-    /// </summary>
     public static Def GetDef(DefCat defCat, long defNum, List<Def> listDefs = null)
     {
         listDefs = listDefs ?? GetDefsForCategory(defCat);
         return listDefs.FirstOrDefault(x => x.DefNum == defNum);
     }
 
-    /// <summary>
-    ///     Returns the Def with the exact itemName passed in.  Returns null if not found.
-    ///     If itemName is blank, then it returns the first def in the category.
-    /// </summary>
     public static Def GetDefByExactName(DefCat defCat, string itemName)
     {
         return GetDef(defCat, GetByExactName(defCat, itemName));
     }
 
-    /// <summary>
-    ///     Set isShort to true to exclude hidden defs. Returns 0 if it can't find the named def.  If the name is blank,
-    ///     then it returns the first def in the category.
-    /// </summary>
     public static long GetByExactName(DefCat defCat, string itemName, bool isShort = false)
     {
         var listDefs = GetDefsForCategory(defCat, isShort);
@@ -166,7 +139,6 @@ public class Defs
         return def.DefNum;
     }
 
-    ///<summary>Returns the named def.  If it can't find the name, then it returns the first def in the category.</summary>
     public static long GetByExactNameNeverZero(DefCat defCat, string itemName)
     {
         var listDefs = GetDefsForCategory(defCat);
@@ -195,11 +167,6 @@ public class Defs
         return listDefs[0].DefNum;
     }
 
-    /// <summary>
-    ///     Returns defs from the AdjTypes that contain '+' in the ItemValue column.
-    ///     Optionally set considerPermission true to exclude adjustment types that the user currently logged in does not have
-    ///     access to.
-    /// </summary>
     public static List<Def> GetPositiveAdjTypes(bool considerPermission = false)
     {
         var listDefs = GetDefsForCategory(DefCat.AdjTypes, true).FindAll(x => x.ItemValue == "+");
@@ -207,11 +174,6 @@ public class Defs
         return listDefs;
     }
 
-    /// <summary>
-    ///     Returns defs from the AdjTypes that contain '-' in the ItemValue column.
-    ///     Optionally set considerPermission true to exclude adjustment types that the user currently logged in does not have
-    ///     access to.
-    /// </summary>
     public static List<Def> GetNegativeAdjTypes(bool considerPermission = false)
     {
         var listDefs = GetDefsForCategory(DefCat.AdjTypes, true).FindAll(x => x.ItemValue == "-");
@@ -219,13 +181,11 @@ public class Defs
         return listDefs;
     }
 
-    ///<summary>Returns defs from the AdjTypes that contain 'dp' in the ItemValue column.</summary>
     public static List<Def> GetDiscountPlanAdjTypes()
     {
         return GetDefsForCategory(DefCat.AdjTypes, true).FindAll(x => x.ItemValue == "dp");
     }
 
-    ///<summary>Set includeHidden to true to include defs marked as 'Do Not Show on Account'.</summary>
     public static List<Def> GetUnearnedDefs(bool includeHidden = false, bool isShort = false)
     {
         var listDefs = GetDefsForCategory(DefCat.PaySplitUnearnedType, isShort);
@@ -233,13 +193,11 @@ public class Defs
         return listDefs;
     }
 
-    ///<summary>Only gets defs marked as 'Do Not Show on Account'.</summary>
     public static List<Def> GetHiddenUnearnedDefs(bool isShort = false)
     {
         return GetDefsForCategory(DefCat.PaySplitUnearnedType, isShort).FindAll(x => !string.IsNullOrEmpty(x.ItemValue));
     }
 
-    ///<summary>Returns a DefNum for the special image category specified.  Returns 0 if no match found.</summary>
     public static long GetImageCat(ImageCategorySpecial imageCategorySpecial)
     {
         var def = GetDefsForCategory(DefCat.ImageCats, true).FirstOrDefault(x => x.ItemValue.Contains(imageCategorySpecial.ToString()));
@@ -247,14 +205,12 @@ public class Defs
         return def.DefNum;
     }
 
-    ///<summary>Gets the order of the def within Short or -1 if not found.</summary>
     public static int GetOrder(DefCat defCat, long defNum)
     {
         //gets the index in the list of unhidden (the Short list).
         return GetDefsForCategory(defCat, true).FindIndex(x => x.DefNum == defNum);
     }
 
-    ///<summary>Returns empty string if no match found.</summary>
     public static string GetValue(DefCat defCat, long defNum)
     {
         var def = GetDefsForCategory(defCat).LastOrDefault(x => x.DefNum == defNum);
@@ -262,11 +218,6 @@ public class Defs
         return def.ItemValue;
     }
 
-    /// <summary>
-    ///     Returns Color.White if no match found. Pass in a list of defs to save from making deep copies of the cache if you
-    ///     are going to
-    ///     call this method repeatedly.
-    /// </summary>
     public static Color GetColor(DefCat defCat, long defNum, List<Def> listDefs = null)
     {
         listDefs = listDefs ?? GetDefsForCategory(defCat);
@@ -275,7 +226,6 @@ public class Defs
         return def.ItemColor;
     }
 
-    
     public static bool GetHidden(DefCat defCat, long defNum)
     {
         var def = GetDef(defCat, defNum);
@@ -283,10 +233,6 @@ public class Defs
         return def.IsHidden;
     }
 
-    /// <summary>
-    ///     Pass in a list of all defs to save from making deep copies of the cache if you are going to call this method
-    ///     repeatedly.
-    /// </summary>
     public static string GetName(DefCat defCat, long defNum, List<Def> listDefs = null)
     {
         if (defNum == 0) return "";
@@ -295,10 +241,6 @@ public class Defs
         return def.ItemName;
     }
 
-    /// <summary>
-    ///     Gets the name of the def without requiring a category.  If it's a hidden def, it tacks (hidden) onto the end.
-    ///     Use for single defs, not in a loop situation.
-    /// </summary>
     public static string GetNameWithHidden(long defNum)
     {
         if (defNum == 0) return "";
@@ -320,45 +262,29 @@ public class Defs
         return DefCrud.SelectMany(command);
     }
 
-    ///<summary>Returns definitions that are associated to the defCat, fKey, and defLinkType passed in.</summary>
     public static List<Def> GetDefsByDefLinkFKey(DefCat defCat, long fKey, DefLinkType defLinkType)
     {
         var listDefLinks = DefLinks.GetDefLinksByType(defLinkType).FindAll(x => x.FKey == fKey);
         return GetDefs(defCat, listDefLinks.Select(x => x.DefNum).Distinct().ToList());
     }
 
-    ///<summary>Throws an exception if there are no definitions in the category provided.  This is to preserve old behavior.</summary>
     public static Def GetFirstForCategory(DefCat defCat, bool isShort = false)
     {
         var listDefs = GetDefsForCategory(defCat, isShort);
         return listDefs.First();
     }
 
-    #endregion
-
-    #region Update
-
-    ///<summary>Make sure to also do a security log entry. Use DefL for that if in the UI layer.</summary>
     public static void Update(Def def)
     {
         DefCrud.Update(def);
     }
 
-    ///<summary>Make sure to also do a security log entry. Use DefL for that if in the UI layer.</summary>
     public static void HideDef(Def def)
     {
         def.IsHidden = true;
         Update(def);
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Helper method that throws an Application Exception if the count of remaining defs of a given category is not
-    ///     greater than 1.
-    /// </summary>
     private static void DefCountValid(DefCat defCat)
     {
         //Do not let the user delete the last WebSchedExistingApptType definition. Must be at least one.
@@ -366,20 +292,12 @@ public class Defs
         if (SIn.Int(Db.GetCount(command), false) <= 1) throw new ApplicationException("NOT Allowed to delete the last def of this type.");
     }
 
-    /// <summary>
-    ///     Returns true if the passed-in def is deprecated.  This method must be updated whenever another def is
-    ///     deprecated.
-    /// </summary>
     public static bool IsDefDeprecated(Def def)
     {
         if (def.Category == DefCat.AccountColors && def.ItemName == "Received Pre-Auth") return true;
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if the category needs at least one of its definitions to be unhidden.
-    ///     The list of categories in the if statement of this method should only include those that can be hidden.
-    /// </summary>
     public static bool NeedOneUnhidden(DefCat defCat)
     {
         if ( //Definitions of categories that are commented out can be hidden and we want to allow users to hide ALL of them if they so desire
@@ -417,25 +335,6 @@ public class Defs
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if there are any entries in definition that do not have a Category named "General".
-    ///     Returning false means the user has ProcButtonCategory customizations.
-    /// </summary>
-    public static bool HasCustomCategories()
-    {
-        var listDefs = GetDefsForCategory(DefCat.ProcButtonCats);
-        for (var i = 0; i < listDefs.Count; i++)
-            if (!listDefs[i].ItemName.Equals("General"))
-                return true;
-
-        return false;
-    }
-
-    /// <summary>
-    ///     Returns true if this definition is in use within the program. Consider enhancing this method if you add a
-    ///     definition category.
-    ///     Does not check patient billing type or provider specialty since those are handled in their S-class.
-    /// </summary>
     public static bool IsDefinitionInUse(Def def)
     {
         var listStrCommands = new List<string>();
@@ -533,10 +432,6 @@ public class Defs
         return listStrCommands.Any(x => Db.GetCount(x) != "0");
     }
 
-    /// <summary>
-    ///     Takes a list of DefNums and updates the list to remove defNumFrom or replace with defNumTo if applicable.
-    ///     Returns either a null if there defNumFrom not in the list, or a comma-delimited string of defNums.
-    /// </summary>
     public static List<string> RemoveOrReplaceDefNum(List<string> listStrDefNums, string defNumFrom, string defNumTo)
     {
         if (listStrDefNums.IsNullOrEmpty() || !listStrDefNums.Contains(defNumFrom)) return null; //Nothing to update.
@@ -555,7 +450,6 @@ public class Defs
         return listStrDefNums;
     }
 
-    ///<summary>Merges old Billing Type(FK DefNum) into the new Billing Type(FK DefNum).</summary>
     public static void MergeBillingTypeDefNums(long defNumFrom, long defNumTo)
     {
         var strDefNumTo = SOut.Long(defNumTo);
@@ -630,7 +524,6 @@ public class Defs
         #endregion
     }
 
-    ///<summary>Merges old document DocCategory(FK DefNum) into the new DocCategory(FK DefNum).</summary>
     public static void MergeImageCatDefNums(long defNumFrom, long defNumTo)
     {
         var command = "UPDATE document"
@@ -663,7 +556,6 @@ public class Defs
         }
     }
 
-    /// <summary>Returns true if the def is the default payment type for any of the payment programs, false otherwise </summary>
     public static bool IsPaymentTypeInUse(Def def)
     {
         if (def.Category != DefCat.PaymentTypes) return false;
@@ -672,16 +564,6 @@ public class Defs
         return false;
     }
 
-    #endregion
-
-    #region CachePattern
-
-    /// <summary>
-    ///     The def cache technically does not utilize the PK column as the Key in the dictionary but it can safely utilize
-    ///     CacheDictAbs.
-    ///     The reason it can safely use this version of our dict cache paradigm because the key is guaranteed to be unique and
-    ///     not duplicate.
-    /// </summary>
     private class DefCache : CacheDictAbs<Def, DefCat, List<Def>>
     {
         protected override List<Def> GetCacheFromDb()
@@ -749,54 +631,38 @@ public class Defs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly DefCache _defCache = new();
+    private static readonly DefCache Cache = new();
 
     public static Dictionary<DefCat, List<Def>> GetDeepCopy(bool isShort = false)
     {
-        return _defCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
-    ///<summary>Set isShort to true to exclude the Defs.IsHidden.</summary>
     public static List<Def> GetDefsForCategory(DefCat defCat, bool isShort = false)
     {
-        return _defCache.GetOne(defCat, isShort);
+        return Cache.GetOne(defCat, isShort);
     }
 
     public static bool GetDictIsNull()
     {
-        return _defCache.DictIsNull();
+        return Cache.DictIsNull();
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _defCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _defCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _defCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }
-
 
 public enum ImageCategorySpecial
 {

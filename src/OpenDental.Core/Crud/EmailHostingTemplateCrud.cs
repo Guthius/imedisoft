@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EmailHostingTemplateCrud
 {
@@ -119,11 +121,11 @@ public class EmailHostingTemplateCrud
             + "'" + SOut.String(emailHostingTemplate.EmailTemplateType.ToString()) + "',"
             + "'" + SOut.String(emailHostingTemplate.TemplateType.ToString()) + "')";
         if (emailHostingTemplate.Subject == null) emailHostingTemplate.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailHostingTemplate.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailHostingTemplate.Subject));
         if (emailHostingTemplate.BodyPlainText == null) emailHostingTemplate.BodyPlainText = "";
-        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyPlainText));
+        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", SOut.StringParam(emailHostingTemplate.BodyPlainText));
         if (emailHostingTemplate.BodyHTML == null) emailHostingTemplate.BodyHTML = "";
-        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyHTML));
+        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", SOut.StringParam(emailHostingTemplate.BodyHTML));
         {
             emailHostingTemplate.EmailHostingTemplateNum = Db.NonQ(command, true, "EmailHostingTemplateNum", "emailHostingTemplate", paramSubject, paramBodyPlainText, paramBodyHTML);
         }
@@ -152,11 +154,11 @@ public class EmailHostingTemplateCrud
             + "'" + SOut.String(emailHostingTemplate.EmailTemplateType.ToString()) + "',"
             + "'" + SOut.String(emailHostingTemplate.TemplateType.ToString()) + "')";
         if (emailHostingTemplate.Subject == null) emailHostingTemplate.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailHostingTemplate.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailHostingTemplate.Subject));
         if (emailHostingTemplate.BodyPlainText == null) emailHostingTemplate.BodyPlainText = "";
-        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyPlainText));
+        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", SOut.StringParam(emailHostingTemplate.BodyPlainText));
         if (emailHostingTemplate.BodyHTML == null) emailHostingTemplate.BodyHTML = "";
-        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyHTML));
+        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", SOut.StringParam(emailHostingTemplate.BodyHTML));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramSubject, paramBodyPlainText, paramBodyHTML);
         else
@@ -177,11 +179,11 @@ public class EmailHostingTemplateCrud
                       + "TemplateType           = '" + SOut.String(emailHostingTemplate.TemplateType.ToString()) + "' "
                       + "WHERE EmailHostingTemplateNum = " + SOut.Long(emailHostingTemplate.EmailHostingTemplateNum);
         if (emailHostingTemplate.Subject == null) emailHostingTemplate.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailHostingTemplate.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailHostingTemplate.Subject));
         if (emailHostingTemplate.BodyPlainText == null) emailHostingTemplate.BodyPlainText = "";
-        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyPlainText));
+        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", SOut.StringParam(emailHostingTemplate.BodyPlainText));
         if (emailHostingTemplate.BodyHTML == null) emailHostingTemplate.BodyHTML = "";
-        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyHTML));
+        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", SOut.StringParam(emailHostingTemplate.BodyHTML));
         Db.NonQ(command, paramSubject, paramBodyPlainText, paramBodyHTML);
     }
 
@@ -238,11 +240,11 @@ public class EmailHostingTemplateCrud
 
         if (command == "") return false;
         if (emailHostingTemplate.Subject == null) emailHostingTemplate.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailHostingTemplate.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailHostingTemplate.Subject));
         if (emailHostingTemplate.BodyPlainText == null) emailHostingTemplate.BodyPlainText = "";
-        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyPlainText));
+        var paramBodyPlainText = new OdSqlParameter("paramBodyPlainText", SOut.StringParam(emailHostingTemplate.BodyPlainText));
         if (emailHostingTemplate.BodyHTML == null) emailHostingTemplate.BodyHTML = "";
-        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", OdDbType.Text, SOut.StringParam(emailHostingTemplate.BodyHTML));
+        var paramBodyHTML = new OdSqlParameter("paramBodyHTML", SOut.StringParam(emailHostingTemplate.BodyHTML));
         command = "UPDATE emailhostingtemplate SET " + command
                                                      + " WHERE EmailHostingTemplateNum = " + SOut.Long(emailHostingTemplate.EmailHostingTemplateNum);
         Db.NonQ(command, paramSubject, paramBodyPlainText, paramBodyHTML);

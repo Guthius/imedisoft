@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClaimCrud
 {
@@ -197,7 +199,7 @@ public class ClaimCrud
                                     + SOut.Byte(claim.OrthoTotalM) + ","
                                     + SOut.Double(claim.ShareOfCost) + ","
                                     + SOut.Long(claim.SecUserNumEntry) + ","
-                                    + DbHelper.Now() + ","
+                                    + "NOW()" + ","
                                     //SecDateTEdit can only be set by MySQL
                                     + SOut.Long(claim.OrderingReferralNum) + ","
                                     + SOut.Date(claim.DateSentOrig) + ","
@@ -209,7 +211,7 @@ public class ClaimCrud
                                     + "'" + SOut.String(claim.SecurityHash) + "',"
                                     + DbHelper.ParamChar + "paramNarrative)";
         if (claim.Narrative == null) claim.Narrative = "";
-        var paramNarrative = new OdSqlParameter("paramNarrative", OdDbType.Text, SOut.StringParam(claim.Narrative));
+        var paramNarrative = new OdSqlParameter("paramNarrative", SOut.StringParam(claim.Narrative));
         {
             claim.ClaimNum = Db.NonQ(command, true, "ClaimNum", "claim", paramNarrative);
         }
@@ -305,7 +307,7 @@ public class ClaimCrud
                       + "Narrative                     =  " + DbHelper.ParamChar + "paramNarrative "
                       + "WHERE ClaimNum = " + SOut.Long(claim.ClaimNum);
         if (claim.Narrative == null) claim.Narrative = "";
-        var paramNarrative = new OdSqlParameter("paramNarrative", OdDbType.Text, SOut.StringParam(claim.Narrative));
+        var paramNarrative = new OdSqlParameter("paramNarrative", SOut.StringParam(claim.Narrative));
         Db.NonQ(command, paramNarrative);
     }
 
@@ -803,7 +805,7 @@ public class ClaimCrud
 
         if (command == "") return;
         if (claim.Narrative == null) claim.Narrative = "";
-        var paramNarrative = new OdSqlParameter("paramNarrative", OdDbType.Text, SOut.StringParam(claim.Narrative));
+        var paramNarrative = new OdSqlParameter("paramNarrative", SOut.StringParam(claim.Narrative));
         command = "UPDATE claim SET " + command
                                       + " WHERE ClaimNum = " + SOut.Long(claim.ClaimNum);
         Db.NonQ(command, paramNarrative);

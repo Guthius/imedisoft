@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpPPOwriteoff {
@@ -30,8 +31,8 @@ namespace OpenDentBusiness {
 						AND carrier.CarrierName LIKE @CarrierName
 					INNER JOIN provider ON provider.ProvNum = claimproc.ProvNum
 					WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+@") 
-					AND "+DbHelper.DtimeToDate("claimproc.DateCP")+@" >= @DateFrom
-					AND "+DbHelper.DtimeToDate("claimproc.DateCP")+@" <= @DateTo
+					AND DATE(claimproc.DateCP)"+@" >= @DateFrom
+					AND DATE(claimproc.DateCP)"+@" <= @DateTo
 					GROUP BY claimproc.ClaimNum 
 					ORDER BY claimproc.DateCP";
 				}
@@ -52,8 +53,8 @@ namespace OpenDentBusiness {
 						AND carrier.CarrierName LIKE @CarrierName
 					INNER JOIN provider ON provider.ProvNum = claimproc.ProvNum
 					WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+","+(int)ClaimProcStatus.NotReceived+@") 
-					AND "+DbHelper.DtimeToDate("claimproc.ProcDate")+@" >= @DateFrom
-					AND "+DbHelper.DtimeToDate("claimproc.ProcDate")+@" <= @DateTo
+					AND DATE(claimproc.ProcDate)"+@" >= @DateFrom
+					AND DATE(claimproc.ProcDate)"+@" <= @DateTo
 					GROUP BY claimproc.ClaimNum 
 					ORDER BY claimproc.ProcDate";
 				}
@@ -76,7 +77,7 @@ namespace OpenDentBusiness {
 						AND carrier.CarrierName LIKE @CarrierName
 					INNER JOIN provider ON provider.ProvNum=claimProc.ProvNum
 					INNER JOIN claimsnapshot ON claimsnapshot.ClaimProcNum=claimproc.ClaimProcNum 
-						AND "+DbHelper.DtimeToDate("claimsnapshot.DateTEntry")+@" BETWEEN @DateFrom AND @DateTo
+						AND DATE(claimsnapshot.DateTEntry)"+@" BETWEEN @DateFrom AND @DateTo
 					WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+","+(int)ClaimProcStatus.NotReceived+@") 
 					GROUP BY claimproc.ClaimNum 
 					ORDER BY claimsnapshot.DateTEntry";
@@ -98,8 +99,8 @@ namespace OpenDentBusiness {
 						INNER JOIN carrier ON carrier.CarrierNum = insplan.CarrierNum
 							AND carrier.CarrierName LIKE @CarrierName
 						WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+@") 
-						AND "+DbHelper.DtimeToDate("claimproc.DateCP")+@" >= @DateFrom
-						AND "+DbHelper.DtimeToDate("claimproc.DateCP")+@" <= @DateTo
+						AND DATE(claimproc.DateCP)"+@" >= @DateFrom
+						AND DATE(claimproc.DateCP)"+@" <= @DateTo
 						GROUP BY carrier.CarrierNum 
 						ORDER BY carrier.CarrierName";
 				}
@@ -117,8 +118,8 @@ namespace OpenDentBusiness {
 						INNER JOIN carrier ON carrier.CarrierNum = insplan.CarrierNum
 							AND carrier.CarrierName LIKE @CarrierName
 						WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+","+(int)ClaimProcStatus.NotReceived+@") 
-						AND "+DbHelper.DtimeToDate("claimproc.ProcDate")+@" >= @DateFrom
-						AND "+DbHelper.DtimeToDate("claimproc.ProcDate")+@" <= @DateTo
+						AND DATE(claimproc.ProcDate)"+@" >= @DateFrom
+						AND DATE(claimproc.ProcDate)"+@" <= @DateTo
 						GROUP BY carrier.CarrierNum 
 						ORDER BY carrier.CarrierName";
 				}
@@ -138,14 +139,14 @@ namespace OpenDentBusiness {
 						INNER JOIN carrier on carrier.CarrierNum = insplan.CarrierNum
 							AND carrier.CarrierName LIKE @CarrierName						
 						INNER JOIN claimsnapshot on claimsnapshot.ClaimProcNum=claimproc.ClaimProcNum
-							AND "+DbHelper.DtimeToDate("claimsnapshot.DateTEntry")+@" >= @DateFrom
-							AND "+DbHelper.DtimeToDate("claimsnapshot.DateTEntry")+@" <= @DateTo
+							AND DATE(claimsnapshot.DateTEntry)"+@" >= @DateFrom
+							AND DATE(claimsnapshot.DateTEntry)"+@" <= @DateTo
 						WHERE claimproc.Status IN ("+(int)ClaimProcStatus.Received+","+(int)ClaimProcStatus.Supplemental+","+(int)ClaimProcStatus.NotReceived+@") 
 						GROUP BY carrier.CarrierNum 
 						ORDER BY carrier.CarrierName";
 				}
 			}
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(queryText));
+			return ReportsComplex.GetTable(queryText);
 		}	
 	}
 

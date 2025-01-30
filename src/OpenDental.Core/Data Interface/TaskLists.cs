@@ -5,16 +5,14 @@ using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class TaskLists
 {
-    #region Get Methods
-
     public static List<TaskList> GetMany(List<long> listTaskListNums)
     {
         if (listTaskListNums.Count == 0) return new List<TaskList>();
@@ -23,14 +21,6 @@ public class TaskLists
         return TaskListCrud.SelectMany(command);
     }
 
-    #endregion
-
-    /// <summary>
-    ///     Gets all task lists for the trunk of the user tab.  filterClinicFkey and filterRegionFkey are only used for
-    ///     NewTaskCount and do not
-    ///     affect which TaskLists are returned by this method.  Pass filterClinicFkey=0 and filterRegionFkey=0 to
-    ///     intentionally bypass filters.
-    /// </summary>
     public static List<TaskList> RefreshUserTrunk(long userNum, long filterClinicFkey = 0, long filterRegionFkey = 0)
     {
         var command = @"SELECT tasklist.*,COALESCE(unreadtasks.Count,0) 'NewTaskCount',t2.Descript 'ParentDesc1',t3.Descript 'ParentDesc2'
@@ -42,7 +32,7 @@ public class TaskLists
 				SELECT taskancestor.TaskListNum,COUNT(*) 'Count'
 				FROM taskancestor
 				INNER JOIN task ON task.TaskNum=taskancestor.TaskNum
-				AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") "; //no future reminders
+				AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") "; //no future reminders
         command += BuildFilterJoins(filterClinicFkey);
         if (PrefC.GetBool(PrefName.TasksNewTrackedByUser))
             command += @"
@@ -61,13 +51,6 @@ public class TaskLists
         return TableToList(DataCore.GetTable(command));
     }
 
-    /// <summary>
-    ///     Gets all task lists for the main trunk.  Pass in the current user.  filterClinicFkey and filterRegionFkey are only
-    ///     used for
-    ///     NewTaskCount and do not affect which TaskLists are returned by this method.  Pass filterClinicFkey=0 and
-    ///     filterRegionFkey=0  to intentionally
-    ///     bypass filtering.
-    /// </summary>
     public static List<TaskList> RefreshMainTrunk(long userNum, TaskType taskType, long filterClinicFkey = 0, long filterRegionFkey = 0)
     {
         var command = @"SELECT tasklist.*,COALESCE(unreadtasks.Count,0) 'NewTaskCount' 
@@ -78,7 +61,7 @@ public class TaskLists
 				INNER JOIN task ON task.TaskNum = taskancestor.TaskNum ";
         if (taskType == TaskType.Reminder)
             command += "AND COALESCE(task.ReminderGroupId,'') != '' "; //reminders only
-        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") "; //no future reminders
+        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") "; //no future reminders
 
         //No filter.
         if (PrefC.GetBool(PrefName.TasksNewTrackedByUser))
@@ -112,12 +95,6 @@ public class TaskLists
         return TableToList(DataCore.GetTable(command));
     }
 
-    /// <summary>
-    ///     Gets all task lists for the repeating trunk.  filterClinicFkey and filterRegionFkey are only used for NewTaskCount
-    ///     and do not affect
-    ///     which TaskLists are returned by this method.  Pass filterClinicFkey=0 and filterRegionFkey=0 to intentionally
-    ///     bypass filtering.
-    /// </summary>
     public static List<TaskList> RefreshRepeatingTrunk(long userNum, long filterClinicFkey = 0, long filterRegionFkey = 0)
     {
         var command = "SELECT tasklist.*,"
@@ -138,16 +115,7 @@ public class TaskLists
         return TableToList(DataCore.GetTable(command));
     }
 
-    /// <summary>
-    ///     0 is not allowed, because that would be a trunk.  Pass in the current user.  Also, if this is in someone's inbox,
-    ///     then pass in the
-    ///     userNum whose inbox it is in.  If not in an inbox, pass in 0.  filterClinicFkey and filterRegionFkey are only used
-    ///     for NewTaskCount and do
-    ///     not affect which TaskLists are returned by this method.  Pass filterClinicFkey=0 and filterRegionFkey=0 to
-    ///     intentionally bypass filtering.
-    /// </summary>
-    public static List<TaskList> RefreshChildren(long parent, long userNum, long userNumInbox, TaskType taskType, long filterClinicFkey = 0
-        , long filterRegionFkey = 0)
+    public static List<TaskList> RefreshChildren(long parent, long userNum, long userNumInbox, TaskType taskType, long filterClinicFkey = 0, long filterRegionFkey = 0)
     {
         var command = "SELECT tasklist.*,"
                       + "(SELECT COUNT(*) FROM taskancestor INNER JOIN task ON task.TaskNum=taskancestor.TaskNum ";
@@ -155,7 +123,7 @@ public class TaskLists
         command += "WHERE taskancestor.TaskListNum=tasklist.TaskListNum ";
         if (taskType == TaskType.Reminder)
             command += "AND COALESCE(task.ReminderGroupId,'') != '' "; //reminders only
-        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + DbHelper.Now() + ") "; //no future reminders
+        else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") "; //no future reminders
 
         //No filter.
         if (PrefC.GetBool(PrefName.TasksNewTrackedByUser))
@@ -185,12 +153,6 @@ public class TaskLists
         return TableToList(DataCore.GetTable(command));
     }
 
-    /// <summary>
-    ///     All repeating items for one date type with no heirarchy.  filterClinicFkey and filterRegionFkey are only used for
-    ///     NewTaskCount and do
-    ///     not affect which TaskLists are returned by this method.  Pass filterClinicFkey=0 and filterRegionFkey=0 to
-    ///     intentionally bypass filtering.
-    /// </summary>
     public static List<TaskList> RefreshRepeating(TaskDateType taskDateType, long userNum, long filterClinicFkey = 0, long filterRegionFkey = 0)
     {
         var command =
@@ -210,12 +172,6 @@ public class TaskLists
         return TableToList(DataCore.GetTable(command));
     }
 
-    /// <summary>
-    ///     Gets all task lists for one of the 3 dated trunks.  filterClinicFkey and filterRegionFkey are only used for
-    ///     NewTaskCount and do not
-    ///     affect which TaskLists are returned by this method.  Pass filterClinicFkey=0 and filterRegionFkey=0 to
-    ///     intentionally bypass filtering.
-    /// </summary>
     public static List<TaskList> RefreshDatedTrunk(DateTime date, TaskDateType taskDateType, long userNum, long filterClinicFkey = 0, long filterRegionFkey = 0)
     {
         var dateFrom = DateTime.MinValue;
@@ -259,11 +215,6 @@ public class TaskLists
         return TableToList(DataCore.GetTable(command));
     }
 
-    /// <summary>
-    ///     Builds JOIN clauses appropriate to the type of GlobalFilterType.  Returns empty string if not filtering.  Pass
-    ///     filterClinicFkey=0
-    ///     to intentionally bypass filtering.
-    /// </summary>
     public static string BuildFilterJoins(long filterClinicFkey)
     {
         var command = string.Empty;
@@ -277,11 +228,6 @@ public class TaskLists
         return command;
     }
 
-    /// <summary>
-    ///     Builds WHERE clauses appropriate to the type of GlobalFilterType.  Returns empty string if not filtering.  Pass
-    ///     filterClinicFkey=0
-    ///     and filterRegionFkey=0 to intentionally bypass filtering.
-    /// </summary>
     public static string BuildFilterWhereClause(long userNum, long filterClinicFkey, long filterRegionFkey)
     {
         var command = string.Empty;
@@ -318,11 +264,6 @@ public class TaskLists
         return command;
     }
 
-    /// <summary>
-    ///     Builds a short section of the GlobalTaskFilterType WHERE clause.  Determines which clinics to filter by depending
-    ///     on the global
-    ///     default GlobalTaskFilterType.
-    /// </summary>
     private static string GetDefaultFilterTypeString(EnumTaskFilterType globalTaskFilterTypeDefault, string strClinicNums, string strClinicNumsInRegion)
     {
         var command = "";
@@ -342,7 +283,6 @@ public class TaskLists
         return command;
     }
 
-    
     public static TaskList GetOne(long taskListNum)
     {
         if (taskListNum == 0) return null;
@@ -350,17 +290,12 @@ public class TaskLists
         return TaskListCrud.SelectOne(command);
     }
 
-    ///<summary>Gets all task lists from the database.</summary>
     public static List<TaskList> GetAll()
     {
         var command = "SELECT * FROM tasklist";
         return TaskListCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all task lists from the database for a certain DateType.
-    ///     If doIncludeArchived is false, also excludes child lists of archived lists.
-    /// </summary>
     public static List<TaskList> GetForDateType(TaskDateType taskDateType, bool doIncludeArchived)
     {
         var listTaskLists = GetAll();
@@ -371,25 +306,12 @@ public class TaskLists
         return listTaskLists;
     }
 
-    ///<summary>Get TaskListNums based on description.</summary>
-    public static List<long> GetNumsByDescription(string descript, bool doRunOnReportServer)
+    public static List<long> GetNumsByDescription(string descript)
     {
         var command = "SELECT TaskListNum FROM tasklist WHERE Descript LIKE '%" + SOut.String(descript) + "%'";
-        return ReportsComplex.RunFuncOnReportServer(() => Db.GetListLong(command));
+        return Db.GetListLong(command);
     }
 
-    /*
-    ///<Summary>Gets all task lists in the general tab with no heirarchy.  This allows us to loop through the list to grab useful heirarchy info.  Only used when viewing user tab.  Not guaranteed to get all tasklists, because we exclude those with a DateType.</Summary>
-    public static List<TaskList> GetAllGeneral(){
-//THIS WON'T WORK BECAUSE THERE ARE TOO MANY REPEATING TASKLISTS.
-        string command="SELECT * FROM tasklist WHERE DateType=0 ";
-    }*/
-
-    /// <summary>
-    ///     The table passed in can contain additional columns: "NewTaskCount", "ParentDesc1", "ParentDesc2".  These additional
-    ///     columns are used
-    ///     when getting a list of task lists for trunks.
-    /// </summary>
     private static List<TaskList> TableToList(DataTable table)
     {
         var listTaskLists = TaskListCrud.TableToList(table);
@@ -419,11 +341,6 @@ public class TaskLists
         return listTaskLists;
     }
 
-    /// <summary>
-    ///     Gets all task lists with the given object type.
-    ///     Used in TaskListSelect when assigning an object to a task list. If doIncludeArchived is false, also excludes child
-    ///     lists of archived lists.
-    /// </summary>
     public static List<TaskList> GetForObjectType(TaskObjectType taskObjectType, bool doIncludeArchived)
     {
         var listTaskLists = GetAll();
@@ -443,7 +360,6 @@ public class TaskLists
             throw new Exception(Lans.g("TaskLists", "In repeating tasklists, only the main parents can have a task status."));
     }
 
-    
     public static void Update(TaskList taskList)
     {
         ValidateTaskList(taskList);
@@ -456,14 +372,12 @@ public class TaskLists
         TaskListCrud.Update(taskList, taskListOld);
     }
 
-    
     public static long Insert(TaskList taskList)
     {
         ValidateTaskList(taskList);
         return TaskListCrud.Insert(taskList);
     }
 
-    ///<summary>Throws exception if any child tasklists or tasks.</summary>
     public static void Delete(TaskList taskList)
     {
         var command = "SELECT COUNT(*) FROM tasklist WHERE Parent=" + SOut.Long(taskList.TaskListNum);
@@ -480,7 +394,6 @@ public class TaskLists
         Db.NonQ(command);
     }
 
-    ///<summary>Returns true if the first TaskListNum passed in has a child list with the second TaskListNum passed in.</summary>
     public static bool IsAncestor(long taskListNum, long taskListNumChild)
     {
         var parentNum = taskListNumChild;
@@ -492,7 +405,6 @@ public class TaskLists
         }
     }
 
-    ///<summary>Returns true if taskList or one of its children TaskLists have a GlobalFilterType.</summary>
     public static bool HasGlobalFilterTypeInTree(TaskList taskList, List<TaskList> listTaskListsAll = null)
     {
         if (taskList.GlobalTaskFilterType != EnumTaskFilterType.None) return true;
@@ -501,14 +413,12 @@ public class TaskLists
         return false;
     }
 
-    ///<summary>Will return 0 if not anyone's inbox.</summary>
     public static long GetMailboxUserNum(long taskListNum)
     {
         var command = "SELECT UserNum FROM userod WHERE TaskListInBox=" + SOut.Long(taskListNum);
         return SIn.Long(DataCore.GetScalar(command));
     }
 
-    ///<summary>Checks all ancestors of a task.  Will return 0 if no ancestor is anyone's inbox.</summary>
     public static long GetMailboxUserNumByAncestor(long taskNum)
     {
         var command = "SELECT UserNum FROM taskancestor,userod "
@@ -517,7 +427,6 @@ public class TaskLists
         return SIn.Long(DataCore.GetScalar(command));
     }
 
-    ///<summary>Build the full path to the passed in task list.  Returns the string in the standard Windows path format.</summary>
     public static string GetFullPath(long tasklistNum, List<TaskList> listTaskLists = null)
     {
         var stringBuilder = new StringBuilder();
@@ -542,7 +451,6 @@ public class TaskLists
         return stringBuilder.ToString();
     }
 
-    ///<summary>TaskListStatus to 1 - Archived, and set all Task List Inboxes that reference this Task List to 0.</summary>
     public static void Archive(TaskList taskList)
     {
         if (taskList.TaskListStatus != TaskListStatusEnum.Active) return;
@@ -555,7 +463,6 @@ public class TaskLists
         Signalods.SetInvalid(InvalidType.Security); //Send a signal in case any userod was associated to the task list.
     }
 
-    ///<summary>Set the TaskListStatus to 0 - Active.</summary>
     public static void Unarchive(TaskList taskList)
     {
         if (taskList.TaskListStatus != TaskListStatusEnum.Archived) return;
@@ -564,10 +471,6 @@ public class TaskLists
         Update(taskList, taskListOld);
     }
 
-    /// <summary>
-    ///     False if taskList has no parent, all of taskList's ancestors are not archived, or taskList ancestor can't be
-    ///     found.
-    /// </summary>
     public static bool IsAncestorTaskListArchived(ref Dictionary<long, TaskList> dictAllTaskLists, TaskList taskList, bool isDictionaryRefreshed = false)
     {
         //==Jordan This is a bad pattern. Should be done without dictionary or ref.
@@ -592,10 +495,6 @@ public class TaskLists
         return false; //List was refreshed and parent couldn't be found.
     }
 
-    /// <summary>
-    ///     False if taskList has no parent, all of taskList's ancestors are not archived, or taskList ancestor can't be
-    ///     found.
-    /// </summary>
     public static bool IsAnchorTaskListArchived2(List<TaskList> listTaskListsAll, TaskList taskList)
     {
         if (taskList.Parent == 0) //If list has no parent return false.

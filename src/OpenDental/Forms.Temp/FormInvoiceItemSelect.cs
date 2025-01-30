@@ -1,0 +1,119 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using OpenDentBusiness;
+using OpenDental.UI;
+using CodeBase;
+using DataConnectionBase;
+using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
+
+namespace OpenDental;
+
+public partial class FormInvoiceItemSelect:FormODBase {
+	private DataTable _tableSuperFamAcct;
+	private GridOD _gridMain;
+	private long _patNum;
+		
+	public List<DataRow> ListDataRowsSelected= [];
+
+	public FormInvoiceItemSelect(long patNum) {
+		_patNum=patNum;
+		InitializeComponent();
+	}
+
+	private void FormInvoiceItemSelect_Load(object sender, System.EventArgs e) {
+		_tableSuperFamAcct=Patients.GetSuperFamProcAdjustsPPCharges(_patNum);
+		FillGrid();
+	}
+
+	private void FillGrid(){
+		_gridMain.BeginUpdate();
+		_gridMain.Columns.Clear();
+		var col=new GridColumn(Lan.g("TableInvoiceItems","Date"),70);
+		_gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableInvoiceItems","PatName"),100);
+		_gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableInvoiceItems","Prov"),55);
+		_gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableInvoiceItems","Code"),55);
+		_gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableInvoiceItems","Tooth"),50);
+		_gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableInvoiceItems","Description"),150);
+		_gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableInvoiceItems","Fee"),60,HorizontalAlignment.Right);
+		_gridMain.Columns.Add(col);
+		_gridMain.ListGridRows.Clear();
+		GridRow row;
+		var listProcedureCodes=ProcedureCodes.GetAllCodes();
+		for(var i=0;i<_tableSuperFamAcct.Rows.Count;i++) {
+			if(checkIsFilteringZeroAmount.Checked && SIn.Double(_tableSuperFamAcct.Rows[i]["Amount"].ToString())==0){
+				continue;
+			}
+			row=new GridRow();
+			row.Cells.Add(SIn.DateTime(_tableSuperFamAcct.Rows[i]["Date"].ToString()).ToShortDateString());
+			row.Cells.Add(_tableSuperFamAcct.Rows[i]["PatName"].ToString());
+			row.Cells.Add(Providers.GetAbbr(SIn.Long(_tableSuperFamAcct.Rows[i]["Prov"].ToString())));
+			if(!string.IsNullOrWhiteSpace(_tableSuperFamAcct.Rows[i]["AdjType"].ToString())){	//It's an adjustment
+				row.Cells.Add(Lan.g(this,"Adjust"));//Adjustment
+				row.Cells.Add(Tooth.Display(_tableSuperFamAcct.Rows[i]["Tooth"].ToString()));
+				row.Cells.Add(Defs.GetName(DefCat.AdjTypes,SIn.Long(_tableSuperFamAcct.Rows[i]["AdjType"].ToString())));//Adjustment type
+			}
+			else if(!string.IsNullOrWhiteSpace(_tableSuperFamAcct.Rows[i]["ChargeType"].ToString())) {	//It's a payplan charge
+				if(PrefC.GetInt(PrefName.PayPlansVersion)!=(int)PayPlanVersions.AgeCreditsAndDebits) {
+					continue;//They can only attach debits to invoices and they can only do so if they're on version 2.
+				}
+				row.Cells.Add(Lan.g(this, "Pay Plan"));
+				row.Cells.Add(Tooth.Display(_tableSuperFamAcct.Rows[i]["Tooth"].ToString()));
+				row.Cells.Add(SIn.Enum<PayPlanChargeType>(SIn.Int(_tableSuperFamAcct.Rows[i]["ChargeType"].ToString())).GetDescription());//Pay Plan charge type
+			}
+			else{//It's a procedure
+				var procedureCode=ProcedureCodes.GetProcCode(SIn.Long(_tableSuperFamAcct.Rows[i]["Code"].ToString()),listProcedureCodes);
+				row.Cells.Add(procedureCode.ProcCode);
+				row.Cells.Add(Tooth.Display(_tableSuperFamAcct.Rows[i]["Tooth"].ToString()));
+				row.Cells.Add(procedureCode.Descript);
+			}
+			row.Cells.Add(SIn.Double(_tableSuperFamAcct.Rows[i]["Amount"].ToString()).ToString("F"));
+			row.Tag=_tableSuperFamAcct.Rows[i];
+			_gridMain.ListGridRows.Add(row);
+		}
+		_gridMain.EndUpdate();
+	}
+
+	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
+		var dataRow=(DataRow)_gridMain.ListGridRows[e.Row].Tag;
+		ListDataRowsSelected.Clear();
+		ListDataRowsSelected.Add(dataRow);
+		DialogResult=DialogResult.OK;
+	}
+
+	private void checkIsFilteringZeroAmount_Click(object sender,EventArgs e) {
+		FillGrid();
+	}
+
+	private void butAll_Click(object sender,System.EventArgs e) {
+		_gridMain.SetAll(true);
+	}
+
+	private void butNone_Click(object sender,System.EventArgs e) {
+		_gridMain.SetAll(false);
+	}
+
+	private void butOK_Click(object sender, System.EventArgs e) {
+		if(_gridMain.GetSelectedIndex()==-1){
+			MsgBox.Show(this,"Please select an item first.");
+			return;
+		}
+		ListDataRowsSelected.Clear();
+		for(var i=0;i<_gridMain.SelectedIndices.Length;i++) {
+			var dataRow=(DataRow)_gridMain.ListGridRows[_gridMain.SelectedIndices[i]].Tag;
+			ListDataRowsSelected.Add(dataRow);
+		}
+		DialogResult=DialogResult.OK;
+	}
+
+}

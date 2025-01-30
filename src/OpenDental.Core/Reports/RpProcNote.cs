@@ -6,6 +6,7 @@ using System.Text;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpProcNote {
@@ -121,7 +122,7 @@ namespace OpenDentBusiness {
 				command+="GROUP BY procedurelog.ProcNum ";
 			}
 			command+=@"ORDER BY ProcDate, LName";
-			DataTable table=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			DataTable table=DataCore.GetTable(command);
 			foreach(DataRow row in table.Rows) {
 				row["ToothNum"]=Tooth.Display(row["ToothNum"].ToString(),toothNumberFormat);
 			}

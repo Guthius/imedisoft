@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TreatPlanCrud
 {
@@ -119,7 +121,7 @@ public class TreatPlanCrud
                                         + SOut.Long(treatPlan.DocNum) + ","
                                         + SOut.Int((int) treatPlan.TPStatus) + ","
                                         + SOut.Long(treatPlan.SecUserNumEntry) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         //SecDateTEdit can only be set by MySQL
                                         + SOut.Long(treatPlan.UserNumPresenter) + ","
                                         + SOut.Int((int) treatPlan.TPType) + ","
@@ -130,11 +132,11 @@ public class TreatPlanCrud
                                         + "'" + SOut.String(treatPlan.SignaturePracticeText) + "',"
                                         + SOut.Long(treatPlan.MobileAppDeviceNum) + ")";
         if (treatPlan.Note == null) treatPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(treatPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(treatPlan.Note));
         if (treatPlan.Signature == null) treatPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(treatPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(treatPlan.Signature));
         if (treatPlan.SignaturePractice == null) treatPlan.SignaturePractice = "";
-        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", OdDbType.Text, SOut.StringParam(treatPlan.SignaturePractice));
+        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", SOut.StringParam(treatPlan.SignaturePractice));
         {
             treatPlan.TreatPlanNum = Db.NonQ(command, true, "TreatPlanNum", "treatPlan", paramNote, paramSignature, paramSignaturePractice);
         }
@@ -164,7 +166,7 @@ public class TreatPlanCrud
                                         + SOut.Long(treatPlan.DocNum) + ","
                                         + SOut.Int((int) treatPlan.TPStatus) + ","
                                         + SOut.Long(treatPlan.SecUserNumEntry) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         //SecDateTEdit can only be set by MySQL
                                         + SOut.Long(treatPlan.UserNumPresenter) + ","
                                         + SOut.Int((int) treatPlan.TPType) + ","
@@ -175,11 +177,11 @@ public class TreatPlanCrud
                                         + "'" + SOut.String(treatPlan.SignaturePracticeText) + "',"
                                         + SOut.Long(treatPlan.MobileAppDeviceNum) + ")";
         if (treatPlan.Note == null) treatPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(treatPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(treatPlan.Note));
         if (treatPlan.Signature == null) treatPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(treatPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(treatPlan.Signature));
         if (treatPlan.SignaturePractice == null) treatPlan.SignaturePractice = "";
-        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", OdDbType.Text, SOut.StringParam(treatPlan.SignaturePractice));
+        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", SOut.StringParam(treatPlan.SignaturePractice));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramSignature, paramSignaturePractice);
         else
@@ -212,11 +214,11 @@ public class TreatPlanCrud
                       + "MobileAppDeviceNum   =  " + SOut.Long(treatPlan.MobileAppDeviceNum) + " "
                       + "WHERE TreatPlanNum = " + SOut.Long(treatPlan.TreatPlanNum);
         if (treatPlan.Note == null) treatPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(treatPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(treatPlan.Note));
         if (treatPlan.Signature == null) treatPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(treatPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(treatPlan.Signature));
         if (treatPlan.SignaturePractice == null) treatPlan.SignaturePractice = "";
-        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", OdDbType.Text, SOut.StringParam(treatPlan.SignaturePractice));
+        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", SOut.StringParam(treatPlan.SignaturePractice));
         Db.NonQ(command, paramNote, paramSignature, paramSignaturePractice);
     }
 
@@ -330,11 +332,11 @@ public class TreatPlanCrud
 
         if (command == "") return false;
         if (treatPlan.Note == null) treatPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(treatPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(treatPlan.Note));
         if (treatPlan.Signature == null) treatPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(treatPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(treatPlan.Signature));
         if (treatPlan.SignaturePractice == null) treatPlan.SignaturePractice = "";
-        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", OdDbType.Text, SOut.StringParam(treatPlan.SignaturePractice));
+        var paramSignaturePractice = new OdSqlParameter("paramSignaturePractice", SOut.StringParam(treatPlan.SignaturePractice));
         command = "UPDATE treatplan SET " + command
                                           + " WHERE TreatPlanNum = " + SOut.Long(treatPlan.TreatPlanNum);
         Db.NonQ(command, paramNote, paramSignature, paramSignaturePractice);

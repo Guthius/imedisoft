@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAllocationsSetup {
 		/// <summary>
 		/// Required designer variable.
@@ -70,7 +70,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&Save";
-			this.butOK.Click += new System.EventHandler(this.butSave_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// checkClaimPayByTotalSplitsAuto
 			// 
@@ -106,7 +106,7 @@ namespace OpenDental{
 			this.butLineItem.Size = new System.Drawing.Size(109, 24);
 			this.butLineItem.TabIndex = 301;
 			this.butLineItem.Text = "Rigorous Line Item";
-			this.butLineItem.Click += new System.EventHandler(this.butLineItem_Click);
+			this.butLineItem.Click += new System.EventHandler(this.ButtonLineItem_Click);
 			// 
 			// butSimple
 			// 
@@ -115,7 +115,7 @@ namespace OpenDental{
 			this.butSimple.Size = new System.Drawing.Size(109, 24);
 			this.butSimple.TabIndex = 300;
 			this.butSimple.Text = "Simple";
-			this.butSimple.Click += new System.EventHandler(this.butSimple_Click);
+			this.butSimple.Click += new System.EventHandler(this.ButtonSimple_Click);
 			// 
 			// checkHidePaysplits
 			// 
@@ -294,7 +294,7 @@ namespace OpenDental{
 			this.butDefault.Size = new System.Drawing.Size(109, 24);
 			this.butDefault.TabIndex = 320;
 			this.butDefault.Text = "Default";
-			this.butDefault.Click += new System.EventHandler(this.butDefault_Click);
+			this.butDefault.Click += new System.EventHandler(this.ButtonDefault_Click);
 			// 
 			// labelPermission
 			// 
@@ -338,7 +338,7 @@ namespace OpenDental{
 			this.checkAllowPrePayToTpProcs.Size = new System.Drawing.Size(353, 18);
 			this.checkAllowPrePayToTpProcs.TabIndex = 5;
 			this.checkAllowPrePayToTpProcs.Text = "Allow prepayments to allocate to treatment planned procedures";
-			this.checkAllowPrePayToTpProcs.Click += new System.EventHandler(this.checkAllowPrePayToTpProcs_Click);
+			this.checkAllowPrePayToTpProcs.Click += new System.EventHandler(this.CheckBoxAllowPrePayToTpProcs_Click);
 			// 
 			// checkIsRefundable
 			// 
@@ -384,7 +384,7 @@ namespace OpenDental{
 			this.checkIncomeTransfersMadeUponClaimReceived.TabIndex = 318;
 			this.checkIncomeTransfersMadeUponClaimReceived.Text = "Make claim specific income transfers when received";
 			this.checkIncomeTransfersMadeUponClaimReceived.ThreeState = true;
-			this.checkIncomeTransfersMadeUponClaimReceived.CheckStateChanged += new System.EventHandler(this.checkAutoIncomeTransfer_CheckedStateChanged);
+			this.checkIncomeTransfersMadeUponClaimReceived.CheckStateChanged += new System.EventHandler(this.CheckBoxAutoIncomeTransfer_CheckedStateChanged);
 			// 
 			// labelIncomeTransfersMadeUponClaimReceivedDesc
 			// 

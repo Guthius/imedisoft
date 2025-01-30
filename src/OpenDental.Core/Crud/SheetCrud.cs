@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SheetCrud
 {
@@ -128,12 +130,12 @@ public class SheetCrud
                                             + SOut.Long(sheet.SheetDefNum) + ","
                                             + SOut.Long(sheet.DocNum) + ","
                                             + SOut.Long(sheet.ClinicNum) + ","
-                                            + DbHelper.Now() + ","
+                                            + "NOW()" + ","
                                             + SOut.Bool(sheet.HasMobileLayout) + ","
                                             + SOut.Int(sheet.RevID) + ","
                                             + SOut.Long(sheet.WebFormSheetID) + ")";
         if (sheet.InternalNote == null) sheet.InternalNote = "";
-        var paramInternalNote = new OdSqlParameter("paramInternalNote", OdDbType.Text, SOut.StringParam(sheet.InternalNote));
+        var paramInternalNote = new OdSqlParameter("paramInternalNote", SOut.StringParam(sheet.InternalNote));
         {
             sheet.SheetNum = Db.NonQ(command, true, "SheetNum", "sheet", paramInternalNote);
         }
@@ -170,12 +172,12 @@ public class SheetCrud
                                             + SOut.Long(sheet.SheetDefNum) + ","
                                             + SOut.Long(sheet.DocNum) + ","
                                             + SOut.Long(sheet.ClinicNum) + ","
-                                            + DbHelper.Now() + ","
+                                            + "NOW()" + ","
                                             + SOut.Bool(sheet.HasMobileLayout) + ","
                                             + SOut.Int(sheet.RevID) + ","
                                             + SOut.Long(sheet.WebFormSheetID) + ")";
         if (sheet.InternalNote == null) sheet.InternalNote = "";
-        var paramInternalNote = new OdSqlParameter("paramInternalNote", OdDbType.Text, SOut.StringParam(sheet.InternalNote));
+        var paramInternalNote = new OdSqlParameter("paramInternalNote", SOut.StringParam(sheet.InternalNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramInternalNote);
         else
@@ -209,7 +211,7 @@ public class SheetCrud
                       + "WebFormSheetID  =  " + SOut.Long(sheet.WebFormSheetID) + " "
                       + "WHERE SheetNum = " + SOut.Long(sheet.SheetNum);
         if (sheet.InternalNote == null) sheet.InternalNote = "";
-        var paramInternalNote = new OdSqlParameter("paramInternalNote", OdDbType.Text, SOut.StringParam(sheet.InternalNote));
+        var paramInternalNote = new OdSqlParameter("paramInternalNote", SOut.StringParam(sheet.InternalNote));
         Db.NonQ(command, paramInternalNote);
     }
 
@@ -344,7 +346,7 @@ public class SheetCrud
 
         if (command == "") return false;
         if (sheet.InternalNote == null) sheet.InternalNote = "";
-        var paramInternalNote = new OdSqlParameter("paramInternalNote", OdDbType.Text, SOut.StringParam(sheet.InternalNote));
+        var paramInternalNote = new OdSqlParameter("paramInternalNote", SOut.StringParam(sheet.InternalNote));
         command = "UPDATE sheet SET " + command
                                       + " WHERE SheetNum = " + SOut.Long(sheet.SheetNum);
         Db.NonQ(command, paramInternalNote);

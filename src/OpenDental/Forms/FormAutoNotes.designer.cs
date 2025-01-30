@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAutoNotes {
 	private System.ComponentModel.IContainer components;
 
@@ -71,11 +66,11 @@ namespace OpenDental {
 			this.treeNotes.SelectedImageIndex = 1;
 			this.treeNotes.Size = new System.Drawing.Size(307, 641);
 			this.treeNotes.TabIndex = 2;
-			this.treeNotes.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.treeNotes_ItemDrag);
-			this.treeNotes.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeNotes_MouseDoubleClick);
-			this.treeNotes.DragDrop += new System.Windows.Forms.DragEventHandler(this.treeNotes_DragDrop);
-			this.treeNotes.DragEnter += new System.Windows.Forms.DragEventHandler(this.treeNotes_DragEnter);
-			this.treeNotes.DragOver += new System.Windows.Forms.DragEventHandler(this.treeNotes_DragOver);
+			this.treeNotes.ItemDrag += new System.Windows.Forms.ItemDragEventHandler(this.TreeNotes_ItemDrag);
+			this.treeNotes.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.TreeNotes_MouseDoubleClick);
+			this.treeNotes.DragDrop += new System.Windows.Forms.DragEventHandler(this.TreeNotes_DragDrop);
+			this.treeNotes.DragEnter += new System.Windows.Forms.DragEventHandler(this.TreeNotes_DragEnter);
+			this.treeNotes.DragOver += new System.Windows.Forms.DragEventHandler(this.TreeNotes_DragOver);
 			// 
 			// butAdd
 			// 
@@ -87,7 +82,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(79, 26);
 			this.butAdd.TabIndex = 7;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// checkCollapse
 			// 
@@ -97,7 +92,7 @@ namespace OpenDental {
 			this.checkCollapse.Size = new System.Drawing.Size(79, 20);
 			this.checkCollapse.TabIndex = 227;
 			this.checkCollapse.Text = "Collapse All";
-			this.checkCollapse.CheckedChanged += new System.EventHandler(this.checkCollapse_CheckedChanged);
+			this.checkCollapse.CheckedChanged += new System.EventHandler(this.CheckBoxCollapse_CheckedChanged);
 			// 
 			// butExport
 			// 
@@ -108,7 +103,7 @@ namespace OpenDental {
 			this.butExport.TabIndex = 228;
 			this.butExport.Text = "Export";
 			this.butExport.UseVisualStyleBackColor = true;
-			this.butExport.Click += new System.EventHandler(this.butExport_Click);
+			this.butExport.Click += new System.EventHandler(this.ButtonExport_Click);
 			// 
 			// butImport
 			// 
@@ -119,7 +114,7 @@ namespace OpenDental {
 			this.butImport.TabIndex = 229;
 			this.butImport.Text = "Import";
 			this.butImport.UseVisualStyleBackColor = true;
-			this.butImport.Click += new System.EventHandler(this.butImport_Click);
+			this.butImport.Click += new System.EventHandler(this.ButtonImport_Click);
 			// 
 			// FormAutoNotes
 			// 

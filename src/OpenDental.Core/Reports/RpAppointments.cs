@@ -4,6 +4,8 @@ using System.Data;
 using System.Reflection;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpAppointments {
@@ -73,7 +75,7 @@ namespace OpenDentBusiness {
 				command+=" appointment.AptDateTime BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd.AddDays(1))
 					+" ORDER BY appointment.ClinicNum,appointment.AptDateTime,PatName";
 			}
-			DataTable table=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(command));
+			DataTable table=ReportsComplex.GetTable(command);
 			return table;
 		}
 

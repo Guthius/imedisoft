@@ -5,78 +5,30 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
-
 
 public class SmsPhones
 {
     public enum MessageCharSet
     {
-        Text, //7-bit char set used in text messaging which represents the gsm char set
-        Unicode //16-bit char set used in text messaging
+        Text, // 7-bit char set used in text messaging which represents the gsm char set
+        Unicode // 16-bit char set used in text messaging
     }
 
-    /// <summary>
-    ///     Used to display "SHORTCODE" on the customer side as the phone number for SMS sent via Short Code.  End user does
-    ///     not need to see the
-    ///     specific short code number we use at HQ.  This ensures we do not recored this communication on a different valid
-    ///     SmsPhone/VLN that it didn't
-    ///     truly take place on.  However, on the HQ side, we want records of this communication to be listed as having taken
-    ///     place on the actual Short
-    ///     Code number.
-    /// </summary>
-    public const string SHORTCODE = "SHORTCODE";
+    public const string Shortcode = "SHORTCODE";
 
-    ///<summary>Gets one SmsPhone from the db. Returns null if not found.</summary>
-    public static SmsPhone GetByPhone(string phoneNumber)
+    public static void Insert(SmsPhone smsPhone)
     {
-        var command = "SELECT * FROM smsphone WHERE PhoneNumber='" + SOut.String(phoneNumber) + "'";
-        return SmsPhoneCrud.SelectOne(command);
+        SmsPhoneCrud.Insert(smsPhone);
     }
 
-    
-    public static long Insert(SmsPhone smsPhone)
-    {
-        return SmsPhoneCrud.Insert(smsPhone);
-    }
-
-    
     public static void Update(SmsPhone smsPhone)
     {
         SmsPhoneCrud.Update(smsPhone);
-    }
-
-    ///<summary>This will only be called by HQ via the listener in the event that this number has been cancelled.</summary>
-    public static void UpdateToInactive(string phoneNumber)
-    {
-        var smsPhone = GetByPhone(phoneNumber);
-        if (smsPhone == null) return;
-        smsPhone.DateTimeInactive = DateTime.Now;
-        SmsPhoneCrud.Update(smsPhone);
-    }
-
-    ///<summary>Gets sms phones when not using clinics.</summary>
-    public static List<SmsPhone> GetForPractice()
-    {
-        //Get for practice is just getting for clinic num 0
-        return GetForClinics(new List<long> {0}); //clinic num 0
-    }
-
-    public static List<SmsPhone> GetForClinics(List<long> listClinicNums)
-    {
-        if (listClinicNums.Count == 0) return new List<SmsPhone>();
-
-        var command = "SELECT * FROM smsphone WHERE ClinicNum IN (" + string.Join(",", listClinicNums) + ")";
-        return SmsPhoneCrud.SelectMany(command);
-    }
-
-    public static List<SmsPhone> GetAll()
-    {
-        var command = "SELECT * FROM smsphone";
-        return SmsPhoneCrud.SelectMany(command);
     }
 
     public static DataTable GetSmsUsageLocal(List<long> listClinicNums, DateTime dateMonth, List<SmsPhone> listSmsPhones)
@@ -135,7 +87,7 @@ public class SmsPhones
 
         //Sent Last Month
         command = "SELECT ClinicNum, COUNT(*), ROUND(SUM(MsgChargeUSD),2),ROUND(SUM(MsgDiscountUSD),2)"
-                  + ",SUM(CASE SmsPhoneNumber WHEN '" + SOut.String(SHORTCODE) + "' THEN 1 ELSE 0 END) FROM smstomobile "
+                  + ",SUM(CASE SmsPhoneNumber WHEN '" + SOut.String(Shortcode) + "' THEN 1 ELSE 0 END) FROM smstomobile "
                   + "WHERE DateTimeSent >=" + SOut.Date(dateStart) + " "
                   + "AND DateTimeSent<" + SOut.Date(dateEnd) + " "
                   + "AND MsgChargeUSD>0 GROUP BY ClinicNum";
@@ -149,12 +101,12 @@ public class SmsPhones
             tableSmsUsageLocal.Rows[j]["SentDiscount"] = table.Rows[i][3];
             tableSmsUsageLocal.Rows[j]["SentPreDiscount"] = SIn.Double(tableSmsUsageLocal.Rows[j]["SentCharge"].ToString()) + SIn.Double(tableSmsUsageLocal.Rows[j]["SentDiscount"].ToString());
             //No active phone but at least one of these messages sent from Short Code
-            if (tableSmsUsageLocal.Rows[j]["PhoneNumber"].ToString() == strNoActivePhones && SIn.Long(table.Rows[i][4].ToString()) > 0) tableSmsUsageLocal.Rows[j]["PhoneNumber"] = SOut.String(SHORTCODE); //display "SHORTCODE" as primary number.
+            if (tableSmsUsageLocal.Rows[j]["PhoneNumber"].ToString() == strNoActivePhones && SIn.Long(table.Rows[i][4].ToString()) > 0) tableSmsUsageLocal.Rows[j]["PhoneNumber"] = SOut.String(Shortcode); //display "SHORTCODE" as primary number.
             break;
         }
 
         //Received Month
-        command = "SELECT ClinicNum, COUNT(*),SUM(CASE SmsPhoneNumber WHEN '" + SOut.String(SHORTCODE) + "' THEN 1 ELSE 0 END) FROM smsfrommobile "
+        command = "SELECT ClinicNum, COUNT(*),SUM(CASE SmsPhoneNumber WHEN '" + SOut.String(Shortcode) + "' THEN 1 ELSE 0 END) FROM smsfrommobile "
                   + "WHERE DateTimeReceived >=" + SOut.Date(dateStart) + " "
                   + "AND DateTimeReceived<" + SOut.Date(dateEnd) + " "
                   + "GROUP BY ClinicNum";
@@ -166,7 +118,7 @@ public class SmsPhones
             tableSmsUsageLocal.Rows[j]["ReceivedMonth"] = table.Rows[i][1].ToString();
             tableSmsUsageLocal.Rows[j]["ReceivedCharge"] = "0";
             //No active phone but at least one of these messages sent from Short Code
-            if (tableSmsUsageLocal.Rows[j]["PhoneNumber"].ToString() == strNoActivePhones && SIn.Long(table.Rows[i][2].ToString()) > 0) tableSmsUsageLocal.Rows[j]["PhoneNumber"] = SOut.String(SHORTCODE); //display "SHORTCODE" as primary number.
+            if (tableSmsUsageLocal.Rows[j]["PhoneNumber"].ToString() == strNoActivePhones && SIn.Long(table.Rows[i][2].ToString()) > 0) tableSmsUsageLocal.Rows[j]["PhoneNumber"] = SOut.String(Shortcode); //display "SHORTCODE" as primary number.
             break;
         }
 
@@ -175,13 +127,6 @@ public class SmsPhones
         return tableSmsUsageLocal;
     }
 
-    /// <summary>
-    ///     Find all phones in the db (by PhoneNumber) and sync with listPhonesSync. If a given PhoneNumber does not already
-    ///     exist then insert the SmsPhone.
-    ///     If a given PhoneNumber exists in the local db but does not exist in the HQ-provided listPhoneSync, then deacitvate
-    ///     that phone locallly.
-    ///     Return true if a change has been made to the database.
-    /// </summary>
     public static bool UpdateOrInsertFromList(List<SmsPhone> listSmsPhonesSync)
     {
         //Get all phones so we can filter as needed below.
@@ -229,7 +174,6 @@ public class SmsPhones
         return isChanged;
     }
 
-    ///<summary>Returns current clinic limit minus message usage for current calendar month.</summary>
     public static double GetClinicBalance(long clinicNum)
     {
         double limit = 0;
@@ -253,20 +197,12 @@ public class SmsPhones
         return limit;
     }
 
-    /// <summary>
-    ///     Returns true if texting is enabled for any clinics (including hidden), or if not using clinics, if it is
-    ///     enabled for the practice.
-    /// </summary>
     public static bool IsIntegratedTextingEnabled()
     {
         if (true) return Clinics.GetFirstOrDefault(x => x.SmsContractSignedOn.HasValue) != null;
         return PrefC.GetDateT(PrefName.SmsContractDate).Year > 1880;
     }
 
-    /// <summary>
-    ///     Returns 0 if clinics not in use, or patient.ClinicNum if assigned to a clinic, or ClinicNum of the default
-    ///     texting clinic.
-    /// </summary>
     public static long GetClinicNumForTexting(long patNum)
     {
         if (!true || Clinics.GetCount() == 0) return 0; //0 used for no clinics
@@ -276,10 +212,6 @@ public class SmsPhones
         return PrefC.GetLong(PrefName.TextingDefaultClinicNum);
     }
 
-    /// <summary>
-    ///     This method calculates the number of messages will be sent. Given string of text to determine how many with a
-    ///     standard charset or unicode text.
-    /// </summary>
     public static int CalculateMessagePartsNumber(string text)
     {
         var countHeaderBytes = PrefC.GetInt(PrefName.BytesPerSmsHeader);
@@ -344,8 +276,6 @@ public class SmsPhones
         return MessageCharSet.Text;
     }
 
-    #region Cache Pattern
-
     private class SmsPhoneCache : CacheListAbs<SmsPhone>
     {
         protected override List<SmsPhone> GetCacheFromDb()
@@ -375,105 +305,25 @@ public class SmsPhones
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly SmsPhoneCache _smsPhoneCache = new();
-
-    public static List<SmsPhone> GetDeepCopy(bool isShort = false)
-    {
-        return _smsPhoneCache.GetDeepCopy(isShort);
-    }
-
-    public static int GetCount(bool isShort = false)
-    {
-        return _smsPhoneCache.GetCount(isShort);
-    }
-
-    public static bool GetExists(Predicate<SmsPhone> match, bool isShort = false)
-    {
-        return _smsPhoneCache.GetExists(match, isShort);
-    }
-
-    public static int GetFindIndex(Predicate<SmsPhone> match, bool isShort = false)
-    {
-        return _smsPhoneCache.GetFindIndex(match, isShort);
-    }
-
-    public static SmsPhone GetFirst(bool isShort = false)
-    {
-        return _smsPhoneCache.GetFirst(isShort);
-    }
-
-    public static SmsPhone GetFirst(Func<SmsPhone, bool> match, bool isShort = false)
-    {
-        return _smsPhoneCache.GetFirst(match, isShort);
-    }
+    private static readonly SmsPhoneCache Cache = new();
 
     public static SmsPhone GetFirstOrDefault(Func<SmsPhone, bool> match, bool isShort = false)
     {
-        return _smsPhoneCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    public static SmsPhone GetLast(bool isShort = false)
-    {
-        return _smsPhoneCache.GetLast(isShort);
-    }
-
-    public static SmsPhone GetLastOrDefault(Func<SmsPhone, bool> match, bool isShort = false)
-    {
-        return _smsPhoneCache.GetLastOrDefault(match, isShort);
-    }
-
-    public static List<SmsPhone> GetWhere(Predicate<SmsPhone> match, bool isShort = false)
-    {
-        return _smsPhoneCache.GetWhere(match, isShort);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _smsPhoneCache.FillCacheFromTable(table);
-    }
-
-    /// <summary>Returns the cache in the form of a DataTable. Always refreshes the ClientWeb's cache.</summary>
-    /// <param name="doRefreshCache">If true, will refresh the cache if RemotingRole is ClientDirect or ServerWeb.</param>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _smsPhoneCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _smsPhoneCache.ClearCache();
+        Cache.ClearCache();
     }
 
     public static void RefreshCache()
     {
         GetTableFromCache(true);
     }
-
-    #endregion Cache Pattern
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<SmsPhone> Refresh(long patNum){
-
-        string command="SELECT * FROM smsvln WHERE PatNum = "+POut.Long(patNum);
-        return Crud.SmsVlnCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one SmsPhone from the db.</summary>
-    public static SmsPhone GetOne(long smsVlnNum){
-
-        return Crud.SmsVlnCrud.SelectOne(smsVlnNum);
-    }
-
-    
-    public static void Delete(long smsVlnNum) {
-
-        string command= "DELETE FROM smsvln WHERE SmsVlnNum = "+POut.Long(smsVlnNum);
-        Db.NonQ(command);
-    }
-    */
 }

@@ -2,35 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ProcButtonItems
 {
-    ///<summary>Must have already checked procCode for nonduplicate.</summary>
-    public static long Insert(ProcButtonItem item)
+    public static void Insert(ProcButtonItem item)
     {
-        return ProcButtonItemCrud.Insert(item);
+        ProcButtonItemCrud.Insert(item);
     }
 
-    
-    public static void Update(ProcButtonItem item)
-    {
-        ProcButtonItemCrud.Update(item);
-    }
-
-    
-    public static void Delete(ProcButtonItem item)
-    {
-        var command = "DELETE FROM procbuttonitem WHERE ProcButtonItemNum = '" + SOut.Long(item.ProcButtonItemNum) + "'";
-        Db.NonQ(command);
-    }
-
-    ///<summary>Sorted by Item Order.</summary>
     public static List<long> GetCodeNumListForButton(long procButtonNum)
     {
         return GetWhere(x => x.ProcButtonNum == procButtonNum && x.CodeNum > 0)
@@ -39,7 +23,6 @@ public class ProcButtonItems
             .ToList();
     }
 
-    ///<summary>Sorted by Item Order.</summary>
     public static List<long> GetAutoListForButton(long procButtonNum)
     {
         return GetWhere(x => x.ProcButtonNum == procButtonNum && x.AutoCodeNum > 0)
@@ -48,21 +31,16 @@ public class ProcButtonItems
             .ToList();
     }
 
-    
     public static void DeleteAllForButton(long procButtonNum)
     {
-        var command = "DELETE from procbuttonitem WHERE procbuttonnum = '" + SOut.Long(procButtonNum) + "'";
-        Db.NonQ(command);
+        Db.NonQ("DELETE from procbuttonitem WHERE procbuttonnum = " + procButtonNum);
     }
-
-    #region CachePattern
 
     private class ProcButtonItemCache : CacheListAbs<ProcButtonItem>
     {
         protected override List<ProcButtonItem> GetCacheFromDb()
         {
-            var command = "SELECT * FROM procbuttonitem ORDER BY ItemOrder";
-            return ProcButtonItemCrud.SelectMany(command);
+            return ProcButtonItemCrud.SelectMany("SELECT * FROM procbuttonitem ORDER BY ItemOrder");
         }
 
         protected override List<ProcButtonItem> TableToList(DataTable dataTable)
@@ -86,44 +64,30 @@ public class ProcButtonItems
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ProcButtonItemCache _procButtonItemCache = new();
+    private static readonly ProcButtonItemCache Cache = new();
 
     public static List<ProcButtonItem> GetDeepCopy(bool isShort = false)
     {
-        return _procButtonItemCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     private static List<ProcButtonItem> GetWhere(Predicate<ProcButtonItem> match, bool isShort = false)
     {
-        return _procButtonItemCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _procButtonItemCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _procButtonItemCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _procButtonItemCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

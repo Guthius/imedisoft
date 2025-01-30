@@ -5,19 +5,13 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Operatories
 {
-    #region Sync Pattern
-
-    /// <summary>
-    ///     Inserts, updates, or deletes database rows to match supplied list.
-    ///     Also syncs each operatory's deflink entries if the operatory.ListWSNPAOperatoryDefNums is not null.
-    /// </summary>
     public static void Sync(List<Operatory> listOperatoriesNew, List<Operatory> listOperatoriesOld)
     {
         OperatoryCrud.Sync(listOperatoriesNew, listOperatoriesOld);
@@ -39,31 +33,6 @@ public class Operatories
         DefLinks.DeleteAllForFKeys(listOpNumsDelete, DefLinkType.Operatory);
     }
 
-    #endregion Sync Pattern
-
-    
-    public static long Insert(Operatory operatory)
-    {
-        return OperatoryCrud.Insert(operatory);
-    }
-
-    
-    public static void Update(Operatory operatory)
-    {
-        OperatoryCrud.Update(operatory);
-    }
-
-    //<summary>Checks dependencies first.  Throws exception if can't delete.</summary>
-    //public void Delete(){//no such thing as delete.  Hide instead
-    //}
-
-    public static List<Operatory> GetChangedSince(DateTime dateTChangedSince)
-    {
-        var command = "SELECT * FROM operatory WHERE DateTStamp > " + SOut.DateTime(dateTChangedSince);
-        return OperatoryCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets a list of all future appointments for a given Operatory.  Ordered by dateTime</summary>
     public static bool HasFutureApts(long operatoryNum, params ApptStatus[] apptStatusArrayIgnore)
     {
         var command = "SELECT COUNT(*) FROM appointment "
@@ -80,18 +49,10 @@ public class Operatories
             command += ") ";
         }
 
-        command += "AND AptDateTime > " + DbHelper.Now();
+        command += "AND AptDateTime > " + "NOW()";
         return SIn.Int(DataCore.GetScalar(command)) > 0;
     }
 
-    /// <summary>
-    ///     Returns a list of all appointments and whether that appointment has a conflict for the given listChildOpNums.
-    ///     Used to determine if there are any overlapping appointments for ALL time between a 'master' op appointments and the
-    ///     'child' ops appointments.
-    ///     If an appointment from one of the give child ops has a confilict with the master op, then the appointment.Tag will
-    ///     be true.
-    ///     Throws exceptions.
-    /// </summary>
     public static List<Appointment> MergeApptCheck(long opNumMaster, List<long> listOpNumsChild)
     {
         if (listOpNumsChild == null || listOpNumsChild.Count == 0) return new List<Appointment>();
@@ -122,10 +83,6 @@ public class Operatories
         return false;
     }
 
-    /// <summary>
-    ///     Hides all operatories that are not the master op and moves any appointments passed in into the master op.
-    ///     Throws exceptions
-    /// </summary>
     public static void MergeOperatoriesIntoMaster(long opNumMaster, List<long> listOpNumsToMerge, List<Appointment> listAppointmentsToMerge)
     {
         var listOperatories = GetDeepCopy();
@@ -137,7 +94,7 @@ public class Operatories
             var listAppointmentsNew = listAppointmentsToMerge.Select(x => x.Copy()).ToList(); //Copy object so that we do not change original object in memory.
             for (var i = 0; i < listAppointmentsNew.Count; i++) //Associate to new op selection
                 listAppointmentsNew[i].Op = opNumMaster;
-            Appointments.Sync(listAppointmentsNew, listAppointmentsToMerge, 0);
+            Appointments.Sync(listAppointmentsNew, listAppointmentsToMerge);
         }
 
         var listOperatoriesToMerge = listOperatories.Select(x => x.Copy()).ToList(); //Copy object so that we do not change original object in memory.
@@ -157,8 +114,6 @@ public class Operatories
               + string.Join(", ", listOperatoriesFiltered.Select(x => x.Abbrev)));
     }
 
-    #region Get Methods
-
     public static string GetAbbrev(long operatoryNum)
     {
         var operatory = GetFirstOrDefault(x => x.OperatoryNum == operatoryNum);
@@ -173,13 +128,11 @@ public class Operatories
         return operatory.OpName;
     }
 
-    ///<summary>Gets the order of the op within ListShort or -1 if not found.</summary>
     public static int GetOrder(long opNum)
     {
-        return _operatoryCache.GetFindIndex(x => x.OperatoryNum == opNum, true);
+        return Cache.GetFindIndex(x => x.OperatoryNum == opNum, true);
     }
 
-    ///<summary>Gets operatory from the cache.</summary>
     public static Operatory GetOperatory(long operatoryNum)
     {
         return GetFirstOrDefault(x => x.OperatoryNum == operatoryNum);
@@ -190,14 +143,11 @@ public class Operatories
         return GetWhere(x => listOpNums.Contains(x.OperatoryNum), isShort).ToList();
     }
 
-
-    ///<summary>Get all non-hidden operatories for the clinic passed in.</summary>
     public static List<Operatory> GetOpsForClinic(long clinicNum)
     {
         return GetWhere(x => x.ClinicNum == clinicNum, true);
     }
 
-    ///<summary>Gets operatory nums for a list of clinic nums.  </summary>
     public static List<long> GetOpNumsForClinics(List<long> listClinicNums)
     {
         if (listClinicNums.IsNullOrEmpty()) return new List<long>();
@@ -210,10 +160,6 @@ public class Operatories
         return GetWhere(x => x.IsWebSched, true);
     }
 
-    /// <summary>
-    ///     Returns operatories that are associated to either Web Sched New Pat Appts or Web Sched Existing Pats.
-    ///     If isNewPat is true, it will return New Pat Appt operatories, false will return Existing Pat operatories.
-    /// </summary>
     public static List<Operatory> GetOpsForWebSchedNewOrExistingPatAppts(bool isNewPat = true, bool isShort = true)
     {
         var defCat = DefCat.WebSchedExistingApptTypes;
@@ -226,7 +172,6 @@ public class Operatories
         return GetWhere(x => listOperatoryNums.Contains(x.OperatoryNum), isShort);
     }
 
-    ///<summary>Returns operatories that are associated to the definition and category passed in.</summary>
     public static List<Operatory> GetOpsForDefAndCategory(long defNum, DefCat defCat, bool isShort = true)
     {
         var listOpNums = DefLinks.GetOperatoryDefLinksForCategory(defCat, isShort)
@@ -236,29 +181,6 @@ public class Operatories
             .ToList();
         return GetWhere(x => listOpNums.Contains(x.OperatoryNum), isShort);
     }
-
-    ///<summary>Gets multiple Operatories from the database. Returns empty list if not found.</summary>
-    public static List<Operatory> GetOperatoriesForApi(int limit, int offset, long clinicNum)
-    {
-        var command = "SELECT * FROM operatory ";
-        if (clinicNum > -1) command += "WHERE ClinicNum = '" + SOut.Long(clinicNum) + "'";
-        command += "ORDER BY OperatoryNum " //Ensure order for limit and offset
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        var listOperatories = OperatoryCrud.SelectMany(command);
-        return listOperatories;
-    }
-
-    ///<summary>Gets a single Operatory from the database. Returns null if not found.</summary>
-    public static Operatory GetOperatoryForApi(long operatoryNum)
-    {
-        var command = "SELECT * FROM operatory "
-                      + "WHERE OperatoryNum = '" + SOut.Long(operatoryNum) + "'";
-        return OperatoryCrud.SelectOne(command);
-    }
-
-    #endregion Get Methods
-
-    #region CachePattern
 
     private class OperatoryCache : CacheListAbs<Operatory>
     {
@@ -348,63 +270,35 @@ public class Operatories
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly OperatoryCache _operatoryCache = new();
+    private static readonly OperatoryCache Cache = new();
 
-    /// <summary>
-    ///     Gets a deep copy of all matching items from the cache via ListLong.  Set isShort true to search through
-    ///     ListShort instead.
-    /// </summary>
     public static List<Operatory> GetWhere(Predicate<Operatory> match, bool isShort = false)
     {
-        return _operatoryCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static int GetCount(bool isShort = false)
     {
-        return _operatoryCache.GetCount(isShort);
+        return Cache.GetCount(isShort);
     }
 
     public static List<Operatory> GetDeepCopy(bool isShort = false)
     {
-        return _operatoryCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static Operatory GetFirstOrDefault(Func<Operatory, bool> match, bool isShort = false)
     {
-        return _operatoryCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    public static Operatory GetFirst(Func<Operatory, bool> match, bool isShort = false)
-    {
-        return _operatoryCache.GetFirst(match, isShort);
-    }
-
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
-    {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _operatoryCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _operatoryCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _operatoryCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion CachePattern
 }

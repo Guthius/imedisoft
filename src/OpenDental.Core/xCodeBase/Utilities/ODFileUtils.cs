@@ -318,7 +318,7 @@ public class ODFileUtils
                     folderPath = new FileInfo(folderPath).Directory.FullName;
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 //We don't want this method to throw any errors. If the path doesn't exist we want to preserve what was found and throw when the 
                 //user clicks to navigate to the selected path. See OpenFileExplorer().

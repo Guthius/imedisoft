@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SecurityLogCrud
 {
@@ -93,7 +95,7 @@ public class SecurityLogCrud
         command +=
             SOut.Int((int) securityLog.PermType) + ","
                                                  + SOut.Long(securityLog.UserNum) + ","
-                                                 + DbHelper.Now() + ","
+                                                 + "NOW()" + ","
                                                  + DbHelper.ParamChar + "paramLogText,"
                                                  + SOut.Long(securityLog.PatNum) + ","
                                                  + "'" + SOut.String(securityLog.CompName) + "',"
@@ -103,7 +105,7 @@ public class SecurityLogCrud
                                                  + SOut.Long(securityLog.DefNumError) + ","
                                                  + SOut.DateTime(securityLog.DateTPrevious) + ")";
         if (securityLog.LogText == null) securityLog.LogText = "";
-        var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
+        var paramLogText = new OdSqlParameter("paramLogText", SOut.StringParam(securityLog.LogText));
         {
             securityLog.SecurityLogNum = Db.NonQ(command, true, "SecurityLogNum", "securityLog", paramLogText);
         }
@@ -125,7 +127,7 @@ public class SecurityLogCrud
         command +=
             SOut.Int((int) securityLog.PermType) + ","
                                                  + SOut.Long(securityLog.UserNum) + ","
-                                                 + DbHelper.Now() + ","
+                                                 + "NOW()" + ","
                                                  + DbHelper.ParamChar + "paramLogText,"
                                                  + SOut.Long(securityLog.PatNum) + ","
                                                  + "'" + SOut.String(securityLog.CompName) + "',"
@@ -135,7 +137,7 @@ public class SecurityLogCrud
                                                  + SOut.Long(securityLog.DefNumError) + ","
                                                  + SOut.DateTime(securityLog.DateTPrevious) + ")";
         if (securityLog.LogText == null) securityLog.LogText = "";
-        var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
+        var paramLogText = new OdSqlParameter("paramLogText", SOut.StringParam(securityLog.LogText));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramLogText);
         else
@@ -159,7 +161,7 @@ public class SecurityLogCrud
                       + "DateTPrevious =  " + SOut.DateTime(securityLog.DateTPrevious) + " "
                       + "WHERE SecurityLogNum = " + SOut.Long(securityLog.SecurityLogNum);
         if (securityLog.LogText == null) securityLog.LogText = "";
-        var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
+        var paramLogText = new OdSqlParameter("paramLogText", SOut.StringParam(securityLog.LogText));
         Db.NonQ(command, paramLogText);
     }
 
@@ -229,7 +231,7 @@ public class SecurityLogCrud
 
         if (command == "") return false;
         if (securityLog.LogText == null) securityLog.LogText = "";
-        var paramLogText = new OdSqlParameter("paramLogText", OdDbType.Text, SOut.StringParam(securityLog.LogText));
+        var paramLogText = new OdSqlParameter("paramLogText", SOut.StringParam(securityLog.LogText));
         command = "UPDATE securitylog SET " + command
                                             + " WHERE SecurityLogNum = " + SOut.Long(securityLog.SecurityLogNum);
         Db.NonQ(command, paramLogText);

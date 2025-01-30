@@ -6,36 +6,26 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class FeeScheds
 {
-    
-    public static long Insert(FeeSched feeSched)
+    public static void Insert(FeeSched feeSched)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         feeSched.SecUserNumEntry = Security.CurUser.UserNum;
-        return FeeSchedCrud.Insert(feeSched);
+        FeeSchedCrud.Insert(feeSched);
     }
 
-    
     public static void Update(FeeSched feeSched)
     {
         FeeSchedCrud.Update(feeSched);
     }
 
-    ///<summary>Inserts, updates, or deletes database rows to match supplied list.</summary>
-    public static bool Sync(List<FeeSched> listFeeSchedsNew, List<FeeSched> listFeeSchedsOld)
-    {
-        //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
-        return FeeSchedCrud.Sync(listFeeSchedsNew, listFeeSchedsOld, Security.CurUser.UserNum);
-    }
-
-    ///<summary>Returns the description of the fee schedule.  Appends (hidden) if the fee schedule has been hidden.</summary>
     public static string GetDescription(long feeSchedNum)
     {
         var feeSchedDesc = "";
@@ -44,33 +34,23 @@ public class FeeScheds
         return feeSchedDesc;
     }
 
-    ///<summary>Returns whether the FeeSched is hidden.  Defaults to true if not found.</summary>
     public static bool GetIsHidden(long feeSchedNum)
     {
         var feeSched = GetFirstOrDefault(x => x.FeeSchedNum == feeSchedNum);
         return feeSched == null ? true : feeSched.IsHidden;
     }
 
-    ///<summary>Returns whether the FeeSched has IsGlobal set to true.  Defaults to false if not found.</summary>
     public static bool IsGlobal(long feeSchedNum)
     {
         var feeSched = GetFirstOrDefault(x => x.FeeSchedNum == feeSchedNum);
         return feeSched == null ? false : feeSched.IsGlobal;
     }
 
-    ///<summary>Will return null if exact name not found.</summary>
-    public static FeeSched GetByExactName(string description)
-    {
-        return GetFirstOrDefault(x => x.Description == description);
-    }
-
-    ///<summary>Will return null if exact name not found.</summary>
     public static FeeSched GetByExactName(string description, FeeScheduleType feeScheduleType)
     {
         return GetFirstOrDefault(x => x.FeeSchedType == feeScheduleType && x.Description == description);
     }
 
-    ///<summary>Used to find FeeScheds of a certain type from within a given list.</summary>
     public static List<FeeSched> GetListForType(FeeScheduleType feeScheduleType, bool includeHidden, List<FeeSched> listFeeScheds = null)
     {
         listFeeScheds = listFeeScheds ?? GetDeepCopy();
@@ -84,10 +64,6 @@ public class FeeScheds
         return listFeeSchedsRet;
     }
 
-    /// <summary>
-    ///     Deletes FeeScheds that are hidden and not attached to any insurance plans.  Returns the number of deleted fee
-    ///     scheds.
-    /// </summary>
     public static long CleanupAllowedScheds()
     {
         long countDeleted;
@@ -109,10 +85,6 @@ public class FeeScheds
         return countDeleted;
     }
 
-    /// <summary>
-    ///     Hides FeeScheds that are not hidden and not in use by anything. Returns the number of fee scheds that were
-    ///     hidden.
-    /// </summary>
     public static long HideUnusedScheds()
     {
         ODEvent.Fire(ODEventType.HideUnusedFeeSchedules, Lans.g("FormFeeScheds", "Finding unused fee schedules..."));
@@ -136,7 +108,6 @@ public class FeeScheds
 
     private class FamProc
     {
-        public long GuarNum;
         public List<PatProc> ListPatProcs = new();
     }
 
@@ -147,13 +118,6 @@ public class FeeScheds
         public long PatNum;
     }
 
-    #region Get Methods
-
-    /// <summary>
-    ///     Gets the fee sched from the first insplan, the patient, or the provider in that order.  Uses provNumProc if>0,
-    ///     otherwise pat.PriProv.
-    ///     Either returns a fee schedule (fk to definition.DefNum) or 0.
-    /// </summary>
     public static long GetFeeSched(Patient patient, List<InsPlan> listInsPlans, List<PatPlan> listPatPlans, List<InsSub> listInsSubs, long provNumProc)
     {
         //there's not really a good place to put this function, so it's here.
@@ -169,20 +133,12 @@ public class FeeScheds
         return GetFeeSched(priPlanFeeSched, patient.FeeSched, provNumProc != 0 ? provNumProc : patient.PriProv); //use provNumProc, but if 0 then default to pat.PriProv
     }
 
-    /// <summary>
-    ///     A simpler version of the same function above.  The required numbers can be obtained in a fairly simple query.
-    ///     Might return a 0 if the primary provider does not have a fee schedule set.
-    /// </summary>
     public static long GetFeeSched(long priPlanFeeSched, long patFeeSched, long provNumProc)
     {
         var provFeeSched = (Providers.GetFirstOrDefault(x => x.ProvNum == provNumProc) ?? new Provider()).FeeSched; //defaults to 0
         return new[] {priPlanFeeSched, patFeeSched, provFeeSched}.FirstOrDefault(x => x > 0); //defaults to 0 if all fee scheds are 0
     }
 
-    /// <summary>
-    ///     Gets the fee schedule from the primary MEDICAL insurance plan,
-    ///     the first insurance plan, the patient, or the provider in that order.
-    /// </summary>
     public static long GetMedFeeSched(Patient patient, List<InsPlan> listInsPlans, List<PatPlan> listPatPlans, List<InsSub> listInsSubs, long provNumProc)
     {
         if (PatPlans.GetInsSubNum(listPatPlans, 1) != 0)
@@ -215,21 +171,6 @@ public class FeeScheds
         return provider.FeeSched;
     }
 
-    ///<summary>Gets one FeeSched object from the database using the primary key. Returns null if not found.</summary>
-    public static FeeSched GetOneFeeSched(long feeSchedNum)
-    {
-        return FeeSchedCrud.SelectOne(feeSchedNum);
-    }
-
-    #endregion
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Copies one fee schedule to one or more fee schedules.  clinicNumFrom, provNumFrom, and toProvNum can be zero.
-    ///     Set listClinicNumsTo to copy to multiple clinic overrides.  If this list is null or empty, clinicNum 0 will be
-    ///     used.
-    /// </summary>
     public static void CopyFeeSchedule(FeeSched feeSchedFrom, long clinicNumFrom, long provNumFrom, FeeSched feeSchedTo, List<long> listClinicNumsTo, long provNumTo, DateTime dateEffectiveOld = new(), DateTime dateEffectiveNew = new())
     {
         if (listClinicNumsTo == null) listClinicNumsTo = new List<long>();
@@ -287,12 +228,7 @@ public class FeeScheds
         }
     }
 
-    /// <summary>
-    ///     Replaces ImportCanadaFeeSchedule.  Imports a canadian fee schedule. Called only in FormFeeSchedTools, located here
-    ///     to allow unit testing.
-    ///     Fires FeeSchedEvents for a progress bar.
-    /// </summary>
-    public static List<Fee> ImportCanadaFeeSchedule2(FeeSched feeSched, string feeData, long clinicNum, long provNum, out int numImported, out int numSkipped, DateTime dateEffective = new())
+    public static void ImportCanadaFeeSchedule2(FeeSched feeSched, string feeData, long clinicNum, long provNum, out int numImported, out int numSkipped, DateTime dateEffective = new())
     {
         var listStringsFeeLines = feeData.Split('\n').ToList();
         numImported = 0;
@@ -380,11 +316,8 @@ public class FeeScheds
                 new ProgressBarHelper(Lans.g("FeeScheds", "Processing fees, please wait") + "...", "", numImported + numSkipped, listStringsFeeLines.Count,
                     ProgBarStyle.Continuous));
         }
-
-        return listFeesImported;
     }
 
-    ///<summary>Exports a fee schedule.  Called only in FormFeeSchedTools. Fires FeeSchedEvents for a progress bar.</summary>
     public static void ExportFeeSchedule(long feeSchedNum, long clinicNum, long provNum, string fileName, DateTime dateEffective = new())
     {
         //CreateText will overwrite any content if the file already exists.
@@ -410,7 +343,6 @@ public class FeeScheds
         }
     }
 
-    ///<summary>Used for moving feesched items to a new location within the feesched list.</summary>
     public static void RepositionFeeSched(FeeSched feeSched, int newItemOrder)
     {
         string command;
@@ -427,7 +359,6 @@ public class FeeScheds
         Db.NonQ(command);
     }
 
-    ///<summary>Used for sorting feesched based on FeeSchedType followed by Description.</summary>
     public static void SortFeeSched()
     {
         //Jordan Bad pattern
@@ -440,7 +371,6 @@ public class FeeScheds
         Db.NonQ(command);
     }
 
-    ///<summary>Used for checking to make sure that the feesched ItemOrder column is in sequential order.</summary>
     public static void CorrectFeeSchedOrder()
     {
         //Jordan Bad pattern
@@ -453,16 +383,7 @@ public class FeeScheds
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Updates write-off estimated for claimprocs for the passed in clinics. Called only in FormFeeSchedTools, located
-    ///     here to allow unit
-    ///     testing. Requires an ODProgressExtended to display UI updates.  If clinics are enabled and the user is not clinic
-    ///     restricted and chooses to run
-    ///     for all clinics, set doUpdatePrevClinicPref to true so that the ClinicNums will be stored in the preference table
-    ///     as they are finished to allow
-    ///     for pausing/resuming the process.
-    /// </summary>
-    public static long GlobalUpdateWriteoffs(List<long> listClinicNumsWriteoff, ODProgressExtended progressExtended, bool doUpdatePrevClinicPref = false)
+    public static void GlobalUpdateWriteoffs(List<long> listClinicNumsWriteoff, ODProgressExtended progressExtended, bool doUpdatePrevClinicPref = false)
     {
         long totalWriteoffsUpdated = 0;
         var listFeesHQ = Fees.GetByClinicNum(0); //All HQ fees
@@ -524,7 +445,6 @@ public class FeeScheds
             listFamProcs = Patients.GetFamilies(dictPatProcs.Keys.ToList()).Where(x => x.Guarantor != null)
                 .Select(x => new FamProc
                 {
-                    GuarNum = x.Guarantor.PatNum,
                     ListPatProcs = x.ListPats.Select(y => new PatProc
                     {
                         PatNum = y.PatNum,
@@ -659,12 +579,7 @@ public class FeeScheds
         progressExtended.OnProgressDone();
         progressExtended.Fire(ODEventType.FeeSched, new ProgressBarHelper("Writeoffs updated. " + totalWriteoffsUpdated + " procedures processed.\r\nDone.",
             progressBarEventType: ProgBarEventType.TextMsg));
-        return totalWriteoffsUpdated;
     }
-
-    #endregion
-
-    #region CachePattern
 
     private class FeeSchedCache : CacheListAbs<FeeSched>
     {
@@ -700,64 +615,50 @@ public class FeeScheds
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly FeeSchedCache _feeSchedCache = new();
+    private static readonly FeeSchedCache Cache = new();
 
     public static int GetCount(bool isShort = false)
     {
-        return _feeSchedCache.GetCount(isShort);
+        return Cache.GetCount(isShort);
     }
 
     public static List<FeeSched> GetDeepCopy(bool isShort = false)
     {
-        return _feeSchedCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static FeeSched GetFirst(bool isShort = true)
     {
-        return _feeSchedCache.GetFirst(isShort);
+        return Cache.GetFirst(isShort);
     }
 
     public static FeeSched GetFirst(Func<FeeSched, bool> match, bool isShort = true)
     {
-        return _feeSchedCache.GetFirst(match, isShort);
+        return Cache.GetFirst(match, isShort);
     }
 
     public static FeeSched GetFirstOrDefault(Func<FeeSched, bool> match, bool isShort = false)
     {
-        return _feeSchedCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
     public static List<FeeSched> GetWhere(Predicate<FeeSched> match, bool isShort = false)
     {
-        return _feeSchedCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable dataTable)
-    {
-        _feeSchedCache.FillCacheFromTable(dataTable);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _feeSchedCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _feeSchedCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
 }

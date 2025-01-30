@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	/// <summary></summary>

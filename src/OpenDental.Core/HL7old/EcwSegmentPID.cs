@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness.HL7 {
@@ -125,7 +126,7 @@ namespace OpenDentBusiness.HL7 {
 			//11. Guarantor relationship to patient.  We can't really do anything with this value
 			guar.SSN=seg.GetFieldFullText(12);
 			if(isNewGuar) {
-				Patients.Insert(guar,!useChartNumber);//if using chartnumber (standalone mode), then can't insert using existing PK
+				Patients.Insert(guar);//if using chartnumber (standalone mode), then can't insert using existing PK
 				SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,guar.PatNum,"Created from HL7 for eCW.",LogSources.HL7);
 				guarOld=guar.Copy();
 				guar.Guarantor=guar.PatNum;

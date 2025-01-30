@@ -7,18 +7,15 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using ODCrypt;
-using OpenDentBusiness.Crud;
-using OpenDentBusiness.SheetFramework;
-using OpenDentBusiness.UI;
 
 namespace OpenDentBusiness;
 
-
 public class TreatPlans
 {
-    ///<summary>Gets all Saved TreatPlans for a given Patient, ordered by date.</summary>
     public static List<TreatPlan> Refresh(long patNum)
     {
         var command = "SELECT * FROM treatplan "
@@ -43,39 +40,33 @@ public class TreatPlans
         return listTreatPlans;
     }
 
-    ///<summary>A single treatplan from the DB.</summary>
     public static TreatPlan GetOne(long treatPlanNum)
     {
         return TreatPlanCrud.SelectOne(treatPlanNum);
     }
 
-    ///<summary>Gets the first Active TP from the DB for the patient.  Returns null if no Active TP is found for this patient.</summary>
     public static TreatPlan GetActiveForPat(long patNum)
     {
         var command = "SELECT * FROM treatplan WHERE PatNum=" + SOut.Long(patNum) + " AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Active);
         return TreatPlanCrud.SelectOne(command);
     }
 
-    
     public static void Update(TreatPlan treatPlan)
     {
         TreatPlanCrud.Update(treatPlan);
     }
 
-    
     public static void Update(TreatPlan treatPlan, TreatPlan treatPlanOld)
     {
         TreatPlanCrud.Update(treatPlan, treatPlanOld);
     }
 
-    
     public static long Insert(TreatPlan treatPlan)
     {
         treatPlan.SecUserNumEntry = Security.CurUser.UserNum;
         return TreatPlanCrud.Insert(treatPlan);
     }
 
-    ///<summary>Dependencies checked first and throws an exception if any found. So surround by try catch</summary>
     public static void Delete(TreatPlan treatPlan)
     {
         //check proctp for dependencies
@@ -93,7 +84,6 @@ public class TreatPlans
         if (listMobileAppDevices.Count > 0) MobileNotifications.CI_RemoveTreatmentPlan(listMobileAppDevices.First().MobileAppDeviceNum, treatPlan);
     }
 
-    ///<summary>Inserts the passed in Treatment plan. Inserts all ProcTP's passed in.</summary>
     public static long CreateArchivedTreatPlan(TreatPlan treatPlan, Patient patient, List<ProcTP> listProcTPsSelected, List<TreatPlanAttach> listTreatPlanAttaches)
     {
         var retVal = Insert(treatPlan);
@@ -183,22 +173,12 @@ public class TreatPlans
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets the hashstring for generating signatures.
-    ///     Should only be used when saving signatures, for validating see GetKeyDataForSignatureHash() and
-    ///     GetHashStringForSignature()
-    /// </summary>
     public static string GetKeyDataForSignatureSaving(TreatPlan treatPlan, List<ProcTP> listProcTPs)
     {
         var keyData = GetKeyDataForSignatureHash(treatPlan, listProcTPs);
         return GetHashStringForSignature(keyData);
     }
 
-    /// <summary>
-    ///     Gets the key data string needed to create a hashstring to be used later when filling the signature.
-    ///     This is done seperate of the hashing so that new line replacements can be done when validating signatures before
-    ///     hashing.
-    /// </summary>
     public static string GetKeyDataForSignatureHash(TreatPlan treatPlan, List<ProcTP> listProcTPs)
     {
         //the key data is a concatenation of the following:
@@ -219,7 +199,6 @@ public class TreatPlans
         return stringBuilder.ToString();
     }
 
-    ///<summary>Used to fill the grid on a TP sheet.</summary>
     public static TreatPlan GetTreatPlanListProcTP(TreatPlan treatPlan)
     {
         var tpModuleData = TreatmentPlanModules.GetModuleData(treatPlan.PatNum, true);
@@ -240,7 +219,6 @@ public class TreatPlans
         else
         {
             var listTpRows = TreatmentPlanModules.GetActiveTpPlanTpRows(
-                true,
                 true,
                 true,
                 true,
@@ -269,30 +247,11 @@ public class TreatPlans
         return treatPlan;
     }
 
-    /// <summary>
-    ///     Gets the hashstring from the provided string that is typically generated from GetStringForSignatureHash().
-    ///     This is done seperate of building the string so that new line replacements can be done when validating signatures
-    ///     before hashing.
-    /// </summary>
     public static string GetHashStringForSignature(string str)
     {
         return Encoding.ASCII.GetString(MD5.Hash(Encoding.UTF8.GetBytes(str)));
     }
 
-    /// <summary>
-    ///     This is the automation behind keeping treatplans correct.  Many calls to DB, consider optimizing or calling
-    ///     sparingly.
-    ///     <para>Ensures patients only have one active treatplan, marks extras inactive and creates an active if necessary.</para>
-    ///     <para>
-    ///         Attaches procedures to the active plan if the proc status is TP or status is TPi and the proc is attached to
-    ///         a sched/planned appt.
-    ///     </para>
-    ///     <para>Creates an unassigned treatplan if necessary and attaches any unassigned procedures to it.</para>
-    ///     <para>
-    ///         Also maintains priorities of treatplanattaches and procedures and updates the procstatus of TP and TPi procs
-    ///         if necessary.
-    ///     </para>
-    /// </summary>
     public static void AuditPlans(long patNum, TreatPlanType treatPlanType)
     {
         #region Pseudo Code
@@ -466,7 +425,7 @@ public class TreatPlans
             else
                 listProceduresForActive[i].DiscountPlanAmt = 0;
 
-            Procedures.Update(listProceduresForActive[i], procedureOld, isSilent: true); //We want to suppress AvaTax errors here or we could end up with a bunch
+            Procedures.Update(listProceduresForActive[i], procedureOld); //We want to suppress AvaTax errors here or we could end up with a bunch
         }
 
         #endregion Procs for Active Plan
@@ -516,10 +475,6 @@ public class TreatPlans
         #endregion Sync and Clean-Up TreatPlanAttach List
     }
 
-    /// <summary>
-    ///     Syncs various related tables with treat plan status. When isMarkingActive is true, will set all other TPs
-    ///     inactive.
-    /// </summary>
     public static void SyncTreatPlanStatusWithProcs(TreatPlan TreatPlan, bool isMarkingActive, List<TreatPlanAttach> listTreatPlanAttaches, List<TreatPlanAttach> listTreatPlanAttachesAll, List<Procedure> listProceduresTpProcs)
     {
         //get all TPAttaches for this TP where there is either a procedure with a TPAttach linking it to this TP
@@ -543,7 +498,6 @@ public class TreatPlans
         for (var i = 0; i < listTreatPlanAttachesInactive.Count; i++) ProcMultiVisits.UpdateGroupForProc(listTreatPlanAttachesInactive[i].ProcNum, ProcStat.TPi);
     }
 
-    ///<summary>Sets the appropriate priority for a given list of procnums corresponding ProcTP or TreatPlanAttaches.</summary>
     public static void SetPriorityForProcs(TreatPlan treatPlan, long priorityDefNum, List<long> listProcNums, int treatPlanCount, bool suppressSecMessage = false)
     {
         if (treatPlanCount > 0
@@ -568,12 +522,6 @@ public class TreatPlans
         return TreatPlanCrud.SelectOne(command) ?? new TreatPlan();
     }
 
-    /// <summary>
-    ///     Called after setting the status to treatPlanCur to Active.
-    ///     Updates the status of any other plan with Active status to Inactive.
-    ///     If the original heading of the other plan is "Active Treatment Plan" it will be updated to "Inactive Treatment
-    ///     Plan".
-    /// </summary>
     public static void SetOtherActiveTPsToInactive(TreatPlan treatPlan)
     {
         var command = "SELECT * FROM treatplan "
@@ -599,7 +547,6 @@ public class TreatPlans
         //TreatPlans.Update(treatPlanCur);
     }
 
-    ///<summary>May not return correct values if notes are stored with newline characters.</summary>
     public static List<long> GetNumsByNote(string noteOld)
     {
         noteOld = noteOld.Replace("\r", "");
@@ -612,7 +559,6 @@ public class TreatPlans
         return Db.GetListLong(command);
     }
 
-    /// <summary>	Updates the default note on active/inactive treatment plans with new note</summary>
     public static void UpdateNotes(string noteNew, List<long> listTreatPlanNums)
     {
         if (listTreatPlanNums == null || listTreatPlanNums.Count == 0) return;
@@ -634,7 +580,6 @@ public class TreatPlans
         return listTreatPlans;
     }
 
-    ///<summary>Returns only 5 columns for all saved treatment plans.</summary>
     public static List<TreatPlan> GetAllSavedLim(DateTime dateStart, DateTime dateEnd)
     {
         var command = "SELECT TreatPlanNum, PatNum, DateTP, SecUserNumEntry, UserNumPresenter "
@@ -657,7 +602,6 @@ public class TreatPlans
         return listTreatPlansSavedLim;
     }
 
-    ///<summary>Sets every TreatPlan MobileAppDeviceNum to 0 if it matches the passed in mobileAppDeviceNum.</summary>
     public static void RemoveMobileAppDeviceNum(long mobileAppDeviceNum)
     {
         var command = $@"
@@ -667,9 +611,6 @@ public class TreatPlans
         Db.NonQ(command);
     }
 
-    #region Update
-
-    ///<summmary>Updates all active and inactive TP's to match the patients current treatment plan type.</summmary>
     public static void UpdateTreatmentPlanType(Patient patient)
     {
         var listTreatPlans = GetAllForPat(patient.PatNum);
@@ -685,106 +626,12 @@ public class TreatPlans
             }
     }
 
-    ///<summary>Used to set or clear out the mobile app device the treatment plan is being added or removed from.</summary>
     public static void UpdateMobileAppDeviceNum(TreatPlan treatPlan, long mobileAppDeviceNum)
     {
         treatPlan.MobileAppDeviceNum = mobileAppDeviceNum;
         Update(treatPlan);
     }
 
-    #endregion
-
-    #region Xam TP methods
-
-    ///<summary>To be used when you need a sheet for a TreatPlan and you don't have a reference to OpenDental.</summary>
-    public static Sheet CreateSheetFromTreatmentPlan(TreatPlan treatPlan)
-    {
-        treatPlan.ListProcTPs = ProcTPs.RefreshForTP(treatPlan.TreatPlanNum);
-        //Get the TreatPlanParams associated with the current treatment plan and then delete it. It is only used once to set the parameters here.
-        var treatPlanParamSheet = TreatPlanParams.GetOneByTreatPlanNum(treatPlan.TreatPlanNum);
-        TreatPlanParams.Delete(treatPlanParamSheet.TreatPlanParamNum);
-        var sheet = SheetUtil.CreateSheet(SheetDefs.GetSheetsDefault(SheetTypeEnum.TreatmentPlan, Clinics.ClinicNum), treatPlan.PatNum);
-        //These are all of the different sheet parameters that can be added to a treatment plan
-        sheet.Parameters.Add(new SheetParameter(true, "TreatPlan") {ParamValue = treatPlan});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowDiscountNotAutomatic") {ParamValue = treatPlanParamSheet.ShowDiscount});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowDiscount") {ParamValue = treatPlanParamSheet.ShowDiscount});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowMaxDed") {ParamValue = treatPlanParamSheet.ShowMaxDed});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowSubTotals") {ParamValue = treatPlanParamSheet.ShowSubTotals});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowTotals") {ParamValue = treatPlanParamSheet.ShowTotals});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowCompleted") {ParamValue = treatPlanParamSheet.ShowCompleted});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowFees") {ParamValue = treatPlanParamSheet.ShowFees});
-        sheet.Parameters.Add(new SheetParameter(true, "checkShowIns") {ParamValue = treatPlanParamSheet.ShowIns});
-        sheet.Parameters.Add(new SheetParameter(true, "toothChartImg")
-        {
-            ParamValue = ToothChartHelper.GetImage(treatPlan.PatNum,
-                PrefC.GetBool(PrefName.TreatPlanShowCompleted), treatPlan)
-        });
-        SheetFiller.FillFields(sheet);
-        SheetUtil.CalculateHeights(sheet);
-        return sheet;
-    }
-
-    /// <summary>
-    ///     Attempts to sign a treamentplan with the provided signatures. If signaturePractice is not needed (as defined by the
-    ///     TP sheet) then set to null.
-    ///     Returns true if there are no errors, otherwise returns false and sets out error param.
-    /// </summary>
-    public static bool TrySignTreatmentPlan(TreatPlan treatPlan, string signaturePatient, string signaturePractice, out string error)
-    {
-        if (!TryValidateSignatures(treatPlan, signaturePatient, signaturePractice, out var patientSignature, out var practiceSignature, out error)) return false;
-
-        UpdateTreatmentPlanSignatures(treatPlan, patientSignature, practiceSignature);
-        return true;
-    }
-
-    /// <summary>
-    ///     Returns true if given treatPlan and signatures are valid for DB, provides decrypted signatures when true,
-    ///     practiceSignature can be null if not needed.
-    ///     Otherwise returns false and sets out error.
-    /// </summary>
-    public static bool TryValidateSignatures(TreatPlan treatPlan, string signaturePatient, string signaturePractice,
-        out string patientSignature, out string practiceSignature, out string error)
-    {
-        error = null;
-        patientSignature = null;
-        practiceSignature = null;
-        if (treatPlan == null) error = "This Treatment Plan no longer exists. Please select and sign a new Treatment Plan and try again.";
-
-        var listProcTPs = ProcTPs.RefreshForTP(treatPlan.TreatPlanNum);
-        var keyData = GetKeyDataForSignatureSaving(treatPlan, listProcTPs);
-        var uTF8Encoding = new UTF8Encoding();
-        var byteArrayHash = uTF8Encoding.GetBytes(keyData);
-        //331 and 79 are the width and height of the signature box in FormTPsign.cs
-        patientSignature = SigBox.EncryptSigString(byteArrayHash, GetScaledSignature(signaturePatient));
-        if (patientSignature.IsNullOrEmpty()) error = "Error occurred when encrypting the patient signature.";
-
-        if (!signaturePractice.IsNullOrEmpty())
-        {
-            practiceSignature = SigBox.EncryptSigString(byteArrayHash, GetScaledSignature(signaturePractice));
-            if (practiceSignature.IsNullOrEmpty()) error = "Error occurred when encrypting the practice signature.";
-        }
-
-        return error.IsNullOrEmpty();
-    }
-
-    /// <summary>
-    ///     Updates the given treatPlans signatures in the DB.
-    ///     Both given signatures should be decrypted.
-    /// </summary>
-    public static void UpdateTreatmentPlanSignatures(TreatPlan treatPlan, string patientSignature, string practiceSignature = null)
-    {
-        if (!practiceSignature.IsNullOrEmpty())
-        {
-            treatPlan.SignaturePractice = practiceSignature;
-            treatPlan.DateTPracticeSigned = DateTime.Now;
-        }
-
-        treatPlan.Signature = patientSignature;
-        treatPlan.DateTSigned = DateTime.Now;
-        Update(treatPlan);
-    }
-
-    ///<summary>Given a string of points separated by ';' this returns the scaled coordinates.</summary>
     public static string GetScaledSignature(string originalPoints, int signatureBoxWidth = 331, int signatureBoxHeight = 79)
     {
         var stringArrayPoints = originalPoints.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
@@ -820,6 +667,4 @@ public class TreatPlans
         });
         return string.Join(";", listPointsScaled.Select(x => $"{x.X},{x.Y}"));
     }
-
-    #endregion
 }

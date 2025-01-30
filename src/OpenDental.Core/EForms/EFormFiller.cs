@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness {

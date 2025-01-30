@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AccountCrud
 {

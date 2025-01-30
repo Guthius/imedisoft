@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.IO.Pipes;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	
@@ -61,7 +62,7 @@ namespace OpenDental.Bridges {
 								}
 							}
 							catch(Exception e) {
-								MessageBox.Show(Lang.g("DentalTek","Error occurred:")+" "+e.Message+"\r\n"+Lang.g("DentalTek","Please login to your Xbeyon/DentalTek Application and try again."));
+								MessageBox.Show("Error occurred: "+e.Message+"\r\nPlease login to your Xbeyon/DentalTek Application and try again.");
 								return false;
 							}
 							request="https://extapi.dentaltek.com/v1/pbx/rest/ClickToCall?phoneNumber="+phoneNumber+"&token="+token+"&premise=true";
@@ -98,7 +99,7 @@ namespace OpenDental.Bridges {
 			else {
 				InputBoxParam inputBoxParam=new InputBoxParam();
 				inputBoxParam.InputBoxType_=InputBoxType.ComboSelect;
-				inputBoxParam.LabelText=Lang.g("DentalTek","Please select a phone number");
+				inputBoxParam.LabelText="Please select a phone number";
 				List<string> listPhoneNumbers=new List<string>();
 				listPhoneNumbers.Add("HmPhone: "+pat.HmPhone);
 				listPhoneNumbers.Add("WkPhone: "+pat.WkPhone);

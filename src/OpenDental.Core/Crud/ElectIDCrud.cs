@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ElectIDCrud
 {
@@ -91,7 +93,7 @@ public class ElectIDCrud
             + SOut.Int((int) electID.CommBridge) + ","
             + "'" + SOut.String(electID.Attributes) + "')";
         if (electID.Comments == null) electID.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(electID.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(electID.Comments));
         {
             electID.ElectIDNum = Db.NonQ(command, true, "ElectIDNum", "electID", paramComments);
         }
@@ -119,7 +121,7 @@ public class ElectIDCrud
             + SOut.Int((int) electID.CommBridge) + ","
             + "'" + SOut.String(electID.Attributes) + "')";
         if (electID.Comments == null) electID.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(electID.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(electID.Comments));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramComments);
         else
@@ -139,7 +141,7 @@ public class ElectIDCrud
                       + "Attributes   = '" + SOut.String(electID.Attributes) + "' "
                       + "WHERE ElectIDNum = " + SOut.Long(electID.ElectIDNum);
         if (electID.Comments == null) electID.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(electID.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(electID.Comments));
         Db.NonQ(command, paramComments);
     }
 
@@ -190,7 +192,7 @@ public class ElectIDCrud
 
         if (command == "") return false;
         if (electID.Comments == null) electID.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(electID.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(electID.Comments));
         command = "UPDATE electid SET " + command
                                         + " WHERE ElectIDNum = " + SOut.Long(electID.ElectIDNum);
         Db.NonQ(command, paramComments);

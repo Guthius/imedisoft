@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class LanguageCrud
 {
@@ -82,11 +84,11 @@ public class LanguageCrud
                                + DbHelper.ParamChar + "paramEnglish,"
                                + SOut.Bool(language.IsObsolete) + ")";
         if (language.EnglishComments == null) language.EnglishComments = "";
-        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", OdDbType.Text, SOut.StringParam(language.EnglishComments));
+        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", SOut.StringParam(language.EnglishComments));
         if (language.ClassType == null) language.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(language.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(language.ClassType));
         if (language.English == null) language.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(language.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(language.English));
         {
             language.LanguageNum = Db.NonQ(command, true, "LanguageNum", "language", paramEnglishComments, paramClassType, paramEnglish);
         }
@@ -111,11 +113,11 @@ public class LanguageCrud
                                + DbHelper.ParamChar + "paramEnglish,"
                                + SOut.Bool(language.IsObsolete) + ")";
         if (language.EnglishComments == null) language.EnglishComments = "";
-        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", OdDbType.Text, SOut.StringParam(language.EnglishComments));
+        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", SOut.StringParam(language.EnglishComments));
         if (language.ClassType == null) language.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(language.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(language.ClassType));
         if (language.English == null) language.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(language.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(language.English));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramEnglishComments, paramClassType, paramEnglish);
         else
@@ -132,11 +134,11 @@ public class LanguageCrud
                       + "IsObsolete     =  " + SOut.Bool(language.IsObsolete) + " "
                       + "WHERE LanguageNum = " + SOut.Long(language.LanguageNum);
         if (language.EnglishComments == null) language.EnglishComments = "";
-        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", OdDbType.Text, SOut.StringParam(language.EnglishComments));
+        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", SOut.StringParam(language.EnglishComments));
         if (language.ClassType == null) language.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(language.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(language.ClassType));
         if (language.English == null) language.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(language.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(language.English));
         Db.NonQ(command, paramEnglishComments, paramClassType, paramEnglish);
     }
 
@@ -169,11 +171,11 @@ public class LanguageCrud
 
         if (command == "") return false;
         if (language.EnglishComments == null) language.EnglishComments = "";
-        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", OdDbType.Text, SOut.StringParam(language.EnglishComments));
+        var paramEnglishComments = new OdSqlParameter("paramEnglishComments", SOut.StringParam(language.EnglishComments));
         if (language.ClassType == null) language.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(language.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(language.ClassType));
         if (language.English == null) language.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(language.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(language.English));
         command = "UPDATE language SET " + command
                                          + " WHERE LanguageNum = " + SOut.Long(language.LanguageNum);
         Db.NonQ(command, paramEnglishComments, paramClassType, paramEnglish);

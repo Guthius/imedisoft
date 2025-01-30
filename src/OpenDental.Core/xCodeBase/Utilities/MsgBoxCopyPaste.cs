@@ -27,7 +27,7 @@ public class MsgBoxCopyPaste:System.Windows.Forms.Form {
 		// Required for Windows Form Designer support
 		//
 		InitializeComponent();
-		//Lan.F(this);
+		//
 		textMain.Text=displayText;
 	}
 

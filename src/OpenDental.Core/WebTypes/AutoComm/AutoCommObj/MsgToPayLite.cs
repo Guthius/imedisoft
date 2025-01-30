@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.AutoComm;
 
 namespace OpenDentBusiness;

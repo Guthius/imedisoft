@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -219,11 +220,11 @@ namespace OpenDental {
 
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(gridMain.SelectedIndices.Length==0){
-				MessageBox.Show(Lans.g(this,"Please select an item first."));
+				MessageBox.Show(Lans.g("Please select an item first."));
 				return;
 			}
 			if(gridMain.SelectedIndices.Length>1) {
-				MessageBox.Show(Lans.g(this,"Please select only one item first."));
+				MessageBox.Show(Lans.g("Please select only one item first."));
 				return;
 			}
 			InsPlan insPlan=InsPlans.GetPlan(SIn.Long(_table.Rows[gridMain.SelectedIndices[0]]["PlanNum"].ToString()),null);

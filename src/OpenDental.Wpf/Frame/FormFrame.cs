@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.Properties;
 using Help = OpenDentBusiness.Help;
@@ -25,7 +26,7 @@ namespace OpenDental
         #region Fields - Public
 
         ///<summary>Set to true to use traditional MS borders for all forms.</summary>
-        public static bool AreBordersMS;
+        public const bool AreBordersMS=true;
 
         ///<summary>This will be true for PDF. This prevents dragging away from docked position.</summary>
         public bool IsImageFloatLocked;
@@ -1117,7 +1118,7 @@ namespace OpenDental
                 {
                     //first time
                     _toolTipBorderButtons.InitialDelay = 1000;
-                    _toolTipBorderButtons.SetToolTip(this, Lans.g(this, "Close"));
+                    _toolTipBorderButtons.SetToolTip(this, Lans.g("Close"));
                     _isHotX = true;
                     _isHotMax = false;
                     _isHotMin = false;
@@ -1132,11 +1133,11 @@ namespace OpenDental
                     _toolTipBorderButtons.InitialDelay = 1000;
                     if (WindowState == FormWindowState.Maximized)
                     {
-                        _toolTipBorderButtons.SetToolTip(this, Lans.g(this, "Restore Down"));
+                        _toolTipBorderButtons.SetToolTip(this, Lans.g("Restore Down"));
                     }
                     else
                     {
-                        _toolTipBorderButtons.SetToolTip(this, Lans.g(this, "Maximize"));
+                        _toolTipBorderButtons.SetToolTip(this, Lans.g("Maximize"));
                     }
 
                     _isHotMax = true;
@@ -1154,7 +1155,7 @@ namespace OpenDental
                 if (!_isHotMin)
                 {
                     _toolTipBorderButtons.InitialDelay = 1000;
-                    _toolTipBorderButtons.SetToolTip(this, Lans.g(this, "Minimize"));
+                    _toolTipBorderButtons.SetToolTip(this, Lans.g("Minimize"));
                     _isHotMin = true;
                     _isHotX = false;
                     _isHotMax = false;
@@ -1167,7 +1168,7 @@ namespace OpenDental
                 if (!_isHotHelp)
                 {
                     _toolTipBorderButtons.InitialDelay = 0;
-                    _toolTipBorderButtons.SetToolTip(this, Lans.g(this, "Help"));
+                    _toolTipBorderButtons.SetToolTip(this, Lans.g("Help"));
                     _isHotHelp = true;
                     _isHotX = false;
                     _isHotMax = false;
@@ -1789,7 +1790,7 @@ namespace OpenDental
 
         public void ProcessSignals(List<Signalod> listSignals)
         {
-            Logger.LogAction("ODForm.ProcessSignals", LogPath.Signals, () => ProcessSignalODs(listSignals), this.GetType().Name);
+            Logger.LogAction(() => ProcessSignalODs(listSignals));
         }
 
         ///<summary>Override this if your form cares about signal processing.</summary>

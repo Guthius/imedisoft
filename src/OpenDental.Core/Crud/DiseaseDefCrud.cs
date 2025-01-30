@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DiseaseDefCrud
 {
-    public static DiseaseDef SelectOne(long diseaseDefNum)
-    {
-        var command = "SELECT * FROM diseasedef "
-                      + "WHERE DiseaseDefNum = " + SOut.Long(diseaseDefNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static DiseaseDef SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<DiseaseDef> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -73,11 +55,6 @@ public class DiseaseDefCrud
 
     public static long Insert(DiseaseDef diseaseDef)
     {
-        return Insert(diseaseDef, false);
-    }
-
-    public static long Insert(DiseaseDef diseaseDef, bool useExistingPK)
-    {
         var command = "INSERT INTO diseasedef (";
 
         command += "DiseaseName,ItemOrder,IsHidden,ICD9Code,SnomedCode,Icd10Code) VALUES(";
@@ -93,33 +70,6 @@ public class DiseaseDefCrud
         {
             diseaseDef.DiseaseDefNum = Db.NonQ(command, true, "DiseaseDefNum", "diseaseDef");
         }
-        return diseaseDef.DiseaseDefNum;
-    }
-
-    public static long InsertNoCache(DiseaseDef diseaseDef)
-    {
-        return InsertNoCache(diseaseDef, false);
-    }
-
-    public static long InsertNoCache(DiseaseDef diseaseDef, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO diseasedef (";
-        if (isRandomKeys || useExistingPK) command += "DiseaseDefNum,";
-        command += "DiseaseName,ItemOrder,IsHidden,ICD9Code,SnomedCode,Icd10Code) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(diseaseDef.DiseaseDefNum) + ",";
-        command +=
-            "'" + SOut.StringNote(diseaseDef.DiseaseName, true) + "',"
-            + SOut.Int(diseaseDef.ItemOrder) + ","
-            + SOut.Bool(diseaseDef.IsHidden) + ","
-            //DateTStamp can only be set by MySQL
-            + "'" + SOut.String(diseaseDef.ICD9Code) + "',"
-            + "'" + SOut.String(diseaseDef.SnomedCode) + "',"
-            + "'" + SOut.String(diseaseDef.Icd10Code) + "')";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            diseaseDef.DiseaseDefNum = Db.NonQ(command, true, "DiseaseDefNum", "diseaseDef");
         return diseaseDef.DiseaseDefNum;
     }
 
@@ -184,25 +134,6 @@ public class DiseaseDefCrud
         return true;
     }
 
-    public static bool UpdateComparison(DiseaseDef diseaseDef, DiseaseDef oldDiseaseDef)
-    {
-        if (diseaseDef.DiseaseName != oldDiseaseDef.DiseaseName) return true;
-        if (diseaseDef.ItemOrder != oldDiseaseDef.ItemOrder) return true;
-        if (diseaseDef.IsHidden != oldDiseaseDef.IsHidden) return true;
-        //DateTStamp can only be set by MySQL
-        if (diseaseDef.ICD9Code != oldDiseaseDef.ICD9Code) return true;
-        if (diseaseDef.SnomedCode != oldDiseaseDef.SnomedCode) return true;
-        if (diseaseDef.Icd10Code != oldDiseaseDef.Icd10Code) return true;
-        return false;
-    }
-
-    public static void Delete(long diseaseDefNum)
-    {
-        var command = "DELETE FROM diseasedef "
-                      + "WHERE DiseaseDefNum = " + SOut.Long(diseaseDefNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listDiseaseDefNums)
     {
         if (listDiseaseDefNums == null || listDiseaseDefNums.Count == 0) return;
@@ -211,7 +142,7 @@ public class DiseaseDefCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<DiseaseDef> listNew, List<DiseaseDef> listDB)
+    public static void Sync(List<DiseaseDef> listNew, List<DiseaseDef> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<DiseaseDef>();
@@ -280,7 +211,6 @@ public class DiseaseDefCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.DiseaseDefNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DunningCrud
 {
@@ -100,11 +102,11 @@ public class DunningCrud
                                + SOut.Long(dunning.ClinicNum) + ","
                                + SOut.Bool(dunning.IsSuperFamily) + ")";
         if (dunning.DunMessage == null) dunning.DunMessage = "";
-        var paramDunMessage = new OdSqlParameter("paramDunMessage", OdDbType.Text, SOut.StringParam(dunning.DunMessage));
+        var paramDunMessage = new OdSqlParameter("paramDunMessage", SOut.StringParam(dunning.DunMessage));
         if (dunning.MessageBold == null) dunning.MessageBold = "";
-        var paramMessageBold = new OdSqlParameter("paramMessageBold", OdDbType.Text, SOut.StringParam(dunning.MessageBold));
+        var paramMessageBold = new OdSqlParameter("paramMessageBold", SOut.StringParam(dunning.MessageBold));
         if (dunning.EmailBody == null) dunning.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(dunning.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(dunning.EmailBody));
         {
             dunning.DunningNum = Db.NonQ(command, true, "DunningNum", "dunning", paramDunMessage, paramMessageBold, paramEmailBody);
         }
@@ -135,11 +137,11 @@ public class DunningCrud
                                + SOut.Long(dunning.ClinicNum) + ","
                                + SOut.Bool(dunning.IsSuperFamily) + ")";
         if (dunning.DunMessage == null) dunning.DunMessage = "";
-        var paramDunMessage = new OdSqlParameter("paramDunMessage", OdDbType.Text, SOut.StringParam(dunning.DunMessage));
+        var paramDunMessage = new OdSqlParameter("paramDunMessage", SOut.StringParam(dunning.DunMessage));
         if (dunning.MessageBold == null) dunning.MessageBold = "";
-        var paramMessageBold = new OdSqlParameter("paramMessageBold", OdDbType.Text, SOut.StringParam(dunning.MessageBold));
+        var paramMessageBold = new OdSqlParameter("paramMessageBold", SOut.StringParam(dunning.MessageBold));
         if (dunning.EmailBody == null) dunning.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(dunning.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(dunning.EmailBody));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDunMessage, paramMessageBold, paramEmailBody);
         else
@@ -162,11 +164,11 @@ public class DunningCrud
                       + "IsSuperFamily=  " + SOut.Bool(dunning.IsSuperFamily) + " "
                       + "WHERE DunningNum = " + SOut.Long(dunning.DunningNum);
         if (dunning.DunMessage == null) dunning.DunMessage = "";
-        var paramDunMessage = new OdSqlParameter("paramDunMessage", OdDbType.Text, SOut.StringParam(dunning.DunMessage));
+        var paramDunMessage = new OdSqlParameter("paramDunMessage", SOut.StringParam(dunning.DunMessage));
         if (dunning.MessageBold == null) dunning.MessageBold = "";
-        var paramMessageBold = new OdSqlParameter("paramMessageBold", OdDbType.Text, SOut.StringParam(dunning.MessageBold));
+        var paramMessageBold = new OdSqlParameter("paramMessageBold", SOut.StringParam(dunning.MessageBold));
         if (dunning.EmailBody == null) dunning.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(dunning.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(dunning.EmailBody));
         Db.NonQ(command, paramDunMessage, paramMessageBold, paramEmailBody);
     }
 
@@ -235,11 +237,11 @@ public class DunningCrud
 
         if (command == "") return false;
         if (dunning.DunMessage == null) dunning.DunMessage = "";
-        var paramDunMessage = new OdSqlParameter("paramDunMessage", OdDbType.Text, SOut.StringParam(dunning.DunMessage));
+        var paramDunMessage = new OdSqlParameter("paramDunMessage", SOut.StringParam(dunning.DunMessage));
         if (dunning.MessageBold == null) dunning.MessageBold = "";
-        var paramMessageBold = new OdSqlParameter("paramMessageBold", OdDbType.Text, SOut.StringParam(dunning.MessageBold));
+        var paramMessageBold = new OdSqlParameter("paramMessageBold", SOut.StringParam(dunning.MessageBold));
         if (dunning.EmailBody == null) dunning.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(dunning.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(dunning.EmailBody));
         command = "UPDATE dunning SET " + command
                                         + " WHERE DunningNum = " + SOut.Long(dunning.DunningNum);
         Db.NonQ(command, paramDunMessage, paramMessageBold, paramEmailBody);

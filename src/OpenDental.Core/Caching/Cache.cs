@@ -3,6 +3,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -33,7 +34,7 @@ public class Cache
     public static void GetCacheDs(bool doRefreshServerCache, params InvalidType[] arrayITypes)
     {
         var prefix = Lans.g(nameof(Cache), "Refreshing Caches") + ": ";
-        Logger.LogToPath("", LogPath.Signals, LogPhase.Start, "InvalidType(s): " + string.Join(" - ", arrayITypes.OrderBy(x => x.ToString())));
+        Logger.LogToPath();
         var listITypes = arrayITypes.ToList();
         //so this part below only happens if direct or server------------------------------------------------
         var isAll = listITypes.Contains(InvalidType.AllLocal);
@@ -57,13 +58,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.AlertCategoryLinks);
             ds.Tables.Add(AlertCategoryLinks.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.ApiSubscriptions) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ApiSubscriptions);
-            ds.Tables.Add(ApiSubscriptions.GetTableFromCache(doRefreshServerCache));
-        }
-
+        
         if (listITypes.Contains(InvalidType.AppointmentTypes) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.AppointmentTypes);
@@ -109,13 +104,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ClearHouses);
             ds.Tables.Add(Clearinghouses.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.ClinicErxs) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ClinicErxs);
-            ds.Tables.Add(ClinicErxs.GetTableFromCache(doRefreshServerCache));
-        }
-
+        
         if (listITypes.Contains(InvalidType.ClinicPrefs) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ClinicPrefs);
@@ -152,7 +141,7 @@ public class Cache
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Diseases);
             ds.Tables.Add(DiseaseDefs.GetTableFromCache(doRefreshServerCache));
-            ds.Tables.Add(ICD9s.GetTableFromCache(doRefreshServerCache));
+            ds.Tables.Add(Icd9s.GetTableFromCache(doRefreshServerCache));
         }
 
         if (listITypes.Contains(InvalidType.DisplayFields) || isAll)
@@ -173,13 +162,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Ebills);
             ds.Tables.Add(Ebills.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.EhrCodes))
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.EhrCodes);
-            EhrCodes.UpdateList(); //Unusual pattern for an unusual "table".  Not really a table, but a mishmash of hard coded partial code systems that are needed for CQMs.
-        }
-
+        
         if (listITypes.Contains(InvalidType.ElectIDs) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ElectIDs);
@@ -255,12 +238,6 @@ public class Cache
             ds.Tables.Add(LanguagePats.GetTableFromCache(doRefreshServerCache));
         }
 
-        if (listITypes.Contains(InvalidType.Letters) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Letters);
-            ds.Tables.Add(Letters.GetTableFromCache(doRefreshServerCache));
-        }
-
         if (listITypes.Contains(InvalidType.LetterMerge) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.LetterMerge);
@@ -273,13 +250,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.LimitedBetaFeature);
             ds.Tables.Add(LimitedBetaFeatures.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.Medications) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Medications);
-            ds.Tables.Add(Medications.GetTableFromCache(doRefreshServerCache));
-        }
-
+        
         if (listITypes.Contains(InvalidType.Operatories) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Operatories);
@@ -342,13 +313,7 @@ public class Cache
             ds.Tables.Add(Programs.GetTableFromCache(doRefreshServerCache));
             ds.Tables.Add(ProgramProperties.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.ProviderErxs) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ProviderErxs);
-            ds.Tables.Add(ProviderErxs.GetTableFromCache(doRefreshServerCache));
-        }
-
+        
         if (listITypes.Contains(InvalidType.ProviderClinicLink) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ProviderClinicLink);
@@ -509,21 +474,14 @@ public class Cache
             ds.Tables.Add(AppointmentRules.GetTableFromCache(doRefreshServerCache));
             ds.Tables.Add(ProcApptColors.GetTableFromCache(doRefreshServerCache));
         }
-
-        if (listITypes.Contains(InvalidType.Wiki) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Wiki);
-            ds.Tables.Add(WikiListHeaderWidths.GetTableFromCache(doRefreshServerCache));
-            ds.Tables.Add(WikiPages.RefreshCache());
-        }
-
+        
         if (listITypes.Contains(InvalidType.ZipCodes) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ZipCodes);
             ds.Tables.Add(ZipCodes.GetTableFromCache(doRefreshServerCache));
         }
 
-        Logger.LogToPath("", LogPath.Signals, LogPhase.End);
+        Logger.LogToPath();
     }
 
     public static void ClearCaches()
@@ -549,14 +507,10 @@ public class Cache
         //No RemotingClient check needed; The server does not need to clear these caches because it already knows about the changes.
         //This is assuming that the workstation that was responsible for the cache change asked the MT server to update it's local cache.
         var prefix = Lans.g(nameof(Cache), "Clearing Caches") + ": ";
-        Logger.LogToPath("", LogPath.Signals, LogPhase.Start, "InvalidType(s): " + string.Join(" - ", arrayITypes.OrderBy(x => x.ToString())));
+        Logger.LogToPath();
         var listITypes = arrayITypes.ToList();
         //so this part below only happens if direct or server------------------------------------------------
-        var isAll = false;
-        if (listITypes.Contains(InvalidType.AllLocal))
-        {
-            isAll = true;
-        }
+        var isAll = listITypes.Contains(InvalidType.AllLocal);
 
         //All cached public tables go here
         if (listITypes.Contains(InvalidType.AccountingAutoPays) || isAll)
@@ -576,13 +530,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.AlertCategoryLinks);
             AlertCategoryLinks.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.ApiSubscriptions) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ApiSubscriptions);
-            ApiSubscriptions.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.AppointmentTypes) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.AppointmentTypes);
@@ -628,13 +576,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ClearHouses);
             Clearinghouses.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.ClinicErxs) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ClinicErxs);
-            ClinicErxs.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.ClinicPrefs) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ClinicPrefs);
@@ -671,7 +613,7 @@ public class Cache
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Diseases);
             DiseaseDefs.ClearCache();
-            ICD9s.ClearCache();
+            Icd9s.ClearCache();
         }
 
         if (listITypes.Contains(InvalidType.DisplayFields) || isAll)
@@ -692,13 +634,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Ebills);
             Ebills.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.EhrCodes))
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.EhrCodes + " (skipped)");
-            //EhrCodes.UpdateList();//There is no such thing as Clearing the "Cache" of all EHR code systems.
-        }
-
+        
         if (listITypes.Contains(InvalidType.ElectIDs) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ElectIDs);
@@ -773,13 +709,7 @@ public class Cache
 
             LanguagePats.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.Letters) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Letters);
-            Letters.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.LetterMerge) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.LetterMerge);
@@ -792,13 +722,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.LimitedBetaFeature);
             LimitedBetaFeatures.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.Medications) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Medications);
-            Medications.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.Operatories) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Operatories);
@@ -861,13 +785,7 @@ public class Cache
             Programs.ClearCache();
             ProgramProperties.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.ProviderErxs) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ProviderErxs);
-            ProviderErxs.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.ProviderClinicLink) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ProviderClinicLink);
@@ -1021,20 +939,13 @@ public class Cache
             AppointmentRules.ClearCache();
             ProcApptColors.ClearCache();
         }
-
-        if (listITypes.Contains(InvalidType.Wiki) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Wiki);
-            WikiListHeaderWidths.ClearCache();
-            WikiPages.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.ZipCodes) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ZipCodes);
             ZipCodes.ClearCache();
         }
 
-        Logger.LogToPath("", LogPath.Signals, LogPhase.End);
+        Logger.LogToPath();
     }
 }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 
 namespace OpenDental.Bridges {
@@ -28,18 +29,18 @@ namespace OpenDental.Bridges {
 				MessageBox.Show(_path+" could not be found.");
 				return;
 			}
-			if(MessageBox.Show(Lang.g("DemandForce","This may take 20 minutes or longer")+".  "+Lang.g("DemandForce","Continue")+"?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
+			if(MessageBox.Show("This may take 20 minutes or longer.  Continue?","",MessageBoxButtons.OKCancel)!=DialogResult.OK) {
 				return;
 			}
 			ProgressWin progressWin=new ProgressWin();
 			progressWin.ActionMain=() => InstanceBridgeExport();
 			progressWin.ShowDialog();
 			if(progressWin.IsCancelled){
-				MessageBox.Show(Lang.g("DemandForce","Export cancelled")+". "+Lang.g("DemandForce","Partially created file has been deleted")+".");
+				MessageBox.Show("Export cancelled. Partially created file has been deleted.");
 				CheckCreatedFile(CodeBase.ODFileUtils.CombinePaths(Path.GetDirectoryName(_path),"extract.xml"));
 				return;
 			}
-			MessageBox.Show(Lang.g("DemandForce","Export complete")+". "+Lang.g("DemandForce","Press OK to launch DemandForce")+".");
+			MessageBox.Show("Export complete. Press OK to launch DemandForce.");
 			try {
 				ODFileUtils.ProcessStart(_path);//We might have to add extract.xml to launch command in the future.
 			}
@@ -198,7 +199,7 @@ namespace OpenDental.Bridges {
 				ODFileUtils.WriteAllText(extract,strb.ToString());
 			}
 			catch {
-				MessageBox.Show(Lang.g("DemandForce","Export file creation failed")+". "+Lang.g("DemandForce","User may not have sufficient permissions")+".");
+				MessageBox.Show("Export file creation failed. User may not have sufficient permissions.");
 			}
 			MsgBox.Show("Done");
 		}

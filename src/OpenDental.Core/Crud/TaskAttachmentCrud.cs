@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TaskAttachmentCrud
 {
@@ -82,7 +84,7 @@ public class TaskAttachmentCrud
                                               + DbHelper.ParamChar + "paramTextValue,"
                                               + "'" + SOut.String(taskAttachment.Description) + "')";
         if (taskAttachment.TextValue == null) taskAttachment.TextValue = "";
-        var paramTextValue = new OdSqlParameter("paramTextValue", OdDbType.Text, SOut.StringNote(taskAttachment.TextValue));
+        var paramTextValue = new OdSqlParameter("paramTextValue", SOut.StringNote(taskAttachment.TextValue));
         {
             taskAttachment.TaskAttachmentNum = Db.NonQ(command, true, "TaskAttachmentNum", "taskAttachment", paramTextValue);
         }
@@ -107,7 +109,7 @@ public class TaskAttachmentCrud
                                               + DbHelper.ParamChar + "paramTextValue,"
                                               + "'" + SOut.String(taskAttachment.Description) + "')";
         if (taskAttachment.TextValue == null) taskAttachment.TextValue = "";
-        var paramTextValue = new OdSqlParameter("paramTextValue", OdDbType.Text, SOut.StringNote(taskAttachment.TextValue));
+        var paramTextValue = new OdSqlParameter("paramTextValue", SOut.StringNote(taskAttachment.TextValue));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramTextValue);
         else
@@ -124,7 +126,7 @@ public class TaskAttachmentCrud
                       + "Description      = '" + SOut.String(taskAttachment.Description) + "' "
                       + "WHERE TaskAttachmentNum = " + SOut.Long(taskAttachment.TaskAttachmentNum);
         if (taskAttachment.TextValue == null) taskAttachment.TextValue = "";
-        var paramTextValue = new OdSqlParameter("paramTextValue", OdDbType.Text, SOut.StringNote(taskAttachment.TextValue));
+        var paramTextValue = new OdSqlParameter("paramTextValue", SOut.StringNote(taskAttachment.TextValue));
         Db.NonQ(command, paramTextValue);
     }
 
@@ -157,7 +159,7 @@ public class TaskAttachmentCrud
 
         if (command == "") return false;
         if (taskAttachment.TextValue == null) taskAttachment.TextValue = "";
-        var paramTextValue = new OdSqlParameter("paramTextValue", OdDbType.Text, SOut.StringNote(taskAttachment.TextValue));
+        var paramTextValue = new OdSqlParameter("paramTextValue", SOut.StringNote(taskAttachment.TextValue));
         command = "UPDATE taskattachment SET " + command
                                                + " WHERE TaskAttachmentNum = " + SOut.Long(taskAttachment.TaskAttachmentNum);
         Db.NonQ(command, paramTextValue);

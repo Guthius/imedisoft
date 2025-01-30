@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpProcCodes {
@@ -21,12 +22,12 @@ namespace OpenDentBusiness {
 			retVal.Columns.Add(new DataColumn("Fee"));
 			List<ProcedureCode> listProcCodes=new List<ProcedureCode>();
 			if(isCategories) {
-				Def[][] arrayDefs=ReportsComplex.RunFuncOnReportServer(() => Defs.GetArrayShortNoCache());
-				listProcCodes=ReportsComplex.RunFuncOnReportServer(() => ProcedureCodes.GetProcList(arrayDefs))
-					.OrderBy(x => x.ProcCat).ThenBy(x => x.ProcCode).ToList(); //Ordered by category
+				Def[][] arrayDefs=Defs.GetArrayShortNoCache();
+				listProcCodes=ProcedureCodes.GetProcList(arrayDefs)
+					.OrderBy(x => x.ProcCat).ThenBy(x => x.ProcCode).ToList();
 			}
 			else {
-				listProcCodes=ReportsComplex.RunFuncOnReportServer(() => ProcedureCodes.GetAllCodes()); //Ordered by ProcCode, used for the non-category version of the report if they want blanks.
+				listProcCodes=ProcedureCodes.GetAllCodes(); //Ordered by ProcCode, used for the non-category version of the report if they want blanks.
 			}
 			bool isFound;
 			List<Def> listDefs=Defs.GetDefsNoCache(DefCat.ProcCodeCats);
@@ -91,7 +92,7 @@ namespace OpenDentBusiness {
 				+"AND fee.ClinicNum='"+SOut.Long(clinicNum)+"' "
 				+"AND fee.ProvNum='"+SOut.Long(provNum)+"' "
 				+"ORDER BY procedurecode.ProcCode";
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			return DataCore.GetTable(command);
 		}
 
 	}

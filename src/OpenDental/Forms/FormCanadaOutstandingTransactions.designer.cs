@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormCanadaOutstandingTransactions {
 		/// <summary>
 		/// Required designer variable.
@@ -64,7 +64,7 @@ namespace OpenDental{
             this.radioVersion4Itrans.TabStop = true;
             this.radioVersion4Itrans.Text = "Version 4";
             this.radioVersion4Itrans.UseVisualStyleBackColor = true;
-            this.radioVersion4Itrans.Click += new System.EventHandler(this.radioVersion4Itrans_Click);
+            this.radioVersion4Itrans.Click += new System.EventHandler(this.RadioButtonVersion4Itrans_Click);
             // 
             // radioVersion4ToCarrier
             // 
@@ -74,7 +74,7 @@ namespace OpenDental{
             this.radioVersion4ToCarrier.TabIndex = 112;
             this.radioVersion4ToCarrier.Text = "Version 4 To Specific Carrier (not commonly used)";
             this.radioVersion4ToCarrier.UseVisualStyleBackColor = true;
-            this.radioVersion4ToCarrier.Click += new System.EventHandler(this.radioVersion4ToCarrier_Click);
+            this.radioVersion4ToCarrier.Click += new System.EventHandler(this.RadioButtonVersion4ToCarrier_Click);
             // 
             // groupOfficeNumber
             // 
@@ -101,7 +101,7 @@ namespace OpenDental{
             this.butOK.Size = new System.Drawing.Size(75, 24);
             this.butOK.TabIndex = 3;
             this.butOK.Text = "&OK";
-            this.butOK.Click += new System.EventHandler(this.butOK_Click);
+            this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
             // 
             // FormCanadaOutstandingTransactions
             // 

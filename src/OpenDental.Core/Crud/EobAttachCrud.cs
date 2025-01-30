@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EobAttachCrud
 {
@@ -40,26 +41,7 @@ public class EobAttachCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<EobAttach> listEobAttachs, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "EobAttach";
-        var table = new DataTable(tableName);
-        table.Columns.Add("EobAttachNum");
-        table.Columns.Add("ClaimPaymentNum");
-        table.Columns.Add("DateTCreated");
-        table.Columns.Add("FileName");
-        table.Columns.Add("RawBase64");
-        foreach (var eobAttach in listEobAttachs)
-            table.Rows.Add(SOut.Long(eobAttach.EobAttachNum), SOut.Long(eobAttach.ClaimPaymentNum), SOut.DateTime(eobAttach.DateTCreated, false), eobAttach.FileName, eobAttach.RawBase64);
-        return table;
-    }
-
     public static long Insert(EobAttach eobAttach)
-    {
-        return Insert(eobAttach, false);
-    }
-
-    public static long Insert(EobAttach eobAttach, bool useExistingPK)
     {
         var command = "INSERT INTO eobattach (";
 
@@ -71,36 +53,10 @@ public class EobAttachCrud
                                                  + "'" + SOut.String(eobAttach.FileName) + "',"
                                                  + DbHelper.ParamChar + "paramRawBase64)";
         if (eobAttach.RawBase64 == null) eobAttach.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(eobAttach.RawBase64));
+        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(eobAttach.RawBase64));
         {
             eobAttach.EobAttachNum = Db.NonQ(command, true, "EobAttachNum", "eobAttach", paramRawBase64);
         }
-        return eobAttach.EobAttachNum;
-    }
-
-    public static long InsertNoCache(EobAttach eobAttach)
-    {
-        return InsertNoCache(eobAttach, false);
-    }
-
-    public static long InsertNoCache(EobAttach eobAttach, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO eobattach (";
-        if (isRandomKeys || useExistingPK) command += "EobAttachNum,";
-        command += "ClaimPaymentNum,DateTCreated,FileName,RawBase64) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(eobAttach.EobAttachNum) + ",";
-        command +=
-            SOut.Long(eobAttach.ClaimPaymentNum) + ","
-                                                 + SOut.DateTime(eobAttach.DateTCreated) + ","
-                                                 + "'" + SOut.String(eobAttach.FileName) + "',"
-                                                 + DbHelper.ParamChar + "paramRawBase64)";
-        if (eobAttach.RawBase64 == null) eobAttach.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(eobAttach.RawBase64));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramRawBase64);
-        else
-            eobAttach.EobAttachNum = Db.NonQ(command, true, "EobAttachNum", "eobAttach", paramRawBase64);
         return eobAttach.EobAttachNum;
     }
 
@@ -113,67 +69,7 @@ public class EobAttachCrud
                       + "RawBase64      =  " + DbHelper.ParamChar + "paramRawBase64 "
                       + "WHERE EobAttachNum = " + SOut.Long(eobAttach.EobAttachNum);
         if (eobAttach.RawBase64 == null) eobAttach.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(eobAttach.RawBase64));
+        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(eobAttach.RawBase64));
         Db.NonQ(command, paramRawBase64);
-    }
-
-    public static bool Update(EobAttach eobAttach, EobAttach oldEobAttach)
-    {
-        var command = "";
-        if (eobAttach.ClaimPaymentNum != oldEobAttach.ClaimPaymentNum)
-        {
-            if (command != "") command += ",";
-            command += "ClaimPaymentNum = " + SOut.Long(eobAttach.ClaimPaymentNum) + "";
-        }
-
-        if (eobAttach.DateTCreated != oldEobAttach.DateTCreated)
-        {
-            if (command != "") command += ",";
-            command += "DateTCreated = " + SOut.DateTime(eobAttach.DateTCreated) + "";
-        }
-
-        if (eobAttach.FileName != oldEobAttach.FileName)
-        {
-            if (command != "") command += ",";
-            command += "FileName = '" + SOut.String(eobAttach.FileName) + "'";
-        }
-
-        if (eobAttach.RawBase64 != oldEobAttach.RawBase64)
-        {
-            if (command != "") command += ",";
-            command += "RawBase64 = " + DbHelper.ParamChar + "paramRawBase64";
-        }
-
-        if (command == "") return false;
-        if (eobAttach.RawBase64 == null) eobAttach.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(eobAttach.RawBase64));
-        command = "UPDATE eobattach SET " + command
-                                          + " WHERE EobAttachNum = " + SOut.Long(eobAttach.EobAttachNum);
-        Db.NonQ(command, paramRawBase64);
-        return true;
-    }
-
-    public static bool UpdateComparison(EobAttach eobAttach, EobAttach oldEobAttach)
-    {
-        if (eobAttach.ClaimPaymentNum != oldEobAttach.ClaimPaymentNum) return true;
-        if (eobAttach.DateTCreated != oldEobAttach.DateTCreated) return true;
-        if (eobAttach.FileName != oldEobAttach.FileName) return true;
-        if (eobAttach.RawBase64 != oldEobAttach.RawBase64) return true;
-        return false;
-    }
-
-    public static void Delete(long eobAttachNum)
-    {
-        var command = "DELETE FROM eobattach "
-                      + "WHERE EobAttachNum = " + SOut.Long(eobAttachNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listEobAttachNums)
-    {
-        if (listEobAttachNums == null || listEobAttachNums.Count == 0) return;
-        var command = "DELETE FROM eobattach "
-                      + "WHERE EobAttachNum IN(" + string.Join(",", listEobAttachNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

@@ -7,19 +7,14 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class CreditCards
 {
-	/// <summary>
-	///     If patNum==0 then does not filter on PatNum; otherwise filters on PatNum. Only includes credit cards whose source
-	///     is Open Dental
-	///     proper.
-	/// </summary>
-	public static List<CreditCard> Refresh(long patNum)
+    public static List<CreditCard> Refresh(long patNum)
     {
         var listCreditCardSources = Enum.GetValues(typeof(CreditCardSource)).Cast<CreditCardSource>()
             .Where(x => !x.In(GetCreditCardSourcesForOnlinePayments().ToArray())).ToList();
@@ -28,14 +23,12 @@ public class CreditCards
         return RefreshBySource(patNum, listCreditCardSources);
     }
 
-    ///<summary>If patNum==0 then does not filter on PatNum; otherwise filters on PatNum. Includes all credit cards sources.</summary>
     public static List<CreditCard> RefreshAll(long patNum)
     {
         var listCreditCardSources = Enum.GetValues(typeof(CreditCardSource)).Cast<CreditCardSource>().ToList();
         return RefreshBySource(patNum, listCreditCardSources);
     }
 
-    ///<summary>Get all credit cards by a given list of CreditCardSource(s). Optionally filter by a given patNum.</summary>
     public static List<CreditCard> RefreshBySource(long patNum, List<CreditCardSource> listCreditCardSources)
     {
         if (listCreditCardSources.Count == 0) return new List<CreditCard>();
@@ -46,20 +39,17 @@ public class CreditCards
         return CreditCardCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one CreditCard from the db.</summary>
     public static CreditCard GetOne(long creditCardNum)
     {
         return CreditCardCrud.SelectOne(creditCardNum);
     }
 
-    
-    public static long Insert(CreditCard creditCard)
+    public static void Insert(CreditCard creditCard)
     {
-        return CreditCardCrud.Insert(creditCard);
+        CreditCardCrud.Insert(creditCard);
     }
 
-    ///<summary>Validate payConnectResponseWeb and create a new credit card from the PayConnectResponseWeb.</summary>
-    public static long InsertFromPayConnect(PayConnectResponseWeb payConnectResponseWeb)
+    public static void InsertFromPayConnect(PayConnectResponseWeb payConnectResponseWeb)
     {
         var listCreditCardSources = new List<CreditCardSource>();
         listCreditCardSources.Add(CreditCardSource.PayConnect);
@@ -68,13 +58,9 @@ public class CreditCards
         if (GetTokenCount(payConnectResponseWeb.PaymentToken, listCreditCardSources) > 0) //Prevent duplicates.
             throw new Exception("PayConnect token already exists: " + payConnectResponseWeb.PaymentToken);
         SecurityLogs.MakeLogEntry(EnumPermType.CreditCardEdit, payConnectResponseWeb.PatNum, "Credit Card Added");
-        return Insert(payConnectResponseWeb.ToCreditCard());
+        Insert(payConnectResponseWeb.ToCreditCard());
     }
 
-    /// <summary>
-    ///     Creates a new credit card from the XWebResponse if it doesn't exist. Returns CreditCardNum of new or existing
-    ///     card.
-    /// </summary>
     public static void InsertFromXWeb(XWebResponse xWebResponse)
     {
         var listCreditCardSources = new List<CreditCardSource>();
@@ -121,7 +107,6 @@ public class CreditCards
         SecurityLogs.MakeLogEntry(EnumPermType.CreditCardEdit, xWebResponse.PatNum, "Credit Card Added");
     }
 
-    ///<summary>Inserts entry into audit trail if any credit card field has been edited</summary>
     public static void InsertAuditTrailEntry(CreditCard creditCardNew, CreditCard creditCardOld)
     {
         var stringBuilder = new StringBuilder();
@@ -159,23 +144,17 @@ public class CreditCards
         if (!string.IsNullOrEmpty(logText)) SecurityLogs.MakeLogEntry(EnumPermType.CreditCardEdit, creditCardOld.PatNum, logText, creditCardOld.CreditCardNum, DateTime.Now);
     }
 
-    
     public static void Update(CreditCard creditCard)
     {
         CreditCardCrud.Update(creditCard);
     }
 
-    
     public static void Delete(long creditCardNum)
     {
         var command = "DELETE FROM creditcard WHERE CreditCardNum = " + SOut.Long(creditCardNum);
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Deletes a credit card from the database for the provided patient. Then it updates the ItemOrder for any other
-    ///     existing CreditCard for the patient.
-    /// </summary>
     public static void DeleteAndRefresh(CreditCard cc, LogSources logSource = LogSources.None)
     {
         if (cc == null) return;
@@ -189,15 +168,11 @@ public class CreditCards
         }
     }
 
-    /// <summary>
-    ///     Gets the masked CC# and exp date for all cards setup for monthly charges for the specified patient.  Only used
-    ///     for filling [CreditCardsOnFile] variable when emailing statements.
-    /// </summary>
     public static string GetMonthlyCardsOnFile(long patNum)
     {
         var result = "";
         var command = "SELECT * FROM creditcard WHERE PatNum=" + SOut.Long(patNum)
-                                                               + " AND (" + DbHelper.Year("DateStop") + "<1880 OR DateStop>" + DbHelper.Now() + ") " //Recurring card is active.
+                                                               + " AND (YEAR(DateStop)<1880 OR DateStop>NOW()) " //Recurring card is active.
                                                                + " AND ChargeAmt>0"
                                                                + " AND CCSource NOT IN (" + SOut.Enum(CreditCardSource.XWeb) + "," + SOut.Enum(CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
         var listCreditCardsMonthly = CreditCardCrud.SelectMany(command);
@@ -210,36 +185,24 @@ public class CreditCards
         return result;
     }
 
-    ///<summary>Returns list of active credit cards.</summary>
     public static List<CreditCard> GetActiveCards(long patNum)
     {
         var command = "SELECT * FROM creditcard WHERE PatNum=" + SOut.Long(patNum)
-                                                               + " AND (" + DbHelper.Year("DateStop") + "<1880 OR DateStop>=" + DbHelper.Curdate() + ") "
-                                                               + " AND (" + DbHelper.Year("DateStart") + ">1880 AND DateStart<=" + DbHelper.Curdate() + ") " //Recurring card is active.
+                                                               + " AND (YEAR(DateStop)<1880 OR DateStop>=CURDATE()) "
+                                                               + " AND (YEAR(DateStart)>1880 AND DateStart<=CURDATE()) " //Recurring card is active.
                                                                + " AND CCSource NOT IN (" + SOut.Enum(CreditCardSource.XWeb) + "," + SOut.Enum(CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
         return CreditCardCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Updates the Procedures column on all cards that have not stopped that are not marked to exclude from sync.
-    ///     Only used at HQ.
-    /// </summary>
     public static void SyncDefaultProcs(List<string> listProcCodes)
     {
         var command = "UPDATE creditcard SET Procedures='" + string.Join(",", listProcCodes.Select(x => SOut.String(x))) + "'"
-                      + " WHERE (" + DbHelper.Year("DateStop") + "<1880 OR DateStop>=" + DbHelper.Curdate() + ") " //Stop date has not past
+                      + " WHERE (YEAR(DateStop)<1880 OR DateStop>=CURDATE()) " //Stop date has not past
                       + " AND ExcludeProcSync=0"
                       + " AND CCSource NOT IN (" + SOut.Enum(CreditCardSource.XWeb) + "," + SOut.Enum(CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Returns list of credit cards that are ready for a recurring charge.  Filters by ClinicNums in list if provided.
-    ///     List of ClinicNums
-    ///     should contain all clinics the current user is authorized to access.  Further filtering by selected clinics is done
-    ///     at the UI level to save
-    ///     DB calls.
-    /// </summary>
     public static List<RecurringChargeData> GetRecurringChargeList(List<long> listClinicNums, DateTime date)
     {
         var listRecurringChargeDatas = new List<RecurringChargeData>();
@@ -287,7 +250,7 @@ public class CreditCards
                    + "LEFT JOIN ("
                    + "SELECT PayPlanNum,MAX(ProvNum) maxProvNum,MAX(PatNum) maxPatNum,"
                    + "SUM(CASE WHEN ChargeType=" + SOut.Int((int) PayPlanChargeType.Debit) + " "
-                   + "AND ChargeDate <= " + DbHelper.Curdate() + " THEN Principal+Interest ELSE 0 END) pastCharges "
+                   + "AND ChargeDate <= " + "CURDATE()" + " THEN Principal+Interest ELSE 0 END) pastCharges "
                    + "FROM payplancharge "
                    + "GROUP BY PayPlanNum"
                    + ") ppc ON ppc.PayPlanNum=cc.PayPlanNum "
@@ -301,18 +264,18 @@ public class CreditCards
 
         //Now we have all the results for payments and payment plans, so do an obvious filter. A more thorough filter happens later.
         command += ") due "
-                   + "WHERE DateStart<=" + DbHelper.Curdate() + " AND " + DbHelper.Year("DateStart") + ">1880 "
-                   + "AND (DateStop>=" + DbHelper.Curdate() + " OR " + DbHelper.Year("DateStop") + "<1880) "
+                   + "WHERE DateStart<=CURDATE() AND YEAR(DateStart)>1880 "
+                   + "AND (DateStop>=CURDATE() OR YEAR(DateStop)<1880) "
                    //We want to exclude any cards that are currently being processed by Open Dental Service or a different human.
                    + "AND due.CreditCardNum NOT IN (SELECT recurringcharge.CreditCardNum FROM recurringcharge "
                    + "WHERE recurringcharge.ChargeStatus=" + SOut.Int((int) RecurringChargeStatus.NotYetCharged) + " "
-                   + "AND " + DbHelper.DtimeToDate("recurringcharge.DateTimeCharge") + "=" + DbHelper.DtimeToDate(DbHelper.Now()) + ") "
+                   + "AND DATE(recurringcharge.DateTimeCharge)=DATE(NOW())) "
                    + "ORDER BY GuarLName,GuarFName,PatName,PayOrder DESC";
         var table = DataCore.GetTable(command);
         //Query for latest payments seperately because this takes a very long time when run as a sub select
         if (table.Rows.Count < 1) return listRecurringChargeDatas;
         var listStrCreditCardNums = table.Rows.Cast<DataRow>().Select(x => SOut.String(x["CreditCardNum"].ToString())).ToList();
-        command = "SELECT cc.PatNum,cc.CreditCardNum,MAX(CASE WHEN " + DbHelper.Year("p.RecurringChargeDate") + " > 1880 "
+        command = "SELECT cc.PatNum,cc.CreditCardNum,MAX(CASE WHEN YEAR(p.RecurringChargeDate) > 1880 "
                   + "THEN p.RecurringChargeDate ELSE p.PayDate END) RecurringChargeDate " +
                   "FROM creditcard cc " +
                   "INNER JOIN recurringcharge rc ON cc.creditcardnum=rc.creditcardnum " +
@@ -341,7 +304,7 @@ public class CreditCards
             recurringChargeData.CCSource = SIn.Enum<CreditCardSource>(table.Rows[i]["CCSource"].ToString());
             recurringChargeData.DateStart = SIn.DateTime(table.Rows[i]["DateStart"].ToString());
             recurringChargeData.Guarantor = SIn.Long(table.Rows[i]["Guarantor"].ToString());
-            recurringChargeData.LatestPayment = SIn.DateTime(table.Rows[i]["LatestPayment"].ToString());
+            SIn.DateTime(table.Rows[i]["LatestPayment"].ToString());
             recurringChargeData.PatName = table.Rows[i]["PatName"].ToString();
             recurringChargeData.PayConnectToken = table.Rows[i]["PayConnectToken"].ToString();
             recurringChargeData.PayConnectTokenExp = SIn.Date(table.Rows[i]["PayConnectTokenExp"].ToString());
@@ -388,7 +351,6 @@ public class CreditCards
         return listRecurringChargeDatas;
     }
 
-    /// <summary>Adds up the total fees for the procedures passed in that have been completed since the last billing day.</summary>
     public static double TotalRecurringCharges(long patNum, string procedures, int billingDay)
     {
         //Find the beginning of the current billing cycle, use that date to total charges between now and then for this cycle only.
@@ -427,7 +389,7 @@ public class CreditCards
                       + "WHERE pl.ProcStatus=2 "
                       + "AND pc.ProcCode IN (" + procStr + ") "
                       + "AND pl.PatNum=" + SOut.Long(patNum) + " "
-                      + "AND pl.ProcDate<=" + DbHelper.Curdate() + " ";
+                      + "AND pl.ProcDate<=" + "CURDATE()" + " ";
         //If today is the billingDay or today is the last day of the current month and the billingDay is greater than today
         //i.e. billingDay=31 and today is the 30th which is the last day of the current month, only count procs with date after the 31st of last month
         if (billingDay == DateTime.Today.Day
@@ -439,23 +401,18 @@ public class CreditCards
         return SIn.Double(DataCore.GetScalar(command));
     }
 
-    /// <summary>Returns true if the procedure passed in is linked to any other active card on the patient's account.</summary>
     public static bool ProcLinkedToCard(long patNum, string procCode, long cardNum)
     {
         var command = "SELECT CreditCardNum,Procedures "
                       + "FROM creditcard "
                       + "WHERE PatNum=" + SOut.Long(patNum) + " "
-                      + "AND DateStart<=" + DbHelper.Curdate() + " AND " + DbHelper.Year("DateStart") + ">1880 "
-                      + "AND (DateStop>=" + DbHelper.Curdate() + " OR " + DbHelper.Year("DateStop") + "<1880) "
+                      + "AND DateStart<=CURDATE() AND YEAR(DateStart)>1880 "
+                      + "AND (DateStop>=CURDATE() OR YEAR(DateStop)<1880) "
                       + "AND CreditCardNum!=" + SOut.Long(cardNum);
         var table = DataCore.GetTable(command);
         return table.Rows.OfType<DataRow>().SelectMany(x => x["Procedures"].ToString().Split(',')).Any(x => x == procCode);
     }
 
-    /// <summary>
-    ///     Filters out cards that do not to be charged for their recurring payment.
-    ///     Table must include columns labeled LatestPayment, DateStart, ChargeAmt, RecurringChargeDate, and ChargeFrequency.
-    /// </summary>
     public static void FilterRecurringChargeList(DataTable table, DateTime date)
     {
         //Loop through table and remove patients that do not need to be charged yet.
@@ -486,11 +443,6 @@ public class CreditCards
         }
     }
 
-    /// <summary>
-    ///     Returns true if the patient should be charged for the date being checked. This logic should be used when dealing
-    ///     with a
-    ///     payment that should be charged only one specific day per month (FixedDayOfMonth or nth weekday of every month).
-    /// </summary>
     public static DateTime GetDateCharge(DateTime dateThisMonthDayToBeCharged, DateTime dateLastMonthDayToBeCharged, DateTime date, DateTime dateLatestPayment, DateTime dateStart)
     {
         if (dateThisMonthDayToBeCharged.Date <= date.Date)
@@ -517,9 +469,7 @@ public class CreditCards
         return new DateTime();
     }
 
-    ///<summary>Gets the number of charges that should be charged if the recurring charge is for fixed day(s) of the month.</summary>
-    private static int GetCountChargesFixedDay(DateTime date, DateTime dateLatestPayment, DateTime dateStart, string chargeFrequency,
-        out DateTime dateRecurringCharge)
+    private static int GetCountChargesFixedDay(DateTime date, DateTime dateLatestPayment, DateTime dateStart, string chargeFrequency, out DateTime dateRecurringCharge)
     {
         dateRecurringCharge = new DateTime();
         //Get days to be charged on.
@@ -546,12 +496,7 @@ public class CreditCards
         return chargeCount;
     }
 
-    /// <summary>
-    ///     Gets the number of charges that should be charged if the recurring charge is for fixed weekday(s) of the
-    ///     month.
-    /// </summary>
-    private static int GetCountChargesFixedWeekday(DateTime date, DateTime dateLatestPayment, DateTime dateStart, string chargeFrequency,
-        out DateTime dateRecurringCharge)
+    private static int GetCountChargesFixedWeekday(DateTime date, DateTime dateLatestPayment, DateTime dateStart, string chargeFrequency, out DateTime dateRecurringCharge)
     {
         var chargeCount = 0;
         var dayOfWeekFrequency = GetDayOfWeekFrequency(chargeFrequency);
@@ -619,11 +564,6 @@ public class CreditCards
         return chargeCount;
     }
 
-    /// <summary>
-    ///     Gets the nth day of the week of a month. If the nth day does not exist, it will return the last day of the month
-    ///     passed in.
-    ///     date should be the year and month that the nth day will be found in.
-    /// </summary>
     public static DateTime GetNthWeekdayofMonth(DateTime date, int nthWeek, DayOfWeek dayOfWeek)
     {
         var dateNth = DateTools.ToBeginningOfMonth(date);
@@ -633,7 +573,6 @@ public class CreditCards
         return dateNth;
     }
 
-    ///<summary>Returns number of times token is in use. Token was duplicated once and caused the wrong card to be charged.</summary>
     public static int GetXChargeTokenCount(string token, bool includeXWeb)
     {
         if (string.IsNullOrEmpty(token)) return 0;
@@ -642,7 +581,6 @@ public class CreditCards
         return CountSameCard(CreditCardCrud.SelectMany(command));
     }
 
-    ///<summary>Returns number of times token is in use.</summary>
     public static int GetPayConnectTokenCount(string token)
     {
         if (string.IsNullOrEmpty(token)) return 0;
@@ -650,7 +588,6 @@ public class CreditCards
         return CountSameCard(CreditCardCrud.SelectMany(command));
     }
 
-    ///<summary>Returns number of times token is in use.</summary>
     public static int GetPaySimpleTokenCount(string token, bool isAch)
     {
         if (string.IsNullOrEmpty(token)) return 0;
@@ -664,13 +601,11 @@ public class CreditCards
         return CountSameCard(CreditCardCrud.SelectMany(command));
     }
 
-    ///<summary>Returns number of times token is in use.  Token was duplicated once and caused the wrong card to be charged.</summary>
     public static int GetTokenCount(string token, List<CreditCardSource> listCreditCardSources)
     {
         return CountSameCard(GetCardsByToken(token, listCreditCardSources));
     }
 
-    ///<summary>Counts how many cards are probably the same.</summary>
     private static int CountSameCard(List<CreditCard> listCreditCards)
     {
         //There may be duplicate tokens if the office adds the same CC multiple times (on the same patient or on multiple patients).
@@ -731,11 +666,6 @@ public class CreditCards
         return listCreditCardSources;
     }
 
-    /// <summary>
-    ///     Gets a token that can be used by XWeb. A token that is created by the XCharge client program can be used for XWeb
-    ///     after stripping
-    ///     off the beginning 3 characters which are always "XAW".
-    /// </summary>
     public static string GetXWebToken(CreditCard creditCard)
     {
         //CM 07/05/2018 - I don't have any documentation about removing "XAW" from the token in order to use it for XWeb, but I think I got that
@@ -744,17 +674,12 @@ public class CreditCards
         return creditCard.XChargeToken;
     }
 
-    ///<summary>Gets the chargefrequencytype for a given credit card. See enum for types.</summary>
     public static ChargeFrequencyType GetFrequencyType(string chargeFrequency)
     {
         var chargeFrequencyType = chargeFrequency.Substring(0, chargeFrequency.IndexOf('|'));
         return (ChargeFrequencyType) SIn.Int(chargeFrequencyType);
     }
 
-    /// <summary>
-    ///     Gets the DayOfWeekFrequency for a given credit card. This should only be used when the freqeuency type is
-    ///     FixedWeekDay.
-    /// </summary>
     public static DayOfWeekFrequency GetDayOfWeekFrequency(string chargeFrequency)
     {
         var dayOfWeekFrequency = chargeFrequency.Substring(chargeFrequency.IndexOf('|') + 1,
@@ -762,23 +687,17 @@ public class CreditCards
         return (DayOfWeekFrequency) SIn.Int(dayOfWeekFrequency);
     }
 
-    ///<summary>Gets the DayOfWeek when the frequency type is FixedWeekDay.</summary>
     public static DayOfWeek GetDayOfWeek(string chargeFrequency)
     {
         var dayOfWeek = chargeFrequency.Substring(chargeFrequency.LastIndexOf('|') + 1);
         return (DayOfWeek) SIn.Int(dayOfWeek);
     }
 
-    ///<summary>Gets the days of the month the credit card will be charged on when the frequency type is FixedDayOfMonth.</summary>
     public static string GetDaysOfMonthForChargeFrequency(string chargeFrequency)
     {
         return chargeFrequency.Substring(chargeFrequency.LastIndexOf('|') + 1);
     }
 
-    /// <summary>
-    ///     Takaes in a CreditCard.ChargeFrequency string and parses it into a human readable form to be displayed to
-    ///     users
-    /// </summary>
     public static string GetHumanReadableFrequency(string chargeFrequency)
     {
         var humanReadableFrequencyString = "";
@@ -848,7 +767,6 @@ public class CreditCards
         return count > 1;
     }
 
-    ///<summary>Checks if a credit card has a recurring charge associated with it. Returns true if it does, false if not.</summary>
     public static bool IsRecurring(CreditCard creditCard)
     {
         if (creditCard.DateStart.Year < 1880) return false;
@@ -857,9 +775,7 @@ public class CreditCards
         return true;
     }
 
-    ///<summary>Inserts a CreditCard for EdgeExpress or X-Charge.</summary>
-    public static CreditCard CreateNewOpenEdgeCard(long patNum, long clinicNum, string token, string expMonth, string expYear, string ccNumberMasked,
-        CreditCardSource creditCardSource)
+    public static CreditCard CreateNewOpenEdgeCard(long patNum, long clinicNum, string token, string expMonth, string expYear, string ccNumberMasked, CreditCardSource creditCardSource)
     {
         var creditCard = new CreditCard();
         var listCreditCardItemOrderCount = RefreshAll(patNum);
@@ -884,16 +800,12 @@ public class CreditCards
         Db.NonQ(command);
     }
 
-    #region Get Methods
-
-    ///<summary>Returns a list of all credit cards associated to the passed in PayPlanNum.</summary>
     public static List<CreditCard> GetForPayPlan(long payPlanNum)
     {
         var command = $"SELECT * FROM creditcard WHERE PayPlanNum={SOut.Long(payPlanNum)}";
         return CreditCardCrud.SelectMany(command);
     }
 
-    ///<summary>Returns the max itemOrder in CreditCards for a patient. If the patient has no credit cards, -1 is returned.</summary>
     public static int GetMaxItemOrderForPat(long patNum)
     {
         var command = "SELECT Max(ItemOrder) FROM creditcard WHERE PatNum=" + SOut.Long(patNum) + " ";
@@ -902,12 +814,9 @@ public class CreditCards
         return SIn.Int(MaxItemOrder);
     }
 
-    ///<summary>Gets one CreditCard from the db using the PayConnectToken field.</summary>
     public static CreditCard GetOneWithPayConenctToken(string payConnectTokenNum)
     {
         var command = $"SELECT * FROM creditcard WHERE PayConnectToken='{SOut.String(payConnectTokenNum)}'";
         return CreditCardCrud.SelectOne(command);
     }
-
-    #endregion
 }

@@ -3,6 +3,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	/// <summary>

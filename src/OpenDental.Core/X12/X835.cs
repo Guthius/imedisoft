@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using static PdfSharp.Pdf.PdfArray;
 

@@ -8,6 +8,7 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpOutstandingIns {
@@ -37,7 +38,7 @@ namespace OpenDentBusiness {
 				patient.PatNum, 
 				patient.Birthdate PatDOB,
 				definition.ItemValue DaysSuppressed,"
-				+DbHelper.DtimeToDate("statusHistory.DateTimeEntry")+$@" DateLog,
+				+"DATE(statusHistory.DateTimeEntry)"+$@" DateLog,
 				definition.DefNum CustomTrackingDefNum, 
 				statusHistory.TrackingErrorDefNum ErrorCodeDefNum,
 				COALESCE(

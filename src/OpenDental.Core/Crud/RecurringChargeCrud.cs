@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class RecurringChargeCrud
 {
@@ -109,7 +111,7 @@ public class RecurringChargeCrud
                                               + SOut.Long(recurringCharge.CreditCardNum) + ","
                                               + DbHelper.ParamChar + "paramErrorMsg)";
         if (recurringCharge.ErrorMsg == null) recurringCharge.ErrorMsg = "";
-        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", OdDbType.Text, SOut.StringParam(recurringCharge.ErrorMsg));
+        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", SOut.StringParam(recurringCharge.ErrorMsg));
         {
             recurringCharge.RecurringChargeNum = Db.NonQ(command, true, "RecurringChargeNum", "recurringCharge", paramErrorMsg);
         }
@@ -143,7 +145,7 @@ public class RecurringChargeCrud
                                               + SOut.Long(recurringCharge.CreditCardNum) + ","
                                               + DbHelper.ParamChar + "paramErrorMsg)";
         if (recurringCharge.ErrorMsg == null) recurringCharge.ErrorMsg = "";
-        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", OdDbType.Text, SOut.StringParam(recurringCharge.ErrorMsg));
+        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", SOut.StringParam(recurringCharge.ErrorMsg));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramErrorMsg);
         else
@@ -169,7 +171,7 @@ public class RecurringChargeCrud
                       + "ErrorMsg          =  " + DbHelper.ParamChar + "paramErrorMsg "
                       + "WHERE RecurringChargeNum = " + SOut.Long(recurringCharge.RecurringChargeNum);
         if (recurringCharge.ErrorMsg == null) recurringCharge.ErrorMsg = "";
-        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", OdDbType.Text, SOut.StringParam(recurringCharge.ErrorMsg));
+        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", SOut.StringParam(recurringCharge.ErrorMsg));
         Db.NonQ(command, paramErrorMsg);
     }
 
@@ -256,7 +258,7 @@ public class RecurringChargeCrud
 
         if (command == "") return false;
         if (recurringCharge.ErrorMsg == null) recurringCharge.ErrorMsg = "";
-        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", OdDbType.Text, SOut.StringParam(recurringCharge.ErrorMsg));
+        var paramErrorMsg = new OdSqlParameter("paramErrorMsg", SOut.StringParam(recurringCharge.ErrorMsg));
         command = "UPDATE recurringcharge SET " + command
                                                 + " WHERE RecurringChargeNum = " + SOut.Long(recurringCharge.RecurringChargeNum);
         Db.NonQ(command, paramErrorMsg);

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class BenefitCrud
 {
@@ -31,8 +33,8 @@ public class BenefitCrud
             benefit.Quantity = SIn.Byte(row["Quantity"].ToString());
             benefit.CodeNum = SIn.Long(row["CodeNum"].ToString());
             benefit.CoverageLevel = (BenefitCoverageLevel) SIn.Int(row["CoverageLevel"].ToString());
-            benefit.SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString());
-            benefit.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
+            SIn.DateTime(row["SecDateTEntry"].ToString());
+            SIn.DateTime(row["SecDateTEdit"].ToString());
             benefit.CodeGroupNum = SIn.Long(row["CodeGroupNum"].ToString());
             benefit.TreatArea = (TreatmentArea) SIn.Int(row["TreatArea"].ToString());
             retVal.Add(benefit);
@@ -59,7 +61,7 @@ public class BenefitCrud
                                        + SOut.Byte(benefit.Quantity) + ","
                                        + SOut.Long(benefit.CodeNum) + ","
                                        + SOut.Int((int) benefit.CoverageLevel) + ","
-                                       + DbHelper.Now() + ","
+                                       + "NOW()" + ","
                                        //SecDateTEdit can only be set by MySQL
                                        + SOut.Long(benefit.CodeGroupNum) + ","
                                        + SOut.Int((int) benefit.TreatArea) + ")";

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using SharpDX.Direct3D9;
 using OpenDentBusiness;
 

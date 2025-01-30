@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
-
 
 public class ChartViews
 {
@@ -13,7 +13,7 @@ public class ChartViews
     {
         ChartViewCrud.Insert(chartView);
     }
-    
+
     public static bool Update(ChartView chartView, ChartView chartViewOld = null)
     {
         if (chartViewOld is null)
@@ -24,14 +24,11 @@ public class ChartViews
 
         return ChartViewCrud.Update(chartView, chartViewOld);
     }
-    
+
     public static void Delete(long chartViewNum)
     {
-        var command = "DELETE FROM chartview WHERE ChartViewNum = " + chartViewNum;
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM chartview WHERE ChartViewNum = " + chartViewNum);
     }
-
-    #region CachePattern
 
     private class ChartViewCache : CacheListAbs<ChartView>
     {
@@ -62,44 +59,25 @@ public class ChartViews
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ChartViewCache _chartViewCache = new();
+    private static readonly ChartViewCache Cache = new();
 
     public static List<ChartView> GetDeepCopy(bool isShort = false)
     {
-        return _chartViewCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static ChartView GetFirst(bool isShort = false)
     {
-        return _chartViewCache.GetFirst(isShort);
+        return Cache.GetFirst(isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
-    {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _chartViewCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _chartViewCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _chartViewCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

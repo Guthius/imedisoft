@@ -5,20 +5,18 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ClinicPrefs
 {
-    
-    public static long Insert(ClinicPref clinicPref)
+    public static void Insert(ClinicPref clinicPref)
     {
-        return ClinicPrefCrud.Insert(clinicPref);
+        ClinicPrefCrud.Insert(clinicPref);
     }
 
-    
     public static void Update(ClinicPref clinicPref)
     {
         ClinicPrefCrud.Update(clinicPref);
@@ -29,24 +27,16 @@ public class ClinicPrefs
         ClinicPrefCrud.Update(clinicPrefNew, clinicPrefOld);
     }
 
-    
     public static void Delete(long clinicPrefNum)
     {
         ClinicPrefCrud.Delete(clinicPrefNum);
     }
 
-    /// <summary>
-    ///     Inserts, updates, or deletes db rows to match listNew.  No need to pass in userNum, it's set before remoting role
-    ///     check and passed to
-    ///     the server if necessary.  Doesn't create ApptComm items, but will delete them.  If you use Sync, you must create
-    ///     new Apptcomm items.
-    /// </summary>
     public static bool Sync(List<ClinicPref> listClinicPrefsNew, List<ClinicPref> listClinicPrefOld)
     {
         return ClinicPrefCrud.Sync(listClinicPrefsNew, listClinicPrefOld);
     }
 
-    ///<summary>If including default, it will create an extra "clinicpref" with ClinicNum=0, based on the pref.</summary>
     public static List<ClinicPref> GetPrefAllClinics(PrefName prefName, bool includeDefault = false)
     {
         var listClinicPrefs = new List<ClinicPref>();
@@ -62,13 +52,11 @@ public class ClinicPrefs
         return listClinicPrefs;
     }
 
-    
     public static ClinicPref GetPref(PrefName prefName, long clinicNum, bool isDefaultIncluded = false)
     {
         return GetPrefAllClinics(prefName, isDefaultIncluded).Find(x => x.ClinicNum == clinicNum);
     }
 
-    ///<summary>Gets the ValueString for this clinic's pref or gets the actual preference if it does not exist.</summary>
     public static string GetPrefValue(PrefName prefName, long clinicNum)
     {
         var clinicPref = GetPrefAllClinics(prefName).Find(x => x.ClinicNum == clinicNum);
@@ -76,7 +64,6 @@ public class ClinicPrefs
         return clinicPref.ValueString;
     }
 
-    ///<summary>Update ClinicPrefs that contains a comma-delimited list of DefNums if there are changes.</summary>
     public static void UpdateDefNumsForClinicPref(PrefName prefName, string strDefNumFrom, string strDefNumTo)
     {
         var listClinicPrefs = GetPrefAllClinics(prefName);
@@ -92,7 +79,6 @@ public class ClinicPrefs
         }
     }
 
-    ///<summary>Returns 0 if there is no clinicpref entry for the specified pref.</summary>
     public static long GetLong(PrefName prefName, long clinicNum)
     {
         var clinicPref = GetPref(prefName, clinicNum);
@@ -109,7 +95,6 @@ public class ClinicPrefs
         return prefNum;
     }
 
-    ///<summary>Gets the ValueString as a boolean for this clinic's pref or gets the actual preference if it does not exist.</summary>
     public static bool GetBool(PrefName prefName, long clinicNum)
     {
         var clinicPref = GetPref(prefName, clinicNum);
@@ -117,10 +102,6 @@ public class ClinicPrefs
         return SIn.Bool(clinicPref.ValueString);
     }
 
-    /// <summary>
-    ///     Returns the bool for the specified pref. Explicitly checks if clinics are enabled. If they are, returns the
-    ///     corresponding clinicpref. Else, returns the value from the preference cache.
-    /// </summary>
     public static bool GetBoolHandleHasClinics(PrefName prefName, long clinicNum)
     {
         if (true) return GetBool(prefName, clinicNum);
@@ -128,24 +109,6 @@ public class ClinicPrefs
         return retVal;
     }
 
-    /// <summary>
-    ///     Returns false if no clinic entry found for this pref. Otherwise returns true and value of isSet can be
-    ///     trusted.
-    /// </summary>
-    public static bool TryGetBool(PrefName prefName, long clinicNum, out bool isSet)
-    {
-        var clinicPref = GetPref(prefName, clinicNum);
-        if (clinicPref == null)
-        {
-            isSet = false;
-            return false;
-        }
-
-        isSet = SIn.Bool(clinicPref.ValueString);
-        return true;
-    }
-
-    ///<summary>Inserts a pref of type long for the specified clinic.  Throws an exception if the preference already exists.</summary>
     public static void InsertPref(PrefName prefName, long clinicNum, string valueString)
     {
         if (GetFirstOrDefault(x => x.ClinicNum == clinicNum && x.PrefName == prefName) != null) throw new ApplicationException("The PrefName " + prefName + " already exists for ClinicNum: " + clinicNum);
@@ -156,8 +119,6 @@ public class ClinicPrefs
         Insert(clinicPrefToInsert);
     }
 
-    /// <summary>Inserts a new clinic pref or updates the existing one.</summary>
-    /// <returns>True if an insert or update was made, false otherwise.</returns>
     public static bool Upsert(PrefName prefName, long clinicNum, string newValue)
     {
         var clinicPref = GetPref(prefName, clinicNum);
@@ -173,7 +134,6 @@ public class ClinicPrefs
         return true;
     }
 
-    ///<summary>Deletes the prefs for this clinic. If any pref does not exist, then nothing will be done with that pref.</summary>
     public static long DeletePrefs(long clinicNum, List<PrefName> listPrefNames)
     {
         if (listPrefNames.IsNullOrEmpty()) return 0;
@@ -189,18 +149,10 @@ public class ClinicPrefs
         return Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Returns true if ODTouch is allowed for this clinic, false otherwise.
-    ///     Takes clinics feature on/off into account. Ok to call this when true==false.
-    /// </summary>
-    public static bool IsODTouchAllowed(long clinicNum)
+    public static bool IsOdTouchAllowed(long clinicNum)
     {
-        //The office is on limited beta.
-        var isAllowed = GetBoolHandleHasClinics(PrefName.IsODTouchEnabled, clinicNum);
-        return isAllowed;
+        return GetBoolHandleHasClinics(PrefName.IsODTouchEnabled, clinicNum);
     }
-
-    #region Cache Pattern
 
     private class ClinicPrefCache : CacheListAbs<ClinicPref>
     {
@@ -231,44 +183,30 @@ public class ClinicPrefs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ClinicPrefCache _clinicPrefCache = new();
+    private static readonly ClinicPrefCache Cache = new();
 
     public static List<ClinicPref> GetWhere(Predicate<ClinicPref> match, bool isShort = false)
     {
-        return _clinicPrefCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     private static ClinicPref GetFirstOrDefault(Func<ClinicPref, bool> match, bool isShort = false)
     {
-        return _clinicPrefCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _clinicPrefCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _clinicPrefCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _clinicPrefCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
 }

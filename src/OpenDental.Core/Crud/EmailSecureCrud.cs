@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EmailSecureCrud
 {
@@ -89,7 +91,7 @@ public class EmailSecureCrud
                                              + SOut.Long(emailSecure.EmailMessageNum) + ","
                                              + SOut.Long(emailSecure.EmailChainFK) + ","
                                              + SOut.Long(emailSecure.EmailFK) + ","
-                                             + DbHelper.Now() + ")";
+                                             + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
 
         emailSecure.EmailSecureNum = Db.NonQ(command, true, "EmailSecureNum", "emailSecure");
@@ -140,7 +142,7 @@ public class EmailSecureCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(emailSecure.EmailFK));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(")");
             //SecDateTEdit can only be set by MySQL
             if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
@@ -177,7 +179,7 @@ public class EmailSecureCrud
                                              + SOut.Long(emailSecure.EmailMessageNum) + ","
                                              + SOut.Long(emailSecure.EmailChainFK) + ","
                                              + SOut.Long(emailSecure.EmailFK) + ","
-                                             + DbHelper.Now() + ")";
+                                             + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);

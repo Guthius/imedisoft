@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 using OpenDentBusiness.Pearl;
 using Color = System.Drawing.Color;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ImageDrawCrud
 {
@@ -108,9 +110,9 @@ public class ImageDrawCrud
                                         + SOut.Int((int) imageDraw.PearlLayer) + ","
                                         + SOut.Int((int) imageDraw.BetterDiagLayer) + ")";
         if (imageDraw.DrawingSegment == null) imageDraw.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(imageDraw.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(imageDraw.DrawingSegment));
         if (imageDraw.Details == null) imageDraw.Details = "";
-        var paramDetails = new OdSqlParameter("paramDetails", OdDbType.Text, SOut.StringParam(imageDraw.Details));
+        var paramDetails = new OdSqlParameter("paramDetails", SOut.StringParam(imageDraw.Details));
         {
             imageDraw.ImageDrawNum = Db.NonQ(command, true, "ImageDrawNum", "imageDraw", paramDrawingSegment, paramDetails);
         }
@@ -143,9 +145,9 @@ public class ImageDrawCrud
                                         + SOut.Int((int) imageDraw.PearlLayer) + ","
                                         + SOut.Int((int) imageDraw.BetterDiagLayer) + ")";
         if (imageDraw.DrawingSegment == null) imageDraw.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(imageDraw.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(imageDraw.DrawingSegment));
         if (imageDraw.Details == null) imageDraw.Details = "";
-        var paramDetails = new OdSqlParameter("paramDetails", OdDbType.Text, SOut.StringParam(imageDraw.Details));
+        var paramDetails = new OdSqlParameter("paramDetails", SOut.StringParam(imageDraw.Details));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDrawingSegment, paramDetails);
         else
@@ -170,9 +172,9 @@ public class ImageDrawCrud
                       + "BetterDiagLayer =  " + SOut.Int((int) imageDraw.BetterDiagLayer) + " "
                       + "WHERE ImageDrawNum = " + SOut.Long(imageDraw.ImageDrawNum);
         if (imageDraw.DrawingSegment == null) imageDraw.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(imageDraw.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(imageDraw.DrawingSegment));
         if (imageDraw.Details == null) imageDraw.Details = "";
-        var paramDetails = new OdSqlParameter("paramDetails", OdDbType.Text, SOut.StringParam(imageDraw.Details));
+        var paramDetails = new OdSqlParameter("paramDetails", SOut.StringParam(imageDraw.Details));
         Db.NonQ(command, paramDrawingSegment, paramDetails);
     }
 
@@ -253,9 +255,9 @@ public class ImageDrawCrud
 
         if (command == "") return false;
         if (imageDraw.DrawingSegment == null) imageDraw.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(imageDraw.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(imageDraw.DrawingSegment));
         if (imageDraw.Details == null) imageDraw.Details = "";
-        var paramDetails = new OdSqlParameter("paramDetails", OdDbType.Text, SOut.StringParam(imageDraw.Details));
+        var paramDetails = new OdSqlParameter("paramDetails", SOut.StringParam(imageDraw.Details));
         command = "UPDATE imagedraw SET " + command
                                           + " WHERE ImageDrawNum = " + SOut.Long(imageDraw.ImageDrawNum);
         Db.NonQ(command, paramDrawingSegment, paramDetails);

@@ -2,19 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class PatientRaces
 {
-	/// <summary>
-	///     Gets all PatientRace entries from the db for the specified patient and includes the non-db fields Description,
-	///     IsEthnicity, and
-	///     HiearchicalCode.
-	/// </summary>
-	public static List<PatientRace> GetForPatient(long patNum)
+    public static List<PatientRace> GetForPatient(long patNum)
     {
         var command = @"SELECT patientrace.*,COALESCE(cdcrec.Description,'') Description,
 				(CASE WHEN cdcrec.HeirarchicalCode LIKE 'E%' THEN 1 ELSE 0 END) IsEthnicity,
@@ -49,11 +44,7 @@ public class PatientRaces
         return listPatientRaces;
     }
 
-	/// <summary>
-	///     Returns the PatientRaceOld enum based on the PatientRace entries for the patient passed in.  Calls
-	///     GetPatRaceList to get the list of races.
-	/// </summary>
-	public static PatientRaceOld GetPatientRaceOldFromPatientRaces(long patNum, List<PatientRace> races = null)
+    public static PatientRaceOld GetPatientRaceOldFromPatientRaces(long patNum, List<PatientRace> races = null)
     {
         if (races.IsNullOrEmpty()) races = GetForPatient(patNum);
         if (races.Count == 0) return PatientRaceOld.Unknown; //Unknown is default for PatientRaceOld
@@ -79,7 +70,6 @@ public class PatientRaces
         return PatientRaceOld.Unknown;
     }
 
-    ///<summary>Gets a list of PatRaces that correspond to a PatientRaceOld enum.</summary>
     public static List<PatientRace> GetPatRacesFromPatientRaceOld(PatientRaceOld raceOld, long patNum)
     {
         var retVal = new List<PatientRace>();
@@ -123,24 +113,18 @@ public class PatientRaces
         return retVal;
     }
 
-    ///<summary>Returns a comma-delimited string of descriptions for the races passed in where IsEthinicity is false.</summary>
     public static string GetRaceDescription(List<PatientRace> listPatRaces)
     {
         if (listPatRaces.Count(x => !x.IsEthnicity) == 0) return "";
         return string.Join(", ", listPatRaces.Where(x => !x.IsEthnicity).Select(x => x.Description));
     }
 
-    ///<summary>Returns a comma-delimited string of descriptions for the races passed in where IsEthinicity is true.</summary>
     public static string GetEthnicityDescription(List<PatientRace> listPatRaces)
     {
         if (listPatRaces.Count(x => x.IsEthnicity) == 0) return "";
         return string.Join(", ", listPatRaces.Where(x => x.IsEthnicity).Select(x => x.Description));
     }
 
-    /// <summary>
-    ///     Inserts or Deletes neccesary PatientRace entries for the specified patient given the list of PatientRaces
-    ///     provided.
-    /// </summary>
     public static void Reconcile(long patNum, List<PatientRace> listPatRaces)
     {
         string command;
@@ -188,28 +172,4 @@ public class PatientRaces
         }
         //return;
     }
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<PatientRace> Refresh(long patNum){
-
-        string command="SELECT * FROM patientrace WHERE PatNum = "+POut.Long(patNum);
-        return Crud.PatientRaceCrud.SelectMany(command);
-    }
-
-    
-    public static long Insert(PatientRace patientRace){
-
-        return Crud.PatientRaceCrud.Insert(patientRace);
-    }
-
-    
-    public static void Delete(long patientRaceNum) {
-
-        string command= "DELETE FROM patientrace WHERE PatientRaceNum = "+POut.Long(patientRaceNum);
-        Db.NonQ(command);
-    }
-    */
 }

@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class GroupPermissionCrud
 {
-    public static GroupPermission SelectOne(long groupPermNum)
-    {
-        var command = "SELECT * FROM grouppermission "
-                      + "WHERE GroupPermNum = " + SOut.Long(groupPermNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static GroupPermission SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<GroupPermission> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -67,12 +49,7 @@ public class GroupPermissionCrud
         return table;
     }
 
-    public static long Insert(GroupPermission groupPermission)
-    {
-        return Insert(groupPermission, false);
-    }
-
-    public static long Insert(GroupPermission groupPermission, bool useExistingPK)
+    public static void Insert(GroupPermission groupPermission)
     {
         var command = "INSERT INTO grouppermission (";
 
@@ -87,32 +64,6 @@ public class GroupPermissionCrud
         {
             groupPermission.GroupPermNum = Db.NonQ(command, true, "GroupPermNum", "groupPermission");
         }
-        return groupPermission.GroupPermNum;
-    }
-
-    public static long InsertNoCache(GroupPermission groupPermission)
-    {
-        return InsertNoCache(groupPermission, false);
-    }
-
-    public static long InsertNoCache(GroupPermission groupPermission, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO grouppermission (";
-        if (isRandomKeys || useExistingPK) command += "GroupPermNum,";
-        command += "NewerDate,NewerDays,UserGroupNum,PermType,FKey) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(groupPermission.GroupPermNum) + ",";
-        command +=
-            SOut.Date(groupPermission.NewerDate) + ","
-                                                 + SOut.Int(groupPermission.NewerDays) + ","
-                                                 + SOut.Long(groupPermission.UserGroupNum) + ","
-                                                 + SOut.Int((int) groupPermission.PermType) + ","
-                                                 + SOut.Long(groupPermission.FKey) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            groupPermission.GroupPermNum = Db.NonQ(command, true, "GroupPermNum", "groupPermission");
-        return groupPermission.GroupPermNum;
     }
 
     public static void Update(GroupPermission groupPermission)
@@ -165,23 +116,6 @@ public class GroupPermissionCrud
                                                 + " WHERE GroupPermNum = " + SOut.Long(groupPermission.GroupPermNum);
         Db.NonQ(command);
         return true;
-    }
-
-    public static bool UpdateComparison(GroupPermission groupPermission, GroupPermission oldGroupPermission)
-    {
-        if (groupPermission.NewerDate.Date != oldGroupPermission.NewerDate.Date) return true;
-        if (groupPermission.NewerDays != oldGroupPermission.NewerDays) return true;
-        if (groupPermission.UserGroupNum != oldGroupPermission.UserGroupNum) return true;
-        if (groupPermission.PermType != oldGroupPermission.PermType) return true;
-        if (groupPermission.FKey != oldGroupPermission.FKey) return true;
-        return false;
-    }
-
-    public static void Delete(long groupPermNum)
-    {
-        var command = "DELETE FROM grouppermission "
-                      + "WHERE GroupPermNum = " + SOut.Long(groupPermNum);
-        Db.NonQ(command);
     }
 
     public static void DeleteMany(List<long> listGroupPermNums)

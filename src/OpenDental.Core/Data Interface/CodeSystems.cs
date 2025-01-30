@@ -2,79 +2,45 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-///<summary>Import functions in this class should typically be called from a worker thread.</summary>
 public class CodeSystems
 {
     public delegate void ProgressArgs(int numTotal, int numDone);
 
-    /// <summary>
-    ///     Returns a list of code systems in the code system table.  This query will change from version to version
-    ///     depending on what code systems we have available.
-    /// </summary>
-    public static List<CodeSystem> GetForCurrentVersion(bool isMemberNation)
+    public static List<CodeSystem> GetForCurrentVersion()
     {
-        var command = "";
-        if (/* ODBuild.IsDebug() */ false)
-            command = "SELECT * FROM codesystem"; // WHERE CodeSystemName IN ('ICD9CM','RXNORM','SNOMEDCT','CPT')";
-        else
-            command = "SELECT * FROM codesystem WHERE CodeSystemName NOT IN ('AdministrativeSex','CDT')";
-
-        return CodeSystemCrud.SelectMany(command);
+        return CodeSystemCrud.SelectMany("SELECT * FROM codesystem WHERE CodeSystemName NOT IN ('AdministrativeSex','CDT')");
     }
-
-    /////<summary>Returns a list of code systems in the code system table.  This query will change from version to version depending on what code systems we have available.</summary>
-    //public static List<CodeSystem> GetForCurrentVersionNoSnomed() {
-    //	
-    //	//string command="SELECT * FROM codesystem WHERE CodeSystemName!='AdministrativeSex' AND CodeSystemName!='CDT'";
-    //	string command="SELECT * FROM codesystem WHERE CodeSystemName IN ('ICD9CM','RXNORM','CPT')";
-    //	return Crud.CodeSystemCrud.SelectMany(command);
-    //}
 
     public static void Update(CodeSystem codeSystem)
     {
         CodeSystemCrud.Update(codeSystem);
     }
 
-    /// <summary>
-    ///     Updates VersionCurrent to the VersionAvail of the codeSystem object passed in. Used by code system importer
-    ///     after successful import.
-    /// </summary>
     public static void UpdateCurrentVersion(CodeSystem codeSystem)
     {
         codeSystem.VersionCur = codeSystem.VersionAvail;
         CodeSystemCrud.Update(codeSystem);
     }
 
-    /// <summary>
-    ///     Updates VersionCurrent to the versionID passed in. Used by code system importer after successful import.
-    ///     Currently only used for CPT.
-    /// </summary>
-    public static void UpdateCurrentVersion(CodeSystem codeSystem, string versionID)
+    public static void UpdateCurrentVersion(CodeSystem codeSystem, string versionId)
     {
-        if (string.Compare(codeSystem.VersionCur, versionID) > 0)
-            //If versionCur is newer than the version you just imported, don't update it.
+        if (string.CompareOrdinal(codeSystem.VersionCur, versionId) > 0)
+        {
             return;
+        }
 
-        codeSystem.VersionCur = versionID;
+        codeSystem.VersionCur = versionId;
         CodeSystemCrud.Update(codeSystem);
     }
 
-    /////<summary>Called after file is downloaded.  Throws exceptions.</summary>
-    //public static void ImportAdministrativeSex(string tempFileName) ... not necessary.
-
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportCdcrec(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportCdcrec(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -115,17 +81,7 @@ public class CodeSystems
         }
     }
 
-    /////<summary>Called after file is downloaded.  Throws exceptions.</summary>
-    //public static void ImportCDT(string tempFileName) ... not necessary.
-
-    /// <summary>
-    ///     Called after user provides resource file.  Throws exceptions.  It is assumed that this is called from a worker
-    ///     thread.  Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can
-    ///     be set at any time in order to quit importing prematurely.
-    ///     No UpdateExisting parameter because we force users to accept new descriptions.
-    /// </summary>
-    public static void ImportCpt(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        string versionID)
+    public static void ImportCpt(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, string versionID)
     {
         if (tempFileName == null) return;
 
@@ -173,13 +129,7 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportCvx(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportCvx(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -217,13 +167,7 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportHcpcs(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportHcpcs(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -260,13 +204,7 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportIcd10(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportIcd10(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -306,19 +244,13 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportIcd9(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportIcd9(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
         //Customers may have an old codeset that has a truncated uppercase description, if so we want to update with new descriptions.
-        var isDescriptionsOld = ICD9s.IsOldDescriptions();
-        var dictionaryCodes = ICD9s.GetAll().ToDictionary(x => x.ICD9Code, x => x);
+        var isDescriptionsOld = Icd9s.IsOldDescriptions();
+        var dictionaryCodes = Icd9s.GetAll().ToDictionary(x => x.ICD9Code, x => x);
         var stringArrayLines = File.ReadAllLines(tempFileName);
         string[] stringArrayICD9s;
         var icd9 = new ICD9();
@@ -338,7 +270,7 @@ public class CodeSystems
                 {
                     //The new description does not match the description in the database.
                     icd9.Description = stringArrayICD9s[1];
-                    ICD9s.Update(icd9);
+                    Icd9s.Update(icd9);
                     numCodesUpdated++;
                 }
 
@@ -347,18 +279,12 @@ public class CodeSystems
 
             icd9.ICD9Code = stringArrayICD9s[0];
             icd9.Description = stringArrayICD9s[1];
-            ICD9s.Insert(icd9);
+            Icd9s.Insert(icd9);
             numCodesImported++;
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportLoinc(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportLoinc(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -429,13 +355,7 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportRxNorm(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportRxNorm(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -502,13 +422,7 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportSnomed(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportSnomed(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
@@ -548,19 +462,12 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportSop(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numcodesUpdated,
-        bool updateExisting)
+    public static void ImportSop(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numcodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
         var dictionarySops = Sops.GetDeepCopy().ToDictionary(x => x.SopCode, x => x);
         var stringArrayLines = File.ReadAllLines(tempFileName);
-        string[] stringArraySops;
         var sop = new Sop();
         for (var i = 0; i < stringArrayLines.Length; i++)
         {
@@ -569,7 +476,7 @@ public class CodeSystems
 
             if (i % 100 == 0) progressArgs(i + 1, stringArrayLines.Length);
 
-            stringArraySops = stringArrayLines[i].Split('\t');
+            var stringArraySops = stringArrayLines[i].Split('\t');
             if (dictionarySops.ContainsKey(stringArraySops[0]))
             {
                 //code already exists
@@ -591,19 +498,12 @@ public class CodeSystems
         }
     }
 
-    /// <summary>
-    ///     Called after file is downloaded.  Throws exceptions.  It is assumed that this is called from a worker thread.
-    ///     Progress delegate will be called every 100th iteration to inform thread of current progress. Quit flag can be set
-    ///     at any time in order to quit importing prematurely.
-    /// </summary>
-    public static void ImportUcum(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated,
-        bool updateExisting)
+    public static void ImportUcum(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
 
         var dictionaryUcums = Ucums.GetAll().ToDictionary(x => x.UcumCode, x => x);
         var stringArrayLines = File.ReadAllLines(tempFileName);
-        string[] stringArrayUcums;
         var ucum = new Ucum();
         for (var i = 0; i < stringArrayLines.Length; i++)
         {
@@ -612,7 +512,7 @@ public class CodeSystems
 
             if (i % 100 == 0) progressArgs(i + 1, stringArrayLines.Length);
 
-            stringArrayUcums = stringArrayLines[i].Split('\t');
+            var stringArrayUcums = stringArrayLines[i].Split('\t');
             if (dictionaryUcums.ContainsKey(stringArrayUcums[0]))
             {
                 //code already exists
@@ -634,92 +534,4 @@ public class CodeSystems
             numCodesImported++;
         }
     }
-
-    /////<summary>Returns number of codes imported.</summary>
-    ///// <param name="tempFile"></param>
-    ///// <param name="codeCount">Returns number of new codes inserted.</param>
-    ///// <param name="totalCodes">Returns number of total codes found.</param>
-    ///// <returns></returns>
-//		public static void ImportEhrCodes(string tempFile,out int newCodeCount,out int totalCodeCount,out int availableCodeCount){
-//			newCodeCount=0;
-//			totalCodeCount=0;
-//			availableCodeCount=0;
-//			
-//			//UNION ALL to speed up query.  Used to determine what codes to add to DB.
-//			string command=@"SELECT CdcrecCode FROM cdcrec
-//											UNION ALL
-//											SELECT ProcCode FROM procedurecode
-//											UNION ALL
-//											SELECT CptCode FROM cpt
-//											UNION ALL
-//											SELECT CvxCode FROM cvx
-//											UNION ALL
-//											SELECT HcpcsCode FROM hcpcs
-//											UNION ALL
-//											SELECT Icd10Code FROM icd10
-//											UNION ALL
-//											SELECT ICD9Code FROM icd9
-//											UNION ALL
-//											SELECT LoincCode FROM loinc
-//											UNION ALL
-//											SELECT RxCui FROM rxnorm
-//											UNION ALL
-//											SELECT SnomedCode FROM snomed
-//											UNION ALL
-//											SELECT SopCode FROM sop";
-//			DataTable T = DataCore.GetTable(command);
-//			HashSet<string> allCodeHash=new HashSet<string>();
-//			for(int i=0;i<T.Rows.Count;i++) {
-//				allCodeHash.Add(T.Rows[i][0].ToString());
-//			}
-//			HashSet<string> ehrCodeHash=EhrCodes.GetAllCodesHashSet();
-//			string[] lines=File.ReadAllLines(tempFile);
-//			string[] arrayEHRCode;
-//			EhrCode ehrc=new EhrCode();
-//			for(int i=0;i<lines.Length;i++) {//each loop should read exactly one line of code. and each line of code should be a unique code
-//				arrayEHRCode=lines[i].Split('\t');
-//				if(!allCodeHash.Contains(arrayEHRCode[0]) && arrayEHRCode[6]!="AdministrativeSex") {//exception for AdministrativeSex because it is not stored in the DB.
-//					continue;//code does not exist in the database in one of the standard code system tables.
-//				}
-//				if(ehrCodeHash.Contains(arrayEHRCode[4]+arrayEHRCode[2])) {
-//					continue;//Code already inserted in ehrCodes table
-//				}
-//				ehrc.MeasureIds		=arrayEHRCode[0];
-//				ehrc.ValueSetName	=arrayEHRCode[1];
-//				ehrc.ValueSetOID	=arrayEHRCode[2];
-//				ehrc.QDMCategory	=arrayEHRCode[3];
-//				ehrc.CodeValue		=arrayEHRCode[4];
-//				ehrc.Description	=arrayEHRCode[5];
-//				ehrc.CodeSystem		=arrayEHRCode[6];
-//				ehrc.CodeSystemOID=arrayEHRCode[7];
-//				EhrCodes.Insert(ehrc);
-//				newCodeCount++;//return value
-//			}
-//			totalCodeCount=ehrCodeHash.Count+newCodeCount;//return value
-//			availableCodeCount=lines.Length;//return value
-//		}
-
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    ///<summary>Gets one CodeSystem from the db.</summary>
-    public static CodeSystem GetOne(long codeSystemNum){
-
-        return Crud.CodeSystemCrud.SelectOne(codeSystemNum);
-    }
-
-    
-    public static long Insert(CodeSystem codeSystem){
-
-        return Crud.CodeSystemCrud.Insert(codeSystem);
-    }
-
-    
-    public static void Delete(long codeSystemNum) {
-
-        string command= "DELETE FROM codesystem WHERE CodeSystemNum = "+POut.Long(codeSystemNum);
-        Db.NonQ(command);
-    }
-    */
 }

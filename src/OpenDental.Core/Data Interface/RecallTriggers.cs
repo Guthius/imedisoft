@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -63,11 +64,6 @@ public static class RecallTriggers
     public static List<RecallTrigger> GetWhere(Predicate<RecallTrigger> predicate, bool shortList = false)
     {
         return Cache.GetWhere(predicate, shortList);
-    }
-
-    public static void FillCacheFromTable(DataTable dataTable)
-    {
-        Cache.FillCacheFromTable(dataTable);
     }
 
     public static DataTable GetTableFromCache(bool refreshCache)

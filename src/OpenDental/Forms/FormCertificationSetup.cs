@@ -1,124 +1,160 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using OpenDentBusiness;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
+using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormCertificationSetup:FormODBase {
+namespace OpenDental.Forms;
 
-		private List<Cert> _listCertsFiltered;
+public partial class FormCertificationSetup : FormODBase
+{
+    private List<Cert> _filteredCerts;
 
-		public FormCertificationSetup() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+    public FormCertificationSetup()
+    {
+        InitializeComponent();
+    }
 
-		private void FormCertificationSetup_Load(object sender,EventArgs e) {
-			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.CertificationCategories,true);
-			listBoxCategories.Items.AddList(listDefs,x => x.ItemName);
-			FillGrid();
-		}
+    private void FormCertificationSetup_Load(object sender, EventArgs e)
+    {
+        var defs = Defs.GetDefsForCategory(DefCat.CertificationCategories, true);
 
-		private void FillGrid(){
-			if(listBoxCategories.SelectedIndex==-1) {
-				return;
-			}
-			_listCertsFiltered=Certs.GetAllForCategory(listBoxCategories.GetSelected<Def>().DefNum);
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn();
-			col=new GridColumn(Lan.g("FormCertificationSetup","Certification"),260);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertificationSetup","WikiPage"),260);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertificationSetup","Hidden"),66,HorizontalAlignment.Center);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			for(int i=0;i<_listCertsFiltered.Count;i++) {
-				if(_listCertsFiltered[i].ItemOrder!=i) {
-					_listCertsFiltered[i].ItemOrder=i;
-					Certs.Update(_listCertsFiltered[i]);
-				}
-				GridRow row=new GridRow();
-				row.Cells.Add(_listCertsFiltered[i].Description);
-				row.Cells.Add(_listCertsFiltered[i].WikiPageLink);
-				row.Cells.Add(_listCertsFiltered[i].IsHidden ? "X":"");
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-		}
+        listBoxCategories.Items.AddList(defs, x => x.ItemName);
 
-		private void listBoxCategories_SelectionChangeCommitted(object sender,EventArgs e) {
-			FillGrid();
-		}
+        FillGrid();
+    }
 
-		private void butUp_Click(object sender,EventArgs e) {
-			int idx=gridMain.GetSelectedIndex();
-			if(idx==-1){
-				MsgBox.Show(this,"Please select a category first.");
-				return;
-			}
-			if(idx==0){
-				return;
-			}
-			_listCertsFiltered[idx].ItemOrder=idx-1;
-			Certs.Update(_listCertsFiltered[idx]);
-			_listCertsFiltered[idx-1].ItemOrder=idx;//oldItemOrder;
-			Certs.Update(_listCertsFiltered[idx-1]);
-			FillGrid();
-			gridMain.SetSelected(idx-1,true);
-		}
+    private void FillGrid()
+    {
+        if (listBoxCategories.SelectedIndex == -1)
+        {
+            return;
+        }
 
-		private void butDown_Click(object sender,EventArgs e) {
-			int idx=gridMain.GetSelectedIndex();
-			if(idx==-1){
-				MsgBox.Show(this,"Please select a category first.");
-				return;
-			}
-			if(idx==_listCertsFiltered.Count-1) {
-				return;
-			}
-			_listCertsFiltered[idx].ItemOrder=idx+1;
-			Certs.Update(_listCertsFiltered[idx]);
-			_listCertsFiltered[idx+1].ItemOrder=idx;//oldItemOrder;
-			Certs.Update(_listCertsFiltered[idx+1]);
-			FillGrid();
-			gridMain.SetSelected(idx+1,true);
-		}
+        _filteredCerts = Certs.GetAllForCategory(listBoxCategories.GetSelected<Def>().DefNum);
 
-		private void butAdd_Click(object sender,EventArgs e) {
-			if(listBoxCategories.SelectedIndex==-1) {
-				MsgBox.Show(this,"Please select a category first.");
-				return;
-			}
-			using FormCertificationEdit formCertificationEdit=new FormCertificationEdit();
-			formCertificationEdit.CertCur=new Cert();
-			formCertificationEdit.CertCur.IsNew=true;
-			formCertificationEdit.CertCur.CertCategoryNum=listBoxCategories.GetSelected<Def>().DefNum;
-			formCertificationEdit.CertCur.ItemOrder=_listCertsFiltered.Count;
-			formCertificationEdit.ShowDialog();
-			if(formCertificationEdit.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			FillGrid();
-		}
+        gridMain.BeginUpdate();
 
-		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			using FormCertificationEdit formCertificationEdit=new FormCertificationEdit();
-			formCertificationEdit.CertCur=Certs.GetOne(_listCertsFiltered[e.Row].CertNum);
-			formCertificationEdit.ShowDialog();
-			if(formCertificationEdit.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			//Category may have changed, we will fix the item orders in the FillGrid
-			FillGrid();
-		}
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Certification", 260));
+        gridMain.Columns.Add(new GridColumn("WikiPage", 260));
+        gridMain.Columns.Add(new GridColumn("Hidden", 66, HorizontalAlignment.Center));
 
-	}
+        gridMain.ListGridRows.Clear();
+
+        for (var i = 0; i < _filteredCerts.Count; i++)
+        {
+            if (_filteredCerts[i].ItemOrder != i)
+            {
+                _filteredCerts[i].ItemOrder = i;
+
+                Certs.Update(_filteredCerts[i]);
+            }
+
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(_filteredCerts[i].Description);
+            gridRow.Cells.Add(_filteredCerts[i].WikiPageLink);
+            gridRow.Cells.Add(_filteredCerts[i].IsHidden ? "X" : "");
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void ListBoxCategories_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void ButtonUp_Click(object sender, EventArgs e)
+    {
+        var index = gridMain.GetSelectedIndex();
+        switch (index)
+        {
+            case -1:
+                ShowError("Please select a category first.");
+                return;
+
+            case 0:
+                return;
+        }
+
+        _filteredCerts[index].ItemOrder = index - 1;
+        Certs.Update(_filteredCerts[index]);
+
+        _filteredCerts[index - 1].ItemOrder = index;
+        Certs.Update(_filteredCerts[index - 1]);
+
+        FillGrid();
+
+        gridMain.SetSelected(index - 1);
+    }
+
+    private void ButtonDown_Click(object sender, EventArgs e)
+    {
+        var index = gridMain.GetSelectedIndex();
+        if (index == -1)
+        {
+            ShowError("Please select a category first.");
+            return;
+        }
+
+        if (index == _filteredCerts.Count - 1)
+        {
+            return;
+        }
+
+        _filteredCerts[index].ItemOrder = index + 1;
+        Certs.Update(_filteredCerts[index]);
+
+        _filteredCerts[index + 1].ItemOrder = index;
+        Certs.Update(_filteredCerts[index + 1]);
+
+        FillGrid();
+
+        gridMain.SetSelected(index + 1);
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        if (listBoxCategories.SelectedIndex == -1)
+        {
+            ShowError("Please select a category first.");
+            return;
+        }
+
+        var cert = new Cert
+        {
+            IsNew = true,
+            CertCategoryNum = listBoxCategories.GetSelected<Def>().DefNum,
+            ItemOrder = _filteredCerts.Count
+        };
+
+        using var formCertificationEdit = new FormCertificationEdit(cert);
+
+        if (formCertificationEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var cert = Certs.GetOne(_filteredCerts[e.Row].CertNum);
+
+        using var formCertificationEdit = new FormCertificationEdit(cert);
+
+        if (formCertificationEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
 }

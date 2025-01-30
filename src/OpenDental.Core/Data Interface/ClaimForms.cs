@@ -7,19 +7,16 @@ using System.IO;
 using System.Xml.Serialization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Properties;
 
 namespace OpenDentBusiness;
 
-
 public class ClaimForms
 {
-	/// <summary>
-	///     Inserts this claimform into database and retrieves the new primary key.
-	///     Assigns all claimformitems to the claimform and inserts them if the bool is true.
-	/// </summary>
-	public static long Insert(ClaimForm claimForm, bool includeClaimFormItems)
+    public static void Insert(ClaimForm claimForm, bool includeClaimFormItems)
     {
         var claimFormNum = ClaimFormCrud.Insert(claimForm);
         if (includeClaimFormItems)
@@ -28,16 +25,9 @@ public class ClaimForms
                 claimForm.Items[i].ClaimFormNum = claimForm.ClaimFormNum; //so even though the ClaimFormNum is wrong, this line fixes it.
                 ClaimFormItems.Insert(claimForm.Items[i]);
             }
-
-        return claimFormNum;
     }
 
-	/// <summary>
-	///     Can be called externally as part of the conversion sequence.  Surround with try catch.
-	///     Returns the claimform object from the xml file or xml data passed in that can then be inserted if needed.
-	///     If xmlData is provided then path will be ignored.  If xmlData is not provided, a valid path is required.
-	/// </summary>
-	public static ClaimForm DeserializeClaimForm(string path, string xmlData)
+    public static ClaimForm DeserializeClaimForm(string path, string xmlData)
     {
         var claimForm = new ClaimForm();
         var xmlSerializer = new XmlSerializer(typeof(ClaimForm));
@@ -76,7 +66,6 @@ public class ClaimForms
         return claimForm;
     }
 
-    
     public static void Update(ClaimForm claimForm)
     {
         //Synch the claim form items associated to this claim form first.
@@ -86,10 +75,6 @@ public class ClaimForms
         ClaimFormCrud.Update(claimForm);
     }
 
-    /// <summary>
-    ///     Called when cancelling out of creating a new claimform, and from the claimform window when clicking delete.
-    ///     Returns true if successful or false if dependencies found.
-    /// </summary>
     public static bool Delete(ClaimForm claimForm)
     {
         //first, do dependency testing
@@ -108,13 +93,11 @@ public class ClaimForms
         return true;
     }
 
-    ///<summary>Returns the claim form specified by the given claimFormNum</summary>
     public static ClaimForm GetClaimForm(long claimFormNum)
     {
         return GetFirstOrDefault(x => x.ClaimFormNum == claimFormNum);
     }
 
-    ///<summary>Returns a list of all internal claims within the OpenDentBusiness resources.  Throws exceptions.</summary>
     public static List<ClaimForm> GetInternalClaims()
     {
         var listClaimFormsInternal = new List<ClaimForm>();
@@ -132,7 +115,6 @@ public class ClaimForms
         return listClaimFormsInternal;
     }
 
-    ///<summary>Returns number of insplans affected.</summary>
     public static long Reassign(long claimFormNumOld, long claimFormNumNew)
     {
         var command = "UPDATE insplan SET ClaimFormNum=" + SOut.Long(claimFormNumNew)
@@ -140,7 +122,6 @@ public class ClaimForms
         return Db.NonQ(command);
     }
 
-    ///<summary>Sets the Default Claim Form to the Default description passed in.</summary>
     public static void SetDefaultClaimForm(string claimFormDescriptFrom, string claimFormDescriptTo)
     {
         var claimFormFrom = GetDeepCopy().Find(x => x.Description.ToLower() == claimFormDescriptFrom.ToLower());
@@ -152,8 +133,6 @@ public class ClaimForms
             if (defaultClaimFormNum == claimFormFrom.ClaimFormNum) Prefs.UpdateLong(PrefName.DefaultClaimForm, claimFormTo.ClaimFormNum);
         }
     }
-
-    #region Cache Pattern
 
     private class ClaimFormCache : CacheListAbs<ClaimForm>
     {
@@ -193,44 +172,30 @@ public class ClaimForms
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ClaimFormCache _claimFormCache = new();
+    private static readonly ClaimFormCache Cache = new();
 
     public static List<ClaimForm> GetDeepCopy(bool isShort = false)
     {
-        return _claimFormCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static ClaimForm GetFirstOrDefault(Func<ClaimForm, bool> match, bool isShort = false)
     {
-        return _claimFormCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _claimFormCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _claimFormCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _claimFormCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
 }

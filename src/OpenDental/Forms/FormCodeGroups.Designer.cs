@@ -1,4 +1,4 @@
-namespace OpenDental {
+namespace OpenDental.Forms {
 	partial class FormCodeGroups {
 		/// <summary>
 		/// Required designer variable.
@@ -41,7 +41,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 4;
 			this.butSave.Text = "Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butUp
 			// 
@@ -54,7 +54,7 @@ namespace OpenDental {
 			this.butUp.Size = new System.Drawing.Size(75, 24);
 			this.butUp.TabIndex = 1;
 			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butDown
 			// 
@@ -66,7 +66,7 @@ namespace OpenDental {
 			this.butDown.Size = new System.Drawing.Size(75, 24);
 			this.butDown.TabIndex = 2;
 			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// gridMain
 			// 
@@ -79,7 +79,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 6;
 			this.gridMain.Title = "Code Groups";
 			this.gridMain.TranslationName = "TableCodeGroups";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butAdd
 			// 
@@ -91,7 +91,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 0;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// checkShowHidden
 			// 
@@ -102,7 +102,7 @@ namespace OpenDental {
 			this.checkShowHidden.TabIndex = 3;
 			this.checkShowHidden.Text = "Show Hidden";
 			this.checkShowHidden.UseVisualStyleBackColor = true;
-			this.checkShowHidden.CheckedChanged += new System.EventHandler(this.checkShowHidden_CheckedChanged);
+			this.checkShowHidden.CheckedChanged += new System.EventHandler(this.CheckBoxShowHidden_CheckedChanged);
 			// 
 			// label1
 			// 

@@ -3,19 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.FileIO;
 
 namespace OpenDentBusiness;
 
-
 public class EmailAttaches
 {
-    public static long Insert(EmailAttach emailAttach)
-    {
-        return EmailAttachCrud.Insert(emailAttach);
-    }
-
     public static void InsertMany(List<EmailAttach> listEmailAttaches)
     {
         if (listEmailAttaches.Count == 0) return;
@@ -41,37 +36,11 @@ public class EmailAttaches
         return EmailAttachCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one EmailAttach from the db. Used by Patient Portal.</summary>
-    public static EmailAttach GetOne(long emailAttachNum)
-    {
-        return EmailAttachCrud.SelectOne(emailAttachNum);
-    }
-
-    /// <summary>
-    ///     Throws exceptions.  Creates a new file within the Out subfolder of the email attachment path (inside
-    ///     OpenDentImages) and returns an EmailAttach object referencing the new file.  The displayFileName will always
-    ///     contain valid file name characters, because it is either a hard coded value or is based on an existing valid file
-    ///     name.  The actual file name will end with the displayFileName, so that the actual files are easier to locate and
-    ///     have the same file extension as the displayedFileName.
-    /// </summary>
     public static EmailAttach CreateAttach(string displayedFileName, byte[] byteArrayData)
     {
         return CreateAttach(displayedFileName, "", byteArrayData, true);
     }
 
-    /// <summary>
-    ///     Throws exceptions.  Creates a new file inside of the email attachment path (inside OpenDentImages) and returns an
-    ///     EmailAttach object
-    ///     referencing the new file.  If isOutbound is true, then the file will be saved to the "Out" subfolder, otherwise the
-    ///     file will be saved to the
-    ///     "In" subfolder.  The displayFileName will always contain valid file name characters, because it is either a hard
-    ///     coded value or is based on an
-    ///     existing valid file name.  If a file already exists matching the actualFileName, then an exception will occur.  Set
-    ///     actualFileName to empty
-    ///     string to generate a unique actual file name.  If the actual file name is generated, then actual file name will end
-    ///     with the displayFileName,
-    ///     so that the actual files are easier to locate and have the same file extension as the displayedFileName.
-    /// </summary>
     public static EmailAttach CreateAttach(string displayedFileName, string actualFileName, byte[] byteArrayData, bool isOutbound)
     {
         var emailAttach = new EmailAttach();
@@ -90,30 +59,30 @@ public class EmailAttaches
             while (true)
             {
                 if (!string.IsNullOrEmpty(emailAttach.ActualFileName))
-                    if (!FileAtoZ.Exists(FileAtoZ.CombinePaths(attachDir, emailAttach.ActualFileName)))
+                    if (!File.Exists(Path.Combine(attachDir, emailAttach.ActualFileName)))
                         break;
 
                 //Display name is tacked onto actual file name last as to ensure file extensions are the same.
-                emailAttach.ActualFileName = FileAtoZ.CombinePaths(subDir,
+                emailAttach.ActualFileName = Path.Combine(subDir,
                     DateTime.Now.ToString("yyyyMMdd") + "_" + DateTime.Now.TimeOfDay.Ticks
                     + "_" + MiscUtils.CreateRandomAlphaNumericString(4) + "_" + ODFileUtils.CleanFileName(emailAttach.DisplayedFileName));
             }
         else
             //The caller wants a specific actualFileName.  Use the given name as is.
-            emailAttach.ActualFileName = FileAtoZ.CombinePaths(subDir, actualFileName);
+            emailAttach.ActualFileName = Path.Combine(subDir, actualFileName);
 
-        var attachFilePath = FileAtoZ.CombinePaths(attachDir, emailAttach.ActualFileName);
-        if (FileAtoZ.Exists(attachFilePath)) throw new ApplicationException("Email attachment could not be saved because a file with the same name already exists.");
+        var attachFilePath = Path.Combine(attachDir, emailAttach.ActualFileName);
+        if (File.Exists(attachFilePath)) throw new ApplicationException("Email attachment could not be saved because a file with the same name already exists.");
         try
         {
-            FileAtoZ.WriteAllBytes(attachFilePath, byteArrayData);
+            File.WriteAllBytes(attachFilePath, byteArrayData);
         }
         catch
         {
-            if (!FileAtoZ.Exists(attachFilePath)) throw; //Show the initial error message
+            if (!File.Exists(attachFilePath)) throw; //Show the initial error message
             try
             {
-                FileAtoZ.Delete(attachFilePath);
+                File.Delete(attachFilePath);
             }
             catch
             {
@@ -126,23 +95,19 @@ public class EmailAttaches
         return emailAttach;
     }
 
-    /// <summary>
-    ///     Returns patient's AtoZ path if local AtoZ is used.  Returns Cloud AtoZ path if Dropbox is used. Returns temp
-    ///     path if in database.
-    /// </summary>
     public static string GetAttachPath()
     {
         string attachPath;
         if (true)
         {
-            attachPath = ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(), "EmailAttachments");
+            attachPath = ODFileUtils.CombinePaths(ImageStore.GetDataFolder(), "EmailAttachments");
             if (!Directory.Exists(attachPath)) Directory.CreateDirectory(attachPath);
             return attachPath;
         }
 
         if (false)
         {
-            attachPath = ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(), "EmailAttachments", '/'); //Gets Cloud path with EmailAttachments folder.
+            attachPath = ODFileUtils.CombinePaths(ImageStore.GetDataFolder(), "EmailAttachments", '/'); //Gets Cloud path with EmailAttachments folder.
             return attachPath;
         }
 
@@ -153,18 +118,12 @@ public class EmailAttaches
         return attachPath;
     }
 
-    ///<summary>Returns all EmailAttaches assocaited to a specific EmailTemplateNum.</summary>
     public static List<EmailAttach> GetForTemplate(long emailTemplateNum)
     {
         var command = "SELECT * FROM emailattach WHERE EmailTemplateNum=" + SOut.Long(emailTemplateNum);
         return EmailAttachCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Syncs a given list of EmailAttaches to a list of old EmailAttaches.
-    ///     If emailAttachOld is not provided, it will use the emailMessageNum passed in to get the "old" attachments from the
-    ///     database.
-    /// </summary>
     public static void Sync(long emailMessageNum, List<EmailAttach> listEmailAttachesNew, List<EmailAttach> listEmailAttachesOld = null)
     {
         if (listEmailAttachesOld == null) listEmailAttachesOld = GetForEmail(emailMessageNum); //Get attachments from the database.

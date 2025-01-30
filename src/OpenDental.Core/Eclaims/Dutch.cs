@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using OpenDentBusiness;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims {
 	public class Dutch {

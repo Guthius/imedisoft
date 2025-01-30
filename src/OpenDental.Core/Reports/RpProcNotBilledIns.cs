@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpProcNotBilledIns {

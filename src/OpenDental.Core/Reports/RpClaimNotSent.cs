@@ -8,20 +8,17 @@ namespace OpenDentBusiness {
 	public class RpClaimNotSent {
 
 		public static DataTable GetClaimsNotSent(DateTime fromDate,DateTime toDate,List<long> listClinicNums
-			,bool hasClaimTypeExpanded,ClaimNotSentStatuses claimStatusFilter) 
+			,bool hasClaimTypeExpanded,ClaimNotSentStatuses claimStatusFilter)
 		{
-			bool hasClinicsEnabled=ReportsComplex.RunFuncOnReportServer(() => true);
+			const bool hasClinicsEnabled = true;
 			string command="";
 			string whereClin="";
 			string claimFilter="";
-			if(hasClinicsEnabled && listClinicNums.Count>0) {//construct the IN statement for all of the selected clinics
+			if(listClinicNums.Count>0) {//construct the IN statement for all of the selected clinics
 				whereClin+=" AND claim.ClinicNum IN(" + string.Join(",",listClinicNums)+")";
 			}
 			if(hasClinicsEnabled) {
 				command="SELECT clinic.Abbr AS 'Clinic',";
-			}
-			else {
-				command="SELECT ";
 			}
 			if(hasClaimTypeExpanded) {
 				command+="claim.DateService,(CASE WHEN claim.ClaimType='P' THEN 'Primary' WHEN claim.ClaimType='S' THEN 'Secondary' "
@@ -68,7 +65,7 @@ namespace OpenDentBusiness {
 				+claimFilter
 				+" GROUP BY claim.ClaimNum";
 			command+=" ORDER BY claim.DateService";
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			return DataCore.GetTable(command);
 		}
 	}
 }

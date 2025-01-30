@@ -1,6 +1,7 @@
 using OpenDentBusiness;
 using System;
 using System.Diagnostics;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	///<summary>Shining 3D Bridge</summary>

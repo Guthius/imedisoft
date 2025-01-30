@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class UserQueryCrud
 {
@@ -88,7 +90,7 @@ public class UserQueryCrud
             + SOut.Bool(userQuery.IsPromptSetup) + ","
             + SOut.Bool(userQuery.DefaultFormatRaw) + ")";
         if (userQuery.QueryText == null) userQuery.QueryText = "";
-        var paramQueryText = new OdSqlParameter("paramQueryText", OdDbType.Text, SOut.StringParam(userQuery.QueryText));
+        var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
         {
             userQuery.QueryNum = Db.NonQ(command, true, "QueryNum", "userQuery", paramQueryText);
         }
@@ -115,7 +117,7 @@ public class UserQueryCrud
             + SOut.Bool(userQuery.IsPromptSetup) + ","
             + SOut.Bool(userQuery.DefaultFormatRaw) + ")";
         if (userQuery.QueryText == null) userQuery.QueryText = "";
-        var paramQueryText = new OdSqlParameter("paramQueryText", OdDbType.Text, SOut.StringParam(userQuery.QueryText));
+        var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramQueryText);
         else
@@ -134,7 +136,7 @@ public class UserQueryCrud
                       + "DefaultFormatRaw=  " + SOut.Bool(userQuery.DefaultFormatRaw) + " "
                       + "WHERE QueryNum = " + SOut.Long(userQuery.QueryNum);
         if (userQuery.QueryText == null) userQuery.QueryText = "";
-        var paramQueryText = new OdSqlParameter("paramQueryText", OdDbType.Text, SOut.StringParam(userQuery.QueryText));
+        var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
         Db.NonQ(command, paramQueryText);
     }
 
@@ -179,7 +181,7 @@ public class UserQueryCrud
 
         if (command == "") return false;
         if (userQuery.QueryText == null) userQuery.QueryText = "";
-        var paramQueryText = new OdSqlParameter("paramQueryText", OdDbType.Text, SOut.StringParam(userQuery.QueryText));
+        var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
         command = "UPDATE userquery SET " + command
                                           + " WHERE QueryNum = " + SOut.Long(userQuery.QueryNum);
         Db.NonQ(command, paramQueryText);

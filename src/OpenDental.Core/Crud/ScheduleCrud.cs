@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ScheduleCrud
 {
@@ -104,7 +106,7 @@ public class ScheduleCrud
                                           //DateTStamp can only be set by MySQL
                                           + SOut.Long(schedule.ClinicNum) + ")";
         if (schedule.Note == null) schedule.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(schedule.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(schedule.Note));
         {
             schedule.ScheduleNum = Db.NonQ(command, true, "ScheduleNum", "schedule", paramNote);
         }
@@ -207,7 +209,7 @@ public class ScheduleCrud
                                           //DateTStamp can only be set by MySQL
                                           + SOut.Long(schedule.ClinicNum) + ")";
         if (schedule.Note == null) schedule.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(schedule.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(schedule.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -231,7 +233,7 @@ public class ScheduleCrud
                       + "ClinicNum   =  " + SOut.Long(schedule.ClinicNum) + " "
                       + "WHERE ScheduleNum = " + SOut.Long(schedule.ScheduleNum);
         if (schedule.Note == null) schedule.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(schedule.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(schedule.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -301,7 +303,7 @@ public class ScheduleCrud
 
         if (command == "") return false;
         if (schedule.Note == null) schedule.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(schedule.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(schedule.Note));
         command = "UPDATE schedule SET " + command
                                          + " WHERE ScheduleNum = " + SOut.Long(schedule.ScheduleNum);
         Db.NonQ(command, paramNote);

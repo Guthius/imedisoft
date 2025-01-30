@@ -1,824 +1,1131 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using OpenDentBusiness;
-using OpenDental.UI;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
+using OpenDental.UI;
+using OpenDentBusiness;
 
-namespace OpenDental{
-	/// <summary>
-	/// Summary description for FormBasicTemplate.
-	/// </summary>
-	public partial class FormApptViewEdit : FormODBase {
-		
-		public bool IsNew;
-		/// <summary>Those elements which are showing in the list of available elements.</summary>
-		private List<EnumApptViewElement> _listEnumApptViewElementsAvailable;
-		///<summary>The actual ApptFieldDefNums of all available elements because no language translation is needed.</summary>
-		private List<long> _listApptFieldDefNumsAvailable;
-		///<summary>The actual PatFieldDefNums of all available elements because no language translation is needed.</summary>
-		private List<long> _listPatFieldDefNums;
-		///<summary>A local list of ApptViewItems which are displayed in all three lists on the right.  Not updated to db until the form is closed.</summary>
-		private List<ApptViewItem> _listApptViewItemsDisplayedAll;
-		private List<ApptViewItem> _listApptViewItemsDisplayedMain;
-		private List<ApptViewItem> _listMobileApptViewItems;
-		private List<ApptViewItem> _listApptViewItemsDisplayedUR;
-		private List<ApptViewItem> _listApptViewItemsDisplayedLR;
-		///<summary>Set this value before opening the form.</summary>
-		public ApptView ApptViewCur;
-		///<summary>Set this value with the clinic selected in FormApptViews. Only to be used to set comboClinic.SelectedClinicNum.</summary>
-		public long ClinicNumInitial;
-		///<summary>List of all ApptViewItems for this view.  All 5 types.</summary>
-		private List<ApptViewItem> _listApptViewItems;
-		///<summary>List of ApptViewItems that does not include OpNum or ProvNum. This includes ElementDesc, ApptFieldDefNum, and PatFieldDefNum.</summary>
-		private List<ApptViewItem> _listApptViewItemsDef;
-		///<summary>This is a list of all operatories available to add to this view based on AssignedClinicNum and the clinic the ops are assigned to.  If the clinics show feature is turned off (EasyNoClinics=true) or if the view is not assigned to a clinic, all unhidden ops will be available.  If an op is not assigned to a clinic, it will only be available to add to views also not assigned to a clinic.  If the view is assigned to a clinic, ops assigned to the same clinic will be available to add to the view.</summary>
-		private List<long> _listOpNums;
-		private List<Provider> _listProviders;
+namespace OpenDental.Forms;
 
-		
-		public FormApptViewEdit()
-		{
-			//
-			// Required for Windows Form Designer support
-			//
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormApptViewEdit : FormODBase
+{
+    private readonly ApptView _apptView;
+    private readonly long _clinicNum;
+    private List<EnumApptViewElement> _apptViewElementsAvailable;
+    private List<long> _apptFieldDefNumsAvailable;
+    private List<long> _patFieldDefNums;
+    private List<ApptViewItem> _apptViewItemsDisplayedAll;
+    private List<ApptViewItem> _apptViewItemsDisplayedMain;
+    private List<ApptViewItem> _mobileApptViewItems;
+    private List<ApptViewItem> _apptViewItemsDisplayedUr;
+    private List<ApptViewItem> _apptViewItemsDisplayedLr;
+    private List<ApptViewItem> _apptViewItems;
+    private List<ApptViewItem> _apptViewItemsDef;
+    private List<long> _opNums;
+    private List<Provider> _providers;
 
-		private void FormApptViewEdit_Load(object sender, System.EventArgs e) {
-			textDescription.Text=ApptViewCur.Description;
-			butMobileView.Visible=MobileAppDevices.IsClinicSignedUpForMobileWeb(ClinicNumInitial);
-			if(ApptViewCur.RowsPerIncr==0){
-				textRowsPerIncr.Text="1";
-			}
-			else{
-				textRowsPerIncr.Text=ApptViewCur.RowsPerIncr.ToString();
-			}
-			textWidthOpMinimum.Text=SOut.Int(ApptViewCur.WidthOpMinimum);
-			textScrollTime.Text=ApptViewCur.ApptTimeScrollStart.ToStringHmm();
-			checkDynamicScroll.Checked=ApptViewCur.IsScrollStartDynamic;
-			checkApptBubblesDisabled.Checked=ApptViewCur.IsApptBubblesDisabled;
-			if(IsNew) {
-				checkApptBubblesDisabled.Checked=PrefC.GetBool(PrefName.AppointmentBubblesDisabled);
-			}
-			checkOnlyScheduledProvs.Checked=ApptViewCur.OnlyScheduledProvs;
-			checkOnlyScheduledProvDays.Checked=ApptViewCur.OnlyScheduledProvDays;
-			if(ApptViewCur.OnlySchedBeforeTime > new TimeSpan(0,0,0)) {
-				textBeforeTime.Text=(DateTime.Today+ApptViewCur.OnlySchedBeforeTime).ToShortTimeString();
-			}
-			if(ApptViewCur.OnlySchedAfterTime > new TimeSpan(0,0,0)) {
-				textAfterTime.Text=(DateTime.Today+ApptViewCur.OnlySchedAfterTime).ToShortTimeString();
-			}
-			comboClinic.ClinicNumSelected=ClinicNumInitial;
-			UpdateDisplayFilterGroup();
-			_listApptViewItems=ApptViewItems.GetWhere(x => x.ApptViewNum==ApptViewCur.ApptViewNum && !x.IsMobile);
-			_listMobileApptViewItems=ApptViewItems.GetWhere(x => x.ApptViewNum==ApptViewCur.ApptViewNum && x.IsMobile);
-			_listApptViewItemsDef=_listApptViewItems.FindAll(x => x.OpNum==0 && x.ProvNum==0);
-			FillOperatories();
-			_listProviders=Providers.GetDeepCopy(true);
-			for(int i=0;i<_listProviders.Count;i++) {
-				listProv.Items.Add(_listProviders[i].GetLongDesc());
-				if(_listApptViewItems.Select(x => x.ProvNum).Contains(_listProviders[i].ProvNum)) {
-					listProv.SetSelected(i,true);
-				}
-			}
-			listWaitingRmNameFormat.Items.AddEnums<EnumWaitingRmName>();
-			listWaitingRmNameFormat.SetSelected((int)ApptViewCur.WaitingRmName);
-			for(int i=0;i<Enum.GetNames(typeof(ApptViewStackBehavior)).Length;i++){
-				listStackUR.Items.Add(Lan.g("enumApptViewStackBehavior",Enum.GetNames(typeof(ApptViewStackBehavior))[i]));
-				listStackLR.Items.Add(Lan.g("enumApptViewStackBehavior",Enum.GetNames(typeof(ApptViewStackBehavior))[i]));
-			}
-			listStackUR.SelectedIndex=(int)ApptViewCur.StackBehavUR;
-			listStackLR.SelectedIndex=(int)ApptViewCur.StackBehavLR;
-			_listApptViewItemsDisplayedAll=new List<ApptViewItem>(_listApptViewItemsDef);
-			FillElements();
-		}
+    public FormApptViewEdit(ApptView apptView, long clinicNum)
+    {
+        _apptView = apptView;
+        _clinicNum = clinicNum;
 
-		///<summary>Fills the five lists based on the displayedElements lists. No database transactions are performed here.</summary>
-		private void FillElements(){
-			_listApptViewItemsDisplayedMain=new List<ApptViewItem>();
-			_listApptViewItemsDisplayedUR=new List<ApptViewItem>();
-			_listApptViewItemsDisplayedLR=new List<ApptViewItem>();
-			for(int i=0;i<_listApptViewItemsDisplayedAll.Count;i++) {
-				if(_listApptViewItemsDisplayedAll[i].ElementAlignment==ApptViewAlignment.Main) {
-					_listApptViewItemsDisplayedMain.Add(_listApptViewItemsDisplayedAll[i]);
-				}
-				else if(_listApptViewItemsDisplayedAll[i].ElementAlignment==ApptViewAlignment.UR) {
-					_listApptViewItemsDisplayedUR.Add(_listApptViewItemsDisplayedAll[i]);
-				}
-				else if(_listApptViewItemsDisplayedAll[i].ElementAlignment==ApptViewAlignment.LR) {
-					_listApptViewItemsDisplayedLR.Add(_listApptViewItemsDisplayedAll[i]);
-				}
-			}
-			//Now fill the lists on the screen--------------------------------------------------
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn("",100);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			for(int i=0;i<_listApptViewItemsDisplayedMain.Count;i++){
-				row=new GridRow();
-				if(_listApptViewItemsDisplayedMain[i].ApptFieldDefNum>0){
-					row.Cells.Add(MarkFieldNameIfHidden(_listApptViewItemsDisplayedMain[i].ApptFieldDefNum));
-				}
-				else if(_listApptViewItemsDisplayedMain[i].PatFieldDefNum>0){
-					row.Cells.Add(PatFieldDefs.GetFieldName(_listApptViewItemsDisplayedMain[i].PatFieldDefNum));
-				}
-				else{
-					row.Cells.Add(_listApptViewItemsDisplayedMain[i].ElementDesc);
-				}
-				if(DoSetBackgroundColor(_listApptViewItemsDisplayedMain[i].ElementDesc))
-				{
-					row.ColorBackG=_listApptViewItemsDisplayedMain[i].ElementColor;
-				}
-				else{
-					row.ColorText=_listApptViewItemsDisplayedMain[i].ElementColor;
-				}
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-			//gridUR---------------------------------------------------------
-			gridUR.BeginUpdate();
-			gridUR.Columns.Clear();
-			col=new GridColumn("",100);
-			gridUR.Columns.Add(col);
-			gridUR.ListGridRows.Clear();
-			for(int i=0;i<_listApptViewItemsDisplayedUR.Count;i++) {
-				row=new GridRow();
-				if(_listApptViewItemsDisplayedUR[i].ApptFieldDefNum>0) {
-					row.Cells.Add(MarkFieldNameIfHidden(_listApptViewItemsDisplayedUR[i].ApptFieldDefNum));
-				}
-				else if(_listApptViewItemsDisplayedUR[i].PatFieldDefNum>0) {
-					row.Cells.Add(PatFieldDefs.GetFieldName(_listApptViewItemsDisplayedUR[i].PatFieldDefNum));
-				}
-				else {
-					row.Cells.Add(_listApptViewItemsDisplayedUR[i].ElementDesc);
-				}
-				if(DoSetBackgroundColor(_listApptViewItemsDisplayedUR[i].ElementDesc))
-				{
-					row.ColorBackG=_listApptViewItemsDisplayedUR[i].ElementColor;
-				}
-				else{
-					row.ColorText=_listApptViewItemsDisplayedUR[i].ElementColor;
-				}
-				gridUR.ListGridRows.Add(row);
-			}
-			gridUR.EndUpdate();
-			//gridLR-----------------------------------------------------------
-			gridLR.BeginUpdate();
-			gridLR.Columns.Clear();
-			col=new GridColumn("",100);
-			gridLR.Columns.Add(col);
-			gridLR.ListGridRows.Clear();
-			for(int i=0;i<_listApptViewItemsDisplayedLR.Count;i++) {
-				row=new GridRow();
-				if(_listApptViewItemsDisplayedLR[i].ApptFieldDefNum>0) {
-					row.Cells.Add(ApptFieldDefs.GetFieldName(_listApptViewItemsDisplayedLR[i].ApptFieldDefNum));
-				}
-				else if(_listApptViewItemsDisplayedLR[i].PatFieldDefNum>0) {
-					row.Cells.Add(PatFieldDefs.GetFieldName(_listApptViewItemsDisplayedLR[i].PatFieldDefNum));
-				}
-				else {
-					row.Cells.Add(_listApptViewItemsDisplayedLR[i].ElementDesc);
-				}
-				if(DoSetBackgroundColor(_listApptViewItemsDisplayedLR[i].ElementDesc))
-				{
-					row.ColorBackG=_listApptViewItemsDisplayedLR[i].ElementColor;
-				}
-				else{
-					row.ColorText=_listApptViewItemsDisplayedLR[i].ElementColor;
-				}
-				gridLR.ListGridRows.Add(row);
-			}
-			gridLR.EndUpdate();
-			//gridAvailable-----------------------------------------------------------
-			gridAvailable.BeginUpdate();
-			gridAvailable.Columns.Clear();
-			col=new GridColumn("",100);
-			gridAvailable.Columns.Add(col);
-			gridAvailable.ListGridRows.Clear();
-			_listEnumApptViewElementsAvailable=new List<EnumApptViewElement>();
-			for(int i=0;i<Enum.GetValues(typeof(EnumApptViewElement)).Length;i++){
-				if(((EnumApptViewElement)i)==EnumApptViewElement.None){
-					continue;//none is not available for display and won't show anywhere in the UI
-				}
-				if(!ElementIsDisplayed((EnumApptViewElement)i)) {
-					_listEnumApptViewElementsAvailable.Add((EnumApptViewElement)i);
-					row=new GridRow();
-					row.Cells.Add(Lan.g(this,((EnumApptViewElement)i).GetDescription()));
-					gridAvailable.ListGridRows.Add(row);
-				}
-			}
-			gridAvailable.EndUpdate();
-			//gridApptFieldDefs-----------------------------------------------------------
-			gridApptFieldDefs.BeginUpdate();
-			gridApptFieldDefs.Columns.Clear();
-			col=new GridColumn("",100);
-			gridApptFieldDefs.Columns.Add(col);
-			gridApptFieldDefs.ListGridRows.Clear();
-			_listApptFieldDefNumsAvailable=new List<long>();
-			List<ApptFieldDef> listApptFieldDefs=ApptFieldDefs.GetDeepCopy();
-			for(int i=0;i<listApptFieldDefs.Count;i++) {
-				if(!ApptFieldIsDisplayed(listApptFieldDefs[i].ApptFieldDefNum)) {
-					_listApptFieldDefNumsAvailable.Add(listApptFieldDefs[i].ApptFieldDefNum);
-					row=new GridRow();
-					row.Cells.Add(MarkFieldNameIfHidden(listApptFieldDefs[i].ApptFieldDefNum));
-					gridApptFieldDefs.ListGridRows.Add(row);
-				}
-			}
-			gridApptFieldDefs.EndUpdate();
-			//gridPatFieldDefs-----------------------------------------------------------
-			gridPatFieldDefs.BeginUpdate();
-			gridPatFieldDefs.Columns.Clear();
-			col=new GridColumn("",100);
-			gridPatFieldDefs.Columns.Add(col);
-			gridPatFieldDefs.ListGridRows.Clear();
-			_listPatFieldDefNums=new List<long>();
-			List<PatFieldDef> listPatFieldDefs=PatFieldDefs.GetDeepCopy(true);
-			for(int i=0;i<listPatFieldDefs.Count;i++) {
-				if(!PatFieldIsDisplayed(listPatFieldDefs[i].PatFieldDefNum)) {
-					_listPatFieldDefNums.Add(listPatFieldDefs[i].PatFieldDefNum);
-					row=new GridRow();
-					row.Cells.Add(listPatFieldDefs[i].FieldName);
-					gridPatFieldDefs.ListGridRows.Add(row);
-				}
-			}
-			gridPatFieldDefs.EndUpdate();
-		}
+        InitializeComponent();
+    }
 
-		///<summary>Fills the list box of operatories available for the view.  Considers clinics.</summary>
-		private void FillOperatories() {
-			listOps.ClearSelected();
-			listOps.Items.Clear();
-			_listOpNums=new List<long>();
-			List<Operatory> listOperatories=Operatories.GetDeepCopy(true);
-			for(int i=0;i<listOperatories.Count;i++) {
-				if(!true //add op to list of ops available for the view if the clinics show feature is turned off
-					|| comboClinic.ClinicNumSelected==0 //or this view is not assigned to a clinic
-					|| listOperatories[i].ClinicNum==comboClinic.ClinicNumSelected) //or the operatory is assigned to same clinic as this view
-				{
-					listOps.Items.Add(listOperatories[i].OpName);
-					_listOpNums.Add(listOperatories[i].OperatoryNum);
-					if(_listApptViewItems.Select(x => x.OpNum).Contains(listOperatories[i].OperatoryNum)) {
-						listOps.SetSelected(listOps.Items.Count-1,true);
-					}
-				}
-			}
-		}
+    private void FormApptViewEdit_Load(object sender, EventArgs e)
+    {
+        textDescription.Text = _apptView.Description;
+        textRowsPerIncr.Text = _apptView.RowsPerIncr == 0 ? "1" : _apptView.RowsPerIncr.ToString();
+        textWidthOpMinimum.Text = SOut.Int(_apptView.WidthOpMinimum);
+        textScrollTime.Text = _apptView.ApptTimeScrollStart.ToStringHmm();
 
-		///<summary>Called from FillElements. Used to determine whether a given element is already displayed. If not, then it is displayed in the available rows on the left.</summary>
-		private bool ElementIsDisplayed(EnumApptViewElement apptViewElement){
-			for(int i=0;i<_listApptViewItemsDisplayedAll.Count;i++){
-				if(_listApptViewItemsDisplayedAll[i].ApptFieldDefNum!=0 || _listApptViewItemsDisplayedAll[i].PatFieldDefNum!=0){
-					continue;
-				}
-				if(_listApptViewItemsDisplayedAll[i].ElementDesc==apptViewElement.GetDescription()){
-					return true;
-				}
-			}
-			return false;
-		}
+        checkDynamicScroll.Checked = _apptView.IsScrollStartDynamic;
+        checkApptBubblesDisabled.Checked = _apptView.IsApptBubblesDisabled;
 
-		///<summary>Called from FillElements. Used to determine whether a apptfield is already displayed. If not, then it is displayed in the apptFieldDef rows on the left.</summary>
-		private bool ApptFieldIsDisplayed(long apptFieldDefNum){
-			for(int i=0;i<_listApptViewItemsDisplayedAll.Count;i++){
-				if(_listApptViewItemsDisplayedAll[i].ApptFieldDefNum==apptFieldDefNum){
-					return true;
-				}
-			}
-			return false;
-		}
+        if (_apptView.ApptViewNum == 0)
+        {
+            checkApptBubblesDisabled.Checked = PrefC.GetBool(PrefName.AppointmentBubblesDisabled);
+        }
 
-		///<summary>Called from FillElements. Used to determine whether a PatFieldDef is already displayed. If not, then it is displayed in the patFieldDef rows on the left.</summary>
-		private bool PatFieldIsDisplayed(long patFieldDefNum){
-			for(int i=0;i<_listApptViewItemsDisplayedAll.Count;i++){
-				if(_listApptViewItemsDisplayedAll[i].PatFieldDefNum==patFieldDefNum){
-					return true;
-				}
-			}
-			return false;
-		}
+        checkOnlyScheduledProvs.Checked = _apptView.OnlyScheduledProvs;
+        checkOnlyScheduledProvDays.Checked = _apptView.OnlyScheduledProvDays;
 
-		private void checkOnlyScheduledProvs_Click(object sender,EventArgs e) {
-			UpdateDisplayFilterGroup();
-		}
+        if (_apptView.OnlySchedBeforeTime > new TimeSpan(0, 0, 0))
+        {
+            textBeforeTime.Text = (DateTime.Today + _apptView.OnlySchedBeforeTime).ToShortTimeString();
+        }
 
-		///<summary>Updates the display filter visibility based on the state of checkOnlyScheduledProvs.</summary>
-		private void UpdateDisplayFilterGroup(){
-			if(checkOnlyScheduledProvs.Checked) {
-				labelBeforeTime.Visible=true;
-				labelAfterTime.Visible=true;
-				textBeforeTime.Visible=true;
-				textAfterTime.Visible=true;
-			}
-			else {
-				labelBeforeTime.Visible=false;
-				labelAfterTime.Visible=false;
-				textBeforeTime.Visible=false;
-				textAfterTime.Visible=false;
-			}
-		}
+        if (_apptView.OnlySchedAfterTime > new TimeSpan(0, 0, 0))
+        {
+            textAfterTime.Text = (DateTime.Today + _apptView.OnlySchedAfterTime).ToShortTimeString();
+        }
 
-		public void UpdateMobileViewList(List<ApptViewItem> listUpdatedItems) {
-			_listMobileApptViewItems=listUpdatedItems;
-		}
+        comboClinic.ClinicNumSelected = _clinicNum;
 
-		private void butMobileView_Click(object sender,EventArgs e) {
-			using FormApptViewEditMobile formMobileApptViewEdit=new FormApptViewEditMobile(ApptViewCur,_listMobileApptViewItems,this);
-			formMobileApptViewEdit.ShowDialog();
-		}
+        UpdateDisplayFilterGroup();
 
-		private void butLeft_Click(object sender, System.EventArgs e) {
-			if(gridMain.SelectedIndices.Length>0) {
-				_listApptViewItemsDisplayedAll.Remove(_listApptViewItemsDisplayedMain[gridMain.SelectedIndices[0]]);
-			}
-			else if(gridUR.SelectedIndices.Length>0) {
-				_listApptViewItemsDisplayedAll.Remove(_listApptViewItemsDisplayedUR[gridUR.SelectedIndices[0]]);
-			}
-			else if(gridLR.SelectedIndices.Length>0) {
-				_listApptViewItemsDisplayedAll.Remove(_listApptViewItemsDisplayedLR[gridLR.SelectedIndices[0]]);
-			}
-			FillElements();
-		}
+        _apptViewItems = ApptViewItems.GetWhere(x => x.ApptViewNum == _apptView.ApptViewNum && !x.IsMobile);
+        _mobileApptViewItems = ApptViewItems.GetWhere(x => x.ApptViewNum == _apptView.ApptViewNum && x.IsMobile);
+        _apptViewItemsDef = _apptViewItems.FindAll(x => x.OpNum == 0 && x.ProvNum == 0);
 
-		private void butRight_Click(object sender, System.EventArgs e) {
-			if(gridAvailable.GetSelectedIndex()!=-1) {
-				//the item order is not used until saving to db.
-				string strDescript=_listEnumApptViewElementsAvailable[gridAvailable.GetSelectedIndex()].GetDescription();
-				Color color=Color.Black;
-				if(DoSetBackgroundColor(strDescript)) {
-					//Default background color to White.
-					color=Color.White;
-				}
-				ApptViewItem item=new ApptViewItem(strDescript,0,color);
-				if(gridMain.SelectedIndices.Length==1) {//insert
-					int newIdx=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedMain[gridMain.GetSelectedIndex()]);
-					_listApptViewItemsDisplayedAll.Insert(newIdx,item);
-				}
-				else {//add to end
-					_listApptViewItemsDisplayedAll.Add(item);
-				}
-				FillElements();
-				for(int i=0;i<_listApptViewItemsDisplayedMain.Count;i++) {//the new item will always show first in the main list.
-					if(_listApptViewItemsDisplayedMain[i]==item) {
-						gridMain.SetSelected(i,true);//reselect the item
-						break;
-					}
-				}
-			}
-			else if(gridApptFieldDefs.GetSelectedIndex()!=-1) {
-				ApptViewItem apptViewItem=new ApptViewItem();
-				apptViewItem.ElementColor=Color.Black;
-				apptViewItem.ApptFieldDefNum=_listApptFieldDefNumsAvailable[gridApptFieldDefs.GetSelectedIndex()];
-				if(gridMain.SelectedIndices.Length==1) {//insert
-					int newIdx=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedMain[gridMain.GetSelectedIndex()]);
-					_listApptViewItemsDisplayedAll.Insert(newIdx,apptViewItem);
-				}
-				else {//add to end
-					_listApptViewItemsDisplayedAll.Add(apptViewItem);
-				}
-				FillElements();
-				for(int i=0;i<_listApptViewItemsDisplayedMain.Count;i++) {//the new item will always show first in the main list.
-					if(_listApptViewItemsDisplayedMain[i]==apptViewItem) {
-						gridMain.SetSelected(i,true);//reselect the item
-						break;
-					}
-				}
-			}
-			else if(gridPatFieldDefs.GetSelectedIndex()!=-1) {
-				ApptViewItem apptViewItem=new ApptViewItem();
-				apptViewItem.ElementColor=Color.Black;
-				apptViewItem.PatFieldDefNum=_listPatFieldDefNums[gridPatFieldDefs.GetSelectedIndex()]; 
-				if(gridMain.SelectedIndices.Length==1) {//insert
-					int newIdx=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedMain[gridMain.GetSelectedIndex()]);
-					_listApptViewItemsDisplayedAll.Insert(newIdx,apptViewItem);
-				}
-				else {//add to end
-					_listApptViewItemsDisplayedAll.Add(apptViewItem);
-				}
-				FillElements();
-				for(int i=0;i<_listApptViewItemsDisplayedMain.Count;i++) {//the new item will always show first in the main list.
-					if(_listApptViewItemsDisplayedMain[i]==apptViewItem) {
-						gridMain.SetSelected(i,true);//reselect the item
-						break;
-					}
-				}
-			}
-		}
+        FillOperatories();
 
-		private void butUp_Click(object sender,System.EventArgs e) {
-			int oldIdx;
-			int newIdx;
-			int newIdxAll;//within the list of all.
-			ApptViewItem apptViewItem;
-			if(gridMain.GetSelectedIndex()!=-1) {
-				oldIdx=gridMain.GetSelectedIndex();
-				if(oldIdx==0) {
-					return;//can't move up any more
-				}
-				apptViewItem=_listApptViewItemsDisplayedMain[oldIdx];
-				newIdx=oldIdx-1;
-				newIdxAll=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedMain[newIdx]);
-				_listApptViewItemsDisplayedAll.Remove(apptViewItem);
-				_listApptViewItemsDisplayedAll.Insert(newIdxAll,apptViewItem);
-				FillElements();
-				gridMain.SetSelected(newIdx,true);
-			}
-			else if(gridUR.GetSelectedIndex()!=-1) {
-				oldIdx=gridUR.GetSelectedIndex();
-				if(oldIdx==0) {
-					return;//can't move up any more
-				}
-				apptViewItem=_listApptViewItemsDisplayedUR[oldIdx];
-				newIdx=oldIdx-1;
-				newIdxAll=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedUR[newIdx]);
-				_listApptViewItemsDisplayedAll.Remove(apptViewItem);
-				_listApptViewItemsDisplayedAll.Insert(newIdxAll,apptViewItem);
-				FillElements();
-				gridUR.SetSelected(newIdx,true);
-			}
-			else if(gridLR.GetSelectedIndex()!=-1) {
-				oldIdx=gridLR.GetSelectedIndex();
-				if(oldIdx==0) {
-					return;//can't move up any more
-				}
-				apptViewItem=_listApptViewItemsDisplayedLR[oldIdx];
-				newIdx=oldIdx-1;
-				newIdxAll=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedLR[newIdx]);
-				_listApptViewItemsDisplayedAll.Remove(apptViewItem);
-				_listApptViewItemsDisplayedAll.Insert(newIdxAll,apptViewItem);
-				FillElements();
-				gridLR.SetSelected(newIdx,true);
-			}
-		}
+        _providers = Providers.GetDeepCopy(true);
 
-		private void butDown_Click(object sender, System.EventArgs e) {
-			int oldIdx;
-			int newIdx;
-			int newIdxAll;
-			ApptViewItem apptViewItem;
-			if(gridMain.GetSelectedIndex()!=-1) {
-				oldIdx=gridMain.GetSelectedIndex();
-				if(oldIdx==_listApptViewItemsDisplayedMain.Count-1) {
-					return;//can't move down any more
-				}
-				apptViewItem=_listApptViewItemsDisplayedMain[oldIdx];
-				newIdx=oldIdx+1;
-				newIdxAll=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedMain[newIdx]);
-				_listApptViewItemsDisplayedAll.Remove(apptViewItem);
-				_listApptViewItemsDisplayedAll.Insert(newIdxAll,apptViewItem);
-				FillElements();
-				gridMain.SetSelected(newIdx,true);
-			}
-			if(gridUR.GetSelectedIndex()!=-1) {
-				oldIdx=gridUR.GetSelectedIndex();
-				if(oldIdx==_listApptViewItemsDisplayedUR.Count-1) {
-					return;//can't move down any more
-				}
-				apptViewItem=_listApptViewItemsDisplayedUR[oldIdx];
-				newIdx=oldIdx+1;
-				newIdxAll=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedUR[newIdx]);
-				_listApptViewItemsDisplayedAll.Remove(apptViewItem);
-				_listApptViewItemsDisplayedAll.Insert(newIdxAll,apptViewItem);
-				FillElements();
-				gridUR.SetSelected(newIdx,true);
-			}
-			if(gridLR.GetSelectedIndex()!=-1) {
-				oldIdx=gridLR.GetSelectedIndex();
-				if(oldIdx==_listApptViewItemsDisplayedLR.Count-1) {
-					return;//can't move down any more
-				}
-				apptViewItem=_listApptViewItemsDisplayedLR[oldIdx];
-				newIdx=oldIdx+1;
-				newIdxAll=_listApptViewItemsDisplayedAll.IndexOf(_listApptViewItemsDisplayedLR[newIdx]);
-				_listApptViewItemsDisplayedAll.Remove(apptViewItem);
-				_listApptViewItemsDisplayedAll.Insert(newIdxAll,apptViewItem);
-				FillElements();
-				gridLR.SetSelected(newIdx,true);
-			}
-		}
+        for (var i = 0; i < _providers.Count; i++)
+        {
+            listProv.Items.Add(_providers[i].GetLongDesc());
+            if (_apptViewItems.Select(x => x.ProvNum).Contains(_providers[i].ProvNum))
+            {
+                listProv.SetSelected(i);
+            }
+        }
 
-		private void gridAvailable_CellClick(object sender,ODGridClickEventArgs e) {
-			if(gridAvailable.SelectedIndices.Length>0) {
-				gridApptFieldDefs.SetAll(false);
-				gridPatFieldDefs.SetAll(false);
-			}
-		}
+        listWaitingRmNameFormat.Items.AddEnums<EnumWaitingRmName>();
+        listWaitingRmNameFormat.SetSelected((int) _apptView.WaitingRmName);
 
-		private void gridApptFieldDefs_CellClick(object sender,ODGridClickEventArgs e) {
-			if(gridApptFieldDefs.SelectedIndices.Length>0) {
-				gridAvailable.SetAll(false);
-				gridPatFieldDefs.SetAll(false);
-			}
-		}
+        for (var i = 0; i < Enum.GetNames(typeof(ApptViewStackBehavior)).Length; i++)
+        {
+            listStackUR.Items.Add(Enum.GetNames(typeof(ApptViewStackBehavior))[i]);
+            listStackLR.Items.Add(Enum.GetNames(typeof(ApptViewStackBehavior))[i]);
+        }
 
-		private void gridPatFieldDefs_CellClick(object sender,ODGridClickEventArgs e) {
-			if(gridPatFieldDefs.SelectedIndices.Length>0) {
-				gridAvailable.SetAll(false);
-				gridApptFieldDefs.SetAll(false);
-			}
-		}
+        listStackUR.SelectedIndex = (int) _apptView.StackBehavUR;
+        listStackLR.SelectedIndex = (int) _apptView.StackBehavLR;
 
-		private void gridMain_CellClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			if(gridMain.SelectedIndices.Length>0) {
-				gridUR.SetAll(false);
-				gridLR.SetAll(false);
-			}
-		}
+        _apptViewItemsDisplayedAll = new List<ApptViewItem>(_apptViewItemsDef);
 
-		private void gridUR_CellClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			if(gridUR.SelectedIndices.Length>0) {
-				gridMain.SetAll(false);
-				gridLR.SetAll(false);
-			}
-		}
+        FillElements();
+    }
 
-		private void gridLR_CellClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			if(gridLR.SelectedIndices.Length>0) {
-				gridUR.SetAll(false);
-				gridMain.SetAll(false);
-			}
-		}
+    private void FormApptViewEdit_Closing(object sender, CancelEventArgs e)
+    {
+        if (DialogResult == DialogResult.OK)
+        {
+            return;
+        }
 
-		private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			FrmApptViewItemEdit frmApptViewItemEdit=new FrmApptViewItemEdit();
-			frmApptViewItemEdit.ApptViewItemCur=_listApptViewItemsDisplayedMain[e.Row];
-			frmApptViewItemEdit.ShowDialog();
-			FillElements();
-			ReselectItem(frmApptViewItemEdit.ApptViewItemCur);
-		}
+        if (_apptView.ApptViewNum > 0)
+        {
+            return;
+        }
 
-		private void gridUR_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			FrmApptViewItemEdit frmApptViewItemEdit=new FrmApptViewItemEdit();
-			frmApptViewItemEdit.ApptViewItemCur=_listApptViewItemsDisplayedUR[e.Row];
-			frmApptViewItemEdit.ShowDialog();
-			FillElements();
-			ReselectItem(frmApptViewItemEdit.ApptViewItemCur);
-		}
+        ApptViewItems.DeleteAllForView(_apptView);
+        ApptViewItems.DeleteAllForView(_apptView, isMobile: true);
 
-		private void gridLR_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			FrmApptViewItemEdit frmApptViewItemEdit=new FrmApptViewItemEdit();
-			frmApptViewItemEdit.ApptViewItemCur=_listApptViewItemsDisplayedLR[e.Row];
-			frmApptViewItemEdit.ShowDialog();
-			FillElements();
-			ReselectItem(frmApptViewItemEdit.ApptViewItemCur);
-		}
+        ApptViews.Delete(_apptView);
+    }
 
-		///<summary>Returns true if FillGrid sets the background color.</summary>
-		private bool DoSetBackgroundColor(string apptItemDescription) {
-			return apptItemDescription.In(
-				EnumApptViewElement.MedOrPremed_plus.GetDescription(),
-				EnumApptViewElement.HasIns_I.GetDescription(),
-				EnumApptViewElement.InsToSend_excl.GetDescription(),
-				EnumApptViewElement.RecallPastDue_R.GetDescription(),
-				EnumApptViewElement.ProphyPerioPastDue_P.GetDescription(),
-				EnumApptViewElement.LateColor.GetDescription());
-		}
+    private void FillElements()
+    {
+        _apptViewItemsDisplayedMain = [];
+        _apptViewItemsDisplayedUr = [];
+        _apptViewItemsDisplayedLr = [];
 
-		///<summary>Returns the ApptFieldDef.FieldName with the tag (hidden) if the ApptFieldDef is hidden. Otherwise return the FieldName.</summary>
-		private string MarkFieldNameIfHidden(long apptFieldDefNum) {
-			if(FieldDefLinks.GetExists(x => x.FieldDefNum==apptFieldDefNum && x.FieldDefType==FieldDefTypes.Appointment)) {
-				return ApptFieldDefs.GetFieldName(apptFieldDefNum)+" (Hidden)";
-			}
-			return ApptFieldDefs.GetFieldName(apptFieldDefNum);
-		}
+        foreach (var apptViewItem in _apptViewItemsDisplayedAll)
+        {
+            switch (apptViewItem.ElementAlignment)
+            {
+                case ApptViewAlignment.Main:
+                    _apptViewItemsDisplayedMain.Add(apptViewItem);
+                    break;
 
-		///<summary>When we know what item we want to select, but we don't know which of the three areas it might now be in.</summary>
-		private void ReselectItem(ApptViewItem apptViewItem){
-			//another way of doing this would be to test which area it was in first, but that wouldn't make the code more compact.
-			for(int i=0;i<_listApptViewItemsDisplayedMain.Count;i++) {
-				if(_listApptViewItemsDisplayedMain[i]==apptViewItem) {
-					gridMain.SetSelected(i,true);
-					break;
-				}
-			}
-			for(int i=0;i<_listApptViewItemsDisplayedUR.Count;i++) {
-				if(_listApptViewItemsDisplayedUR[i]==apptViewItem) {
-					gridUR.SetSelected(i,true);
-					break;
-				}
-			}
-			for(int i=0;i<_listApptViewItemsDisplayedLR.Count;i++) {
-				if(_listApptViewItemsDisplayedLR[i]==apptViewItem) {
-					gridLR.SetSelected(i,true);
-					break;
-				}
-			}
-		}
+                case ApptViewAlignment.UR:
+                    _apptViewItemsDisplayedUr.Add(apptViewItem);
+                    break;
 
-		private void textRowsPerIncr_Validating(object sender, System.ComponentModel.CancelEventArgs e) {
-			try{
-				Convert.ToInt32(textRowsPerIncr.Text);
-			}
-			catch{
-				ODMessageBox.Show(Lan.g(this,"Must be a number between 1 and 3."));
-				e.Cancel=true;
-				return;
-			}
-			if(SIn.Long(textRowsPerIncr.Text)<1 || SIn.Long(textRowsPerIncr.Text)>3){
-				ODMessageBox.Show(Lan.g(this,"Must be a number between 1 and 3."));
-				e.Cancel=true;
-			}
-		}
+                case ApptViewAlignment.LR:
+                    _apptViewItemsDisplayedLr.Add(apptViewItem);
+                    break;
+            }
+        }
 
-		///<summary>This will remove operatories from the list of ops available to assign to this view and fill the list with ops assigned to the same clinic or unassigned.  If the current view has operatories selected that are assigned to a different view.</summary>
-		private void comboClinic_SelectionChangeCommitted(object sender,EventArgs e) {
-			FillOperatories();
-			butMobileView.Visible=MobileAppDevices.IsClinicSignedUpForMobileWeb(comboClinic.ClinicNumSelected);
-		}
+        gridMain.BeginUpdate();
 
-		private void butDelete_Click(object sender, System.EventArgs e) {
-			//this does mess up the item orders a little, but missing numbers don't actually hurt anything.
-			if(ODMessageBox.Show(Lan.g(this,"Delete this view?"),"",MessageBoxButtons.OKCancel)
-				!=DialogResult.OK){
-				return;
-			}
-			ApptViewItems.DeleteAllForView(ApptViewCur);
-			ApptViewItems.DeleteAllForView(ApptViewCur,isMobile:true);//deleting the OD Proper view, need to also delete the mobile version of it.
-			ApptViews.Delete(ApptViewCur);
-			DialogResult=DialogResult.OK;
-		}
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("", 100));
 
-		private void butSave_Click(object sender, System.EventArgs e) {
-			if(listProv.SelectedIndices.Count==0){
-				MsgBox.Show(this,"At least one provider must be selected.");
-				return;
-			}
-			if(listOps.SelectedIndices.Count==0){// && !checkOnlyScheduledProvs.Checked) {
-				MsgBox.Show(this,"At least one operatory must be selected.");
-				return;
-			}
-			if(textDescription.Text==""){
-				ODMessageBox.Show(Lan.g(this,"A description must be entered."));
-				return;
-			}
-			int widthOpMinimum=0;
-			try{
-				widthOpMinimum=System.Convert.ToInt32(textWidthOpMinimum.Text);
-				if(widthOpMinimum<0 || widthOpMinimum>2000){
-					throw new Exception();
-				}
-			}
-			catch{
-				MsgBox.Show(this,"Invalid Minimum Op width.");//seems silly to tell them it could be as high as 2000
-				return;
-			}
-			if(_listApptViewItemsDisplayedMain.Count==0){
-				ODMessageBox.Show(Lan.g(this,"At least one row type must be displayed."));
-				return;
-			}
-			DateTime timeBefore=new DateTime();//only the time portion will be used.
-			if(checkOnlyScheduledProvs.Checked && textBeforeTime.Text!="") {
-				try {
-					timeBefore=DateTime.Parse(textBeforeTime.Text);
-				}
-				catch {
-					MsgBox.Show(this,"Time before invalid.");
-					return;
-				}
-			}
-			DateTime timeAfter=new DateTime();
-			if(checkOnlyScheduledProvs.Checked && textAfterTime.Text!="") {
-				try {
-					timeAfter=DateTime.Parse(textAfterTime.Text);
-				}
-				catch {
-					MsgBox.Show(this,"Time after invalid.");
-					return;
-				}
-			}
-			DateTime timeScroll=new DateTime();
-			if(textScrollTime.Text=="") {
-				timeScroll=DateTime.Parse("08:00:00");
-			}
-			else {
-				try {
-					timeScroll=DateTime.Parse(textScrollTime.Text);
-				}
-				catch {
-					MsgBox.Show(this,"Scroll start time invalid.");
-					return;
-				}
-			}
-			//start with a clean slate
-			ApptViewItems.DeleteAllForView(ApptViewCur);
-			ApptViewItems.DeleteAllForView(ApptViewCur,isMobile:true);
-			ApptViewItem apptViewItem;
-			bool isClinicMobile=MobileAppDevices.IsClinicSignedUpForMobileWeb(comboClinic.ClinicNumSelected);
-			for(int i=0;i<_listOpNums.Count;i++){
-				if(listOps.SelectedIndices.Contains(i)){
-					apptViewItem=new ApptViewItem();
-					apptViewItem.ApptViewNum=ApptViewCur.ApptViewNum;
-					apptViewItem.OpNum=_listOpNums[i];
-					apptViewItem.IsMobile=false;
-					ApptViewItems.Insert(apptViewItem);
-					//if they are signed up for mobile, save a mobile version of operatory selection, since they cannot be changed in mobile appt view edit window.
-					//If there are no mobile view items, then the mobile view doesn't exist so don't add the operatory.
-					if(isClinicMobile && _listMobileApptViewItems.Count!=0) {
-						apptViewItem.IsMobile=true;
-						ApptViewItems.Insert(apptViewItem);
-					}
-				}
-			}
-			for(int i=0;i<_listProviders.Count;i++){
-				if(listProv.SelectedIndices.Contains(i)){
-					apptViewItem=new ApptViewItem();
-					apptViewItem.ApptViewNum=ApptViewCur.ApptViewNum;
-					apptViewItem.ProvNum=_listProviders[i].ProvNum;
-					apptViewItem.IsMobile=false;
-					ApptViewItems.Insert(apptViewItem);
-					//if they are signed up for mobile, save a mobile version of provider selection, since they cannot be changed in mobile appt view edit window.
-					//If there are no mobile view items, then the mobile view doesn't exist so don't add the provider.
-					if(isClinicMobile && _listMobileApptViewItems.Count!=0) {
-						apptViewItem.IsMobile=true;
-						ApptViewItems.Insert(apptViewItem);
-					}
-				}
-			}
-			ApptViewCur.StackBehavUR=(ApptViewStackBehavior)listStackUR.SelectedIndex;
-			ApptViewCur.StackBehavLR=(ApptViewStackBehavior)listStackLR.SelectedIndex;
-			for(int i=0;i<_listApptViewItemsDisplayedMain.Count;i++){
-				apptViewItem=_listApptViewItemsDisplayedMain[i];
-				apptViewItem.ApptViewNum=ApptViewCur.ApptViewNum;
-				//elementDesc, elementColor, and Alignment already handled.
-				apptViewItem.ElementOrder=(byte)i;
-				apptViewItem.IsMobile=false;
-				ApptViewItems.Insert(apptViewItem);
-			}
-			for(int i=0;i<_listApptViewItemsDisplayedUR.Count;i++) {
-				apptViewItem=_listApptViewItemsDisplayedUR[i];
-				apptViewItem.ApptViewNum=ApptViewCur.ApptViewNum;
-				apptViewItem.ElementOrder=(byte)i;
-				apptViewItem.IsMobile=false;
-				ApptViewItems.Insert(apptViewItem);
-			}
-			for(int i=0;i<_listApptViewItemsDisplayedLR.Count;i++) {
-				apptViewItem=_listApptViewItemsDisplayedLR[i];
-				apptViewItem.ApptViewNum=ApptViewCur.ApptViewNum;
-				apptViewItem.ElementOrder=(byte)i;
-				apptViewItem.IsMobile=false;
-				ApptViewItems.Insert(apptViewItem);
-			}
-			if(isClinicMobile) {
-				ApptViewItem apptViewItemMobile;
-				for(int i=0;i<_listMobileApptViewItems.Count;i++) {
-					//Only add the ApptViewItems that do not include OpNum or ProvNum. This includes ElementDesc, ApptFieldDefNum, and PatFieldDefNum .
-					if(_listMobileApptViewItems[i].ProvNum==0 && _listMobileApptViewItems[i].OpNum==0) {
-						apptViewItemMobile=_listMobileApptViewItems[i];
-						apptViewItemMobile.ApptViewNum=ApptViewCur.ApptViewNum;
-						apptViewItemMobile.ElementOrder=(byte)i;
-						apptViewItemMobile.IsMobile=true;
-						ApptViewItems.Insert(apptViewItemMobile);
-					}
-				}
-			}
-			ApptViewCur.WaitingRmName=listWaitingRmNameFormat.GetSelected<EnumWaitingRmName>();
-			ApptViewCur.Description=textDescription.Text;
-			ApptViewCur.RowsPerIncr=SIn.Byte(textRowsPerIncr.Text);//already validated
-			ApptViewCur.WidthOpMinimum=widthOpMinimum;
-			ApptViewCur.ApptTimeScrollStart=timeScroll.TimeOfDay;
-			ApptViewCur.IsScrollStartDynamic=checkDynamicScroll.Checked;
-			ApptViewCur.IsApptBubblesDisabled=checkApptBubblesDisabled.Checked;
-			ApptViewCur.OnlyScheduledProvs=checkOnlyScheduledProvs.Checked;
-			ApptViewCur.OnlyScheduledProvDays=checkOnlyScheduledProvDays.Checked;
-			ApptViewCur.OnlySchedBeforeTime=timeBefore.TimeOfDay;
-			ApptViewCur.OnlySchedAfterTime=timeAfter.TimeOfDay;
-			long clinicOld=ApptViewCur.ClinicNum;
-			ApptViewCur.ClinicNum=0;//Default is all clinics
-			if(true) {
-				//_listUserClinicNums will contain only a 0 if the clinics show feature is disabled.
-				//If the user is not restricted to a clinic, the list will contain 0 in the first position since comboClinic will contain 'All' as the first option.
-				//Restricted users (Security.CurUser.ClinicsIsRestricted=true && Security.CurUser.ClinicNum>0) won't have access to the unassigned views (AssignedClinic=0)
-				ApptViewCur.ClinicNum=comboClinic.ClinicNumSelected;
-			}
-			//User just moved this appointment view to a different clinic and this view was associated to the current Computer. Clear it out.
-			if(ApptViewCur.ClinicNum!=clinicOld && ComputerPrefs.LocalComputer.ApptViewNum==ApptViewCur.ApptViewNum) {
-				ComputerPrefs.LocalComputer.ApptViewNum=0;
-				ComputerPrefs.Update(ComputerPrefs.LocalComputer);
-				UserodApptViews.InsertOrUpdate(Security.CurUser.UserNum,clinicOld,0);
-			}
-			ApptViews.Update(ApptViewCur);//same whether isnew or not
-			DialogResult=DialogResult.OK;
-		}
+        gridMain.ListGridRows.Clear();
 
-		private void FormApptViewEdit_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
-			if(DialogResult==DialogResult.OK) {
-				return;
-			}
-			if(IsNew){
-				ApptViewItems.DeleteAllForView(ApptViewCur);
-				ApptViewItems.DeleteAllForView(ApptViewCur,isMobile:true);
-				ApptViews.Delete(ApptViewCur);
-			}
-		}
-	}
+        GridRow gridRow;
+        foreach (var apptViewItem in _apptViewItemsDisplayedMain)
+        {
+            gridRow = new GridRow();
+            if (apptViewItem.ApptFieldDefNum > 0)
+            {
+                gridRow.Cells.Add(MarkFieldNameIfHidden(apptViewItem.ApptFieldDefNum));
+            }
+            else if (apptViewItem.PatFieldDefNum > 0)
+            {
+                gridRow.Cells.Add(PatFieldDefs.GetFieldName(apptViewItem.PatFieldDefNum));
+            }
+            else
+            {
+                gridRow.Cells.Add(apptViewItem.ElementDesc);
+            }
+
+            if (DoSetBackgroundColor(apptViewItem.ElementDesc))
+            {
+                gridRow.ColorBackG = apptViewItem.ElementColor;
+            }
+            else
+            {
+                gridRow.ColorText = apptViewItem.ElementColor;
+            }
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+
+        gridUR.BeginUpdate();
+
+        gridUR.Columns.Clear();
+        gridUR.Columns.Add(new GridColumn("", 100));
+
+        gridUR.ListGridRows.Clear();
+
+        foreach (var apptViewItem in _apptViewItemsDisplayedUr)
+        {
+            gridRow = new GridRow();
+            if (apptViewItem.ApptFieldDefNum > 0)
+            {
+                gridRow.Cells.Add(MarkFieldNameIfHidden(apptViewItem.ApptFieldDefNum));
+            }
+            else if (apptViewItem.PatFieldDefNum > 0)
+            {
+                gridRow.Cells.Add(PatFieldDefs.GetFieldName(apptViewItem.PatFieldDefNum));
+            }
+            else
+            {
+                gridRow.Cells.Add(apptViewItem.ElementDesc);
+            }
+
+            if (DoSetBackgroundColor(apptViewItem.ElementDesc))
+            {
+                gridRow.ColorBackG = apptViewItem.ElementColor;
+            }
+            else
+            {
+                gridRow.ColorText = apptViewItem.ElementColor;
+            }
+
+            gridUR.ListGridRows.Add(gridRow);
+        }
+
+        gridUR.EndUpdate();
+
+        gridLR.BeginUpdate();
+
+        gridLR.Columns.Clear();
+        gridLR.Columns.Add(new GridColumn("", 100));
+
+        gridLR.ListGridRows.Clear();
+
+        foreach (var apptViewItem in _apptViewItemsDisplayedLr)
+        {
+            gridRow = new GridRow();
+            if (apptViewItem.ApptFieldDefNum > 0)
+            {
+                gridRow.Cells.Add(ApptFieldDefs.GetFieldName(apptViewItem.ApptFieldDefNum));
+            }
+            else if (apptViewItem.PatFieldDefNum > 0)
+            {
+                gridRow.Cells.Add(PatFieldDefs.GetFieldName(apptViewItem.PatFieldDefNum));
+            }
+            else
+            {
+                gridRow.Cells.Add(apptViewItem.ElementDesc);
+            }
+
+            if (DoSetBackgroundColor(apptViewItem.ElementDesc))
+            {
+                gridRow.ColorBackG = apptViewItem.ElementColor;
+            }
+            else
+            {
+                gridRow.ColorText = apptViewItem.ElementColor;
+            }
+
+            gridLR.ListGridRows.Add(gridRow);
+        }
+
+        gridLR.EndUpdate();
+
+        gridAvailable.BeginUpdate();
+
+        gridAvailable.Columns.Clear();
+        gridAvailable.Columns.Add(new GridColumn("", 100));
+
+        gridAvailable.ListGridRows.Clear();
+
+        _apptViewElementsAvailable = [];
+        for (var i = 0; i < Enum.GetValues(typeof(EnumApptViewElement)).Length; i++)
+        {
+            if ((EnumApptViewElement) i == EnumApptViewElement.None)
+            {
+                continue;
+            }
+
+            if (ElementIsDisplayed((EnumApptViewElement) i))
+            {
+                continue;
+            }
+
+            _apptViewElementsAvailable.Add((EnumApptViewElement) i);
+
+            gridRow = new GridRow();
+            gridRow.Cells.Add(((EnumApptViewElement) i).GetDescription());
+
+            gridAvailable.ListGridRows.Add(gridRow);
+        }
+
+        gridAvailable.EndUpdate();
+
+        gridApptFieldDefs.BeginUpdate();
+
+        gridApptFieldDefs.Columns.Clear();
+        gridApptFieldDefs.Columns.Add(new GridColumn("", 100));
+
+        gridApptFieldDefs.ListGridRows.Clear();
+
+        _apptFieldDefNumsAvailable = [];
+
+        var apptFieldDefs = ApptFieldDefs.GetDeepCopy();
+        foreach (var apptFieldDef in apptFieldDefs)
+        {
+            if (ApptFieldIsDisplayed(apptFieldDef.ApptFieldDefNum))
+            {
+                continue;
+            }
+
+            _apptFieldDefNumsAvailable.Add(apptFieldDef.ApptFieldDefNum);
+
+            gridRow = new GridRow();
+            gridRow.Cells.Add(MarkFieldNameIfHidden(apptFieldDef.ApptFieldDefNum));
+
+            gridApptFieldDefs.ListGridRows.Add(gridRow);
+        }
+
+        gridApptFieldDefs.EndUpdate();
+
+        gridPatFieldDefs.BeginUpdate();
+
+        gridPatFieldDefs.Columns.Clear();
+        gridPatFieldDefs.Columns.Add(new GridColumn("", 100));
+
+        gridPatFieldDefs.ListGridRows.Clear();
+
+        _patFieldDefNums = [];
+
+        var patFieldDefs = PatFieldDefs.GetDeepCopy(true);
+        foreach (var patFieldDef in patFieldDefs)
+        {
+            if (PatFieldIsDisplayed(patFieldDef.PatFieldDefNum))
+            {
+                continue;
+            }
+
+            _patFieldDefNums.Add(patFieldDef.PatFieldDefNum);
+
+            gridRow = new GridRow();
+            gridRow.Cells.Add(patFieldDef.FieldName);
+
+            gridPatFieldDefs.ListGridRows.Add(gridRow);
+        }
+
+        gridPatFieldDefs.EndUpdate();
+    }
+
+    private void FillOperatories()
+    {
+        listOps.ClearSelected();
+        listOps.Items.Clear();
+
+        _opNums = [];
+
+        var operatories = Operatories.GetDeepCopy(true);
+
+        foreach (var operatory in operatories)
+        {
+            if (comboClinic.ClinicNumSelected != 0 && operatory.ClinicNum != comboClinic.ClinicNumSelected)
+            {
+                continue;
+            }
+
+            listOps.Items.Add(operatory.OpName);
+
+            _opNums.Add(operatory.OperatoryNum);
+
+            if (_apptViewItems.Select(x => x.OpNum).Contains(operatory.OperatoryNum))
+            {
+                listOps.SetSelected(listOps.Items.Count - 1);
+            }
+        }
+    }
+
+    private bool ElementIsDisplayed(EnumApptViewElement apptViewElement)
+    {
+        foreach (var apptViewItem in _apptViewItemsDisplayedAll)
+        {
+            if (apptViewItem.ApptFieldDefNum != 0 || apptViewItem.PatFieldDefNum != 0)
+            {
+                continue;
+            }
+
+            if (apptViewItem.ElementDesc == apptViewElement.GetDescription())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool ApptFieldIsDisplayed(long apptFieldDefNum)
+    {
+        foreach (var apptViewItem in _apptViewItemsDisplayedAll)
+        {
+            if (apptViewItem.ApptFieldDefNum == apptFieldDefNum)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool PatFieldIsDisplayed(long patFieldDefNum)
+    {
+        foreach (var apptViewItem in _apptViewItemsDisplayedAll)
+        {
+            if (apptViewItem.PatFieldDefNum == patFieldDefNum)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CheckBoxOnlyScheduledProvs_Click(object sender, EventArgs e)
+    {
+        UpdateDisplayFilterGroup();
+    }
+
+    private void UpdateDisplayFilterGroup()
+    {
+        if (checkOnlyScheduledProvs.Checked)
+        {
+            labelBeforeTime.Visible = true;
+            labelAfterTime.Visible = true;
+            textBeforeTime.Visible = true;
+            textAfterTime.Visible = true;
+        }
+        else
+        {
+            labelBeforeTime.Visible = false;
+            labelAfterTime.Visible = false;
+            textBeforeTime.Visible = false;
+            textAfterTime.Visible = false;
+        }
+    }
+
+    public void UpdateMobileViewList(List<ApptViewItem> apptViewItems)
+    {
+        _mobileApptViewItems = apptViewItems;
+    }
+
+    private void ButtonLeft_Click(object sender, EventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length > 0)
+        {
+            _apptViewItemsDisplayedAll.Remove(_apptViewItemsDisplayedMain[gridMain.SelectedIndices[0]]);
+        }
+        else if (gridUR.SelectedIndices.Length > 0)
+        {
+            _apptViewItemsDisplayedAll.Remove(_apptViewItemsDisplayedUr[gridUR.SelectedIndices[0]]);
+        }
+        else if (gridLR.SelectedIndices.Length > 0)
+        {
+            _apptViewItemsDisplayedAll.Remove(_apptViewItemsDisplayedLr[gridLR.SelectedIndices[0]]);
+        }
+
+        FillElements();
+    }
+
+    private void ButtonRight_Click(object sender, EventArgs e)
+    {
+        if (gridAvailable.GetSelectedIndex() != -1)
+        {
+            var strDescript = _apptViewElementsAvailable[gridAvailable.GetSelectedIndex()].GetDescription();
+            var color = Color.Black;
+            if (DoSetBackgroundColor(strDescript))
+            {
+                color = Color.White;
+            }
+
+            var item = new ApptViewItem(strDescript, 0, color);
+            if (gridMain.SelectedIndices.Length == 1)
+            {
+                var newIdx = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedMain[gridMain.GetSelectedIndex()]);
+
+                _apptViewItemsDisplayedAll.Insert(newIdx, item);
+            }
+            else
+            {
+                _apptViewItemsDisplayedAll.Add(item);
+            }
+
+            FillElements();
+            for (var i = 0; i < _apptViewItemsDisplayedMain.Count; i++)
+            {
+                if (_apptViewItemsDisplayedMain[i] != item)
+                {
+                    continue;
+                }
+
+                gridMain.SetSelected(i);
+                break;
+            }
+        }
+        else if (gridApptFieldDefs.GetSelectedIndex() != -1)
+        {
+            var apptViewItem = new ApptViewItem
+            {
+                ElementColor = Color.Black,
+                ApptFieldDefNum = _apptFieldDefNumsAvailable[gridApptFieldDefs.GetSelectedIndex()]
+            };
+
+            if (gridMain.SelectedIndices.Length == 1)
+            {
+                var newIdx = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedMain[gridMain.GetSelectedIndex()]);
+
+                _apptViewItemsDisplayedAll.Insert(newIdx, apptViewItem);
+            }
+            else
+            {
+                _apptViewItemsDisplayedAll.Add(apptViewItem);
+            }
+
+            FillElements();
+            for (var i = 0; i < _apptViewItemsDisplayedMain.Count; i++)
+            {
+                if (_apptViewItemsDisplayedMain[i] != apptViewItem)
+                {
+                    continue;
+                }
+
+                gridMain.SetSelected(i);
+                break;
+            }
+        }
+        else if (gridPatFieldDefs.GetSelectedIndex() != -1)
+        {
+            var apptViewItem = new ApptViewItem
+            {
+                ElementColor = Color.Black,
+                PatFieldDefNum = _patFieldDefNums[gridPatFieldDefs.GetSelectedIndex()]
+            };
+
+            if (gridMain.SelectedIndices.Length == 1)
+            {
+                var newIdx = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedMain[gridMain.GetSelectedIndex()]);
+
+                _apptViewItemsDisplayedAll.Insert(newIdx, apptViewItem);
+            }
+            else
+            {
+                _apptViewItemsDisplayedAll.Add(apptViewItem);
+            }
+
+            FillElements();
+            for (var i = 0; i < _apptViewItemsDisplayedMain.Count; i++)
+            {
+                if (_apptViewItemsDisplayedMain[i] != apptViewItem)
+                {
+                    continue;
+                }
+
+                gridMain.SetSelected(i);
+                break;
+            }
+        }
+    }
+
+    private void ButtonUp_Click(object sender, EventArgs e)
+    {
+        int oldIdx;
+        int newIdx;
+        int newIdxAll;
+
+        ApptViewItem apptViewItem;
+
+        if (gridMain.GetSelectedIndex() != -1)
+        {
+            oldIdx = gridMain.GetSelectedIndex();
+            if (oldIdx == 0)
+            {
+                return;
+            }
+
+            apptViewItem = _apptViewItemsDisplayedMain[oldIdx];
+
+            newIdx = oldIdx - 1;
+            newIdxAll = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedMain[newIdx]);
+
+            _apptViewItemsDisplayedAll.Remove(apptViewItem);
+            _apptViewItemsDisplayedAll.Insert(newIdxAll, apptViewItem);
+
+            FillElements();
+
+            gridMain.SetSelected(newIdx);
+        }
+        else if (gridUR.GetSelectedIndex() != -1)
+        {
+            oldIdx = gridUR.GetSelectedIndex();
+            if (oldIdx == 0)
+            {
+                return;
+            }
+
+            apptViewItem = _apptViewItemsDisplayedUr[oldIdx];
+
+            newIdx = oldIdx - 1;
+            newIdxAll = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedUr[newIdx]);
+
+            _apptViewItemsDisplayedAll.Remove(apptViewItem);
+            _apptViewItemsDisplayedAll.Insert(newIdxAll, apptViewItem);
+
+            FillElements();
+
+            gridUR.SetSelected(newIdx);
+        }
+        else if (gridLR.GetSelectedIndex() != -1)
+        {
+            oldIdx = gridLR.GetSelectedIndex();
+            if (oldIdx == 0)
+            {
+                return;
+            }
+
+            apptViewItem = _apptViewItemsDisplayedLr[oldIdx];
+
+            newIdx = oldIdx - 1;
+            newIdxAll = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedLr[newIdx]);
+
+            _apptViewItemsDisplayedAll.Remove(apptViewItem);
+            _apptViewItemsDisplayedAll.Insert(newIdxAll, apptViewItem);
+
+            FillElements();
+
+            gridLR.SetSelected(newIdx);
+        }
+    }
+
+    private void ButtonDown_Click(object sender, EventArgs e)
+    {
+        int oldIdx;
+        int newIdx;
+        int newIdxAll;
+
+        ApptViewItem apptViewItem;
+
+        if (gridMain.GetSelectedIndex() != -1)
+        {
+            oldIdx = gridMain.GetSelectedIndex();
+            if (oldIdx == _apptViewItemsDisplayedMain.Count - 1)
+            {
+                return;
+            }
+
+            apptViewItem = _apptViewItemsDisplayedMain[oldIdx];
+
+            newIdx = oldIdx + 1;
+            newIdxAll = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedMain[newIdx]);
+
+            _apptViewItemsDisplayedAll.Remove(apptViewItem);
+            _apptViewItemsDisplayedAll.Insert(newIdxAll, apptViewItem);
+
+            FillElements();
+
+            gridMain.SetSelected(newIdx);
+        }
+
+        if (gridUR.GetSelectedIndex() != -1)
+        {
+            oldIdx = gridUR.GetSelectedIndex();
+            if (oldIdx == _apptViewItemsDisplayedUr.Count - 1)
+            {
+                return;
+            }
+
+            apptViewItem = _apptViewItemsDisplayedUr[oldIdx];
+
+            newIdx = oldIdx + 1;
+            newIdxAll = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedUr[newIdx]);
+
+            _apptViewItemsDisplayedAll.Remove(apptViewItem);
+            _apptViewItemsDisplayedAll.Insert(newIdxAll, apptViewItem);
+
+            FillElements();
+
+            gridUR.SetSelected(newIdx);
+        }
+
+        if (gridLR.GetSelectedIndex() == -1)
+        {
+            return;
+        }
+
+        oldIdx = gridLR.GetSelectedIndex();
+        if (oldIdx == _apptViewItemsDisplayedLr.Count - 1)
+        {
+            return;
+        }
+
+        apptViewItem = _apptViewItemsDisplayedLr[oldIdx];
+
+        newIdx = oldIdx + 1;
+        newIdxAll = _apptViewItemsDisplayedAll.IndexOf(_apptViewItemsDisplayedLr[newIdx]);
+
+        _apptViewItemsDisplayedAll.Remove(apptViewItem);
+        _apptViewItemsDisplayedAll.Insert(newIdxAll, apptViewItem);
+
+        FillElements();
+
+        gridLR.SetSelected(newIdx);
+    }
+
+    private void GridAvailable_CellClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridAvailable.SelectedIndices.Length == 0)
+        {
+            return;
+        }
+
+        gridApptFieldDefs.SetAll(false);
+        gridPatFieldDefs.SetAll(false);
+    }
+
+    private void GridApptFieldDefs_CellClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridApptFieldDefs.SelectedIndices.Length == 0)
+        {
+            return;
+        }
+
+        gridAvailable.SetAll(false);
+        gridPatFieldDefs.SetAll(false);
+    }
+
+    private void GridPatFieldDefs_CellClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridPatFieldDefs.SelectedIndices.Length == 0)
+        {
+            return;
+        }
+
+        gridAvailable.SetAll(false);
+        gridApptFieldDefs.SetAll(false);
+    }
+
+    private void GridMain_CellClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length == 0)
+        {
+            return;
+        }
+
+        gridUR.SetAll(false);
+        gridLR.SetAll(false);
+    }
+
+    private void GridUR_CellClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridUR.SelectedIndices.Length == 0)
+        {
+            return;
+        }
+
+        gridMain.SetAll(false);
+        gridLR.SetAll(false);
+    }
+
+    private void GridLR_CellClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridLR.SelectedIndices.Length == 0)
+        {
+            return;
+        }
+
+        gridUR.SetAll(false);
+        gridMain.SetAll(false);
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var frmApptViewItemEdit = new FrmApptViewItemEdit
+        {
+            ApptViewItemCur = _apptViewItemsDisplayedMain[e.Row]
+        };
+
+        frmApptViewItemEdit.ShowDialog();
+
+        FillElements();
+
+        ReselectItem(frmApptViewItemEdit.ApptViewItemCur);
+    }
+
+    private void GridUR_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var frmApptViewItemEdit = new FrmApptViewItemEdit
+        {
+            ApptViewItemCur = _apptViewItemsDisplayedUr[e.Row]
+        };
+
+        frmApptViewItemEdit.ShowDialog();
+
+        FillElements();
+
+        ReselectItem(frmApptViewItemEdit.ApptViewItemCur);
+    }
+
+    private void GridLR_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var frmApptViewItemEdit = new FrmApptViewItemEdit
+        {
+            ApptViewItemCur = _apptViewItemsDisplayedLr[e.Row]
+        };
+
+        frmApptViewItemEdit.ShowDialog();
+
+        FillElements();
+
+        ReselectItem(frmApptViewItemEdit.ApptViewItemCur);
+    }
+
+    private static bool DoSetBackgroundColor(string apptItemDescription)
+    {
+        return apptItemDescription.In(
+            EnumApptViewElement.MedOrPremed_plus.GetDescription(),
+            EnumApptViewElement.HasIns_I.GetDescription(),
+            EnumApptViewElement.InsToSend_excl.GetDescription(),
+            EnumApptViewElement.RecallPastDue_R.GetDescription(),
+            EnumApptViewElement.ProphyPerioPastDue_P.GetDescription(),
+            EnumApptViewElement.LateColor.GetDescription());
+    }
+
+    private static string MarkFieldNameIfHidden(long apptFieldDefNum)
+    {
+        if (FieldDefLinks.GetExists(x => x.FieldDefNum == apptFieldDefNum && x.FieldDefType == FieldDefTypes.Appointment))
+        {
+            return ApptFieldDefs.GetFieldName(apptFieldDefNum) + " (Hidden)";
+        }
+
+        return ApptFieldDefs.GetFieldName(apptFieldDefNum);
+    }
+
+    private void ReselectItem(ApptViewItem apptViewItem)
+    {
+        for (var i = 0; i < _apptViewItemsDisplayedMain.Count; i++)
+        {
+            if (_apptViewItemsDisplayedMain[i] != apptViewItem)
+            {
+                continue;
+            }
+
+            gridMain.SetSelected(i);
+            break;
+        }
+
+        for (var i = 0; i < _apptViewItemsDisplayedUr.Count; i++)
+        {
+            if (_apptViewItemsDisplayedUr[i] != apptViewItem)
+            {
+                continue;
+            }
+
+            gridUR.SetSelected(i);
+            break;
+        }
+
+        for (var i = 0; i < _apptViewItemsDisplayedLr.Count; i++)
+        {
+            if (_apptViewItemsDisplayedLr[i] != apptViewItem)
+            {
+                continue;
+            }
+
+            gridLR.SetSelected(i);
+            break;
+        }
+    }
+
+    private void TextBoxRowsPerIncr_Validating(object sender, CancelEventArgs e)
+    {
+        if (!int.TryParse(textRowsPerIncr.Text, out var rowsPerIncr))
+        {
+            ShowError("Must be a number between 1 and 3.");
+
+            e.Cancel = true;
+            return;
+        }
+
+        if (rowsPerIncr is >= 1 and <= 3)
+        {
+            return;
+        }
+
+        ShowError("Must be a number between 1 and 3.");
+
+        e.Cancel = true;
+    }
+
+    private void ComboBoxClinic_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        FillOperatories();
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (!ConfirmOk("Delete this view?"))
+        {
+            return;
+        }
+
+        ApptViewItems.DeleteAllForView(_apptView);
+        ApptViewItems.DeleteAllForView(_apptView, isMobile: true);
+
+        ApptViews.Delete(_apptView);
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (listProv.SelectedIndices.Count == 0)
+        {
+            ShowError("At least one provider must be selected.");
+            return;
+        }
+
+        if (listOps.SelectedIndices.Count == 0)
+        {
+            ShowError("At least one operatory must be selected.");
+            return;
+        }
+
+        if (textDescription.Text == "")
+        {
+            ShowError("A description must be entered.");
+            return;
+        }
+
+        int widthOpMinimum;
+        try
+        {
+            widthOpMinimum = Convert.ToInt32(textWidthOpMinimum.Text);
+            if (widthOpMinimum is < 0 or > 2000)
+            {
+                throw new Exception();
+            }
+        }
+        catch
+        {
+            ShowError("Invalid Minimum Op width.");
+            return;
+        }
+
+        if (_apptViewItemsDisplayedMain.Count == 0)
+        {
+            ShowError("At least one row type must be displayed.");
+            return;
+        }
+
+        var timeBefore = new DateTime();
+        if (checkOnlyScheduledProvs.Checked && textBeforeTime.Text != "")
+        {
+            try
+            {
+                timeBefore = DateTime.Parse(textBeforeTime.Text);
+            }
+            catch
+            {
+                ShowError("Time before invalid.");
+                return;
+            }
+        }
+
+        var timeAfter = new DateTime();
+        if (checkOnlyScheduledProvs.Checked && textAfterTime.Text != "")
+        {
+            try
+            {
+                timeAfter = DateTime.Parse(textAfterTime.Text);
+            }
+            catch
+            {
+                ShowError("Time after invalid.");
+                return;
+            }
+        }
+
+        DateTime timeScroll;
+        if (textScrollTime.Text == "")
+        {
+            timeScroll = DateTime.Parse("08:00:00");
+        }
+        else
+        {
+            try
+            {
+                timeScroll = DateTime.Parse(textScrollTime.Text);
+            }
+            catch
+            {
+                ShowError("Scroll start time invalid.");
+                return;
+            }
+        }
+
+        ApptViewItems.DeleteAllForView(_apptView);
+        ApptViewItems.DeleteAllForView(_apptView, isMobile: true);
+        ApptViewItem apptViewItem;
+
+        var isClinicMobile = MobileAppDevices.IsClinicSignedUpForMobileWeb(comboClinic.ClinicNumSelected);
+
+        for (var i = 0; i < _opNums.Count; i++)
+        {
+            if (!listOps.SelectedIndices.Contains(i))
+            {
+                continue;
+            }
+
+            apptViewItem = new ApptViewItem
+            {
+                ApptViewNum = _apptView.ApptViewNum,
+                OpNum = _opNums[i],
+                IsMobile = false
+            };
+            ApptViewItems.Insert(apptViewItem);
+
+            if (!isClinicMobile || _mobileApptViewItems.Count == 0)
+            {
+                continue;
+            }
+
+            apptViewItem.IsMobile = true;
+            ApptViewItems.Insert(apptViewItem);
+        }
+
+        for (var i = 0; i < _providers.Count; i++)
+        {
+            if (!listProv.SelectedIndices.Contains(i))
+            {
+                continue;
+            }
+
+            apptViewItem = new ApptViewItem
+            {
+                ApptViewNum = _apptView.ApptViewNum,
+                ProvNum = _providers[i].ProvNum,
+                IsMobile = false
+            };
+
+            ApptViewItems.Insert(apptViewItem);
+
+            if (!isClinicMobile || _mobileApptViewItems.Count == 0)
+            {
+                continue;
+            }
+
+            apptViewItem.IsMobile = true;
+            ApptViewItems.Insert(apptViewItem);
+        }
+
+        _apptView.StackBehavUR = (ApptViewStackBehavior) listStackUR.SelectedIndex;
+        _apptView.StackBehavLR = (ApptViewStackBehavior) listStackLR.SelectedIndex;
+
+        for (var i = 0; i < _apptViewItemsDisplayedMain.Count; i++)
+        {
+            apptViewItem = _apptViewItemsDisplayedMain[i];
+            apptViewItem.ApptViewNum = _apptView.ApptViewNum;
+            apptViewItem.ElementOrder = (byte) i;
+            apptViewItem.IsMobile = false;
+            ApptViewItems.Insert(apptViewItem);
+        }
+
+        for (var i = 0; i < _apptViewItemsDisplayedUr.Count; i++)
+        {
+            apptViewItem = _apptViewItemsDisplayedUr[i];
+            apptViewItem.ApptViewNum = _apptView.ApptViewNum;
+            apptViewItem.ElementOrder = (byte) i;
+            apptViewItem.IsMobile = false;
+            ApptViewItems.Insert(apptViewItem);
+        }
+
+        for (var i = 0; i < _apptViewItemsDisplayedLr.Count; i++)
+        {
+            apptViewItem = _apptViewItemsDisplayedLr[i];
+            apptViewItem.ApptViewNum = _apptView.ApptViewNum;
+            apptViewItem.ElementOrder = (byte) i;
+            apptViewItem.IsMobile = false;
+            ApptViewItems.Insert(apptViewItem);
+        }
+
+        if (isClinicMobile)
+        {
+            for (var i = 0; i < _mobileApptViewItems.Count; i++)
+            {
+                if (_mobileApptViewItems[i].ProvNum != 0 || _mobileApptViewItems[i].OpNum != 0)
+                {
+                    continue;
+                }
+
+                var apptViewItemMobile = _mobileApptViewItems[i];
+
+                apptViewItemMobile.ApptViewNum = _apptView.ApptViewNum;
+                apptViewItemMobile.ElementOrder = (byte) i;
+                apptViewItemMobile.IsMobile = true;
+
+                ApptViewItems.Insert(apptViewItemMobile);
+            }
+        }
+
+        _apptView.WaitingRmName = listWaitingRmNameFormat.GetSelected<EnumWaitingRmName>();
+        _apptView.Description = textDescription.Text;
+        _apptView.RowsPerIncr = SIn.Byte(textRowsPerIncr.Text);
+        _apptView.WidthOpMinimum = widthOpMinimum;
+        _apptView.ApptTimeScrollStart = timeScroll.TimeOfDay;
+        _apptView.IsScrollStartDynamic = checkDynamicScroll.Checked;
+        _apptView.IsApptBubblesDisabled = checkApptBubblesDisabled.Checked;
+        _apptView.OnlyScheduledProvs = checkOnlyScheduledProvs.Checked;
+        _apptView.OnlyScheduledProvDays = checkOnlyScheduledProvDays.Checked;
+        _apptView.OnlySchedBeforeTime = timeBefore.TimeOfDay;
+        _apptView.OnlySchedAfterTime = timeAfter.TimeOfDay;
+
+        var clinicOld = _apptView.ClinicNum;
+
+        _apptView.ClinicNum = 0;
+        _apptView.ClinicNum = comboClinic.ClinicNumSelected;
+
+        if (_apptView.ClinicNum != clinicOld && ComputerPrefs.LocalComputer.ApptViewNum == _apptView.ApptViewNum)
+        {
+            ComputerPrefs.LocalComputer.ApptViewNum = 0;
+            ComputerPrefs.Update(ComputerPrefs.LocalComputer);
+            UserodApptViews.InsertOrUpdate(Security.CurUser.UserNum, clinicOld, 0);
+        }
+
+        ApptViews.Update(_apptView);
+
+        DialogResult = DialogResult.OK;
+    }
 }

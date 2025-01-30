@@ -5,10 +5,12 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class HistAppointmentCrud
 {
@@ -149,7 +151,7 @@ public class HistAppointmentCrud
 
         command +=
             SOut.Long(histAppointment.HistUserNum) + ","
-                                                   + DbHelper.Now() + ","
+                                                   + "NOW()" + ","
                                                    + SOut.Int((int) histAppointment.HistApptAction) + ","
                                                    + SOut.Int((int) histAppointment.ApptSource) + ","
                                                    + SOut.Long(histAppointment.AptNum) + ","
@@ -188,9 +190,9 @@ public class HistAppointmentCrud
                                                    + "'" + SOut.String(histAppointment.SecurityHash) + "',"
                                                    + SOut.Int(histAppointment.ItemOrderPlanned) + ")";
         if (histAppointment.Note == null) histAppointment.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(histAppointment.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(histAppointment.Note));
         if (histAppointment.ProcsColored == null) histAppointment.ProcsColored = "";
-        var paramProcsColored = new OdSqlParameter("paramProcsColored", OdDbType.Text, SOut.StringParam(histAppointment.ProcsColored));
+        var paramProcsColored = new OdSqlParameter("paramProcsColored", SOut.StringParam(histAppointment.ProcsColored));
         {
             histAppointment.HistApptNum = Db.NonQ(command, true, "HistApptNum", "histAppointment", paramNote, paramProcsColored);
         }
@@ -211,7 +213,7 @@ public class HistAppointmentCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(histAppointment.HistApptNum) + ",";
         command +=
             SOut.Long(histAppointment.HistUserNum) + ","
-                                                   + DbHelper.Now() + ","
+                                                   + "NOW()" + ","
                                                    + SOut.Int((int) histAppointment.HistApptAction) + ","
                                                    + SOut.Int((int) histAppointment.ApptSource) + ","
                                                    + SOut.Long(histAppointment.AptNum) + ","
@@ -250,9 +252,9 @@ public class HistAppointmentCrud
                                                    + "'" + SOut.String(histAppointment.SecurityHash) + "',"
                                                    + SOut.Int(histAppointment.ItemOrderPlanned) + ")";
         if (histAppointment.Note == null) histAppointment.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(histAppointment.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(histAppointment.Note));
         if (histAppointment.ProcsColored == null) histAppointment.ProcsColored = "";
-        var paramProcsColored = new OdSqlParameter("paramProcsColored", OdDbType.Text, SOut.StringParam(histAppointment.ProcsColored));
+        var paramProcsColored = new OdSqlParameter("paramProcsColored", SOut.StringParam(histAppointment.ProcsColored));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramProcsColored);
         else
@@ -304,9 +306,9 @@ public class HistAppointmentCrud
                       + "ItemOrderPlanned     =  " + SOut.Int(histAppointment.ItemOrderPlanned) + " "
                       + "WHERE HistApptNum = " + SOut.Long(histAppointment.HistApptNum);
         if (histAppointment.Note == null) histAppointment.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(histAppointment.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(histAppointment.Note));
         if (histAppointment.ProcsColored == null) histAppointment.ProcsColored = "";
-        var paramProcsColored = new OdSqlParameter("paramProcsColored", OdDbType.Text, SOut.StringParam(histAppointment.ProcsColored));
+        var paramProcsColored = new OdSqlParameter("paramProcsColored", SOut.StringParam(histAppointment.ProcsColored));
         Db.NonQ(command, paramNote, paramProcsColored);
     }
 
@@ -534,9 +536,9 @@ public class HistAppointmentCrud
 
         if (command == "") return false;
         if (histAppointment.Note == null) histAppointment.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(histAppointment.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(histAppointment.Note));
         if (histAppointment.ProcsColored == null) histAppointment.ProcsColored = "";
-        var paramProcsColored = new OdSqlParameter("paramProcsColored", OdDbType.Text, SOut.StringParam(histAppointment.ProcsColored));
+        var paramProcsColored = new OdSqlParameter("paramProcsColored", SOut.StringParam(histAppointment.ProcsColored));
         command = "UPDATE histappointment SET " + command
                                                 + " WHERE HistApptNum = " + SOut.Long(histAppointment.HistApptNum);
         Db.NonQ(command, paramNote, paramProcsColored);

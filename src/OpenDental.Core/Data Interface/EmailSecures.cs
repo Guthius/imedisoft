@@ -4,17 +4,16 @@ using System.IO;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class EmailSecures
 {
-    private static readonly char[] _arrEmailAddressDelimiters = new[] {';', ','};
+    private static readonly char[] _arrEmailAddressDelimiters = [';', ','];
 
-    ///<summary>Has the Secure Email feature been released.</summary>
     public static bool IsSecureEmailReleased()
     {
         var listClinicNums = Clinics.GetDeepCopy().Select(x => x.Id).ToList();
@@ -22,7 +21,6 @@ public class EmailSecures
         return listClinicNums.Any(x => LimitedBetaFeatures.IsAllowed(EServiceFeatureInfoEnum.SecureEmail, x));
     }
 
-    ///<summary>Gets an emailsecure row by EmailMessageNum.</summary>
     public static EmailSecure GetByEmailMessageNum(long emailMessageNum)
     {
         if (emailMessageNum <= 0) return null;
@@ -30,28 +28,20 @@ public class EmailSecures
         var command = "SELECT * FROM emailsecure WHERE emailsecure.EmailMessageNum = " + SOut.Long(emailMessageNum) + " ";
         return EmailSecureCrud.SelectOne(command);
     }
-
     
-    public static long Insert(EmailSecure emailSecure)
+    public static void Insert(EmailSecure emailSecure)
     {
-        return EmailSecureCrud.Insert(emailSecure);
+        EmailSecureCrud.Insert(emailSecure);
     }
 
-    public static void InsertMessageThenSend(EmailMessage emailMessage, EmailAddress EmailAddressSender, string toAddress,
-        long clinicNum, EmailMessage emailMessageReplyingTo = null, Patient patient = null)
+    public static void InsertMessageThenSend(EmailMessage emailMessage, EmailAddress EmailAddressSender, string toAddress, long clinicNum, EmailMessage emailMessageReplyingTo = null, Patient patient = null)
     {
         //SendSecureEmail() operates off the assumption that the EmailMessage is already in the database. If we have no PriKey yet then insert this email.
         if (emailMessage.EmailMessageNum == 0) EmailMessages.Insert(emailMessage);
         SendSecureEmail(emailMessage, EmailAddressSender, toAddress, clinicNum, emailMessageReplyingTo, patient);
     }
-
-
-    /// <summary>
-    ///     Throws Exceptions. Sends a Secure Email. Determines if the email is a reply or a new email.
-    ///     Updates EmailMessage row appropriately. Inserts EmailSecure row as needed.
-    /// </summary>
-    public static void SendSecureEmail(EmailMessage emailMessageDb, EmailAddress emailAddressSender, string stringToAddresses
-        , long clinicNum, EmailMessage emailMessageReplyingTo = null, Patient patient = null)
+    
+    public static void SendSecureEmail(EmailMessage emailMessageDb, EmailAddress emailAddressSender, string stringToAddresses, long clinicNum, EmailMessage emailMessageReplyingTo = null, Patient patient = null)
     {
         //Work with a copy of messageDb.
         //Otherwise, changes would persist in calling method after an exception is thrown, and user may change sending method.
@@ -79,10 +69,6 @@ public class EmailSecures
         Insert(emailSecure);
     }
 
-    /// <summary>
-    ///     Returns the EmailChainFK of the EmailSecure associated to the passed in EmailMessage.
-    ///     returns 0 if emailMessage is null or no EmailSecure could be found for the EmailMessage.
-    /// </summary>
     public static long GetEmailChainFkFromEmailMessage(EmailMessage emailMessage)
     {
         if (emailMessage == null) return 0;
@@ -91,10 +77,6 @@ public class EmailSecures
         return emailSecure.EmailChainFK;
     }
 
-    /// <summary>
-    ///     An unsecure/no-PHI-allowed summary of the email that will be included in the notification email sent to the
-    ///     recipient.
-    /// </summary>
     private static string GetNotificationSummary(Patient patient, EmailMessage emailMessageDb)
     {
         var notificationSummary = "";
@@ -102,7 +84,6 @@ public class EmailSecures
         if (patient != null) notificationSummary = patient.GetNameFirstOrPreferred();
         return notificationSummary;
     }
-
 
     private static List<EmailAddressResource> ToEmailAddressResources(string strEmailAddress)
     {
@@ -123,7 +104,6 @@ public class EmailSecures
         return listEmailAddressResourcesRet;
     }
 
-    ///<summary>Creates an EmailResource from an EmailMessage and EmailAddress.</summary>
     private static EmailResource ToEmailResource(EmailMessage emailMessage, EmailAddress emailAddressSender)
     {
         var emailAddressResource = new EmailAddressResource();
@@ -144,13 +124,7 @@ public class EmailSecures
         return emailResource;
     }
 
-    /// <summary>
-    ///     Sends a single new Secure Email, updates the corresponding EmailMessage in the database, and returns an EmailSecure
-    ///     which has not
-    ///     been inserted into the database.
-    /// </summary>
-    private static EmailSecure SendNewSecureEmail(IAccountApi iAccountApi, EmailResource emailResource, List<EmailAddressResource> listEmailAddressResources, EmailMessage emailMessageDb
-        , long clinicNum, string notificationSummary)
+    private static EmailSecure SendNewSecureEmail(IAccountApi iAccountApi, EmailResource emailResource, List<EmailAddressResource> listEmailAddressResources, EmailMessage emailMessageDb, long clinicNum, string notificationSummary)
     {
         var funcSend = () =>
         {
@@ -165,11 +139,6 @@ public class EmailSecures
         return SendViaApi(emailMessageDb, funcSend);
     }
 
-    /// <summary>
-    ///     Sends a single Secure Email Reply, updates the corresponding EmailMessage in the database, and returns an
-    ///     EmailSecure which has not
-    ///     been inserted into the database.
-    /// </summary>
     private static EmailSecure SendReplySecureEmail(IAccountApi iAccountApi, EmailResource emailResource, long emailChainFk, EmailMessage emailMessageDb, long clinicNum)
     {
         var funcSend = () =>
@@ -185,10 +154,6 @@ public class EmailSecures
         return SendViaApi(emailMessageDb, funcSend);
     }
 
-    /// <summary>
-    ///     Wraps the API call to send the secure email in logic to ensure the EmailMessage is updated correctly in the
-    ///     database.
-    /// </summary>
     private static EmailSecure SendViaApi(EmailMessage emailMessage, Func<EmailSecure> send)
     {
         try
@@ -208,10 +173,6 @@ public class EmailSecures
         }
     }
 
-    /// <summary>
-    ///     Marks the EmailMessage as sent, updates the database, and returns an EmailSecure that has not be inserted into
-    ///     the database.
-    /// </summary>
     private static EmailSecure ToEmailSecureSent(EmailMessage emailMessageDb, long clinicNum, long emailChainNum, long emailNum)
     {
         var emailSecure = new EmailSecure();
@@ -223,10 +184,6 @@ public class EmailSecures
         return emailSecure;
     }
 
-    /// <summary>
-    ///     Uploads email attachments to EmailHosting server and returns a list of AttachmentResource to be used to send a
-    ///     Secure Email.
-    /// </summary>
     private static List<AttachmentResource> UploadSecureAttachments(IAccountApi iAccountApi, List<EmailAttach> listEmailAttaches)
     {
         var listAttachmentResources = new List<AttachmentResource>();
@@ -287,40 +244,10 @@ public class EmailSecures
         for (var i = 0; i < listActions.Count; i++) listActions[i].Invoke();
     }
 
-    ///<summary>Helper class to organize attachment data/metadata.</summary>
     private class AttachmentFile
     {
         public string BytesBase64;
         public string DisplayFileName;
         public string Extension;
     }
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-    #region Get Methods
-    
-    public static List<EmailSecure> Refresh(long patNum){
-
-        string command="SELECT * FROM emailsecure WHERE PatNum = "+POut.Long(patNum);
-        return Crud.EmailSecureCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one EmailSecure from the db.</summary>
-    public static EmailSecure GetOne(long emailSecureNum){
-
-        return Crud.EmailSecureCrud.SelectOne(emailSecureNum);
-    }
-    #endregion Get Methods
-    #region Modification Methods
-    
-    public static void Delete(long emailSecureNum) {
-
-        Crud.EmailSecureCrud.Delete(emailSecureNum);
-    }
-    #endregion Modification Methods
-    #region Misc Methods
-
-
-
-    #endregion Misc Methods
-    */
 }

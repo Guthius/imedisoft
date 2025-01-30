@@ -21,7 +21,7 @@ public class SQLWhere
 
         return new SQLWhere
         {
-            WhereClause = (doTreatDtAsDate ? DbHelper.DtimeToDate(columnName) : columnName) + comparison.GetDescription() + POutObj(value, doTreatDtAsDate)
+            WhereClause = (doTreatDtAsDate ? "DATE("+columnName+")" : columnName) + comparison.GetDescription() + POutObj(value, doTreatDtAsDate)
         };
     }
 
@@ -39,7 +39,7 @@ public class SQLWhere
         }
         else
         {
-            sqlParam.WhereClause = (doTreatDtAsDate ? DbHelper.DtimeToDate(columnName) : columnName) + " IN (" + string.Join(",", listValues.Select(x => POutObj(x, doTreatDtAsDate))) + ")";
+            sqlParam.WhereClause = (doTreatDtAsDate ? "DATE("+columnName+")" : columnName) + " IN (" + string.Join(",", listValues.Select(x => POutObj(x, doTreatDtAsDate))) + ")";
         }
 
         return sqlParam;
@@ -59,7 +59,7 @@ public class SQLWhere
         }
         else
         {
-            sqlParam.WhereClause = (doTreatDtAsDate ? DbHelper.DtimeToDate(columnName) : columnName) + " NOT IN (" + string.Join(",", listValues.Select(x => POutObj(x, doTreatDtAsDate))) + ")";
+            sqlParam.WhereClause = (doTreatDtAsDate ? "DATE("+columnName+")" : columnName) + " NOT IN (" + string.Join(",", listValues.Select(x => POutObj(x, doTreatDtAsDate))) + ")";
         }
 
         return sqlParam;
@@ -74,7 +74,7 @@ public class SQLWhere
 
         return new SQLWhere
         {
-            WhereClause = (doTreatDtAsDate ? DbHelper.DtimeToDate(columnName) : columnName) + " BETWEEN " + POutObj(valueLower, doTreatDtAsDate) + " AND " + POutObj(valueHigher, doTreatDtAsDate) + ""
+            WhereClause = (doTreatDtAsDate ? "DATE("+columnName+")" : columnName) + " BETWEEN " + POutObj(valueLower, doTreatDtAsDate) + " AND " + POutObj(valueHigher, doTreatDtAsDate) + ""
         };
     }
 
@@ -87,7 +87,7 @@ public class SQLWhere
 
         return new SQLWhere
         {
-            WhereClause = (doTreatDtAsDate ? DbHelper.DtimeToDate(columnName) : columnName) + " NOT BETWEEN " + POutObj(valueLower, doTreatDtAsDate) + " AND " + POutObj(valueHigher, doTreatDtAsDate) + ""
+            WhereClause = (doTreatDtAsDate ? "DATE("+columnName+")" : columnName) + " NOT BETWEEN " + POutObj(valueLower, doTreatDtAsDate) + " AND " + POutObj(valueHigher, doTreatDtAsDate) + ""
         };
     }
 

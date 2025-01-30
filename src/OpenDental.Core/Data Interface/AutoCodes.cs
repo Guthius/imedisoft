@@ -6,17 +6,19 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public class AutoCodes
 {
-    public static long Insert(AutoCode autoCode)
+    public static void Insert(AutoCode autoCode)
     {
-        return AutoCodeCrud.Insert(autoCode);
+        AutoCodeCrud.Insert(autoCode);
     }
-    
+
     public static void Update(AutoCode autoCode)
     {
         AutoCodeCrud.Update(autoCode);
@@ -101,7 +103,7 @@ public class AutoCodes
         strLogText += Lans.g("FrmAutoCodeLessIntrusive", "Fee") + ": " + procedure.ProcFee.ToString("F") + ", " + procedureCode.Descript;
         if (procedure.ProcStatus.In(ProcStat.EO, ProcStat.EC)) SecurityLogs.MakeLogEntry(EnumPermType.ProcExistingEdit, patient.PatNum, strLogText);
     }
-    
+
     public static void SetToDefault()
     {
         var command = "DELETE FROM autocode";
@@ -2154,7 +2156,7 @@ public class AutoCodes
             Db.NonQ(command);
         }
     }
-    
+
     private class AutoCodeCache : CacheDictAbs<AutoCode, long, AutoCode>
     {
         protected override List<AutoCode> GetCacheFromDb()

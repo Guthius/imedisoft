@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAccountingAutoPayEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -51,7 +43,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 26);
 			this.butOK.TabIndex = 1;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// comboPayType
 			// 
@@ -92,7 +84,7 @@ namespace OpenDental {
 			this.butRemove.Size = new System.Drawing.Size(75, 26);
 			this.butRemove.TabIndex = 45;
 			this.butRemove.Text = "Remove";
-			this.butRemove.Click += new System.EventHandler(this.butRemove_Click);
+			this.butRemove.Click += new System.EventHandler(this.ButtonRemove_Click);
 			// 
 			// butAdd
 			// 
@@ -101,7 +93,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(75, 26);
 			this.butAdd.TabIndex = 44;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butDelete
 			// 
@@ -113,7 +105,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(75, 26);
 			this.butDelete.TabIndex = 46;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// FormAccountingAutoPayEdit
 			// 

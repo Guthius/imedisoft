@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	///<summary>X12 834 Benefit Enrollment and Maintenance.  This transaction is used to push insurance plan information to pseudo clearinghouses.</summary>
@@ -1787,7 +1789,7 @@ namespace OpenDentBusiness {
 			if(ListMemberSchools.Count > 0) {//The patient school is situational information.  Only overwrite if specified.
 				patDb.SchoolName=Pat.SchoolName;
 			}
-			if(Crud.PatientCrud.UpdateComparison(patDb,patDbOld)) {
+			if(PatientCrud.UpdateComparison(patDb,patDbOld)) {
 				Patients.Update(patDb,patDbOld);
 				SecurityLogs.MakeLogEntry(EnumPermType.PatientEdit,patDb.PatNum,"Demographics edited from Import Ins Plans 834.",LogSources.InsPlanImport834);
 			}

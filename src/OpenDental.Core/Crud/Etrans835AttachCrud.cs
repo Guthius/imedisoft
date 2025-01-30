@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class Etrans835AttachCrud
 {
@@ -80,7 +82,7 @@ public class Etrans835AttachCrud
             SOut.Long(etrans835Attach.EtransNum) + ","
                                                  + SOut.Long(etrans835Attach.ClaimNum) + ","
                                                  + SOut.Int(etrans835Attach.ClpSegmentIndex) + ","
-                                                 + DbHelper.Now() + ")";
+                                                 + "NOW()" + ")";
         {
             etrans835Attach.Etrans835AttachNum = Db.NonQ(command, true, "Etrans835AttachNum", "etrans835Attach");
         }
@@ -103,7 +105,7 @@ public class Etrans835AttachCrud
             SOut.Long(etrans835Attach.EtransNum) + ","
                                                  + SOut.Long(etrans835Attach.ClaimNum) + ","
                                                  + SOut.Int(etrans835Attach.ClpSegmentIndex) + ","
-                                                 + DbHelper.Now() + ")";
+                                                 + "NOW()" + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else

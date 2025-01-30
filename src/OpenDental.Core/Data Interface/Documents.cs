@@ -12,26 +12,20 @@ using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDental.Thinfinity;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-///<summary>Handles documents and images for the Images module</summary>
 public class Documents
 {
-    #region Insert
-
-    ///<summary>Inserts the Document and retrieves it immediately from the database.</summary>
     public static Document InsertAndGet(Document document, Patient patient)
     {
         Insert(document, patient);
         return GetByNum(document.DocNum);
     }
 
-    #endregion
-
-    
     public static Document[] GetAllWithPat(long patNum)
     {
         var command = "SELECT * FROM document WHERE PatNum=" + SOut.Long(patNum) + " ORDER BY DateCreated";
@@ -39,7 +33,6 @@ public class Documents
         return DocumentCrud.TableToList(table).ToArray();
     }
 
-    
     public static List<Document> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM document WHERE PatNum=" + SOut.Long(patNum) + " ORDER BY DateCreated";
@@ -47,18 +40,12 @@ public class Documents
         return DocumentCrud.TableToList(table);
     }
 
-    /// <summary>
-    ///     Returns all Documents with an image capture type that is not Miscellaneous, in descending order by
-    ///     dateCreated.
-    /// </summary>
     public static List<Document> GetOcrDocumentsForPat(long patNum)
     {
         var command = "SELECT * FROM document WHERE PatNum=" + SOut.Long(patNum) + " AND ImageCaptureType > 0 ORDER BY DateCreated DESC";
         return DocumentCrud.SelectMany(command);
     }
 
-    /// <summary>Gets the document with the specified document number.</summary>
-    /// <param name="doReturnNullIfNotFound">If false and there is no document with that docNum, will return a new Document.</param>
     public static Document GetByNum(long docNum, bool doReturnNullIfNotFound = false)
     {
         Document document = null;
@@ -80,11 +67,7 @@ public class Documents
         var listDocuments = DocumentCrud.TableToList(table);
         return listDocuments.ToArray();
     }
-    
-    /// <summary>
-    ///     Returns a unique filename for a previously inserted doc based on the pat's first and last name and docNum with
-    ///     the given extension.
-    /// </summary>
+
     public static string GetUniqueFileNameForPatient(Patient patient, long docNum, string fileExtension)
     {
         var fileName = new string((patient.LName + patient.FName).Where(x => char.IsLetter(x)).ToArray()) + docNum + fileExtension; //ensures unique name
@@ -94,11 +77,6 @@ public class Documents
         return fileName;
     }
 
-    /// <summary>
-    ///     Usually, set just the extension before passing in the doc.  Inserts a new document into db, creates a filename
-    ///     based on Cur.DocNum, and then updates the db with this filename.  Should always refresh the document after calling
-    ///     this method in order to get the correct filename for RemotingRole.ClientWeb.
-    /// </summary>
     public static long Insert(Document document, Patient patient)
     {
         document.DocNum = DocumentCrud.Insert(document);
@@ -132,7 +110,6 @@ public class Documents
         return document.DocNum;
     }
 
-    //Returns a unique file name with the given extension for the specified patient. If uniqueNum is not set, will generate a random number to ensure the filename is unique.
     public static string GenerateUniqueFileName(string extension, Patient patient, string uniqueIdentifier = null)
     {
         if (string.IsNullOrWhiteSpace(extension) || patient == null) return "";
@@ -144,25 +121,21 @@ public class Documents
         return fileName;
     }
 
-    ///<summary>This is a generic insert statement used to insert documents with custom file names.</summary>
     public static long Insert(Document document)
     {
         return DocumentCrud.Insert(document);
     }
 
-    
     public static void Update(Document document)
     {
         DocumentCrud.Update(document);
     }
 
-    
     public static bool Update(Document document, Document documentOld)
     {
         return DocumentCrud.Update(document, documentOld);
     }
 
-    ///<summary>Updates all of the mount's Document.DocCategory information when moving a mount.</summary>
     public static void UpdateDocCategoryForMountItems(long mountNum, long docCategory)
     {
         var listMountItems = MountItems.GetItemsForMount(mountNum);
@@ -176,16 +149,11 @@ public class Documents
         }
     }
 
-    
     public static void Delete(Document document)
     {
         DocumentCrud.Delete(document.DocNum);
     }
 
-    /// <summary>
-    ///     This is used by FormImageViewer to get a list of paths based on supplied list of DocNums. The reason is that
-    ///     later we will allow sharing of documents, so the paths may not be in the current patient folder.
-    /// </summary>
     public static List<string> GetPaths(List<long> listDocNums, string atoZPath)
     {
         if (listDocNums.Count == 0) return new List<string>();
@@ -216,7 +184,6 @@ public class Documents
         return listStrings;
     }
 
-    ///<summary>Will return null if no picture for this patient.</summary>
     public static Document GetPatPictFromDb(long patNum)
     {
         //first establish which category pat pics are in
@@ -244,35 +211,20 @@ public class Documents
         return listDocuments[0];
     }
 
-    /// <summary>
-    ///     Makes one call to the database to retrieve the document of the patient for the given patNum, then uses that
-    ///     document and the patFolder to load and process the patient picture so it appears the same way it did in the image
-    ///     module.  It first creates a 100x100 thumbnail if needed, then it uses the thumbnail. Can return null. Assumes
-    ///     WithPat will always be same as patnum.
-    /// </summary>
     public static Bitmap GetPatPict(long patNum, string patFolder)
     {
         var document = GetPatPictFromDb(patNum);
-        var bitmap = GetPatPict(patNum, patFolder, document);
+        var bitmap = GetPatPict(patFolder, document);
         return bitmap;
     }
 
-    /// <summary>
-    ///     Uses the passed-in document and the patFolder to load and process the patient picture so it appears the same
-    ///     way it did in the image module.  It first creates a 100x100 thumbnail if needed, then it uses the thumbnail. Can
-    ///     return null. Assumes WithPat will always be same as patnum.
-    /// </summary>
-    public static Bitmap GetPatPict(long patNum, string patFolder, Document document)
+    public static Bitmap GetPatPict(string patFolder, Document document)
     {
         if (document == null) return null;
         var bitmap = GetThumbnail(document, patFolder);
         return bitmap;
     }
 
-    /// <summary>
-    ///     Gets the thumbnail image for the given document. The thumbnail for every document is in a subfolder named
-    ///     'Thumbnails' within each patient's images folder.  Always 100x100.
-    /// </summary>
     public static Bitmap GetThumbnail(Document document, string patFolder)
     {
         var fileName = document.FileName;
@@ -369,7 +321,6 @@ public class Documents
         return bitmap;
     }
 
-    ///<summary>Returns the documents which correspond to the given mountitems. They should already be ordered by ItemOrder.</summary>
     public static Document[] GetDocumentsForMountItems(List<MountItem> listMountItems)
     {
         if (listMountItems == null || listMountItems.Count < 1) return new Document[0];
@@ -382,7 +333,6 @@ public class Documents
         return documentArray;
     }
 
-    ///<summary>Returns the document for one mountitem. Can be null. Db call.</summary>
     public static Document GetDocumentForMountItem(long mountItemNum)
     {
         var command = "SELECT * FROM document WHERE MountItemNum='" + SOut.Long(mountItemNum) + "'";
@@ -390,11 +340,7 @@ public class Documents
         return document;
     }
 
-    /// <summary>
-    ///     Any filenames mentioned in the listFiles which are not attached to the given patient are properly attached to
-    ///     that patient. Returns the total number of documents that were newly attached to the patient.
-    /// </summary>
-    public static int InsertMissing(Patient patient, List<string> listFiles)
+    public static void InsertMissing(Patient patient, List<string> listFiles)
     {
         var countAdded = 0;
         var listDefNumsImgCat = Defs.GetDefsForCategory(DefCat.ImageCats).Select(x => x.DefNum).ToList();
@@ -449,18 +395,14 @@ public class Documents
             SecurityLogs.MakeLogEntry(EnumPermType.ImageEdit, patient.PatNum, Lans.g("ContrImages", "Document Created: A file") + ", " + document.FileName + ", "
                                                                               + Lans.g("ContrImages", "placed into the patient's AtoZ images folder from outside of the program was detected and a record automatically inserted into the first image category") + ", " + strDocCategory, document.DocNum, dateTPrevious);
         }
-
-        return countAdded;
     }
 
-    ///<summary>Returns a datatable containing all filenames of the documents for the supplied patnum.</summary>
     public static DataTable GetFileNamesForPatient(long patNum)
     {
         var command = "SELECT FileName FROM document WHERE PatNum='" + patNum + "' ORDER BY FileName";
         return DataCore.GetTable(command);
     }
 
-    ///<Summary>isImagingOrderDescending sorts images by DateCreated (descending). False by default.</Summary>
     public static DataSet RefreshForPatient(long patNum, bool isImagingOrderDescending = false)
     {
         var dataSet = new DataSet();
@@ -593,7 +535,6 @@ public class Documents
         return table;
     }
 
-    ///<summary>Returns false if the file is a specific short file name that is not accepted.</summary>
     public static bool IsAcceptableFileName(string fileName)
     {
         var listBadFileNames = new List<string>();
@@ -608,12 +549,7 @@ public class Documents
             return false;
         return true;
     }
-    
-    /// <summary>
-    ///     Moves one document from one patient to another and updates the file name accordingly.
-    ///     Only call when physically storing images in a folder share and after the physical images have been successfully
-    ///     copied over to the "to patient" folder.
-    /// </summary>
+
     public static void MergePatientDocument(long patNumFrom, long patNumTo, string fileNameOld, string fileNameNew)
     {
         var command = "UPDATE document"
@@ -624,11 +560,6 @@ public class Documents
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Moves all documents from one patient to another.
-    ///     Only call when physically storing images in a folder share and only if every document.Filename matches a file in
-    ///     patNumTo's folder.
-    /// </summary>
     public static void MergePatientDocuments(long patNumFrom, long patNumTo)
     {
         var command = "UPDATE document"
@@ -637,10 +568,6 @@ public class Documents
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Attempts to open the document using the default program. If not using AtoZfolder saves a local temp file and
-    ///     opens it. Returns empty string on success, otherwise returns error message.
-    /// </summary>
     public static string OpenDoc(long docNum)
     {
         var document = GetByNum(docNum);
@@ -650,7 +577,7 @@ public class Documents
         string documentPath;
         if (true)
         {
-            documentPath = ImageStore.GetFilePath(document, ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath()));
+            documentPath = ImageStore.GetFilePath(document, ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder()));
         }
 
         try
@@ -667,21 +594,15 @@ public class Documents
         return "";
     }
 
-    //Checks to see if the document exists in the correct location, or checks DB for stored content.
     public static bool DocExists(long docNum)
     {
         var document = GetByNum(docNum);
         if (document.DocNum == 0) return false;
         var patient = Patients.GetPat(document.PatNum);
         if (patient == null) return false;
-        if (true) return File.Exists(ImageStore.GetFilePath(document, ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath())));
+        if (true) return File.Exists(ImageStore.GetFilePath(document, ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder())));
     }
 
-    /// <summary>
-    ///     Returns the filepath of the document if using AtoZfolder. If storing files in DB or third party storage, saves
-    ///     document to local temp file and returns filepath.
-    ///     Empty string if not found.
-    /// </summary>
     public static string GetPath(long docNum)
     {
         var document = GetByNum(docNum);
@@ -691,15 +612,12 @@ public class Documents
         string documentPath;
         if (true)
         {
-            documentPath = ImageStore.GetFilePath(document, ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath()));
+            documentPath = ImageStore.GetFilePath(document, ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder()));
         }
 
         return documentPath;
     }
 
-    #region Xam Methods
-
-    ///<summary>Throws exception. Creates and Saves a PDF document for the given statement.</summary>
     public static DataSet CreateAndSaveStatementPDF(Statement statement, SheetDef sheetDef, bool isLimitedCustom, bool showLName, bool excludeTxfr, List<Def> listDefsImageCat, string pdfFileName = "", Sheet sheet = null, DataSet dataSet = null, string description = "")
     {
         string tempPath;
@@ -774,12 +692,4 @@ public class Documents
         Statements.SyncStatementProdsForStatement(dataSet, statement.StatementNum, statement.DocNum);
         return dataSet;
     }
-
-    #endregion Xam Methods
-}
-
-public class DocumentForApi
-{
-    public DateTime DateTimeServer;
-    public Document DocumentCur;
 }

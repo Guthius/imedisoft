@@ -3,27 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.WebTypes.WebForms;
 
 namespace OpenDentBusiness;
 
-
 public class SheetFields
 {
-    #region Insert
-
     public static void InsertMany(List<SheetField> listSheetFields)
     {
         SheetFieldCrud.InsertMany(listSheetFields);
-    }
-
-    #endregion
-
-    ///<Summary>Gets one SheetField from the database.</Summary>
-    public static SheetField CreateObject(long sheetFieldNum)
-    {
-        return SheetFieldCrud.SelectOne(sheetFieldNum);
     }
 
     public static List<SheetField> GetListForSheet(long sheetNum)
@@ -33,7 +23,6 @@ public class SheetFields
         return SheetFieldCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a list of SheetFields for the list of SheetNums passed in.</summary>
     public static List<SheetField> GetListForSheets(List<long> listSheetNums)
     {
         if (listSheetNums.IsNullOrEmpty()) return new List<SheetField>();
@@ -42,11 +31,6 @@ public class SheetFields
         return SheetFieldCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     When we need to use a sheet, we must run this method to pull all the associated fields and parameters from the
-    ///     database.
-    ///     Then it will be ready for printing, copying, etc.
-    /// </summary>
     public static void GetFieldsAndParameters(Sheet sheet, List<SheetField> listSheetFields = null)
     {
         if (listSheetFields == null)
@@ -66,11 +50,6 @@ public class SheetFields
             }
     }
 
-    /// <summary>
-    ///     Used in SheetFiller to fill patient letter with exam sheet information.  Will return null if no exam sheet
-    ///     matching the description exists for the patient.  Usually just returns one field, but will return a list of fields
-    ///     if it's for a RadioButtonGroup.
-    /// </summary>
     public static List<SheetField> GetFieldFromExamSheet(long patNum, string examDescript, string fieldName)
     {
         var sheet = Sheets.GetMostRecentExamSheet(patNum, examDescript);
@@ -81,37 +60,16 @@ public class SheetFields
         return SheetFieldCrud.SelectMany(command);
     }
 
-    
-    public static long Insert(SheetField sheetField)
-    {
-        return SheetFieldCrud.Insert(sheetField);
-    }
-
-    
     public static void Update(SheetField sheetField)
     {
         SheetFieldCrud.Update(sheetField);
     }
 
-    
     public static void DeleteObject(long sheetFieldNum)
     {
         SheetFieldCrud.Delete(sheetFieldNum);
     }
 
-    ///<summary>Deletes all existing drawing fields for a sheet from the database and then adds back the list supplied.</summary>
-    public static void SetDrawings(List<SheetField> listSheetFields, long sheetNum)
-    {
-        var command = "DELETE FROM sheetfield WHERE SheetNum=" + SOut.Long(sheetNum)
-                                                               + " AND FieldType=" + SOut.Long((int) SheetFieldType.Drawing);
-        Db.NonQ(command);
-        for (var i = 0; i < listSheetFields.Count; i++) Insert(listSheetFields[i]);
-    }
-
-    /// <summary>
-    ///     Sorts fields in the order that they shoudl be drawn on top of eachother. First Images, then Drawings, Lines,
-    ///     Rectangles, Text, Check Boxes, and SigBoxes. In that order.
-    /// </summary>
     public static int SortDrawingOrderLayers(SheetField sheetField1, SheetField sheetField2)
     {
         if (FieldTypeSortOrder(sheetField1.FieldType) != FieldTypeSortOrder(sheetField2.FieldType)) return FieldTypeSortOrder(sheetField1.FieldType).CompareTo(FieldTypeSortOrder(sheetField2.FieldType));
@@ -119,7 +77,6 @@ public class SheetFields
         //return f1.SheetFieldNum.CompareTo(f2.SheetFieldNum);
     }
 
-    
     public static DateTime GetBirthDate(string strDate, bool isWebForm, bool isCemtTransfer, string cultureName = "")
     {
         DateTime dateTime;
@@ -132,10 +89,6 @@ public class SheetFields
         return dateTime;
     }
 
-    /// <summary>
-    ///     Re-orders the SheetFieldType enum to a drawing order. Images should be drawn first, then drawings, then lines,
-    ///     then rectangles, etc...
-    /// </summary>
     internal static int FieldTypeSortOrder(SheetFieldType sheetFieldType)
     {
         switch (sheetFieldType)
@@ -166,23 +119,11 @@ public class SheetFields
         }
     }
 
-    /// <summary>
-    ///     Sorts the sheet fields by SheetFieldNum.  This is used when creating a signature key and is absolutely
-    ///     critical that it not change.
-    /// </summary>
     public static int SortPrimaryKey(SheetField sheetField1, SheetField sheetField2)
     {
         return sheetField1.SheetFieldNum.CompareTo(sheetField2.SheetFieldNum);
     }
 
-    /// <summary>
-    ///     SigBoxes must be synced after all other fields have been synced for the keyData to be in the right order.
-    ///     So sync must be called first without SigBoxes, then the keyData for the signature(s) can be retrieved, then the
-    ///     SigBoxes can be synced.
-    ///     This function uses a DB comparison rather than a stale list because we are not worried about concurrency of a
-    ///     single sheet and enhancing the
-    ///     functions that call this would take a lot of restructuring.
-    /// </summary>
     public static void Sync(List<SheetField> listSheetFieldsNew, long sheetNum, bool isSigBoxOnly)
     {
         var listSheetFieldsDB = GetListForSheet(sheetNum);
@@ -215,11 +156,6 @@ public class SheetFields
         return "";
     }
 
-    /// <summary>
-    ///     Parses the menu item options out of the sheet field passed in and returns values ready for display.
-    ///     Since these values can be manipulated for display purposes, any changes in this method need to be reflected in
-    ///     SetComboFieldValue().
-    /// </summary>
     public static List<string> GetComboMenuItems(SheetField sheetField)
     {
         var listStringsReturn = new List<string>();
@@ -242,11 +178,6 @@ public class SheetFields
         return listStringsReturn;
     }
 
-    /// <summary>
-    ///     Parses the selected option passed in and sets the sheet field's FieldValue accordingly.
-    ///     Since the selected option may have been manipulated for display purposes, any changes in this method need to be
-    ///     reflected in GetComboMenuItems().
-    /// </summary>
     public static void SetComboFieldValue(SheetField sheetField, string selectedOption)
     {
         var stringAll = "";

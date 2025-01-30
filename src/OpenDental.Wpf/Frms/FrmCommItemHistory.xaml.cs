@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -34,11 +36,11 @@ namespace OpenDental {
 		private void FillGrid() {
 			gridCommlogHist.BeginUpdate();
 			gridCommlogHist.Columns.Clear();
-			GridColumn col=new GridColumn(Lang.g("TableCommlogHist","Date Time"),140,HorizontalAlignment.Center);
+			GridColumn col=new GridColumn("Date Time",140,HorizontalAlignment.Center);
 			gridCommlogHist.Columns.Add(col);
-			col=new GridColumn(Lang.g("TableCommlogHist","Hist Source"),80);
+			col=new GridColumn("Hist Source",80);
 			gridCommlogHist.Columns.Add(col);
-			col=new GridColumn(Lang.g("TableCommlogHist","Cust. Phone Raw"),80);
+			col=new GridColumn("Cust. Phone Raw",80);
 			gridCommlogHist.Columns.Add(col);
 			gridCommlogHist.ListGridRows.Clear();
 			GridRow row;

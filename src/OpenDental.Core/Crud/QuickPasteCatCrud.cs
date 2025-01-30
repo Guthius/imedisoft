@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class QuickPasteCatCrud
 {
@@ -79,7 +81,7 @@ public class QuickPasteCatCrud
             + SOut.Int(quickPasteCat.ItemOrder) + ","
             + DbHelper.ParamChar + "paramDefaultForTypes)";
         if (quickPasteCat.DefaultForTypes == null) quickPasteCat.DefaultForTypes = "";
-        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", OdDbType.Text, SOut.StringParam(quickPasteCat.DefaultForTypes));
+        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", SOut.StringParam(quickPasteCat.DefaultForTypes));
         {
             quickPasteCat.QuickPasteCatNum = Db.NonQ(command, true, "QuickPasteCatNum", "quickPasteCat", paramDefaultForTypes);
         }
@@ -103,7 +105,7 @@ public class QuickPasteCatCrud
             + SOut.Int(quickPasteCat.ItemOrder) + ","
             + DbHelper.ParamChar + "paramDefaultForTypes)";
         if (quickPasteCat.DefaultForTypes == null) quickPasteCat.DefaultForTypes = "";
-        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", OdDbType.Text, SOut.StringParam(quickPasteCat.DefaultForTypes));
+        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", SOut.StringParam(quickPasteCat.DefaultForTypes));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDefaultForTypes);
         else
@@ -119,7 +121,7 @@ public class QuickPasteCatCrud
                       + "DefaultForTypes =  " + DbHelper.ParamChar + "paramDefaultForTypes "
                       + "WHERE QuickPasteCatNum = " + SOut.Long(quickPasteCat.QuickPasteCatNum);
         if (quickPasteCat.DefaultForTypes == null) quickPasteCat.DefaultForTypes = "";
-        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", OdDbType.Text, SOut.StringParam(quickPasteCat.DefaultForTypes));
+        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", SOut.StringParam(quickPasteCat.DefaultForTypes));
         Db.NonQ(command, paramDefaultForTypes);
     }
 
@@ -146,7 +148,7 @@ public class QuickPasteCatCrud
 
         if (command == "") return false;
         if (quickPasteCat.DefaultForTypes == null) quickPasteCat.DefaultForTypes = "";
-        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", OdDbType.Text, SOut.StringParam(quickPasteCat.DefaultForTypes));
+        var paramDefaultForTypes = new OdSqlParameter("paramDefaultForTypes", SOut.StringParam(quickPasteCat.DefaultForTypes));
         command = "UPDATE quickpastecat SET " + command
                                               + " WHERE QuickPasteCatNum = " + SOut.Long(quickPasteCat.QuickPasteCatNum);
         Db.NonQ(command, paramDefaultForTypes);

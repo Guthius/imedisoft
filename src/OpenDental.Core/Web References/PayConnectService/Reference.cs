@@ -21,8 +21,6 @@ namespace OpenDentBusiness.PayConnectService {
     using System.Web.Services.Protocols;
     using System.Web.Services;
     
-    
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -30,28 +28,8 @@ namespace OpenDentBusiness.PayConnectService {
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(Response))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(transRequest))]
     public partial class MerchantService : System.Web.Services.Protocols.SoapHttpClientProtocol {
-        
-        private System.Threading.SendOrPostCallback isValidCardOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback processCheckOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback getCardTypeOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback getBatchInfoOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback processCreditCardOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback getMerchantInfoOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback processSignatureOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback isValidExpirationOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback processDebitCardOperationCompleted;
-        
         private bool useDefaultCredentialsSetExplicitly;
-        
-        /// <remarks/>
+  
         public MerchantService() {
             this.Url = global::OpenDentBusiness.Properties.Settings.Default.OpenDentBusiness_PayConnectService_MerchantService;
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
@@ -86,35 +64,7 @@ namespace OpenDentBusiness.PayConnectService {
                 this.useDefaultCredentialsSetExplicitly = true;
             }
         }
-        
-        /// <remarks/>
-        public event isValidCardCompletedEventHandler isValidCardCompleted;
-        
-        /// <remarks/>
-        public event processCheckCompletedEventHandler processCheckCompleted;
-        
-        /// <remarks/>
-        public event getCardTypeCompletedEventHandler getCardTypeCompleted;
-        
-        /// <remarks/>
-        public event getBatchInfoCompletedEventHandler getBatchInfoCompleted;
-        
-        /// <remarks/>
-        public event processCreditCardCompletedEventHandler processCreditCardCompleted;
-        
-        /// <remarks/>
-        public event getMerchantInfoCompletedEventHandler getMerchantInfoCompleted;
-        
-        /// <remarks/>
-        public event processSignatureCompletedEventHandler processSignatureCompleted;
-        
-        /// <remarks/>
-        public event isValidExpirationCompletedEventHandler isValidExpirationCompleted;
-        
-        /// <remarks/>
-        public event processDebitCardCompletedEventHandler processDebitCardCompleted;
-        
-        /// <remarks/>
+
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
         [return: System.Xml.Serialization.XmlElementAttribute("return", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public bool isValidCard([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] string number) {
@@ -123,120 +73,6 @@ namespace OpenDentBusiness.PayConnectService {
             return ((bool)(results[0]));
         }
         
-        /// <remarks/>
-        public void isValidCardAsync(string number) {
-            this.isValidCardAsync(number, null);
-        }
-        
-        /// <remarks/>
-        public void isValidCardAsync(string number, object userState) {
-            if ((this.isValidCardOperationCompleted == null)) {
-                this.isValidCardOperationCompleted = new System.Threading.SendOrPostCallback(this.OnisValidCardOperationCompleted);
-            }
-            this.InvokeAsync("isValidCard", new object[] {
-                        number}, this.isValidCardOperationCompleted, userState);
-        }
-        
-        private void OnisValidCardOperationCompleted(object arg) {
-            if ((this.isValidCardCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.isValidCardCompleted(this, new isValidCardCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        [return: System.Xml.Serialization.XmlElementAttribute("transResponse", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public transResponse processCheck([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] Credentials credentials, [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] checkRequest request) {
-            object[] results = this.Invoke("processCheck", new object[] {
-                        credentials,
-                        request});
-            return ((transResponse)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void processCheckAsync(Credentials credentials, checkRequest request) {
-            this.processCheckAsync(credentials, request, null);
-        }
-        
-        /// <remarks/>
-        public void processCheckAsync(Credentials credentials, checkRequest request, object userState) {
-            if ((this.processCheckOperationCompleted == null)) {
-                this.processCheckOperationCompleted = new System.Threading.SendOrPostCallback(this.OnprocessCheckOperationCompleted);
-            }
-            this.InvokeAsync("processCheck", new object[] {
-                        credentials,
-                        request}, this.processCheckOperationCompleted, userState);
-        }
-        
-        private void OnprocessCheckOperationCompleted(object arg) {
-            if ((this.processCheckCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.processCheckCompleted(this, new processCheckCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public void getCardType([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] string number, [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] out cardType cardType, [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] [System.Xml.Serialization.XmlIgnoreAttribute()] out bool cardTypeSpecified) {
-            object[] results = this.Invoke("getCardType", new object[] {
-                        number});
-            cardType = ((cardType)(results[0]));
-            cardTypeSpecified = ((bool)(results[1]));
-        }
-        
-        /// <remarks/>
-        public void getCardTypeAsync(string number) {
-            this.getCardTypeAsync(number, null);
-        }
-        
-        /// <remarks/>
-        public void getCardTypeAsync(string number, object userState) {
-            if ((this.getCardTypeOperationCompleted == null)) {
-                this.getCardTypeOperationCompleted = new System.Threading.SendOrPostCallback(this.OngetCardTypeOperationCompleted);
-            }
-            this.InvokeAsync("getCardType", new object[] {
-                        number}, this.getCardTypeOperationCompleted, userState);
-        }
-        
-        private void OngetCardTypeOperationCompleted(object arg) {
-            if ((this.getCardTypeCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.getCardTypeCompleted(this, new getCardTypeCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        [return: System.Xml.Serialization.XmlElementAttribute("batchInfo", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public batchInfoResponse getBatchInfo([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] Credentials credentials) {
-            object[] results = this.Invoke("getBatchInfo", new object[] {
-                        credentials});
-            return ((batchInfoResponse)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void getBatchInfoAsync(Credentials credentials) {
-            this.getBatchInfoAsync(credentials, null);
-        }
-        
-        /// <remarks/>
-        public void getBatchInfoAsync(Credentials credentials, object userState) {
-            if ((this.getBatchInfoOperationCompleted == null)) {
-                this.getBatchInfoOperationCompleted = new System.Threading.SendOrPostCallback(this.OngetBatchInfoOperationCompleted);
-            }
-            this.InvokeAsync("getBatchInfo", new object[] {
-                        credentials}, this.getBatchInfoOperationCompleted, userState);
-        }
-        
-        private void OngetBatchInfoOperationCompleted(object arg) {
-            if ((this.getBatchInfoCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.getBatchInfoCompleted(this, new getBatchInfoCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
         [return: System.Xml.Serialization.XmlElementAttribute("transResponse", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public transResponse processCreditCard([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] Credentials credentials, [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] creditCardRequest request) {
@@ -246,59 +82,6 @@ namespace OpenDentBusiness.PayConnectService {
             return ((transResponse)(results[0]));
         }
         
-        /// <remarks/>
-        public void processCreditCardAsync(Credentials credentials, creditCardRequest request) {
-            this.processCreditCardAsync(credentials, request, null);
-        }
-        
-        /// <remarks/>
-        public void processCreditCardAsync(Credentials credentials, creditCardRequest request, object userState) {
-            if ((this.processCreditCardOperationCompleted == null)) {
-                this.processCreditCardOperationCompleted = new System.Threading.SendOrPostCallback(this.OnprocessCreditCardOperationCompleted);
-            }
-            this.InvokeAsync("processCreditCard", new object[] {
-                        credentials,
-                        request}, this.processCreditCardOperationCompleted, userState);
-        }
-        
-        private void OnprocessCreditCardOperationCompleted(object arg) {
-            if ((this.processCreditCardCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.processCreditCardCompleted(this, new processCreditCardCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        [return: System.Xml.Serialization.XmlElementAttribute("merchantInfo", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public merchantInfoResponse getMerchantInfo([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] Credentials credentials) {
-            object[] results = this.Invoke("getMerchantInfo", new object[] {
-                        credentials});
-            return ((merchantInfoResponse)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void getMerchantInfoAsync(Credentials credentials) {
-            this.getMerchantInfoAsync(credentials, null);
-        }
-        
-        /// <remarks/>
-        public void getMerchantInfoAsync(Credentials credentials, object userState) {
-            if ((this.getMerchantInfoOperationCompleted == null)) {
-                this.getMerchantInfoOperationCompleted = new System.Threading.SendOrPostCallback(this.OngetMerchantInfoOperationCompleted);
-            }
-            this.InvokeAsync("getMerchantInfo", new object[] {
-                        credentials}, this.getMerchantInfoOperationCompleted, userState);
-        }
-        
-        private void OngetMerchantInfoOperationCompleted(object arg) {
-            if ((this.getMerchantInfoCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.getMerchantInfoCompleted(this, new getMerchantInfoCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
         [return: System.Xml.Serialization.XmlElementAttribute("signatureResponse", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public signatureResponse processSignature([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] Credentials credentials, [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] signatureRequest request) {
@@ -308,29 +91,6 @@ namespace OpenDentBusiness.PayConnectService {
             return ((signatureResponse)(results[0]));
         }
         
-        /// <remarks/>
-        public void processSignatureAsync(Credentials credentials, signatureRequest request) {
-            this.processSignatureAsync(credentials, request, null);
-        }
-        
-        /// <remarks/>
-        public void processSignatureAsync(Credentials credentials, signatureRequest request, object userState) {
-            if ((this.processSignatureOperationCompleted == null)) {
-                this.processSignatureOperationCompleted = new System.Threading.SendOrPostCallback(this.OnprocessSignatureOperationCompleted);
-            }
-            this.InvokeAsync("processSignature", new object[] {
-                        credentials,
-                        request}, this.processSignatureOperationCompleted, userState);
-        }
-        
-        private void OnprocessSignatureOperationCompleted(object arg) {
-            if ((this.processSignatureCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.processSignatureCompleted(this, new processSignatureCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
         [return: System.Xml.Serialization.XmlElementAttribute("return", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public bool isValidExpiration([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] expiration expiration) {
@@ -338,65 +98,7 @@ namespace OpenDentBusiness.PayConnectService {
                         expiration});
             return ((bool)(results[0]));
         }
-        
-        /// <remarks/>
-        public void isValidExpirationAsync(expiration expiration) {
-            this.isValidExpirationAsync(expiration, null);
-        }
-        
-        /// <remarks/>
-        public void isValidExpirationAsync(expiration expiration, object userState) {
-            if ((this.isValidExpirationOperationCompleted == null)) {
-                this.isValidExpirationOperationCompleted = new System.Threading.SendOrPostCallback(this.OnisValidExpirationOperationCompleted);
-            }
-            this.InvokeAsync("isValidExpiration", new object[] {
-                        expiration}, this.isValidExpirationOperationCompleted, userState);
-        }
-        
-        private void OnisValidExpirationOperationCompleted(object arg) {
-            if ((this.isValidExpirationCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.isValidExpirationCompleted(this, new isValidExpirationCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("", RequestNamespace="dxci.merchant", ResponseNamespace="dxci.merchant", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        [return: System.Xml.Serialization.XmlElementAttribute("transResponse", Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public transResponse processDebitCard([System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] Credentials credentials, [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)] debitCardRequest request) {
-            object[] results = this.Invoke("processDebitCard", new object[] {
-                        credentials,
-                        request});
-            return ((transResponse)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void processDebitCardAsync(Credentials credentials, debitCardRequest request) {
-            this.processDebitCardAsync(credentials, request, null);
-        }
-        
-        /// <remarks/>
-        public void processDebitCardAsync(Credentials credentials, debitCardRequest request, object userState) {
-            if ((this.processDebitCardOperationCompleted == null)) {
-                this.processDebitCardOperationCompleted = new System.Threading.SendOrPostCallback(this.OnprocessDebitCardOperationCompleted);
-            }
-            this.InvokeAsync("processDebitCard", new object[] {
-                        credentials,
-                        request}, this.processDebitCardOperationCompleted, userState);
-        }
-        
-        private void OnprocessDebitCardOperationCompleted(object arg) {
-            if ((this.processDebitCardCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.processDebitCardCompleted(this, new processDebitCardCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        public new void CancelAsync(object userState) {
-            base.CancelAsync(userState);
-        }
-        
+
         private bool IsLocalFileSystemWebService(string url) {
             if (((url == null) 
                         || (url == string.Empty))) {
@@ -411,7 +113,6 @@ namespace OpenDentBusiness.PayConnectService {
         }
     }
     
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9032.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -420,18 +121,11 @@ namespace OpenDentBusiness.PayConnectService {
     public partial class Credentials {
         
         private string clientField;
-        
         private string serviceIDField;
-        
         private string usernameField;
-        
         private string passwordField;
-        
-        private string securityTokenField;
-        
         private string versionField;
         
-        /// <remarks/>
         public string Client {
             get {
                 return this.clientField;
@@ -441,7 +135,6 @@ namespace OpenDentBusiness.PayConnectService {
             }
         }
         
-        /// <remarks/>
         public string ServiceID {
             get {
                 return this.serviceIDField;
@@ -451,7 +144,6 @@ namespace OpenDentBusiness.PayConnectService {
             }
         }
         
-        /// <remarks/>
         public string Username {
             get {
                 return this.usernameField;
@@ -461,7 +153,6 @@ namespace OpenDentBusiness.PayConnectService {
             }
         }
         
-        /// <remarks/>
         public string Password {
             get {
                 return this.passwordField;
@@ -470,18 +161,7 @@ namespace OpenDentBusiness.PayConnectService {
                 this.passwordField = value;
             }
         }
-        
-        /// <remarks/>
-        public string SecurityToken {
-            get {
-                return this.securityTokenField;
-            }
-            set {
-                this.securityTokenField = value;
-            }
-        }
-        
-        /// <remarks/>
+
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string version {
             get {
@@ -493,7 +173,6 @@ namespace OpenDentBusiness.PayConnectService {
         }
     }
     
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9032.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -502,12 +181,9 @@ namespace OpenDentBusiness.PayConnectService {
     public partial class signatureRequest {
         
         private signatureType signatureTypeField;
-        
         private string signatureDataField;
-        
         private string refNumberField;
         
-        /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public signatureType SignatureType {
             get {
@@ -518,7 +194,6 @@ namespace OpenDentBusiness.PayConnectService {
             }
         }
         
-        /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public string SignatureData {
             get {
@@ -529,7 +204,6 @@ namespace OpenDentBusiness.PayConnectService {
             }
         }
         
-        /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public string RefNumber {
             get {
@@ -541,23 +215,16 @@ namespace OpenDentBusiness.PayConnectService {
         }
     }
     
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9032.0")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="dxci.merchant")]
     public enum signatureType {
         
-        /// <remarks/>
         BMP,
-        
-        /// <remarks/>
         JPEG,
-        
-        /// <remarks/>
         TIFF,
     }
     
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9032.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -566,10 +233,8 @@ namespace OpenDentBusiness.PayConnectService {
     public partial class Status {
         
         private int codeField;
-        
         private string descriptionField;
         
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public int code {
             get {
@@ -580,7 +245,6 @@ namespace OpenDentBusiness.PayConnectService {
             }
         }
         
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string description {
             get {
@@ -606,7 +270,6 @@ namespace OpenDentBusiness.PayConnectService {
     public abstract partial class Response {
         
         private Status statusField;
-        
         private string[] messagesField;
         
         /// <remarks/>
@@ -1395,68 +1058,14 @@ namespace OpenDentBusiness.PayConnectService {
         FORCE,
     }
     
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9032.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="dxci.merchant")]
     public partial class debitCardRequest : transRequest {
-        
-        private string cardNumberField;
-        
-        private expiration expirationField;
-        
-        private decimal amountField;
-        
-        private string pINField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string CardNumber {
-            get {
-                return this.cardNumberField;
-            }
-            set {
-                this.cardNumberField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public expiration Expiration {
-            get {
-                return this.expirationField;
-            }
-            set {
-                this.expirationField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public decimal Amount {
-            get {
-                return this.amountField;
-            }
-            set {
-                this.amountField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string PIN {
-            get {
-                return this.pINField;
-            }
-            set {
-                this.pINField = value;
-            }
-        }
     }
     
-    /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.8.9032.0")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -1469,23 +1078,14 @@ namespace OpenDentBusiness.PayConnectService {
         private expiration expirationField;
         
         private string magDataField;
-        
         private string nameOnCardField;
         
         private decimal amountField;
-        
         private bool amountFieldSpecified;
-        
         private string refNumberField;
-        
-        private string invoiceNumberField;
-        
         private string zipField;
-        
         private string securityCodeField;
-        
         private bool paymentTokenRequestedField;
-        
         private bool paymentTokenRequestedFieldSpecified;
         
         /// <remarks/>
@@ -1564,18 +1164,7 @@ namespace OpenDentBusiness.PayConnectService {
                 this.refNumberField = value;
             }
         }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string InvoiceNumber {
-            get {
-                return this.invoiceNumberField;
-            }
-            set {
-                this.invoiceNumberField = value;
-            }
-        }
-        
+
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public string Zip {
@@ -1628,326 +1217,6 @@ namespace OpenDentBusiness.PayConnectService {
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="dxci.merchant")]
     public partial class checkRequest : transRequest {
-        
-        private string checkNumberField;
-        
-        private string transitNumberField;
-        
-        private string accountNumberField;
-        
-        private decimal amountField;
-        
-        private bool amountFieldSpecified;
-        
-        private string nameOnCheckField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string CheckNumber {
-            get {
-                return this.checkNumberField;
-            }
-            set {
-                this.checkNumberField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string TransitNumber {
-            get {
-                return this.transitNumberField;
-            }
-            set {
-                this.transitNumberField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string AccountNumber {
-            get {
-                return this.accountNumberField;
-            }
-            set {
-                this.accountNumberField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public decimal Amount {
-            get {
-                return this.amountField;
-            }
-            set {
-                this.amountField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool AmountSpecified {
-            get {
-                return this.amountFieldSpecified;
-            }
-            set {
-                this.amountFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form=System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string NameOnCheck {
-            get {
-                return this.nameOnCheckField;
-            }
-            set {
-                this.nameOnCheckField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void isValidCardCompletedEventHandler(object sender, isValidCardCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class isValidCardCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal isValidCardCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public bool Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((bool)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void processCheckCompletedEventHandler(object sender, processCheckCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class processCheckCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal processCheckCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public transResponse Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((transResponse)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void getCardTypeCompletedEventHandler(object sender, getCardTypeCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class getCardTypeCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal getCardTypeCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public cardType cardType {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((cardType)(this.results[0]));
-            }
-        }
-        
-        /// <remarks/>
-        public bool cardTypeSpecified {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((bool)(this.results[1]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void getBatchInfoCompletedEventHandler(object sender, getBatchInfoCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class getBatchInfoCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal getBatchInfoCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public batchInfoResponse Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((batchInfoResponse)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void processCreditCardCompletedEventHandler(object sender, processCreditCardCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class processCreditCardCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal processCreditCardCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public transResponse Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((transResponse)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void getMerchantInfoCompletedEventHandler(object sender, getMerchantInfoCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class getMerchantInfoCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal getMerchantInfoCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public merchantInfoResponse Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((merchantInfoResponse)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void processSignatureCompletedEventHandler(object sender, processSignatureCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class processSignatureCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal processSignatureCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public signatureResponse Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((signatureResponse)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void isValidExpirationCompletedEventHandler(object sender, isValidExpirationCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class isValidExpirationCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal isValidExpirationCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public bool Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((bool)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void processDebitCardCompletedEventHandler(object sender, processDebitCardCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class processDebitCardCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal processDebitCardCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public transResponse Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((transResponse)(this.results[0]));
-            }
-        }
     }
 }
 

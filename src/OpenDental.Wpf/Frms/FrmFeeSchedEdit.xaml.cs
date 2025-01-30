@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness;
@@ -85,8 +86,8 @@ namespace OpenDental {
 			}
 			List<InsPlan> listInsPlansForFeeSched = InsPlans.GetForFeeSchedNum(FeeSchedCur.FeeSchedNum);
 			if(listInsPlansForFeeSched.Count > 0) {
-				string insPlanMsg = Lans.g(this,"This fee schedule is tied to")+" "
-					+listInsPlansForFeeSched.Count+" "+Lans.g(this,"insurance plans.")+" "+Lans.g(this,"Continue?");
+				string insPlanMsg = Lans.g("This fee schedule is tied to")+" "
+					+listInsPlansForFeeSched.Count+" "+Lans.g("insurance plans.")+" "+Lans.g("Continue?");
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,insPlanMsg)) {
 					checkIsHidden.Checked=false;
 					return;
@@ -103,7 +104,7 @@ namespace OpenDental {
 				}
 			}
 			if(providersUsingFee!="") {
-				MessageBox.Show(Lans.g(this,"Cannot hide. Fee schedule is currently in use by the following providers")+":\r\n"+providersUsingFee);
+				MessageBox.Show(Lans.g("Cannot hide. Fee schedule is currently in use by the following providers")+":\r\n"+providersUsingFee);
 				checkIsHidden.Checked=false;
 			}
 			string patsUsingFee="";
@@ -111,7 +112,7 @@ namespace OpenDental {
 			List<Patient> listPatients=Patients.GetForFeeSched(FeeSchedCur.FeeSchedNum).FindAll(x => x.PatStatus!=PatientStatus.Deleted);
 			patsUsingFee=string.Join("\r\n",listPatients.Select(x => x.LName+", "+x.FName));
 			if(patsUsingFee!="") {
-				FrmMsgBoxCopyPaste frmMsgBoxCopyPaste=new FrmMsgBoxCopyPaste(Lans.g(this,"Cannot hide. Fee schedule currently in use by the following non-deleted patients")
+				FrmMsgBoxCopyPaste frmMsgBoxCopyPaste=new FrmMsgBoxCopyPaste(Lans.g("Cannot hide. Fee schedule currently in use by the following non-deleted patients")
 					+":\r\n"+patsUsingFee);
 				frmMsgBoxCopyPaste.ShowDialog();
 				checkIsHidden.Checked=false;

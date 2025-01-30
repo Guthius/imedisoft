@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -224,11 +226,11 @@ namespace OpenDental {
 		private void butSave_Click(object sender, EventArgs e) {
 			//a quick validation, just in case something slipped through
 			for(int i=0;i<_listEFormImportRules.Count;i++){
-				if(!EFormImportRules.isAllowedSit(_listEFormImportRules[i].FieldName,_listEFormImportRules[i].Situation)){
+				if(!EFormImportRules.IsAllowedSit(_listEFormImportRules[i].FieldName,_listEFormImportRules[i].Situation)){
 					MsgBox.Show("Invalid situation is not allowed for "+_listEFormImportRules[i].FieldName);
 					return;
 				}
-				if(!EFormImportRules.isAllowedAction(_listEFormImportRules[i].FieldName,_listEFormImportRules[i].Action)){
+				if(!EFormImportRules.IsAllowedAction(_listEFormImportRules[i].FieldName,_listEFormImportRules[i].Action)){
 					MsgBox.Show("Fix action is not allowed for "+_listEFormImportRules[i].FieldName);
 					return;
 				}

@@ -9,7 +9,6 @@ public static class WindowsApiWrapper
 
     public enum EM_Rich
     {
-        EM_LINESCROLL = 0x00B6,
         EM_SETMARGINS = 0x00D3,
         EM_POSFROMCHAR = 0x00D6
     }

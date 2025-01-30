@@ -1,33 +1,15 @@
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EClipboardSheetDefCrud
 {
-    public static EClipboardSheetDef SelectOne(long eClipboardSheetDefNum)
-    {
-        var command = "SELECT * FROM eclipboardsheetdef "
-                      + "WHERE EClipboardSheetDefNum = " + SOut.Long(eClipboardSheetDefNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static EClipboardSheetDef SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<EClipboardSheetDef> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -59,33 +41,7 @@ public class EClipboardSheetDefCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<EClipboardSheetDef> listEClipboardSheetDefs, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "EClipboardSheetDef";
-        var table = new DataTable(tableName);
-        table.Columns.Add("EClipboardSheetDefNum");
-        table.Columns.Add("SheetDefNum");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("ResubmitInterval");
-        table.Columns.Add("ItemOrder");
-        table.Columns.Add("PrefillStatus");
-        table.Columns.Add("MinAge");
-        table.Columns.Add("MaxAge");
-        table.Columns.Add("IgnoreSheetDefNums");
-        table.Columns.Add("PrefillStatusOverride");
-        table.Columns.Add("EFormDefNum");
-        table.Columns.Add("Frequency");
-        foreach (var eClipboardSheetDef in listEClipboardSheetDefs)
-            table.Rows.Add(SOut.Long(eClipboardSheetDef.EClipboardSheetDefNum), SOut.Long(eClipboardSheetDef.SheetDefNum), SOut.Long(eClipboardSheetDef.ClinicNum), SOut.Long(eClipboardSheetDef.ResubmitInterval.Ticks), SOut.Int(eClipboardSheetDef.ItemOrder), SOut.Int((int) eClipboardSheetDef.PrefillStatus), SOut.Int(eClipboardSheetDef.MinAge), SOut.Int(eClipboardSheetDef.MaxAge), eClipboardSheetDef.IgnoreSheetDefNums, SOut.Long(eClipboardSheetDef.PrefillStatusOverride), SOut.Long(eClipboardSheetDef.EFormDefNum), SOut.Int((int) eClipboardSheetDef.Frequency));
-        return table;
-    }
-
-    public static long Insert(EClipboardSheetDef eClipboardSheetDef)
-    {
-        return Insert(eClipboardSheetDef, false);
-    }
-
-    public static long Insert(EClipboardSheetDef eClipboardSheetDef, bool useExistingPK)
+    public static void Insert(EClipboardSheetDef eClipboardSheetDef)
     {
         var command = "INSERT INTO eclipboardsheetdef (";
 
@@ -104,44 +60,10 @@ public class EClipboardSheetDefCrud
                                                       + SOut.Long(eClipboardSheetDef.EFormDefNum) + ","
                                                       + SOut.Int((int) eClipboardSheetDef.Frequency) + ")";
         if (eClipboardSheetDef.IgnoreSheetDefNums == null) eClipboardSheetDef.IgnoreSheetDefNums = "";
-        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", OdDbType.Text, SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
+        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
         {
             eClipboardSheetDef.EClipboardSheetDefNum = Db.NonQ(command, true, "EClipboardSheetDefNum", "eClipboardSheetDef", paramIgnoreSheetDefNums);
         }
-        return eClipboardSheetDef.EClipboardSheetDefNum;
-    }
-
-    public static long InsertNoCache(EClipboardSheetDef eClipboardSheetDef)
-    {
-        return InsertNoCache(eClipboardSheetDef, false);
-    }
-
-    public static long InsertNoCache(EClipboardSheetDef eClipboardSheetDef, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO eclipboardsheetdef (";
-        if (isRandomKeys || useExistingPK) command += "EClipboardSheetDefNum,";
-        command += "SheetDefNum,ClinicNum,ResubmitInterval,ItemOrder,PrefillStatus,MinAge,MaxAge,IgnoreSheetDefNums,PrefillStatusOverride,EFormDefNum,Frequency) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(eClipboardSheetDef.EClipboardSheetDefNum) + ",";
-        command +=
-            SOut.Long(eClipboardSheetDef.SheetDefNum) + ","
-                                                      + SOut.Long(eClipboardSheetDef.ClinicNum) + ","
-                                                      + "'" + SOut.Long(eClipboardSheetDef.ResubmitInterval.Ticks) + "',"
-                                                      + SOut.Int(eClipboardSheetDef.ItemOrder) + ","
-                                                      + SOut.Int((int) eClipboardSheetDef.PrefillStatus) + ","
-                                                      + SOut.Int(eClipboardSheetDef.MinAge) + ","
-                                                      + SOut.Int(eClipboardSheetDef.MaxAge) + ","
-                                                      + DbHelper.ParamChar + "paramIgnoreSheetDefNums,"
-                                                      + SOut.Long(eClipboardSheetDef.PrefillStatusOverride) + ","
-                                                      + SOut.Long(eClipboardSheetDef.EFormDefNum) + ","
-                                                      + SOut.Int((int) eClipboardSheetDef.Frequency) + ")";
-        if (eClipboardSheetDef.IgnoreSheetDefNums == null) eClipboardSheetDef.IgnoreSheetDefNums = "";
-        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", OdDbType.Text, SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramIgnoreSheetDefNums);
-        else
-            eClipboardSheetDef.EClipboardSheetDefNum = Db.NonQ(command, true, "EClipboardSheetDefNum", "eClipboardSheetDef", paramIgnoreSheetDefNums);
-        return eClipboardSheetDef.EClipboardSheetDefNum;
     }
 
     public static void Update(EClipboardSheetDef eClipboardSheetDef)
@@ -160,7 +82,7 @@ public class EClipboardSheetDefCrud
                       + "Frequency            =  " + SOut.Int((int) eClipboardSheetDef.Frequency) + " "
                       + "WHERE EClipboardSheetDefNum = " + SOut.Long(eClipboardSheetDef.EClipboardSheetDefNum);
         if (eClipboardSheetDef.IgnoreSheetDefNums == null) eClipboardSheetDef.IgnoreSheetDefNums = "";
-        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", OdDbType.Text, SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
+        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
         Db.NonQ(command, paramIgnoreSheetDefNums);
     }
 
@@ -235,34 +157,11 @@ public class EClipboardSheetDefCrud
 
         if (command == "") return false;
         if (eClipboardSheetDef.IgnoreSheetDefNums == null) eClipboardSheetDef.IgnoreSheetDefNums = "";
-        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", OdDbType.Text, SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
+        var paramIgnoreSheetDefNums = new OdSqlParameter("paramIgnoreSheetDefNums", SOut.StringParam(eClipboardSheetDef.IgnoreSheetDefNums));
         command = "UPDATE eclipboardsheetdef SET " + command
                                                    + " WHERE EClipboardSheetDefNum = " + SOut.Long(eClipboardSheetDef.EClipboardSheetDefNum);
         Db.NonQ(command, paramIgnoreSheetDefNums);
         return true;
-    }
-
-    public static bool UpdateComparison(EClipboardSheetDef eClipboardSheetDef, EClipboardSheetDef oldEClipboardSheetDef)
-    {
-        if (eClipboardSheetDef.SheetDefNum != oldEClipboardSheetDef.SheetDefNum) return true;
-        if (eClipboardSheetDef.ClinicNum != oldEClipboardSheetDef.ClinicNum) return true;
-        if (eClipboardSheetDef.ResubmitInterval != oldEClipboardSheetDef.ResubmitInterval) return true;
-        if (eClipboardSheetDef.ItemOrder != oldEClipboardSheetDef.ItemOrder) return true;
-        if (eClipboardSheetDef.PrefillStatus != oldEClipboardSheetDef.PrefillStatus) return true;
-        if (eClipboardSheetDef.MinAge != oldEClipboardSheetDef.MinAge) return true;
-        if (eClipboardSheetDef.MaxAge != oldEClipboardSheetDef.MaxAge) return true;
-        if (eClipboardSheetDef.IgnoreSheetDefNums != oldEClipboardSheetDef.IgnoreSheetDefNums) return true;
-        if (eClipboardSheetDef.PrefillStatusOverride != oldEClipboardSheetDef.PrefillStatusOverride) return true;
-        if (eClipboardSheetDef.EFormDefNum != oldEClipboardSheetDef.EFormDefNum) return true;
-        if (eClipboardSheetDef.Frequency != oldEClipboardSheetDef.Frequency) return true;
-        return false;
-    }
-
-    public static void Delete(long eClipboardSheetDefNum)
-    {
-        var command = "DELETE FROM eclipboardsheetdef "
-                      + "WHERE EClipboardSheetDefNum = " + SOut.Long(eClipboardSheetDefNum);
-        Db.NonQ(command);
     }
 
     public static void DeleteMany(List<long> listEClipboardSheetDefNums)
@@ -273,7 +172,7 @@ public class EClipboardSheetDefCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<EClipboardSheetDef> listNew, List<EClipboardSheetDef> listDB)
+    public static void Sync(List<EClipboardSheetDef> listNew, List<EClipboardSheetDef> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<EClipboardSheetDef>();
@@ -342,7 +241,6 @@ public class EClipboardSheetDefCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.EClipboardSheetDefNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

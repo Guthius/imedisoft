@@ -1,25 +1,18 @@
 using System;
 using System.Collections.Generic;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Deposits
 {
-    ///<summary>Gets all Deposits, ordered by DateDeposit, DepositNum.  </summary>
     public static List<Deposit> Refresh()
     {
-        var command = "SELECT * FROM deposit "
-                      + "ORDER BY DateDeposit";
-        return DepositCrud.SelectMany(command);
+        return DepositCrud.SelectMany("SELECT * FROM deposit ORDER BY DateDeposit");
     }
 
-    /// <summary>
-    ///     Gets all Deposits, as well as the clinic(s) associated to the deposit.  The listClinicNums cannot be null.  If
-    ///     listClinicNums is empty, then will return the deposits for all clinics.
-    /// </summary>
     public static List<Deposit> GetForClinics(List<long> listClinicNums, bool isUnattached)
     {
         var command = "SELECT deposit.*,"
@@ -50,7 +43,6 @@ public class Deposits
         return listDeposits;
     }
 
-    ///<summary>Gets only Deposits which are not attached to transactions.</summary>
     public static List<Deposit> GetUnattached()
     {
         var command = "SELECT * FROM deposit "
@@ -59,37 +51,26 @@ public class Deposits
         return DepositCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a single deposit directly from the database.</summary>
     public static Deposit GetOne(long depositNum)
     {
         return DepositCrud.SelectOne(depositNum);
     }
 
-    
     public static void Update(Deposit deposit)
     {
         DepositCrud.Update(deposit);
     }
 
-    
     public static void Update(Deposit deposit, Deposit depositOld)
     {
         DepositCrud.Update(deposit, depositOld);
     }
 
-    
     public static long Insert(Deposit deposit)
     {
         return DepositCrud.Insert(deposit);
     }
 
-    /// <summary>
-    ///     Returns without making any changes if dep.DepositNum==0.  Also handles detaching all payments and claimpayments.
-    ///     Throws exception if
-    ///     deposit is attached as a source document to a transaction.  The program should have detached the deposit from the
-    ///     transaction ahead of time, so
-    ///     I would never expect the program to throw this exception unless there was a bug.
-    /// </summary>
     public static void Delete(Deposit deposit)
     {
         if (deposit.DepositNum == 0) return;
@@ -106,7 +87,6 @@ public class Deposits
         DepositCrud.Delete(deposit.DepositNum);
     }
 
-    ///<summary>Detach specific payments and claimpayments from passed in deposit.</summary>
     public static void DetachFromDeposit(long depositNum, List<long> listPayNums, List<long> listClaimPaymentNums)
     {
         var command = "";

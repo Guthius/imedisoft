@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PayPlanCrud
 {
@@ -146,9 +148,9 @@ public class PayPlanCrud
                                       + "'" + SOut.String(payPlan.SecurityHash) + "',"
                                       + SOut.Long(payPlan.SheetDefNum) + ")";
         if (payPlan.Note == null) payPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlan.Note));
         if (payPlan.Signature == null) payPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(payPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(payPlan.Signature));
         {
             payPlan.PayPlanNum = Db.NonQ(command, true, "PayPlanNum", "payPlan", paramNote, paramSignature);
         }
@@ -294,9 +296,9 @@ public class PayPlanCrud
                                       + "'" + SOut.String(payPlan.SecurityHash) + "',"
                                       + SOut.Long(payPlan.SheetDefNum) + ")";
         if (payPlan.Note == null) payPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlan.Note));
         if (payPlan.Signature == null) payPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(payPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(payPlan.Signature));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramSignature);
         else
@@ -334,9 +336,9 @@ public class PayPlanCrud
                       + "SheetDefNum           =  " + SOut.Long(payPlan.SheetDefNum) + " "
                       + "WHERE PayPlanNum = " + SOut.Long(payPlan.PayPlanNum);
         if (payPlan.Note == null) payPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlan.Note));
         if (payPlan.Signature == null) payPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(payPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(payPlan.Signature));
         Db.NonQ(command, paramNote, paramSignature);
     }
 
@@ -495,9 +497,9 @@ public class PayPlanCrud
 
         if (command == "") return false;
         if (payPlan.Note == null) payPlan.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(payPlan.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlan.Note));
         if (payPlan.Signature == null) payPlan.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(payPlan.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(payPlan.Signature));
         command = "UPDATE payplan SET " + command
                                         + " WHERE PayPlanNum = " + SOut.Long(payPlan.PayPlanNum);
         Db.NonQ(command, paramNote, paramSignature);

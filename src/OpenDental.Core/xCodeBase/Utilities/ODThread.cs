@@ -10,21 +10,22 @@ public class ODThread
 {
     private readonly Thread _thread;
     private readonly AutoResetEvent _waitEvent = new(false);
-    private NamedResetEvent _waitEventAsyncQuitComplete;
-    public int TimeIntervalMs;
+    private AutoResetEvent _waitEventAsyncQuitComplete;
     private readonly WorkerDelegate _worker;
     private ExceptionDelegate _exceptionHandler;
     private WorkerDelegate _exitHandler;
     private readonly WorkerDelegate _setupHandler = null;
     private static readonly WorkerDelegate OnInitialize = null;
-    public object Tag;
-    public object[] Parameters;
-    public string GroupName = "default";
     private static readonly List<ODThread> ListOdThreads = [];
     private static readonly object LockObj = new();
     private bool _isAutoCleanup;
     private static Action<Exception, Thread> _actionUnhandledException;
+
+    public int TimeIntervalMs;
     private bool _wasAbortAttempted;
+    public object Tag;
+    public readonly object[] Parameters;
+    public string GroupName = "default";
 
     public bool HasQuit { get; private set; }
 
@@ -138,16 +139,21 @@ public class ODThread
                 }
             }
 
-            if (TimeIntervalMs > 0)
+            switch (TimeIntervalMs)
             {
-                if (!HasQuit)
+                case > 0:
                 {
-                    Wait(TimeIntervalMs);
+                    if (!HasQuit)
+                    {
+                        Wait(TimeIntervalMs);
+                    }
+
+                    break;
                 }
-            }
-            else if (TimeIntervalMs <= 0)
-            {
-                HasQuit = true;
+                
+                case <= 0:
+                    HasQuit = true;
+                    break;
             }
         }
 
@@ -209,23 +215,21 @@ public class ODThread
         MiscUtils.PreserveExceptionInfoAndThrow(e);
     }
 
-    public bool Join(int timeoutMs)
+    public void Join(int timeoutMs)
     {
         if (_thread.ThreadState == ThreadState.Unstarted)
         {
-            return true; //Thread has not even started yet to we cannot join.
+            return;
         }
 
         var hasJoined = _thread.Join(timeoutMs);
         if (hasJoined)
         {
-            return true;
+            return;
         }
 
         _wasAbortAttempted = true;
         _thread.Abort();
-
-        return false;
     }
 
     public static void AddGroupNameExitHandler(string groupName, EventHandler onExit)
@@ -256,11 +260,11 @@ public class ODThread
         }
     }
 
-    public NamedResetEvent QuitAsync(bool removeThread = true)
+    public AutoResetEvent QuitAsync(bool removeThread = true)
     {
         HasQuit = true;
 
-        _waitEventAsyncQuitComplete = new NamedResetEvent(Name);
+        _waitEventAsyncQuitComplete = new AutoResetEvent(false);
 
         Wakeup();
 
@@ -268,7 +272,7 @@ public class ODThread
         {
             return _waitEventAsyncQuitComplete;
         }
-        
+
         lock (LockObj)
         {
             ListOdThreads.Remove(this);
@@ -300,9 +304,9 @@ public class ODThread
         }
     }
 
-    public static List<NamedResetEvent> QuitAsyncThreadsByGroupName(string groupName, bool doRemoveThreads = false)
+    public static List<AutoResetEvent> QuitAsyncThreadsByGroupName(string groupName, bool doRemoveThreads = false)
     {
-        var listWaitHandles = new List<NamedResetEvent>();
+        var listWaitHandles = new List<AutoResetEvent>();
         var listThreadsForGroup = GetThreadsByGroupName(groupName);
         foreach (var t in listThreadsForGroup)
         {
@@ -415,10 +419,10 @@ public class ODThread
         Exception exceptionFirst = null;
         threadCount = Math.Min(threadCount, listActions.Count);
         var queueActions = new ConcurrentQueue<Action>(listActions);
-        
+
         //Make a group of threads to spread out the workload.
         var locker = new object();
-        
+
         //No one outside of this method cares about this group name. They have no authority over this group.
         var threadId = 1;
         var threadGroupGuid = Guid.NewGuid().ToString();
@@ -437,7 +441,7 @@ public class ODThread
                 Name = threadGroupName + "-" + threadId,
                 GroupName = threadGroupName
             };
-            
+
             odThread.AddExceptionHandler(e =>
             {
                 lock (locker)
@@ -481,22 +485,5 @@ public class ODThread
                 Application.Exit();
             });
         };
-    }
-}
-
-public class NamedResetEvent(string name)
-{
-    private readonly AutoResetEvent _waitEvent = new(false);
-
-    public readonly string Name = name;
-
-    public void Set()
-    {
-        _waitEvent.Set();
-    }
-
-    public bool WaitOne(int millisecondsTimeout)
-    {
-        return _waitEvent.WaitOne(millisecondsTimeout);
     }
 }

@@ -4,8 +4,10 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
@@ -16,135 +18,143 @@ public class Adjustments
         AdjustmentCrud.Update(adjustment);
     }
 
-    [Serializable]
     public class ChargeUndoData
     {
         public int CountDeletedAdjustments;
-        public List<long> ListSkippedPatNums = new();
+        public List<long> ListSkippedPatNums = [];
     }
 
-    public static List<Adjustment> GetMany(List<long> listAdjNums)
+    public static List<Adjustment> GetMany(List<long> adjNums)
     {
-        if (listAdjNums.IsNullOrEmpty()) return new List<Adjustment>();
-        var command = $"SELECT * FROM adjustment WHERE adjustment.AdjNum IN ({string.Join(",", listAdjNums.Select(x => SOut.Long(x)))})";
-        return AdjustmentCrud.SelectMany(command);
+        return adjNums.IsNullOrEmpty() ? [] : AdjustmentCrud.SelectMany($"SELECT * FROM adjustment WHERE adjustment.AdjNum IN ({string.Join(",", adjNums)})");
     }
 
     public static Adjustment[] Refresh(long patNum)
     {
-        var command =
-            "SELECT * FROM adjustment"
-            + " WHERE PatNum = " + SOut.Long(patNum) + " ORDER BY AdjDate";
-        return AdjustmentCrud.SelectMany(command).ToArray();
+        return AdjustmentCrud
+            .SelectMany("SELECT * FROM adjustment WHERE PatNum = " + patNum + " ORDER BY AdjDate")
+            .ToArray();
     }
 
     public static List<Adjustment> GetPatientData(long patNum)
     {
-        var command =
-            "SELECT * FROM adjustment"
-            + " WHERE PatNum = " + SOut.Long(patNum) + " ORDER BY AdjDate";
-        return AdjustmentCrud.SelectMany(command);
+        return AdjustmentCrud.SelectMany("SELECT * FROM adjustment WHERE PatNum = " + patNum + " ORDER BY AdjDate");
     }
 
     public static Adjustment GetOne(long adjNum)
     {
-        var command =
-            "SELECT * FROM adjustment"
-            + " WHERE AdjNum = " + SOut.Long(adjNum);
         return AdjustmentCrud.SelectOne(adjNum);
     }
 
-    public static double GetAmtAllocated(long adjNum, long payNumExcluded, List<PaySplit> listPaySplits = null)
+    public static double GetAmtAllocated(long adjNum, long payNumExcluded, List<PaySplit> paySplits = null)
     {
-        if (listPaySplits != null) return listPaySplits.FindAll(x => x.PayNum != payNumExcluded).Sum(x => x.SplitAmt);
-        var command = "SELECT SUM(SplitAmt) FROM paysplit WHERE AdjNum=" + SOut.Long(adjNum);
-        if (payNumExcluded != 0) command += " AND PayNum!=" + SOut.Long(payNumExcluded);
+        if (paySplits != null)
+        {
+            return paySplits.FindAll(x => x.PayNum != payNumExcluded).Sum(x => x.SplitAmt);
+        }
+
+        var command = "SELECT SUM(SplitAmt) FROM paysplit WHERE AdjNum=" + adjNum;
+        if (payNumExcluded != 0)
+        {
+            command += " AND PayNum!=" + payNumExcluded;
+        }
+
         return SIn.Double(DataCore.GetScalar(command));
     }
 
-    public static List<Adjustment> GetAdjustForPats(List<long> listPatNums)
+    public static List<Adjustment> GetAdjustForPats(List<long> patNums)
     {
-        var command = "SELECT * FROM adjustment "
-                      + "WHERE PatNum IN(" + string.Join(", ", listPatNums) + ") ";
-        return AdjustmentCrud.SelectMany(command);
+        return AdjustmentCrud.SelectMany("SELECT * FROM adjustment WHERE PatNum IN (" + string.Join(", ", patNums) + ")");
     }
 
-    public static List<Adjustment> GetForProc(long procNum, Adjustment[] adjustmentArray)
+    public static List<Adjustment> GetForProc(long procNum, IEnumerable<Adjustment> adjustments)
     {
-        var listAdjustments = new List<Adjustment>();
-        for (var i = 0; i < adjustmentArray.Length; i++)
-            if (adjustmentArray[i].ProcNum == procNum)
-                listAdjustments.Add(adjustmentArray[i]);
-
-        return listAdjustments;
+        return adjustments.Where(adjustment => adjustment.ProcNum == procNum).ToList();
     }
 
     public static List<Adjustment> GetListForProc(long procNum)
     {
-        var command = "SELECT * FROM adjustment WHERE ProcNum=" + SOut.Long(procNum);
-        return AdjustmentCrud.SelectMany(command);
+        return AdjustmentCrud.SelectMany("SELECT * FROM adjustment WHERE ProcNum=" + procNum);
     }
 
-    public static List<Adjustment> GetForProcs(List<long> listProcNums)
+    public static List<Adjustment> GetForProcs(List<long> procNums)
     {
-        var listAdjustments = new List<Adjustment>();
-        if (listProcNums == null || listProcNums.Count < 1) return listAdjustments;
-        var command = "SELECT * FROM adjustment WHERE ProcNum IN(" + string.Join(",", listProcNums) + ")";
-        return AdjustmentCrud.SelectMany(command);
+        if (procNums == null || procNums.Count < 1)
+        {
+            return [];
+        }
+
+        return AdjustmentCrud.SelectMany("SELECT * FROM adjustment WHERE ProcNum IN(" + string.Join(",", procNums) + ")");
     }
 
     public static double GetTotForProc(long procNum, bool canIncludeTax = true)
     {
-        var listProcNums = new List<long> {procNum};
-        return GetTotForProcs(listProcNums, canIncludeTax);
+        var procNums = new List<long> {procNum};
+
+        return GetTotForProcs(procNums, canIncludeTax);
     }
 
-    public static double GetTotForProcs(List<long> listProcNums, bool canIncludeTax = true)
+    public static double GetTotForProcs(List<long> procNums, bool canIncludeTax = true)
     {
-        if (listProcNums.IsNullOrEmpty()) return 0;
-        var command = "SELECT SUM(AdjAmt) FROM adjustment"
-                      + " WHERE ProcNum IN(" + string.Join(",", listProcNums.Select(x => SOut.Long(x))) + ")";
-        return SIn.Double(DataCore.GetScalar(command));
+        if (procNums.IsNullOrEmpty())
+        {
+            return 0;
+        }
+
+        return SIn.Double(DataCore.GetScalar("SELECT SUM(AdjAmt) FROM adjustment WHERE ProcNum IN(" + string.Join(",", procNums) + ")"));
     }
 
     public static List<Adjustment> GetAdjustForPatByType(long patNum, long adjType)
     {
-        var queryBrokenApts = "SELECT * FROM adjustment WHERE PatNum=" + SOut.Long(patNum)
-                                                                       + " AND AdjType=" + SOut.Long(adjType);
+        return AdjustmentCrud.SelectMany("SELECT * FROM adjustment WHERE PatNum=" + patNum + " AND AdjType=" + adjType);
+    }
+
+    public static List<Adjustment> GetAdjustForPatsByType(List<long> patNums, long adjType, DateTime dateAdjMax)
+    {
+        if (patNums == null || patNums.Count == 0)
+        {
+            return [];
+        }
+
+        var queryBrokenApts =
+            "SELECT * FROM adjustment " +
+            "WHERE PatNum IN (" + string.Join(",", patNums) + ") " +
+            "AND AdjType=" + adjType + " " +
+            "AND " + DbHelper.DateTConditionColumn("AdjDate", ConditionOperator.LessThan, dateAdjMax);
+
         return AdjustmentCrud.SelectMany(queryBrokenApts);
     }
 
-    public static List<Adjustment> GetAdjustForPatsByType(List<long> listPatNums, long adjType, DateTime dateAdjMax)
+    public static double GetTotForProc(long procNum, Adjustment[] adjustments, long excludedNum = 0)
     {
-        if (listPatNums == null || listPatNums.Count == 0) return new List<Adjustment>();
-        var queryBrokenApts = "SELECT * FROM adjustment "
-                              + "WHERE PatNum IN (" + string.Join(",", listPatNums) + ") "
-                              + "AND AdjType=" + SOut.Long(adjType) + " "
-                              + "AND " + DbHelper.DateTConditionColumn("AdjDate", ConditionOperator.LessThan, dateAdjMax);
-        var listAdjustments = AdjustmentCrud.SelectMany(queryBrokenApts);
-        return listAdjustments;
+        return adjustments
+            .Where(adjustment => adjustment.AdjNum != excludedNum)
+            .Where(adjustment => adjustment.ProcNum == procNum)
+            .Select(adjustment => adjustment.AdjAmt)
+            .Sum();
     }
 
-    public static double GetTotForProc(long procNum, Adjustment[] List, long excludedNum = 0)
+    public static List<Adjustment> GetForDateRange(DateTime dateStart, DateTime dateEnd, List<long> patNums = null, long adjType = -1, bool useProcDate = false)
     {
-        double retVal = 0;
-        for (var i = 0; i < List.Length; i++)
-        {
-            if (List[i].AdjNum == excludedNum) continue;
-            if (List[i].ProcNum == procNum) retVal += List[i].AdjAmt;
-        }
-
-        return retVal;
-    }
-
-    public static List<Adjustment> GetForDateRange(DateTime dateStart, DateTime dateEnd, List<long> listPatNums = null, long adjType = -1, bool useProcDate = false)
-    {
-        if (dateEnd < dateStart) return new List<Adjustment>();
+        if (dateEnd < dateStart) return [];
+        
         var dateColumn = "AdjDate";
-        if (useProcDate) dateColumn = "ProcDate";
+        if (useProcDate)
+        {
+            dateColumn = "ProcDate";
+        }
+        
         var command = $"SELECT * FROM adjustment WHERE {DbHelper.BetweenDates(dateColumn, dateStart, dateEnd)} ";
-        if (!listPatNums.IsNullOrEmpty()) command += $"AND PatNum IN ({string.Join(",", listPatNums.Select(x => SOut.Long(x)))}) ";
-        if (adjType != -1) command += $"AND AdjType={SOut.Long(adjType)} ";
+        if (!patNums.IsNullOrEmpty())
+        {
+            command += $"AND PatNum IN ({string.Join(",", patNums)}) ";
+        }
+        
+        if (adjType != -1)
+        {
+            command += $"AND AdjType={adjType} ";
+        }
+        
         return AdjustmentCrud.SelectMany(command);
     }
 
@@ -193,11 +203,14 @@ public class Adjustments
     public static int GetDifferenceNumberOfYears(DateTime startDate, DateTime endDate)
     {
         var years = 0;
-        var iterativeDateTime = startDate;
-        while (iterativeDateTime <= endDate)
+
+        var current = startDate;
+
+        while (current <= endDate)
         {
             years++;
-            iterativeDateTime = iterativeDateTime.AddYears(1);
+
+            current = current.AddYears(1);
         }
 
         return years;
@@ -325,7 +338,7 @@ public class Adjustments
     public static void DeleteForProcedure(long procNum)
     {
         //Create log for each adjustment that is going to be deleted.
-        var command = "SELECT * FROM adjustment WHERE ProcNum = " + SOut.Long(procNum); //query for all adjustments of a procedure 
+        var command = "SELECT * FROM adjustment WHERE ProcNum = " + procNum; //query for all adjustments of a procedure 
         var listAdjustments = AdjustmentCrud.SelectMany(command);
         var listAdjNums = new List<long>();
         for (var i = 0; i < listAdjustments.Count; i++)
@@ -339,7 +352,7 @@ public class Adjustments
         }
 
         //Delete each adjustment for the procedure.
-        command = "DELETE FROM adjustment WHERE ProcNum = " + SOut.Long(procNum);
+        command = "DELETE FROM adjustment WHERE ProcNum = " + procNum;
         Db.NonQ(command);
         //Late charge adjustments aren't normally attached to procedures, but it is possible for users to attach a procedure to them after they are
         //made, so we must update any StatementProds that might be associated to the deleted adjustment.
@@ -376,7 +389,7 @@ public class Adjustments
                       + "LEFT JOIN paysplit ON adjustment.AdjNum=paysplit.AdjNum "
                       + $"LEFT JOIN payplanlink ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType={SOut.Enum(PayPlanLinkType.Adjustment)} "
                       + "WHERE AdjDate=" + SOut.Date(dateUndo) + " "
-                      + "AND AdjType=" + SOut.Long(adjTypeDefNum) + " "
+                      + "AND AdjType=" + adjTypeDefNum + " "
                       + "GROUP BY adjustment.AdjNum";
         var table = DataCore.GetTable(command);
         var chargeUndoData = new ChargeUndoData();
@@ -399,56 +412,56 @@ public class Adjustments
             listAdjNumsToDelete.Add(SIn.Long(rowCur["AdjNum"].ToString()));
             var actionCreateAuditTrailEntry = () =>
             {
-                SecurityLogs.MakeLogEntry(EnumPermType.AdjustmentEdit, SIn.Long(rowCur["PatNum"].ToString()),
-                    "Delete adjustment for patient, undo " + adjTypeStr.ToLower() + " charges: "
-                    + Patients.GetNameLF(rowCur["LName"].ToString(), rowCur["FName"].ToString(), rowCur["Preferred"].ToString(), rowCur["MiddleI"].ToString())
-                    + ", " + SIn.Double(rowCur["AdjAmt"].ToString()).ToString("c"), 0, SIn.DateTime(rowCur["SecDateTEdit"].ToString()));
-                if (++loopCount % 5 == 0) //Have to use loopCount instead of i because we must increment within the action.
-                    ODEvent.Fire(ODEventType.ProgressBar, Lans.g("FinanceCharge", "Creating log entries for " + adjTypeStr.ToLower() + " charges ")
-                                                          + loopCount + " out of " + table.Rows.Count);
+                SecurityLogs.MakeLogEntry(EnumPermType.AdjustmentEdit, SIn.Long(rowCur["PatNum"].ToString()), "Delete adjustment for patient, undo " + adjTypeStr.ToLower() + " charges: " + Patients.GetNameLF(rowCur["LName"].ToString(), rowCur["FName"].ToString(), rowCur["Preferred"].ToString(), rowCur["MiddleI"].ToString()) + ", " + SIn.Double(rowCur["AdjAmt"].ToString()).ToString("c"), 0, SIn.DateTime(rowCur["SecDateTEdit"].ToString()));
+                if (++loopCount % 5 == 0) 
+                {
+                    ODEvent.Fire(ODEventType.ProgressBar, "Creating log entries for " + adjTypeStr.ToLower() + " charges " + loopCount + " out of " + table.Rows.Count);
+                }
             };
             listActions.Add(actionCreateAuditTrailEntry);
         }
 
         ODThread.RunParallel(listActions, TimeSpan.FromMinutes(2));
-        ODEvent.Fire(ODEventType.ProgressBar, Lans.g("FinanceCharge", "Deleting") + " " + table.Rows.Count + " "
-                                              + Lans.g("FinanceCharge", adjTypeStr.ToLower() + " charge adjustments") + "...");
+        
+        ODEvent.Fire(ODEventType.ProgressBar, "Deleting " + table.Rows.Count + " " + adjTypeStr.ToLower() + " charge adjustments...");
+        
         AdjustmentCrud.DeleteMany(listAdjNumsToDelete);
-        //Doing this because it is possible for a late charge's adjustment type to be changed to a billing or finance charge type.
-        //The late charge could then get deleted by this method, and we then need to clean up the associated StatementProds.
+        
         StatementProds.UpdateLateChargeAdjNumForMany(0, listAdjNumsToDelete.ToArray());
         chargeUndoData.CountDeletedAdjustments = listAdjNumsToDelete.Count;
+        
         return chargeUndoData;
     }
 
     public static ChargeUndoData UndoLateCharges(DateTime dateUndo)
     {
-        var command = @$"
-				SELECT adjustment.AdjNum,adjustment.AdjAmt,adjustment.PatNum,(CASE WHEN paysplit.SplitNum IS NULL THEN 0 ELSE 1 END) AS 'HasPaySplits', 
-				(CASE WHEN payplanlink.PayPlanLinkNum IS NULL THEN 0 ELSE 1 END) AS 'HasPayPlan'
-				FROM adjustment
-				INNER JOIN statementprod ON adjustment.AdjNum=statementprod.LateChargeAdjNum
-				LEFT JOIN paysplit ON adjustment.AdjNum=paysplit.AdjNum
-				LEFT JOIN payplanlink ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType={SOut.Enum(PayPlanLinkType.Adjustment)}
-				WHERE adjustment.AdjDate={SOut.Date(dateUndo)} 
-				GROUP BY adjustment.AdjNum";
+        var command =
+            $"""
+             SELECT adjustment.AdjNum,adjustment.AdjAmt,adjustment.PatNum,(CASE WHEN paysplit.SplitNum IS NULL THEN 0 ELSE 1 END) AS 'HasPaySplits', 
+             (CASE WHEN payplanlink.PayPlanLinkNum IS NULL THEN 0 ELSE 1 END) AS 'HasPayPlan'
+             FROM adjustment
+             INNER JOIN statementprod ON adjustment.AdjNum=statementprod.LateChargeAdjNum
+             LEFT JOIN paysplit ON adjustment.AdjNum=paysplit.AdjNum
+             LEFT JOIN payplanlink ON adjustment.AdjNum=payplanlink.FKey AND payplanlink.LinkType={SOut.Enum(PayPlanLinkType.Adjustment)}
+             WHERE adjustment.AdjDate={SOut.Date(dateUndo)} 
+             GROUP BY adjustment.AdjNum
+             """;
+
         var table = DataCore.GetTable(command);
         var chargeUndoDataLate = new ChargeUndoData();
         var listAdjNumsDeleted = new List<long>();
+
         for (var i = 0; i < table.Rows.Count; i++)
         {
             var dataRow = table.Rows[i];
             if (SIn.Bool(dataRow["HasPaySplits"].ToString()) || SIn.Bool(dataRow["HasPayPlan"].ToString()))
             {
-                //We can't delete adjustments that have payments attached.
                 chargeUndoDataLate.ListSkippedPatNums.Add(SIn.Long(dataRow["PatNum"].ToString()));
             }
             else
             {
                 listAdjNumsDeleted.Add(SIn.Long(dataRow["AdjNum"].ToString()));
-                SecurityLogs.MakeLogEntry(EnumPermType.AdjustmentEdit, SIn.Long(dataRow["PatNum"].ToString()),
-                    $"Late charges dated {dateUndo.ToShortDateString()} undone, Adjustment deleted, Amount: "
-                    + $"{SIn.Decimal(dataRow["AdjAmt"].ToString()).ToString("c")}");
+                SecurityLogs.MakeLogEntry(EnumPermType.AdjustmentEdit, SIn.Long(dataRow["PatNum"].ToString()), $"Late charges dated {dateUndo.ToShortDateString()} undone, Adjustment deleted, Amount: " + $"{SIn.Decimal(dataRow["AdjAmt"].ToString()):c}");
                 AdjustmentCrud.Delete(SIn.Long(dataRow["AdjNum"].ToString()));
                 StatementProds.UpdateLateChargeAdjNumForMany(0, SIn.Long(dataRow["AdjNum"].ToString()));
             }
@@ -458,53 +471,59 @@ public class Adjustments
         return chargeUndoDataLate;
     }
 
-    public static string GetQueryAdjustmentsForAppointments(DateTime dateStart, DateTime dateEnd, List<long> listOperatoryNums, bool doGetSum)
+    public static string GetQueryAdjustmentsForAppointments(DateTime dateStart, DateTime dateEnd, List<long> operatoryNums, bool doGetSum)
     {
-        if (listOperatoryNums.IsNullOrEmpty())
-            return "SELECT " + (doGetSum ? "SUM(adjustment.AdjAmt)" : "*")
-                             + " FROM adjustment WHERE AdjDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " ";
-        var command = "SELECT "
-                      + (doGetSum ? "SUM(adjustment.AdjAmt)" : "*")
-                      + " FROM adjustment WHERE AdjDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd)
-                      + " AND PatNum IN("
-                      + "SELECT PatNum FROM appointment "
-                      + "WHERE AptDateTime BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd.AddDays(1))
-                      + "AND AptStatus IN (" + SOut.Int((int) ApptStatus.Scheduled)
-                      + ", " + SOut.Int((int) ApptStatus.Complete)
-                      + ", " + SOut.Int((int) ApptStatus.Broken)
-                      + ", " + SOut.Int((int) ApptStatus.PtNote)
-                      + ", " + SOut.Int((int) ApptStatus.PtNoteCompleted) + ")"
-                      + " AND Op IN(" + string.Join(",", listOperatoryNums) + ")) ";
-        return command;
+        if (operatoryNums.IsNullOrEmpty())
+        {
+            return
+                "SELECT " + (doGetSum ? "SUM(adjustment.AdjAmt) " : "* ") +
+                "FROM adjustment " +
+                "WHERE AdjDate BETWEEN " + SOut.Date(dateStart) + " " +
+                "AND " + SOut.Date(dateEnd) + " ";
+        }
+
+        return
+            "SELECT " + (doGetSum ? "SUM(adjustment.AdjAmt) " : "* ") +
+            "FROM adjustment WHERE AdjDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " " +
+            "AND PatNum IN(" +
+            "SELECT PatNum FROM appointment " +
+            "WHERE AptDateTime BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd.AddDays(1)) +
+            "AND AptStatus IN (" +
+            (int) ApptStatus.Scheduled + ", " +
+            (int) ApptStatus.Complete + ", " +
+            (int) ApptStatus.Broken + ", " +
+            (int) ApptStatus.PtNote + ", " +
+            (int) ApptStatus.PtNoteCompleted + ")" + " " +
+            "AND Op IN (" + string.Join(",", operatoryNums) + ")) ";
     }
 
     public static List<Adjustment> CreateNegativeAdjustmentsForRefund(Payment paymentExisting)
     {
-        var listPaySplitsExisting = PaySplits.GetForPayment(paymentExisting.PayNum);
+        var existingPaySplits = PaySplits.GetForPayment(paymentExisting.PayNum);
         var def = Defs.GetDef(DefCat.AdjTypes, PrefC.GetLong(PrefName.RefundAdjustmentType));
-        Adjustment adjustment;
-        var listAdjustmentsAdded = new List<Adjustment>();
-        for (var i = 0; i < listPaySplitsExisting.Count; i++)
+        var adjustmentsAdded = new List<Adjustment>();
+
+        foreach (var paySplit in existingPaySplits)
         {
-            //if split has adjustments, is unallocated, or is attached to a payplan, don't make negative adjustments, and move on to next splits.         
-            if (listPaySplitsExisting[i].IsUnallocated
-                || listPaySplitsExisting[i].PayPlanNum > 0
-                || listPaySplitsExisting[i].PayPlanChargeNum > 0
-                || listPaySplitsExisting[i].UnearnedType > 0)
+            if (paySplit.IsUnallocated || paySplit.PayPlanNum > 0 || paySplit.PayPlanChargeNum > 0 || paySplit.UnearnedType > 0)
+            {
                 continue;
-            adjustment = new Adjustment();
-            adjustment.IsNew = true;
-            adjustment.DateEntry = DateTime.Today;
-            adjustment.AdjDate = DateTime.Today;
-            adjustment.ProcNum = listPaySplitsExisting[i].ProcNum;
-            adjustment.AdjAmt = -listPaySplitsExisting[i].SplitAmt;
-            adjustment.PatNum = listPaySplitsExisting[i].PatNum;
-            adjustment.ProvNum = listPaySplitsExisting[i].ProvNum;
-            adjustment.ClinicNum = listPaySplitsExisting[i].ClinicNum;
-            adjustment.AdjType = def.DefNum;
-            listAdjustmentsAdded.Add(adjustment);
+            }
+
+            adjustmentsAdded.Add(new Adjustment
+            {
+                IsNew = true,
+                DateEntry = DateTime.Today,
+                AdjDate = DateTime.Today,
+                ProcNum = paySplit.ProcNum,
+                AdjAmt = -paySplit.SplitAmt,
+                PatNum = paySplit.PatNum,
+                ProvNum = paySplit.ProvNum,
+                ClinicNum = paySplit.ClinicNum,
+                AdjType = def.DefNum
+            });
         }
 
-        return listAdjustmentsAdded;
+        return adjustmentsAdded;
     }
 }

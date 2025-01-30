@@ -13,6 +13,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 using OpenDentBusiness.Remoting;
@@ -51,7 +52,7 @@ namespace OpenDentBusiness {
 			xmlWriter.WriteElementString("XWEBTERMINALID",xwebProperties.TerminalID);
 			xmlWriter.WriteElementString("XWEBAUTHKEY",xwebProperties.AuthKey);
 			xmlWriter.WriteElementString("TRANSACTIONTYPE",edgeExpressTransactionType.ToString().ToUpper());
-			ODException.SwallowAnyException(() => Logger.LogVerbose(GetRequestLogText(xwebProperties,amount),subDirectory:"EdgeExpress"));
+			Logger.LogVerbose(GetRequestLogText(xwebProperties,amount));
 		}
 
 		public static string GetRequestLogText(WebPaymentProperties xwebProperties,double amount) {
@@ -818,7 +819,7 @@ namespace OpenDentBusiness {
 							else if(doCreatePayment) {
 								xWebResponseUpdate.PaymentNum=Payments.InsertFromXWeb(
 								//todo: create a formatted receipt to show the web user after the payment has been accepted
-								xWebResponseUpdate.PatNum,xWebResponseUpdate.ProvNum,xWebResponseUpdate.ClinicNum,xWebResponseUpdate.Amount,
+								xWebResponseUpdate.PatNum,xWebResponseUpdate.ClinicNum,xWebResponseUpdate.Amount,
 								xWebResponseUpdate.GetFormattedNote(true),//If we ever allow returns or voids from Patient Portal, we will need to change this argument.
 								"",xWebResponseUpdate.CCSource);
 							}

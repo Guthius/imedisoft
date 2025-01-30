@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SmsToMobileCrud
 {
@@ -125,7 +127,7 @@ public class SmsToMobileCrud
                                           + SOut.Float(smsToMobile.MsgDiscountUSD) + ")";
         //SecDateTEdit can only be set by MySQL
         if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", OdDbType.Text, SOut.StringNote(smsToMobile.MsgText));
+        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
         {
             smsToMobile.SmsToMobileNum = Db.NonQ(command, true, "SmsToMobileNum", "smsToMobile", paramMsgText);
         }
@@ -249,7 +251,7 @@ public class SmsToMobileCrud
                                           + SOut.Float(smsToMobile.MsgDiscountUSD) + ")";
         //SecDateTEdit can only be set by MySQL
         if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", OdDbType.Text, SOut.StringNote(smsToMobile.MsgText));
+        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramMsgText);
         else
@@ -280,7 +282,7 @@ public class SmsToMobileCrud
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE SmsToMobileNum = " + SOut.Long(smsToMobile.SmsToMobileNum);
         if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", OdDbType.Text, SOut.StringNote(smsToMobile.MsgText));
+        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
         Db.NonQ(command, paramMsgText);
     }
 
@@ -392,7 +394,7 @@ public class SmsToMobileCrud
         //SecDateTEdit can only be set by MySQL
         if (command == "") return false;
         if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", OdDbType.Text, SOut.StringNote(smsToMobile.MsgText));
+        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
         command = "UPDATE smstomobile SET " + command
                                             + " WHERE SmsToMobileNum = " + SOut.Long(smsToMobile.SmsToMobileNum);
         Db.NonQ(command, paramMsgText);

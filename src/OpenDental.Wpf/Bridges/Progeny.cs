@@ -9,6 +9,7 @@ using CodeBase;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	public class Progeny {

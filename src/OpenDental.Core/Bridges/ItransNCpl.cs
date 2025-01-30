@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using OpenDentBusiness.Remoting;
@@ -108,14 +109,14 @@ namespace OpenDentBusiness {
 			foreach(ItransNCpl.Carrier jsonCarrier in iTransNCpl.ListCarriers) {//Update carriers.
 				string jsonCarrierPhone=GetPhoneNumberFromJsonCarrier(jsonCarrier);//Will be empty string if not found.
 				//Find all of the carriers in the database that have a matching ElectID and are flagged as IsCDA.
-				List<OpenDentBusiness.Carrier> listDbCarriers=Carriers.GetAllByElectId(jsonCarrier.Bin).FindAll(x => x.IsCDA);
+				List<Imedisoft.Core.Entities.Carrier> listDbCarriers=Carriers.GetAllByElectId(jsonCarrier.Bin).FindAll(x => x.IsCDA);
 				//There are no carriers with this ElectID in the database with a matching name so insert one with this name.
 				if(fieldsToImport.HasFlag(ItransImportFields.AddMissing)
 					&& (listDbCarriers.IsNullOrEmpty() || !listDbCarriers.Any(x => x.CarrierName.ToLower()==jsonCarrier.Name.En.ToLower()
 					|| x.CarrierName.ToLower()==jsonCarrier.Name.Fr.ToLower())))
 				{
 					#region Insert new carrier
-					OpenDentBusiness.Carrier carrierNew=new OpenDentBusiness.Carrier();
+					Imedisoft.Core.Entities.Carrier carrierNew=new Imedisoft.Core.Entities.Carrier();
 					carrierNew.CanadianEncryptionMethod=1;//Default.  Deprecated for all Canadian carriers and will never be any other value.
 					TrySetCanadianNetworkNum(jsonCarrier,carrierNew,listCanadianNetworks);
 					carrierNew.ElectID=jsonCarrier.Bin;
@@ -150,7 +151,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Loops through Itrans carriers to find the best match for updating CA network and flags for user created carriers. Can return null.
 		///Not used as of E31972.</summary>
-		private static ItransNCpl.Carrier GetJsonCarrierForUpdate(ItransNCpl iTransNCpl,OpenDentBusiness.Carrier carrierOD) {
+		private static ItransNCpl.Carrier GetJsonCarrierForUpdate(ItransNCpl iTransNCpl,Imedisoft.Core.Entities.Carrier carrierOD) {
 			List<Carrier> listJsonCarrierByElectID=iTransNCpl.ListCarriers.Where(x=>x.Bin==carrierOD.ElectID).ToList();
 			//Find claims processor as that is who is processing our claim, regardless of reseller information
 			Carrier jsonCarrier=listJsonCarrierByElectID.Where(x=>x.Name.En==x.Claims_Processor?.Name.En).FirstOrDefault();
@@ -175,10 +176,10 @@ namespace OpenDentBusiness {
 		}
 
 		
-		private static void UpdateCarrierInDb(OpenDentBusiness.Carrier odCarrier,Carrier jsonCarrier,List<CanadianNetwork> listCanadianNetworks
+		private static void UpdateCarrierInDb(Imedisoft.Core.Entities.Carrier odCarrier,Carrier jsonCarrier,List<CanadianNetwork> listCanadianNetworks
 			,ItransImportFields fieldsToImport,string jsonCarrierPhone,bool isAutomatic)
 		{
-			OpenDentBusiness.Carrier odCarrierOld=odCarrier.Copy();
+			Imedisoft.Core.Entities.Carrier odCarrierOld=odCarrier.Copy();
 			odCarrier.CanadianEncryptionMethod=1;//Default.  Deprecated for all Canadian carriers and will never be any other value.
 			TrySetCanadianNetworkNum(jsonCarrier,odCarrier,listCanadianNetworks);
 			//Sometimes carriers drop support for Reversals.  We will begin by removing the reversal flags before possibly adding them back in.
@@ -226,7 +227,7 @@ namespace OpenDentBusiness {
 			}
 		}
 
-		private static void TrySetCanadianNetworkNum(Carrier jsonCarrier,OpenDentBusiness.Carrier odCarrier,List<CanadianNetwork> listCanadianNetworks) {
+		private static void TrySetCanadianNetworkNum(Carrier jsonCarrier,Imedisoft.Core.Entities.Carrier odCarrier,List<CanadianNetwork> listCanadianNetworks) {
 			if(jsonCarrier.Network==null || jsonCarrier.Network.Count==0) {
 				return;//We need to be careful not to fully trust data coming from other applications.
 			}

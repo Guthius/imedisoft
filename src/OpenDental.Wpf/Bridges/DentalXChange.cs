@@ -1,4 +1,5 @@
 ﻿using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDental.Bridges {

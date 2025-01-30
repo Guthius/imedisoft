@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using SharpDX.Direct3D9;
 

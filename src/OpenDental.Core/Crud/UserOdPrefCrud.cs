@@ -3,8 +3,10 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class UserOdPrefCrud
 {
@@ -61,7 +63,7 @@ public class UserOdPrefCrud
                                           + DbHelper.ParamChar + "paramValueString,"
                                           + SOut.Long(userOdPref.ClinicNum) + ")";
         if (userOdPref.ValueString == null) userOdPref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(userOdPref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(userOdPref.ValueString));
         {
             userOdPref.UserOdPrefNum = Db.NonQ(command, true, "UserOdPrefNum", "userOdPref", paramValueString);
         }
@@ -138,7 +140,7 @@ public class UserOdPrefCrud
                       + "ClinicNum    =  " + SOut.Long(userOdPref.ClinicNum) + " "
                       + "WHERE UserOdPrefNum = " + SOut.Long(userOdPref.UserOdPrefNum);
         if (userOdPref.ValueString == null) userOdPref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(userOdPref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(userOdPref.ValueString));
         Db.NonQ(command, paramValueString);
     }
 
@@ -177,7 +179,7 @@ public class UserOdPrefCrud
 
         if (command == "") return false;
         if (userOdPref.ValueString == null) userOdPref.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(userOdPref.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(userOdPref.ValueString));
         command = "UPDATE userodpref SET " + command
                                            + " WHERE UserOdPrefNum = " + SOut.Long(userOdPref.UserOdPrefNum);
         Db.NonQ(command, paramValueString);

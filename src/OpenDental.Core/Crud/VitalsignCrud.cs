@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class VitalsignCrud
 {
@@ -127,7 +129,7 @@ public class VitalsignCrud
                                         + SOut.Int(vitalsign.BMIPercentile) + ","
                                         + SOut.Int(vitalsign.Pulse) + ")";
         if (vitalsign.Documentation == null) vitalsign.Documentation = "";
-        var paramDocumentation = new OdSqlParameter("paramDocumentation", OdDbType.Text, SOut.StringParam(vitalsign.Documentation));
+        var paramDocumentation = new OdSqlParameter("paramDocumentation", SOut.StringParam(vitalsign.Documentation));
         {
             vitalsign.VitalsignNum = Db.NonQ(command, true, "VitalsignNum", "vitalsign", paramDocumentation);
         }
@@ -167,7 +169,7 @@ public class VitalsignCrud
                                         + SOut.Int(vitalsign.BMIPercentile) + ","
                                         + SOut.Int(vitalsign.Pulse) + ")";
         if (vitalsign.Documentation == null) vitalsign.Documentation = "";
-        var paramDocumentation = new OdSqlParameter("paramDocumentation", OdDbType.Text, SOut.StringParam(vitalsign.Documentation));
+        var paramDocumentation = new OdSqlParameter("paramDocumentation", SOut.StringParam(vitalsign.Documentation));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDocumentation);
         else
@@ -199,7 +201,7 @@ public class VitalsignCrud
                       + "Pulse             =  " + SOut.Int(vitalsign.Pulse) + " "
                       + "WHERE VitalsignNum = " + SOut.Long(vitalsign.VitalsignNum);
         if (vitalsign.Documentation == null) vitalsign.Documentation = "";
-        var paramDocumentation = new OdSqlParameter("paramDocumentation", OdDbType.Text, SOut.StringParam(vitalsign.Documentation));
+        var paramDocumentation = new OdSqlParameter("paramDocumentation", SOut.StringParam(vitalsign.Documentation));
         Db.NonQ(command, paramDocumentation);
     }
 
@@ -322,7 +324,7 @@ public class VitalsignCrud
 
         if (command == "") return false;
         if (vitalsign.Documentation == null) vitalsign.Documentation = "";
-        var paramDocumentation = new OdSqlParameter("paramDocumentation", OdDbType.Text, SOut.StringParam(vitalsign.Documentation));
+        var paramDocumentation = new OdSqlParameter("paramDocumentation", SOut.StringParam(vitalsign.Documentation));
         command = "UPDATE vitalsign SET " + command
                                           + " WHERE VitalsignNum = " + SOut.Long(vitalsign.VitalsignNum);
         Db.NonQ(command, paramDocumentation);

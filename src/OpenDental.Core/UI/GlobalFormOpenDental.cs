@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	///<summary>These global methods can be called from anywhere. FormOpenDental subscribes to the resulting events so that it can do things like refresh a module or select a patient. Even some classes in OpenDentBusiness take advantage of this, although those sections really don't belong in the business layer if they are telling FormOpenDental what to do. These will replace the public static methods in FormOpenDental that use the singleton pattern. The main reason for switching to this event pattern is that the WPF windows don't have access to FormOpenDental. Also see CodeBased.ODEvent which is being deprecated. Also, see DataValid.EventInvalid, which handles all Signalod events.</summary>

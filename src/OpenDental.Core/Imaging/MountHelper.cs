@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness
@@ -156,7 +158,7 @@ namespace OpenDentBusiness
         {
             Mount mount = Mounts.GetByNum(mountNum);
             Patient patient = Patients.GetPat(mount.PatNum);
-            string patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
+            string patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder());
             List<ImageDraw> listImageDraws = ImageDraws.RefreshForMount(mount.MountNum);
             List<MountItem> listMountItems = MountItems.GetItemsForMount(mount.MountNum);
             List<Document> listDocuments = Documents.GetDocumentsForMountItems(listMountItems).ToList();

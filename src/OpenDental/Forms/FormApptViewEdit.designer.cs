@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormApptViewEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -74,7 +69,6 @@ namespace OpenDental {
 			this.label5 = new System.Windows.Forms.Label();
 			this.listWaitingRmNameFormat = new OpenDental.UI.ListBox();
 			this.label7 = new System.Windows.Forms.Label();
-			this.butMobileView = new OpenDental.UI.Button();
 			this.gridPatFieldDefs = new OpenDental.UI.GridOD();
 			this.gridApptFieldDefs = new OpenDental.UI.GridOD();
 			this.gridAvailable = new OpenDental.UI.GridOD();
@@ -90,7 +84,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 7;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butDelete
 			// 
@@ -102,7 +96,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(87, 24);
 			this.butDelete.TabIndex = 6;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// labelOps
 			// 
@@ -164,7 +158,7 @@ namespace OpenDental {
 			this.butDown.Size = new System.Drawing.Size(71, 24);
 			this.butDown.TabIndex = 50;
 			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -176,7 +170,7 @@ namespace OpenDental {
 			this.butUp.Size = new System.Drawing.Size(71, 24);
 			this.butUp.TabIndex = 51;
 			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butLeft
 			// 
@@ -186,7 +180,7 @@ namespace OpenDental {
 			this.butLeft.Name = "butLeft";
 			this.butLeft.Size = new System.Drawing.Size(35, 26);
 			this.butLeft.TabIndex = 52;
-			this.butLeft.Click += new System.EventHandler(this.butLeft_Click);
+			this.butLeft.Click += new System.EventHandler(this.ButtonLeft_Click);
 			// 
 			// butRight
 			// 
@@ -195,7 +189,7 @@ namespace OpenDental {
 			this.butRight.Name = "butRight";
 			this.butRight.Size = new System.Drawing.Size(35, 26);
 			this.butRight.TabIndex = 53;
-			this.butRight.Click += new System.EventHandler(this.butRight_Click);
+			this.butRight.Click += new System.EventHandler(this.ButtonRight_Click);
 			// 
 			// label6
 			// 
@@ -212,7 +206,7 @@ namespace OpenDental {
 			this.textRowsPerIncr.Name = "textRowsPerIncr";
 			this.textRowsPerIncr.Size = new System.Drawing.Size(46, 20);
 			this.textRowsPerIncr.TabIndex = 1;
-			this.textRowsPerIncr.Validating += new System.ComponentModel.CancelEventHandler(this.textRowsPerIncr_Validating);
+			this.textRowsPerIncr.Validating += new System.ComponentModel.CancelEventHandler(this.TextBoxRowsPerIncr_Validating);
 			// 
 			// checkOnlyScheduledProvs
 			// 
@@ -223,7 +217,7 @@ namespace OpenDental {
 			this.checkOnlyScheduledProvs.Size = new System.Drawing.Size(208, 20);
 			this.checkOnlyScheduledProvs.TabIndex = 56;
 			this.checkOnlyScheduledProvs.Text = "Only show ops for scheduled provs";
-			this.checkOnlyScheduledProvs.Click += new System.EventHandler(this.checkOnlyScheduledProvs_Click);
+			this.checkOnlyScheduledProvs.Click += new System.EventHandler(this.CheckBoxOnlyScheduledProvs_Click);
 			// 
 			// textBeforeTime
 			// 
@@ -342,8 +336,8 @@ namespace OpenDental {
 			this.gridLR.TabIndex = 62;
 			this.gridLR.Title = "Lower Right Corner";
 			this.gridLR.TranslationName = "TableLowerRight";
-			this.gridLR.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridLR_CellDoubleClick);
-			this.gridLR.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridLR_CellClick);
+			this.gridLR.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridLR_CellDoubleClick);
+			this.gridLR.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridLR_CellClick);
 			// 
 			// gridUR
 			// 
@@ -353,8 +347,8 @@ namespace OpenDental {
 			this.gridUR.TabIndex = 61;
 			this.gridUR.Title = "Upper Right Corner";
 			this.gridUR.TranslationName = "TableUpperRight";
-			this.gridUR.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridUR_CellDoubleClick);
-			this.gridUR.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridUR_CellClick);
+			this.gridUR.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridUR_CellDoubleClick);
+			this.gridUR.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridUR_CellClick);
 			// 
 			// gridMain
 			// 
@@ -364,8 +358,8 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 60;
 			this.gridMain.Title = "Main List";
 			this.gridMain.TranslationName = "TableMainList";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
-			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
+			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellClick);
 			// 
 			// label8
 			// 
@@ -384,7 +378,7 @@ namespace OpenDental {
 			this.comboClinic.Name = "comboClinic";
 			this.comboClinic.Size = new System.Drawing.Size(200, 21);
 			this.comboClinic.TabIndex = 133;
-			this.comboClinic.SelectionChangeCommitted += new System.EventHandler(this.comboClinic_SelectionChangeCommitted);
+			this.comboClinic.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxClinic_SelectionChangeCommitted);
 			// 
 			// textScrollTime
 			// 
@@ -452,17 +446,6 @@ namespace OpenDental {
 			this.label7.Text = "Waiting Room Name Format";
 			this.label7.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
 			// 
-			// butMobileView
-			// 
-			this.butMobileView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.butMobileView.Location = new System.Drawing.Point(284, 663);
-			this.butMobileView.Name = "butMobileView";
-			this.butMobileView.Size = new System.Drawing.Size(98, 24);
-			this.butMobileView.TabIndex = 141;
-			this.butMobileView.Text = "Mobile View";
-			this.butMobileView.Visible = false;
-			this.butMobileView.Click += new System.EventHandler(this.butMobileView_Click);
-			// 
 			// gridPatFieldDefs
 			// 
 			this.gridPatFieldDefs.Location = new System.Drawing.Point(207, 544);
@@ -471,7 +454,7 @@ namespace OpenDental {
 			this.gridPatFieldDefs.TabIndex = 63;
 			this.gridPatFieldDefs.Title = "Patient Field Defs";
 			this.gridPatFieldDefs.TranslationName = "TablePatFieldDefs";
-			this.gridPatFieldDefs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridPatFieldDefs_CellClick);
+			this.gridPatFieldDefs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridPatFieldDefs_CellClick);
 			// 
 			// gridApptFieldDefs
 			// 
@@ -481,7 +464,7 @@ namespace OpenDental {
 			this.gridApptFieldDefs.TabIndex = 62;
 			this.gridApptFieldDefs.Title = "Appt Field Defs";
 			this.gridApptFieldDefs.TranslationName = "TableApptFieldDefs";
-			this.gridApptFieldDefs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridApptFieldDefs_CellClick);
+			this.gridApptFieldDefs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridApptFieldDefs_CellClick);
 			// 
 			// gridAvailable
 			// 
@@ -491,13 +474,12 @@ namespace OpenDental {
 			this.gridAvailable.TabIndex = 61;
 			this.gridAvailable.Title = "Available Rows";
 			this.gridAvailable.TranslationName = "TableAvailableRows";
-			this.gridAvailable.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailable_CellClick);
+			this.gridAvailable.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridAvailable_CellClick);
 			// 
 			// FormApptViewEdit
 			// 
 			this.AcceptButton = this.butSave;
 			this.ClientSize = new System.Drawing.Size(926, 696);
-			this.Controls.Add(this.butMobileView);
 			this.Controls.Add(this.label7);
 			this.Controls.Add(this.listWaitingRmNameFormat);
 			this.Controls.Add(this.butSave);
@@ -582,7 +564,6 @@ namespace OpenDental {
 		private Label label5;
 		private UI.ListBox listWaitingRmNameFormat;
 		private Label label7;
-		private UI.Button butMobileView;
 		private UI.CheckBox checkOnlyScheduledProvDays;
 	}
 }

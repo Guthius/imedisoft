@@ -1,4 +1,5 @@
 ﻿using System;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.AutoComm;
 

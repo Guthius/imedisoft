@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 

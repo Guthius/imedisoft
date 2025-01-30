@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -8,20 +11,21 @@ public class DashboardLayouts
 {
     public static List<DashboardLayout> GetDashboardLayout(string dashboardGroupName = "")
     {
-        var command = "SELECT * FROM dashboardlayout";
-        var listDashboardLayouts = DashboardLayoutCrud.SelectMany(command);
+        var dashboardLayouts = DashboardLayoutCrud.SelectMany("SELECT * FROM dashboardlayout");
         if (!string.IsNullOrEmpty(dashboardGroupName))
-            //Limit to a single group.
-            listDashboardLayouts = listDashboardLayouts.FindAll(x => x.DashboardGroupName.ToLower() == dashboardGroupName.ToLower());
+        {
+            dashboardLayouts = dashboardLayouts.FindAll(x => string.Equals(x.DashboardGroupName, dashboardGroupName, StringComparison.CurrentCultureIgnoreCase));
+        }
+        
+        var dashboardCells = DashboardCells.GetAll();
+        foreach (var dashboardLayout in dashboardLayouts)
+        {
+            dashboardLayout.Cells = dashboardCells.FindAll(x => x.DashboardLayoutNum == dashboardLayout.DashboardLayoutNum);
+        }
 
-        //Fill the non-db Cells field.
-        var listDashboardCells = DashboardCells.GetAll();
-        for (var i = 0; i < listDashboardLayouts.Count; i++) listDashboardLayouts[i].Cells = listDashboardCells.FindAll(x => x.DashboardLayoutNum == listDashboardLayouts[i].DashboardLayoutNum);
-
-        return listDashboardLayouts;
+        return dashboardLayouts;
     }
 
-    ///<summary>Inserts the given dashboard layouts and cells into the database.</summary>
     public static void SetDashboardLayout(List<DashboardLayout> listDashboardLayouts, string dashboardGroupName)
     {
         //Get all old layouts.
@@ -57,43 +61,4 @@ public class DashboardLayouts
             });
         }
     }
-
-    /*
-Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-
-public static List<DashboardLayout> Refresh(long patNum){
-
-string command="SELECT * FROM dashboardlayout WHERE PatNum = "+POut.Long(patNum);
-return Crud.DashboardLayoutCrud.SelectMany(command);
-}
-
-///<summary>Gets one DashboardLayout from the db.</summary>
-public static DashboardLayout GetOne(long dashboardLayoutNum){
-
-return Crud.DashboardLayoutCrud.SelectOne(dashboardLayoutNum);
-}
-
-
-public static long Insert(DashboardLayout dashboardLayout){
-
-return Crud.DashboardLayoutCrud.Insert(dashboardLayout);
-}
-
-
-public static void Update(DashboardLayout dashboardLayout){
-
-Crud.DashboardLayoutCrud.Update(dashboardLayout);
-}
-
-
-public static void Delete(long dashboardLayoutNum) {
-
-Crud.DashboardLayoutCrud.Delete(dashboardLayoutNum);
-}
-
-
-
-
-*/
 }

@@ -1,33 +1,15 @@
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class HieClinicCrud
 {
-    public static HieClinic SelectOne(long hieClinicNum)
-    {
-        var command = "SELECT * FROM hieclinic "
-                      + "WHERE HieClinicNum = " + SOut.Long(hieClinicNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static HieClinic SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<HieClinic> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -53,27 +35,7 @@ public class HieClinicCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<HieClinic> listHieClinics, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "HieClinic";
-        var table = new DataTable(tableName);
-        table.Columns.Add("HieClinicNum");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("SupportedCarrierFlags");
-        table.Columns.Add("PathExportCCD");
-        table.Columns.Add("TimeOfDayExportCCD");
-        table.Columns.Add("IsEnabled");
-        foreach (var hieClinic in listHieClinics)
-            table.Rows.Add(SOut.Long(hieClinic.HieClinicNum), SOut.Long(hieClinic.ClinicNum), SOut.Int((int) hieClinic.SupportedCarrierFlags), hieClinic.PathExportCCD, SOut.Long(hieClinic.TimeOfDayExportCCD.Ticks), SOut.Bool(hieClinic.IsEnabled));
-        return table;
-    }
-
-    public static long Insert(HieClinic hieClinic)
-    {
-        return Insert(hieClinic, false);
-    }
-
-    public static long Insert(HieClinic hieClinic, bool useExistingPK)
+    public static void Insert(HieClinic hieClinic)
     {
         var command = "INSERT INTO hieclinic (";
 
@@ -88,44 +50,6 @@ public class HieClinicCrud
         {
             hieClinic.HieClinicNum = Db.NonQ(command, true, "HieClinicNum", "hieClinic");
         }
-        return hieClinic.HieClinicNum;
-    }
-
-    public static long InsertNoCache(HieClinic hieClinic)
-    {
-        return InsertNoCache(hieClinic, false);
-    }
-
-    public static long InsertNoCache(HieClinic hieClinic, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO hieclinic (";
-        if (isRandomKeys || useExistingPK) command += "HieClinicNum,";
-        command += "ClinicNum,SupportedCarrierFlags,PathExportCCD,TimeOfDayExportCCD,IsEnabled) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(hieClinic.HieClinicNum) + ",";
-        command +=
-            SOut.Long(hieClinic.ClinicNum) + ","
-                                           + SOut.Int((int) hieClinic.SupportedCarrierFlags) + ","
-                                           + "'" + SOut.String(hieClinic.PathExportCCD) + "',"
-                                           + "'" + SOut.Long(hieClinic.TimeOfDayExportCCD.Ticks) + "',"
-                                           + SOut.Bool(hieClinic.IsEnabled) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            hieClinic.HieClinicNum = Db.NonQ(command, true, "HieClinicNum", "hieClinic");
-        return hieClinic.HieClinicNum;
-    }
-
-    public static void Update(HieClinic hieClinic)
-    {
-        var command = "UPDATE hieclinic SET "
-                      + "ClinicNum            =  " + SOut.Long(hieClinic.ClinicNum) + ", "
-                      + "SupportedCarrierFlags=  " + SOut.Int((int) hieClinic.SupportedCarrierFlags) + ", "
-                      + "PathExportCCD        = '" + SOut.String(hieClinic.PathExportCCD) + "', "
-                      + "TimeOfDayExportCCD   =  " + SOut.Long(hieClinic.TimeOfDayExportCCD.Ticks) + ", "
-                      + "IsEnabled            =  " + SOut.Bool(hieClinic.IsEnabled) + " "
-                      + "WHERE HieClinicNum = " + SOut.Long(hieClinic.HieClinicNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(HieClinic hieClinic, HieClinic oldHieClinic)
@@ -168,23 +92,6 @@ public class HieClinicCrud
         return true;
     }
 
-    public static bool UpdateComparison(HieClinic hieClinic, HieClinic oldHieClinic)
-    {
-        if (hieClinic.ClinicNum != oldHieClinic.ClinicNum) return true;
-        if (hieClinic.SupportedCarrierFlags != oldHieClinic.SupportedCarrierFlags) return true;
-        if (hieClinic.PathExportCCD != oldHieClinic.PathExportCCD) return true;
-        if (hieClinic.TimeOfDayExportCCD != oldHieClinic.TimeOfDayExportCCD) return true;
-        if (hieClinic.IsEnabled != oldHieClinic.IsEnabled) return true;
-        return false;
-    }
-
-    public static void Delete(long hieClinicNum)
-    {
-        var command = "DELETE FROM hieclinic "
-                      + "WHERE HieClinicNum = " + SOut.Long(hieClinicNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listHieClinicNums)
     {
         if (listHieClinicNums == null || listHieClinicNums.Count == 0) return;
@@ -193,7 +100,7 @@ public class HieClinicCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<HieClinic> listNew, List<HieClinic> listDB)
+    public static void Sync(List<HieClinic> listNew, List<HieClinic> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<HieClinic>();
@@ -262,7 +169,6 @@ public class HieClinicCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.HieClinicNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

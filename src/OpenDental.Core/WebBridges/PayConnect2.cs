@@ -16,6 +16,7 @@ using Newtonsoft.Json.Converters;
 using System.Windows.Controls;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class PayConnect2 {

@@ -1,53 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class SigElementDefs
 {
-    
     public static void Update(SigElementDef sigElementDef)
     {
         SigElementDefCrud.Update(sigElementDef);
     }
 
-    
-    public static long Insert(SigElementDef sigElementDef)
+    public static void Insert(SigElementDef sigElementDef)
     {
-        return SigElementDefCrud.Insert(sigElementDef);
+        SigElementDefCrud.Insert(sigElementDef);
     }
 
-    
     public static void Delete(SigElementDef sigElementDef)
     {
-        var command = "DELETE FROM sigelementdef WHERE SigElementDefNum =" + SOut.Long(sigElementDef.SigElementDefNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM sigelementdef WHERE SigElementDefNum =" + (sigElementDef.SigElementDefNum));
     }
 
-    
     public static SigElementDef[] GetSubList(SignalElementType signalElementType)
     {
         return GetWhere(x => x.SigElementType == signalElementType).ToArray();
     }
 
-    ///<summary>Moves the selected item up in the supplied sub list.</summary>
-    public static void MoveUp(int selected, List<SigElementDef> listSigElementDefsSub)
+    public static void MoveUp(int selected, List<SigElementDef> sigElementDefsSub)
     {
-        if (selected < 0) throw new ApplicationException(Lans.g("SigElementDefs", "Please select an item first."));
-        if (selected == 0) //already at top
-            return;
-        if (selected > listSigElementDefsSub.Count - 1) throw new ApplicationException(Lans.g("SigElementDefs", "Invalid selection."));
-        SetOrder(selected - 1, listSigElementDefsSub[selected].ItemOrder, listSigElementDefsSub);
-        SetOrder(selected, listSigElementDefsSub[selected].ItemOrder - 1, listSigElementDefsSub);
-        //Selected-=1;
+        switch (selected)
+        {
+            case < 0:
+                throw new ApplicationException("Please select an item first.");
+
+            case 0:
+                return;
+        }
+
+        if (selected > sigElementDefsSub.Count - 1)
+        {
+            throw new ApplicationException("Invalid selection.");
+        }
+
+        SetOrder(selected - 1, sigElementDefsSub[selected].ItemOrder, sigElementDefsSub);
+        SetOrder(selected, sigElementDefsSub[selected].ItemOrder - 1, sigElementDefsSub);
     }
 
-    
     public static void MoveDown(int selected, List<SigElementDef> listSigElementDefsSub)
     {
         if (selected < 0) throw new ApplicationException(Lans.g("SigElementDefs", "Please select an item first."));
@@ -56,10 +57,8 @@ public class SigElementDefs
         if (selected > listSigElementDefsSub.Count - 1) throw new ApplicationException(Lans.g("SigElementDefs", "Invalid selection."));
         SetOrder(selected + 1, listSigElementDefsSub[selected].ItemOrder, listSigElementDefsSub);
         SetOrder(selected, listSigElementDefsSub[selected].ItemOrder + 1, listSigElementDefsSub);
-        //selected+=1;
     }
 
-    ///<summary>Used by MoveUp and MoveDown.</summary>
     private static void SetOrder(int mySelNum, int myItemOrder, List<SigElementDef> listSigElementDefsSub)
     {
         var sigElementDef = listSigElementDefsSub[mySelNum];
@@ -67,13 +66,11 @@ public class SigElementDefs
         Update(sigElementDef);
     }
 
-    ///<summary>Returns the SigElementDef with the specified num from the cache.</summary>
-    public static SigElementDef GetElementDef(long SigElementDefNum)
+    public static SigElementDef GetElementDef(long sigElementDefNum)
     {
-        return GetFirstOrDefault(x => x.SigElementDefNum == SigElementDefNum);
+        return GetFirstOrDefault(x => x.SigElementDefNum == sigElementDefNum);
     }
 
-    ///<summary>Gets all sigelementdefs for the sigbutdef passed in.  Includes user, extra, and message element defs.</summary>
     public static List<SigElementDef> GetElementsForButDef(SigButDef sigButDef)
     {
         var listSigElementDefs = new List<SigElementDef>();
@@ -83,7 +80,6 @@ public class SigElementDefs
         return listSigElementDefs;
     }
 
-    ///<summary>Gets all sigelementdefs for the sigmessage passed in.  Includes user, extra, and message element defs.</summary>
     public static List<SigElementDef> GetDefsForSigMessage(SigMessage sigMessage)
     {
         var listSigElementDefs = new List<SigElementDef>();
@@ -92,8 +88,6 @@ public class SigElementDefs
         listSigElementDefs.AddRange(GetWhere(x => x.SigElementDefNum == sigMessage.SigElementDefNumMsg));
         return listSigElementDefs;
     }
-
-    #region CachePattern
 
     private class SigElementDefCache : CacheListAbs<SigElementDef>
     {
@@ -124,44 +118,30 @@ public class SigElementDefs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly SigElementDefCache _sigElementDefCache = new();
+    private static readonly SigElementDefCache Cache = new();
 
     public static List<SigElementDef> GetWhere(Predicate<SigElementDef> match, bool isShort = false)
     {
-        return _sigElementDefCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static SigElementDef GetFirstOrDefault(Func<SigElementDef, bool> match, bool isShort = false)
     {
-        return _sigElementDefCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _sigElementDefCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _sigElementDefCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _sigElementDefCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

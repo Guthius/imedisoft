@@ -1,15 +1,12 @@
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class TreatPlanParams
 {
-    #region Methods - Get
-
-    ///<summary>Gets one TreatPlanParam from the db based on the given TreatPlanNum.</summary>
     public static TreatPlanParam GetOneByTreatPlanNum(long treatPlanNum)
     {
         var command = $"SELECT * FROM treatplanparam WHERE TreatPlanNum={treatPlanNum}";
@@ -27,10 +24,6 @@ public class TreatPlanParams
         return treatPlanParam;
     }
 
-    #endregion Methods - Get
-
-    #region Methods - Modify
-
     public static long Insert(TreatPlanParam treatPlanParam)
     {
         return TreatPlanParamCrud.Insert(treatPlanParam);
@@ -41,19 +34,15 @@ public class TreatPlanParams
         TreatPlanParamCrud.Delete(treatPlanParamNum);
     }
 
-    ///<summary>Deletes a single TreatPlanParam from the db based on the given TreatPlanNum.</summary>
     public static void DeleteByTreatPlanNum(long treatPlanNum)
     {
         var command = $"DELETE FROM treatplanparam WHERE TreatPlanNum={SOut.Long(treatPlanNum)}";
         Db.NonQ(command);
     }
 
-    ///<summary>Deletes all TreatPlanParams from the db that have the given PatNum.</summary>
     public static void RemoveAllByPatNum(long patNum)
     {
         var command = $"DELETE FROM treatplanparam WHERE PatNum={SOut.Long(patNum)}";
         Db.NonQ(command);
     }
-
-    #endregion Methods - Modify
 }

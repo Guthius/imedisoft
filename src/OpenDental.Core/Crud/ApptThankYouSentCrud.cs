@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ApptThankYouSentCrud
 {
@@ -64,7 +66,7 @@ public class ApptThankYouSentCrud
                       + "ShortGUID               = '" + SOut.String(apptThankYouSent.ShortGUID) + "' "
                       + "WHERE ApptThankYouSentNum = " + SOut.Long(apptThankYouSent.ApptThankYouSentNum);
         if (apptThankYouSent.ResponseDescript == null) apptThankYouSent.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(apptThankYouSent.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(apptThankYouSent.ResponseDescript));
         Db.NonQ(command, paramResponseDescript);
     }
 }

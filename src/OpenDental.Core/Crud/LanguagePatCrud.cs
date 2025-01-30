@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class LanguagePatCrud
 {
@@ -82,7 +84,7 @@ public class LanguagePatCrud
             + DbHelper.ParamChar + "paramTranslation,"
             + SOut.Long(languagePat.EFormFieldDefNum) + ")";
         if (languagePat.Translation == null) languagePat.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languagePat.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languagePat.Translation));
         {
             languagePat.LanguagePatNum = Db.NonQ(command, true, "LanguagePatNum", "languagePat", paramTranslation);
         }
@@ -107,7 +109,7 @@ public class LanguagePatCrud
             + DbHelper.ParamChar + "paramTranslation,"
             + SOut.Long(languagePat.EFormFieldDefNum) + ")";
         if (languagePat.Translation == null) languagePat.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languagePat.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languagePat.Translation));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramTranslation);
         else
@@ -124,7 +126,7 @@ public class LanguagePatCrud
                       + "EFormFieldDefNum=  " + SOut.Long(languagePat.EFormFieldDefNum) + " "
                       + "WHERE LanguagePatNum = " + SOut.Long(languagePat.LanguagePatNum);
         if (languagePat.Translation == null) languagePat.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languagePat.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languagePat.Translation));
         Db.NonQ(command, paramTranslation);
     }
 
@@ -157,7 +159,7 @@ public class LanguagePatCrud
 
         if (command == "") return false;
         if (languagePat.Translation == null) languagePat.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languagePat.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languagePat.Translation));
         command = "UPDATE languagepat SET " + command
                                             + " WHERE LanguagePatNum = " + SOut.Long(languagePat.LanguagePatNum);
         Db.NonQ(command, paramTranslation);

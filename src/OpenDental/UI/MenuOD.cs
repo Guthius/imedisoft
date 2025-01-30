@@ -9,10 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace OpenDental.UI{
+namespace OpenDental.UI;
 /*
 Jordan is the only one allowed to edit this file.
-Typically dock it to the top of a form in the designer.  
+Typically dock it to the top of a form in the designer.
 Unlike the MS menu, we don't add menu items in the designer.
 Boilerplate for adding menu items:
 
@@ -39,392 +39,385 @@ Boilerplate for the new WpfControls.UI.Menu is over in Menu.xaml.cs
 
 */
 
-	///<summary>Used in OD instead of MainMenu or MenuStrip.  Those will fail on high dpi monitors.  Never set item Visibility.  Use Available instead.</summary>
-	public class MenuOD:Control{
-		#region Fields
+///<summary>Used in OD instead of MainMenu or MenuStrip.  Those will fail on high dpi monitors.  Never set item Visibility.  Use Available instead.</summary>
+public class MenuOD:Control{
+	#region Fields
 		
-		private MenuStripOD _menuStripOD;
-		///<summary>Just holds the scaling factor.</summary>
-		private LayoutManagerForms _layoutManager=new LayoutManagerForms();
-		#endregion Fields
+	private MenuStripOD _menuStripOD;
+	///<summary>Just holds the scaling factor.</summary>
+	private LayoutManagerForms _layoutManager=new LayoutManagerForms();
+	#endregion Fields
 
-		#region Constructor
-		public MenuOD(){
-			_menuStripOD=new MenuStripOD();
-			if(LicenseManager.UsageMode==LicenseUsageMode.Designtime){
-				return;
-			}
-			//_menuStripOD.Location=new Point(0,-1);//menu is too tall.  Hide the top edge. Maybe make this relative to font.
-			_menuStripOD.Anchor=AnchorStyles.Top | AnchorStyles.Left;//it still insists on drawing centered vertically.
-			//_menuStripOD.Padding=new Padding(0);//didn't change anything
-			//_menuStripOD.Height=12;//gets ignored. Set in MenuItem instead.
-			//_menuStripOD.Width gets set during LayoutItems, when it sets the bounds of each menuItem.
-			_menuStripOD.Name="menuStripOD1";
-			_menuStripOD.BackColor=SystemColors.Window;
-			_menuStripOD.Renderer=new MenuRenderer();
-			Controls.Add(_menuStripOD);
+	#region Constructor
+	public MenuOD(){
+		_menuStripOD=new MenuStripOD();
+		if(LicenseManager.UsageMode==LicenseUsageMode.Designtime){
+			return;
 		}
-		#endregion Constructor
+		//_menuStripOD.Location=new Point(0,-1);//menu is too tall.  Hide the top edge. Maybe make this relative to font.
+		_menuStripOD.Anchor=AnchorStyles.Top | AnchorStyles.Left;//it still insists on drawing centered vertically.
+		//_menuStripOD.Padding=new Padding(0);//didn't change anything
+		//_menuStripOD.Height=12;//gets ignored. Set in MenuItem instead.
+		//_menuStripOD.Width gets set during LayoutItems, when it sets the bounds of each menuItem.
+		_menuStripOD.Name="menuStripOD1";
+		_menuStripOD.BackColor=SystemColors.Window;
+		_menuStripOD.Renderer=new MenuRenderer();
+		Controls.Add(_menuStripOD);
+	}
+	#endregion Constructor
 
-		#region Properties
-		protected override Size DefaultSize => new Size(200,24);//shouldn't change this unless we change all existing menus heights
+	#region Properties
+	protected override Size DefaultSize => new Size(200,24);//shouldn't change this unless we change all existing menus heights
 
-		[Browsable(false)]
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public LayoutManagerForms LayoutManager{
-			get => _layoutManager; 
-			set{
-				_layoutManager = value;
-				_menuStripOD.LayoutManager=_layoutManager;
-			}
+	[Browsable(false)]
+	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+	public LayoutManagerForms LayoutManager{
+		get => _layoutManager; 
+		set{
+			_layoutManager = value;
+			_menuStripOD.LayoutManager=_layoutManager;
 		}
-		#endregion Properties
+	}
+	#endregion Properties
 
-		#region Methods - Public
-		public void Add(ToolStripItem toolStripItem){
-			_menuStripOD.Items.Add(toolStripItem);
-			_menuStripOD.LayoutItems();
-			Invalidate();
-		}
-
-		public void Add(string text,EventHandler click){
-			_menuStripOD.Items.Add(new MenuItemOD(text,click));
-			_menuStripOD.LayoutItems();
-			Invalidate();
-		}
-
-		///<summary>Optional. When adding a large number of menu items, this can be used to slightly increase efficiency.  Use EndUpdate after adding all the menu items.</summary>
-		public void BeginUpdate(){
-			_menuStripOD.IsUpdating=true;
-		}
-
-		public void EndUpdate(){
-			_menuStripOD.IsUpdating=false;
-			_menuStripOD.LayoutItems();
-			Invalidate();
-		}
-
-		public ToolStripItemCollection GetMenuItems(){
-			return _menuStripOD.Items;
-		}
-
-		///<summary>Returns null if not found.</summary>
-		public MenuItemOD GetMenuItemByName(string name){
-			for(int i=0;i<_menuStripOD.Items.Count;i++){
-				MenuItemOD menuItemOD=GetMenuItemRecursive((MenuItemOD)_menuStripOD.Items[i],name);
-				if(menuItemOD is null){
-					continue;
-				}
-				return menuItemOD;
-			}
-			return null;
-		}
-
-		///<summary>Recursive. Checks self and children.</summary>
-		private MenuItemOD GetMenuItemRecursive(MenuItemOD menuItemOD,string name){
-			if(menuItemOD.Name==name){
-				return menuItemOD;
-			}
-			for(int i=0;i<menuItemOD.DropDown.Items.Count;i++){
-				MenuItemOD menuItemFromChildren=GetMenuItemRecursive(menuItemOD,name);
-				if(menuItemFromChildren is null){
-					continue;
-				}
-				return menuItemFromChildren;
-			}
-			return null;
-		}
-
-		public void TranslateMenuItems(string classType) {
-			for(int i=0;i<_menuStripOD.Items.Count;i++) {
-				Lan.TranslateToolStripMenuItems(classType,(MenuItemOD)_menuStripOD.Items[i]);
-			}
-		}
-		#endregion Methods - Public
-
-		#region Methods - Event Handlers
-		protected override void OnPaint(PaintEventArgs e){
-			base.OnPaint(e);
-			if(DesignMode){
-				using Brush brush= new SolidBrush(BackColor);
-				e.Graphics.FillRectangle(brush,ClientRectangle);
-				e.Graphics.DrawString(Name,Font,Brushes.Black,10,5);
-				e.Graphics.DrawRectangle(Pens.SlateGray,0,0,Width-1,Height-1);
-			}
-			else{
-				//e.Graphics.FillRectangle(Brushes.Aquamarine,this.Bounds);
-				e.Graphics.DrawLine(Pens.SlateGray,0,Height-1,Width,Height-1);//line to right of menu
-			}
-		}
-
-		protected override void OnSizeChanged(EventArgs e){
-			base.OnSizeChanged(e);
-			_menuStripOD.Height=this.Height-1;
-		}
-
-		protected override void OnFontChanged(EventArgs e){
-			base.OnFontChanged(e);
-			_menuStripOD.Font=Font;
-		}
-		#endregion Methods - Event Handlers
+	#region Methods - Public
+	public void Add(ToolStripItem toolStripItem){
+		_menuStripOD.Items.Add(toolStripItem);
+		_menuStripOD.LayoutItems();
+		Invalidate();
 	}
 
-	///<summary>This is only used from inside MenuOD.</summary>
-	public class MenuStripOD:MenuStrip{
-		#region Fields
-		public bool IsUpdating;
-		///<summary>Just holds the scaling factor.</summary>
-		public LayoutManagerForms LayoutManager=new LayoutManagerForms();
-		#endregion Fields
+	public void Add(string text,EventHandler click){
+		_menuStripOD.Items.Add(new MenuItemOD(text,click));
+		_menuStripOD.LayoutItems();
+		Invalidate();
+	}
 
-		#region Constructor
-		public MenuStripOD(){
+	///<summary>Optional. When adding a large number of menu items, this can be used to slightly increase efficiency.  Use EndUpdate after adding all the menu items.</summary>
+	public void BeginUpdate(){
+		_menuStripOD.IsUpdating=true;
+	}
+
+	public void EndUpdate(){
+		_menuStripOD.IsUpdating=false;
+		_menuStripOD.LayoutItems();
+		Invalidate();
+	}
+
+	public ToolStripItemCollection GetMenuItems(){
+		return _menuStripOD.Items;
+	}
+
+	///<summary>Returns null if not found.</summary>
+	public MenuItemOD GetMenuItemByName(string name){
+		for(var i=0;i<_menuStripOD.Items.Count;i++){
+			var menuItemOD=GetMenuItemRecursive((MenuItemOD)_menuStripOD.Items[i],name);
+			if(menuItemOD is null){
+				continue;
+			}
+			return menuItemOD;
+		}
+		return null;
+	}
+
+	///<summary>Recursive. Checks self and children.</summary>
+	private MenuItemOD GetMenuItemRecursive(MenuItemOD menuItemOD,string name){
+		if(menuItemOD.Name==name){
+			return menuItemOD;
+		}
+		for(var i=0;i<menuItemOD.DropDown.Items.Count;i++){
+			var menuItemFromChildren=GetMenuItemRecursive(menuItemOD,name);
+			if(menuItemFromChildren is null){
+				continue;
+			}
+			return menuItemFromChildren;
+		}
+		return null;
+	}
+		
+	#endregion Methods - Public
+
+	#region Methods - Event Handlers
+	protected override void OnPaint(PaintEventArgs e){
+		base.OnPaint(e);
+		if(DesignMode){
+			using Brush brush= new SolidBrush(BackColor);
+			e.Graphics.FillRectangle(brush,ClientRectangle);
+			e.Graphics.DrawString(Name,Font,Brushes.Black,10,5);
+			e.Graphics.DrawRectangle(Pens.SlateGray,0,0,Width-1,Height-1);
+		}
+		else{
+			//e.Graphics.FillRectangle(Brushes.Aquamarine,this.Bounds);
+			e.Graphics.DrawLine(Pens.SlateGray,0,Height-1,Width,Height-1);//line to right of menu
+		}
+	}
+
+	protected override void OnSizeChanged(EventArgs e){
+		base.OnSizeChanged(e);
+		_menuStripOD.Height=this.Height-1;
+	}
+
+	protected override void OnFontChanged(EventArgs e){
+		base.OnFontChanged(e);
+		_menuStripOD.Font=Font;
+	}
+	#endregion Methods - Event Handlers
+}
+
+///<summary>This is only used from inside MenuOD.</summary>
+public class MenuStripOD:MenuStrip{
+	#region Fields
+	public bool IsUpdating;
+	///<summary>Just holds the scaling factor.</summary>
+	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	#endregion Fields
+
+	#region Constructor
+	public MenuStripOD(){
 			
 		
-		}
-		#endregion Constructor
+	}
+	#endregion Constructor
 
-		#region Methods - Public Static
-		///<summary>Recursive. Will return null if not attached to a menu yet.</summary>
-		public static MenuStripOD GetMenuStripOD(ToolStripItem toolStripItem){
-			if(toolStripItem.Owner==null){//not attached to any menu yet.
-				return null;
-			}
-			if(toolStripItem.OwnerItem==null){	
-				return (MenuStripOD)toolStripItem.Owner;
-			}
-			return GetMenuStripOD(toolStripItem.OwnerItem);
+	#region Methods - Public Static
+	///<summary>Recursive. Will return null if not attached to a menu yet.</summary>
+	public static MenuStripOD GetMenuStripOD(ToolStripItem toolStripItem){
+		if(toolStripItem.Owner==null){//not attached to any menu yet.
+			return null;
 		}
-		#endregion Methods - Public Static
+		if(toolStripItem.OwnerItem==null){	
+			return (MenuStripOD)toolStripItem.Owner;
+		}
+		return GetMenuStripOD(toolStripItem.OwnerItem);
+	}
+	#endregion Methods - Public Static
 
-		#region Methods - Public
-		public void LayoutItems(){
-			if(IsUpdating){
-				return;
+	#region Methods - Public
+	public void LayoutItems(){
+		if(IsUpdating){
+			return;
+		}
+		if(LayoutManager==null){
+			LayoutManager=new LayoutManagerForms();
+		}
+		//Font=new Font("Segoe UI",LayoutManager.ScaleF(9));
+		//"Microsoft Sans Serif",Dpi.ScaleF(this,8.25f));//
+		var xpos=0;
+		var g=this.CreateGraphics();
+		//The MS control is incapable of figuring out where its buttons belong after a resize, so we do it for them.
+		for(var i=0;i<Items.Count;i++){
+			if(!Items[i].Available){
+				((MenuItemOD)Items[i]).SetRectBounds(new Rectangle(xpos,0,0,0));
+				continue;
 			}
-			if(LayoutManager==null){
-				LayoutManager=new LayoutManagerForms();
-			}
-			//Font=new Font("Segoe UI",LayoutManager.ScaleF(9));
-				//"Microsoft Sans Serif",Dpi.ScaleF(this,8.25f));//
-			int xpos=0;
-			Graphics g=this.CreateGraphics();
-			//The MS control is incapable of figuring out where its buttons belong after a resize, so we do it for them.
-			for(int i=0;i<Items.Count;i++){
-				if(!Items[i].Available){
-					((MenuItemOD)Items[i]).SetRectBounds(new Rectangle(xpos,0,0,0));
-					continue;
-				}
-				int width=(int)LayoutManager.ScaleMS(g.MeasureString(Items[i].Text,Font).Width)+10;
-				int height=LayoutManager.Scale(19);//this number does not affect dropdowns, which is handled below.
-				//also, the space this gives us on the screen for text is smaller, so this seems to include padding and border.
-				((MenuItemOD)Items[i]).SetRectBounds(new Rectangle(xpos,0,width,height));
-				xpos+=Items[i].Width;
-				LayoutDropdown((ToolStripDropDownItem)Items[i],g);
-			}
-			g.Dispose();
+			var width=(int)g.MeasureString(Items[i].Text,Font).Width+10;
+			var height=19;//this number does not affect dropdowns, which is handled below.
+			//also, the space this gives us on the screen for text is smaller, so this seems to include padding and border.
+			((MenuItemOD)Items[i]).SetRectBounds(new Rectangle(xpos,0,width,height));
+			xpos+=Items[i].Width;
+			LayoutDropdown((ToolStripDropDownItem)Items[i],g);
 		}
-		#endregion Methods - Public
+		g.Dispose();
+	}
+	#endregion Methods - Public
 
-		#region Methods - Event Handlers
-		protected override void OnFontChanged(EventArgs e){
-			base.OnFontChanged(e);
-			LayoutItems();
-			Invalidate();
-		}
+	#region Methods - Event Handlers
+	protected override void OnFontChanged(EventArgs e){
+		base.OnFontChanged(e);
+		LayoutItems();
+		Invalidate();
+	}
 
-		protected override void OnPaint(PaintEventArgs e){
-			base.OnPaint(e);
-			e.Graphics.DrawLine(Pens.SlateGray,0,Height-1,Width,Height-1);//line under menu. Looks good at 96dpi, but creates a double line when scaled.  No simple solution.
-		}
+	protected override void OnPaint(PaintEventArgs e){
+		base.OnPaint(e);
+		e.Graphics.DrawLine(Pens.SlateGray,0,Height-1,Width,Height-1);//line under menu. Looks good at 96dpi, but creates a double line when scaled.  No simple solution.
+	}
 
-		protected override void OnResize(EventArgs e){
-			base.OnResize(e);
-			LayoutItems();
-			Invalidate();
-		}
-		#endregion Methods - Event Handlers
+	protected override void OnResize(EventArgs e){
+		base.OnResize(e);
+		LayoutItems();
+		Invalidate();
+	}
+	#endregion Methods - Event Handlers
 		
-		#region Methods - Private
-		///<summary>Recursive</summary>
-		private void LayoutDropdown(ToolStripDropDownItem toolStripDropDownItem,Graphics g){
-			if(toolStripDropDownItem.DropDownItems.Count==0){
-				return;
+	#region Methods - Private
+	///<summary>Recursive</summary>
+	private void LayoutDropdown(ToolStripDropDownItem toolStripDropDownItem,Graphics g){
+		if(toolStripDropDownItem.DropDownItems.Count==0){
+			return;
+		}
+		var widthDrop=0;//We want all the widths to be the same.
+		var widthMax=300;
+		for(var d=0;d<toolStripDropDownItem.DropDownItems.Count;d++){
+			var widthText=(int)g.MeasureString(toolStripDropDownItem.DropDownItems[d].Text,Font).Width;
+			if(widthText>widthMax){
+				widthDrop=widthMax;
+				break;
 			}
-			int widthDrop=0;//We want all the widths to be the same.
-			int widthMax=300;
-			for(int d=0;d<toolStripDropDownItem.DropDownItems.Count;d++){
-				int widthText=(int)LayoutManager.ScaleMS(g.MeasureString(toolStripDropDownItem.DropDownItems[d].Text,Font).Width);
-				if(widthText>widthMax){
-					widthDrop=widthMax;
-					break;
-				}
-				if(widthText>widthDrop){
-					widthDrop=widthText;
-				}
-			}
-			widthDrop+=LayoutManager.Scale(85);//width includes the bar at the left plus dropdown arrows at right plus space at right for shortcut descriptions.
-			//This is not consistent across different dpis. Revisit.
-			int heightDrop=0;
-			int heightText=LayoutManager.Scale(20);//system is 22
-			Size sizeProposed=new Size(widthDrop,0);
-			for(int d=0;d<toolStripDropDownItem.DropDownItems.Count;d++){
-				if(!toolStripDropDownItem.DropDownItems[d].Available){
-					continue;
-				}
-				if(toolStripDropDownItem.DropDownItems[d].GetType()==typeof(ToolStripSeparator)){
-					toolStripDropDownItem.DropDownItems[d].Height=LayoutManager.Scale(6);//system is 6
-					heightDrop+=LayoutManager.Scale(6);
-					continue;
-				}
-				//heightText=(int)(g.MeasureString(menuItemOD.DropDownItems[d].Text,Font,widthDrop).Height);
-				//if(heightText<heightMin){
-				//	heightText=heightMin;
-				//}
-				toolStripDropDownItem.DropDownItems[d].Height=heightText;
-				heightDrop+=heightText;
-				toolStripDropDownItem.DropDownItems[d].Width=widthDrop;
-			}
-			toolStripDropDownItem.DropDown.AutoSize=false;
-			toolStripDropDownItem.DropDown.Size=new Size(widthDrop+2,heightDrop+5);
-			for(int d=0;d<toolStripDropDownItem.DropDownItems.Count;d++){
-				if(toolStripDropDownItem.DropDownItems[d].GetType()==typeof(ToolStripSeparator)){
-					continue;
-				}
-				LayoutDropdown((ToolStripDropDownItem)toolStripDropDownItem.DropDownItems[d],g);//recursive
+			if(widthText>widthDrop){
+				widthDrop=widthText;
 			}
 		}
-		#endregion Methods - Private
-	}
-
-	public class MenuItemOD:ToolStripMenuItem{
-		#region Constructors
-		public MenuItemOD(){
-			AutoSize=false;
-			//Margin=new Padding(0);//this didn't change anything
-			//Padding=new Padding(0);//this didn't change anything
-			//MouseHover += (obj, arg) => ((ToolStripDropDownItem)obj).ShowDropDown();
-		}
-
-		public MenuItemOD(string text){
-			Text=text;
-			AutoSize=false;
-			//MouseHover += (obj, arg) => ((ToolStripDropDownItem)obj).ShowDropDown();
-		}
-
-		public MenuItemOD(string text,EventHandler click){
-			Text=text;
-			Click+=click;
-			AutoSize=false;
-			//MouseHover += (obj, arg) => ((ToolStripDropDownItem)obj).ShowDropDown();
-			//Name is useless
-			//Size gets calculated, so it's ignored
-		}
-		#endregion Constructors
-
-		#region Methods - Public
-		///<summary>Add either a MenuItemOD or a MenuDropItemOD.</summary>
-		public void Add(ToolStripItem toolStripItem){
-			DropDownItems.Add(toolStripItem);
-			MenuStripOD menuStripOD=MenuStripOD.GetMenuStripOD(this);
-			if(menuStripOD!=null){
-				menuStripOD.LayoutItems();
+		widthDrop+=85;//width includes the bar at the left plus dropdown arrows at right plus space at right for shortcut descriptions.
+		//This is not consistent across different dpis. Revisit.
+		var heightDrop=0;
+		var heightText=20;//system is 22
+		var sizeProposed=new Size(widthDrop,0);
+		for(var d=0;d<toolStripDropDownItem.DropDownItems.Count;d++){
+			if(!toolStripDropDownItem.DropDownItems[d].Available){
+				continue;
 			}
-		}
-
-		///<summary>Add a MenuItemOD.</summary>
-		public void Add(string text,EventHandler click){
-			DropDownItems.Add(new MenuItemOD(text,click));
-			MenuStripOD menuStripOD=MenuStripOD.GetMenuStripOD(this);
-			if(menuStripOD!=null){
-				menuStripOD.LayoutItems();
+			if(toolStripDropDownItem.DropDownItems[d].GetType()==typeof(ToolStripSeparator)){
+				toolStripDropDownItem.DropDownItems[d].Height=6;//system is 6
+				heightDrop+=6;
+				continue;
 			}
-		}
-
-		public void AddSeparator(){
-			DropDownItems.Add(new ToolStripSeparator());
-			MenuStripOD menuStripOD=MenuStripOD.GetMenuStripOD(this);
-			if(menuStripOD!=null){
-				menuStripOD.LayoutItems();
-			}
-		}
-
-		public void SetRectBounds(Rectangle rect){
-			SetBounds(rect);
-		}
-		#endregion Methods - Public
-
-		#region Methods - Event Handlers
-		protected override void OnAvailableChanged(EventArgs e){
-			base.OnAvailableChanged(e);
-			MenuStripOD menuStripOD=MenuStripOD.GetMenuStripOD(this);
-			if(menuStripOD!=null){
-				menuStripOD.LayoutItems();
-			}
-		}
-
-		/*
-		protected override void OnPaint(PaintEventArgs e){
-			//base.OnPaint(e);
-			//if(Owner==null){//not attached to a ToolStrip yet.
-			//	return;
+			//heightText=(int)(g.MeasureString(menuItemOD.DropDownItems[d].Text,Font,widthDrop).Height);
+			//if(heightText<heightMin){
+			//	heightText=heightMin;
 			//}
-			ToolStripItemRenderEventArgs ea=new ToolStripItemRenderEventArgs(e.Graphics,this);
-			Owner.Renderer.DrawMenuItemBackground(ea);
-			//no image
-			//this is what would be needed for text wrap, button outlines, etc., but it would take a lot of time to flesh it out.  Would need to calc rect, etc.
-			ToolStripItemTextRenderEventArgs rea=new ToolStripItemTextRenderEventArgs(e.Graphics,this,Text,ContentRectangle,ForeColor,Font,TextFormatFlags.Left);
-			Owner.Renderer.DrawItemText(rea);
-
-			Owner.Renderer.DrawDropDownButtonBackground
-		}*/
-		#endregion Methods - Event Handlers
-
-		#region Methods - Private
-		protected override void SetBounds(Rectangle rect){//No way to set bounds from outside without an override.
-			base.SetBounds(rect);
+			toolStripDropDownItem.DropDownItems[d].Height=heightText;
+			heightDrop+=heightText;
+			toolStripDropDownItem.DropDownItems[d].Width=widthDrop;
 		}
-		#endregion Methods - Private
-	}
-
-	/// <summary>This custom renderer is based on Professional to give us a nice modern look.  Then, we could also tweak a lot of drawing here if we had time.</summary>
-	internal class MenuRenderer:ToolStripProfessionalRenderer{
-		protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e){
-			//ToolStripItemTextRenderEventArgs eNew=new ToolStripItemTextRenderEventArgs(
-			//	e.Graphics,e.Item,e.Text,e.TextRectangle,Color.Red,e.TextFont,e.TextFormat);
-			base.OnRenderItemText(e);
-			//or, we could draw the whole thing ourselves here
-			/*
-			MenuItemOD menuItemOD=e.Item as MenuItemOD;
-			if(menuItemOD==null){
-				return;
+		toolStripDropDownItem.DropDown.AutoSize=false;
+		toolStripDropDownItem.DropDown.Size=new Size(widthDrop+2,heightDrop+5);
+		for(var d=0;d<toolStripDropDownItem.DropDownItems.Count;d++){
+			if(toolStripDropDownItem.DropDownItems[d].GetType()==typeof(ToolStripSeparator)){
+				continue;
 			}
-			Graphics g=e.Graphics;//no dispose ref
-			g.TextRenderingHint=TextRenderingHint.ClearTypeGridFit;
-			SolidBrush brushText=new SolidBrush(e.TextColor);
-			StringFormat stringFormat=new StringFormat();
-			//stringFormat.FormatFlags=StringFormatFlags.NoWrap;
-			stringFormat.LineAlignment=StringAlignment.Center;
-			g.DrawString(e.Text,e.TextFont,brushText,e.TextRectangle,stringFormat);
-			brushText?.Dispose();
-			stringFormat?.Dispose();*/
+			LayoutDropdown((ToolStripDropDownItem)toolStripDropDownItem.DropDownItems[d],g);//recursive
 		}
-
-		//protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e){
-			//ToolStripItemRenderEventArgs eNew=new ToolStripItemRenderEventArgs(
-			//base.OnRenderMenuItemBackground(e);
-			//e.Graphics.FillRectangle(Brushes.Green,e.Item.ContentRectangle);//content rectangle is very small
-		//}
-
-		//protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e){
-			//ToolStripRenderEventArgs eNew=new ToolStripRenderEventArgs(
-			//base.OnRenderToolStripBorder(e);
-			//This worked identical to the way we do it now, in OnPaint
-			//e.Graphics.DrawLine(Pens.Black,0,e.ToolStrip.Height-1,e.ToolStrip.Width,e.ToolStrip.Height-1);
-		//}
-
-
 	}
+	#endregion Methods - Private
+}
+
+public class MenuItemOD:ToolStripMenuItem{
+	#region Constructors
+	public MenuItemOD(){
+		AutoSize=false;
+		//Margin=new Padding(0);//this didn't change anything
+		//Padding=new Padding(0);//this didn't change anything
+		//MouseHover += (obj, arg) => ((ToolStripDropDownItem)obj).ShowDropDown();
+	}
+
+	public MenuItemOD(string text){
+		Text=text;
+		AutoSize=false;
+		//MouseHover += (obj, arg) => ((ToolStripDropDownItem)obj).ShowDropDown();
+	}
+
+	public MenuItemOD(string text,EventHandler click){
+		Text=text;
+		Click+=click;
+		AutoSize=false;
+		//MouseHover += (obj, arg) => ((ToolStripDropDownItem)obj).ShowDropDown();
+		//Name is useless
+		//Size gets calculated, so it's ignored
+	}
+	#endregion Constructors
+
+	#region Methods - Public
+	///<summary>Add either a MenuItemOD or a MenuDropItemOD.</summary>
+	public void Add(ToolStripItem toolStripItem){
+		DropDownItems.Add(toolStripItem);
+		var menuStripOD=MenuStripOD.GetMenuStripOD(this);
+		if(menuStripOD!=null){
+			menuStripOD.LayoutItems();
+		}
+	}
+
+	///<summary>Add a MenuItemOD.</summary>
+	public void Add(string text,EventHandler click){
+		DropDownItems.Add(new MenuItemOD(text,click));
+		var menuStripOD=MenuStripOD.GetMenuStripOD(this);
+		if(menuStripOD!=null){
+			menuStripOD.LayoutItems();
+		}
+	}
+
+	public void AddSeparator(){
+		DropDownItems.Add(new ToolStripSeparator());
+		var menuStripOD=MenuStripOD.GetMenuStripOD(this);
+		if(menuStripOD!=null){
+			menuStripOD.LayoutItems();
+		}
+	}
+
+	public void SetRectBounds(Rectangle rect){
+		SetBounds(rect);
+	}
+	#endregion Methods - Public
+
+	#region Methods - Event Handlers
+	protected override void OnAvailableChanged(EventArgs e){
+		base.OnAvailableChanged(e);
+		var menuStripOD=MenuStripOD.GetMenuStripOD(this);
+		if(menuStripOD!=null){
+			menuStripOD.LayoutItems();
+		}
+	}
+
+	/*
+	protected override void OnPaint(PaintEventArgs e){
+		//base.OnPaint(e);
+		//if(Owner==null){//not attached to a ToolStrip yet.
+		//	return;
+		//}
+		ToolStripItemRenderEventArgs ea=new ToolStripItemRenderEventArgs(e.Graphics,this);
+		Owner.Renderer.DrawMenuItemBackground(ea);
+		//no image
+		//this is what would be needed for text wrap, button outlines, etc., but it would take a lot of time to flesh it out.  Would need to calc rect, etc.
+		ToolStripItemTextRenderEventArgs rea=new ToolStripItemTextRenderEventArgs(e.Graphics,this,Text,ContentRectangle,ForeColor,Font,TextFormatFlags.Left);
+		Owner.Renderer.DrawItemText(rea);
+
+		Owner.Renderer.DrawDropDownButtonBackground
+	}*/
+	#endregion Methods - Event Handlers
+
+	#region Methods - Private
+	protected override void SetBounds(Rectangle rect){//No way to set bounds from outside without an override.
+		base.SetBounds(rect);
+	}
+	#endregion Methods - Private
+}
+
+/// <summary>This custom renderer is based on Professional to give us a nice modern look.  Then, we could also tweak a lot of drawing here if we had time.</summary>
+internal class MenuRenderer:ToolStripProfessionalRenderer{
+	protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e){
+		//ToolStripItemTextRenderEventArgs eNew=new ToolStripItemTextRenderEventArgs(
+		//	e.Graphics,e.Item,e.Text,e.TextRectangle,Color.Red,e.TextFont,e.TextFormat);
+		base.OnRenderItemText(e);
+		//or, we could draw the whole thing ourselves here
+		/*
+		MenuItemOD menuItemOD=e.Item as MenuItemOD;
+		if(menuItemOD==null){
+			return;
+		}
+		Graphics g=e.Graphics;//no dispose ref
+		g.TextRenderingHint=TextRenderingHint.ClearTypeGridFit;
+		SolidBrush brushText=new SolidBrush(e.TextColor);
+		StringFormat stringFormat=new StringFormat();
+		//stringFormat.FormatFlags=StringFormatFlags.NoWrap;
+		stringFormat.LineAlignment=StringAlignment.Center;
+		g.DrawString(e.Text,e.TextFont,brushText,e.TextRectangle,stringFormat);
+		brushText?.Dispose();
+		stringFormat?.Dispose();*/
+	}
+
+	//protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e){
+	//ToolStripItemRenderEventArgs eNew=new ToolStripItemRenderEventArgs(
+	//base.OnRenderMenuItemBackground(e);
+	//e.Graphics.FillRectangle(Brushes.Green,e.Item.ContentRectangle);//content rectangle is very small
+	//}
+
+	//protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e){
+	//ToolStripRenderEventArgs eNew=new ToolStripRenderEventArgs(
+	//base.OnRenderToolStripBorder(e);
+	//This worked identical to the way we do it now, in OnPaint
+	//e.Graphics.DrawLine(Pens.Black,0,e.ToolStrip.Height-1,e.ToolStrip.Width,e.ToolStrip.Height-1);
+	//}
+
 
 }
 

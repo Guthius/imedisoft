@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -15,79 +17,84 @@ public class Benefits
         return Refresh(listPatPlans, listInsSubs);
     }
 
-    ///<summary>Gets a list of all benefits for a given list of patplans for one patient.</summary>
-    public static List<Benefit> Refresh(List<PatPlan> listPatPlans, List<InsSub> listInsSubs)
+    public static List<Benefit> Refresh(List<PatPlan> patPlans, List<InsSub> listInsSubs)
     {
-        //Only need to check listPatPlans for null / empty because InsSubs.GetSub() handles a null / empty subList.
-        if (listPatPlans == null || listPatPlans.Count == 0) return new List<Benefit>();
-        var command = "SELECT * FROM benefit "
-                      //null safe, returns new InsSub with PlanNum 0 if GetSub doesn't find a match in neither subList nor the db
-                      + "WHERE PlanNum IN (" + string.Join(",", listPatPlans.Select(x => SOut.Long(InsSubs.GetSub(x.InsSubNum, listInsSubs).PlanNum))) + ") "
-                      + "OR PatPlanNum IN (" + string.Join(",", listPatPlans.Select(x => SOut.Long(x.PatPlanNum))) + ")";
-        var listBenefits = BenefitCrud.SelectMany(command);
-        listBenefits.Sort();
-        return listBenefits;
+        if (patPlans == null || patPlans.Count == 0)
+        {
+            return [];
+        }
+
+        var benefits = BenefitCrud.SelectMany(
+            "SELECT * FROM benefit " + 
+            "WHERE PlanNum IN (" + string.Join(",", patPlans.Select(x => InsSubs.GetSub(x.InsSubNum, listInsSubs).PlanNum)) + ") " + 
+            "OR PatPlanNum IN (" + string.Join(",", patPlans.Select(x => x.PatPlanNum)) + ")");
+        
+        benefits.Sort();
+        
+        return benefits;
     }
 
-    /// <summary>
-    ///     Gets a list of all benefits for a given list of patplans where the benefit has a PatPlanNum that matches a
-    ///     PatPlan.PatPlanNum in
-    ///     listPatPlans or the benefit has a PlanNum that matches the inssub.PlanNum for the inssubs linked to the PatPlans in
-    ///     listPatPlans.
-    /// </summary>
-    public static List<Benefit> GetAllForPatPlans(List<PatPlan> listPatPlans, List<InsSub> listInsSubs)
+    public static List<Benefit> GetAllForPatPlans(List<PatPlan> patPlans, List<InsSub> insSubs)
     {
-        if (listPatPlans.IsNullOrEmpty()) return new List<Benefit>();
-        var dictionaryInsSubNumsPlanNums = listInsSubs.GroupBy(x => x.InsSubNum).ToDictionary(x => x.Key, x => x.Last().PlanNum);
-        var listPlanNums = listPatPlans.Select(x => x.InsSubNum).Distinct()
-            .Select(x => dictionaryInsSubNumsPlanNums.TryGetValue(x, out var planNum) ? planNum : InsSubs.GetOne(x)?.PlanNum ?? 0).Distinct().ToList();
-        var command = "SELECT * FROM benefit "
-                      //null safe, returns new InsSub with PlanNum 0 if GetSub doesn't find a match in neither subList nor the db
-                      + "WHERE PlanNum IN (" + string.Join(",", listPlanNums.Select(x => SOut.Long(x))) + ") "
-                      + "OR PatPlanNum IN (" + string.Join(",", listPatPlans.Select(x => x.PatPlanNum).Distinct().Select(x => SOut.Long(x))) + ")";
-        return BenefitCrud.SelectMany(command);
+        if (patPlans.IsNullOrEmpty())
+        {
+            return [];
+        }
+        
+        var insSubNumsPlanNums = insSubs
+            .GroupBy(x => x.InsSubNum)
+            .ToDictionary(x => x.Key, x => x.Last().PlanNum);
+        
+        var planNums = patPlans.Select(x => x.InsSubNum).Distinct()
+            .Select(x => insSubNumsPlanNums.TryGetValue(x, out var planNum) ? planNum : InsSubs.GetOne(x)?.PlanNum ?? 0)
+            .Distinct()
+            .ToList();
+        
+        return BenefitCrud.SelectMany(
+            "SELECT * FROM benefit " + 
+            "WHERE PlanNum IN (" + string.Join(",", planNums) + ") " + 
+            "OR PatPlanNum IN (" + string.Join(",", patPlans.Select(x => x.PatPlanNum).Distinct()) + ")");
     }
 
-    ///<summary>Returns a sorted list of benefits for the specified plan or pat plan.  patPlanNum can be 0.</summary>
     public static List<Benefit> GetForPlanOrPatPlan(long planNum, long patPlanNum)
     {
-        var command = "SELECT * FROM benefit WHERE PlanNum = " + SOut.Long(planNum);
-        if (patPlanNum != 0) command += " OR PatPlanNum = " + SOut.Long(patPlanNum);
-        var listBenefits = BenefitCrud.SelectMany(command);
-        listBenefits.Sort();
-        return listBenefits;
+        var commandText = "SELECT * FROM benefit WHERE PlanNum = " + planNum;
+        if (patPlanNum != 0)
+        {
+            commandText += " OR PatPlanNum = " + patPlanNum;
+        }
+        
+        var benefits = BenefitCrud.SelectMany(commandText);
+        
+        benefits.Sort();
+        
+        return benefits;
     }
-    
+
     public static void Update(Benefit benefit, Benefit benefitOld)
     {
         BenefitCrud.Update(benefit, benefitOld);
-        //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
+        
         InsEditLogs.MakeLogEntry(benefit, benefitOld, InsEditLogType.Benefit, Security.CurUser.UserNum);
     }
-    
-    public static long Insert(Benefit benefit)
+
+    public static void Insert(Benefit benefit)
     {
-        var benefitNum = BenefitCrud.Insert(benefit);
-        if (benefit.PlanNum != 0) //Does not log PatPlan benefits
-            //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
+        BenefitCrud.Insert(benefit);
+        
+        if (benefit.PlanNum != 0)
+        {
             InsEditLogs.MakeLogEntry(benefit, null, InsEditLogType.Benefit, Security.CurUser.UserNum);
-        return benefitNum;
+        }
     }
-    
+
     public static void Delete(Benefit benefit)
     {
-        var command = "DELETE FROM benefit WHERE BenefitNum =" + SOut.Long(benefit.BenefitNum);
-        Db.NonQ(command);
-        //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
+        Db.NonQ("DELETE FROM benefit WHERE BenefitNum =" + benefit.BenefitNum);
+        
         InsEditLogs.MakeLogEntry(null, benefit, InsEditLogType.Benefit, Security.CurUser.UserNum);
     }
 
-    /// <summary>
-    ///     Only for display purposes rather than any calculations.  Gets an annual max from the supplied list of
-    ///     benefits.  Ignores benefits that do not match either the planNum or the patPlanNum.  Because it starts at the top
-    ///     of the benefit list, it will get the most general limitation first.  Returns -1 if none found.  Usually, set isFam
-    ///     to false unless we are specifically interested in that value.
-    /// </summary>
     public static double GetAnnualMaxDisplay(List<Benefit> listBenefits, long planNum, long patPlanNum, bool isFam)
     {
         var listBenefitsMatching = new List<Benefit>();
@@ -125,10 +132,6 @@ public class Benefits
         return listBenefitsMatching.OrderBy(x => x.CovCatNum != 0).ThenBy(x => x.MonetaryAmt).First().MonetaryAmt;
     }
 
-    /// <summary>
-    ///     Only for display purposes rather than any calculations.  Gets a general deductible from the supplied list of
-    ///     benefits.  Ignores benefits that do not match either the planNum or the patPlanNum.
-    /// </summary>
     public static double GetDeductGeneralDisplay(List<Benefit> listBenefits, long planNum, long patPlanNum, BenefitCoverageLevel benefitCoverageLevel)
     {
         var listBenefitsMatching = new List<Benefit>();
@@ -157,16 +160,7 @@ public class Benefits
         return -1;
     }
 
-    /// <summary>
-    ///     Used only in ClaimProcs.ComputeBaseEst.  Gets a deductible amount from the supplied list of benefits.  Ignores
-    ///     benefits that do not
-    ///     match either the planNum or the patPlanNum.  It figures out how much was already used and reduces the returned
-    ///     value by that amount.
-    ///     Both individual and family deductibles will reduce the returned value independently.  Works for individual procs,
-    ///     categories, and general.
-    /// </summary>
-    public static double GetDeductibleByCode(List<Benefit> listBenefits, long planNum, long patPlanNum, DateTime dateProc, string procCode,
-        List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop, InsPlan insPlan, long patNum)
+    public static double GetDeductibleByCode(List<Benefit> listBenefits, long planNum, long patPlanNum, DateTime dateProc, string procCode, List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop, InsPlan insPlan, long patNum)
     {
         if (IsExcluded(procCode, listBenefits, planNum, patPlanNum)) return 0;
 
@@ -554,12 +548,7 @@ public class Benefits
         return retVal;
     }
 
-    /// <summary>
-    ///     Figures out the total amount of deductibles used based on the claim proc history and returns how much is left
-    ///     to pay.
-    /// </summary>
-    private static double GetDeductibleRemainingHelper(InsPlan insPlan, DateTime procDate, Benefit benefitInd, Benefit benefitIndGeneral,
-        List<ClaimProcHist> listClaimProcHists)
+    private static double GetDeductibleRemainingHelper(InsPlan insPlan, DateTime procDate, Benefit benefitInd, Benefit benefitIndGeneral, List<ClaimProcHist> listClaimProcHists)
     {
         //Before we call this method, we return 0 if benInd is null. If this is ever called outside of that context, we want to maintain that logic.
         if (benefitInd == null) return 0;
@@ -637,21 +626,7 @@ public class Benefits
         return retVal;
     }
 
-    /// <summary>
-    ///     Used only in ClaimProcs.ComputeBaseEst.  Calculates the most specific limitation for the specified code.
-    ///     This is usually an annual max, ortho max, or fluoride limitation (only if age match).
-    ///     Ignores benefits that do not match either the planNum or the patPlanNum.
-    ///     It figures out how much was already used and reduces the returned value by that amount.
-    ///     Both individual and family limitations will reduce the returned value independently.
-    ///     Works for individual procs, categories, and general.  Also outputs a string description of the limitation.
-    ///     There don't seem to be any situations where multiple limitations would each partially reduce coverage for a single
-    ///     code, other than ind/fam.
-    ///     The returned value will be the original insEstTotal passed in unless there was some limitation that reduced it.
-    ///     Considers InsEstTotalOverride when dynamically writing the EstimateNote.
-    /// </summary>
-    public static double GetLimitationByCode(List<Benefit> listBenefits, long planNum, long patPlanNum, DateTime procDate,
-        string procCodeStr, List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop, InsPlan insPlan, long patNum, out string note,
-        double insEstTotal, int patientAge, long insSubNum, double insEstTotalOverride, out LimitationTypeMet limitationTypeMet)
+    public static double GetLimitationByCode(List<Benefit> listBenefits, long planNum, long patPlanNum, DateTime procDate, string procCodeStr, List<ClaimProcHist> listClaimProcHists, List<ClaimProcHist> listClaimProcHistsLoop, InsPlan insPlan, long patNum, out string note, double insEstTotal, int patientAge, long insSubNum, double insEstTotalOverride, out LimitationTypeMet limitationTypeMet)
     {
         note = "";
         limitationTypeMet = LimitationTypeMet.None;
@@ -1373,7 +1348,6 @@ public class Benefits
         return retVal;
     }
 
-    ///<summary>Returns true if the passed in code is within the "General" insurance coverage category.</summary>
     private static bool IsCodeInGeneralSpan(string procCodeStr)
     {
         var retVal = true;
@@ -1475,10 +1449,6 @@ public class Benefits
         return false;
     }
 
-    /// <summary>
-    ///     Only used from InsPlans.GetInsUsedDisplay.  If a procedure is handled by some limitation other than a general
-    ///     annual max, then we don't want it to count towards the annual max.
-    /// </summary>
     public static bool LimitationExistsNotGeneral(List<Benefit> listBenefits, long planNum, long patPlanNum, string strProcCode)
     {
         EbenefitCategory ebenefitCategory;
@@ -1511,12 +1481,6 @@ public class Benefits
         return false;
     }
 
-    /// <summary>
-    ///     Used from ClaimProc.ComputeBaseEst and in sheet output. This is a low level function to get the percent to
-    ///     store in a claimproc.  It does not consider any percentOverride.  Always returns a number between 0 and 100.
-    ///     Handles general, category, or procedure level.  Does not handle pat vs family coveragelevel.  Does handle patient
-    ///     override by using patplan.  Does not need to be aware of procedure history or loop history.
-    /// </summary>
     public static int GetPercent(string procCodeStr, string planType, long planNum, long patPlanNum, List<Benefit> listBenefits)
     {
         if (planType == "f" || planType == "c") return 100; //flat and cap are always covered 100%
@@ -1656,11 +1620,7 @@ public class Benefits
         var command = "SELECT * FROM benefit WHERE PatPlanNum IN(" + string.Join(",", listPatPlanNums) + ") AND CodeNum IN(" + string.Join(",", listCodeNums) + ")";
         return BenefitCrud.SelectMany(command);
     }
-
-    /// <summary>
-    ///     Only used from ClaimProc.ComputeBaseEst. This is a low level function to determine if a given procedure is
-    ///     completely excluded from coverage.  It does not consider any dates of service or history.
-    /// </summary>
+    
     public static bool IsExcluded(string strProcCode, List<Benefit> listBenefits, long planNum, long patPlanNum)
     {
         for (var i = 0; i < listBenefits.Count; i++)
@@ -1694,10 +1654,6 @@ public class Benefits
         return false; //no exclusions found for this code
     }
 
-    /// <summary>
-    ///     Used in FormInsPlan to sych database with changes user made to the benefit list for a plan.
-    ///     Must supply an old list for comparison.  Only the differences are saved.
-    /// </summary>
     public static void UpdateList(List<Benefit> listBenefitsOld, List<Benefit> listBenefitsNew)
     {
         Benefit benefitNew;
@@ -1749,12 +1705,6 @@ public class Benefits
         }
     }
 
-    /// <summary>
-    ///     Used in family module display to get a list of benefits.
-    ///     The main purpose of this function is to group similar benefits for each plan on the same row, making it easier to
-    ///     display in a simple grid.
-    ///     Supply a list of all benefits for the patient, and the patPlans for the patient.
-    /// </summary>
     public static Benefit[,] GetDisplayMatrix(List<Benefit> listBenefitsForPat, List<PatPlan> listPatPlans, List<InsSub> listInsSubs)
     {
         Benefit[] benefitArrayRow; //Closely related benefits, one column for each pat plan. Entries can be null.
@@ -1808,24 +1758,16 @@ public class Benefits
         return retVal;
     }
 
-    /// <summary>
-    ///     Deletes all benefits for a plan from the database.  Only used in FormInsPlan when picking a plan from the list.
-    ///     Need to clear out benefits so that they won't be picked up when choosing benefits for all.
-    /// </summary>
     public static void DeleteForPlan(long planNum)
     {
-        var command = "SELECT * FROM benefit WHERE PlanNum=" + SOut.Long(planNum);
+        var command = "SELECT * FROM benefit WHERE PlanNum=" + planNum;
         var listBenefits = BenefitCrud.SelectMany(command);
-        command = "DELETE FROM benefit WHERE PlanNum=" + SOut.Long(planNum);
+        command = "DELETE FROM benefit WHERE PlanNum=" + planNum;
         Db.NonQ(command);
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         for (var i = 0; 0 < listBenefits.Count; i++) InsEditLogs.MakeLogEntry(null, listBenefits[i], InsEditLogType.Benefit, Security.CurUser.UserNum);
     }
 
-    /// <summary>
-    ///     Get the string for displaying the frequency for the specified type for the specified plan (primary,
-    ///     secondary).
-    /// </summary>
     public static string GetFrequencyDisplay(FrequencyType frequencyType, List<Benefit> listBenefits, long planNum)
     {
         for (var i = 0; i < listBenefits.Count; i++)
@@ -1848,7 +1790,6 @@ public class Benefits
         return "";
     }
 
-    ///<summary>Gets the a string like "Once every 6 months" for the frequency benefit.</summary>
     private static string GetFrequencyString(Benefit benefit)
     {
         var retVal = "";
@@ -1886,10 +1827,6 @@ public class Benefits
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets the string that displays in the "Category" column of the benefits table in FormInsPlans.
-    ///     Pass in a list of CovCats to not make multiple deep copies of the cache.
-    /// </summary>
     public static string GetCategoryString(Benefit benefit)
     {
         var retVal = "";
@@ -1969,7 +1906,6 @@ public class Benefits
         return true;
     }
 
-    ///<summary>Returns true if this benefit is a codegroup age limitation.</summary>
     public static bool IsAgeLimit(Benefit benefit)
     {
         if (benefit == null) return false;
@@ -1986,59 +1922,48 @@ public class Benefits
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for bitewing frequency.</summary>
     public static bool IsBitewingFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.BW, patPlanNum, false)) return true;
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for pano frequency.</summary>
     public static bool IsPanoFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.PanoFMX, patPlanNum, false)) return true;
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for exam frequency.</summary>
     public static bool IsExamFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.Exam, patPlanNum, false)) return true;
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for prophy frequency.</summary>
     public static bool IsProphyFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.Prophy, patPlanNum)) return true;
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for SRP frequency.</summary>
     public static bool IsSRPFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.SRP, patPlanNum)) return true;
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for full mouth debridement frequency.</summary>
     public static bool IsFullDebridementFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.FMDebride, patPlanNum)) return true;
         return false;
     }
 
-    ///<summary>Returns true if this benefit is for perio maintenance frequency.</summary>
     public static bool IsPerioMaintFrequency(Benefit benefit, long patPlanNum = 0)
     {
         if (IsFrequencyLimitationForCodeGroupFixed(benefit, EnumCodeGroupFixed.Perio, patPlanNum)) return true;
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents an annual max benefit. Can be either family or individual based
-    ///     on coverageLevel passed in.
-    /// </summary>
     public static bool IsAnnualMax(Benefit benefit, BenefitCoverageLevel benefitCoverageLevel)
     {
         if (benefit.CodeNum == 0
@@ -2055,10 +1980,6 @@ public class Benefits
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents a general deductible benefit. Can be either family or individual
-    ///     based on coverageLevel passed in.
-    /// </summary>
     public static bool IsGeneralDeductible(Benefit benefit, BenefitCoverageLevel benefitCoverageLevel)
     {
         if (benefit.CodeNum == 0
@@ -2075,7 +1996,6 @@ public class Benefits
         return false;
     }
 
-    /// <summary>Returns true if the given benefit represents an ortho age benefit. Used exclusively for FormInsBenefits.</summary>
     public static bool IsOrthoAgeBenefit(Benefit benefit)
     {
         if (benefit == null) return false;
@@ -2088,7 +2008,6 @@ public class Benefits
                && benefit.QuantityQualifier == BenefitQuantity.AgeLimit;
     }
 
-    /// <summary>Returns true if the given benefit represents an ortho max benefit.</summary>
     public static bool IsOrthoMaxBenefit(Benefit benefit)
     {
         if (benefit == null) return false;
@@ -2104,7 +2023,6 @@ public class Benefits
                && benefit.TimePeriod == BenefitTimePeriod.Lifetime;
     }
 
-    /// <summary>Returns true if the given benefit represents an ortho percent benefit.</summary>
     public static bool IsOrthoPercentBenefit(Benefit benefit)
     {
         if (benefit == null) return false;
@@ -2119,10 +2037,6 @@ public class Benefits
                && (benefit.TimePeriod == BenefitTimePeriod.CalendarYear || benefit.TimePeriod == BenefitTimePeriod.ServiceYear);
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents a diagnostic deductible benefit. Can be either family or
-    ///     individual based on coverageLevel passed in.
-    /// </summary>
     public static bool IsDiagnosticDeductibleBenefit(Benefit benefit, BenefitCoverageLevel benefitCoverageLevel)
     {
         if (benefit == null) return false;
@@ -2137,10 +2051,6 @@ public class Benefits
                && benefit.CoverageLevel == benefitCoverageLevel;
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents an xray deductible benefit. Can be either family or individual
-    ///     based on coverageLevel passed in.
-    /// </summary>
     public static bool IsXRayDeductibleBenefit(Benefit benefit, BenefitCoverageLevel benefitCoverageLevel)
     {
         if (benefit == null) return false;
@@ -2155,10 +2065,6 @@ public class Benefits
                && benefit.CoverageLevel == benefitCoverageLevel;
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents a preventative deductible benefit. Can be either family or
-    ///     individual based on coverageLevel passed in.
-    /// </summary>
     public static bool IsPreventativeDeductibleBenefit(Benefit benefit, BenefitCoverageLevel benefitCoverageLevel)
     {
         if (benefit == null) return false;
@@ -2173,10 +2079,6 @@ public class Benefits
                && benefit.CoverageLevel == benefitCoverageLevel;
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents a coinsurance benefit for the textboxes in the simplified view of
-    ///     FormInsBenefits.
-    /// </summary>
     public static bool IsCoInsuranceBenefit(Benefit benefit, EbenefitCategory ebenefitCategory)
     {
         if (benefit == null) return false;
@@ -2191,10 +2093,6 @@ public class Benefits
                && (benefit.TimePeriod == BenefitTimePeriod.CalendarYear || benefit.TimePeriod == BenefitTimePeriod.ServiceYear);
     }
 
-    /// <summary>
-    ///     Returns true if the given benefit represents a waiting period benefit for the textboxes in the simplified view
-    ///     of FormInsBenefits.
-    /// </summary>
     public static bool IsWaitingPeriodBenefit(Benefit benefit, EbenefitCategory ebenefitCategory)
     {
         if (benefit == null) return false;
@@ -2205,10 +2103,6 @@ public class Benefits
                && benefit.PatPlanNum == 0;
     }
 
-    /// <summary>
-    ///     Gets a distinct list of all benfits where their patplannum is in listpatplannumss or their plannum is in
-    ///     listplannums. Returns empty list if no matches are found.
-    /// </summary>
     public static List<Benefit> GetAllForPlanNumsAndPatPlanNums(List<long> listPlanNums, List<long> listPatPlanNums)
     {
         listPatPlanNums.RemoveAll(x => x == 0);

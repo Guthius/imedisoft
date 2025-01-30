@@ -1,169 +1,189 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using Imedisoft.Core.Entities;
+using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormApptConflicts:FormODBase {
-		private bool _hasHeadingPrinted;
-		private int _pagesPrinted;
-		///<summary>Passed in list of Appts to show.</summary>
-		private List<Appointment> _listAppointments;
-		///<summary>All unique PatNums via the list of appointments.</summary>
-		private List<Patient> _listPatients;
+namespace OpenDental.Forms;
 
-		public FormApptConflicts(List<Appointment> listAppointments) {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-			_listAppointments=listAppointments.Select(x => x.Copy()).ToList();
-		}
+public partial class FormApptConflicts : FormODBase
+{
+    private readonly List<Appointment> _appointments;
+    private List<Patient> _patients;
+    private bool _hasHeadingPrinted;
+    private int _pagesPrinted;
 
-		private void FormApptConflicts_Load(object sender,EventArgs e) {
-			gridConflicts.ContextMenu=contextRightClick;
-			FillGrid();
-		}
-		
-		private void FillGrid(){
-			this.Cursor=Cursors.WaitCursor;
-			_listPatients=Patients.GetLimForPats(_listAppointments.Select(x => x.PatNum).Distinct().ToList());
-			gridConflicts.BeginUpdate();
-			gridConflicts.Columns.Clear();
-			GridColumn col=new GridColumn(Lan.g("TableApptConflicts","Patient"),140);
-			gridConflicts.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableApptConflicts","Date"),120);
-			gridConflicts.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableApptConflicts","Op"),110);
-			gridConflicts.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableApptConflicts","Prov"),50);
-			gridConflicts.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableApptConflicts","Procedures"),150);
-			gridConflicts.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableApptConflicts","Notes"),200);
-			gridConflicts.Columns.Add(col);
-			gridConflicts.ListGridRows.Clear();
-			GridRow row;
-			for(int i=0;i<_listAppointments.Count;i++) {
-				row=new GridRow();
-				Patient patient=_listPatients.First(x => x.PatNum==_listAppointments[i].PatNum);
-				row.Cells.Add(patient.GetNameLF());
-				if(_listAppointments[i].AptDateTime.Year < 1880){//shouldn't be possible.
-					row.Cells.Add("");
-				}
-				else{
-					row.Cells.Add(_listAppointments[i].AptDateTime.ToShortDateString()+"  "+_listAppointments[i].AptDateTime.ToShortTimeString());
-				}
-				row.Cells.Add(Operatories.GetAbbrev(_listAppointments[i].Op));
-				if(_listAppointments[i].IsHygiene) {
-					row.Cells.Add(Providers.GetAbbr(_listAppointments[i].ProvHyg));
-				}
-				else {
-					row.Cells.Add(Providers.GetAbbr(_listAppointments[i].ProvNum));
-				}
-				row.Cells.Add(_listAppointments[i].ProcDescript);
-				row.Cells.Add(_listAppointments[i].Note);
-				row.Tag=_listAppointments[i];
-				gridConflicts.ListGridRows.Add(row);
-			}
-			gridConflicts.EndUpdate();
-			Cursor=Cursors.Default;
-		}
-		
-		private void gridConflicts_DoubleClick(object sender,ODGridClickEventArgs e) {
-			int currentSelection=e.Row;
-			int currentScroll=gridConflicts.ScrollValue;
-			Appointment appointment=(Appointment)gridConflicts.ListGridRows[e.Row].Tag;
-			long selectedPatNum=appointment.PatNum;
-			Patient patient=_listPatients.First(x => x.PatNum==selectedPatNum);
-			GlobalFormOpenDental.PatientSelected(patient,true);
-			using FormApptEdit formApptEdit=new FormApptEdit(appointment.AptNum);
-			formApptEdit.PinIsVisible=true;
-			formApptEdit.ShowDialog();
-			if(formApptEdit.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			if(formApptEdit.PinClicked) {
-				SendPinboard_Click(); //Whatever they double clicked on will still be selected, just fire the event to send it to the pinboard.
-			}
-			gridConflicts.SetSelected(currentSelection,true);
-			gridConflicts.ScrollValue=currentScroll;
-		}
+    public FormApptConflicts(List<Appointment> appointments)
+    {
+        InitializeComponent();
 
-		private void menuItemPin_Click(object sender,EventArgs e) {
-			SendPinboard_Click();
-		}
-		
-		///<summary>Removes the selected appoinments from the class wide list of appointments, sends the appointments to the pinboard,
-		///and then refreshes the grid so that the user can see that they are "taking care" of the conflicts.</summary>
-		private void SendPinboard_Click() {
-			if(gridConflicts.SelectedIndices.Length==0) {
-				MsgBox.Show(this,"Please select an appointment first.");
-				return;
-			}
-			List<long> listSelectedAptNums=new List<long>();
-			for(int i=0;i<gridConflicts.SelectedIndices.Length;i++) {
-				listSelectedAptNums.Add(((Appointment)gridConflicts.ListGridRows[gridConflicts.SelectedIndices[i]].Tag).AptNum);
-			}
-			_listAppointments.RemoveAll(x => listSelectedAptNums.Contains(x.AptNum));
-			FillGrid();
-			GlobalFormOpenDental.GoToModule(EnumModuleType.Appointments, listPinApptNums:listSelectedAptNums,dateSelected:DateTime.Today);//Pins all appointments to the pinboard that were in listAptSelected.
-		}
+        _appointments = appointments.Select(x => x.Copy()).ToList();
+    }
 
-		private void menuItemSelectPatient_Click(object sender,EventArgs e) {
-			SelectPatient_Click();
-		}
-		
-		private void SelectPatient_Click() {
-			if(gridConflicts.SelectedIndices.Length==0) {
-				MsgBox.Show(this,"Please select an appointment first.");
-				return;
-			}
-			//If multiple selected, just take the last one to remain consistent with SendPinboard_Click.
-			Patient patient=_listPatients.First(x => x.PatNum==_listAppointments[gridConflicts.SelectedIndices[gridConflicts.SelectedIndices.Length-1]].PatNum);
-			GlobalFormOpenDental.PatientSelected(patient,true);
-		}
+    private void FormApptConflicts_Load(object sender, EventArgs e)
+    {
+        gridConflicts.ContextMenu = contextRightClick;
 
-		private void butPrint_Click(object sender,EventArgs e) {
-			_pagesPrinted=0;
-			_hasHeadingPrinted=false;
-			PrinterL.TryPrintOrDebugRpPreview(pd_PrintPage,Lan.g(this,"Operatory Merge - conflict appointment List printed."));
-		}
+        FillGrid();
+    }
 
-		private void pd_PrintPage(object sender,System.Drawing.Printing.PrintPageEventArgs e) {
-			Rectangle bounds=e.MarginBounds;
-			Graphics g=e.Graphics;
-			string text;
-			using Font fontHeading=new Font("Arial",13,FontStyle.Bold);
-			using Font fontSubHeading=new Font("Arial",10,FontStyle.Bold);
-			int y=bounds.Top;
-			int center=bounds.X+bounds.Width/2;
-			#region printHeading
-			int headingPrintH=0;
-			if(!_hasHeadingPrinted) {
-				text=Lan.g(this,"Operatory Merge - Conflict Appointment List");
-				g.DrawString(text,fontHeading,Brushes.Black,center-g.MeasureString(text,fontHeading).Width/2,y);
-				y+=25;
-				_hasHeadingPrinted=true;
-				headingPrintH=y;
-			}
-			#endregion
-			y=gridConflicts.PrintPage(g,_pagesPrinted,bounds,headingPrintH);
-			_pagesPrinted++;
-			if(y==-1) {
-				e.HasMorePages=true;
-			}
-			else {
-				e.HasMorePages=false;
-			}
-		}
+    private void FillGrid()
+    {
+        Cursor = Cursors.WaitCursor;
 
-	}
+        _patients = Patients.GetLimForPats(_appointments.Select(x => x.PatNum).Distinct().ToList());
+
+        gridConflicts.BeginUpdate();
+
+        gridConflicts.Columns.Clear();
+        gridConflicts.Columns.Add(new GridColumn("Patient", 140));
+        gridConflicts.Columns.Add(new GridColumn("Date", 120));
+        gridConflicts.Columns.Add(new GridColumn("Op", 110));
+        gridConflicts.Columns.Add(new GridColumn("Prov", 50));
+        gridConflicts.Columns.Add(new GridColumn("Procedures", 150));
+        gridConflicts.Columns.Add(new GridColumn("Notes", 200));
+
+        gridConflicts.ListGridRows.Clear();
+
+        foreach (var appointment in _appointments)
+        {
+            var patient = _patients.First(x => x.PatNum == appointment.PatNum);
+
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(patient.GetNameLF());
+
+            if (appointment.AptDateTime.Year < 1880)
+            {
+                gridRow.Cells.Add("");
+            }
+            else
+            {
+                gridRow.Cells.Add(appointment.AptDateTime.ToShortDateString() + "  " + appointment.AptDateTime.ToShortTimeString());
+            }
+
+            gridRow.Cells.Add(Operatories.GetAbbrev(appointment.Op));
+            gridRow.Cells.Add(appointment.IsHygiene ? Providers.GetAbbr(appointment.ProvHyg) : Providers.GetAbbr(appointment.ProvNum));
+            gridRow.Cells.Add(appointment.ProcDescript);
+            gridRow.Cells.Add(appointment.Note);
+            gridRow.Tag = appointment;
+
+            gridConflicts.ListGridRows.Add(gridRow);
+        }
+
+        gridConflicts.EndUpdate();
+
+        Cursor = Cursors.Default;
+    }
+
+    private void GridConflicts_DoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var currentSelection = e.Row;
+        var currentScroll = gridConflicts.ScrollValue;
+
+        var appointment = (Appointment) gridConflicts.ListGridRows[e.Row].Tag;
+        var selectedPatNum = appointment.PatNum;
+        var patient = _patients.First(x => x.PatNum == selectedPatNum);
+
+        GlobalFormOpenDental.PatientSelected(patient, true);
+
+        using var formApptEdit = new FormApptEdit(appointment.AptNum);
+
+        formApptEdit.PinIsVisible = true;
+
+        if (formApptEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        if (formApptEdit.PinClicked)
+        {
+            SendPinboard_Click();
+        }
+
+        gridConflicts.SetSelected(currentSelection);
+        gridConflicts.ScrollValue = currentScroll;
+    }
+
+    private void MenuItemPin_Click(object sender, EventArgs e)
+    {
+        SendPinboard_Click();
+    }
+
+    private void SendPinboard_Click()
+    {
+        if (gridConflicts.SelectedIndices.Length == 0)
+        {
+            ShowError("Please select an appointment first.");
+            return;
+        }
+
+        var selectedAptNums = gridConflicts.SelectedIndices
+            .Select(index => ((Appointment) gridConflicts.ListGridRows[index].Tag).AptNum)
+            .ToList();
+
+        _appointments.RemoveAll(x => selectedAptNums.Contains(x.AptNum));
+
+        FillGrid();
+
+        GlobalFormOpenDental.GoToModule(EnumModuleType.Appointments, listPinApptNums: selectedAptNums, dateSelected: DateTime.Today); //Pins all appointments to the pinboard that were in listAptSelected.
+    }
+
+    private void MenuItemSelectPatient_Click(object sender, EventArgs e)
+    {
+        SelectPatient_Click();
+    }
+
+    private void SelectPatient_Click()
+    {
+        if (gridConflicts.SelectedIndices.Length == 0)
+        {
+            ShowError("Please select an appointment first.");
+            return;
+        }
+
+        var patient = _patients.First(x => x.PatNum == _appointments[gridConflicts.SelectedIndices[gridConflicts.SelectedIndices.Length - 1]].PatNum);
+
+        GlobalFormOpenDental.PatientSelected(patient, true);
+    }
+
+    private void ButtonPrint_Click(object sender, EventArgs e)
+    {
+        _pagesPrinted = 0;
+        _hasHeadingPrinted = false;
+
+        PrinterL.TryPrintOrDebugRpPreview(PrintPage, "Operatory Merge - conflict appointment List printed.");
+    }
+
+    private void PrintPage(object sender, PrintPageEventArgs e)
+    {
+        using var fontHeading = new Font("Arial", 13, FontStyle.Bold);
+        using var fontSubHeading = new Font("Arial", 10, FontStyle.Bold);
+
+        var y = e.MarginBounds.Top;
+        var cx = e.MarginBounds.X + e.MarginBounds.Width / 2;
+
+        var headingPrintH = 0;
+        if (!_hasHeadingPrinted)
+        {
+            const string header = "Operatory Merge - Conflict Appointment List";
+
+            e.Graphics.DrawString(header, fontHeading, Brushes.Black, cx - e.Graphics.MeasureString(header, fontHeading).Width / 2, y);
+            y += 25;
+
+            _hasHeadingPrinted = true;
+            headingPrintH = y;
+        }
+
+        y = gridConflicts.PrintPage(e.Graphics, _pagesPrinted, e.MarginBounds, headingPrintH);
+
+        _pagesPrinted++;
+
+        e.HasMorePages = y == -1;
+    }
 }

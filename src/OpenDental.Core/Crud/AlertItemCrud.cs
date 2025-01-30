@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AlertItemCrud
 {
@@ -53,7 +55,7 @@ public class AlertItemCrud
                                            + SOut.Long(alertItem.FKey) + ","
                                            + "'" + SOut.String(alertItem.ItemValue) + "',"
                                            + SOut.Long(alertItem.UserNum) + ","
-                                           + DbHelper.Now() + ")";
+                                           + "NOW()" + ")";
         {
             alertItem.AlertItemNum = Db.NonQ(command, true, "AlertItemNum", "alertItem");
         }

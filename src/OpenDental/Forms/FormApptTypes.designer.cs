@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormApptTypes {
 		/// <summary>
 		/// Required designer variable.
@@ -26,8 +26,6 @@ namespace OpenDental{
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormApptTypes));
 			this.butAdd = new OpenDental.UI.Button();
 			this.gridMain = new OpenDental.UI.GridOD();
-			this.butDown = new OpenDental.UI.Button();
-			this.butUp = new OpenDental.UI.Button();
 			this.checkPrompt = new OpenDental.UI.CheckBox();
 			this.checkWarn = new OpenDental.UI.CheckBox();
 			this.butOK = new OpenDental.UI.Button();
@@ -43,7 +41,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(79, 24);
 			this.butAdd.TabIndex = 156;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// gridMain
 			// 
@@ -55,32 +53,7 @@ namespace OpenDental{
 			this.gridMain.Size = new System.Drawing.Size(331, 401);
 			this.gridMain.TabIndex = 155;
 			this.gridMain.Title = "Appointment Types";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
-			// 
-			// butDown
-			// 
-			this.butDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butDown.Image = global::OpenDental.Properties.Resources.down;
-			this.butDown.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butDown.Location = new System.Drawing.Point(345, 229);
-			this.butDown.Name = "butDown";
-			this.butDown.Size = new System.Drawing.Size(79, 24);
-			this.butDown.TabIndex = 159;
-			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
-			// 
-			// butUp
-			// 
-			this.butUp.AdjustImageLocation = new System.Drawing.Point(0, 1);
-			this.butUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butUp.Image = global::OpenDental.Properties.Resources.up;
-			this.butUp.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butUp.Location = new System.Drawing.Point(345, 199);
-			this.butUp.Name = "butUp";
-			this.butUp.Size = new System.Drawing.Size(79, 24);
-			this.butUp.TabIndex = 158;
-			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// checkPrompt
 			// 
@@ -89,7 +62,7 @@ namespace OpenDental{
 			this.checkPrompt.Size = new System.Drawing.Size(382, 20);
 			this.checkPrompt.TabIndex = 160;
 			this.checkPrompt.Text = "New appointments prompt for appointment type";
-			this.checkPrompt.CheckedChanged += new System.EventHandler(this.checkPrompt_CheckedChanged);
+			this.checkPrompt.CheckedChanged += new System.EventHandler(this.CheckBoxPrompt_CheckedChanged);
 			// 
 			// checkWarn
 			// 
@@ -98,7 +71,7 @@ namespace OpenDental{
 			this.checkWarn.Size = new System.Drawing.Size(382, 20);
 			this.checkWarn.TabIndex = 161;
 			this.checkWarn.Text = "Warn users before disassociating procedures from an appointment";
-			this.checkWarn.CheckedChanged += new System.EventHandler(this.checkWarn_CheckedChanged);
+			this.checkWarn.CheckedChanged += new System.EventHandler(this.CheckBoxWarn_CheckedChanged);
 			// 
 			// butOK
 			// 
@@ -108,7 +81,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(79, 24);
 			this.butOK.TabIndex = 162;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// FormApptTypes
 			// 
@@ -116,8 +89,6 @@ namespace OpenDental{
 			this.Controls.Add(this.butOK);
 			this.Controls.Add(this.checkWarn);
 			this.Controls.Add(this.checkPrompt);
-			this.Controls.Add(this.butDown);
-			this.Controls.Add(this.butUp);
 			this.Controls.Add(this.butAdd);
 			this.Controls.Add(this.gridMain);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -133,8 +104,6 @@ namespace OpenDental{
 
 		private UI.Button butAdd;
 		private UI.GridOD gridMain;
-		private UI.Button butDown;
-		private UI.Button butUp;
 		private OpenDental.UI.CheckBox checkPrompt;
 		private OpenDental.UI.CheckBox checkWarn;
 		private UI.Button butOK;

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -11,16 +12,17 @@ public class CanadianNetworks
     public static CanadianNetwork GetNetwork(long networkNum, Clearinghouse clearinghouseClin, Claim claim = null)
     {
         var canadianNetwork = GetFirstOrDefault(x => x.CanadianNetworkNum == networkNum);
-        //CSI is the previous name for the network now known as INSTREAM.
-        //According to Telus 05/18/2023: "TELUS has signed a contract with Instream Canada so that TELUS can send Denturists and Hygienists claims to Instream Canada
-        //for carriers defined as Instream, and also, Instream Canada can send Denturists and Hygienists claims to TELUS for carriers defined as TELUS"
-        //Dentist claims must not be redirected.
-        if (clearinghouseClin.CommBridge == EclaimsCommBridge.Claimstream && canadianNetwork.Abbrev == "CSI" && claim != null)
+
+        if (clearinghouseClin.CommBridge != EclaimsCommBridge.Claimstream || canadianNetwork.Abbrev != "CSI" || claim == null)
         {
-            var providerTreat = Providers.GetFirstOrDefault(x => x.ProvNum == claim.ProvTreat);
-            if (providerTreat.NationalProvID.StartsWith("202") || providerTreat.NationalProvID.StartsWith("8")) //Hygienist or Denturist.
-                //Network redirect only allowed for Hygienists or Denturists.
-                canadianNetwork = GetFirstOrDefault(x => x.Abbrev == "TELUS B");
+            return canadianNetwork;
+        }
+
+        var providerTreat = Providers.GetFirstOrDefault(x => x.ProvNum == claim.ProvTreat);
+
+        if (providerTreat.NationalProvID.StartsWith("202") || providerTreat.NationalProvID.StartsWith("8"))
+        {
+            canadianNetwork = GetFirstOrDefault(x => x.Abbrev == "TELUS B");
         }
 
         return canadianNetwork;
@@ -30,8 +32,7 @@ public class CanadianNetworks
     {
         protected override List<CanadianNetwork> GetCacheFromDb()
         {
-            var command = "SELECT * FROM canadiannetwork ORDER BY Descript";
-            return CanadianNetworkCrud.SelectMany(command);
+            return CanadianNetworkCrud.SelectMany("SELECT * FROM canadiannetwork ORDER BY Descript");
         }
 
         protected override List<CanadianNetwork> TableToList(DataTable dataTable)
@@ -57,18 +58,18 @@ public class CanadianNetworks
 
     private static readonly CanadianNetworkCache Cache = new();
 
-    public static List<CanadianNetwork> GetDeepCopy(bool isShort = false)
+    public static List<CanadianNetwork> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static CanadianNetwork GetFirstOrDefault(Func<CanadianNetwork, bool> match, bool isShort = false)
+    public static CanadianNetwork GetFirstOrDefault(Func<CanadianNetwork, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static void GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 }

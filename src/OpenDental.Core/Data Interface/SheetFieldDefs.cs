@@ -5,14 +5,13 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class SheetFieldDefs
 {
-    ///<summary>Gets all internal SheetFieldDefs from the database for a specific sheet, used in FormSheetFieldExam.</summary>
     public static List<SheetFieldDef> GetForExamSheet(long sheetDefNum)
     {
         var command = "SELECT * FROM sheetfielddef WHERE SheetDefNum=" + SOut.Long(sheetDefNum) + " "
@@ -21,18 +20,12 @@ public class SheetFieldDefs
         return SheetFieldDefCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all SheetFieldDefs from the database for a specific sheet, used in FormSheetFieldExam.</summary>
     public static List<SheetFieldDef> GetForSheetDef(long sheetDefNum)
     {
         var command = "SELECT * FROM sheetfielddef WHERE SheetDefNum=" + SOut.Long(sheetDefNum);
         return SheetFieldDefCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Evaluates input fields an determines if this is a SheetField (or SheetFieldDef) that would be shown in mobile
-    ///     layout.
-    ///     Returns true if criteria is met to show this field in mobile layout. Otherwise returns false.
-    /// </summary>
     public static bool IsMobileFieldType(SheetFieldType sheetFieldType, int tabOrderMobile, string fieldName)
     {
         //Always include these FieldTypes
@@ -53,10 +46,6 @@ public class SheetFieldDefs
         return false;
     }
 
-    /// <summary>
-    ///     Returns a group of checkboxes from listSheetFieldDefs which are grouped with the passed in checkbox.
-    ///     Returns a single checkbox if no group members found, or an empty list if no checkboxes are found from group.
-    /// </summary>
     public static List<SheetFieldDef> GetRadioGroupForSheetFieldDef(SheetFieldDef sheetFieldDef, List<SheetFieldDef> listSheetFieldDefs)
     {
         var listSheetFieldDefsRetVal = new List<SheetFieldDef>();
@@ -101,10 +90,6 @@ public class SheetFieldDefs
         return listSheetFieldDefsRetVal;
     }
 
-    /// <summary>
-    ///     Returns the UI Label text for a radiobutton. Misc will use UiLabelMobileRadioButton text, pre-defined will use
-    ///     RadioButtonValue
-    /// </summary>
     public static string GetUiLabelMobileRadioButton(SheetFieldDef sheetFieldDef)
     {
         if (sheetFieldDef == null || sheetFieldDef.FieldType != SheetFieldType.CheckBox) return "";
@@ -112,10 +97,6 @@ public class SheetFieldDefs
         return sheetFieldDef.UiLabelMobileRadioButton;
     }
 
-    /// <summary>
-    ///     Compares sheet fields by value. Returns true if properties are the same, false otherwise. Omits compairing tab
-    ///     ordering, and location.
-    /// </summary>
     public static bool CompareSheetFieldDefsByValueForMobileLayout(SheetFieldDef sheetFieldDefA, SheetFieldDef sheetFieldDefB, bool ignoreLanguage = false)
     {
         if (!ignoreLanguage)
@@ -144,62 +125,17 @@ public class SheetFieldDefs
         return true;
     }
 
-    ///<Summary>Gets one SheetFieldDef from the database.</Summary>
-    public static SheetFieldDef CreateObject(long sheetFieldDefNum)
-    {
-        return SheetFieldDefCrud.SelectOne(sheetFieldDefNum);
-    }
-
-    
-    public static long Insert(SheetFieldDef sheetFieldDef)
-    {
-        return SheetFieldDefCrud.Insert(sheetFieldDef);
-    }
-
-    
-    public static void Update(SheetFieldDef sheetFieldDef)
-    {
-        SheetFieldDefCrud.Update(sheetFieldDef);
-    }
-
-    
     public static void Delete(long sheetFieldDefNum)
     {
         SheetFieldDefCrud.Delete(sheetFieldDefNum);
     }
 
-    /// <summary>
-    ///     Inserts, updates, or deletes database rows to match supplied list. Must always pass in sheetDefNum.
-    ///     This function uses a DB comparison rather than a stale list because we are not worried about concurrency of a
-    ///     single sheet and enhancing the
-    ///     functions that call this would take a lot of restructuring.
-    /// </summary>
     public static void Sync(List<SheetFieldDef> listSheetFieldDefs, long sheetDefNum)
     {
         var listSheetFieldDefsDB = GetForSheetDef(sheetDefNum);
         SheetFieldDefCrud.Sync(listSheetFieldDefs, listSheetFieldDefsDB);
     }
 
-
-    /// <summary>
-    ///     Sorts fields in the order that they shoudl be drawn on top of eachother. First Images, then Drawings, Lines,
-    ///     Rectangles, Text, Check Boxes, and SigBoxes. In that order.
-    /// </summary>
-    public static int SortDrawingOrderLayers(SheetFieldDef sheetFieldDef1, SheetFieldDef sheetFieldDef2)
-    {
-        if (sheetFieldDef1.FieldType != sheetFieldDef2.FieldType) return SheetFields.FieldTypeSortOrder(sheetFieldDef1.FieldType).CompareTo(SheetFields.FieldTypeSortOrder(sheetFieldDef2.FieldType));
-        return sheetFieldDef1.YPos.CompareTo(sheetFieldDef2.YPos);
-        //return f1.SheetFieldNum.CompareTo(f2.SheetFieldNum);
-    }
-
-    /// <summary>
-    ///     This is a comparator function used by List&lt;T&gt;.Sort()
-    ///     When compairing SheetFieldDef.TabOrder it returns a negative number if def1&lt;def2, 0 if def1==def2, and a
-    ///     positive number if def1&gt;def2.
-    ///     Does not handle null values, but there should never be any instances of null being passed in.
-    ///     Must always return 0 when compairing item to itself.
-    ///     This function should probably be moved to SheetFieldDefs.
-    /// </summary>
     public static int CompareTabOrder(SheetFieldDef sheetFieldDef1, SheetFieldDef sheetFieldDef2)
     {
         if (sheetFieldDef1.FieldType == sheetFieldDef2.FieldType)
@@ -267,8 +203,6 @@ public class SheetFieldDefs
         return sheetFieldDef1.TabOrderMobile - sheetFieldDef2.TabOrderMobile;
     }
 
-    #region CachePattern
-
     private class SheetFieldDefCache : CacheListAbs<SheetFieldDef>
     {
         protected override List<SheetFieldDef> GetCacheFromDb()
@@ -298,39 +232,25 @@ public class SheetFieldDefs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly SheetFieldDefCache _sheetFieldDefCache = new();
+    private static readonly SheetFieldDefCache Cache = new();
 
     public static List<SheetFieldDef> GetWhere(Predicate<SheetFieldDef> match, bool isShort = false)
     {
-        return _sheetFieldDefCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _sheetFieldDefCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _sheetFieldDefCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _sheetFieldDefCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

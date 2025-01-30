@@ -1,109 +1,134 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Windows.Forms;
-using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDental{
-	/// <summary>Allows user to edit automatic payment entries. Form can be found at Manage->Accounting->Setup->Open Dental->Double click on entry in table</summary>
-	public partial class FormAccountingAutoPayEdit : FormODBase {
-		
-		public AccountingAutoPay AccountingAutoPayCur;
-		
-		public bool IsNew;
-		
-		private List<long> _listAccountNums;
-		private List<Def> _listDefsPaymentTypes;
+namespace OpenDental.Forms;
 
-		
-		public FormAccountingAutoPayEdit()
-		{
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormAccountingAutoPayEdit : FormODBase
+{
+    private readonly AccountingAutoPay _accountingAutoPay;
+    private List<long> _accountNums;
+    private List<Def> _paymentTypeDefs;
+    
+    public FormAccountingAutoPayEdit(AccountingAutoPay accountingAutoPay)
+    {
+        _accountingAutoPay = accountingAutoPay;
 
-		private void FormAccountingAutoPayEdit_Load(object sender,EventArgs e) {
-			if(AccountingAutoPayCur==null) {
-				ODMessageBox.Show("Autopay cannot be null.");//just for debugging
-			}
-			_listDefsPaymentTypes=Defs.GetDefsForCategory(DefCat.PaymentTypes,true);
-			for(int i=0;i<_listDefsPaymentTypes.Count;i++){
-				comboPayType.Items.Add(_listDefsPaymentTypes[i].ItemName);
-				if(_listDefsPaymentTypes[i].DefNum==AccountingAutoPayCur.PayType){
-					comboPayType.SelectedIndex=i;
-				}
-			}
-			if(AccountingAutoPayCur.PickList==null){
-				AccountingAutoPayCur.PickList="";
-			}
-			List<string> listStrings=AccountingAutoPayCur.PickList.Split(",",StringSplitOptions.RemoveEmptyEntries).ToList();
-			_listAccountNums=new List<long>();
-			for(int i=0;i<listStrings.Count;i++) {
-				_listAccountNums.Add(SIn.Long(listStrings[i]));
-			}
-			FillList();
-		}
+        InitializeComponent();
+    }
 
-		private void FillList() {
-			listAccounts.Items.Clear();
-			for(int i=0;i<_listAccountNums.Count;i++) {
-				listAccounts.Items.Add(Accounts.GetDescript((long)_listAccountNums[i]));
-			}
-		}
+    private void FormAccountingAutoPayEdit_Load(object sender, EventArgs e)
+    {
+        if (_accountingAutoPay is null)
+        {
+            ShowError("Autopay cannot be null.");
+            return;
+        }
 
-		private void butAdd_Click(object sender,EventArgs e) {
-			using FormAccountPick formAccountPick=new FormAccountPick();
-			formAccountPick.ShowDialog();
-			if(formAccountPick.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			_listAccountNums.Add(formAccountPick.SelectedAccount.AccountNum);
-			FillList();
-		}
+        _paymentTypeDefs = Defs.GetDefsForCategory(DefCat.PaymentTypes, true);
+        for (var i = 0; i < _paymentTypeDefs.Count; i++)
+        {
+            comboPayType.Items.Add(_paymentTypeDefs[i].ItemName);
 
-		private void butRemove_Click(object sender,EventArgs e) {
-			if(listAccounts.SelectedIndex==-1) {
-				MsgBox.Show(this,"Please select an item first.");
-				return;
-			}
-			_listAccountNums.RemoveAt(listAccounts.SelectedIndex);
-			FillList();
-		}
+            if (_paymentTypeDefs[i].DefNum == _accountingAutoPay.PayType)
+            {
+                comboPayType.SelectedIndex = i;
+            }
+        }
 
-		private void butDelete_Click(object sender,EventArgs e) {
-			AccountingAutoPayCur=null;
-			if(IsNew) {
-				DialogResult=DialogResult.Cancel;
-				return;
-			}
-			DialogResult=DialogResult.OK;
-		}
+        _accountingAutoPay.PickList ??= "";
 
-		private void butOK_Click(object sender, System.EventArgs e) {
-			if(comboPayType.SelectedIndex==-1){
-				MsgBox.Show(this,"Please select a pay type first.");
-				return;
-			}
-			if(_listAccountNums.Count==0) {
-				MsgBox.Show(this,"Please add at least one account to the pick list first.");
-				return;
-			}
-			AccountingAutoPayCur.PayType=_listDefsPaymentTypes[comboPayType.SelectedIndex].DefNum;
-			AccountingAutoPayCur.PickList="";
-			for(int i=0;i<_listAccountNums.Count;i++){
-				if(i>0){
-					AccountingAutoPayCur.PickList+=",";
-				}
-				AccountingAutoPayCur.PickList+=_listAccountNums[i].ToString();
-			}
-			DialogResult=DialogResult.OK;
-		}
+        var accountNums = _accountingAutoPay.PickList.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
 
-	}
+        _accountNums = [];
+        foreach (var str in accountNums)
+        {
+            _accountNums.Add(SIn.Long(str));
+        }
+
+        FillList();
+    }
+
+    private void FillList()
+    {
+        listAccounts.Items.Clear();
+
+        foreach (var accountNum in _accountNums)
+        {
+            listAccounts.Items.Add(Accounts.GetDescript(accountNum));
+        }
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        using var formAccountPick = new FormAccountPick();
+
+        if (formAccountPick.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _accountNums.Add(formAccountPick.SelectedAccount.AccountNum);
+
+        FillList();
+    }
+
+    private void ButtonRemove_Click(object sender, EventArgs e)
+    {
+        if (listAccounts.SelectedIndex == -1)
+        {
+            ShowError("Please select an item first.");
+            return;
+        }
+
+        _accountNums.RemoveAt(listAccounts.SelectedIndex);
+
+        FillList();
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (_accountingAutoPay.AccountingAutoPayNum == 0)
+        {
+            DialogResult = DialogResult.Cancel;
+            return;
+        }
+
+        DialogResult = DialogResult.Abort;
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (comboPayType.SelectedIndex == -1)
+        {
+            ShowError("Please select a pay type first.");
+            return;
+        }
+
+        if (_accountNums.Count == 0)
+        {
+            ShowError("Please add at least one account to the pick list first.");
+            return;
+        }
+
+        _accountingAutoPay.PayType = _paymentTypeDefs[comboPayType.SelectedIndex].DefNum;
+        _accountingAutoPay.PickList = "";
+
+        for (var i = 0; i < _accountNums.Count; i++)
+        {
+            if (i > 0)
+            {
+                _accountingAutoPay.PickList += ",";
+            }
+
+            _accountingAutoPay.PickList += _accountNums[i].ToString();
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

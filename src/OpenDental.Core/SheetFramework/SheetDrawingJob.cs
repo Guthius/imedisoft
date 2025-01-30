@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class SheetDrawingJob {
@@ -758,7 +759,7 @@ namespace OpenDentBusiness {
 							break;
 						}
 						patDoc=Documents.GetByNum(SIn.Long(field.FieldValue));
-						List<string> paths=Documents.GetPaths(new List<long> { patDoc.DocNum },ImageStore.GetPreferredAtoZpath());
+						List<string> paths=Documents.GetPaths(new List<long> { patDoc.DocNum },ImageStore.GetDataFolder());
 						if(paths.Count < 1) {//No path was found so we cannot draw the image.
 							return;
 						}

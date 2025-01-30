@@ -57,26 +57,26 @@ namespace OpenDental {
 			//this is always true now
 			//if(false && Security.IsAuthorized(EnumPermType.FAQEdit,suppressMessage:true)) {
 			ToolBarButton toolBarButtonManageFaqs=new ToolBarButton();
-			toolBarButtonManageFaqs.Text=Lans.g(this,"Manage FAQ's");
+			toolBarButtonManageFaqs.Text=Lans.g("Manage FAQ's");
 			toolBarButtonManageFaqs.Click+=ManageFAQs_Click;
 			toolBarMain.Add(toolBarButtonManageFaqs);
 			ToolBarButton toolBarButtonAddFaqs=new ToolBarButton();
-			toolBarButtonAddFaqs.Text=Lans.g(this,"Add FAQ for Current Page");
+			toolBarButtonAddFaqs.Text=Lans.g("Add FAQ for Current Page");
 			toolBarButtonAddFaqs.Click+=AddFAQ_Click;
 			toolBarMain.Add(toolBarButtonAddFaqs);
 			//}
 			ToolBarButton toolBarButtonBrowser=new ToolBarButton();
-			toolBarButtonBrowser.Text=Lans.g(this,"Browser");
+			toolBarButtonBrowser.Text=Lans.g("Browser");
 			toolBarButtonBrowser.Click+=Browser_Click;
 			toolBarMain.Add(toolBarButtonBrowser);
 			//Probably don't even need the forward and back buttons anymore
 			ToolBarButton toolBarButtonBack=new ToolBarButton();
-			toolBarButtonBack.Text=Lans.g(this,"Back");
+			toolBarButtonBack.Text=Lans.g("Back");
 			toolBarButtonBack.Icon=EnumIcons.ArrowLeft;
 			toolBarButtonBack.Click+=Back_Click;
 			toolBarMain.Add(toolBarButtonBack);
 			ToolBarButton toolBarButtonForward=new ToolBarButton();
-			toolBarButtonForward.Text=Lans.g(this,"Forward");
+			toolBarButtonForward.Text=Lans.g("Forward");
 			toolBarButtonForward.Icon=EnumIcons.ArrowRight;
 			toolBarButtonForward.Click+=Forward_Click;
 			toolBarMain.Add(toolBarButtonForward);

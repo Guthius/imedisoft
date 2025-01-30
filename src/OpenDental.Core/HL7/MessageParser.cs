@@ -6,6 +6,8 @@ using System.Globalization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness.HL7 {
@@ -393,11 +395,11 @@ namespace OpenDentBusiness.HL7 {
 			//We need to insert the pat to get a patnum so we can compare to guar patnum to see if relationship to guar is self
 			if(_isNewPat) {
 				if(pat.PatNum==0) {//Only eCWTight or eCWFull internal types will allow the HL7 message to dictate our PatNums.
-					pat.PatNum=Patients.Insert(pat,false);
+					pat.PatNum=Patients.Insert(pat);
 					SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,pat.PatNum,"Created from HL7.",LogSources.HL7);
 				}
 				else {
-					pat.PatNum=Patients.Insert(pat,true);
+					pat.PatNum=Patients.Insert(pat);
 					SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,pat.PatNum,"Created from HL7.",LogSources.HL7);
 				}
 				if(_isVerboseLogging) {
@@ -1189,13 +1191,13 @@ namespace OpenDentBusiness.HL7 {
 			if(isNewGuar) {
 				if(guar.PatNum==0) {
 					guarOld=guar.Copy();
-					guar.PatNum=Patients.Insert(guar,false);
+					guar.PatNum=Patients.Insert(guar);
 					SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,guar.PatNum,"Created from HL7.",LogSources.HL7);
 					guar.Guarantor=guar.PatNum;
 					Patients.Update(guar,guarOld);
 				}
 				else {
-					guar.PatNum=Patients.Insert(guar,true);
+					guar.PatNum=Patients.Insert(guar);
 					SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,guar.PatNum,"Created from HL7.",LogSources.HL7);
 				}
 				if(_isVerboseLogging) {
@@ -2212,7 +2214,7 @@ namespace OpenDentBusiness.HL7 {
 				if(_isVerboseLogging) {
 					EventLog.WriteEntry("OpenDentHL7","Inserted appointment "+(isBreakApt?"with broken status ":"")+"for "+pat.GetNameFLnoPref()+" due to an incoming SCH segment.",EventLogEntryType.Information);
 				}
-				Appointments.InsertIncludeAptNum(apt,true);
+				Appointments.InsertIncludeAptNum(apt);
 				Appointments.TryAddPerVisitProcCodesToAppt(apt,ApptStatus.None);
 
 			}

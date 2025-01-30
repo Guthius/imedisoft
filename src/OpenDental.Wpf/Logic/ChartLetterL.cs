@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Word=Microsoft.Office.Interop.Word;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 /*
 Some comments about the Microsoft.Office.Interop.Word reference:

@@ -9,6 +9,8 @@ using System.Threading;
 using System.Collections.Generic;
 using CodeBase;
 using System.Web;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Pearl;
 
 namespace OpenDentBusiness.Bridges{

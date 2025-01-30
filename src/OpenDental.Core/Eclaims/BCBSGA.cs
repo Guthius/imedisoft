@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims;
 

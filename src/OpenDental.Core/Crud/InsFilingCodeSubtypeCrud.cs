@@ -1,32 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InsFilingCodeSubtypeCrud
 {
-    public static InsFilingCodeSubtype SelectOne(long insFilingCodeSubtypeNum)
-    {
-        var command = "SELECT * FROM insfilingcodesubtype "
-                      + "WHERE InsFilingCodeSubtypeNum = " + SOut.Long(insFilingCodeSubtypeNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static InsFilingCodeSubtype SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<InsFilingCodeSubtype> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -61,12 +42,7 @@ public class InsFilingCodeSubtypeCrud
         return table;
     }
 
-    public static long Insert(InsFilingCodeSubtype insFilingCodeSubtype)
-    {
-        return Insert(insFilingCodeSubtype, false);
-    }
-
-    public static long Insert(InsFilingCodeSubtype insFilingCodeSubtype, bool useExistingPK)
+    public static void Insert(InsFilingCodeSubtype insFilingCodeSubtype)
     {
         var command = "INSERT INTO insfilingcodesubtype (";
 
@@ -78,29 +54,6 @@ public class InsFilingCodeSubtypeCrud
         {
             insFilingCodeSubtype.InsFilingCodeSubtypeNum = Db.NonQ(command, true, "InsFilingCodeSubtypeNum", "insFilingCodeSubtype");
         }
-        return insFilingCodeSubtype.InsFilingCodeSubtypeNum;
-    }
-
-    public static long InsertNoCache(InsFilingCodeSubtype insFilingCodeSubtype)
-    {
-        return InsertNoCache(insFilingCodeSubtype, false);
-    }
-
-    public static long InsertNoCache(InsFilingCodeSubtype insFilingCodeSubtype, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO insfilingcodesubtype (";
-        if (isRandomKeys || useExistingPK) command += "InsFilingCodeSubtypeNum,";
-        command += "InsFilingCodeNum,Descript) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(insFilingCodeSubtype.InsFilingCodeSubtypeNum) + ",";
-        command +=
-            SOut.Long(insFilingCodeSubtype.InsFilingCodeNum) + ","
-                                                             + "'" + SOut.String(insFilingCodeSubtype.Descript) + "')";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            insFilingCodeSubtype.InsFilingCodeSubtypeNum = Db.NonQ(command, true, "InsFilingCodeSubtypeNum", "insFilingCodeSubtype");
-        return insFilingCodeSubtype.InsFilingCodeSubtypeNum;
     }
 
     public static void Update(InsFilingCodeSubtype insFilingCodeSubtype)
@@ -112,47 +65,10 @@ public class InsFilingCodeSubtypeCrud
         Db.NonQ(command);
     }
 
-    public static bool Update(InsFilingCodeSubtype insFilingCodeSubtype, InsFilingCodeSubtype oldInsFilingCodeSubtype)
-    {
-        var command = "";
-        if (insFilingCodeSubtype.InsFilingCodeNum != oldInsFilingCodeSubtype.InsFilingCodeNum)
-        {
-            if (command != "") command += ",";
-            command += "InsFilingCodeNum = " + SOut.Long(insFilingCodeSubtype.InsFilingCodeNum) + "";
-        }
-
-        if (insFilingCodeSubtype.Descript != oldInsFilingCodeSubtype.Descript)
-        {
-            if (command != "") command += ",";
-            command += "Descript = '" + SOut.String(insFilingCodeSubtype.Descript) + "'";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE insfilingcodesubtype SET " + command
-                                                     + " WHERE InsFilingCodeSubtypeNum = " + SOut.Long(insFilingCodeSubtype.InsFilingCodeSubtypeNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(InsFilingCodeSubtype insFilingCodeSubtype, InsFilingCodeSubtype oldInsFilingCodeSubtype)
-    {
-        if (insFilingCodeSubtype.InsFilingCodeNum != oldInsFilingCodeSubtype.InsFilingCodeNum) return true;
-        if (insFilingCodeSubtype.Descript != oldInsFilingCodeSubtype.Descript) return true;
-        return false;
-    }
-
     public static void Delete(long insFilingCodeSubtypeNum)
     {
         var command = "DELETE FROM insfilingcodesubtype "
                       + "WHERE InsFilingCodeSubtypeNum = " + SOut.Long(insFilingCodeSubtypeNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listInsFilingCodeSubtypeNums)
-    {
-        if (listInsFilingCodeSubtypeNums == null || listInsFilingCodeSubtypeNums.Count == 0) return;
-        var command = "DELETE FROM insfilingcodesubtype "
-                      + "WHERE InsFilingCodeSubtypeNum IN(" + string.Join(",", listInsFilingCodeSubtypeNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

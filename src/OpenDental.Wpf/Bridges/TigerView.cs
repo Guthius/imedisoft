@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	
@@ -168,7 +169,7 @@ namespace OpenDental.Bridges {
 				htKeyVals["PhHome"]=LimitLength(pat.HmPhone,13);
 				htKeyVals["PhWork"]=LimitLength(pat.WkPhone,13);
 				if(!WritePrivatePofileString2("Slave",htKeyVals,iniFile)) {
-					MessageBox.Show(Lang.g(null,"Unable to start external program: ")+path);
+					MessageBox.Show("Unable to start external program: "+path);
 				}
 				else {
 					try {
@@ -281,8 +282,8 @@ namespace OpenDental.Bridges {
 				def.Category=DefCat.ImageCats;
 				def.ItemValue="X"; //Will make this category show in the chart module
 				def.ItemOrder=listImageCatDefs.Count;
-				string logText=Lang.g("Defintions","Definition created:")+" "+def.ItemName+" "
-					+Lang.g("Defintions","with category:")+" "+def.Category.GetDescription();
+				string logText="Definition created: "+def.ItemName+" "
+					+"with category: "+def.Category.GetDescription();
 				SecurityLogs.MakeLogEntry(EnumPermType.DefEdit,0,logText);
 				imageCatDefNum=Defs.Insert(def);
 				Cache.Refresh(InvalidType.Defs);
@@ -290,7 +291,7 @@ namespace OpenDental.Bridges {
 			string newFileName="TV_"+filename.Substring(0,filename.IndexOf('.')+1)+CodeBase.MiscUtils.CreateRandomAlphaNumericString(4);
 			newFileName=newFileName.Replace('.','_'); //Get rid of any periods in the file name.
 			newFileName+=".tig"; //Add extention on to file name after other '.' were replaced.
-			string newpath=CodeBase.ODFileUtils.CombinePaths(ImageStore.GetPatientFolder(patCur,ImageStore.GetPreferredAtoZpath()),newFileName);
+			string newpath=CodeBase.ODFileUtils.CombinePaths(ImageStore.GetPatientFolder(patCur,ImageStore.GetDataFolder()),newFileName);
 			Document docCur = new Document();
 			docCur.DocCategory=imageCatDefNum;
 			docCur.FileName=newFileName;

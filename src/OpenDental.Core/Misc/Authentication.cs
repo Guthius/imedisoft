@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using Imedisoft.Core.Entities;
 using ODCrypt;
 
 namespace OpenDentBusiness
@@ -55,93 +56,6 @@ namespace OpenDentBusiness
 
             //The password passed in was correct.
             return true;
-        }
-
-        ///<summary>Checks a password against the UserWeb object.  Retruns true if the inputPass is correct.
-        ///Automatically upgrades the password to SHA3-512 if it isn't already hashed as such.</summary>
-        public static bool CheckPassword(UserWeb userWeb, string inputPass)
-        {
-            string hashedPass = userWeb.PasswordHash;
-            if (hashedPass == "")
-            {
-                return inputPass == "";
-            }
-
-            bool result = CheckPassword(inputPass, userWeb.LoginDetails);
-            if (!result)
-            {
-                return false;
-            }
-
-            if (userWeb.LoginDetails.HashType != HashTypes.SHA3_512)
-            {
-                //Force update to SHA3-512.
-                UpdatePasswordUserWeb(userWeb, inputPass, HashTypes.SHA3_512);
-            }
-
-            return true;
-        }
-
-        ///<summary>Checks the password of a reseller.  Retruns true if the inputPass is correct.
-        ///Automatically upgrades the password to SHA3-512 if it isn't already hashed as such.</summary>
-        public static bool CheckPassword(Reseller userReseller, string inputPass)
-        {
-            string hashedPass = userReseller.ResellerPassword;
-            if (hashedPass == "")
-            {
-                return inputPass == "";
-            }
-
-            if (!CheckPassword(inputPass, userReseller.LoginDetails))
-            {
-                return false;
-            }
-
-            if (userReseller.LoginDetails.HashType != HashTypes.SHA3_512)
-            {
-                //Force update to SHA3-512.
-                UpdatePasswordReseller(userReseller, inputPass, HashTypes.SHA3_512);
-            }
-
-            return true;
-        }
-
-        ///<summary>Trys to find the correct algorithm and compares the hashes.  If the passHash is blank the inputPass should be too.
-        ///The salt is only used when using SHA3-512, not MD5 or MD5_ECW.</summary>
-        public static bool CheckPassword(string inputPass, string salt, string passHash, bool isEcw = false)
-        {
-            if (salt == null)
-            {
-                salt = "";
-            }
-
-            if (passHash == "")
-            {
-                return inputPass == "";
-            }
-
-            //ECW pre-hashes passwords because they use an ascii encoding instead of unicode like we do.
-            if (isEcw)
-            {
-                return ConstantEquals(inputPass, passHash);
-            }
-
-            string hashedInputPass = "";
-            //MD5 hashed are 128 bits or 22 chars in base-64.  Sha3-512 is 512 bits or 86 chars in base-64.
-            //Passwords are stored in base-64, where each byte represents 6 bits of data, with '=' used for padding.
-            //Therefore, we can figure out which algorithm to use by looking at the length of the hash.
-            //This way of finding the hash algorithm won't work if another algorithm is added that has a output hash of the same length.
-            if (passHash.Length == 24)
-            {
-                //It's non-ECW MD5, which we should update.
-                hashedInputPass = HashPasswordMD5(inputPass);
-            }
-            else
-            {
-                hashedInputPass = HashPasswordSHA512(inputPass, salt);
-            }
-
-            return ConstantEquals(hashedInputPass, passHash);
         }
 
         ///<summary>Compares a password against the values in a PasswordContainer struct.</summary>
@@ -205,57 +119,9 @@ namespace OpenDentBusiness
             return true;
         }
 
-        ///<summary>Updates a password for a given UserWeb account and saves it to the database.  Suggested hash type is SHA3-512.</summary>
-        public static bool UpdatePasswordUserWeb(UserWeb user, string inputPass, HashTypes hashType = HashTypes.SHA3_512)
-        {
-            user.LoginDetails = GenerateLoginDetails(inputPass, hashType);
-            try
-            {
-                UserWebs.Update(user);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        ///<summary>Updates a password for a given Reseller account and saves it to the database.  Suggested hash type is SHA3-512.</summary>
-        public static bool UpdatePasswordReseller(Reseller user, string inputPass, HashTypes hashType = HashTypes.SHA3_512)
-        {
-            user.LoginDetails = GenerateLoginDetails(inputPass, hashType);
-            try
-            {
-                Resellers.Update(user);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         #endregion Modification
 
         #region MD5
-
-        ///<summary>Returns a PasswordContainer for the password passed in.  Should only be used for back-compatibility.</summary>
-        public static PasswordContainer GenerateLoginDetailsMD5(string inputPass, bool useEcwAlgorithm = false)
-        {
-            //Use salt to generate new hash.
-            string passNew = HashPasswordMD5(inputPass, useEcwAlgorithm);
-            return new PasswordContainer((useEcwAlgorithm ? HashTypes.MD5_ECW : HashTypes.MD5), "", passNew);
-        }
-
-        ///<summary>If ECW is enabled, it will encode the text as ASCII before hashing and simply convert to a hex string.
-        ///If ECW is not enabled, inputPass is encoded as unicode and after hashing is encoded using base-64.</summary>
-        public static string HashPasswordMD5(string inputPass)
-        {
-            bool useEcwAlgorithm = Programs.IsEnabled(ProgramName.eClinicalWorks);
-            return HashPasswordMD5(inputPass, useEcwAlgorithm);
-        }
 
         ///<summary>If useEcwAlgorithm is true, input is ASCII encoded and the result converted to a hex string.
         ///If useEcwAlgorithm is false, input is Unicode encoded and the result is base-64 encoded.</summary>
@@ -345,12 +211,6 @@ namespace OpenDentBusiness
         public static string GenerateSalt(int byteLength)
         {
             return CryptUtil.GenerateSalt(byteLength);
-        }
-
-        ///<summary>Creates an encoded password string for storing in the database.  For use independent from the PasswordContainer struct.</summary>
-        private static string EncodePass(HashTypes hashType, string passHash, string salt)
-        {
-            return string.Join("$", new string[] {hashType.ToString(), salt, passHash});
         }
 
         ///<summary>Creates a PasswordContainer struct from the passed in string.  If it unable to decode the string, it will create a PasswordContainer

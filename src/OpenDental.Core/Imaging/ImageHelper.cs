@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 
@@ -588,7 +589,7 @@ namespace OpenDentBusiness
         {
             Document document = Documents.GetByNum(docNum);
             Patient patient = Patients.GetPat(document.PatNum);
-            string patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetPreferredAtoZpath());
+            string patFolder = ImageStore.GetPatientFolder(patient, ImageStore.GetDataFolder());
             List<ImageDraw> listImageDraws = ImageDraws.RefreshForDoc(document.DocNum);
             Bitmap bitmapShowing = LoadBitmap(document, patFolder);
             if (bitmapShowing is null)

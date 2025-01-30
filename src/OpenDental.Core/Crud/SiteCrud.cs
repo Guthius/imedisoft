@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SiteCrud
 {
@@ -97,7 +99,7 @@ public class SiteCrud
             + SOut.Long(site.ProvNum) + ","
             + SOut.Int((int) site.PlaceService) + ")";
         if (site.Note == null) site.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(site.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(site.Note));
         {
             site.SiteNum = Db.NonQ(command, true, "SiteNum", "site", paramNote);
         }
@@ -127,7 +129,7 @@ public class SiteCrud
             + SOut.Long(site.ProvNum) + ","
             + SOut.Int((int) site.PlaceService) + ")";
         if (site.Note == null) site.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(site.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(site.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -149,7 +151,7 @@ public class SiteCrud
                       + "PlaceService=  " + SOut.Int((int) site.PlaceService) + " "
                       + "WHERE SiteNum = " + SOut.Long(site.SiteNum);
         if (site.Note == null) site.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(site.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(site.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -212,7 +214,7 @@ public class SiteCrud
 
         if (command == "") return false;
         if (site.Note == null) site.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(site.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(site.Note));
         command = "UPDATE site SET " + command
                                      + " WHERE SiteNum = " + SOut.Long(site.SiteNum);
         Db.NonQ(command, paramNote);

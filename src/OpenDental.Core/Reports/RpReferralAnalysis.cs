@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpReferralAnalysis {
@@ -56,7 +57,7 @@ namespace OpenDentBusiness {
 			}
 			query+=" GROUP BY referral.ReferralNum"
 				+" ORDER BY HowMany Desc";
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
+			return ReportsComplex.GetTable(query);
 		}
 	}
 

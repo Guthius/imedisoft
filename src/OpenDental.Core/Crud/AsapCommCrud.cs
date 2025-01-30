@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AsapCommCrud
 {
@@ -75,7 +77,7 @@ public class AsapCommCrud
                                      + SOut.Long(asapComm.PatNum) + ","
                                      + SOut.Long(asapComm.ClinicNum) + ","
                                      + "'" + SOut.String(asapComm.ShortGUID) + "',"
-                                     + DbHelper.Now() + ","
+                                     + "NOW()" + ","
                                      + SOut.DateTime(asapComm.DateTimeExpire) + ","
                                      + SOut.DateTime(asapComm.DateTimeSmsScheduled) + ","
                                      + SOut.Int((int) asapComm.SmsSendStatus) + ","
@@ -92,13 +94,13 @@ public class AsapCommCrud
                                      + DbHelper.ParamChar + "paramGuidMessageToMobile,"
                                      + "'" + SOut.String(asapComm.EmailTemplateType.ToString()) + "')";
         if (asapComm.TemplateText == null) asapComm.TemplateText = "";
-        var paramTemplateText = new OdSqlParameter("paramTemplateText", OdDbType.Text, SOut.StringParam(asapComm.TemplateText));
+        var paramTemplateText = new OdSqlParameter("paramTemplateText", SOut.StringParam(asapComm.TemplateText));
         if (asapComm.TemplateEmail == null) asapComm.TemplateEmail = "";
-        var paramTemplateEmail = new OdSqlParameter("paramTemplateEmail", OdDbType.Text, SOut.StringParam(asapComm.TemplateEmail));
+        var paramTemplateEmail = new OdSqlParameter("paramTemplateEmail", SOut.StringParam(asapComm.TemplateEmail));
         if (asapComm.Note == null) asapComm.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(asapComm.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(asapComm.Note));
         if (asapComm.GuidMessageToMobile == null) asapComm.GuidMessageToMobile = "";
-        var paramGuidMessageToMobile = new OdSqlParameter("paramGuidMessageToMobile", OdDbType.Text, SOut.StringParam(asapComm.GuidMessageToMobile));
+        var paramGuidMessageToMobile = new OdSqlParameter("paramGuidMessageToMobile", SOut.StringParam(asapComm.GuidMessageToMobile));
         {
             asapComm.AsapCommNum = Db.NonQ(command, true, "AsapCommNum", "asapComm", paramTemplateText, paramTemplateEmail, paramNote, paramGuidMessageToMobile);
         }
@@ -151,7 +153,7 @@ public class AsapCommCrud
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(asapComm.ShortGUID) + "'");
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.DateTime(asapComm.DateTimeExpire));
             sbRow.Append(",");

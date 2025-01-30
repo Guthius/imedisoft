@@ -16,6 +16,7 @@ using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDental.Drawing;
 using PdfSharp;
 using PdfSharp.Drawing;

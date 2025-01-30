@@ -7,6 +7,8 @@ using System.Xml;
 using Bridges;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 using OpenDentBusiness.Remoting;
@@ -16,7 +18,7 @@ namespace OpenDentBusiness {
 		///<summary>Stores mock HQ eServiceSignup.IsEnabled for specific eServiceCode/ClinicNum.</summary>
 		private static Dictionary<(eServiceCode code,long clinicNum),bool> _dictIsCodeEnabled=new Dictionary<(eServiceCode code,long clinicNum), bool>();
 		public Func<string,string> EnableAdditionalFeaturesDelegate;
-		public Func<string,string> LogCareCreditTransactionsDelegate;
+
 		///<summary>Client id for Google's sample application found here: https://github.com/googlesamples/oauth-apps-for-windows/tree/master/OAuthDesktopApp
 		///The sample application is not scoped to send emails or view the inbox, so you can get tokens but you can't do anything with them.</summary>
 		private const string CLIENT_ID_GOOGLE_SAMPLE_APP="581786658708-elflankerquo1a6vsckabbhn25hclla0.apps.googleusercontent.com";
@@ -258,14 +260,6 @@ namespace OpenDentBusiness {
 				new PayloadItem(listSmsToMobiles,"ListSmsToMobile"),
 			});
 		}
-		
-		public new string LogCareCreditTransaction(string officeData) {
-			if(LogCareCreditTransactionsDelegate is null) {
-				return base.EnableAdditionalFeatures(officeData);
-			}
-			return LogCareCreditTransactionsDelegate(officeData);
-
-		}
 
 		public new string GenerateShortGUIDs(string officeData) {
 			try {
@@ -311,10 +305,6 @@ namespace OpenDentBusiness {
 
 		public new string UpsertMobileSettings(string officeData) {
 			throw new NotImplementedException();
-		}
-
-		public new string LicenseAgreementAccepted(string officeData) {
-			return WebSerializer.SerializePrimitive(true);
 		}
 
 		public new string BuildOAuthUrl(string registrationKey,string appName) {
@@ -437,11 +427,6 @@ namespace OpenDentBusiness {
 		/// A signup is also required.</summary>
 		public string ProcessOCRIIDRequest(string imgRequest) {
 			throw new NotImplementedException();
-		}
-
-		/// <summary> Returning null is the result of a failure to process the request. </summary>
-		public string ProcessUSPSAddressValidationRequest(string payload) {
-			return null;
 		}
 	}
 }

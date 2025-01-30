@@ -1,29 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using ODCrypt;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.Misc;
-using OpenDentBusiness.UI;
 
 namespace OpenDentBusiness;
 
-
 public class PayPlans
 {
-    #region Delete
-
-    /// <summary>
-    ///     Called from FormPayPlan.  Also deletes all attached payplancharges.  Throws exception if there are any
-    ///     paysplits attached.
-    /// </summary>
     public static void Delete(PayPlan plan)
     {
         string command;
@@ -65,20 +57,6 @@ public class PayPlans
         CreditCards.RemoveRecurringCharges(plan.PayPlanNum);
     }
 
-    #endregion
-
-    #region Get Methods
-
-    public static List<PayPlan> GetAllWithMobileAppDeviceNum(long mobileAppDeviceNum)
-    {
-        var command = "SELECT * FROM payplan WHERE MobileAppDeviceNum=" + SOut.Long(mobileAppDeviceNum) + ";";
-        return PayPlanCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets a list of all payplans for a given patient, whether they are the patient or the guarantor.  This is only
-    ///     used in one place, when deleting a patient to check dependencies.
-    /// </summary>
     public static int GetDependencyCount(long patNum)
     {
         var command = "SELECT COUNT(*) FROM payplan"
@@ -100,11 +78,6 @@ public class PayPlans
         return PayPlanCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a list of payment plans where the patient of the payment plan matches ANY in listPatNums OR the guarantor
-    ///     matches patNum.
-    ///     patNum will typically be the current patient.
-    /// </summary>
     public static List<PayPlan> GetForPats(List<long> listPatNums, long guarantor)
     {
         //We have to check for guarantor separately in case the payment plan belongs to a patient in another family.
@@ -113,7 +86,6 @@ public class PayPlans
         return PayPlanCrud.SelectMany(command);
     }
 
-    ///<summary>Gets All patient pay plans for each patient in listPatNums.</summary>
     public static List<PayPlan> GetAllPatPayPlansForPats(List<long> listPatNums)
     {
         if (listPatNums.Count == 0) return new List<PayPlan>();
@@ -122,10 +94,6 @@ public class PayPlans
         return PayPlanCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all payment plans that this patient is associated to.
-    ///     Will return payment plans that this pat is the patient or guarantor of.
-    /// </summary>
     public static List<PayPlan> GetForPatNum(long patNum)
     {
         var command = "SELECT * FROM payplan "
@@ -134,10 +102,6 @@ public class PayPlans
         return PayPlanCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a list of overcharged payplans from the listPayPlanNums. Only necessary for Dynamic Payment Plans.
-    ///     Returns an empty list if none are overcharged.
-    /// </summary>
     public static List<PayPlan> GetOverChargedPayPlans(List<long> listPayPlanNums)
     {
         #region Get Data
@@ -238,7 +202,6 @@ public class PayPlans
         return GetMany(listPayPlansOvercharged.ToArray()).FindAll(x => x.IsDynamic);
     }
 
-    ///<summary>Determines if there are any valid plans with that patient as the guarantor.</summary>
     public static List<PayPlan> GetValidPlansNoIns(long guarNum)
     {
         var command = "SELECT * FROM payplan"
@@ -255,11 +218,6 @@ public class PayPlans
         return PayPlanCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all insurance payplans that aren't fully paid for patients associated to the claims passed in.
-    ///     Only returns payplans that have no claimprocs linked to them, or those that have claimprocs linked to them
-    ///     that are also linked to one of the claims passed in.
-    /// </summary>
     public static List<PayPlan> GetAllValidInsPayPlansForClaims(List<Claim> listClaims)
     {
         if (listClaims.IsNullOrEmpty()) return new List<PayPlan>();
@@ -279,12 +237,6 @@ public class PayPlans
         return PayPlanCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Get all payment plans for this patient with the insurance plan identified by PlanNum and InsSubNum attached
-    ///     (marked used for tracking expected insurance payments) that have not been paid in full.  Only returns plans with no
-    ///     claimprocs currently attached or claimprocs from the claim identified by the claimNum sent in attached.  If
-    ///     claimNum is 0 all payment plans with planNum, insSubNum, and patNum not paid in full will be returned.
-    /// </summary>
     public static List<PayPlan> GetValidInsPayPlans(long patNum, long planNum, long insSubNum, long claimNum)
     {
         var command = "";
@@ -329,13 +281,6 @@ public class PayPlans
         return retval;
     }
 
-    /// <summary>
-    ///     Executes a LINQ statement that returns the total amount of tx that is both completed and planned for the passed in
-    ///     payment plan.
-    ///     Only used for payplans v2.  Different from the TxCompletedAmt, which looks ONLY at PayPlanCharge credits that have
-    ///     already occurred.
-    ///     Does not update or make any calls to the database, as TxTotalAmt is not a db column.
-    /// </summary>
     public static double GetTxTotalAmt(List<PayPlanCharge> listCharges)
     {
         if (listCharges.IsNullOrEmpty()) return 0;
@@ -343,10 +288,6 @@ public class PayPlans
             .Sum(x => x.Principal);
     }
 
-    /// <summary>
-    ///     Gets info directly from database. Used from PayPlan and Account windows to get the amount paid so far on one
-    ///     payment plan.
-    /// </summary>
     public static double GetAmtPaid(PayPlan payPlan)
     {
         string command;
@@ -365,12 +306,6 @@ public class PayPlans
         return SIn.Double(table.Rows[0][0].ToString());
     }
 
-    /// <summary>
-    ///     Used from FormPayPlan and the Account to get the accumulated amount due for a payment plan based on today's date.
-    ///     Includes interest, but does not include payments made so far.  The chargelist must include all charges for this
-    ///     payplan,
-    ///     but it can include more as well.
-    /// </summary>
     public static double GetAccumDue(long payPlanNum, List<PayPlanCharge> chargeList)
     {
         double retVal = 0;
@@ -387,12 +322,6 @@ public class PayPlans
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets the amount due now of the passed in payment plan num.
-    ///     Optionally pass in the list of PayPlanCharges and list of PaySplits to avoid unneccesary database calls.
-    ///     Will filter out paysplits and charges associated to different payplans as well as payplan charges that are for the
-    ///     future or have a charge type of debit.
-    /// </summary>
     public static double GetDueNow(long payPlanNum, List<PayPlanCharge> listPayPlanCharges = null, List<PaySplit> listPaySplits = null)
     {
         double amtDue = 0;
@@ -411,13 +340,6 @@ public class PayPlans
         return amtDue;
     }
 
-    /// <summary>
-    ///     Gets the current balance of the passed in payment plan num.
-    ///     Performs the same calculation as the "balance" column in the payment plans grid in ContrAccount.
-    ///     Optionally pass in the list of PayPlanCharges and list of PaySplits to avoid unneccesary database calls.
-    ///     Will filter out paysplits and charges associated to different payplans as well as payplan charges that are for the
-    ///     future or have a charge type of debit.
-    /// </summary>
     public static double GetBalance(long payPlanNum, List<PayPlanCharge> listPayPlanCharges = null, List<PaySplit> listPaySplits = null)
     {
         double amtBal = 0;
@@ -438,12 +360,6 @@ public class PayPlans
         return amtBal;
     }
 
-    /// <summary>
-    ///     Gets the total cost now of the passed in payment plan num.
-    ///     Optionally pass in the list of PayPlanCharges to avoid unneccesary database calls.
-    ///     Will filter out charges associated to different payplans as well as payplan charges that are for the future or have
-    ///     a charge type of debit.
-    /// </summary>
     public static double GetTotalCost(long payPlanNum, List<PayPlanCharge> listPayPlanCharges = null)
     {
         double amtTotal = 0;
@@ -476,13 +392,7 @@ public class PayPlans
                       + "WHERE PayPlanNum IN (" + string.Join(",", listCharge.Select(x => x.PayPlanNum)) + ")";
         return PayPlanCrud.SelectMany(command);
     }
-
-    /// <summary>
-    ///     Used from Account window to get the amount paid so far on one payment plan.
-    ///     Must pass in the total amount paid and the returned value will not be more than this.
-    ///     The chargelist must include all charges for this payplan, but it can include more as well.
-    ///     It will loop sequentially through the charges to get just the principal portion.
-    /// </summary>
+    
     public static double GetPrincPaid(double amtPaid, long payPlanNum, List<PayPlanCharge> chargeList)
     {
         //amtPaid gets reduced to 0 throughout this loop.
@@ -522,11 +432,6 @@ public class PayPlans
         return retVal;
     }
 
-    /// <summary>
-    ///     Used from Account and ComputeBal to get the total amount of the original principal for one payment plan.
-    ///     Does not include any interest. The chargelist must include all charges for this payplan, but it can include more as
-    ///     well.
-    /// </summary>
     public static double GetTotalPrinc(long payPlanNum, List<PayPlanCharge> chargeList)
     {
         double retVal = 0;
@@ -541,52 +446,17 @@ public class PayPlans
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets the hashstring from the provided string that is typically generated from GetStringForSignatureHash().
-    ///     This is done seperate of building the string so that new line replacements can be done when validating signatures
-    ///     before hashing.
-    /// </summary>
     public static string GetHashStringForSignature(string str)
     {
         return Encoding.ASCII.GetString(MD5.Hash(Encoding.UTF8.GetBytes(str)));
     }
 
-    ///<summary>Get all open, dynamic payment plans.</summary>
-    public static List<PayPlan> GetDynamic()
-    {
-        var command = "SELECT * FROM payplan WHERE payplan.IsDynamic=1 AND payplan.IsClosed=0";
-        return PayPlanCrud.SelectMany(command);
-    }
-
-    #endregion
-
-    #region Insert
-
-    
     public static long Insert(PayPlan payPlan)
     {
         payPlan.SecurityHash = HashFields(payPlan);
         return PayPlanCrud.Insert(payPlan);
     }
 
-    public static void InsertMany(List<PayPlan> listPayPlans)
-    {
-        if (listPayPlans.IsNullOrEmpty()) return;
-
-        for (var i = 0; i < listPayPlans.Count; i++) listPayPlans[i].SecurityHash = HashFields(listPayPlans[i]);
-        PayPlanCrud.InsertMany(listPayPlans);
-    }
-
-    #endregion
-
-    #region Update
-
-    /// <summary>
-    ///     Updates the TreatmentCompletedAmt field of the passed in payplans in the database.
-    ///     Used when a procedure attached to a payment plan charge is set complete or deleted.
-    ///     The treatment completed amount only takes into account payplancharge credits that have already occurred
-    ///     (no charges attached to TP'd procs).
-    /// </summary>
     public static void UpdateTreatmentCompletedAmt(List<PayPlan> listPayPlans)
     {
         foreach (var payPlanCur in listPayPlans)
@@ -602,12 +472,6 @@ public class PayPlans
         }
     }
 
-    /// <summary>
-    ///     Updates the TreatmentCompletedAmt field of the passed in payplans in the database.
-    ///     Used when a procedure attached to a payment plan charge is set complete or deleted.
-    ///     The treatment completed amount only takes into account payplancharge credits that have already occurred
-    ///     (no charges attached to TP'd procs).
-    /// </summary>
     public static void UpdateTreatmentCompletedAmtsDynamicPaymentPlan(List<PayPlan> listPayPlans)
     {
         var listPayPlansUnique = listPayPlans.FindAll(x => x.IsDynamic).DistinctBy(x => x.PayPlanNum).ToList();
@@ -622,7 +486,6 @@ public class PayPlans
             Update(payPlanCur);
         }
     }
-
     
     public static void Update(PayPlan payPlan)
     {
@@ -630,17 +493,12 @@ public class PayPlans
         if (IsPayPlanHashValid(payPlanOld)) payPlan.SecurityHash = HashFields(payPlan);
         PayPlanCrud.Update(payPlan);
     }
-
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Gets the key data string to be hashed for payment plans.</summary>
-    public static string GetKeyDataStringForSignature(string APR, string NumberOfPayments, string paymentAmt, string freqOfPayments, string patName, string guarName, string sheetDefNum)
+    
+    public static string GetKeyDataStringForSignature(string APR, string numberOfPayments, string paymentAmt, string freqOfPayments, string patName, string guarName, string sheetDefNum)
     {
         var strb = new StringBuilder();
         strb.Append(APR);
-        strb.Append(NumberOfPayments);
+        strb.Append(numberOfPayments);
         strb.Append(paymentAmt);
         strb.Append(freqOfPayments);
         strb.Append(patName);
@@ -649,7 +507,7 @@ public class PayPlans
         return strb.ToString();
     }
 
-    public static string GetTermsAndConditionsString(PayPlan plan, Patient pat, Patient guar, bool isHtmlEmail = false)
+    public static string GetTermsAndConditionsString(PayPlan plan, bool isHtmlEmail = false)
     {
         //replacement text fields
         var sb = new StringBuilder(PrefC.GetString(PrefName.PayPlanTermsAndConditions));
@@ -678,37 +536,6 @@ public class PayPlans
         return sb.ToString();
     }
 
-    ///<summary>Returns true if the patient passed in has any outstanding non-ins payment plans with them as the guarantor.</summary>
-    public static bool HasOutstandingPayPlansNoIns(long guarNum)
-    {
-        var command = "SELECT SUM(paysplit.SplitAmt) FROM paysplit "
-                      + "INNER JOIN payplan ON paysplit.PayPlanNum=payplan.PayPlanNum "
-                      + "WHERE payplan.PlanNum=0 "
-                      + "AND payplan.Guarantor=" + SOut.Long(guarNum);
-        var amtPaid = SIn.Double(DataCore.GetScalar(command));
-        command = "SELECT SUM(payplancharge.Principal+payplancharge.Interest) FROM payplancharge "
-                  + "INNER JOIN payplan ON payplancharge.PayPlanNum=payplan.PayPlanNum "
-                  + "WHERE payplancharge.ChargeType=" + SOut.Int((int) PayPlanChargeType.Debit) + " AND payplan.PlanNum=0 "
-                  + "AND payplan.Guarantor=" + SOut.Long(guarNum);
-        var totalCost = SIn.Double(DataCore.GetScalar(command));
-        if (totalCost - amtPaid < .01) return false;
-        return true;
-    }
-
-    /// <summary>Gets info directly from database. Used when adding a payment.</summary>
-    public static bool PlanIsPaidOff(long payPlanNum)
-    {
-        var command = "SELECT SUM(paysplit.SplitAmt) FROM paysplit "
-                      + "WHERE PayPlanNum = " + SOut.Long(payPlanNum); // +"' "
-        //+" GROUP BY paysplit.PayPlanNum";
-        var amtPaid = SIn.Double(DataCore.GetScalar(command));
-        command = "SELECT SUM(Principal+Interest) FROM payplancharge "
-                  + "WHERE ChargeType=" + SOut.Int((int) PayPlanChargeType.Debit) + " AND PayPlanNum=" + SOut.Long(payPlanNum);
-        var totalCost = SIn.Double(DataCore.GetScalar(command));
-        if (totalCost - amtPaid < .01) return true;
-        return false;
-    }
-
     public static List<long> GetDynamicPayPlanNumsWithTP(List<long> listPayPlanNums = null)
     {
         var command = "";
@@ -723,10 +550,6 @@ public class PayPlans
         return Db.GetListLong(command);
     }
 
-    /// <summary>
-    ///     Automatically closes all payment plans that have no future charges and that are paid off.
-    ///     Returns the number of payment plans that were closed.
-    /// </summary>
     public static long AutoClose(bool canIncludeOldPaymentPlans = false, bool canIncludeInsPaymentPlans = false)
     {
         var command = "";
@@ -749,7 +572,7 @@ public class PayPlans
                   + ")cp ON cp.PayPlanNum = payplan.PayPlanNum "
                   + "WHERE payplan.IsClosed = 0 "
                   + "GROUP BY payplan.PayPlanNum "
-                  + "HAVING Princ+Interest <= (TotPay + InsPay) AND LastDate <=" + DbHelper.Curdate();
+                  + "HAVING Princ+Interest <= (TotPay + InsPay) AND LastDate <=" + "CURDATE()";
         table = DataCore.GetTable(command);
         var arrayPayPlanNums = table.AsEnumerable().Select(x => (long) x["PayPlanNum"]).ToArray();
         var listPayPlans = GetMany(arrayPayPlanNums);
@@ -812,10 +635,6 @@ public class PayPlans
         return count;
     }
 
-    /// <summary>
-    ///     Returns the salted hash for the payplan. Will return an empty string if the calling program is unable to use
-    ///     CDT.dll.
-    /// </summary>
     public static string HashFields(PayPlan payPlan)
     {
         var unhashedText = payPlan.Guarantor + payPlan.PayAmt.ToString("f2") + payPlan.IsClosed + payPlan.IsLocked;
@@ -829,10 +648,6 @@ public class PayPlans
         }
     }
 
-    /// <summary>
-    ///     Validates the hash string in payplan.SecurityHash. Returns true if it matches the expected hash, otherwise
-    ///     false.
-    /// </summary>
     public static bool IsPayPlanHashValid(PayPlan payPlan)
     {
         if (payPlan == null) return true;
@@ -846,7 +661,6 @@ public class PayPlans
         return false;
     }
 
-    /// <summary>Returns true if there is a PayPlan attached to the payPlanNum and it is open, false otherwise</summary>
     public static bool IsClosed(long payPlanNum)
     {
         if (payPlanNum == 0) return false;
@@ -868,15 +682,7 @@ public class PayPlans
         log += " changed.";
         return log;
     }
-
-    #endregion
-
-    #region Xam Methods
-
-    /// <summary>
-    ///     Gets the hash string for generating signatures. Used for Xamarin/web apps. Works with regular and dynamic pay
-    ///     plans.
-    /// </summary>
+    
     public static string GetKeyDataForSignature(PayPlan payPlan)
     {
         //Dynamic payment plan key data is built differently than regular payment plan key data
@@ -893,127 +699,9 @@ public class PayPlans
         return GetHashStringForSignature(keyDataStr);
     }
 
-    ///<summary>Creates a new sheet from a given Pay Plan. Works for both regular or dynamic payment plans.</summary>
-    public static Sheet PayPlanToSheet(PayPlan payPlan)
-    {
-        var listPayPlanCharges = PayPlanCharges.GetForPayPlan(payPlan.PayPlanNum).OrderBy(x => x.ChargeDate).ToList();
-        double totalPrincipal = 0;
-        double totalInterest = 0;
-        var countDebits = 0;
-        for (var i = 0; i < listPayPlanCharges.Count; i++)
-        {
-            if (listPayPlanCharges[i].ChargeType == PayPlanChargeType.Credit) continue; //don't include production when calculating the total loan cost, but do include adjustments
-            countDebits++;
-            if (listPayPlanCharges[i].ChargeType == PayPlanChargeType.Debit && listPayPlanCharges[i].Principal >= 0)
-            {
-                //Not an adjustment
-                totalPrincipal += listPayPlanCharges[i].Principal;
-                totalInterest += listPayPlanCharges[i].Interest;
-            }
-        }
-
-        var totalNegAdjAmt = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Debit && x.Principal < 0).Sum(x => x.Principal);
-        var totPrincIntAdj = totalPrincipal + totalInterest + totalNegAdjAmt;
-        var sheetDef = SheetDefs.GetSheetDef(payPlan.SheetDefNum, false);
-        if (sheetDef == null) sheetDef = SheetDefs.GetInternalOrCustom(SheetInternalType.PaymentPlan);
-        var sheetPP = SheetUtil.CreateSheet(sheetDef, payPlan.PatNum);
-        sheetPP.Parameters.Add(new SheetParameter(true, "payplan") {ParamValue = payPlan});
-        //The math for this comes from FormPayPlanDynamic
-        if (payPlan.IsDynamic)
-        {
-            var listPayPlanLinks = PayPlanLinks.GetListForPayplan(payPlan.PayPlanNum);
-            var listPayPlanProductionEntries = PayPlanProductionEntry.GetProductionForLinks(listPayPlanLinks);
-            listPayPlanProductionEntries.Sort(PayPlanEdit.OrderDynamicPayPlanProductionEntries);
-            var famCur = Patients.GetFamily(payPlan.PatNum);
-            var principal = listPayPlanProductionEntries.Sum(x => x.AmountOverride == 0 ? x.AmountOriginal : x.AmountOverride);
-            var payPlanTerms = new PayPlanTerms();
-            payPlanTerms.APR = payPlan.APR;
-            payPlanTerms.DateFirstPayment = payPlan.DatePayPlanStart;
-            payPlanTerms.Frequency = payPlan.ChargeFrequency; //verify this is just based on the ui, not the db.
-            payPlanTerms.DynamicPayPlanTPOption = payPlan.DynamicPayPlanTPOption;
-            payPlanTerms.DateInterestStart = payPlan.DateInterestStart; //Will be DateTime.MinDate if field is blank.
-            payPlanTerms.PayCount = 0; //Not used in PayPlanEdit.GetListExpectedCharges
-            payPlanTerms.PeriodPayment = (decimal) payPlan.PayAmt;
-            payPlanTerms.PrincipalAmount = (double) principal;
-            payPlanTerms.RoundDec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalDigits;
-            payPlanTerms.DateAgreement = payPlan.PayPlanDate;
-            payPlanTerms.DownPayment = payPlan.DownPayment;
-            payPlanTerms.PaySchedule = PayPlanEdit.GetPayScheduleFromFrequency(payPlanTerms.Frequency);
-            //now that terms are set, we need to potentially calculate the periodpayment amount since we only store that and not the payCount
-            if (payPlanTerms.PayCount != 0)
-            {
-                payPlanTerms.PeriodPayment = PayPlanEdit.CalculatePeriodPayment(payPlanTerms.APR, payPlanTerms.Frequency, payPlanTerms.PeriodPayment, payPlanTerms.PayCount, payPlanTerms.RoundDec
-                    , payPlanTerms.PrincipalAmount, payPlanTerms.DownPayment);
-                payPlanTerms.PayCount = 0;
-            }
-
-            var listChargesExpected = PayPlanEdit.GetListExpectedCharges(listPayPlanCharges, payPlanTerms, famCur, listPayPlanLinks, payPlan, false);
-            for (var i = 0; i < listPayPlanCharges.Count; i++) totalInterest += listPayPlanCharges[i].Interest;
-            for (var i = 0; i < listChargesExpected.Count; i++) //combine with list expected.
-                totalInterest += listChargesExpected[i].Interest;
-            sheetPP.Parameters.Add(new SheetParameter(true, "Principal") {ParamValue = principal.ToString("n")});
-            sheetPP.Parameters.Add(new SheetParameter(true, "totalFinanceCharge") {ParamValue = totalInterest});
-            sheetPP.Parameters.Add(new SheetParameter(true, "totalCostOfLoan") {ParamValue = (principal + (decimal) totalInterest).ToString("n")});
-        }
-        else
-        {
-            //The math for this comes from FormPayPlan
-            sheetPP.Parameters.Add(new SheetParameter(true, "Principal") {ParamValue = totalPrincipal.ToString("n")});
-            sheetPP.Parameters.Add(new SheetParameter(true, "totalFinanceCharge") {ParamValue = totalInterest});
-            sheetPP.Parameters.Add(new SheetParameter(true, "totalCostOfLoan") {ParamValue = totPrincIntAdj.ToString("n")});
-        }
-
-        SheetFiller.FillFields(sheetPP);
-        return sheetPP;
-    }
-
-    ///<summary>Sets every PayPlan MobileAppDeviceNum to 0 if it matches the passed in mobileAppDeviceNum.</summary>
-    public static void RemoveMobileAppDeviceNum(long mobileAppDeviceNum)
-    {
-        var command = $@"
-				UPDATE payplan
-				SET MobileAppDeviceNum=0
-				WHERE MobileAppDeviceNum={mobileAppDeviceNum}";
-        Db.NonQ(command);
-    }
-
-    public static bool TrySignPaymentPlan(PayPlan payPlan, string signaturePatient, out string error)
-    {
-        if (!TryValidateSignatures(payPlan, signaturePatient, out var patientSignature, out error)) return false;
-        UpdatePaymentPlanSignatures(payPlan, patientSignature);
-        return true;
-    }
-
-    /// <summary>
-    ///     Returns true if given payPlan and signatures are valid for DB, provides decrypted signatures when true.
-    ///     Otherwise returns false and sets out error.
-    /// </summary>
-    public static bool TryValidateSignatures(PayPlan payPlan, string signaturePatient, out string patientSignature, out string error)
-    {
-        error = null;
-        patientSignature = null;
-        if (payPlan == null) error = "This Payment Plan no longer exists. Please select and sign a new Payment Plan and try again.";
-        var keyData = GetKeyDataForSignature(payPlan);
-        var hash = MD5.Hash(Encoding.UTF8.GetBytes(keyData));
-        //331 and 79 are the width and height of the signature box in FormTPsign.cs
-        patientSignature = SigBox.EncryptSigString(hash, TreatPlans.GetScaledSignature(signaturePatient));
-        if (patientSignature.IsNullOrEmpty()) error = "Error occurred when encrypting the patient signature.";
-        return error.IsNullOrEmpty();
-    }
-
-    ///<summary>Used to set or clear out the mobile app device the payment plan is being added or removed from.</summary>
     public static void UpdateMobileAppDeviceNum(PayPlan payPlan, long mobileAppDeviceNum)
     {
         payPlan.MobileAppDeviceNum = mobileAppDeviceNum;
         Update(payPlan);
     }
-
-    ///<summary>Updates the given payPlans signatures in the DB.</summary>
-    public static void UpdatePaymentPlanSignatures(PayPlan payPlan, string patientSignature)
-    {
-        payPlan.Signature = patientSignature;
-        Update(payPlan);
-    }
-
-    #endregion Xam Methods
 }

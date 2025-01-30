@@ -3,26 +3,23 @@ using System.Data;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class MountDefs
 {
-    
     public static void Update(MountDef mountDef)
     {
         MountDefCrud.Update(mountDef);
     }
 
-    
-    public static long Insert(MountDef mountDef)
+    public static void Insert(MountDef mountDef)
     {
-        return MountDefCrud.Insert(mountDef);
+        MountDefCrud.Insert(mountDef);
     }
 
-    ///<summary>No need to surround with try/catch, because all deletions are allowed.</summary>
     public static void Delete(long mountDefNum)
     {
         var command = "DELETE FROM mountdef WHERE MountDefNum=" + SOut.Long(mountDefNum);
@@ -62,8 +59,6 @@ public class MountDefs
         return "";
     }
 
-    #region CachePattern
-
     private class MountDefCache : CacheListAbs<MountDef>
     {
         protected override List<MountDef> GetCacheFromDb()
@@ -93,39 +88,25 @@ public class MountDefs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly MountDefCache _mountDefCache = new();
+    private static readonly MountDefCache Cache = new();
 
     public static List<MountDef> GetDeepCopy(bool isShort = false)
     {
-        return _mountDefCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _mountDefCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _mountDefCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _mountDefCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

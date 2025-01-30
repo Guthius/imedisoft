@@ -1,41 +1,40 @@
 ﻿using System;
 using OpenDental.Graph.Base;
 
-namespace OpenDental.Graph.Concrete
+namespace OpenDental.Graph.Concrete;
+
+public partial class ProductionGraphOptionsCtrl : BaseGraphOptionsCtrl
 {
-    public partial class ProductionGraphOptionsCtrl : BaseGraphOptionsCtrl
+    public bool IncludeAdjustments
     {
-        public bool IncludeAdjustments
-        {
-            get => checkIncludeAdjustments.Checked;
-            set => checkIncludeAdjustments.Checked = value;
-        }
+        get => checkIncludeAdjustments.Checked;
+        set => checkIncludeAdjustments.Checked = value;
+    }
 
-        public bool IncludeCompletedProcs
-        {
-            get => checkIncludeCompletedProcs.Checked;
-            set => checkIncludeCompletedProcs.Checked = value;
-        }
+    public bool IncludeCompletedProcs
+    {
+        get => checkIncludeCompletedProcs.Checked;
+        set => checkIncludeCompletedProcs.Checked = value;
+    }
 
-        public bool IncludeWriteoffs
-        {
-            get => checkIncludeWriteoffs.Checked;
-            set => checkIncludeWriteoffs.Checked = value;
-        }
+    public bool IncludeWriteoffs
+    {
+        get => checkIncludeWriteoffs.Checked;
+        set => checkIncludeWriteoffs.Checked = value;
+    }
 
-        public ProductionGraphOptionsCtrl()
-        {
-            InitializeComponent();
-        }
+    public ProductionGraphOptionsCtrl()
+    {
+        InitializeComponent();
+    }
 
-        public override int GetPanelHeight()
-        {
-            return Height;
-        }
+    public override int GetPanelHeight()
+    {
+        return Height;
+    }
 
-        private void OnProductionGraphInputsChanged(object sender, EventArgs e)
-        {
-            OnBaseInputsChanged(sender);
-        }
+    private void OnProductionGraphInputsChanged(object sender, EventArgs e)
+    {
+        OnBaseInputsChanged(sender);
     }
 }

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormBlockoutCutCopyPaste {
 		/// <summary>
 		/// Required designer variable.
@@ -100,7 +95,7 @@ namespace OpenDental {
 			this.butCopyWeek.Size = new System.Drawing.Size(75, 24);
 			this.butCopyWeek.TabIndex = 28;
 			this.butCopyWeek.Text = "Copy Week";
-			this.butCopyWeek.Click += new System.EventHandler(this.butCopyWeek_Click);
+			this.butCopyWeek.Click += new System.EventHandler(this.ButtonCopyWeek_Click);
 			// 
 			// butCopyDay
 			// 
@@ -109,7 +104,7 @@ namespace OpenDental {
 			this.butCopyDay.Size = new System.Drawing.Size(75, 24);
 			this.butCopyDay.TabIndex = 27;
 			this.butCopyDay.Text = "Copy Day";
-			this.butCopyDay.Click += new System.EventHandler(this.butCopyDay_Click);
+			this.butCopyDay.Click += new System.EventHandler(this.ButtonCopyDay_Click);
 			// 
 			// groupBox2
 			// 
@@ -132,7 +127,7 @@ namespace OpenDental {
 			this.butRepeat.Size = new System.Drawing.Size(75, 24);
 			this.butRepeat.TabIndex = 30;
 			this.butRepeat.Text = "Repeat";
-			this.butRepeat.Click += new System.EventHandler(this.butRepeat_Click);
+			this.butRepeat.Click += new System.EventHandler(this.ButtonRepeat_Click);
 			// 
 			// label4
 			// 
@@ -168,7 +163,7 @@ namespace OpenDental {
 			this.butPaste.Size = new System.Drawing.Size(75, 24);
 			this.butPaste.TabIndex = 29;
 			this.butPaste.Text = "Paste";
-			this.butPaste.Click += new System.EventHandler(this.butPaste_Click);
+			this.butPaste.Click += new System.EventHandler(this.ButtonPaste_Click);
 			// 
 			// checkWeekend
 			// 
@@ -185,7 +180,7 @@ namespace OpenDental {
 			this.butClearDay.Size = new System.Drawing.Size(75, 24);
 			this.butClearDay.TabIndex = 48;
 			this.butClearDay.Text = "Clear Day";
-			this.butClearDay.Click += new System.EventHandler(this.butClearDay_Click);
+			this.butClearDay.Click += new System.EventHandler(this.ButtonClearDay_Click);
 			// 
 			// FormBlockoutCutCopyPaste
 			// 

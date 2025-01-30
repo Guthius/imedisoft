@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class VaccinePatCrud
 {
@@ -130,7 +132,7 @@ public class VaccinePatCrud
                                                 + SOut.Int((int) vaccinePat.AdministrationRoute) + ","
                                                 + SOut.Int((int) vaccinePat.AdministrationSite) + ")";
         if (vaccinePat.Note == null) vaccinePat.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(vaccinePat.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(vaccinePat.Note));
         {
             vaccinePat.VaccinePatNum = Db.NonQ(command, true, "VaccinePatNum", "vaccinePat", paramNote);
         }
@@ -171,7 +173,7 @@ public class VaccinePatCrud
                                                 + SOut.Int((int) vaccinePat.AdministrationRoute) + ","
                                                 + SOut.Int((int) vaccinePat.AdministrationSite) + ")";
         if (vaccinePat.Note == null) vaccinePat.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(vaccinePat.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(vaccinePat.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -204,7 +206,7 @@ public class VaccinePatCrud
                       + "AdministrationSite    =  " + SOut.Int((int) vaccinePat.AdministrationSite) + " "
                       + "WHERE VaccinePatNum = " + SOut.Long(vaccinePat.VaccinePatNum);
         if (vaccinePat.Note == null) vaccinePat.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(vaccinePat.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(vaccinePat.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -333,7 +335,7 @@ public class VaccinePatCrud
 
         if (command == "") return false;
         if (vaccinePat.Note == null) vaccinePat.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(vaccinePat.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(vaccinePat.Note));
         command = "UPDATE vaccinepat SET " + command
                                            + " WHERE VaccinePatNum = " + SOut.Long(vaccinePat.VaccinePatNum);
         Db.NonQ(command, paramNote);

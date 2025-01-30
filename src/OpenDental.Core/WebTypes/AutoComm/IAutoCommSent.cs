@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Imedisoft.Core.Entities;
 
 //****jordan 2022-10-24-Interface and properties ok here.
 //****Not standard pattern. Don't do this elsewhere.

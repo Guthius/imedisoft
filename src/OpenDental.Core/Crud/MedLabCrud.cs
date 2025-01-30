@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MedLabCrud
 {
@@ -194,11 +196,11 @@ public class MedLabCrud
                                       + "'" + SOut.String(medLab.FileName) + "',"
                                       + DbHelper.ParamChar + "paramOriginalPIDSegment)";
         if (medLab.NotePat == null) medLab.NotePat = "";
-        var paramNotePat = new OdSqlParameter("paramNotePat", OdDbType.Text, SOut.StringParam(medLab.NotePat));
+        var paramNotePat = new OdSqlParameter("paramNotePat", SOut.StringParam(medLab.NotePat));
         if (medLab.NoteLab == null) medLab.NoteLab = "";
-        var paramNoteLab = new OdSqlParameter("paramNoteLab", OdDbType.Text, SOut.StringParam(medLab.NoteLab));
+        var paramNoteLab = new OdSqlParameter("paramNoteLab", SOut.StringParam(medLab.NoteLab));
         if (medLab.OriginalPIDSegment == null) medLab.OriginalPIDSegment = "";
-        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", OdDbType.Text, SOut.StringParam(medLab.OriginalPIDSegment));
+        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", SOut.StringParam(medLab.OriginalPIDSegment));
         {
             medLab.MedLabNum = Db.NonQ(command, true, "MedLabNum", "medLab", paramNotePat, paramNoteLab, paramOriginalPIDSegment);
         }
@@ -252,11 +254,11 @@ public class MedLabCrud
                                       + "'" + SOut.String(medLab.FileName) + "',"
                                       + DbHelper.ParamChar + "paramOriginalPIDSegment)";
         if (medLab.NotePat == null) medLab.NotePat = "";
-        var paramNotePat = new OdSqlParameter("paramNotePat", OdDbType.Text, SOut.StringParam(medLab.NotePat));
+        var paramNotePat = new OdSqlParameter("paramNotePat", SOut.StringParam(medLab.NotePat));
         if (medLab.NoteLab == null) medLab.NoteLab = "";
-        var paramNoteLab = new OdSqlParameter("paramNoteLab", OdDbType.Text, SOut.StringParam(medLab.NoteLab));
+        var paramNoteLab = new OdSqlParameter("paramNoteLab", SOut.StringParam(medLab.NoteLab));
         if (medLab.OriginalPIDSegment == null) medLab.OriginalPIDSegment = "";
-        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", OdDbType.Text, SOut.StringParam(medLab.OriginalPIDSegment));
+        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", SOut.StringParam(medLab.OriginalPIDSegment));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNotePat, paramNoteLab, paramOriginalPIDSegment);
         else
@@ -302,11 +304,11 @@ public class MedLabCrud
                       + "OriginalPIDSegment =  " + DbHelper.ParamChar + "paramOriginalPIDSegment "
                       + "WHERE MedLabNum = " + SOut.Long(medLab.MedLabNum);
         if (medLab.NotePat == null) medLab.NotePat = "";
-        var paramNotePat = new OdSqlParameter("paramNotePat", OdDbType.Text, SOut.StringParam(medLab.NotePat));
+        var paramNotePat = new OdSqlParameter("paramNotePat", SOut.StringParam(medLab.NotePat));
         if (medLab.NoteLab == null) medLab.NoteLab = "";
-        var paramNoteLab = new OdSqlParameter("paramNoteLab", OdDbType.Text, SOut.StringParam(medLab.NoteLab));
+        var paramNoteLab = new OdSqlParameter("paramNoteLab", SOut.StringParam(medLab.NoteLab));
         if (medLab.OriginalPIDSegment == null) medLab.OriginalPIDSegment = "";
-        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", OdDbType.Text, SOut.StringParam(medLab.OriginalPIDSegment));
+        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", SOut.StringParam(medLab.OriginalPIDSegment));
         Db.NonQ(command, paramNotePat, paramNoteLab, paramOriginalPIDSegment);
     }
 
@@ -513,11 +515,11 @@ public class MedLabCrud
 
         if (command == "") return false;
         if (medLab.NotePat == null) medLab.NotePat = "";
-        var paramNotePat = new OdSqlParameter("paramNotePat", OdDbType.Text, SOut.StringParam(medLab.NotePat));
+        var paramNotePat = new OdSqlParameter("paramNotePat", SOut.StringParam(medLab.NotePat));
         if (medLab.NoteLab == null) medLab.NoteLab = "";
-        var paramNoteLab = new OdSqlParameter("paramNoteLab", OdDbType.Text, SOut.StringParam(medLab.NoteLab));
+        var paramNoteLab = new OdSqlParameter("paramNoteLab", SOut.StringParam(medLab.NoteLab));
         if (medLab.OriginalPIDSegment == null) medLab.OriginalPIDSegment = "";
-        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", OdDbType.Text, SOut.StringParam(medLab.OriginalPIDSegment));
+        var paramOriginalPIDSegment = new OdSqlParameter("paramOriginalPIDSegment", SOut.StringParam(medLab.OriginalPIDSegment));
         command = "UPDATE medlab SET " + command
                                        + " WHERE MedLabNum = " + SOut.Long(medLab.MedLabNum);
         Db.NonQ(command, paramNotePat, paramNoteLab, paramOriginalPIDSegment);

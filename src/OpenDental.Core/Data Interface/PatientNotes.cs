@@ -1,28 +1,19 @@
 using System;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class PatientNotes
 {
-    
     public static PatientNote GetPatientData(long patNum, long guarantor)
     {
         return Refresh(patNum, guarantor);
     }
 
-    /// <summary>
-    ///     Gets the PatientNote for the patient passed in.
-    ///     Inserts a row into the database for the patient AND for the guarantor passed in if one does not exist for either.
-    ///     The PatientNote returned always has the guarantor's FamFinancial value which should always override all family
-    ///     member's value.
-    /// </summary>
     public static PatientNote Refresh(long patNum, long guarantor)
     {
-        //RemotingRole check is needed here even though this method does not run methods, it does however call multiple private methods.
-
         var patientNote = GetOne(patNum);
         if (patientNote == null)
         {
@@ -60,48 +51,23 @@ public class PatientNotes
         return patientNote;
     }
 
-    
     public static void Update(PatientNote Cur, long guarantor)
     {
-        PatientNoteCrud.Update(Cur); //FamFinancial gets skipped
-        var command = "UPDATE patientnote SET "
-                      + "FamFinancial = '" + SOut.String(Cur.FamFinancial) + "'"
-                      + " WHERE patnum = '" + SOut.Long(guarantor) + "'";
+        PatientNoteCrud.Update(Cur);
+        var command = "UPDATE patientnote SET FamFinancial = '" + SOut.String(Cur.FamFinancial) + "'" + " WHERE patnum = " + guarantor;
         Db.NonQ(command);
     }
 
-    
-    public static void Update(PatientNote patientNote, PatientNote patientNoteOld, long guarantor)
-    {
-        PatientNoteCrud.Update(patientNote, patientNoteOld); //FamFinancial gets skipped
-        var command = "UPDATE patientnote SET "
-                      + "FamFinancial = '" + SOut.String(patientNote.FamFinancial) + "'"
-                      + " WHERE patnum = '" + SOut.Long(guarantor) + "'";
-        Db.NonQ(command);
-    }
-
-    /// <summary>
-    ///     Gets the PatientNote for the patient passed in.  The FamFinancial note could be incorrect.
-    ///     Users should call Refresh() to get the correct PatientNote for the patient and guarantor combo.
-    /// </summary>
     private static PatientNote GetOne(long patNum)
     {
-        var command = "SELECT * FROM patientnote WHERE PatNum = " + SOut.Long(patNum);
-        return PatientNoteCrud.SelectOne(command);
+        return PatientNoteCrud.SelectOne("SELECT * FROM patientnote WHERE PatNum = " + patNum);
     }
 
-    
     private static void InsertRow(long patNum)
     {
-        //Random keys not necessary to check because of 1:1 patNum.
-        //However, this is a lazy insert, so multiple locations might attempt it.
-        //Just in case, we will have it fail silently.
         try
         {
-            var command = "INSERT INTO patientnote (PatNum,SecDateTEntry) VALUES('" + patNum + "'," + DbHelper.Now() + ")";
-            //We may need to do this in Oracle in the future as well.
-            //If using Replication, then we need to watch for duplicate errors, because the insert is lazy.
-            //Replication servers can insert a patient note with a primary key belonging to another replication server's key range.
+            var command = "INSERT INTO patientnote (PatNum,SecDateTEntry) VALUES('" + patNum + "',NOW())";
             command += " ON DUPLICATE KEY UPDATE PatNum='" + patNum + "'";
             Db.NonQ(command);
         }
@@ -111,12 +77,6 @@ public class PatientNotes
         }
     }
 
-    /// <summary>
-    ///     Merge the PatientNote for patFrom into the PatientNote for patTo.  Appends to FamFinancial, Medical, Service,
-    ///     MedicalComp, Treatment.
-    ///     Overwrites ICEName, ICEPhone, OrthoMonthsTreatOverride, DateOrthoPlacementOverride, but only if those fields are
-    ///     not already set for patTo.
-    /// </summary>
     public static void Merge(Patient patFrom, Patient patTo)
     {
         var patNoteFrom = Refresh(patFrom.PatNum, patFrom.Guarantor); //Never returns null.
@@ -149,30 +109,17 @@ public class PatientNotes
         Update(patNoteTo, patTo.Guarantor); //Will cause the guarantor's FamFinancial field to be updated.
     }
 
-    /// <summary>
-    ///     Returns 0 if not locked. This gets hit every 4 seconds by every open ortho chart, but that's a pretty low
-    ///     load.
-    /// </summary>
     public static long GetUserNumOrthoLocked(long patNum)
     {
-        var command = "SELECT UserNumOrthoLocked FROM patientnote "
-                      + " WHERE PatNum = '" + SOut.Long(patNum) + "'";
+        var command = "SELECT UserNumOrthoLocked FROM patientnote WHERE PatNum = " + patNum;
         var raw = DataCore.GetScalar(command);
-        if (raw is null)
-        {
-            InsertRow(patNum);
-            return 0;
-        }
-
-        return SIn.Long(raw);
+        if (raw is not null) return SIn.Long(raw);
+        InsertRow(patNum);
+        return 0;
     }
 
-    
     public static void SetUserNumOrthoLocked(long patNum, long userNum)
     {
-        var command = "UPDATE patientnote "
-                      + " SET UserNumOrthoLocked= '" + SOut.Long(userNum) + "'"
-                      + " WHERE PatNum = '" + SOut.Long(patNum) + "'";
-        Db.NonQ(command);
+        Db.NonQ("UPDATE patientnote SET UserNumOrthoLocked= " + userNum + " WHERE PatNum = " + patNum);
     }
 }

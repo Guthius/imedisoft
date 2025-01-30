@@ -4,6 +4,8 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Newtonsoft.Json;
 
@@ -122,7 +124,7 @@ public class Arrivals
             arrival.ProcessArrival(patNumForResponse, clinicNum, mobilePhoneNumber, listTodayAppts, doAlert);
         });
         arrivalThread.AddExceptionHandler((ex) =>
-            Logger.WriteError(MiscUtils.GetExceptionText(ex), ODFileUtils.CombinePaths(nameof(Arrivals), nameof(ProcessArrival))));
+            Logger.WriteError(MiscUtils.GetExceptionText(ex)));
         arrivalThread.Name = nameof(ProcessArrival) + $"_PatNum{patNumForResponse}";
         arrivalThread.GroupName = nameof(ProcessArrival);
         arrivalThread.Start();
@@ -135,7 +137,7 @@ public class Arrivals
         string logSubDir = ODFileUtils.CombinePaths(nameof(Arrivals), nameof(ProcessArrival), clinicNum.ToString());
         if (listApptsToday.Count == 0)
         {
-            Logger.WriteError($"PatNum: {patNum} does not have any appointments at ClinicNum {clinicNum} today.", logSubDir);
+            Logger.WriteError($"PatNum: {patNum} does not have any appointments at ClinicNum {clinicNum} today.");
             return;
         }
 
@@ -145,7 +147,7 @@ public class Arrivals
             .ToList();
         if (listApptsAutomationEnabled.Count == 0)
         {
-            Logger.WriteError($"PatNum: {patNum} has appointments at ClinicNum {clinicNum} today, but automation is not enabled for this clinic.", logSubDir);
+            Logger.WriteError($"PatNum: {patNum} has appointments at ClinicNum {clinicNum} today, but automation is not enabled for this clinic.");
             return;
         }
 
@@ -187,7 +189,7 @@ public class Arrivals
         }
         catch (Exception ex)
         {
-            Logger.WriteError(MiscUtils.GetExceptionText(ex), logSubDir);
+            Logger.WriteError(MiscUtils.GetExceptionText(ex));
         }
 
         return message;
@@ -230,9 +232,9 @@ public class Arrivals
             {
                 ClinicNum = appt.Appointment.ClinicNum,
                 Description = appt.PatComm.GetFirstOrPreferred()
-                              + " " + Lans.g(this, "arrived at") + " " + DateTime.Now.ToString(PrefC.PatientCommunicationTimeFormat)
+                              + " " + Lans.g("arrived at") + " " + DateTime.Now.ToString(PrefC.PatientCommunicationTimeFormat)
                               + " " + DateTime.Now.ToString(PrefC.PatientCommunicationDateFormat)
-                              + " " + Lans.g(this, "for appointment at") + " " + appt.Appointment.AptDateTime.ToString(PrefC.PatientCommunicationTimeFormat)
+                              + " " + Lans.g("for appointment at") + " " + appt.Appointment.AptDateTime.ToString(PrefC.PatientCommunicationTimeFormat)
                               + " " + appt.Appointment.AptDateTime.ToString(PrefC.PatientCommunicationDateFormat),
                 Type = AlertType.PatientArrival,
                 Actions = ActionType.MarkAsRead | ActionType.Delete | ActionType.OpenForm,
@@ -266,19 +268,19 @@ public class Arrivals
 
             if (wirelessPhone is null)
             {
-                Logger.WriteError($"Unable to find a WirelessPhone for PatNum: {patNum}.", logDir);
+                Logger.WriteError($"Unable to find a WirelessPhone for PatNum: {patNum}.");
                 return false;
             }
 
             SmsToMobile sent = SmsToMobiles.SendSmsSingle(patNum, wirelessPhone, message, clinicNum, SmsMessageSource.Arrival);
-            Logger.WriteLine($"Sent {JsonConvert.SerializeObject(sent)}", logDir);
+            Logger.WriteLine($"Sent {JsonConvert.SerializeObject(sent)}");
             retVal = true;
         }
         catch (Exception ex)
         {
             string err = $"Failed to send Arrival Response '{message}' to PatNum: {patNum}, WirelessPhone: {wirelessPhone}. "
                          + MiscUtils.GetExceptionText(ex);
-            Logger.WriteError(err, logDir);
+            Logger.WriteError(err);
         }
 
         return retVal;
@@ -354,7 +356,7 @@ public class Arrivals
             if (string.IsNullOrWhiteSpace(template))
             {
                 string info = $"Unable to find template for Appointment.AptNum: {appt.AptNum}";
-                Logger.WriteLine(info, logDir);
+                Logger.WriteLine(info);
             }
             else
             {
@@ -364,7 +366,7 @@ public class Arrivals
         }
         catch (Exception ex)
         {
-            Logger.WriteError(MiscUtils.GetExceptionText(ex), logDir);
+            Logger.WriteError(MiscUtils.GetExceptionText(ex));
         }
 
         message = msg;

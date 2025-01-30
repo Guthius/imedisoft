@@ -13,13 +13,14 @@ public partial class PrintPanel : UserControl
     public PrintPanel()
     {
         InitializeComponent();
+        
         _backImage = new Bitmap(Width, Height);
+        
         BackBuffer = Graphics.FromImage(_backImage);
     }
 
     public Point Origin
     {
-        get => new((int) BackBuffer.Transform.OffsetX, (int) BackBuffer.Transform.OffsetY);
         set => BackBuffer.TranslateTransform(value.X - BackBuffer.Transform.OffsetX, value.Y - BackBuffer.Transform.OffsetY);
     }
 

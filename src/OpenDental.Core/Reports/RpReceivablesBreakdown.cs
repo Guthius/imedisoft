@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpReceivablesBreakdown {
@@ -14,10 +15,8 @@ namespace OpenDentBusiness {
 		{
 			//-------------------------------------------------------------------------------------//
 			// Create temperary tables for sorting data
-			List<long> listHiddenUnearnedDefNums=ReportsComplex.RunFuncOnReportServer(() => 
-				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList()
-			);
-			bool isAgingProcLifo=ReportsComplex.RunFuncOnReportServer(() => Prefs.GetYNNoCache(PrefName.AgingProcLifo));
+			List<long> listHiddenUnearnedDefNums= Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
+			bool isAgingProcLifo=Prefs.GetYNNoCache(PrefName.AgingProcLifo);
 			string query="";
 			string whereProv="";//used as the provider portion of the where clauses.
 											//each whereProv needs to be set up separately for each query
@@ -263,7 +262,7 @@ namespace OpenDentBusiness {
 						+"ORDER BY TranDate;";
 					break;
 				}
-				return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
+				return ReportsComplex.GetTable(query);
 		}	
 	}	
 }

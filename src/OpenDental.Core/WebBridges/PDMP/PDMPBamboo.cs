@@ -17,6 +17,7 @@ using System.Xml.Serialization;
 using BambooScript;
 using CodeBase;
 using Health.Direct.Common.Extensions;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using static OpenDentBusiness.PDMP;
 

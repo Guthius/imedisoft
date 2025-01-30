@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DepositCrud
 {
@@ -91,7 +93,7 @@ public class DepositCrud
                                            + SOut.Long(deposit.DepositAccountNum) + ","
                                            + SOut.Bool(deposit.IsSentToQuickBooksOnline) + ")";
         if (deposit.BankAccountInfo == null) deposit.BankAccountInfo = "";
-        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", OdDbType.Text, SOut.StringParam(deposit.BankAccountInfo));
+        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", SOut.StringParam(deposit.BankAccountInfo));
         {
             deposit.DepositNum = Db.NonQ(command, true, "DepositNum", "deposit", paramBankAccountInfo);
         }
@@ -119,7 +121,7 @@ public class DepositCrud
                                            + SOut.Long(deposit.DepositAccountNum) + ","
                                            + SOut.Bool(deposit.IsSentToQuickBooksOnline) + ")";
         if (deposit.BankAccountInfo == null) deposit.BankAccountInfo = "";
-        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", OdDbType.Text, SOut.StringParam(deposit.BankAccountInfo));
+        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", SOut.StringParam(deposit.BankAccountInfo));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramBankAccountInfo);
         else
@@ -139,7 +141,7 @@ public class DepositCrud
                       + "IsSentToQuickBooksOnline=  " + SOut.Bool(deposit.IsSentToQuickBooksOnline) + " "
                       + "WHERE DepositNum = " + SOut.Long(deposit.DepositNum);
         if (deposit.BankAccountInfo == null) deposit.BankAccountInfo = "";
-        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", OdDbType.Text, SOut.StringParam(deposit.BankAccountInfo));
+        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", SOut.StringParam(deposit.BankAccountInfo));
         Db.NonQ(command, paramBankAccountInfo);
     }
 
@@ -190,7 +192,7 @@ public class DepositCrud
 
         if (command == "") return false;
         if (deposit.BankAccountInfo == null) deposit.BankAccountInfo = "";
-        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", OdDbType.Text, SOut.StringParam(deposit.BankAccountInfo));
+        var paramBankAccountInfo = new OdSqlParameter("paramBankAccountInfo", SOut.StringParam(deposit.BankAccountInfo));
         command = "UPDATE deposit SET " + command
                                         + " WHERE DepositNum = " + SOut.Long(deposit.DepositNum);
         Db.NonQ(command, paramBankAccountInfo);

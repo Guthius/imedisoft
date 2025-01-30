@@ -196,7 +196,6 @@ namespace OpenDental
     public enum EnumFormName
     {
         FormAllergySetup,
-        FormCareCredit,
         FormCodeSystemsImport,
         FormDiseaseDefs,
         FormDrCeph,

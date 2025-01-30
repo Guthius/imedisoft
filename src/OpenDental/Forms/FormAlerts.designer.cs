@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAlerts {
 		/// <summary>
 		/// Required designer variable.
@@ -44,7 +44,7 @@ namespace OpenDental{
 			this.gridMain.SelectionMode = OpenDental.UI.GridSelectionMode.MultiExtended;
 			this.gridMain.Size = new System.Drawing.Size(750, 569);
 			this.gridMain.TabIndex = 1;
-			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAlerts_CellClick);
+			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridAlerts_CellClick);
 			// 
 			// labelOpenForm
 			// 
@@ -65,7 +65,7 @@ namespace OpenDental{
 			this.butViewDetails.TabIndex = 3;
 			this.butViewDetails.Text = "View Details";
 			this.butViewDetails.UseVisualStyleBackColor = true;
-			this.butViewDetails.Click += new System.EventHandler(this.butViewDetails_Click);
+			this.butViewDetails.Click += new System.EventHandler(this.ButtonViewDetails_Click);
 			// 
 			// butDelete
 			// 
@@ -77,7 +77,7 @@ namespace OpenDental{
 			this.butDelete.TabIndex = 4;
 			this.butDelete.Text = "Delete";
 			this.butDelete.UseVisualStyleBackColor = true;
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butOpenForm
 			// 
@@ -89,7 +89,7 @@ namespace OpenDental{
 			this.butOpenForm.TabIndex = 5;
 			this.butOpenForm.Text = "Open";
 			this.butOpenForm.UseVisualStyleBackColor = true;
-			this.butOpenForm.Click += new System.EventHandler(this.butOpenForm_Click);
+			this.butOpenForm.Click += new System.EventHandler(this.ButtonOpenForm_Click);
 			// 
 			// butMarkAsRead
 			// 
@@ -101,7 +101,7 @@ namespace OpenDental{
 			this.butMarkAsRead.TabIndex = 2;
 			this.butMarkAsRead.Text = "Mark Read";
 			this.butMarkAsRead.UseVisualStyleBackColor = true;
-			this.butMarkAsRead.Click += new System.EventHandler(this.butMarkAsRead_Click);
+			this.butMarkAsRead.Click += new System.EventHandler(this.ButtonMarkAsRead_Click);
 			// 
 			// butAcknowledge
 			// 
@@ -112,7 +112,7 @@ namespace OpenDental{
 			this.butAcknowledge.TabIndex = 8;
 			this.butAcknowledge.Text = "Acknowledge";
 			this.butAcknowledge.UseVisualStyleBackColor = true;
-			this.butAcknowledge.Click += new System.EventHandler(this.butAcknowledge_Click);
+			this.butAcknowledge.Click += new System.EventHandler(this.ButtonAcknowledge_Click);
 			// 
 			// label1
 			// 

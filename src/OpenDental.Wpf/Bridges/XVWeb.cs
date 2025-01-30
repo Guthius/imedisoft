@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	///<summary>Bridge to Apteryx's XVWeb</summary>
@@ -52,8 +53,8 @@ namespace OpenDental.Bridges {
 					}
 				}
 				catch {
-					MessageBox.Show(Lang.g("XVWeb","Could not find")+urlPath+"\r\n"
-						+Lang.g("XVWeb","Please set up a default web browser")+".");
+					MessageBox.Show("Could not find"+urlPath+"\r\n"
+						+"Please set up a default web browser.");
 				}
 				return;
 			}

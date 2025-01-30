@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class LanguageForeignCrud
 {
@@ -85,13 +87,13 @@ public class LanguageForeignCrud
                                + DbHelper.ParamChar + "paramTranslation,"
                                + DbHelper.ParamChar + "paramComments)";
         if (languageForeign.ClassType == null) languageForeign.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(languageForeign.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(languageForeign.ClassType));
         if (languageForeign.English == null) languageForeign.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(languageForeign.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(languageForeign.English));
         if (languageForeign.Translation == null) languageForeign.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languageForeign.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languageForeign.Translation));
         if (languageForeign.Comments == null) languageForeign.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(languageForeign.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(languageForeign.Comments));
         {
             languageForeign.LanguageForeignNum = Db.NonQ(command, true, "LanguageForeignNum", "languageForeign", paramClassType, paramEnglish, paramTranslation, paramComments);
         }
@@ -117,13 +119,13 @@ public class LanguageForeignCrud
                                + DbHelper.ParamChar + "paramTranslation,"
                                + DbHelper.ParamChar + "paramComments)";
         if (languageForeign.ClassType == null) languageForeign.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(languageForeign.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(languageForeign.ClassType));
         if (languageForeign.English == null) languageForeign.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(languageForeign.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(languageForeign.English));
         if (languageForeign.Translation == null) languageForeign.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languageForeign.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languageForeign.Translation));
         if (languageForeign.Comments == null) languageForeign.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(languageForeign.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(languageForeign.Comments));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramClassType, paramEnglish, paramTranslation, paramComments);
         else
@@ -141,13 +143,13 @@ public class LanguageForeignCrud
                       + "Comments          =  " + DbHelper.ParamChar + "paramComments "
                       + "WHERE LanguageForeignNum = " + SOut.Long(languageForeign.LanguageForeignNum);
         if (languageForeign.ClassType == null) languageForeign.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(languageForeign.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(languageForeign.ClassType));
         if (languageForeign.English == null) languageForeign.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(languageForeign.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(languageForeign.English));
         if (languageForeign.Translation == null) languageForeign.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languageForeign.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languageForeign.Translation));
         if (languageForeign.Comments == null) languageForeign.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(languageForeign.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(languageForeign.Comments));
         Db.NonQ(command, paramClassType, paramEnglish, paramTranslation, paramComments);
     }
 
@@ -186,13 +188,13 @@ public class LanguageForeignCrud
 
         if (command == "") return false;
         if (languageForeign.ClassType == null) languageForeign.ClassType = "";
-        var paramClassType = new OdSqlParameter("paramClassType", OdDbType.Text, SOut.StringParam(languageForeign.ClassType));
+        var paramClassType = new OdSqlParameter("paramClassType", SOut.StringParam(languageForeign.ClassType));
         if (languageForeign.English == null) languageForeign.English = "";
-        var paramEnglish = new OdSqlParameter("paramEnglish", OdDbType.Text, SOut.StringParam(languageForeign.English));
+        var paramEnglish = new OdSqlParameter("paramEnglish", SOut.StringParam(languageForeign.English));
         if (languageForeign.Translation == null) languageForeign.Translation = "";
-        var paramTranslation = new OdSqlParameter("paramTranslation", OdDbType.Text, SOut.StringParam(languageForeign.Translation));
+        var paramTranslation = new OdSqlParameter("paramTranslation", SOut.StringParam(languageForeign.Translation));
         if (languageForeign.Comments == null) languageForeign.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", OdDbType.Text, SOut.StringParam(languageForeign.Comments));
+        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(languageForeign.Comments));
         command = "UPDATE languageforeign SET " + command
                                                 + " WHERE LanguageForeignNum = " + SOut.Long(languageForeign.LanguageForeignNum);
         Db.NonQ(command, paramClassType, paramEnglish, paramTranslation, paramComments);

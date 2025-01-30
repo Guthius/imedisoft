@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClaimTrackingCrud
 {
@@ -62,7 +64,7 @@ public class ClaimTrackingCrud
                                               + SOut.Long(claimTracking.TrackingDefNum) + ","
                                               + SOut.Long(claimTracking.TrackingErrorDefNum) + ")";
         if (claimTracking.Note == null) claimTracking.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(claimTracking.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(claimTracking.Note));
         {
             claimTracking.ClaimTrackingNum = Db.NonQ(command, true, "ClaimTrackingNum", "claimTracking", paramNote);
         }
@@ -81,7 +83,7 @@ public class ClaimTrackingCrud
                       + "TrackingErrorDefNum=  " + SOut.Long(claimTracking.TrackingErrorDefNum) + " "
                       + "WHERE ClaimTrackingNum = " + SOut.Long(claimTracking.ClaimTrackingNum);
         if (claimTracking.Note == null) claimTracking.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(claimTracking.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(claimTracking.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -127,7 +129,7 @@ public class ClaimTrackingCrud
 
         if (command == "") return false;
         if (claimTracking.Note == null) claimTracking.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(claimTracking.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(claimTracking.Note));
         command = "UPDATE claimtracking SET " + command
                                               + " WHERE ClaimTrackingNum = " + SOut.Long(claimTracking.ClaimTrackingNum);
         Db.NonQ(command, paramNote);

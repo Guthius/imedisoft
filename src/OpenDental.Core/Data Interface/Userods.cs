@@ -5,7 +5,9 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -15,12 +17,12 @@ public class Userods
     {
         return UserodCrud.TableToList(DataCore.GetTable("SELECT * FROM userod ORDER BY UserName"));
     }
-    
+
     public static Userod GetUser(long userNum)
     {
         return GetFirstOrDefault(x => x.UserNum == userNum);
     }
-    
+
     public static List<Userod> GetUsers(List<long> listUserNums)
     {
         return GetWhere(x => listUserNums.Contains(x.UserNum));
@@ -48,23 +50,6 @@ public class Userods
         return listUserodsNonHidden;
     }
 
-    ///<summary>Returns a list of all CEMT users.</summary>
-    public static List<Userod> GetUsersForCEMT()
-    {
-        return GetWhere(x => x.UserNumCEMT != 0);
-    }
-
-    ///<summary>Returns null if not found.  Is not case sensitive.  isEcwTight isn't even used.</summary>
-    public static Userod GetUserByName(string userName)
-    {
-        return GetFirstOrDefault(x => !x.IsHidden && x.UserName.ToLower() == userName.ToLower());
-    }
-
-    /// <summary>
-    ///     Gets the first user with the matching userName passed in.  Not case sensitive.  Returns null if not found.
-    ///     Does not use the cache to find a corresponding user with the passed in userName.  Every middle tier call passes
-    ///     through here.
-    /// </summary>
     public static Userod GetUserByNameNoCache(string userName)
     {
         var command = "SELECT * FROM userod WHERE UserName='" + SOut.String(userName) + "'";
@@ -72,16 +57,11 @@ public class Userods
         return listUserods.FirstOrDefault(x => !x.IsHidden && x.UserName.ToLower() == userName.ToLower());
     }
 
-    ///<summary>Gets the user by usernum. Skips the cache.</summary>
     public static Userod GetUserByUserNumNoCache(long userNum)
     {
         return UserodCrud.SelectOne(userNum);
     }
 
-    /// <summary>
-    ///     Gets the first user with the matching badgeId passed in. Expecting int with 4 digits or less.  Returns null if
-    ///     not found.
-    /// </summary>
     public static Userod GetUserByBadgeId(string badgeId)
     {
         var command = "SELECT * FROM userod WHERE BadgeId <> '' AND BadgeId = RIGHT('" + SOut.String(badgeId) + "', LENGTH(BadgeId))";
@@ -90,13 +70,11 @@ public class Userods
         return listUserods.FirstOrDefault();
     }
 
-    ///<summary>Returns all users that are associated to the employee passed in.  Returns empty list if no matches found.</summary>
     public static List<Userod> GetUsersByEmployeeNum(long employeeNum)
     {
         return GetWhere(x => x.EmployeeNum == employeeNum);
     }
 
-    ///<summary>Returns all users that are associated to the permission passed in. Returns empty list if no matches found.</summary>
     public static List<Userod> GetUsersByPermission(EnumPermType permissions, bool showHidden)
     {
         var listUserGroups = UserGroups.GetForPermission(permissions);
@@ -104,28 +82,16 @@ public class Userods
         return GetWhere(x => listUserNums.Contains(x.UserNum), !showHidden);
     }
 
-    ///<summary>Gets all non-hidden users that have an associated provider.</summary>
     public static List<Userod> GetUsersWithProviders()
     {
         return GetWhere(x => x.ProvNum != 0, true);
     }
 
-    ///<summary>Returns all users associated to the provider passed in.  Returns empty list if no matches found.</summary>
     public static List<Userod> GetUsersByProvNum(long provNum)
     {
         return GetWhere(x => x.ProvNum == provNum, true);
     }
 
-    public static List<Userod> GetUsersByInbox(long taskListNum)
-    {
-        return GetWhere(x => x.TaskListInBox == taskListNum, true);
-    }
-
-    /// <summary>
-    ///     Returns all users selectable for the insurance verification list.
-    ///     Pass in an empty list to not filter by clinic.
-    ///     Set isAssigning to false to return only users who have an insurance already assigned.
-    /// </summary>
     public static List<Userod> GetUsersForVerifyList(List<long> listClinicNums, bool isAssigning, bool includeHiddenUsers = false)
     {
         var listUserNumsInInsVerify = InsVerifies.GetAllInsVerifyUserNums();
@@ -155,16 +121,6 @@ public class Userods
         return listUserodsWithPerm.FindAll(x => listUserNumsInInsVerify.Contains(x.UserNum)); //Return users limited by permission, clinic, and having an insurance already assigned.
     }
 
-    /// <summary>
-    ///     Returns all non-hidden users associated with the domain user name passed in. Returns an empty list if no
-    ///     matches found.
-    /// </summary>
-    public static List<Userod> GetUsersByDomainUserName(string domainUser)
-    {
-        return GetWhere(x => x.DomainUser.Equals(domainUser, StringComparison.InvariantCultureIgnoreCase), true);
-    }
-
-    ///<summary>This handles situations where we have a usernum, but not a user.  And it handles usernum of zero.</summary>
     public static string GetName(long userNum)
     {
         var userod = GetFirstOrDefault(x => x.UserNum == userNum);
@@ -173,52 +129,16 @@ public class Userods
         return userod.UserName;
     }
 
-    ///<summary>Returns true if the user passed in is associated with a provider that has (or had) an EHR prov key.</summary>
     public static bool IsUserCpoe(Userod userod)
     {
-        if (userod == null) return false;
-
-        var provider = Providers.GetProv(userod.ProvNum);
-        if (provider == null) return false;
-
-        //Check to see if this provider has had a valid key at any point in history.
-        return EhrProvKeys.HasProvHadKey(provider.LName, provider.FName);
+        return false;
     }
 
-    /// <summary>
-    ///     Searches the database for a corresponding user by username (not case sensitive).  Returns null is no match found.
-    ///     Once a user has been found, if the number of failed log in attempts exceeds the limit an exception is thrown with a
-    ///     message to display to the
-    ///     user.  Then the hash of the plaintext password (if usingEcw is true, password needs to be hashed before passing
-    ///     into this method) is checked
-    ///     against the password hash that is currently in the database.  Once the plaintext password passed in is validated,
-    ///     this method will upgrade the
-    ///     hashing algorithm for the password (if necessary) and then returns the entire user object for the corresponding
-    ///     user found.  Throws exceptions
-    ///     with error message to display to the user if anything goes wrong.  Manipulates the appropriate log in failure
-    ///     columns in the db as
-    ///     needed.
-    /// </summary>
     public static Userod CheckUserAndPassword(string userName, string plaintext, bool isEcw)
     {
         return CheckUserAndPassword(userName, plaintext, isEcw, true);
     }
 
-    /// <summary>
-    ///     Searches the database for a corresponding user by username (not case sensitive).  Returns null is no match found.
-    ///     Once a user has been found, if the number of failed log in attempts exceeds the limit an exception is thrown with a
-    ///     message to display to the
-    ///     user.  Then the hash of the plaintext password (if usingEcw is true, password needs to be hashed before passing
-    ///     into this method) is checked
-    ///     against the password hash that is currently in the database.  Once the plaintext password passed in is validated,
-    ///     this method will upgrade the
-    ///     hashing algorithm for the password (if necessary) and then returns the entire user object for the corresponding
-    ///     user found.  Throws exceptions
-    ///     with error message to display to the user if anything goes wrong.  Manipulates the appropriate log in failure
-    ///     columns in the db as
-    ///     needed.  Null will be returned when hasExceptions is false and no matching user found, credentials are invalid, or
-    ///     account is locked.
-    /// </summary>
     public static Userod CheckUserAndPassword(string userName, string plaintext, bool isEcw, bool hasExceptions)
     {
         //Do not use the cache here because an administrator could have cleared the log in failure attempt columns for this user.
@@ -283,47 +203,6 @@ public class Userods
         return null;
     }
 
-    /// <summary>
-    ///     Updates all students/instructors to the specified user group.  Surround with try/catch because it can throw
-    ///     exceptions.
-    /// </summary>
-    public static void UpdateUserGroupsForDentalSchools(UserGroup userGroup, bool isInstructor)
-    {
-        string command;
-        //Check if the user group that the students or instructors are trying to go to has the SecurityAdmin permission.
-        if (!GroupPermissions.HasPermission(userGroup.UserGroupNum, EnumPermType.SecurityAdmin, 0))
-        {
-            //We need to make sure that moving these users to the new user group does not eliminate all SecurityAdmin users in db.
-            command = "SELECT COUNT(*) FROM usergroupattach "
-                      + "INNER JOIN usergroup ON usergroupattach.UserGroupNum=usergroup.UserGroupNum "
-                      + "INNER JOIN grouppermission ON grouppermission.UserGroupNum=usergroup.UserGroupNum "
-                      + "WHERE usergroupattach.UserNum NOT IN "
-                      + "(SELECT userod.UserNum FROM userod,provider "
-                      + "WHERE userod.ProvNum=provider.ProvNum ";
-            if (isInstructor)
-            {
-                command += "AND provider.IsInstructor=" + SOut.Bool(isInstructor) + ") ";
-            }
-            else
-            {
-                command += "AND provider.IsInstructor=" + SOut.Bool(isInstructor) + " ";
-                command += "AND provider.SchoolClassNum!=0) ";
-            }
-
-            command += "AND grouppermission.PermType=" + SOut.Int((int) EnumPermType.SecurityAdmin) + " ";
-            var lastAdmin = SIn.Int(Db.GetCount(command));
-            if (lastAdmin == 0) throw new Exception("Cannot move students or instructors to the new user group because it would leave no users with the SecurityAdmin permission.");
-        }
-
-        command = "UPDATE userod INNER JOIN provider ON userod.ProvNum=provider.ProvNum "
-                  + "SET UserGroupNum=" + SOut.Long(userGroup.UserGroupNum) + " "
-                  + "WHERE provider.IsInstructor=" + SOut.Bool(isInstructor);
-        if (!isInstructor) command += " AND provider.SchoolClassNum!=0";
-
-        Db.NonQ(command);
-    }
-
-    ///<summary>Surround with try/catch because it can throw exceptions.</summary>
     public static void Update(Userod userod, List<long> listUserGroupNums = null)
     {
         Validate(false, userod, false, listUserGroupNums);
@@ -333,10 +212,6 @@ public class Userods
         UserGroupAttaches.SyncForUser(userod, listUserGroupNums);
     }
 
-    /// <summary>
-    ///     Surround with try/catch because it can throw exceptions.
-    ///     Same as Update(), only the Validate call skips checking duplicate names for hidden users.
-    /// </summary>
     public static void UpdatePassword(Userod userod, PasswordContainer passwordContainer, bool isPasswordStrong, bool includeCEMT = false)
     {
         var userodToUpdate = userod.Copy();
@@ -349,17 +224,12 @@ public class Userods
         UserodCrud.Update(userodToUpdate);
     }
 
-    ///<summary>Sets the TaskListInBox to 0 for any users that have this as their inbox.</summary>
     public static void DisassociateTaskListInBox(long taskListNum)
     {
         var command = "UPDATE userod SET TaskListInBox=0 WHERE TaskListInBox=" + SOut.Long(taskListNum);
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     A user must always have at least one associated userGroupAttach. Pass in the usergroup(s) that should be attached.
-    ///     Surround with try/catch because it can throw exceptions.
-    /// </summary>
     public static long Insert(Userod userod, List<long> listUserGroupNums, bool isForCEMT = false)
     {
         if (userod.IsHidden && UserGroups.IsAdminGroup(listUserGroupNums)) throw new Exception(Lans.g("Userods", "Admins cannot be hidden."));
@@ -376,11 +246,6 @@ public class Userods
         return userNum;
     }
 
-    /// <summary>
-    ///     Surround with try/catch because it can throw exceptions.
-    ///     We don't really need to make this public, but it's required in order to follow the RemotingRole pattern.
-    ///     listUserGroupNum can only be null when validating for an Update.
-    /// </summary>
     public static void Validate(bool isNew, Userod userod, bool excludeHiddenUsers, List<long> listUserGroupNums)
     {
         //should add a check that employeenum and provnum are not both set.
@@ -426,7 +291,6 @@ public class Userods
             throw new ApplicationException(Lans.g("Userods", "Admins cannot be hidden."));
     }
 
-    /// <summary>Returns true if there is at least one user part of the SecurityAdmin permission excluding the user passed in.</summary>
     public static bool IsSomeoneElseSecurityAdmin(Userod userod)
     {
         var command = "SELECT COUNT(*) FROM userod "
@@ -447,7 +311,6 @@ public class Userods
         return IsUserNameUnique(userName, excludeUserNum, excludeHiddenUsers, false);
     }
 
-    ///<summary>Supply 0 or -1 for the excludeUserNum to not exclude any.</summary>
     public static bool IsUserNameUnique(string userName, long excludeUserNum, bool excludeHiddenUsers, bool searchCEMTUsers)
     {
         if (userName == "") return false;
@@ -469,20 +332,6 @@ public class Userods
         return false;
     }
 
-    /// <summary>
-    ///     Generates a unique username based on what is passed into it.
-    ///     Returns null if given userName can not be easily identified as unique.
-    /// </summary>
-    /// <param name="userName">The username you are copying</param>
-    /// <param name="excludeUserNum">The UserNum that is excluded when checking if a username is in use.</param>
-    /// <param name="excludeHiddenUsers">
-    ///     Set to true to exclude hidden patients when checking if a username is in use,
-    ///     otherwise false
-    /// </param>
-    /// <param name="searchCEMTUsers">Set to true to include checking usernames that are associated to CEMT users.</param>
-    /// <param name="uniqueUserName">
-    ///     When returning true this is set to a unique username, otherwise null.</parm>
-    ///     <returns></returns>
     public static bool TryGetUniqueUsername(string userName, long excludeUserNum, bool excludeHiddenUsers, bool searchCEMTUsers, out string uniqueUserName)
     {
         var attempt = 1;
@@ -501,15 +350,6 @@ public class Userods
         return true;
     }
 
-    /// <summary>
-    ///     Inserts a new user into table and returns that new user. Not all fields are copied from original user.
-    /// </summary>
-    /// <param name="userod">The user that we will be copying from, not all fields are copied.</param>
-    /// <param name="passwordContainer"></param>
-    /// <param name="isPasswordStrong"></param>
-    /// <param name="userName"></param>
-    /// <param name="isForCemt">When true newly inserted user.UserNumCEMT will be set to the user.UserNum</param>
-    /// <returns></returns>
     public static Userod CopyUser(Userod userod, PasswordContainer passwordContainer, bool isPasswordStrong, string userName = null, bool isForCemt = false)
     {
         if (!TryGetUniqueUsername(userName ?? userod.UserName + "(Copy)", 0, false, isForCemt, out var uniqueUserName)) return null;
@@ -522,7 +362,7 @@ public class Userods
         userodCopy.ClinicIsRestricted = userod.ClinicIsRestricted;
         userodCopy.ClinicNum = userod.ClinicNum;
         //Insert also validates the user.
-        userodCopy.UserNum = Insert(userodCopy, UserGroups.GetForUser(userod.UserNum, isForCemt).Select(x => x.UserGroupNum).ToList(), isForCemt);
+        userodCopy.UserNum = Insert(userodCopy, UserGroups.GetForUser(userod.UserNum).Select(x => x.UserGroupNum).ToList(), isForCemt);
 
         #region UserClinics
 
@@ -548,7 +388,6 @@ public class Userods
         return GetWhere(x => x.IsInUserGroup(userGroupNum));
     }
 
-    ///<summary>Gets a list of users for which the passed-in clinicNum is the only one they have access to.</summary>
     public static List<Userod> GetUsersOnlyThisClinic(long clinicNum)
     {
         var command = "SELECT userod.* "
@@ -563,7 +402,6 @@ public class Userods
         return UserodCrud.SelectMany(command);
     }
 
-    /// <summary>Will return 0 if no inbox found for user.</summary>
     public static long GetInbox(long userNum)
     {
         var userod = GetFirstOrDefault(x => x.UserNum == userNum);
@@ -572,10 +410,6 @@ public class Userods
         return userod.TaskListInBox;
     }
 
-    /// <summary>
-    ///     Returns empty string if password is strong enough.  Otherwise, returns explanation of why it's not strong
-    ///     enough.
-    /// </summary>
     public static string IsPasswordStrong(string password, bool requireStrong = false)
     {
         var strongPasswordMsg = " when the strong password feature is turned on";
@@ -624,34 +458,18 @@ public class Userods
         return "";
     }
 
-    /// <summary>
-    ///     This resets the strong password flag on all users after an admin turns off pref PasswordsMustBeStrong.  If
-    ///     strong passwords are again turned on later, then each user will have to edit their password in order set the strong
-    ///     password flag again.
-    /// </summary>
     public static void ResetStrongPasswordFlags()
     {
         var command = "UPDATE userod SET PasswordIsStrong=0";
         Db.NonQ(command);
     }
 
-    ///<summary>Returns true if the passed-in user is apart of the passed-in usergroup.</summary>
     public static bool IsInUserGroup(long userNum, long userGroupNum)
     {
         var listUserGroupAttaches = UserGroupAttaches.GetForUser(userNum);
         return listUserGroupAttaches.Select(x => x.UserGroupNum).Contains(userGroupNum);
     }
 
-    #region Get Methods
-
-    /// <summary>
-    ///     Returns the UserNum of the first non-hidden admin user if they have no password set.
-    ///     It is very important to order by UserName in order to preserve old behavior of only considering the first Admin
-    ///     user we come across.
-    ///     This method does not simply return the first admin user with no password.  It is explicit in only considering the
-    ///     FIRST admin user.
-    ///     Returns 0 if there are no admin users or the first admin user found has a password set.
-    /// </summary>
     public static long GetFirstSecurityAdminUserNumNoPasswordNoCache()
     {
         //The query will order by UserName in order to preserve old behavior (mimics the cache).
@@ -673,24 +491,18 @@ public class Userods
         return userNumAdminNoPass;
     }
 
-    ///<summary>Gets the corresponding user for the userNum passed in without using the cache.</summary>
     public static Userod GetUserNoCache(long userNum)
     {
         var command = "SELECT * FROM userod WHERE userod.UserNum=" + SOut.Long(userNum);
         return UserodCrud.SelectOne(command);
     }
 
-    ///<summary>Gets the user name for the userNum passed in.  Returns empty string if not found in the database.</summary>
     public static string GetUserNameNoCache(long userNum)
     {
         var command = "SELECT userod.UserName FROM userod WHERE userod.UserNum=" + SOut.Long(userNum);
         return DataCore.GetScalar(command);
     }
 
-    /// <summary>
-    ///     Returns a list of non-hidden, non-CEMT user names.  Set hasOnlyCEMT to true if you only want non-hidden CEMT users.
-    ///     Always returns all non-hidden users if PrefName.UserNameManualEntry is true.
-    /// </summary>
     public static List<string> GetUserNamesNoCache()
     {
         var command = $@"SELECT userod.UserName FROM userod 
@@ -700,10 +512,6 @@ public class Userods
         return Db.GetListString(command);
     }
 
-    /// <summary>
-    ///     Returns all non-hidden UserNums (key) and UserNames (value) associated with the domain user name passed in.
-    ///     Returns an empty dictionary if no matches were found.
-    /// </summary>
     public static Dictionary<long, string> GetUsersByDomainUserNameNoCache(string domainUser)
     {
         var command = @"SELECT userod.UserNum, userod.UserName, userod.DomainUser 
@@ -715,12 +523,7 @@ public class Userods
             .ToDictionary(x => SIn.Long(x["UserNum"].ToString()), x => SIn.String(x["UserName"].ToString()));
         return dictNonHiddenUsers;
     }
-
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Returns true if at least one admin user is present within the database.  Otherwise; false.</summary>
+    
     public static bool HasSecurityAdminUserNoCache()
     {
         var command = @"SELECT COUNT(*) FROM userod
@@ -730,8 +533,7 @@ public class Userods
 				AND grouppermission.PermType=" + SOut.Int((int) EnumPermType.SecurityAdmin);
         return Db.GetCount(command) != "0";
     }
-    
-    ///<summary>Returns true if the user can sign notes. Uses the NotesProviderSignatureOnly preference to validate.</summary>
+
     public static bool CanUserSignNote(Userod userod = null)
     {
         var userodSig = userod;
@@ -741,11 +543,7 @@ public class Userods
 
         return true; //Either pref is off or it is on and user is a provider.
     }
-
-    #endregion
-
-    #region CachePattern
-
+    
     private class UserodCache : CacheListAbs<Userod>
     {
         protected override List<Userod> GetCacheFromDb()
@@ -779,75 +577,43 @@ public class Userods
             return !item.IsHidden;
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly UserodCache _userodCache = new();
+    
+    private static readonly UserodCache Cache = new();
 
     public static Userod GetFirstOrDefault(Func<Userod, bool> match, bool isShort = false)
     {
-        return _userodCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Gets a deep copy of all matching items from the cache via ListLong.  Set isShort true to search through
-    ///     ListShort instead.
-    /// </summary>
     public static List<Userod> GetWhere(Predicate<Userod> match, bool isShort = false)
     {
-        return _userodCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static List<Userod> GetDeepCopy(bool isShort = false)
     {
-        return _userodCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
-    {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _userodCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool refreshCache)
     {
-        var table = _userodCache.GetTableFromCache(refreshCache);
+        var table = Cache.GetTableFromCache(refreshCache);
         Security.SyncCurUser(); //Cache can have a stale reference to the Security.CurUser to ensure it has a current one.
         return table;
     }
 
     public static void ClearCache()
     {
-        _userodCache.ClearCache();
+        Cache.ClearCache();
     }
 
-    ///<summary>Returns the boolean indicating if the user cache has been turned off or not.</summary>
     public static bool GetIsCacheAllowed()
     {
-        return _userodCache.IsCacheAllowed;
+        return Cache.IsCacheAllowed;
     }
 
-    /// <summary>
-    ///     Set isCacheAllowed false to immediately clear out the userod cache and then set the cache into a state where it
-    ///     will throw an
-    ///     exception if any method attempts to have the cache fill itself.  This is designed to keep sensitive data from being
-    ///     cached until a
-    ///     verified user has logged in to the program.  Once a user has logged in then it is acceptable to fill the userod
-    ///     cache.
-    /// </summary>
     public static void SetIsCacheAllowed(bool isCacheAllowed)
     {
-        _userodCache.IsCacheAllowed = isCacheAllowed;
+        Cache.IsCacheAllowed = isCacheAllowed;
     }
-
-    #endregion
 }

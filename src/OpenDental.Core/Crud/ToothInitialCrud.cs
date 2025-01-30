@@ -5,10 +5,12 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ToothInitialCrud
 {
@@ -94,11 +96,11 @@ public class ToothInitialCrud
                                            + SOut.Float(toothInitial.Movement) + ","
                                            + DbHelper.ParamChar + "paramDrawingSegment,"
                                            + SOut.Int(toothInitial.ColorDraw.ToArgb()) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            //SecDateTEdit can only be set by MySQL
                                            + "'" + SOut.String(toothInitial.DrawText) + "')";
         if (toothInitial.DrawingSegment == null) toothInitial.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(toothInitial.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(toothInitial.DrawingSegment));
         {
             toothInitial.ToothInitialNum = Db.NonQ(command, true, "ToothInitialNum", "toothInitial", paramDrawingSegment);
         }
@@ -124,11 +126,11 @@ public class ToothInitialCrud
                                            + SOut.Float(toothInitial.Movement) + ","
                                            + DbHelper.ParamChar + "paramDrawingSegment,"
                                            + SOut.Int(toothInitial.ColorDraw.ToArgb()) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            //SecDateTEdit can only be set by MySQL
                                            + "'" + SOut.String(toothInitial.DrawText) + "')";
         if (toothInitial.DrawingSegment == null) toothInitial.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(toothInitial.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(toothInitial.DrawingSegment));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDrawingSegment);
         else
@@ -150,7 +152,7 @@ public class ToothInitialCrud
                       + "DrawText       = '" + SOut.String(toothInitial.DrawText) + "' "
                       + "WHERE ToothInitialNum = " + SOut.Long(toothInitial.ToothInitialNum);
         if (toothInitial.DrawingSegment == null) toothInitial.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(toothInitial.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(toothInitial.DrawingSegment));
         Db.NonQ(command, paramDrawingSegment);
     }
 
@@ -203,7 +205,7 @@ public class ToothInitialCrud
 
         if (command == "") return false;
         if (toothInitial.DrawingSegment == null) toothInitial.DrawingSegment = "";
-        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", OdDbType.Text, SOut.StringParam(toothInitial.DrawingSegment));
+        var paramDrawingSegment = new OdSqlParameter("paramDrawingSegment", SOut.StringParam(toothInitial.DrawingSegment));
         command = "UPDATE toothinitial SET " + command
                                              + " WHERE ToothInitialNum = " + SOut.Long(toothInitial.ToothInitialNum);
         Db.NonQ(command, paramDrawingSegment);

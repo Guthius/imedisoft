@@ -12,6 +12,7 @@ using OpenDentBusiness;
 using WpfControls.UI;
 using Microsoft.Win32;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	///<summary>HQ Only form for generating an ERA from the database or from an existing ERA.</summary>

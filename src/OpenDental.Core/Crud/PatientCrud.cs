@@ -1,14 +1,10 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PatientCrud
 {
@@ -131,106 +127,8 @@ public class PatientCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<Patient> listPatients, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "Patient";
-        var table = new DataTable(tableName);
-        table.Columns.Add("PatNum");
-        table.Columns.Add("LName");
-        table.Columns.Add("FName");
-        table.Columns.Add("MiddleI");
-        table.Columns.Add("Preferred");
-        table.Columns.Add("PatStatus");
-        table.Columns.Add("Gender");
-        table.Columns.Add("Position");
-        table.Columns.Add("Birthdate");
-        table.Columns.Add("SSN");
-        table.Columns.Add("Address");
-        table.Columns.Add("Address2");
-        table.Columns.Add("City");
-        table.Columns.Add("State");
-        table.Columns.Add("Zip");
-        table.Columns.Add("HmPhone");
-        table.Columns.Add("WkPhone");
-        table.Columns.Add("WirelessPhone");
-        table.Columns.Add("Guarantor");
-        table.Columns.Add("CreditType");
-        table.Columns.Add("Email");
-        table.Columns.Add("Salutation");
-        table.Columns.Add("EstBalance");
-        table.Columns.Add("PriProv");
-        table.Columns.Add("SecProv");
-        table.Columns.Add("FeeSched");
-        table.Columns.Add("BillingType");
-        table.Columns.Add("ImageFolder");
-        table.Columns.Add("AddrNote");
-        table.Columns.Add("FamFinUrgNote");
-        table.Columns.Add("MedUrgNote");
-        table.Columns.Add("ApptModNote");
-        table.Columns.Add("StudentStatus");
-        table.Columns.Add("SchoolName");
-        table.Columns.Add("ChartNumber");
-        table.Columns.Add("MedicaidID");
-        table.Columns.Add("Bal_0_30");
-        table.Columns.Add("Bal_31_60");
-        table.Columns.Add("Bal_61_90");
-        table.Columns.Add("BalOver90");
-        table.Columns.Add("InsEst");
-        table.Columns.Add("BalTotal");
-        table.Columns.Add("EmployerNum");
-        table.Columns.Add("EmploymentNote");
-        table.Columns.Add("County");
-        table.Columns.Add("GradeLevel");
-        table.Columns.Add("Urgency");
-        table.Columns.Add("DateFirstVisit");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("HasIns");
-        table.Columns.Add("TrophyFolder");
-        table.Columns.Add("PlannedIsDone");
-        table.Columns.Add("Premed");
-        table.Columns.Add("Ward");
-        table.Columns.Add("PreferConfirmMethod");
-        table.Columns.Add("PreferContactMethod");
-        table.Columns.Add("PreferRecallMethod");
-        table.Columns.Add("SchedBeforeTime");
-        table.Columns.Add("SchedAfterTime");
-        table.Columns.Add("SchedDayOfWeek");
-        table.Columns.Add("Language");
-        table.Columns.Add("AdmitDate");
-        table.Columns.Add("Title");
-        table.Columns.Add("PayPlanDue");
-        table.Columns.Add("SiteNum");
-        table.Columns.Add("DateTStamp");
-        table.Columns.Add("ResponsParty");
-        table.Columns.Add("CanadianEligibilityCode");
-        table.Columns.Add("AskToArriveEarly");
-        table.Columns.Add("PreferContactConfidential");
-        table.Columns.Add("SuperFamily");
-        table.Columns.Add("TxtMsgOk");
-        table.Columns.Add("SmokingSnoMed");
-        table.Columns.Add("Country");
-        table.Columns.Add("DateTimeDeceased");
-        table.Columns.Add("BillingCycleDay");
-        table.Columns.Add("SecUserNumEntry");
-        table.Columns.Add("SecDateEntry");
-        table.Columns.Add("HasSuperBilling");
-        table.Columns.Add("PatNumCloneFrom");
-        table.Columns.Add("DiscountPlanNum");
-        table.Columns.Add("HasSignedTil");
-        table.Columns.Add("ShortCodeOptIn");
-        table.Columns.Add("SecurityHash");
-        foreach (var patient in listPatients)
-            table.Rows.Add(SOut.Long(patient.PatNum), patient.LName, patient.FName, patient.MiddleI, patient.Preferred, SOut.Int((int) patient.PatStatus), SOut.Int((int) patient.Gender), SOut.Int((int) patient.Position), SOut.DateTime(patient.Birthdate, false), patient.SSN, patient.Address, patient.Address2, patient.City, patient.State, patient.Zip, patient.HmPhone, patient.WkPhone, patient.WirelessPhone, SOut.Long(patient.Guarantor), patient.CreditType, patient.Email, patient.Salutation, SOut.Double(patient.EstBalance), SOut.Long(patient.PriProv), SOut.Long(patient.SecProv), SOut.Long(patient.FeeSched), SOut.Long(patient.BillingType), patient.ImageFolder, patient.AddrNote, patient.FamFinUrgNote, patient.MedUrgNote, patient.ApptModNote, patient.StudentStatus, patient.SchoolName, patient.ChartNumber, patient.MedicaidID, SOut.Double(patient.Bal_0_30), SOut.Double(patient.Bal_31_60), SOut.Double(patient.Bal_61_90), SOut.Double(patient.BalOver90), SOut.Double(patient.InsEst), SOut.Double(patient.BalTotal), SOut.Long(patient.EmployerNum), patient.EmploymentNote, patient.County, SOut.Int((int) patient.GradeLevel), SOut.Int((int) patient.Urgency), SOut.DateTime(patient.DateFirstVisit, false), SOut.Long(patient.ClinicNum), patient.HasIns, patient.TrophyFolder, SOut.Bool(patient.PlannedIsDone), SOut.Bool(patient.Premed), patient.Ward, SOut.Int((int) patient.PreferConfirmMethod), SOut.Int((int) patient.PreferContactMethod), SOut.Int((int) patient.PreferRecallMethod), SOut.Time(patient.SchedBeforeTime, false), SOut.Time(patient.SchedAfterTime, false), SOut.Byte(patient.SchedDayOfWeek), patient.Language, SOut.DateTime(patient.AdmitDate, false), patient.Title, SOut.Double(patient.PayPlanDue), SOut.Long(patient.SiteNum), SOut.DateTime(patient.DateTStamp, false), SOut.Long(patient.ResponsParty), SOut.Byte(patient.CanadianEligibilityCode), SOut.Int(patient.AskToArriveEarly), SOut.Int((int) patient.PreferContactConfidential), SOut.Long(patient.SuperFamily), SOut.Int((int) patient.TxtMsgOk), patient.SmokingSnoMed, patient.Country, SOut.DateTime(patient.DateTimeDeceased, false), SOut.Int(patient.BillingCycleDay), SOut.Long(patient.SecUserNumEntry), SOut.DateTime(patient.SecDateEntry, false), SOut.Bool(patient.HasSuperBilling), SOut.Long(patient.PatNumCloneFrom), SOut.Long(patient.DiscountPlanNum), SOut.Bool(patient.HasSignedTil), SOut.Int((int) patient.ShortCodeOptIn), patient.SecurityHash);
-        return table;
-    }
-
     public static long Insert(Patient patient)
     {
-        return Insert(patient, false);
-    }
-
-    public static long Insert(Patient patient, bool useExistingPK)
-    {
         var command = "INSERT INTO patient (";
 
         command += "LName,FName,MiddleI,Preferred,PatStatus,Gender,Position,Birthdate,SSN,Address,Address2,City,State,Zip,HmPhone,WkPhone,WirelessPhone,Guarantor,CreditType,Email,Salutation,EstBalance,PriProv,SecProv,FeeSched,BillingType,ImageFolder,AddrNote,FamFinUrgNote,MedUrgNote,ApptModNote,StudentStatus,SchoolName,ChartNumber,MedicaidID,Bal_0_30,Bal_31_60,Bal_61_90,BalOver90,InsEst,BalTotal,EmployerNum,EmploymentNote,County,GradeLevel,Urgency,DateFirstVisit,ClinicNum,HasIns,TrophyFolder,PlannedIsDone,Premed,Ward,PreferConfirmMethod,PreferContactMethod,PreferRecallMethod,SchedBeforeTime,SchedAfterTime,SchedDayOfWeek,Language,AdmitDate,Title,PayPlanDue,SiteNum,ResponsParty,CanadianEligibilityCode,AskToArriveEarly,PreferContactConfidential,SuperFamily,TxtMsgOk,SmokingSnoMed,Country,DateTimeDeceased,BillingCycleDay,SecUserNumEntry,SecDateEntry,HasSuperBilling,PatNumCloneFrom,DiscountPlanNum,HasSignedTil,ShortCodeOptIn,SecurityHash) VALUES(";
@@ -312,7 +210,7 @@ public class PatientCrud
             + SOut.DateTime(patient.DateTimeDeceased) + ","
             + SOut.Int(patient.BillingCycleDay) + ","
             + SOut.Long(patient.SecUserNumEntry) + ","
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.Bool(patient.HasSuperBilling) + ","
             + SOut.Long(patient.PatNumCloneFrom) + ","
             + SOut.Long(patient.DiscountPlanNum) + ","
@@ -320,334 +218,12 @@ public class PatientCrud
             + SOut.Int((int) patient.ShortCodeOptIn) + ","
             + "'" + SOut.String(patient.SecurityHash) + "')";
         if (patient.AddrNote == null) patient.AddrNote = "";
-        var paramAddrNote = new OdSqlParameter("paramAddrNote", OdDbType.Text, SOut.StringNote(patient.AddrNote));
+        var paramAddrNote = new OdSqlParameter("paramAddrNote", SOut.StringNote(patient.AddrNote));
         if (patient.FamFinUrgNote == null) patient.FamFinUrgNote = "";
-        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", OdDbType.Text, SOut.StringNote(patient.FamFinUrgNote));
+        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", SOut.StringNote(patient.FamFinUrgNote));
         {
             patient.PatNum = Db.NonQ(command, true, "PatNum", "patient", paramAddrNote, paramFamFinUrgNote);
         }
-        return patient.PatNum;
-    }
-
-    public static void InsertMany(List<Patient> listPatients)
-    {
-        InsertMany(listPatients, false);
-    }
-
-    public static void InsertMany(List<Patient> listPatients, bool useExistingPK)
-    {
-        StringBuilder sbCommands = null;
-        var index = 0;
-        var countRows = 0;
-        while (index < listPatients.Count)
-        {
-            var patient = listPatients[index];
-            var sbRow = new StringBuilder("(");
-            var hasComma = false;
-            if (sbCommands == null)
-            {
-                sbCommands = new StringBuilder();
-                sbCommands.Append("INSERT INTO patient (");
-                if (useExistingPK) sbCommands.Append("PatNum,");
-                sbCommands.Append("LName,FName,MiddleI,Preferred,PatStatus,Gender,Position,Birthdate,SSN,Address,Address2,City,State,Zip,HmPhone,WkPhone,WirelessPhone,Guarantor,CreditType,Email,Salutation,EstBalance,PriProv,SecProv,FeeSched,BillingType,ImageFolder,AddrNote,FamFinUrgNote,MedUrgNote,ApptModNote,StudentStatus,SchoolName,ChartNumber,MedicaidID,Bal_0_30,Bal_31_60,Bal_61_90,BalOver90,InsEst,BalTotal,EmployerNum,EmploymentNote,County,GradeLevel,Urgency,DateFirstVisit,ClinicNum,HasIns,TrophyFolder,PlannedIsDone,Premed,Ward,PreferConfirmMethod,PreferContactMethod,PreferRecallMethod,SchedBeforeTime,SchedAfterTime,SchedDayOfWeek,Language,AdmitDate,Title,PayPlanDue,SiteNum,ResponsParty,CanadianEligibilityCode,AskToArriveEarly,PreferContactConfidential,SuperFamily,TxtMsgOk,SmokingSnoMed,Country,DateTimeDeceased,BillingCycleDay,SecUserNumEntry,SecDateEntry,HasSuperBilling,PatNumCloneFrom,DiscountPlanNum,HasSignedTil,ShortCodeOptIn,SecurityHash) VALUES ");
-                countRows = 0;
-            }
-            else
-            {
-                hasComma = true;
-            }
-
-            if (useExistingPK)
-            {
-                sbRow.Append(SOut.Long(patient.PatNum));
-                sbRow.Append(",");
-            }
-
-            sbRow.Append("'" + SOut.String(patient.LName) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.FName) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.MiddleI) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Preferred) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.PatStatus));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.Gender));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.Position));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Date(patient.Birthdate));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.SSN) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.StringNote(patient.Address, true) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.StringNote(patient.Address2, true) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.City) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.State) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Zip) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.HmPhone) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.WkPhone) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.WirelessPhone) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.Guarantor));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.CreditType) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Email) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Salutation) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.EstBalance));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.PriProv));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.SecProv));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.FeeSched));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.BillingType));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.ImageFolder) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.AddrNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.FamFinUrgNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.StringNote(patient.MedUrgNote, true) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.ApptModNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.StudentStatus) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.SchoolName) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.ChartNumber) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.MedicaidID) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.Bal_0_30));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.Bal_31_60));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.Bal_61_90));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.BalOver90));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.InsEst));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.BalTotal));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.EmployerNum));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.EmploymentNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.County) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.GradeLevel));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.Urgency));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Date(patient.DateFirstVisit));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.ClinicNum));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.HasIns) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.TrophyFolder) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(patient.PlannedIsDone));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(patient.Premed));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Ward) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.PreferConfirmMethod));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.PreferContactMethod));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.PreferRecallMethod));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Time(patient.SchedBeforeTime));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Time(patient.SchedAfterTime));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Byte(patient.SchedDayOfWeek));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Language) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Date(patient.AdmitDate));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Title) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(patient.PayPlanDue));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.SiteNum));
-            sbRow.Append(",");
-            //DateTStamp can only be set by MySQL
-            sbRow.Append(SOut.Long(patient.ResponsParty));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Byte(patient.CanadianEligibilityCode));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int(patient.AskToArriveEarly));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.PreferContactConfidential));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.SuperFamily));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.TxtMsgOk));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.SmokingSnoMed) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.Country) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.DateTime(patient.DateTimeDeceased));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int(patient.BillingCycleDay));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.SecUserNumEntry));
-            sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(patient.HasSuperBilling));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.PatNumCloneFrom));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(patient.DiscountPlanNum));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(patient.HasSignedTil));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) patient.ShortCodeOptIn));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(patient.SecurityHash) + "'");
-            sbRow.Append(")");
-            if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
-            {
-                Db.NonQ(sbCommands.ToString());
-                sbCommands = null;
-            }
-            else
-            {
-                if (hasComma) sbCommands.Append(",");
-                sbCommands.Append(sbRow);
-                countRows++;
-                if (index == listPatients.Count - 1) Db.NonQ(sbCommands.ToString());
-                index++;
-            }
-        }
-    }
-
-    public static long InsertNoCache(Patient patient)
-    {
-        return InsertNoCache(patient, false);
-    }
-
-    public static long InsertNoCache(Patient patient, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO patient (";
-        if (isRandomKeys || useExistingPK) command += "PatNum,";
-        command += "LName,FName,MiddleI,Preferred,PatStatus,Gender,Position,Birthdate,SSN,Address,Address2,City,State,Zip,HmPhone,WkPhone,WirelessPhone,Guarantor,CreditType,Email,Salutation,EstBalance,PriProv,SecProv,FeeSched,BillingType,ImageFolder,AddrNote,FamFinUrgNote,MedUrgNote,ApptModNote,StudentStatus,SchoolName,ChartNumber,MedicaidID,Bal_0_30,Bal_31_60,Bal_61_90,BalOver90,InsEst,BalTotal,EmployerNum,EmploymentNote,County,GradeLevel,Urgency,DateFirstVisit,ClinicNum,HasIns,TrophyFolder,PlannedIsDone,Premed,Ward,PreferConfirmMethod,PreferContactMethod,PreferRecallMethod,SchedBeforeTime,SchedAfterTime,SchedDayOfWeek,Language,AdmitDate,Title,PayPlanDue,SiteNum,ResponsParty,CanadianEligibilityCode,AskToArriveEarly,PreferContactConfidential,SuperFamily,TxtMsgOk,SmokingSnoMed,Country,DateTimeDeceased,BillingCycleDay,SecUserNumEntry,SecDateEntry,HasSuperBilling,PatNumCloneFrom,DiscountPlanNum,HasSignedTil,ShortCodeOptIn,SecurityHash) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(patient.PatNum) + ",";
-        command +=
-            "'" + SOut.String(patient.LName) + "',"
-            + "'" + SOut.String(patient.FName) + "',"
-            + "'" + SOut.String(patient.MiddleI) + "',"
-            + "'" + SOut.String(patient.Preferred) + "',"
-            + SOut.Int((int) patient.PatStatus) + ","
-            + SOut.Int((int) patient.Gender) + ","
-            + SOut.Int((int) patient.Position) + ","
-            + SOut.Date(patient.Birthdate) + ","
-            + "'" + SOut.String(patient.SSN) + "',"
-            + "'" + SOut.StringNote(patient.Address, true) + "',"
-            + "'" + SOut.StringNote(patient.Address2, true) + "',"
-            + "'" + SOut.String(patient.City) + "',"
-            + "'" + SOut.String(patient.State) + "',"
-            + "'" + SOut.String(patient.Zip) + "',"
-            + "'" + SOut.String(patient.HmPhone) + "',"
-            + "'" + SOut.String(patient.WkPhone) + "',"
-            + "'" + SOut.String(patient.WirelessPhone) + "',"
-            + SOut.Long(patient.Guarantor) + ","
-            + "'" + SOut.String(patient.CreditType) + "',"
-            + "'" + SOut.String(patient.Email) + "',"
-            + "'" + SOut.String(patient.Salutation) + "',"
-            + SOut.Double(patient.EstBalance) + ","
-            + SOut.Long(patient.PriProv) + ","
-            + SOut.Long(patient.SecProv) + ","
-            + SOut.Long(patient.FeeSched) + ","
-            + SOut.Long(patient.BillingType) + ","
-            + "'" + SOut.String(patient.ImageFolder) + "',"
-            + DbHelper.ParamChar + "paramAddrNote,"
-            + DbHelper.ParamChar + "paramFamFinUrgNote,"
-            + "'" + SOut.StringNote(patient.MedUrgNote, true) + "',"
-            + "'" + SOut.String(patient.ApptModNote) + "',"
-            + "'" + SOut.String(patient.StudentStatus) + "',"
-            + "'" + SOut.String(patient.SchoolName) + "',"
-            + "'" + SOut.String(patient.ChartNumber) + "',"
-            + "'" + SOut.String(patient.MedicaidID) + "',"
-            + SOut.Double(patient.Bal_0_30) + ","
-            + SOut.Double(patient.Bal_31_60) + ","
-            + SOut.Double(patient.Bal_61_90) + ","
-            + SOut.Double(patient.BalOver90) + ","
-            + SOut.Double(patient.InsEst) + ","
-            + SOut.Double(patient.BalTotal) + ","
-            + SOut.Long(patient.EmployerNum) + ","
-            + "'" + SOut.String(patient.EmploymentNote) + "',"
-            + "'" + SOut.String(patient.County) + "',"
-            + SOut.Int((int) patient.GradeLevel) + ","
-            + SOut.Int((int) patient.Urgency) + ","
-            + SOut.Date(patient.DateFirstVisit) + ","
-            + SOut.Long(patient.ClinicNum) + ","
-            + "'" + SOut.String(patient.HasIns) + "',"
-            + "'" + SOut.String(patient.TrophyFolder) + "',"
-            + SOut.Bool(patient.PlannedIsDone) + ","
-            + SOut.Bool(patient.Premed) + ","
-            + "'" + SOut.String(patient.Ward) + "',"
-            + SOut.Int((int) patient.PreferConfirmMethod) + ","
-            + SOut.Int((int) patient.PreferContactMethod) + ","
-            + SOut.Int((int) patient.PreferRecallMethod) + ","
-            + SOut.Time(patient.SchedBeforeTime) + ","
-            + SOut.Time(patient.SchedAfterTime) + ","
-            + SOut.Byte(patient.SchedDayOfWeek) + ","
-            + "'" + SOut.String(patient.Language) + "',"
-            + SOut.Date(patient.AdmitDate) + ","
-            + "'" + SOut.String(patient.Title) + "',"
-            + SOut.Double(patient.PayPlanDue) + ","
-            + SOut.Long(patient.SiteNum) + ","
-            //DateTStamp can only be set by MySQL
-            + SOut.Long(patient.ResponsParty) + ","
-            + SOut.Byte(patient.CanadianEligibilityCode) + ","
-            + SOut.Int(patient.AskToArriveEarly) + ","
-            + SOut.Int((int) patient.PreferContactConfidential) + ","
-            + SOut.Long(patient.SuperFamily) + ","
-            + SOut.Int((int) patient.TxtMsgOk) + ","
-            + "'" + SOut.String(patient.SmokingSnoMed) + "',"
-            + "'" + SOut.String(patient.Country) + "',"
-            + SOut.DateTime(patient.DateTimeDeceased) + ","
-            + SOut.Int(patient.BillingCycleDay) + ","
-            + SOut.Long(patient.SecUserNumEntry) + ","
-            + DbHelper.Now() + ","
-            + SOut.Bool(patient.HasSuperBilling) + ","
-            + SOut.Long(patient.PatNumCloneFrom) + ","
-            + SOut.Long(patient.DiscountPlanNum) + ","
-            + SOut.Bool(patient.HasSignedTil) + ","
-            + SOut.Int((int) patient.ShortCodeOptIn) + ","
-            + "'" + SOut.String(patient.SecurityHash) + "')";
-        if (patient.AddrNote == null) patient.AddrNote = "";
-        var paramAddrNote = new OdSqlParameter("paramAddrNote", OdDbType.Text, SOut.StringNote(patient.AddrNote));
-        if (patient.FamFinUrgNote == null) patient.FamFinUrgNote = "";
-        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", OdDbType.Text, SOut.StringNote(patient.FamFinUrgNote));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramAddrNote, paramFamFinUrgNote);
-        else
-            patient.PatNum = Db.NonQ(command, true, "PatNum", "patient", paramAddrNote, paramFamFinUrgNote);
         return patient.PatNum;
     }
 
@@ -739,9 +315,9 @@ public class PatientCrud
                       + "SecurityHash             = '" + SOut.String(patient.SecurityHash) + "' "
                       + "WHERE PatNum = " + SOut.Long(patient.PatNum);
         if (patient.AddrNote == null) patient.AddrNote = "";
-        var paramAddrNote = new OdSqlParameter("paramAddrNote", OdDbType.Text, SOut.StringNote(patient.AddrNote));
+        var paramAddrNote = new OdSqlParameter("paramAddrNote", SOut.StringNote(patient.AddrNote));
         if (patient.FamFinUrgNote == null) patient.FamFinUrgNote = "";
-        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", OdDbType.Text, SOut.StringNote(patient.FamFinUrgNote));
+        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", SOut.StringNote(patient.FamFinUrgNote));
         Db.NonQ(command, paramAddrNote, paramFamFinUrgNote);
     }
 
@@ -1233,9 +809,9 @@ public class PatientCrud
 
         if (command == "") return false;
         if (patient.AddrNote == null) patient.AddrNote = "";
-        var paramAddrNote = new OdSqlParameter("paramAddrNote", OdDbType.Text, SOut.StringNote(patient.AddrNote));
+        var paramAddrNote = new OdSqlParameter("paramAddrNote", SOut.StringNote(patient.AddrNote));
         if (patient.FamFinUrgNote == null) patient.FamFinUrgNote = "";
-        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", OdDbType.Text, SOut.StringNote(patient.FamFinUrgNote));
+        var paramFamFinUrgNote = new OdSqlParameter("paramFamFinUrgNote", SOut.StringNote(patient.FamFinUrgNote));
         command = "UPDATE patient SET " + command
                                         + " WHERE PatNum = " + SOut.Long(patient.PatNum);
         Db.NonQ(command, paramAddrNote, paramFamFinUrgNote);
@@ -1328,36 +904,5 @@ public class PatientCrud
         if (patient.ShortCodeOptIn != oldPatient.ShortCodeOptIn) return true;
         if (patient.SecurityHash != oldPatient.SecurityHash) return true;
         return false;
-    }
-
-    public static void Delete(long patNum)
-    {
-        ClearFkey(patNum);
-        var command = "DELETE FROM patient "
-                      + "WHERE PatNum = " + SOut.Long(patNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listPatNums)
-    {
-        if (listPatNums == null || listPatNums.Count == 0) return;
-        ClearFkey(listPatNums);
-        var command = "DELETE FROM patient "
-                      + "WHERE PatNum IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
-    }
-
-    public static void ClearFkey(long patNum)
-    {
-        if (patNum == 0) return;
-        var command = "UPDATE securitylog SET FKey=0 WHERE FKey=" + SOut.Long(patNum) + " AND PermType IN (75)";
-        Db.NonQ(command);
-    }
-
-    public static void ClearFkey(List<long> listPatNums)
-    {
-        if (listPatNums == null || listPatNums.FindAll(x => x != 0).Count == 0) return;
-        var command = "UPDATE securitylog SET FKey=0 WHERE FKey IN(" + string.Join(",", listPatNums.FindAll(x => x != 0)) + ") AND PermType IN (75)";
-        Db.NonQ(command);
     }
 }

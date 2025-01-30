@@ -46,7 +46,7 @@ namespace OpenDentBusiness {
 				+"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
 				+"GROUP BY procedurelog.ProcNum "
 				+"ORDER BY procedurelog.ProcDate,plfname,procedurecode.ProcCode,ToothNum";
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
+			return DataCore.GetTable(query);
 		}
 
 		public static DataTable GetGroupedTable(DateTime dateFrom,DateTime dateTo,List<long> listProvNums,List<long> listClinicNums,string procCode,bool hasAllProvs) {
@@ -62,9 +62,7 @@ namespace OpenDentBusiness {
 			if(!hasAllProvs) {
 				query+="AND procedurelog.ProvNum IN ("+String.Join(",",listProvNums)+") ";
 			}
-			if(ReportsComplex.RunFuncOnReportServer(() => true)) {
-				query+="AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
-			}
+			query+="AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			if(!string.IsNullOrEmpty(procCode)) {//don't include ProcCode condition if blank, it changes the execution plan and is much slower
 				query+="AND UPPER(procedurecode.ProcCode) LIKE '%"+SOut.String(procCode.ToUpper())+"%' ";
 			}
@@ -73,7 +71,7 @@ namespace OpenDentBusiness {
 				+"GROUP BY procedurelog.ProcNum ) procs "
 				+"GROUP BY procs.ProcCode "
 				+"ORDER BY procs.ItemOrder,procs.ProcCode";
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
+			return DataCore.GetTable(query);
 		}
 
 	}

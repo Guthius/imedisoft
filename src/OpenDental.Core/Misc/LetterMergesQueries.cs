@@ -3,23 +3,23 @@ using System.Data;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public class LetterMergesQueries
 {
-    ///<summary>Throws exceptions.</summary>
     public static DataTable GetLetterMergeInfo(Patient PatCur, LetterMerge letter)
     {
         //Throw explicit arguement exceptions so that we can hopefully get more information as to what is actually failing for our users.
         if (PatCur == null)
         {
-            throw new ArgumentException("Invalid patient", "PatCur");
+            throw new ArgumentException("Invalid patient", nameof(PatCur));
         }
 
         if (letter == null)
         {
-            throw new ArgumentException("Invalid letter", "letter");
+            throw new ArgumentException("Invalid letter", nameof(letter));
         }
 
         if (letter.Fields == null)
@@ -74,7 +74,7 @@ public class LetterMergesQueries
             }
             else if (letter.Fields[i] == "DateOfLastSavedTP")
             {
-                command += DbHelper.DtimeToDate("MAX(treatplan.DateTP)") + " DateOfLastSavedTP";
+                command += "DATE(MAX(treatplan.DateTP)) DateOfLastSavedTP";
             }
             else if (letter.Fields[i] == "DateRecallDue")
             {
@@ -152,7 +152,7 @@ public class LetterMergesQueries
                    + "LEFT JOIN patient patSubsc ON patSubsc.PatNum=inssub.Subscriber "
                    + "LEFT JOIN appointment ON appointment.PatNum=patient.PatNum "
                    + "AND appointment.AptStatus=" + SOut.Long((int) ApptStatus.Scheduled) + " "
-                   + "AND appointment.AptDateTime > " + DbHelper.Now() + " "
+                   + "AND appointment.AptDateTime > " + "NOW()" + " "
                    + "LEFT JOIN patient patGuar ON patGuar.PatNum=patient.Guarantor "
                    + "WHERE patient.PatNum=" + SOut.Long(PatCur.PatNum)
                    + " GROUP BY patient.PatNum "

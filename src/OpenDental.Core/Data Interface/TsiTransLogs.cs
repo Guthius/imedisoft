@@ -6,19 +6,16 @@ using CDT;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Cloud.Shared;
 using OpenDental.Cloud.Storage;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class TsiTransLogs
 {
-    #region Get Methods
-
-    ///<summary>Returns all tsitranslogs for the patients in listPatNums.  Returns empty list if listPatNums is empty or null.</summary>
     public static List<TsiTransLog> SelectMany(List<long> listPatNums)
     {
         if (listPatNums == null || listPatNums.Count < 1) return new List<TsiTransLog>();
@@ -28,21 +25,12 @@ public class TsiTransLogs
         return TsiTransLogCrud.SelectMany(command);
     }
 
-    ///<summary>Returns all tsitranslogs for all patients.  Used in FormTsiHistory only.</summary>
     public static List<TsiTransLog> GetAll()
     {
         var command = "SELECT * FROM tsitranslog ORDER BY TransDateTime DESC";
         return TsiTransLogCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a list of PatNums for guars who have a TsiTransLog with type SS (suspend) less than 50 days ago who don't
-    ///     have a TsiTransLog
-    ///     with type CN (cancel), PF (paid in full), PT (paid in full, thank you), or PL (placement) with a more recent date,
-    ///     since this would change the
-    ///     account status from suspended to either closed/canceled or if the more recent message had type PL (placement) back
-    ///     to active.
-    /// </summary>
     public static List<long> GetSuspendedGuarNums()
     {
         var listStatusTransTypes = new List<int>();
@@ -87,14 +75,10 @@ public class TsiTransLogs
                       + ") mostRecentLog ON tsitranslog.PatNum=mostRecentLog.PatNum AND tsitranslog.TransDateTime=mostRecentLog.transDateTime";
         return SIn.Bool(DataCore.GetScalar(command));
     }
-
-    #endregion Get Methods
-
-    #region Insert
-
-    public static long Insert(TsiTransLog tsiTransLog)
+    
+    public static void Insert(TsiTransLog tsiTransLog)
     {
-        return TsiTransLogCrud.Insert(tsiTransLog);
+        TsiTransLogCrud.Insert(tsiTransLog);
     }
 
     public static void InsertMany(List<TsiTransLog> listTsiTransLogs)
@@ -138,7 +122,6 @@ public class TsiTransLogs
         Insert(tsiTransLog);
     }
 
-    /// <summary>Inserts a TsiTransLog for the adjustment if necessary.</summary>
     public static void CheckAndInsertLogsIfAdjTypeExcluded(Adjustment adjustment, bool isFromTsi = false)
     {
         var program = Programs.GetCur(ProgramName.Transworld);
@@ -178,12 +161,7 @@ public class TsiTransLogs
 
         InsertTsiLogsForAdjustment(patientGuar.PatNum, adjustment, msgText, tsiTransType);
     }
-
-    #endregion Insert
-
-    #region Misc Methods
-
-    /// <summary>Getting the balance from the messages from the patAging object using logs.</summary>
+    
     public static double GetBalFromMsgs(PatAging patAging)
     {
         var tsiTransLog = patAging.ListTsiLogs.FirstOrDefault(x => x.TransType == TsiTransType.PL);
@@ -197,7 +175,6 @@ public class TsiTransLogs
         return balFromMsgs;
     }
 
-    ///<summary>Returns true if the guarantor has been sent to TSI and has not been canceled or paid in full.</summary>
     public static bool HasGuarBeenSentToTSI(Patient patient)
     {
         if (patient == null || !IsTransworldEnabled(patient.ClinicNum)) return false;
@@ -261,11 +238,6 @@ public class TsiTransLogs
         return false;
     }
 
-    /// <summary>
-    ///     Sends an SFTP message to TSI to suspend the account for the guarantor passed in.  Returns empty string if
-    ///     successful.
-    ///     Returns a translated error message that should be displayed to the user if anything goes wrong.
-    /// </summary>
     public static string SuspendGuar(Patient patient)
     {
         var patAging = Patients.GetAgingListFromGuarNums(new List<long> {patient.PatNum}).FirstOrDefault();
@@ -379,6 +351,4 @@ public class TsiTransLogs
 
         return "";
     }
-
-    #endregion Misc Methods
 }

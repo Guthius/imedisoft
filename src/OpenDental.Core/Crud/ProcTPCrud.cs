@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcTPCrud
 {
@@ -139,7 +141,7 @@ public class ProcTPCrud
                                            + "'" + SOut.String(procTP.Dx) + "',"
                                            + "'" + SOut.String(procTP.ProcAbbr) + "',"
                                            + SOut.Long(procTP.SecUserNumEntry) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            //SecDateTEdit can only be set by MySQL
                                            + SOut.Double(procTP.FeeAllowed) + ","
                                            + SOut.Double(procTP.TaxAmt) + ","
@@ -184,7 +186,7 @@ public class ProcTPCrud
                                            + "'" + SOut.String(procTP.Dx) + "',"
                                            + "'" + SOut.String(procTP.ProcAbbr) + "',"
                                            + SOut.Long(procTP.SecUserNumEntry) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            //SecDateTEdit can only be set by MySQL
                                            + SOut.Double(procTP.FeeAllowed) + ","
                                            + SOut.Double(procTP.TaxAmt) + ","

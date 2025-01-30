@@ -1,29 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class PatientLinks
 {
-    #region Insert
-
-    
-    public static long Insert(PatientLink patientLink)
+    public static void Insert(PatientLink patientLink)
     {
-        return PatientLinkCrud.Insert(patientLink);
+        PatientLinkCrud.Insert(patientLink);
     }
 
-    #endregion
-
-    #region Update
-
-    /// <summary>
-    ///     Updates any Clone PatientLink to set the PatNumFrom to the newly merged patient. The merged into patient will
-    ///     now become the original.
-    /// </summary>
     public static void UpdateFromPatientClonesAfterMerge(long patNumFromOriginal, long patNumFromNew)
     {
         var command = "UPDATE patientlink SET PatNumFrom=" + SOut.Long(patNumFromNew) + " "
@@ -32,11 +21,6 @@ public class PatientLinks
         Db.NonQ(command);
     }
 
-    #endregion
-
-    #region Get Methods
-
-    /// <summary>Get a list of Patient Clones.  This includes the master Patient.</summary>
     public static List<Patient> GetPatientsLinked(long patNum)
     {
         var listPatNums = new List<long>();
@@ -58,12 +42,6 @@ public class PatientLinks
         return listPatients;
     }
 
-    /// <summary>
-    ///     Gets all of the 'PatNumTo's linked to the passed-in patNumFrom.
-    ///     Does not recursively look up additional patient links.
-    ///     The list returned will NOT include the patient passed in unless there is an entry in the database linking them
-    ///     to... themselves.
-    /// </summary>
     public static List<long> GetPatNumsLinkedFrom(long patNumFrom, PatientLinkType patLinkType)
     {
         var command = "SELECT PatNumTo FROM patientlink "
@@ -72,12 +50,6 @@ public class PatientLinks
         return Db.GetListLong(command);
     }
 
-    /// <summary>
-    ///     Gets all of the 'PatNumFroms's linked to the passed-in patNumTo.   Does not recursively look up additional patient
-    ///     links.
-    ///     The list returned will NOT include the patient passed in unless there is an entry in the database linking them
-    ///     to... themselves.
-    /// </summary>
     public static List<long> GetPatNumsLinkedTo(long patNumTo, PatientLinkType patLinkType)
     {
         var command = "SELECT PatNumFrom FROM patientlink "
@@ -86,13 +58,11 @@ public class PatientLinks
         return Db.GetListLong(command);
     }
 
-    ///<summary>Gets links to and from the patient passed in. Not recursive.</summary>
     public static List<PatientLink> GetLinks(long patNum, PatientLinkType patLinkType)
     {
         return GetLinks(new List<long> {patNum}, patLinkType);
     }
 
-    ///<summary>Gets links to and from the patients passed in. Not recursive.</summary>
     public static List<PatientLink> GetLinks(List<long> listPatNums, PatientLinkType patLinkType)
     {
         if (listPatNums.Count == 0) return new List<PatientLink>();
@@ -104,11 +74,6 @@ public class PatientLinks
         return PatientLinkCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all the PatNums that are linked to this PatNum and all the PatNums that are linked to those PatNums, etc.
-    ///     Always returns a list
-    ///     that contains at least the PatNum passed in.
-    /// </summary>
     public static List<long> GetPatNumsLinkedFromRecursive(long patNumFrom, PatientLinkType patLinkType)
     {
         var listPatNums = new List<long> {patNumFrom};
@@ -116,7 +81,6 @@ public class PatientLinks
         return listPatNums;
     }
 
-    ///<summary>Gets all the PatNums that are recursively linked to this PatNum and adds them to the list passed in.</summary>
     private static void AddPatNumsLinkedFromRecursive(long patNumFrom, PatientLinkType patLinkType, List<long> listPatNums)
     {
         var command = "SELECT PatNumTo FROM patientlink "
@@ -132,11 +96,6 @@ public class PatientLinks
         }
     }
 
-    /// <summary>
-    ///     Gets all the PatNums that are linked to this PatNum and all the PatNums that are linked to those PatNums, etc.
-    ///     Always returns a list
-    ///     that contains at least the PatNum passed in.
-    /// </summary>
     public static List<long> GetPatNumsLinkedToRecursive(long patNumTo, PatientLinkType patLinkType)
     {
         var listPatNums = new List<long> {patNumTo};
@@ -144,7 +103,6 @@ public class PatientLinks
         return listPatNums;
     }
 
-    ///<summary>Gets all the PatNums that are recursively linked to this PatNum and adds them to the list passed in.</summary>
     private static void AddPatNumsLinkedToRecursive(long patNumTo, PatientLinkType patLinkType, List<long> listPatNums)
     {
         var command = "SELECT PatNumFrom FROM patientlink "
@@ -160,11 +118,6 @@ public class PatientLinks
         }
     }
 
-    #endregion
-
-    #region Delete
-
-    ///<summary>Deletes all of the entries for the patNumFrom passed in of the specified type.</summary>
     public static void DeletePatNumFroms(long patNumFrom, PatientLinkType patLinkType)
     {
         var command = "DELETE FROM patientlink "
@@ -173,7 +126,6 @@ public class PatientLinks
         Db.NonQ(command);
     }
 
-    ///<summary>Deletes all of the entries for the patNumTo passed in of the specified type.</summary>
     public static void DeletePatNumTos(long patNumTo, PatientLinkType patLinkType)
     {
         var command = "DELETE FROM patientlink "
@@ -182,7 +134,6 @@ public class PatientLinks
         Db.NonQ(command);
     }
 
-    ///<summary>Deletes all PatientLinks of type clone between the passed in patnums.</summary>
     public static void DeleteCloneBetweenToAndFrom(long patNumTo, long patNumFrom)
     {
         var command = "DELETE FROM patientlink WHERE ((PatNumTo=" + SOut.Long(patNumTo) + " AND PatNumFrom=" + SOut.Long(patNumFrom) + ") " +
@@ -190,14 +141,6 @@ public class PatientLinks
         Db.NonQ(command);
     }
 
-    #endregion
-
-    #region Clone Methods
-
-    /// <summary>
-    ///     Returns the original patient's PatNum for the clone passed in.  Returns the patNum passed in if it is not a clone.
-    ///     Otherwise returns 0 if the master could not be found.
-    /// </summary>
     public static long GetOriginalPatNumFromClone(long patNum)
     {
         if (!IsPatientAClone(patNum)) return patNum; //Not a clone so this patient must be the original.
@@ -207,17 +150,12 @@ public class PatientLinks
         return patNumOriginal;
     }
 
-    ///<summary>Returns true if the patient passed in is a clone otherwise false.</summary>
     public static bool IsPatientAClone(long patNum)
     {
         var listMatchingClonePatNums = GetPatNumsLinkedTo(patNum, PatientLinkType.Clone);
         return listMatchingClonePatNums.Count > 0;
     }
 
-    /// <summary>
-    ///     Returns true if the patient passed in is a clone or the original patient of clones, otherwise false.
-    ///     This method is helpful when trying to determine if the patient passed in is related in any way to the clone system.
-    /// </summary>
     public static bool IsPatientACloneOrOriginal(long patNum)
     {
         var listMatchingClonePatNums = GetPatNumsLinkedTo(patNum, PatientLinkType.Clone);
@@ -225,10 +163,6 @@ public class PatientLinks
         return listMatchingClonePatNums.Count > 0 || listMatchingMasterPatNums.Count > 0;
     }
 
-    /// <summary>
-    ///     Returns true if one patient is a clone of the other or if both are clones of the same master, otherwise false.
-    ///     Always returns false if patNum1 and patNum2 are the same PatNum.
-    /// </summary>
     public static bool ArePatientsClonesOfEachOther(long patNum1, long patNum2)
     {
         if (patNum1 == patNum2) //A patient is not considered a clone of themselves.  Even if the database has this scenario we do not honor it.
@@ -250,11 +184,6 @@ public class PatientLinks
         return false; //The two patients are not clones and / or are not clones of eachother.
     }
 
-    /// <summary>
-    ///     Returns true if this patient has been merged into another patient, and no other patient has merged into this
-    ///     patient after the
-    ///     original merge.
-    /// </summary>
     public static bool WasPatientMerged(long patNum, List<PatientLink> listMergeLinks = null)
     {
         listMergeLinks = listMergeLinks ?? GetLinks(patNum, PatientLinkType.Merge);
@@ -264,39 +193,4 @@ public class PatientLinks
         //considered a "merged" patient.
         return true; //This patient has been merged into another patient.
     }
-
-    #endregion
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<PatientLink> Refresh(long patNum){
-
-        string command="SELECT * FROM patientlink WHERE PatNum = "+POut.Long(patNum);
-        return Crud.PatientLinkCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one PatientLink from the db.</summary>
-    public static PatientLink GetOne(long patientLinkNum){
-
-        return Crud.PatientLinkCrud.SelectOne(patientLinkNum);
-    }
-
-    
-    public static void Update(PatientLink patientLink){
-
-        Crud.PatientLinkCrud.Update(patientLink);
-    }
-
-    
-    public static void Delete(long patientLinkNum) {
-
-        Crud.PatientLinkCrud.Delete(patientLinkNum);
-    }
-
-
-
-
-    */
 }

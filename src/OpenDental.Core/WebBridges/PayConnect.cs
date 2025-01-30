@@ -11,6 +11,8 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.WebTypes;
 using OpenDentBusiness.PayConnectService;
 
@@ -333,7 +335,7 @@ namespace OpenDentBusiness {
 				+Lans.g("PayConnect","Transaction ID:")+" "+payConnectRequest.RefNumber+"\r\n"
 				+Lans.g("PayConnect","Processed:")+" "+dateTimeProcessed.ToShortDateString()+" "+dateTimeProcessed.ToShortTimeString()+"\r\n"
 				+Lans.g("PayConnect","Note:")+" "+payNote;
-				long payNum=Payments.InsertFromPayConnect(pat.PatNum,pat.PriProv,pat.ClinicNum,amount,formattedNote,receipt,ccSource,logGuid);
+				long payNum=Payments.InsertFromPayConnect(pat.PatNum,pat.ClinicNum,amount,formattedNote,receipt,ccSource,logGuid);
 				responseWeb=new PayConnectResponseWeb() {
 					Amount=amount,
 					PatNum=pat.PatNum,
@@ -474,7 +476,7 @@ namespace OpenDentBusiness {
 									);
 									receipt=BuildReceiptString(PayConnectService.transType.SALE,pcInfo.RefNumber,"",pcInfo.CreditCardNumber,"","",pcInfo.Status?.description??"",pcInfo.Messages.Message.ToList(),pcInfo.Amount,false,clinicNum);
 								}
-								responseWebCur.PayNum=Payments.InsertFromPayConnect(pat.PatNum,pat.PriProv,clinicNum,responseWebCur.Amount,responseWebCur.GetFormattedNote(true),receipt,responseWebCur.CCSource,responseWebCur.LogGuid);
+								responseWebCur.PayNum=Payments.InsertFromPayConnect(pat.PatNum,clinicNum,responseWebCur.Amount,responseWebCur.GetFormattedNote(true),receipt,responseWebCur.CCSource,responseWebCur.LogGuid);
 								if(EmailAddresses.GetValidMailAddress(responseWebCur.EmailResponse)!=null) {
 									EmailAddress emailAddressFrom=EmailAddresses.GetByClinic(clinicNum,true);
 									Statements.EmailStatementPatientPortal(Statements.CreateReceiptStatement(pat,StatementMode.Email),responseWebCur.EmailResponse,emailAddressFrom,pat);

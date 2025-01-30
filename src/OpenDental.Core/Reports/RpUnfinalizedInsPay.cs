@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -41,7 +42,7 @@ namespace OpenDentBusiness {
 							AND claimproc.IsTransfer=0 
 						GROUP BY claimproc.ClaimNum	
 			) partialpay";
-			DataTable table=ReportsComplex.RunFuncOnReportServer(()=> DataCore.GetTable(command));
+			DataTable table=DataCore.GetTable(command);
 			List<Patient> listPats=Patients.GetMultPats(table.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList()).ToList();
 			List<Claim> listClaims=Claims.GetClaimsFromClaimNums(table.Select().Select(x => SIn.Long(x["ClaimNum"].ToString())).ToList());
 			List<ClaimPayment> listPayments=ClaimPayments.GetByClaimPaymentNums(table.Select().Select(x => SIn.Long(x["ClaimPaymentNum"].ToString()))

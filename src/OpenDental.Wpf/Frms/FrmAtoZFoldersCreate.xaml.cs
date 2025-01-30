@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -54,12 +55,7 @@ namespace OpenDental {
 				string rootFolderName=textName.Text;
 				string rootDir=ODFileUtils.CombinePaths(requestDir,rootFolderName);
 				//Enable file sharing for the A to Z folder.
-				if(Environment.OSVersion.Platform==PlatformID.Unix) {
-					//Process.Start("net","usershare add OpenDentImages \""+rootDir+"\"");//for future use.
-				}
-				else {//Windows
-					Process.Start("NET","SHARE OpenDentImages=\""+rootDir+"\"");
-				}
+				Process.Start("NET","SHARE OpenDentImages=\""+rootDir+"\"");
 				//All folder names to be created should be put in this list, so that each folder is created exactly
 				//the same way.
 				string[] aToZFolderNames=new string[] {
@@ -83,7 +79,7 @@ namespace OpenDental {
 				//Prefs_client.RefreshClient();
 			}
 			catch(Exception ex) {
-				Logger.Openlog.LogMB("Failed to create A to Z folders: "+ex.ToString(),Logger.Severity.ERROR);
+				ODMessageBox.Show("Failed to create A to Z folders: "+ex.ToString());
 			}
 			SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Created AtoZ Folder");
 			IsDialogOK=true;

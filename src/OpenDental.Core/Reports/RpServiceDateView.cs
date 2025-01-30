@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpServiceDateView {
@@ -179,7 +180,7 @@ namespace OpenDentBusiness {
 					display.TranDate,
 					FIELD(display.Type,'Proc','Adj-Att.','PatPay Att.','WriteOff-Att.','InsPay-Att.','PayPlan Charge Att.','PatPay Att. PayPlan','Unallocated','PatPay','WriteOff','Adj','InsPay','PayPlan Credit','Dynamic PayPlan Credit','PayPlan Charge','PatPay PayPlan','Day Total','Overall Total')
 			";
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			return DataCore.GetTable(command);
 		}
 
 		///<summary>Get core data ordered by procedure date and transactions attached to procs first, with specific ordering for transaction type. 

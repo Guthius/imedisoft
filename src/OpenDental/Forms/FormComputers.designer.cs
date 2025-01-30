@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormComputers {
 		private System.ComponentModel.IContainer components = null;
 
@@ -57,7 +52,7 @@ namespace OpenDental {
 			this.listComputer.Name = "listComputer";
 			this.listComputer.Size = new System.Drawing.Size(282, 277);
 			this.listComputer.TabIndex = 2;
-			this.listComputer.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listComputer_MouseDoubleClick);
+			this.listComputer.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ListBoxComputer_MouseDoubleClick);
 			// 
 			// label1
 			// 
@@ -77,7 +72,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(75, 26);
 			this.butDelete.TabIndex = 4;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// label2
 			// 
@@ -95,7 +90,7 @@ namespace OpenDental {
 			this.butSetSimpleGraphics.Size = new System.Drawing.Size(115, 24);
 			this.butSetSimpleGraphics.TabIndex = 3;
 			this.butSetSimpleGraphics.Text = "Use Simple Graphics";
-			this.butSetSimpleGraphics.Click += new System.EventHandler(this.butSetSimpleGraphics_Click);
+			this.butSetSimpleGraphics.Click += new System.EventHandler(this.ButtonSetSimpleGraphics_Click);
 			// 
 			// label3
 			// 
@@ -133,7 +128,7 @@ namespace OpenDental {
 			this.butResetZoom.Size = new System.Drawing.Size(82, 24);
 			this.butResetZoom.TabIndex = 83;
 			this.butResetZoom.Text = "Reset Zoom";
-			this.butResetZoom.Click += new System.EventHandler(this.butResetZoom_Click);
+			this.butResetZoom.Click += new System.EventHandler(this.ButtonResetZoom_Click);
 			// 
 			// textCurComp
 			// 

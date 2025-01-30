@@ -10,6 +10,8 @@ using OpenDentBusiness.SheetFramework;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -56,13 +58,6 @@ namespace OpenDentBusiness {
 					patNum=appt.PatNum;
 					patient=(patient==null || patient.PatNum!=patNum ? Patients.GetPat(patNum) : patient);
 					FillFieldsForLabelAppointment(sheet,appt,patient);
-					break;
-				case SheetTypeEnum.Rx:
-					RxPat rx=RxPats.GetRx((long)GetParamByName(sheet,"RxNum").ParamValue);
-					patNum=rx.PatNum;
-					patient=(patient==null || patient.PatNum!=patNum ? Patients.GetPat(patNum) : patient);
-					Provider prov=Providers.GetProv(rx.ProvNum);
-					FillFieldsForRx(sheet,rx,patient,prov);
 					break;
 				case SheetTypeEnum.Consent:
 					patNum=(long)GetParamByName(sheet,"PatNum").ParamValue;
@@ -155,9 +150,6 @@ namespace OpenDentBusiness {
 					break;
 				case SheetTypeEnum.ERAGridHeader:
 					FillFieldsForERAGridHeader(sheet);
-					break;
-				case SheetTypeEnum.RxInstruction:
-					FillFieldsForRxInstruction(sheet);
 					break;
 				case SheetTypeEnum.PatientDashboardWidget:
 					patient=(patient==null || patient.PatNum!=sheet.PatNum ? Patients.GetPat(sheet.PatNum) : patient);
@@ -1619,119 +1611,6 @@ namespace OpenDentBusiness {
 				return "";
 			}
 			return Lans.g("Rx","Total Supply:")+" "+rx.DaysOfSupply+" "+((rx.DaysOfSupply > 1)?Lans.g("Rx","Days"):Lans.g("Rx","Day"));
-		}
-
-		private static void FillFieldsForRxInstruction(Sheet sheet) {
-			long rxNum=(long)GetParamByName(sheet,"RxNum").ParamValue;
-			RxPat rx=RxPats.GetRx(rxNum);
-			Provider prov=Providers.GetProv(rx.ProvNum);
-			Patient pat=Patients.GetPat(rx.PatNum);
-			var clinic=Clinics.GetClinic(pat.ClinicNum);
-			ProviderClinic provClinic=ProviderClinics.GetOneOrDefault(prov.ProvNum,(clinic==null ? 0 : clinic.Id));
-			foreach(SheetField field in sheet.SheetFields) {
-				switch(field.FieldName) {
-					case SheetFieldsAvailable.RxPat.Drug:
-						field.FieldValue=rx.Drug;
-						break;
-					case SheetFieldsAvailable.RxPat.Sig:
-						field.FieldValue=rx.Sig;
-						break;
-					case SheetFieldsAvailable.RxPat.PatientInstruction:
-						field.FieldValue=rx.PatientInstruction;
-						break;
-					case SheetFieldsAvailable.RxPat.Disp:
-						field.FieldValue=rx.Disp;
-						break;
-					case SheetFieldsAvailable.RxPat.Refills:
-						field.FieldValue=rx.Refills;
-						break;
-					case SheetFieldsAvailable.Rx.DaysOfSupply:
-						field.FieldValue=rx.DaysOfSupply.ToString();
-						break;
-					case SheetFieldsAvailable.Rx.RxDate:
-						field.FieldValue=rx.RxDate.ToShortDateString();
-						break;
-					case SheetFieldsAvailable.Rx.RxDateMonthSpelled:
-						field.FieldValue=rx.RxDate.ToString("MMM dd,yyyy");
-						break;
-					case SheetFieldsAvailable.Today.DayDate:
-						field.FieldValue=DateTime.Today.ToString("dddd")+", "+DateTime.Today.ToShortDateString();
-						break;
-					case SheetFieldsAvailable.Patient.NameFL:
-						field.FieldValue=pat.GetNameFL();
-						break;
-					case SheetFieldsAvailable.Patient.Salutation:
-						field.FieldValue="Dear "+pat.GetSalutation()+":";
-						break;
-					case SheetFieldsAvailable.Patient.Address:
-						field.FieldValue=pat.Address;
-						if(pat.Address2!="") {
-							field.FieldValue+="\r\n"+pat.Address2;
-						}
-						break;
-					case SheetFieldsAvailable.Patient.CityStateZip:
-						field.FieldValue=field.FieldValue=pat.City+", "+pat.State+" "+pat.Zip;
-						break;
-					case SheetFieldsAvailable.Patient.HmPhone:
-						field.FieldValue=pat.HmPhone;
-						break;
-					case SheetFieldsAvailable.Patient.Birthdate:
-						field.FieldValue=pat.Birthdate.ToShortDateString();
-						break;
-					case SheetFieldsAvailable.Patient.PriProvNameFL:
-						field.FieldValue=Providers.GetFormalName(pat.PriProv);
-						break;
-					case SheetFieldsAvailable.Prov.NameFL:
-						field.FieldValue=prov.FName+" "+prov.LName;
-						break;
-					case SheetFieldsAvailable.Prov.DEANum:
-						field.FieldValue=prov.DEANum;
-						break;
-					case SheetFieldsAvailable.Prov.NationalProvID:
-						field.FieldValue=prov.NationalProvID;
-						break;
-					case SheetFieldsAvailable.Prov.StateRxID:
-						field.FieldValue=(provClinic==null ? "" : provClinic.StateRxID);
-						break;
-					case SheetFieldsAvailable.Prov.StateLicense:
-						field.FieldValue=(provClinic==null ? "" : provClinic.StateLicense);
-						break;
-					case SheetFieldsAvailable.Clinic.Address:
-						if(clinic!=null) {
-							field.FieldValue=AddressHelper(clinic);
-						}
-						break;
-					case SheetFieldsAvailable.Clinic.CityStateZip:
-						if(clinic!=null) {
-							field.FieldValue=CityStateHelper(clinic);
-						}
-						break;
-					case SheetFieldsAvailable.Clinic.Phone:
-						if(clinic!=null) {
-							field.FieldValue=PhoneHelper(clinic);
-						}
-						break;
-					case SheetFieldsAvailable.Practice.Title:
-						field.FieldValue=PrefC.GetString(PrefName.PracticeTitle);
-						break;
-					case SheetFieldsAvailable.Practice.Address:
-						field.FieldValue=PrefC.GetString(PrefName.PracticeAddress);
-						if(PrefC.GetString(PrefName.PracticeAddress2) != ""){
-							field.FieldValue+="\r\n"+PrefC.GetString(PrefName.PracticeAddress2);
-						}
-						break;
-					case SheetFieldsAvailable.Practice.CityStateZip:
-						field.FieldValue=PrefC.GetString(PrefName.PracticeCity)+", "
-							+PrefC.GetString(PrefName.PracticeST)+"  "
-							+PrefC.GetString(PrefName.PracticeZip);
-						break;
-					case SheetFieldsAvailable.Practice.Phone:
-						field.FieldValue=PrefC.GetString(PrefName.PracticePhone);
-						break;
-					default:
-						break;
-				}
-			}
 		}
 
 		private static void FillFieldsForConsent(Sheet sheet,Patient pat) {
@@ -3963,7 +3842,7 @@ namespace OpenDentBusiness {
 							string.Join(", ",listCreditCard.Select(x => $"{x.CCNumberMasked} Exp {x.CCExpiration.ToString("MM/yy")}"));
 						break;
 					case "TermsAndConditions":
-						field.FieldValue=PayPlans.GetTermsAndConditionsString(payPlan,pat,PatGuar);
+						field.FieldValue=PayPlans.GetTermsAndConditionsString(payPlan);
 						break;
 				}
 			}

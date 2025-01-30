@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DocumentCrud
 {
@@ -179,15 +181,15 @@ public class DocumentCrud
             + SOut.Long(document.UserNum) + ","
             + "'" + SOut.String(document.ChartLetterHash) + "')";
         if (document.Note == null) document.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(document.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(document.Note));
         if (document.Signature == null) document.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(document.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(document.Signature));
         if (document.RawBase64 == null) document.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(document.RawBase64));
+        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(document.RawBase64));
         if (document.Thumbnail == null) document.Thumbnail = "";
-        var paramThumbnail = new OdSqlParameter("paramThumbnail", OdDbType.Text, SOut.StringParam(document.Thumbnail));
+        var paramThumbnail = new OdSqlParameter("paramThumbnail", SOut.StringParam(document.Thumbnail));
         if (document.OcrResponseData == null) document.OcrResponseData = "";
-        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", OdDbType.Text, SOut.StringParam(document.OcrResponseData));
+        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", SOut.StringParam(document.OcrResponseData));
         {
             document.DocNum = Db.NonQ(command, true, "DocNum", "document", paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);
         }
@@ -240,15 +242,15 @@ public class DocumentCrud
             + SOut.Long(document.UserNum) + ","
             + "'" + SOut.String(document.ChartLetterHash) + "')";
         if (document.Note == null) document.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(document.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(document.Note));
         if (document.Signature == null) document.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(document.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(document.Signature));
         if (document.RawBase64 == null) document.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(document.RawBase64));
+        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(document.RawBase64));
         if (document.Thumbnail == null) document.Thumbnail = "";
-        var paramThumbnail = new OdSqlParameter("paramThumbnail", OdDbType.Text, SOut.StringParam(document.Thumbnail));
+        var paramThumbnail = new OdSqlParameter("paramThumbnail", SOut.StringParam(document.Thumbnail));
         if (document.OcrResponseData == null) document.OcrResponseData = "";
-        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", OdDbType.Text, SOut.StringParam(document.OcrResponseData));
+        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", SOut.StringParam(document.OcrResponseData));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);
         else
@@ -293,15 +295,15 @@ public class DocumentCrud
                       + "ChartLetterHash  = '" + SOut.String(document.ChartLetterHash) + "' "
                       + "WHERE DocNum = " + SOut.Long(document.DocNum);
         if (document.Note == null) document.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(document.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(document.Note));
         if (document.Signature == null) document.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(document.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(document.Signature));
         if (document.RawBase64 == null) document.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(document.RawBase64));
+        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(document.RawBase64));
         if (document.Thumbnail == null) document.Thumbnail = "";
-        var paramThumbnail = new OdSqlParameter("paramThumbnail", OdDbType.Text, SOut.StringParam(document.Thumbnail));
+        var paramThumbnail = new OdSqlParameter("paramThumbnail", SOut.StringParam(document.Thumbnail));
         if (document.OcrResponseData == null) document.OcrResponseData = "";
-        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", OdDbType.Text, SOut.StringParam(document.OcrResponseData));
+        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", SOut.StringParam(document.OcrResponseData));
         Db.NonQ(command, paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);
     }
 
@@ -497,15 +499,15 @@ public class DocumentCrud
 
         if (command == "") return false;
         if (document.Note == null) document.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(document.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(document.Note));
         if (document.Signature == null) document.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(document.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(document.Signature));
         if (document.RawBase64 == null) document.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", OdDbType.Text, SOut.StringParam(document.RawBase64));
+        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(document.RawBase64));
         if (document.Thumbnail == null) document.Thumbnail = "";
-        var paramThumbnail = new OdSqlParameter("paramThumbnail", OdDbType.Text, SOut.StringParam(document.Thumbnail));
+        var paramThumbnail = new OdSqlParameter("paramThumbnail", SOut.StringParam(document.Thumbnail));
         if (document.OcrResponseData == null) document.OcrResponseData = "";
-        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", OdDbType.Text, SOut.StringParam(document.OcrResponseData));
+        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", SOut.StringParam(document.OcrResponseData));
         command = "UPDATE document SET " + command
                                          + " WHERE DocNum = " + SOut.Long(document.DocNum);
         Db.NonQ(command, paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);

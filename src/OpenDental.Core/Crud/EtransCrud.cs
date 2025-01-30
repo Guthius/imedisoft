@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EtransCrud
 {
@@ -113,7 +115,7 @@ public class EtransCrud
         command += "DateTimeTrans,ClearingHouseNum,Etype,ClaimNum,OfficeSequenceNumber,CarrierTransCounter,CarrierTransCounter2,CarrierNum,CarrierNum2,PatNum,BatchNumber,AckCode,TransSetNum,Note,EtransMessageTextNum,AckEtransNum,PlanNum,InsSubNum,TranSetId835,CarrierNameRaw,PatientNameRaw,UserNum) VALUES(";
 
         command +=
-            DbHelper.Now() + ","
+            "NOW()" + ","
                            + SOut.Long(etrans.ClearingHouseNum) + ","
                            + SOut.Int((int) etrans.Etype) + ","
                            + SOut.Long(etrans.ClaimNum) + ","
@@ -136,7 +138,7 @@ public class EtransCrud
                            + "'" + SOut.String(etrans.PatientNameRaw) + "',"
                            + SOut.Long(etrans.UserNum) + ")";
         if (etrans.Note == null) etrans.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(etrans.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(etrans.Note));
         {
             etrans.EtransNum = Db.NonQ(command, true, "EtransNum", "etrans", paramNote);
         }
@@ -156,7 +158,7 @@ public class EtransCrud
         command += "DateTimeTrans,ClearingHouseNum,Etype,ClaimNum,OfficeSequenceNumber,CarrierTransCounter,CarrierTransCounter2,CarrierNum,CarrierNum2,PatNum,BatchNumber,AckCode,TransSetNum,Note,EtransMessageTextNum,AckEtransNum,PlanNum,InsSubNum,TranSetId835,CarrierNameRaw,PatientNameRaw,UserNum) VALUES(";
         if (isRandomKeys || useExistingPK) command += SOut.Long(etrans.EtransNum) + ",";
         command +=
-            DbHelper.Now() + ","
+            "NOW()" + ","
                            + SOut.Long(etrans.ClearingHouseNum) + ","
                            + SOut.Int((int) etrans.Etype) + ","
                            + SOut.Long(etrans.ClaimNum) + ","
@@ -179,7 +181,7 @@ public class EtransCrud
                            + "'" + SOut.String(etrans.PatientNameRaw) + "',"
                            + SOut.Long(etrans.UserNum) + ")";
         if (etrans.Note == null) etrans.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(etrans.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(etrans.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -214,7 +216,7 @@ public class EtransCrud
                       + "UserNum             =  " + SOut.Long(etrans.UserNum) + " "
                       + "WHERE EtransNum = " + SOut.Long(etrans.EtransNum);
         if (etrans.Note == null) etrans.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(etrans.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(etrans.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -355,7 +357,7 @@ public class EtransCrud
 
         if (command == "") return false;
         if (etrans.Note == null) etrans.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(etrans.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(etrans.Note));
         command = "UPDATE etrans SET " + command
                                        + " WHERE EtransNum = " + SOut.Long(etrans.EtransNum);
         Db.NonQ(command, paramNote);

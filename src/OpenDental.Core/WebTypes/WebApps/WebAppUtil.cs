@@ -1,5 +1,6 @@
 ﻿using System;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.WebTypes.WebApps;
 

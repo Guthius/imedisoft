@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TransactionCrud
 {
@@ -83,7 +85,7 @@ public class TransactionCrud
         command += "DateTimeEntry,UserNum,DepositNum,PayNum,SecUserNumEdit,TransactionInvoiceNum) VALUES(";
 
         command +=
-            DbHelper.Now() + ","
+            "NOW()" + ","
                            + SOut.Long(transaction.UserNum) + ","
                            + SOut.Long(transaction.DepositNum) + ","
                            + SOut.Long(transaction.PayNum) + ","
@@ -109,7 +111,7 @@ public class TransactionCrud
         command += "DateTimeEntry,UserNum,DepositNum,PayNum,SecUserNumEdit,TransactionInvoiceNum) VALUES(";
         if (isRandomKeys || useExistingPK) command += SOut.Long(transaction.TransactionNum) + ",";
         command +=
-            DbHelper.Now() + ","
+            "NOW()" + ","
                            + SOut.Long(transaction.UserNum) + ","
                            + SOut.Long(transaction.DepositNum) + ","
                            + SOut.Long(transaction.PayNum) + ","

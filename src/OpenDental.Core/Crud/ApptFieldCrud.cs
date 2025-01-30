@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ApptFieldCrud
 {
@@ -49,7 +51,7 @@ public class ApptFieldCrud
                                         + "'" + SOut.String(apptField.FieldName) + "',"
                                         + DbHelper.ParamChar + "paramFieldValue)";
         if (apptField.FieldValue == null) apptField.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(apptField.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(apptField.FieldValue));
         {
             apptField.ApptFieldNum = Db.NonQ(command, true, "ApptFieldNum", "apptField", paramFieldValue);
         }

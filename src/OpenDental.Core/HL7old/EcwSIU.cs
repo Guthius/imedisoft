@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness.HL7 {
@@ -90,7 +91,7 @@ namespace OpenDentBusiness.HL7 {
 					EventLog.WriteEntry("OpenDentHL7","Inserted patient: "+pat.FName+" "+pat.LName+", PatNum:"+pat.PatNum.ToString()
 						,EventLogEntryType.Information);
 				}
-				Patients.Insert(pat,true);
+				Patients.Insert(pat);
 				SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,pat.PatNum,"Created from HL7 for eCW.",LogSources.HL7);
 			}
 			else {
@@ -105,7 +106,7 @@ namespace OpenDentBusiness.HL7 {
 				if(isVerboseLogging) {
 					EventLog.WriteEntry("OpenDentHL7","Inserted appointment for: "+pat.FName+" "+pat.LName,EventLogEntryType.Information);
 				}
-				Appointments.InsertIncludeAptNum(apt,true);
+				Appointments.InsertIncludeAptNum(apt);
 				Appointments.TryAddPerVisitProcCodesToAppt(apt,ApptStatus.None);
 			}
 			else {

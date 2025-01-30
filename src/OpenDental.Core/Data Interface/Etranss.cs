@@ -6,14 +6,14 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Etranss
 {
-    ///<summary>Gets data for the history grid in the SendClaims window.  The listEtransType must contain as least one item.</summary>
     public static DataTable RefreshHistory(DateTime dateFrom, DateTime dateTo, List<EtransType> listEtransTypes)
     {
         var command = "SELECT (CASE WHEN etrans.PatNum=0 THEN etrans.PatientNameRaw "
@@ -26,8 +26,8 @@ public class Etranss
                       + "LEFT JOIN carrier ON etrans.CarrierNum=carrier.CarrierNum "
                       + "LEFT JOIN patient ON patient.PatNum=etrans.PatNum "
                       + "LEFT JOIN clearinghouse ON clearinghouse.ClearinghouseNum=etrans.ClearinghouseNum WHERE "
-                      + DbHelper.DtimeToDate("DateTimeTrans") + " >= " + SOut.Date(dateFrom) + " AND "
-                      + DbHelper.DtimeToDate("DateTimeTrans") + " <= " + SOut.Date(dateTo) + " "
+                      + "DATE(DateTimeTrans) >= " + SOut.Date(dateFrom) + " AND "
+                      + "DATE(DateTimeTrans) <= " + SOut.Date(dateTo) + " "
                       + "AND Etype IN (" + SOut.Long((int) listEtransTypes[0]);
         for (var i = 1; i < listEtransTypes.Count; i++) //String.Join doesn't work because there's no way to cast the enums to ints in the function, db uses longs.
             command += ", " + SOut.Long((int) listEtransTypes[i]);
@@ -91,7 +91,6 @@ public class Etranss
 
         return tableHist;
     }
-
     
     public static List<Etrans> GetHistoryOneClaim(long claimNum)
     {
@@ -107,20 +106,17 @@ public class Etranss
         return EtransCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all types of transactions for the given claim number.</summary>
     public static List<Etrans> GetAllForOneClaim(long claimNum)
     {
         var command = "SELECT * FROM etrans WHERE ClaimNum=" + SOut.Long(claimNum);
         return EtransCrud.SelectMany(command);
     }
 
-    
     public static Etrans GetEtrans(long etransNum)
     {
         var command = "SELECT * FROM etrans WHERE EtransNum=" + SOut.Long(etransNum);
         return EtransCrud.SelectOne(command);
     }
-
     
     public static List<Etrans> GetMany(params long[] listEtransNums)
     {
@@ -129,21 +125,6 @@ public class Etranss
         return EtransCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all Etrans for a Patient for the API. Also has filters for CarrierNum and ClaimNum.
-    ///     Results can be truncated with the use of limit and offset. Please notify the API team if you change this code.
-    /// </summary>
-    public static List<Etrans> GetEtransForApi(int limit, int offset, long patNum, long carrierNum = 0, long claimNum = 0)
-    {
-        var command = "SELECT * FROM etrans WHERE PatNum=" + SOut.Long(patNum);
-        if (carrierNum != 0) command += " AND CarrierNum=" + SOut.Long(carrierNum);
-        if (claimNum != 0) command += " AND ClaimNum=" + SOut.Long(claimNum);
-        command += " ORDER BY DateTimeTrans "
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return EtransCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets all X12 835 etrans entries relating to a specific claim.</summary>
     public static List<Etrans> GetErasOneClaim(string claimIdentifier, DateTime dateTClaimService)
     {
         //The main goal of this check is to prevent null claimIdentifiers from causing an exception.
@@ -183,7 +164,6 @@ public class Etranss
         return EtransCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of all 270's and Canadian eligibilities for this plan.</summary>
     public static List<Etrans> GetList270ForPlan(long planNum, long insSubNum)
     {
         var command = "SELECT * FROM etrans WHERE PlanNum=" + SOut.Long(planNum)
@@ -193,94 +173,28 @@ public class Etranss
         return EtransCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Use for Canadian claims only. Finds the most recent etrans record which matches the unique
-    ///     officeSequenceNumber specified. The officeSequenceNumber corresponds to field A02.
-    /// </summary>
     public static Etrans GetForSequenceNumberCanada(string officeSequenceNumber)
     {
         var command = "SELECT * FROM etrans WHERE OfficeSequenceNumber=" + SOut.String(officeSequenceNumber) + " ORDER BY EtransNum DESC LIMIT 1";
         return EtransCrud.SelectOne(command);
     }
 
-    /*
-    
-    public static Etrans GetAckForTrans(int etransNum) {
-
-        //first, get the actual trans.
-        string command="SELECT * FROM etrans WHERE EtransNum="+POut.PInt(etransNum);
-        DataTable table=DataCore.GetTable(command);
-        Etrans etrans=SubmitAndFill(table);
-        command="SELECT * FROM etrans WHERE "
-            +"Etype=21 "//ack997
-            +"AND ClearingHouseNum="+POut.PInt(etrans.ClearingHouseNum)
-            +" AND BatchNumber= "+POut.PInt(etrans.BatchNumber)
-            +" AND DateTimeTrans < "+POut.PDateT(etrans.DateTimeTrans.AddDays(14))//less than 2wks in the future
-            +" AND DateTimeTrans > "+POut.PDateT(etrans.DateTimeTrans.AddDays(-1));//and no more than one day before claim
-        table=DataCore.GetTable(command);
-        return SubmitAndFill(table);
-    }*/
-
-    /*
-    private static List<Etrans> SubmitAndFill(DataTable table){
-        Meth.NoCheckMiddleTierRole();
-        //if(table.Rows.Count==0){
-        //	return null;
-        //}
-        List<Etrans> retVal=new List<Etrans>();
-        Etrans etrans;
-        for(int i=0;i<table.Rows.Count;i++) {
-            etrans=new Etrans();
-            etrans.EtransNum           =PIn.Long(table.Rows[i][0].ToString());
-            etrans.DateTimeTrans       =PIn.DateT(table.Rows[i][1].ToString());
-            etrans.ClearingHouseNum    =PIn.Long(table.Rows[i][2].ToString());
-            etrans.Etype               =(EtransType)PIn.Long(table.Rows[i][3].ToString());
-            etrans.ClaimNum            =PIn.Long(table.Rows[i][4].ToString());
-            etrans.OfficeSequenceNumber=PIn.Int(table.Rows[i][5].ToString());
-            etrans.CarrierTransCounter =PIn.Int(table.Rows[i][6].ToString());
-            etrans.CarrierTransCounter2=PIn.Int(table.Rows[i][7].ToString());
-            etrans.CarrierNum          =PIn.Long(table.Rows[i][8].ToString());
-            etrans.CarrierNum2         =PIn.Long(table.Rows[i][9].ToString());
-            etrans.PatNum              =PIn.Long(table.Rows[i][10].ToString());
-            etrans.BatchNumber         =PIn.Int(table.Rows[i][11].ToString());
-            etrans.AckCode             =PIn.String(table.Rows[i][12].ToString());
-            etrans.TransSetNum         =PIn.Int(table.Rows[i][13].ToString());
-            etrans.Note                =PIn.String(table.Rows[i][14].ToString());
-            etrans.EtransMessageTextNum=PIn.Long(table.Rows[i][15].ToString());
-            etrans.AckEtransNum        =PIn.Long(table.Rows[i][16].ToString());
-            etrans.PlanNum             =PIn.Long(table.Rows[i][17].ToString());
-            retVal.Add(etrans);
-        }
-        return retVal;
-    }*/
-
-    ///<summary>DateTimeTrans handled automatically here.</summary>
     public static long Insert(Etrans etrans)
     {
         return EtransCrud.Insert(etrans);
     }
-
     
     public static void Update(Etrans etrans)
     {
         EtransCrud.Update(etrans);
     }
 
-    ///<summary>Only updates fields in etrans that are different from etransOld.</summary>
     public static void Update(Etrans etrans, Etrans etransOld)
     {
         EtransCrud.Update(etrans, etransOld);
     }
 
-    /// <summary>
-    ///     Not for claim types, just other types, including Eligibility. This function gets run first.  Then, the
-    ///     messagetext is created and an attempt is made to send the message.  Finally, the messagetext is added to the
-    ///     etrans.  This is necessary because the transaction numbers must be incremented and assigned to each message before
-    ///     creating the message and attempting to send.  If it fails, we will need to roll back.  Provide EITHER a carrierNum
-    ///     OR a canadianNetworkNum.  Many transactions can be sent to a carrier or to a network.
-    /// </summary>
-    public static Etrans CreateCanadianOutput(long patNum, long carrierNum, long canadianNetworkNum
-        , long clearinghouseNum, EtransType etype, long planNum, long insSubNum, long userNum, bool hasSecondary = false)
+    public static Etrans CreateCanadianOutput(long patNum, long carrierNum, long canadianNetworkNum, long clearinghouseNum, EtransType etype, long planNum, long insSubNum, long userNum, bool hasSecondary = false)
     {
         //validation of carrier vs network
         if (etype == EtransType.Eligibility_CA)
@@ -308,13 +222,6 @@ public class Etranss
         return GetEtrans(etrans.EtransNum); //Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
     }
 
-    /// <summary>
-    ///     Throws exceptions.
-    ///     When etrans.Etype is associated to a Canadian request EType, this runs multiple queries to set
-    ///     etrans.CarrierTransCounter and
-    ///     etrans.CarrierTransCounter2.  Otherwise returns without making any changes.
-    ///     The etrans.CarrierNum, etrans.CarrierNum2 and etrans.Etype columns must be set prior to running this.
-    /// </summary>
     public static Etrans SetCanadianEtransFields(Etrans etrans, bool hasSecondary = true)
     {
         if (!EnumTools.GetAttributeOrDefault<EtransTypeAttr>(etrans.Etype).IsCanadaType || !EnumTools.GetAttributeOrDefault<EtransTypeAttr>(etrans.Etype).IsRequestType) return etrans;
@@ -376,12 +283,6 @@ public class Etranss
         return etrans;
     }
 
-    /// <summary>
-    ///     Inserts EtransMessageText row with given messageText then updates the etrans.EtransMessageTextNum in the DB based
-    ///     on given etransNum.
-    ///     CAUTION: This does not update the EtransMessageTextNum field of an object in memory.
-    ///     Instead it returns the inserted EtransMessageTextNum, this should be used to update the in memory object if needed.
-    /// </summary>
     public static long SetMessage(long etransNum, string messageText)
     {
         var msg = new EtransMessageText();
@@ -394,11 +295,6 @@ public class Etranss
         return msg.EtransMessageTextNum;
     }
 
-    /// <summary>
-    ///     Changes the status of the claim back to W.  If it encounters an entry that's not a claim, it skips it for now.
-    ///     Later, it will handle all types of undo.  It will also check Canadian claims to prevent alteration if an ack or EOB
-    ///     has been received.
-    /// </summary>
     public static void Undo(long etransNum)
     {
         //see if it's a claim.
@@ -423,12 +319,6 @@ public class Etranss
         }
     }
 
-    /// <summary>
-    ///     Deletes the etrans entry.  Mostly used when the etrans entry was created, but then the communication with the
-    ///     clearinghouse failed.
-    ///     So this is just a rollback function.  Will not delete the message associated with the etrans.  That must be done
-    ///     separately.
-    /// </summary>
     public static void Delete(long etransNum)
     {
         var command = "DELETE FROM etrans WHERE EtransNum=" + SOut.Long(etransNum);
@@ -442,14 +332,6 @@ public class Etranss
         Etrans835Attaches.DeleteMany(-1, etrans.EtransNum);
     }
 
-    /// <summary>
-    ///     Sets the status of the claim to sent (if not already received), usually as part of printing.  Also makes an
-    ///     entry in etrans.  If this is Canadian eclaims, then this function gets run first.  If the claim is to be sent
-    ///     elecronically, then the messagetext is created after this method and an attempt is made to send the claim.
-    ///     Finally, the messagetext is added to the etrans.  This is necessary because the transaction numbers must be
-    ///     incremented and assigned to each claim before creating the message and attempting to send.  For Canadians, it will
-    ///     always record the attempt as an etrans even if claim is not set to status of sent.
-    /// </summary>
     public static Etrans SetClaimSentOrPrinted(long claimNum, string claimStatus, long patNum, long clearinghouseNum, EtransType etype, int batchNumber, long userNum)
     {
         var etrans = CreateEtransForClaim(claimNum, patNum, clearinghouseNum, etype, batchNumber, userNum);
@@ -462,11 +344,6 @@ public class Etranss
         return GetEtrans(etrans.EtransNum); //Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
     }
 
-    /// <summary>
-    ///     Returns an etrans that has not been inserted into the DB.
-    ///     Should only be called with etrans is related an EtransType that is of claim type, currently no validation is done
-    ///     in this function to ensure this.
-    /// </summary>
     public static Etrans CreateEtransForClaim(long claimNum, long patNum, long clearinghouseNum, EtransType etype, int batchNumber, long userNum)
     {
         var etrans = new Etrans();
@@ -500,10 +377,6 @@ public class Etranss
         return etrans;
     }
 
-    /// <summary>
-    ///     Etrans type will be figured out by this class.  Either TextReport, Acknowledge_997, Acknowledge_999, or
-    ///     StatusNotify_277.
-    /// </summary>
     public static void ProcessIncomingReport(DateTime dateTimeTrans, long hqClearinghouseNum, string messageText, long userNum)
     {
         var etrans = CreateEtrans(dateTimeTrans, hqClearinghouseNum, messageText, userNum);
@@ -741,11 +614,6 @@ public class Etranss
         }
     }
 
-    /// <summary>
-    ///     Uses the attached claims, carriers with a matching name, or the global EraAutomationBehavior pref to determine if
-    ///     an ERA is automatable.
-    ///     If isFullyAutomatic is true, EraAutomationMode.FullyAutomatic is the only mode that will return true.
-    /// </summary>
     public static bool IsEtransAutomatable(List<Carrier> listCarriersForClaims, string payerName, bool isFullyAutomatic)
     {
         var listEraAutomationModesAllowed = new List<EraAutomationMode> {EraAutomationMode.FullyAutomatic};
@@ -762,9 +630,7 @@ public class Etranss
         //If we have no attached claims and one or more names match, we allow automation if any name-matched carriers allow it.
         return listCarriersNameMatches.Any(x => listEraAutomationModesAllowed.Contains(x.GetEraAutomationMode()));
     }
-
-
-    ///<summary>Creates new etrans object, does not insert to Etrans table though. Does insert EtransMessageText.</summary>
+    
     public static Etrans CreateEtrans(DateTime dateTimeTrans, long hqClearinghouseNum, string messageText, long userNum)
     {
         var etrans = new Etrans();
@@ -778,7 +644,6 @@ public class Etranss
         return etrans;
     }
 
-    /// <summary>Or Canadian elig.</summary>
     public static DateTime GetLastDate270(long planNum)
     {
         var command = "SELECT MAX(DateTimeTrans) FROM etrans "
@@ -788,8 +653,7 @@ public class Etranss
         return SIn.Date(DataCore.GetScalar(command));
     }
 
-    ///<summary>Attempts to automatically receive claims and finalize payments for multiple ERAs.</summary>
-    public static List<EraAutomationResult> TryAutoProcessEras(List<Etrans> listEtranss, List<Etrans835Attach> listEtrans835Attaches, bool isFullyAutomatic)
+    public static void TryAutoProcessEras(List<Etrans> listEtranss, List<Etrans835Attach> listEtrans835Attaches, bool isFullyAutomatic)
     {
         var listEtransMessageTextNums = listEtranss.Select(x => x.EtransMessageTextNum).ToList();
         var dictionaryMessageText835s = EtransMessageTexts.GetMessageTexts(listEtransMessageTextNums);
@@ -850,19 +714,9 @@ public class Etranss
                 listEtranss[i].AckCode = "";
             Update(listEtranss[i], etransOld); //Pass an old copy of the Etrans to ensure that we only update the AckCode.
         }
-
-        return listAllAutomationResults;
     }
-
-    /// <summary>
-    ///     If etrans.TranSetId835 is blank and we have multiple TranSetIds in the list, we know we are dealing with an Etrans
-    ///     from 14.2 or an older version
-    ///     that represents multiple transactions from a single 835. We loop through the transactions and process each of them
-    ///     separately.
-    ///     This should not be called for newer etrans because they always represent a single transaction.
-    /// </summary>
-    private static List<EraAutomationResult> AutoProcessMultiTransactionEtrans(Etrans etrans, string messageText835,
-        List<string> listTranSetIds, List<Etrans835Attach> listEtrans835Attaches, bool isFullyAutomatic)
+    
+    private static List<EraAutomationResult> AutoProcessMultiTransactionEtrans(Etrans etrans, string messageText835, List<string> listTranSetIds, List<Etrans835Attach> listEtrans835Attaches, bool isFullyAutomatic)
     {
         var listEraAutomationResults = new List<EraAutomationResult>();
         for (var i = 0; i < listTranSetIds.Count; i++)
@@ -877,10 +731,6 @@ public class Etranss
         return listEraAutomationResults;
     }
 
-    /// <summary>
-    ///     Attempts to automatically receive claims and finalize payment for one EOB on an 835.
-    ///     A deposit will be made if the ShowAutoDeposit pref is on.
-    /// </summary>
     public static EraAutomationResult TryAutoProcessEraEob(X835 x835, List<Etrans835Attach> listEtrans835Attaches, bool isFullyAutomatic)
     {
         var listClaimsMatch = x835.RefreshClaims();
@@ -967,7 +817,7 @@ public class Etranss
                 //We won't get here if listPayPlans.Count is greater than 1 because canClaimBeAutoProcessed will be false,
                 //so it should be safe to choose the first PayPlanNum in the list.
                 payPlanNum = listPayPlans[0].PayPlanNum;
-            var isClaimRecieved = TryImportEraClaimData(x835, listHx835_ClaimsPaidToProcess[i], listClaimsToProcess[i],
+            var isClaimRecieved = TryImportEraClaimData(listHx835_ClaimsPaidToProcess[i], listClaimsToProcess[i],
                 patient, true, listClaimProcsForClaimCopy, payPlanNum, eraAutomationResult);
             if (isClaimRecieved)
             {
@@ -1012,23 +862,16 @@ public class Etranss
         return eraAutomationResult;
     }
 
-    ///<summary>Returns all etrans.EtransNum which correspond to ERA 835s and which do not have an Etrans835 record yet.</summary>
     public static List<long> GetErasMissingEtrans835(DateTime dateFrom, DateTime dateTo)
     {
-        var dateTimeTrans = DbHelper.DtimeToDate("etrans.DateTimeTrans");
         var command = "SELECT etrans.EtransNum FROM etrans "
                       + "LEFT JOIN etrans835 ON etrans835.EtransNum=etrans.EtransNum "
                       + "WHERE etrans.Etype=" + (int) EtransType.ERA_835
-                      + " AND " + dateTimeTrans + " >= " + SOut.Date(dateFrom) + " AND " + dateTimeTrans + " <= " + SOut.Date(dateTo)
+                      + " AND DATE(etrans.DateTimeTrans) >= " + SOut.Date(dateFrom) + " AND DATE(etrans.DateTimeTrans) <= " + SOut.Date(dateTo)
                       + " AND etrans835.Etrans835Num IS NULL";
         return Db.GetListLong(command);
     }
 
-    /// <summary>
-    ///     Must pass in the list of payplans returned by PayPlans.GetAllValidInsPayPlansForClaims(), a list of all claimprocs
-    ///     for claims being processed,
-    ///     and the current claim being processed. Returns a list of insurance payplans that are valid for the claim passed in.
-    /// </summary>
     public static List<PayPlan> FilterValidInsPayPlansForClaimHelper(List<PayPlan> listPayPlans, List<ClaimProc> listClaimProcsAlls, Claim claim)
     {
         var listClaimProcsForClaim = listClaimProcsAlls.FindAll(x => x.ClaimNum == claim.ClaimNum);
@@ -1054,16 +897,7 @@ public class Etranss
         return listPayPlansValidInsForClaim;
     }
 
-    /// <summary>
-    ///     Returns false if we are automatically processing an ERA but can't proceed.
-    ///     Enter either by total and/or by procedure, depending on whether or not procedure detail was provided in the 835 for
-    ///     this claim.
-    ///     When isAutomatic is true, processing will not proceed if a by total payment would be made, or if we can't match all
-    ///     claimprocs to payments.
-    ///     This function creates the payment claimprocs.
-    /// </summary>
-    public static bool TryImportEraClaimData(X835 x835, Hx835_Claim hx835_ClaimPaid,
-        Claim claim, Patient pat, bool isAutomatic, List<ClaimProc> listClaimProcsForClaim, long insPayPlanNum, EraAutomationResult eraAutomationResult = null)
+    public static bool TryImportEraClaimData(Hx835_Claim hx835_ClaimPaid, Claim claim, Patient pat, bool isAutomatic, List<ClaimProc> listClaimProcsForClaim, long insPayPlanNum, EraAutomationResult eraAutomationResult = null)
     {
         var listClaimProcsOld = listClaimProcsForClaim.Select(x => x.Copy()).ToList();
         //CapClaim status is not considered because there should not be supplemental payments for capitaiton claims.
@@ -1353,18 +1187,7 @@ public class Etranss
         return true;
     }
 
-    /// <summary>
-    ///     Receives the claim and to set the claim dates and totals properly. isIncludeWOPercCoPay=true causes WriteOffs to be
-    ///     posted for
-    ///     ClaimProcs associated to Category Percentage or Medicaid/Flat CoPay insurance plans, false does not post WriteOffs
-    ///     for these insurance plan
-    ///     types.  isSupplementalPay=true causes claim to not be marked received because Supplemental payments can only be
-    ///     applied to previously
-    ///     received claims, false allows the claim to be marked received if all ClaimProcs in listClaimProcsForClaim meet
-    ///     requirements.
-    /// </summary>
-    public static void ReceiveEraPayment(Claim claim, Hx835_Claim hx835_ClaimPaid, List<ClaimProc> listClaimProcsForClaim, bool isIncludeWOPercCoPay,
-        bool isSupplementalPay, InsPlan insPlan = null, bool isAutomatic = false)
+    public static void ReceiveEraPayment(Claim claim, Hx835_Claim hx835_ClaimPaid, List<ClaimProc> listClaimProcsForClaim, bool isIncludeWOPercCoPay, bool isSupplementalPay, InsPlan insPlan = null, bool isAutomatic = false)
     {
         var claimOld = claim.Copy();
         //Recalculate insurance paid, deductible, and writeoff amounts for the claim based on the final claimproc values, then save the results to the database.
@@ -1427,7 +1250,6 @@ public class Etranss
         if (isAutomatic || Security.IsAuthorized(EnumPermType.PaymentCreate, DateTime.Today, true)) PaymentEdit.MakeIncomeTransferForClaimProcs(claim.PatNum, listClaimProcsForClaim);
     }
 
-    ///<summary>Creates a security log entry indicating that a claim was recieved via ERA automation.</summary>
     private static void MakeEraClaimAutomationLog(Claim claimOld, Claim claimNew)
     {
         var stringBuilderLog = new StringBuilder();
@@ -1450,14 +1272,7 @@ public class Etranss
         SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate, claimNew.PatNum, stringLog, claimNew.ClaimNum, claimNew.SecDateTEdit);
     }
 
-    /// <summary>
-    ///     Returns false if an error is encountered and payment is not finalized.
-    ///     Attempts to finalize the batch insurance payment for an ERA.
-    ///     If isAutomatic is true, the batch payment is created without user input.
-    ///     A deposit will be automatically madef or the payment if the ShowAutoDeposit pref is on.
-    /// </summary>
-    public static bool TryFinalizeBatchPayment(X835 x835, List<Claim> listClaims, List<ClaimProc> listClaimProcsAll, long clinicNum,
-        ClaimPayment claimPayment = null, bool isAutomatic = false, EraAutomationResult eraAutomationResult = null)
+    public static bool TryFinalizeBatchPayment(X835 x835, List<Claim> listClaims, List<ClaimProc> listClaimProcsAll, long clinicNum, ClaimPayment claimPayment = null, bool isAutomatic = false, EraAutomationResult eraAutomationResult = null)
     {
         //Date not considered here, but it will be considered when saving the claimpayment to prevent backdating.
         //When isAutomatic is true this check should be done in the forms that lead to this method being called.
@@ -1524,10 +1339,6 @@ public class Etranss
         return true;
     }
 
-    /// <summary>
-    ///     Creates a deposit for the claim payment if PrefName.ShowAutoDeposit is true, logs the claim payment, and
-    ///     updates ClaimProcs.
-    /// </summary>
     private static void AutoFinalizeBatchPaymentHelper(ClaimPayment claimPayment, List<ClaimProc> listClaimProcs)
     {
         //AutoDeposit. Normally done in FormClaimPayEdit.butOK_Click()

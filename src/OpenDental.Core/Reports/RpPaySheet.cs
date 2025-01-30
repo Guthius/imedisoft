@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpPaySheet {
@@ -26,7 +27,7 @@ namespace OpenDentBusiness {
 			}
 			string whereClin="";
 			//reports should no longer use the cache
-			bool hasClinicsEnabled=ReportsComplex.RunFuncOnReportServer(() => true);
+			const bool hasClinicsEnabled = true;
 			if(hasClinicsEnabled) {
 				whereClin+=" AND claimproc.ClinicNum IN(";
 				for(int i=0;i<listClinicNums.Count;i++) {
@@ -88,7 +89,7 @@ namespace OpenDentBusiness {
 			if(!hasInsuranceTypes && listInsuranceTypes.Count==0) {
 				queryIns=DbHelper.LimitOrderBy(queryIns,0);
 			}
-			DataTable table=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(queryIns));
+			DataTable table=DataCore.GetTable(queryIns);
 			foreach(DataRow row in table.Rows) {
 				//If there is more than one patient attached to a check, we will append an asterisk to the end.
 				int countPats=SIn.Int(row["countPats"].ToString());
@@ -107,12 +108,10 @@ namespace OpenDentBusiness {
 			bool doShowHiddenTPUnearned) 
 		{
 			//reports should no longer use the cache
-			bool hasClinicsEnabled=ReportsComplex.RunFuncOnReportServer(() => true);
+			const bool hasClinicsEnabled = true;
 			List<long> listHiddenUnearnedDefNums=new List<long>();
 			if(!doShowHiddenTPUnearned) {
-				listHiddenUnearnedDefNums=ReportsComplex.RunFuncOnReportServer(() =>
-					Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList()
-				);
+				listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			}
 			//patient payments-----------------------------------------------------------------------------------------
 			//the selected columns have to remain in this order due to the way the report complex populates the returned sheet
@@ -160,7 +159,7 @@ namespace OpenDentBusiness {
 			if(!hasPatientTypes && listPatientTypes.Count==0) {
 				queryPat=DbHelper.LimitOrderBy(queryPat,0);
 			}
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(queryPat));
+			return DataCore.GetTable(queryPat);
 		}
 
 	}

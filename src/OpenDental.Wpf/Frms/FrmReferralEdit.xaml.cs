@@ -10,6 +10,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls;
 using WpfControls.UI;
@@ -225,11 +227,11 @@ namespace OpenDental {
 			listCommlogs.RemoveAll(x => x.CommReferralBehavior==EnumCommReferralBehavior.TopAnchored);
 			gridComm.BeginUpdate();
 			gridComm.Columns.Clear();
-			GridColumn col=new GridColumn(Lang.g("TableCommLog","Date"),65);
+			GridColumn col=new GridColumn("Date",65);
 			gridComm.Columns.Add(col);
-			col=new GridColumn(Lang.g("TableCommLog","Hidden"),50,HorizontalAlignment.Center);
+			col=new GridColumn("Hidden",50,HorizontalAlignment.Center);
 			gridComm.Columns.Add(col);
-			col=new GridColumn(Lang.g("TableCommLog","Description"),335);
+			col=new GridColumn("Description",335);
 			gridComm.Columns.Add(col);
 			gridComm.ListGridRows.Clear();
 			GridRow row;
@@ -358,10 +360,10 @@ namespace OpenDental {
 			}
 			Cursor=Cursors.Wait;
 			if(checkEmailTrustDirect.Checked==true && !EmailMessages.TryAddTrustDirect(textEmail.Text)) {
-				string trustEmailErrorMessage=Lang.g("Referral","You elected to trust this email address for Direct messaging.")
-					+"  "+Lang.g("Referral","Adding trust for the address failed, because we were unable to locate the public certificate for the address.")
-					+"  "+Lang.g("Referral","Check that the email address is correctly typed and is a valid Direct messaging address, then try again.")
-					+"  "+Lang.g("Referral","Otherwise, uncheck the E-mail Trust for Direct checkbox before clicking OK or press Cancel if no other changes were made.");
+				string trustEmailErrorMessage="You elected to trust this email address for Direct messaging."
+					+"  Adding trust for the address failed, because we were unable to locate the public certificate for the address."
+					+"  Check that the email address is correctly typed and is a valid Direct messaging address, then try again."
+					+"  Otherwise, uncheck the E-mail Trust for Direct checkbox before clicking OK or press Cancel if no other changes were made.";
 				MessageBox.Show(trustEmailErrorMessage);
 				Cursor=Cursors.Arrow;
 				return;

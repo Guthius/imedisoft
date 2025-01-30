@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class RepeatChargeCrud
 {
@@ -118,13 +120,13 @@ public class RepeatChargeCrud
                                            + "'" + SOut.String(repeatCharge.UnearnedTypes) + "',"
                                            + SOut.Int((int) repeatCharge.Frequency) + ")";
         if (repeatCharge.Note == null) repeatCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(repeatCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(repeatCharge.Note));
         if (repeatCharge.Npi == null) repeatCharge.Npi = "";
-        var paramNpi = new OdSqlParameter("paramNpi", OdDbType.Text, SOut.StringParam(repeatCharge.Npi));
+        var paramNpi = new OdSqlParameter("paramNpi", SOut.StringParam(repeatCharge.Npi));
         if (repeatCharge.ErxAccountId == null) repeatCharge.ErxAccountId = "";
-        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", OdDbType.Text, SOut.StringParam(repeatCharge.ErxAccountId));
+        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", SOut.StringParam(repeatCharge.ErxAccountId));
         if (repeatCharge.ProviderName == null) repeatCharge.ProviderName = "";
-        var paramProviderName = new OdSqlParameter("paramProviderName", OdDbType.Text, SOut.StringParam(repeatCharge.ProviderName));
+        var paramProviderName = new OdSqlParameter("paramProviderName", SOut.StringParam(repeatCharge.ProviderName));
         {
             repeatCharge.RepeatChargeNum = Db.NonQ(command, true, "RepeatChargeNum", "repeatCharge", paramNote, paramNpi, paramErxAccountId, paramProviderName);
         }
@@ -161,13 +163,13 @@ public class RepeatChargeCrud
                                            + "'" + SOut.String(repeatCharge.UnearnedTypes) + "',"
                                            + SOut.Int((int) repeatCharge.Frequency) + ")";
         if (repeatCharge.Note == null) repeatCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(repeatCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(repeatCharge.Note));
         if (repeatCharge.Npi == null) repeatCharge.Npi = "";
-        var paramNpi = new OdSqlParameter("paramNpi", OdDbType.Text, SOut.StringParam(repeatCharge.Npi));
+        var paramNpi = new OdSqlParameter("paramNpi", SOut.StringParam(repeatCharge.Npi));
         if (repeatCharge.ErxAccountId == null) repeatCharge.ErxAccountId = "";
-        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", OdDbType.Text, SOut.StringParam(repeatCharge.ErxAccountId));
+        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", SOut.StringParam(repeatCharge.ErxAccountId));
         if (repeatCharge.ProviderName == null) repeatCharge.ProviderName = "";
-        var paramProviderName = new OdSqlParameter("paramProviderName", OdDbType.Text, SOut.StringParam(repeatCharge.ProviderName));
+        var paramProviderName = new OdSqlParameter("paramProviderName", SOut.StringParam(repeatCharge.ProviderName));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramNpi, paramErxAccountId, paramProviderName);
         else
@@ -196,13 +198,13 @@ public class RepeatChargeCrud
                       + "Frequency      =  " + SOut.Int((int) repeatCharge.Frequency) + " "
                       + "WHERE RepeatChargeNum = " + SOut.Long(repeatCharge.RepeatChargeNum);
         if (repeatCharge.Note == null) repeatCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(repeatCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(repeatCharge.Note));
         if (repeatCharge.Npi == null) repeatCharge.Npi = "";
-        var paramNpi = new OdSqlParameter("paramNpi", OdDbType.Text, SOut.StringParam(repeatCharge.Npi));
+        var paramNpi = new OdSqlParameter("paramNpi", SOut.StringParam(repeatCharge.Npi));
         if (repeatCharge.ErxAccountId == null) repeatCharge.ErxAccountId = "";
-        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", OdDbType.Text, SOut.StringParam(repeatCharge.ErxAccountId));
+        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", SOut.StringParam(repeatCharge.ErxAccountId));
         if (repeatCharge.ProviderName == null) repeatCharge.ProviderName = "";
-        var paramProviderName = new OdSqlParameter("paramProviderName", OdDbType.Text, SOut.StringParam(repeatCharge.ProviderName));
+        var paramProviderName = new OdSqlParameter("paramProviderName", SOut.StringParam(repeatCharge.ProviderName));
         Db.NonQ(command, paramNote, paramNpi, paramErxAccountId, paramProviderName);
     }
 
@@ -307,13 +309,13 @@ public class RepeatChargeCrud
 
         if (command == "") return false;
         if (repeatCharge.Note == null) repeatCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(repeatCharge.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(repeatCharge.Note));
         if (repeatCharge.Npi == null) repeatCharge.Npi = "";
-        var paramNpi = new OdSqlParameter("paramNpi", OdDbType.Text, SOut.StringParam(repeatCharge.Npi));
+        var paramNpi = new OdSqlParameter("paramNpi", SOut.StringParam(repeatCharge.Npi));
         if (repeatCharge.ErxAccountId == null) repeatCharge.ErxAccountId = "";
-        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", OdDbType.Text, SOut.StringParam(repeatCharge.ErxAccountId));
+        var paramErxAccountId = new OdSqlParameter("paramErxAccountId", SOut.StringParam(repeatCharge.ErxAccountId));
         if (repeatCharge.ProviderName == null) repeatCharge.ProviderName = "";
-        var paramProviderName = new OdSqlParameter("paramProviderName", OdDbType.Text, SOut.StringParam(repeatCharge.ProviderName));
+        var paramProviderName = new OdSqlParameter("paramProviderName", SOut.StringParam(repeatCharge.ProviderName));
         command = "UPDATE repeatcharge SET " + command
                                              + " WHERE RepeatChargeNum = " + SOut.Long(repeatCharge.RepeatChargeNum);
         Db.NonQ(command, paramNote, paramNpi, paramErxAccountId, paramProviderName);

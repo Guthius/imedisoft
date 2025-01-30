@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InsBlueBookCrud
 {
@@ -97,7 +99,7 @@ public class InsBlueBookCrud
                                                + "'" + SOut.String(insBlueBook.GroupNum) + "',"
                                                + SOut.Double(insBlueBook.InsPayAmt) + ","
                                                + SOut.Double(insBlueBook.AllowedOverride) + ","
-                                               + DbHelper.Now() + ","
+                                               + "NOW()" + ","
                                                + SOut.Long(insBlueBook.ProcNum) + ","
                                                + SOut.Date(insBlueBook.ProcDate) + ","
                                                + "'" + SOut.String(insBlueBook.ClaimType) + "',"
@@ -127,7 +129,7 @@ public class InsBlueBookCrud
                                                + "'" + SOut.String(insBlueBook.GroupNum) + "',"
                                                + SOut.Double(insBlueBook.InsPayAmt) + ","
                                                + SOut.Double(insBlueBook.AllowedOverride) + ","
-                                               + DbHelper.Now() + ","
+                                               + "NOW()" + ","
                                                + SOut.Long(insBlueBook.ProcNum) + ","
                                                + SOut.Date(insBlueBook.ProcDate) + ","
                                                + "'" + SOut.String(insBlueBook.ClaimType) + "',"

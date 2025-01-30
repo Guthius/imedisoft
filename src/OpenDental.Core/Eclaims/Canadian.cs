@@ -15,6 +15,7 @@ using CodeBase;
 using System.Xml;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims {
 	public class Canadian {

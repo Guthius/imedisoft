@@ -8,14 +8,13 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Programs
 {
-    /// <summary>List of the ini fields for the TigerView bridge that contain PHI.</summary>
     private static readonly List<string> LIST_TIGERVIEW_PHI_FIELDS = new()
     {
         "PatientID",
@@ -36,11 +35,7 @@ public class Programs
         "addrState",
         "addrZip"
     };
-
-    /// <summary>
-    ///     Checks to see if we have disabled the current program at HQ. Handles null. Sets and translates the out
-    ///     parameter where possible.
-    /// </summary>
+    
     public static bool IsEnabledByHq(Program program, out string err)
     {
         err = "";
@@ -77,26 +72,11 @@ public class Programs
 
         return true;
     }
-
-
-    /// <summary>
-    ///     Checks to see if we have disabled the current program at HQ. Handles null Sets and translates the out
-    ///     parameter where possible.
-    /// </summary>
+    
     public static bool IsEnabledByHq(ProgramName progName, out string err)
     {
         var progCur = GetCur(progName);
         return IsEnabledByHq(progCur, out err);
-    }
-
-
-    ///<summary>Checks to see if we have enabled the current plugin at HQ. </summary>
-    public static bool IsDllEnabledByHq(Program progCur)
-    {
-        var listHqPrograms = HqProgram.GetAll().ToList();
-        var hqProgram = listHqPrograms.FirstOrDefault(x => x.PluginDllName.Trim() == progCur.PluginDllName.Trim());
-        if (hqProgram == null) return false;
-        return hqProgram.IsEnabled;
     }
 
     private static bool DoUseCacheValues(Program prog)
@@ -105,8 +85,6 @@ public class Programs
         return !Enum.TryParse(prog.ProgName, out ProgramName progName)
                || !(HqProgram.IsInitialized() && HqProgram.GetAll().Any(x => x.ProgramNameAsString.Trim() == progName.ToString()));
     }
-
-
     
     public static bool Update(Program cur, Program old = null)
     {
@@ -124,18 +102,12 @@ public class Programs
 
         return isRefreshNeeded;
     }
-
     
     public static long Insert(Program Cur)
     {
         return ProgramCrud.Insert(Cur);
     }
 
-    /// <summary>
-    ///     This can only be called by the user if it is a program link that they created.  Included program links cannot
-    ///     be deleted.  If doing something similar from ClassConversion, must delete any dependent ProgramProperties first.
-    ///     It will delete ToolButItems for you.
-    /// </summary>
     public static void Delete(Program prog)
     {
         var command = "DELETE from toolbutitem WHERE ProgramNum = " + SOut.Long(prog.ProgramNum);
@@ -144,14 +116,12 @@ public class Programs
         Db.NonQ(command);
     }
 
-    ///<summary>Returns true if a Program link with the given name or number exists and is enabled. Handles null.</summary>
     public static bool IsEnabled(ProgramName progName)
     {
         var program = GetFirstOrDefault(x => x.ProgName == progName.ToString());
         if (program == null) return false;
         return program.Enabled;
     }
-
     
     public static bool IsEnabled(long programNum)
     {
@@ -159,69 +129,45 @@ public class Programs
         return program == null ? false : program.Enabled;
     }
 
-    ///<summary>Returns true if a Program link with the given name exists and is enabled.</summary>
-    public static bool IsEnabledNoCache(ProgramName programName)
-    {
-        var command = $"SELECT Enabled FROM program WHERE ProgName = '{SOut.String(programName.ToString())}'";
-        var table = DataCore.GetTable(command);
-        var isEnabled = false;
-        if (table.Rows.Count > 0) isEnabled = SIn.Bool(table.Rows[0]["Enabled"].ToString());
-        return isEnabled;
-    }
-
-    ///<summary>Returns the Program of the passed in ProgramNum.  Will be null if a Program is not found.</summary>
     public static Program GetProgram(long programNum)
     {
         return GetFirstOrDefault(x => x.ProgramNum == programNum);
     }
 
-    ///<summary>Supply a valid program Name, and this will set Cur to be the corresponding Program object.</summary>
     public static Program GetCur(ProgramName progName)
     {
         return GetFirstOrDefault(x => x.ProgName == progName.ToString());
     }
 
-    ///<summary>Supply a valid program Name.  Will return 0 if not found.</summary>
     public static long GetProgramNum(ProgramName progName)
     {
         var program = GetCur(progName);
         return program == null ? 0 : program.ProgramNum;
     }
 
-    /// <summary>
-    ///     These programs do not work in cloud mode for various reasons. We will restore them as our cloud customers
-    ///     request them.
-    /// </summary>
     public static List<string> GetListDisabledForWeb()
     {
         return PrefC.GetString(PrefName.ProgramLinksDisabledForWeb).Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries).ToList();
     }
 
-    /// <summary>Using eClinicalWorks tight integration.</summary>
     public static bool UsingEcwTightMode()
     {
         if (IsEnabled(ProgramName.eClinicalWorks) && ProgramProperties.GetPropVal(ProgramName.eClinicalWorks, "eClinicalWorksMode") == "0") return true;
         return false;
     }
 
-    /// <summary>Using eClinicalWorks full mode.</summary>
     public static bool UsingEcwFullMode()
     {
         if (IsEnabled(ProgramName.eClinicalWorks) && ProgramProperties.GetPropVal(ProgramName.eClinicalWorks, "eClinicalWorksMode") == "2") return true;
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if using eCW in tight or full mode.  In these modes, appointments ARE allowed to overlap because
-    ///     we block users from seeing them.
-    /// </summary>
     public static bool UsingEcwTightOrFullMode()
     {
         if (UsingEcwTightMode() || UsingEcwFullMode()) return true;
         return false;
     }
 
-    ///<summary>Returns the local override path if available or returns original program path.  Always returns a valid path.</summary>
     public static string GetProgramPath(Program program)
     {
         var overridePath = ProgramProperties.GetLocalPathOverrideForProgram(program.ProgramNum);
@@ -229,16 +175,11 @@ public class Programs
         return program.Path;
     }
 
-    ///<summary>Returns the local override path if available or returns original program path.  Always returns a valid path.</summary>
     public static string GetProgramPath(ProgramName progName)
     {
         return GetProgramPath(GetFirstOrDefault(x => x.ProgName == progName.ToString()));
     }
 
-    /// <summary>
-    ///     Returns true if input program is a static program. Static programs are ones we do not want the user to be able
-    ///     to modify in some way.
-    /// </summary>
     public static bool IsStatic(Program prog)
     {
         //Currently there is just one static program. As more are created they will need to be added to this check.
@@ -246,11 +187,6 @@ public class Programs
         return false;
     }
 
-    /// <summary>
-    ///     For each enabled bridge, if the bridge uses a file to transmit patient data to the other software, then we need to
-    ///     remove the files or clear the files when OD is exiting.
-    ///     Required for EHR 2014 module d.7 (as stated by proctor).
-    /// </summary>
     public static void ScrubExportedPatientData()
     {
         //List all program links here. If there is nothing to do for that link, then create a comment stating so.
@@ -401,13 +337,10 @@ public class Programs
         //XVWeb: Has no file paths containing outgoing patient data from Open Dental.
         ScrubFileForProperty(ProgramName.XDR, "InfoFile path", "", true); //C:\XDRClient\Bin\infofile.txt
     }
+    
+    [DllImport("kernel32")]
+    private static extern int GetPrivateProfileStringFromIni(string section, string key, string def, StringBuilder retVal, int size, string filePath);
 
-    ///<summary>Needed for Sirona bridge data scrub in ScrubExportedPatientData().</summary>
-    [DllImport("kernel32")] //this is the Windows function for reading from ini files.
-    private static extern int GetPrivateProfileStringFromIni(string section, string key, string def
-        , StringBuilder retVal, int size, string filePath);
-
-    ///<summary>Needed for Sirona bridge data scrub in ScrubExportedPatientData().</summary>
     private static string ReadValueFromIni(string section, string key, string iniFile)
     {
         var strBuild = new StringBuilder(255);
@@ -415,10 +348,6 @@ public class Programs
         return strBuild.ToString();
     }
 
-    /// <summary>
-    ///     If isRemovable is false, then the file referenced in the program property will be cleared.
-    ///     If isRemovable is true, then the file referenced in the program property will be deleted.
-    /// </summary>
     private static void ScrubFileForProperty(ProgramName programName, string strFileProperty, string strFilePropertySuffix, bool isRemovable)
     {
         var program = GetCur(programName);
@@ -447,7 +376,6 @@ public class Programs
         }
     }
 
-    ///<summary>Returns true if more than 1 credit card processing program is enabled.</summary>
     public static bool HasMultipleCreditCardProgramsEnabled()
     {
         return new List<bool>
@@ -456,13 +384,11 @@ public class Programs
         }.Count(x => x) >= 2;
     }
 
-    ///<summary>Called when we want to inform HQ about changes maded to enabled programs.</summary>
     public static void SendEnabledProgramsToHQ()
     {
         CustomerUpdatesProxy.SendAndReceiveUpdateRequestXml(); //Piggy back on this, we don't do anything with result just want to trigger some code.
     }
 
-    /// <summary>Called to delete the linkage.xml file used by EzDenti and Ez3Di.</summary>
     public static void RemoveLinkageXMLFile(Program program)
     {
         if (program == null || !program.Enabled) return;
@@ -483,19 +409,13 @@ public class Programs
         }
     }
 
-    /// <summary>
-    ///     Returns ProgramName.None if no Imaging AI program is used. If more than one is enabled, defaults to Pearl
-    ///     because it is billed externally.
-    /// </summary>
     public static ProgramName GetActiveImagingAIProgram()
     {
         if (IsEnabled(ProgramName.Pearl)) return ProgramName.Pearl;
         if (IsEnabled(ProgramName.BetterDiagnostics)) return ProgramName.BetterDiagnostics;
         return ProgramName.None;
     }
-
-    #region Cache Pattern
-
+    
     private class ProgramCache : CacheListAbs<Program>
     {
         protected override List<Program> GetCacheFromDb()
@@ -525,54 +445,35 @@ public class Programs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ProgramCache _programCache = new();
+    private static readonly ProgramCache Cache = new();
 
     public static List<Program> GetListDeep(bool isShort = false)
     {
-        return _programCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static Program GetFirstOrDefault(Func<Program, bool> match, bool isShort = false)
     {
-        return _programCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
     public static List<Program> GetWhere(Predicate<Program> match, bool isShort = false)
     {
-        return _programCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    public static bool HListIsNull()
+    public static void RefreshCache()
     {
-        return _programCache.ListIsNull();
+        GetTableFromCache(true);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
-    {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _programCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _programCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _programCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
 }

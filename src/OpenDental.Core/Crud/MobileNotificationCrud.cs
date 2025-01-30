@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MobileNotificationCrud
 {
@@ -91,9 +93,9 @@ public class MobileNotificationCrud
                                                                 + SOut.DateTime(mobileNotification.DateTimeExpires) + ","
                                                                 + SOut.Int((int) mobileNotification.AppTarget) + ")";
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
-        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", OdDbType.Text, SOut.StringParam(mobileNotification.PrimaryKeys));
+        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", SOut.StringParam(mobileNotification.PrimaryKeys));
         if (mobileNotification.Tags == null) mobileNotification.Tags = "";
-        var paramTags = new OdSqlParameter("paramTags", OdDbType.Text, SOut.StringParam(mobileNotification.Tags));
+        var paramTags = new OdSqlParameter("paramTags", SOut.StringParam(mobileNotification.Tags));
         {
             mobileNotification.MobileNotificationNum = Db.NonQ(command, true, "MobileNotificationNum", "mobileNotification", paramPrimaryKeys, paramTags);
         }
@@ -121,9 +123,9 @@ public class MobileNotificationCrud
                                                                 + SOut.DateTime(mobileNotification.DateTimeExpires) + ","
                                                                 + SOut.Int((int) mobileNotification.AppTarget) + ")";
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
-        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", OdDbType.Text, SOut.StringParam(mobileNotification.PrimaryKeys));
+        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", SOut.StringParam(mobileNotification.PrimaryKeys));
         if (mobileNotification.Tags == null) mobileNotification.Tags = "";
-        var paramTags = new OdSqlParameter("paramTags", OdDbType.Text, SOut.StringParam(mobileNotification.Tags));
+        var paramTags = new OdSqlParameter("paramTags", SOut.StringParam(mobileNotification.Tags));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPrimaryKeys, paramTags);
         else
@@ -143,9 +145,9 @@ public class MobileNotificationCrud
                       + "AppTarget            =  " + SOut.Int((int) mobileNotification.AppTarget) + " "
                       + "WHERE MobileNotificationNum = " + SOut.Long(mobileNotification.MobileNotificationNum);
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
-        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", OdDbType.Text, SOut.StringParam(mobileNotification.PrimaryKeys));
+        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", SOut.StringParam(mobileNotification.PrimaryKeys));
         if (mobileNotification.Tags == null) mobileNotification.Tags = "";
-        var paramTags = new OdSqlParameter("paramTags", OdDbType.Text, SOut.StringParam(mobileNotification.Tags));
+        var paramTags = new OdSqlParameter("paramTags", SOut.StringParam(mobileNotification.Tags));
         Db.NonQ(command, paramPrimaryKeys, paramTags);
     }
 
@@ -196,9 +198,9 @@ public class MobileNotificationCrud
 
         if (command == "") return false;
         if (mobileNotification.PrimaryKeys == null) mobileNotification.PrimaryKeys = "";
-        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", OdDbType.Text, SOut.StringParam(mobileNotification.PrimaryKeys));
+        var paramPrimaryKeys = new OdSqlParameter("paramPrimaryKeys", SOut.StringParam(mobileNotification.PrimaryKeys));
         if (mobileNotification.Tags == null) mobileNotification.Tags = "";
-        var paramTags = new OdSqlParameter("paramTags", OdDbType.Text, SOut.StringParam(mobileNotification.Tags));
+        var paramTags = new OdSqlParameter("paramTags", SOut.StringParam(mobileNotification.Tags));
         command = "UPDATE mobilenotification SET " + command
                                                    + " WHERE MobileNotificationNum = " + SOut.Long(mobileNotification.MobileNotificationNum);
         Db.NonQ(command, paramPrimaryKeys, paramTags);

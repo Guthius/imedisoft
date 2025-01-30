@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class RxNormCrud
 {
@@ -79,7 +81,7 @@ public class RxNormCrud
             + "'" + SOut.String(rxNorm.MmslCode) + "',"
             + DbHelper.ParamChar + "paramDescription)";
         if (rxNorm.Description == null) rxNorm.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(rxNorm.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(rxNorm.Description));
         {
             rxNorm.RxNormNum = Db.NonQ(command, true, "RxNormNum", "rxNorm", paramDescription);
         }
@@ -103,7 +105,7 @@ public class RxNormCrud
             + "'" + SOut.String(rxNorm.MmslCode) + "',"
             + DbHelper.ParamChar + "paramDescription)";
         if (rxNorm.Description == null) rxNorm.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(rxNorm.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(rxNorm.Description));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDescription);
         else
@@ -119,7 +121,7 @@ public class RxNormCrud
                       + "Description=  " + DbHelper.ParamChar + "paramDescription "
                       + "WHERE RxNormNum = " + SOut.Long(rxNorm.RxNormNum);
         if (rxNorm.Description == null) rxNorm.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(rxNorm.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(rxNorm.Description));
         Db.NonQ(command, paramDescription);
     }
 
@@ -146,7 +148,7 @@ public class RxNormCrud
 
         if (command == "") return false;
         if (rxNorm.Description == null) rxNorm.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(rxNorm.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(rxNorm.Description));
         command = "UPDATE rxnorm SET " + command
                                        + " WHERE RxNormNum = " + SOut.Long(rxNorm.RxNormNum);
         Db.NonQ(command, paramDescription);

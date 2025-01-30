@@ -8,6 +8,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -39,7 +41,7 @@ namespace OpenDental {
 			else {
 				textSnomed.Text=snomedDesc;
 			}
-			string i9descript=ICD9s.GetCodeAndDescription(diseaseDef.ICD9Code);
+			string i9descript=Icd9s.GetCodeAndDescription(diseaseDef.ICD9Code);
 			if(i9descript=="") {
 				textIcd9.Text=diseaseDef.ICD9Code;
 			}

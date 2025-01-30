@@ -1,35 +1,33 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using DataConnectionBase;
-using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormAmountEdit:FormODBase {
-		public decimal Amount;
-		private string _text;
+namespace OpenDental.Forms;
 
-		public FormAmountEdit(string text) {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-			_text=text;
-		}
+public partial class FormAmountEdit : FormODBase
+{
+    private readonly string _text;
 
-		private void FormAmountEdit_Load(object sender,EventArgs e) {
-			labelText.Text=_text;
-			textAmount.Text=SOut.Decimal(Amount);
-			textAmount.SelectionStart=0;
-			textAmount.SelectionLength=textAmount.Text.Length;
-		}
+    public decimal Amount;
 
-		private void butOK_Click(object sender,EventArgs e) {
-			Amount=SIn.Decimal(textAmount.Text);
-			DialogResult=DialogResult.OK;
-		}
+    public FormAmountEdit(string text)
+    {
+        InitializeComponent();
 
-	}
+        _text = text;
+    }
+
+    private void FormAmountEdit_Load(object sender, EventArgs e)
+    {
+        labelText.Text = _text;
+        textAmount.Text = SOut.Decimal(Amount);
+        textAmount.SelectionStart = 0;
+        textAmount.SelectionLength = textAmount.Text.Length;
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        Amount = SIn.Decimal(textAmount.Text);
+        DialogResult = DialogResult.OK;
+    }
 }

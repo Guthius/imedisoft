@@ -1,97 +1,97 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using OpenDentBusiness;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 
-namespace OpenDental {
+namespace OpenDental.Forms;
 
-	public partial class FormAutoNoteControls:FormODBase {
-		///<summary>If OK, then this is the control that the user selected.</summary>
-		public long SelectedControlNum;
-		private List<AutoNoteControl> _listAutoNoteControls;
+public partial class FormAutoNoteControls : FormODBase
+{
+    private List<AutoNoteControl> _autoNoteControls;
 
-		public FormAutoNoteControls() {
-			//
-			// Required for Windows Form Designer support
-			//
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+    public FormAutoNoteControls()
+    {
+        InitializeComponent();
+    }
 
-		private void FormAutoNoteControls_Load(object sender, EventArgs e) {
-			FillGrid();
-		}
+    private void FormAutoNoteControls_Load(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-		private void FillGrid(){
-			AutoNoteControls.RefreshCache();
-			_listAutoNoteControls=AutoNoteControls.GetDeepCopy();
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn(Lan.g("FormAutoNoteControls","Description"),100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormAutoNoteControls","Type"),100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormAutoNoteControls","Prompt Text"),100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormAutoNoteControls","Options"),100);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			for(int i=0;i<_listAutoNoteControls.Count;i++){
-				row=new GridRow();
-				row.Cells.Add(_listAutoNoteControls[i].Descript);
-				row.Cells.Add(_listAutoNoteControls[i].ControlType);
-				row.Cells.Add(_listAutoNoteControls[i].ControlLabel);
-				row.Cells.Add(_listAutoNoteControls[i].ControlOptions);
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-		}
+    private void FillGrid()
+    {
+        AutoNoteControls.RefreshCache();
 
-		private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			//do nothing
-		}
+        _autoNoteControls = AutoNoteControls.GetDeepCopy();
 
-		private void butEdit_Click(object sender,EventArgs e) {
-			if(gridMain.GetSelectedIndex()==-1) {
-				MsgBox.Show(this,"Please select an item first.");
-				return;
-			}
-			using FormAutoNoteControlEdit formAutoNoteControlEdit=new FormAutoNoteControlEdit();
-			formAutoNoteControlEdit.AutoNoteControlCur=_listAutoNoteControls[gridMain.GetSelectedIndex()];
-			formAutoNoteControlEdit.ShowDialog();
-			if(formAutoNoteControlEdit.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			FillGrid();
-		}
+        gridMain.BeginUpdate();
 
-		private void butAdd_Click(object sender,EventArgs e) {
-			using FormAutoNoteControlEdit formAutoNoteControlEdit=new FormAutoNoteControlEdit();
-			formAutoNoteControlEdit.IsNew=true;
-			formAutoNoteControlEdit.AutoNoteControlCur=new AutoNoteControl();
-			formAutoNoteControlEdit.ShowDialog();
-			if(formAutoNoteControlEdit.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			FillGrid();
-		}
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Description", 100));
+        gridMain.Columns.Add(new GridColumn("Type", 100));
+        gridMain.Columns.Add(new GridColumn("Prompt Text", 100));
+        gridMain.Columns.Add(new GridColumn("Options", 100));
 
-		private void butOK_Click(object sender,EventArgs e) {
-			if(gridMain.GetSelectedIndex()==-1) {
-				MsgBox.Show(this,"Please select an item first.");
-				return;
-			}
-			SelectedControlNum=_listAutoNoteControls[gridMain.GetSelectedIndex()].AutoNoteControlNum;
-			DialogResult=DialogResult.OK;
-		}
+        gridMain.ListGridRows.Clear();
 
-	}
+        foreach (var autoNoteControl in _autoNoteControls)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(autoNoteControl.Descript);
+            gridRow.Cells.Add(autoNoteControl.ControlType);
+            gridRow.Cells.Add(autoNoteControl.ControlLabel);
+            gridRow.Cells.Add(autoNoteControl.ControlOptions);
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void ButtonEdit_Click(object sender, EventArgs e)
+    {
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            ShowError("Please select an item first.");
+            return;
+        }
+
+        using var formAutoNoteControlEdit = new FormAutoNoteControlEdit(_autoNoteControls[gridMain.GetSelectedIndex()]);
+
+        if (formAutoNoteControlEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        var autoNoteControl = new AutoNoteControl();
+
+        using var formAutoNoteControlEdit = new FormAutoNoteControlEdit(autoNoteControl);
+
+        if (formAutoNoteControlEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            ShowError("Please select an item first.");
+            return;
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

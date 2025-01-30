@@ -17,7 +17,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 using System.Xml;
-using Bridges;
 using CodeBase;
 using DataConnectionBase;
 using Google;
@@ -28,42 +27,31 @@ using Health.Direct.Common.Mail;
 using Health.Direct.Common.Mail.Notifications;
 using Health.Direct.ResolverPlugins;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using MimeKit;
-using Newtonsoft.Json;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.Email;
 using OpenDentBusiness.FileIO;
-using OpenPop.Mime.Header;
-using OpenPop.Pop3;
 using GmailApi = Google.Apis.Gmail.v1;
 using Header = Health.Direct.Common.Mime.Header;
 using MimeEntity = Health.Direct.Common.Mime.MimeEntity;
 
 namespace OpenDentBusiness;
 
-
 public class EmailMessages
 {
     [ThreadStatic]
     private static DirectAgent _directAgent;
 
-    #region Misc Methods
-
     public static bool IsHtmlEmail(EmailType emailType)
     {
-        if (emailType.In(EmailType.Html, EmailType.RawHtml)) return true;
-
-        return false;
+        return emailType is EmailType.Html or EmailType.RawHtml;
     }
-
-    #endregion
 
     private delegate string ReplaceImgSrc(string valueOriginal, string imgName, string localFilePath);
 
-    #region Database Calls
-
-    ///<summary>Gets one email message from the database.</summary>
     public static EmailMessage GetOne(long emailMessageNum)
     {
         var command = "SELECT * FROM emailmessage WHERE EmailMessageNum = " + SOut.Long(emailMessageNum);
@@ -77,19 +65,6 @@ public class EmailMessages
         return emailMessage;
     }
 
-    public static List<EmailMessage> GetMessgesByPk(List<long> listEmailMessageNums)
-    {
-        if (listEmailMessageNums.IsNullOrEmpty()) return new List<EmailMessage>();
-
-        var command = "SELECT * FROM emailmessage WHERE EmailMessageNum IN(" + string.Join(",", listEmailMessageNums.Select(x => SOut.Long(x))) + ")";
-        return EmailMessageCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets all inbox email messages where EmailMessage.RecipientAddress==emailAddress, or returns webmail messages
-    ///     instead.
-    ///     Pass in 0 for provNum to get email messages, pass in the current user's provNum to get webmail messages.
-    /// </summary>
     public static List<EmailMessage> GetMailboxForAddress(EmailAddress emailAddress, DateTime dateFrom, DateTime dateTo, params MailboxType[] mailboxTypeArray)
     {
         //Use Reflection to get all the fields of EmailMessage to construct the query.  We do this instead of SELECT * because we want to limit the
@@ -187,7 +162,6 @@ public class EmailMessages
         return listEmailMessagesRet;
     }
 
-    ///<summary>Returns the list of historically used email addresses.</summary>
     public static List<string> GetHistoricalEmailAddresses(EmailAddress emailAddress)
     {
         var fromAddress = SOut.String(GetAddressSimple(emailAddress.EmailUsername).Trim());
@@ -242,7 +216,6 @@ public class EmailMessages
         return GetAddressesFromMessages(listEmailMessages);
     }
 
-    ///<summary>Takes a list of email messages and returns the addresses that are used in any of them.</summary>
     public static List<string> GetAddressesFromMessages(List<EmailMessage> listEmailMessages)
     {
         var listStrEmailAddresses = new List<string>();
@@ -262,10 +235,6 @@ public class EmailMessages
         return listStrEmailAddresses;
     }
 
-    /// <summary>
-    ///     Goes to the db and returns messages that match the passed-in params.
-    ///     Does not search on fields that are passed-in blank, 0, or DateTime.MinVal (depending on type).
-    /// </summary>
     public static List<EmailMessage> GetBySearch(long searchPatNum, string searchEmail, DateTime dateFrom, DateTime dateTo, string searchBody, bool hasAttach)
     {
         var command = "SELECT * FROM emailmessage "
@@ -299,20 +268,6 @@ public class EmailMessages
         return listEmailMessagesRet;
     }
 
-    public static List<EmailMessage> GetSecureEmailForPat(long patNum)
-    {
-        var listPatNums = Patients.GetPatNumsForPhi(patNum); //Guaranteed to have at least one value (the patNum passed in).
-        var listEmailSentOrReceivedsWebMailTypes = GetUnreadTypes(EmailPlatform.Secure)
-            .Concat(GetReadTypes(EmailPlatform.Secure))
-            .Concat(GetSentTypes(EmailPlatform.Secure)).ToList();
-        var listSecureEmailTypesStr = string.Join(",", listEmailSentOrReceivedsWebMailTypes.Select(x => SOut.Int((int) x)));
-        var command = "SELECT * FROM emailmessage "
-                      + "WHERE PatNum IN (" + string.Join(",", listPatNums) + ") "
-                      + "AND SentOrReceived IN (" + listSecureEmailTypesStr + ") "
-                      + "ORDER BY MsgDateTime DESC";
-        return EmailMessageCrud.SelectMany(command);
-    }
-
     public static List<EmailMessage> GetWebMailForPat(long patNum)
     {
         var listPatNums = Patients.GetPatNumsForPhi(patNum); //Guaranteed to have at least one value (the patNum passed in).
@@ -327,30 +282,6 @@ public class EmailMessages
         return EmailMessageCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns list of ProvNumWebmails for each unread webmail. There will be duplicates which can be counted later.
-    ///     Probably not a huge number in list.
-    /// </summary>
-    public static List<long> GetProvUnreadWebMail()
-    {
-        var listEmailSentOrReceivedsWebMailUnreadTypes = GetUnreadTypes(EmailPlatform.WebMail);
-        var webMailUnreadTypesStr = string.Join(",", listEmailSentOrReceivedsWebMailUnreadTypes.Select(x => SOut.Int((int) x)));
-        var command = "SELECT ProvNumWebMail FROM emailmessage"
-                      + " WHERE SentOrReceived IN (" + webMailUnreadTypesStr + ");";
-        var table = DataCore.GetTable(command);
-        //Convert datatable to list of longs and return it.
-        var listProvNumWebMails = new List<long>();
-        for (var i = 0; i < table.Rows.Count; i++) listProvNumWebMails.Add(SIn.Long(table.Rows[i]["ProvNumWebMail"].ToString()));
-
-        return listProvNumWebMails;
-    }
-
-    /// <summary>
-    ///     If isAttachmentSyncNeeded is true, then it will automatically sync attachments.  Otherwise, attachments will not be
-    ///     modified.
-    ///     The Patient Portal will pass in an object with an empty attachment list, but that does not mean that the
-    ///     attachments should be deleted.
-    /// </summary>
     public static void Update(EmailMessage emailMessage, EmailMessage emailMessageOld = null, bool isAttachmentSyncNeeded = true)
     {
         if (emailMessageOld == null)
@@ -367,11 +298,6 @@ public class EmailMessages
         }
     }
 
-    /// <summary>
-    ///     Updates SentOrReceived and saves changes to db.  Better than using Update(), because does not delete and add
-    ///     attachments back into db.
-    ///     Returns the new EmailSentOrReceived Status.
-    /// </summary>
     public static EmailSentOrReceived UpdateSentOrReceivedRead(EmailMessage emailMessage)
     {
         var emailSentOrReceived = emailMessage.SentOrReceived;
@@ -390,11 +316,6 @@ public class EmailMessages
         return emailSentOrReceived;
     }
 
-    /// <summary>
-    ///     Updates SentOrReceived and saves changes to db.  Better than using Update(), because does not delete and add
-    ///     attachments back into db.
-    ///     Returns the new status.
-    /// </summary>
     public static EmailSentOrReceived UpdateSentOrReceivedUnread(EmailMessage emailMessage)
     {
         var emailSentOrReceived = emailMessage.SentOrReceived;
@@ -413,47 +334,22 @@ public class EmailMessages
         return emailSentOrReceived;
     }
 
-    /// <summary>
-    ///     Updates SentOrReceived and saves changes to db.  Better than using Update(), because does not delete and add
-    ///     attachments back into db.
-    /// </summary>
     public static void UpdatePatNum(EmailMessage emailMessage)
     {
         var command = "UPDATE emailmessage SET PatNum=" + SOut.Long(emailMessage.PatNum) + " WHERE EmailMessageNum=" + SOut.Long(emailMessage.EmailMessageNum);
         Db.NonQ(command);
-        if (emailMessage.Attachments == null) return;
-
-        for (var i = 0; i < emailMessage.Attachments.Count; i++)
-        {
-            var ehrSummaryCcd = EhrSummaryCcds.GetOneForEmailAttach(emailMessage.Attachments[i].EmailAttachNum);
-            if (ehrSummaryCcd != null)
-            {
-                ehrSummaryCcd.PatNum = emailMessage.PatNum;
-                EhrSummaryCcds.Update(ehrSummaryCcd);
-            }
-        }
     }
-
     
-    public static long Insert(EmailMessage emailMessage)
+    public static void Insert(EmailMessage emailMessage)
     {
         EmailMessageCrud.Insert(emailMessage);
         //now, insert all the attaches.
-        if (emailMessage.Attachments == null) return emailMessage.EmailMessageNum;
+        if (emailMessage.Attachments == null) return;
 
         for (var i = 0; i < emailMessage.Attachments.Count; i++) emailMessage.Attachments[i].EmailMessageNum = emailMessage.EmailMessageNum;
 
         EmailAttaches.InsertMany(emailMessage.Attachments);
-        return emailMessage.EmailMessageNum;
     }
-
-    ///<summary>Deletes all EmailMessages before the given cutOffDate. Returns the number of entries deleted.</summary>
-    public static long DeleteBeforeDate(DateTime dateCutoff)
-    {
-        var command = "DELETE FROM emailmessage WHERE MsgDateTime <= " + SOut.DateTime(dateCutoff) + " ";
-        return Db.NonQ(command);
-    }
-
     
     public static void Delete(EmailMessage emailMessage)
     {
@@ -476,15 +372,6 @@ public class EmailMessages
         return pat;
     }
 
-    #endregion
-
-    #region Sending
-
-    /// <summary>
-    ///     Throws Exception. This is used from wherever sending emails. If a message must be using EHR direct messaging, set
-    ///     the useDirect=true.
-    ///     If the unsecure message needs to be sent with a certificate signature, set the certPrivate.
-    /// </summary>
     public static void SendEmail(EmailMessage emailMessage, EmailAddress emailAddressSender, X509Certificate2 x509Certificate2Private = null, bool useDirect = false)
     {
         //Always insert except when error sending direct message.
@@ -527,26 +414,12 @@ public class EmailMessages
         }
     }
 
-    ///<summary>Sets the reason an EmailMessage failed to send, based on the corresponding Exception.</summary>
     public static void SetFailed(EmailMessage emailMessage, Exception ex)
     {
         emailMessage.FailReason = emailMessage.SentOrReceived.GetDescription() + " failed with error: " + MiscUtils.GetExceptionText(ex);
         emailMessage.SentOrReceived = EmailSentOrReceived.SendFailed;
     }
 
-    /// <summary>
-    ///     Encrypts the message, verifies trust, locates the public encryption key for the To address (if already stored
-    ///     locally), etc.
-    ///     Use this polymorphism when the attachments have already been saved to the email attachments folder in file form.
-    ///     patNum can be 0.
-    ///     Returns an empty string upon success, or an error string if there were errors.
-    ///     It is possible that the email was sent to some trusted recipients and not sent to untrusted recipients (in which
-    ///     case there would be errors but some recipients would receive successfully).
-    ///     Trust cannot be automatically added for the recipient addresses inside this function, because the patient portal
-    ///     uses this function and as soon as an address is trusted
-    ///     all patients can then forward their personal information to the recipient address.
-    ///     Surround with a try catch.
-    /// </summary>
     private static string SendEmailDirect(EmailMessage emailMessage, EmailAddress emailAddressFrom)
     {
         emailMessage.FromAddress = emailAddressFrom.EmailUsername.Trim(); //Cannot be emailAddressFrom.SenderAddress, or else will not find the correct encryption certificate.  Used in ConvertEmailMessageToMessage().
@@ -558,13 +431,6 @@ public class EmailMessages
         return strErrors;
     }
 
-    /// <summary>
-    ///     Throws exceptions.  outMsgDirect must be unencrypted, because this function will encrypt.  Encrypts the message,
-    ///     verifies trust, locates the public encryption key for the To address (if already stored locally), etc.
-    ///     Returns an empty string upon success, or an error string if there were errors.  It is possible that the email was
-    ///     sent to some trusted recipients and not sent to untrusted recipients (in which case there would be errors but some
-    ///     recipients would receive successfully).
-    /// </summary>
     private static string SendEmailDirect(OutgoingMessage outgoingMessageUnencrypted, EmailAddress emailAddressFrom)
     {
         var strErrors = "";
@@ -656,14 +522,7 @@ public class EmailMessages
         return strErrors;
     }
 
-    /// <summary>
-    ///     Used for creating encrypted Message Disposition Notification (MDN) ack messages for Direct.
-    ///     An ack must be sent when a message is received/processed, and other acks are supposed be sent when other events
-    ///     occur (but are not required).
-    ///     For example, when the user reads a decrypted message we must send an ack with notification type of Displayed (not
-    ///     required).
-    /// </summary>
-    private static string SendAckDirect(IncomingMessage incomingMessage, EmailAddress emailAddressFrom, long patNum)
+    private static void SendAckDirect(IncomingMessage incomingMessage, EmailAddress emailAddressFrom, long patNum)
     {
         //The CreateAcks() function handles the case where the incoming message is an MDN, in which case we do not reply with anything.
         //The CreateAcks() function also takes care of figuring out where to send the MDN, because the rules are complicated.
@@ -673,7 +532,7 @@ public class EmailMessages
         notificationType = MDNStandard.NotificationType.Processed;
         var listNotificationMessages =
             incomingMessage.CreateAcks("OpenDental " + Assembly.GetExecutingAssembly().GetName().Version, "", notificationType).ToList();
-        if (listNotificationMessages == null) return "";
+        if (listNotificationMessages == null) return;
 
         var strErrorsAll = "";
         for (var i = 0; i < listNotificationMessages.Count(); i++)
@@ -723,18 +582,8 @@ public class EmailMessages
         {
             //Not critical to send the acks here, because they will be sent later if they failed now.
         }
-
-        return strErrorsAll;
     }
 
-    /// <summary>
-    ///     Gets the oldest Direct Ack (MDN) from the db which has not been sent yet and attempts to send it.
-    ///     If the Ack fails to send, then it remains in the database with status AckDirectNotSent, so that another attempt
-    ///     will be made when this function is called again.
-    ///     This function throttles the Ack responses to prevent the email host from flagging the emailAddressFrom as a spam
-    ///     account.  The throttle speed is one Ack per 60 seconds (to mimic human behavior).
-    ///     Throws exceptions.
-    /// </summary>
     public static void SendOldestUnsentAck(EmailAddress emailAddressFrom)
     {
         string command;
@@ -783,13 +632,6 @@ public class EmailMessages
         }
     }
 
-    /// <summary>
-    ///     Throws exceptions.  Attempts to physically send the message over the network wire.
-    ///     Perfect for signed or encrypted email, because the MIME Content-Type is strictly defined for these types of emails.
-    ///     Does not work for implicit SSL, but works for all other email settings, including explicit SSL.
-    ///     If a message must be encrypted, then encrypt it before calling this function.
-    ///     The patNum can be 0, but should be included if known, for auditing purposes.
-    /// </summary>
     private static void SendDirectUnsecure(OutgoingMessage outgoingMessage, EmailAddress emailAddress, long patNum)
     {
         //When batch email operations are performed, we sometimes do this check further up in the UI.  This check is here to as a catch-all.
@@ -892,11 +734,6 @@ public class EmailMessages
         }
     }
 
-    /// <summary>
-    ///     Throws exceptions.  Attempts to physically send the message over the network wire. This is used from wherever
-    ///     email needs to be sent throughout the program. If a message must be encrypted, then encrypt it before calling this
-    ///     function. nameValueCollectionHeaders can be null.
-    /// </summary>
     private static void SendEmailUnsecure(EmailMessage emailMessage, EmailAddress emailAddress, NameValueCollection nameValueCollectionHeaders, bool hasRetried = false, params AlternateView[] alternateViewArray)
     {
         //When batch email operations are performed, we sometimes do this check further up in the UI.  This check is here to as a catch-all.
@@ -937,11 +774,6 @@ public class EmailMessages
         SecurityLogs.MakeLogEntry(EnumPermType.EmailSend, emailMessage.PatNum, "Email Sent");
     }
 
-    /// <summary>
-    ///     Throws exceptions.  Uses the Direct library to sign the message, so that our unencrypted/signed messages are
-    ///     built the same way as our encrypted/signed messages. The provided certificate must contain a private key, or else
-    ///     the signing will fail (exception) when computing the signature digest.
-    /// </summary>
     private static void SendEmailUnsecureWithSig(EmailMessage emailMessage, EmailAddress emailAddressFrom, X509Certificate2 x509Certificate2Private)
     {
         if (emailAddressFrom.IsImplicitSsl) throw new Exception(Lans.g("EmailMessages", "Digitally signed messages cannot be sent over implicit SSL.")); //See detailed comments in the private version of SendEmailUnsecure().
@@ -965,131 +797,7 @@ public class EmailMessages
         SendDirectUnsecure(messageOut, emailAddressFrom, emailMessage.PatNum);
     }
 
-    #endregion Sending
-
-    #region Receiving
-
-    /// <summary>
-    ///     Receives emails from the email server for the email address passed in. Returns the count of new emails that
-    ///     were downloaded.
-    /// </summary>
-    public static int ReceiveFromInbox(EmailAddress emailAddress)
-    {
-        if (emailAddress.DownloadInbox && emailAddress.AuthenticationType.In(OAuthType.Google)) return RetrieveFromInboxOAuth(emailAddress);
-
-        var countNewEmails = 0;
-        //This code is modified from the example at: http://hpop.sourceforge.net/exampleFetchAllMessages.php
-        using (var client = new Pop3Client())
-        {
-            //The client disconnects from the server when being disposed.
-            client.Connect(emailAddress.Pop3ServerIncoming, emailAddress.ServerPortIncoming, emailAddress.UseSSL, 180000, 180000, null); //3 minute timeout, just as for sending emails.
-            client.Authenticate(emailAddress.EmailUsername.Trim(), MiscUtils.Decrypt(emailAddress.EmailPassword), AuthenticationMethod.UsernameAndPassword);
-            var listMsgIds = client.GetMessageUids(); //Get all unique identifiers for each email in the inbox.
-            var listMsgIdsDownloaded = EmailMessageUids.GetMsgIdsRecipientAddress(emailAddress.EmailUsername.Trim());
-            for (var i = 0; i < listMsgIds.Count; i++)
-            {
-                var msgIndex = i + 1; //The message indicies are 1-based.
-                var msgId = listMsgIds[i]; //Example: 1420562540.886638.p3plgemini22-06.prod.phx.2602059520
-                MessageHeader messageHeader = null;
-                if (msgId.Length == 0)
-                {
-                    //Message Uids are commonly used, but are optional according to the RFC822 email standard.
-                    //Uids are assgined by the sending client application, so they could be anything, but are supposed to be unique.
-                    //Additionally, most email servers are probably smart enough to create a Uid for any message where the Uid is missing.
-                    //In the worst case scenario, we create a Uid for the message based off of the message header information, which takes a little extra time, 
-                    //but is better than downloading old messages again, especially if some of those messages contain large attachments.
-                    messageHeader = client.GetMessageHeaders(msgIndex); //Takes 1-2 seconds to get this information from the server.  The message, minus body and minus attachments.
-                    msgId = messageHeader.DateSent.ToString("yyyyMMddHHmmss") + emailAddress.EmailUsername.Trim() + messageHeader.From.Address + messageHeader.Subject;
-                }
-
-                if (msgId.Length > 4000)
-                    //The EmailMessageUid.MsgId field is only 4000 characters in size.
-                    msgId = msgId.Substring(0, 4000);
-
-                if (listMsgIdsDownloaded.Contains(msgId)) continue; //Skip emails which have already been downloaded.
-
-                //messageHeader will only be defined if we created our own unique ID manually above.  MessageId is optional, just as the message UIDs are.
-                if (messageHeader != null && messageHeader.MessageId != "")
-                {
-                    //The MessageId is usually generated by the email server.
-                    //The message does not have a UID, and the ID that we made up has not been downloaded before.  As a last resort we check the MessageId in 
-                    //the message header.  MessageId is different than the UID.  We should have used the MessageId as the second option in the past, but now 
-                    //we are stuck using it as a third option, because using MessageId as a second option would cause old emails to download again.
-                    msgId = messageHeader.MessageId; //Example: xtbzX6Pumwpcn9NjhAJn5A@mcmail1.mcr.colo.comodo.net
-                    if (msgId.Length > 4000)
-                        //The EmailMessageUid.MsgId field is only 4000 characters in size.
-                        msgId = msgId.Substring(0, 4000);
-
-                    if (listMsgIdsDownloaded.Contains(msgId)) continue; //Skip emails which have already been downloaded.
-                }
-
-                //At this point, we know that the email is one which we have not downloaded yet.
-                OpenPop.Mime.Message messageOpenPop;
-                try
-                {
-                    messageOpenPop = client.GetMessage(msgIndex); //This is where the entire raw email is downloaded.
-                }
-                catch (Exception ex)
-                {
-                    //Certain error messages should be treated as "downloaded" so that we do not waste time trying to download these email messages again.
-                    if (ex.Message == "The specified media type is invalid."
-                        || ex.Message == "Invalid length for a Base-64 char array or string."
-                        || ex.Message.StartsWith("'binary' is not a supported encoding name. "
-                                                 + "For information on defining a custom encoding, see the documentation for the Encoding.RegisterProvider method.")
-                        || ex.Message.StartsWith("'Cp1252' is not a supported encoding name. "
-                                                 + "For information on defining a custom encoding, see the documentation for the Encoding.RegisterProvider method."))
-                    {
-                        var emailMessageUid = new EmailMessageUid();
-                        emailMessageUid.RecipientAddress = emailAddress.EmailUsername.Trim();
-                        emailMessageUid.MsgId = msgId;
-                        EmailMessageUids.Insert(emailMessageUid); //Remember Uid was downloaded, to avoid email duplication the next time the inbox is refreshed.
-                        listMsgIdsDownloaded.Add(msgId);
-                    }
-
-                    continue;
-                }
-
-                try
-                {
-                    if (IsEmailFromInbox(emailAddress.EmailUsername, messageOpenPop.Headers.To, ListTools.FromSingle(messageOpenPop.Headers.From)
-                            , messageOpenPop.Headers.Cc, messageOpenPop.Headers.Bcc))
-                    {
-                        var strRawEmail = messageOpenPop.MessagePart.BodyEncoding.GetString(messageOpenPop.RawMessage);
-                        var emailMessage = ProcessRawEmailMessageIn(strRawEmail, 0, emailAddress, true); //Inserts to db.
-                        countNewEmails++;
-                    }
-
-                    var emailMessageUid = new EmailMessageUid();
-                    emailMessageUid.RecipientAddress = emailAddress.EmailUsername.Trim();
-                    emailMessageUid.MsgId = msgId;
-                    EmailMessageUids.Insert(emailMessageUid); //Remember Uid was downloaded, to avoid email duplication the next time the inbox is refreshed.
-                    listMsgIdsDownloaded.Add(msgId);
-                }
-                catch (ThreadAbortException)
-                {
-                    //This can happen if the application is exiting. We need to leave right away so the program does not lock up.
-                    //Otherwise, this loop could continue for a while if there are a lot of messages to download.
-                    throw;
-                }
-                catch (Exception)
-                {
-                    //If one particular email fails to download, then skip it for now and move on to the next email.
-                }
-            }
-        }
-
-        //Since this function is fired automatically based on the inbox check interval, we also try to send the oldest unsent Ack.
-        //The goal is to keep trying to send the Acks at a reasonable interval until they are successfully delivered.
-        SendOldestUnsentAck(emailAddress);
-        return countNewEmails;
-    }
-
-    /// <summary>
-    ///     Determines if an email is sent from the emailUsername account.  'TEmailAddress' is an type representing an
-    ///     email address and must be able to call ToString() to get the string representation of the email address.
-    /// </summary>
-    private static bool IsEmailFromInbox<TEmailAddress>(string emailUsername, List<TEmailAddress> listTEmailAddressesTo
-        , List<TEmailAddress> listTEmailAddressesFrom, List<TEmailAddress> listTEmailAddressesCc, List<TEmailAddress> listTEmailAddressesBcc) where TEmailAddress : class
+    private static bool IsEmailFromInbox<TEmailAddress>(string emailUsername, List<TEmailAddress> listTEmailAddressesTo, List<TEmailAddress> listTEmailAddressesFrom, List<TEmailAddress> listTEmailAddressesCc, List<TEmailAddress> listTEmailAddressesBcc) where TEmailAddress : class
     {
         if (emailUsername == null) emailUsername = "";
 
@@ -1120,7 +828,6 @@ public class EmailMessages
         return isEmailFromInbox;
     }
 
-    ///<summary>Use token based authentication to retrieve emails. Returns the count of new emails that were downloaded.</summary>
     private static int RetrieveFromInboxOAuth(EmailAddress emailAddressInbox, bool hasRetried = false)
     {
         if (emailAddressInbox.RefreshToken.IsNullOrEmpty()) throw new ODException(emailAddressInbox.EmailUsername + " needs to be re-authenticated. Please sign out and back in to continue.");
@@ -1130,7 +837,6 @@ public class EmailMessages
         return 0;
     }
 
-    ///<summary>Use Gmail authentication to retrieve emails. Returns the count of new emails that were downloaded.</summary>
     private static int RetrieveFromGmailInbox(EmailAddress emailAddressInbox, bool hasRetried = false)
     {
         //Get all the IDs in the users inbox (this is paginated so we have to continuously receive IDs until we don't receive a 'next page' token)
@@ -1230,69 +936,6 @@ public class EmailMessages
         return countNewEmails;
     }
 
-    /// <summary>
-    ///     Throws Exceptions. Use Microsoft authentication to retrieve emails. Returns the count of new emails that were
-    ///     downloaded.
-    /// </summary>
-    private static int RetrieveFromMicrosoftInbox(EmailAddress emailAddressInbox, bool hasRetried = false)
-    {
-        var listMessages = new List<Microsoft.Graph.Message>();
-        try
-        {
-            listMessages = MicrosoftApiConnector.RetrieveMessages(emailAddressInbox.EmailUsername, emailAddressInbox.AccessToken);
-        }
-        catch (Exception ex)
-        {
-            if (hasRetried) throw;
-
-            if (!ex.InnerException.Message.Contains("InvalidAuthenticationToken")) throw;
-
-            //Need to refresh the token and try again.
-            RefreshMicrosoftToken(emailAddressInbox);
-            return RetrieveFromMicrosoftInbox(emailAddressInbox, true);
-        }
-
-        //Filter out messages that have already been received.
-        var listMsgIds = EmailMessageUids.GetMsgIdsRecipientAddress(emailAddressInbox.EmailUsername)
-            .Select(x => x.TrimStart("MicrosoftId".ToCharArray())).ToList();
-        listMessages = listMessages.Where(x => !listMsgIds.Contains(x.Id)).ToList();
-        var countNewEmails = 0;
-        for (var i = 0; i < listMessages.Count; i++)
-        {
-            var emailMessageUid = new EmailMessageUid();
-            emailMessageUid.MsgId = listMessages[i].Id;
-            emailMessageUid.RecipientAddress = emailAddressInbox.EmailUsername;
-            try
-            {
-                //Check to see if the message has any inline attachments. If so then need to use MIME formatting.
-                var mimeMessage = MicrosoftApiConnector.GetMIMEMessage(emailAddressInbox.EmailUsername, emailAddressInbox.AccessToken, listMessages[i].Id);
-                if (IsEmailFromInbox(emailAddressInbox.EmailUsername, mimeMessage.To.ToList(), mimeMessage.From.ToList(), mimeMessage.Cc.ToList(), mimeMessage.Bcc.ToList()))
-                {
-                    //Convert MIME to our Email format and store the ID in the database
-                    var emailMessageProcessed = ProcessRawEmailMessageIn(mimeMessage.ToString(), 0, emailAddressInbox, true);
-                    if (emailMessageUid.RecipientAddress != emailMessageProcessed.RecipientAddress) emailMessageUid.RecipientAddress = emailMessageProcessed.RecipientAddress;
-                }
-
-                countNewEmails++;
-            }
-            catch (ThreadAbortException)
-            {
-                //This can happen if the application is exiting. We need to leave right away so the program does not lock up.
-                //Otherwise, this loop could continue for a while if there are a lot of messages to download.
-                throw;
-            }
-            catch (Exception ex)
-            {
-                //Something went wrong with processing this email. Still add the uid to not download again later.
-            }
-
-            EmailMessageUids.Insert(emailMessageUid);
-        }
-
-        return countNewEmails;
-    }
-
-    ///<summary>Parses a raw email into a usable object.</summary>
     public static IncomingMessage RawEmailToIncomingMessage(string strRawEmailIn, EmailAddress emailAddressInbox)
     {
         IncomingMessage incomingMessage = null;
@@ -1407,11 +1050,6 @@ public class EmailMessages
         return incomingMessage;
     }
 
-    /// <summary>
-    ///     Throws various exceptions if decryption fails.  Decryption will fail if the sender is not yet trusted by the
-    ///     recipient.  Decrypts and valudates trust.  If decrypted successfully, removes the sender signature from the
-    ///     decrypted attachments and moves them into incomingMessage.Signatures.
-    /// </summary>
     private static IncomingMessage DecryptIncomingMessage(IncomingMessage incomingMessage)
     {
         var directAgent = GetDirectAgentForEmailAddress(incomingMessage.Message.ToValue.Trim());
@@ -1419,23 +1057,7 @@ public class EmailMessages
         return directAgent.ProcessIncoming(incomingMessage); //Decrypts and valudates trust.  Also removes the signature from the decrypted attachments and moves them into incomingMessage.Signatures.
     }
 
-    /// <summary>
-    ///     Converts any raw email message (encrypted or not) into an EmailMessage object, and saves any email attachments to
-    ///     the emailattach table in the db.
-    ///     The emailMessageNum will be used to set EmailMessage.EmailMessageNum.  If emailMessageNum is 0, then the
-    ///     EmailMessage will be inserted into the db, otherwise the EmailMessage will be updated in the db.
-    ///     If the raw message is encrypted, then will attempt to decrypt.  If decryption fails, then the EmailMessage
-    ///     SentOrReceived will be ReceivedEncrypted and the EmailMessage body will be set to the entire contents of the raw
-    ///     email.
-    ///     If decryption succeeds, then EmailMessage SentOrReceived will be set to ReceivedDirect, the EmailMessage body will
-    ///     contain the decrypted body text, and a Direct Ack "processed" message will be sent back to the sender using the
-    ///     email settings from emailAddressReceiver.
-    ///     Set isAck to true if decrypting a direct message, false otherwise.
-    ///     Setting sentOrReceivedUnencrypted only works for unencrypted emails.  Currently used by DBM so that it doesn't
-    ///     force the status to received.
-    /// </summary>
-    public static EmailMessage ProcessRawEmailMessageIn(string strRawEmail, long emailMessageNum, EmailAddress emailAddressReceiver, bool isAck
-        , EmailSentOrReceived emailSentOrReceivedUnencrypted = EmailSentOrReceived.Received)
+    public static EmailMessage ProcessRawEmailMessageIn(string strRawEmail, long emailMessageNum, EmailAddress emailAddressReceiver, bool isAck, EmailSentOrReceived emailSentOrReceivedUnencrypted = EmailSentOrReceived.Received)
     {
         var incomingMessage = RawEmailToIncomingMessage(strRawEmail, emailAddressReceiver);
         var isEncrypted = IsMimeEntityEncrypted(incomingMessage.Message);
@@ -1525,38 +1147,7 @@ public class EmailMessages
             emailMessage.SentOrReceived = emailSentOrReceivedUnencrypted;
             emailMessage.RecipientAddress = emailAddressReceiver.EmailUsername.Trim();
         }
-
-        EhrSummaryCcd ehrSummaryCcd = null;
-        if (isEncrypted)
-            for (var i = 0; i < emailMessage.Attachments.Count; i++)
-            {
-                if (Path.GetExtension(emailMessage.Attachments[i].ActualFileName).ToLower() != ".xml") continue;
-
-                var strAttachPath = EmailAttaches.GetAttachPath();
-                var strAttachText = FileAtoZ.ReadAllText(FileAtoZ.CombinePaths(strAttachPath, emailMessage.Attachments[i].ActualFileName));
-                if (EhrCCD.IsCCD(strAttachText))
-                {
-                    if (emailMessage.PatNum == 0)
-                        try
-                        {
-                            var xmlDocCcd = new XmlDocument();
-                            xmlDocCcd.LoadXml(strAttachText);
-                            emailMessage.PatNum = EhrCCD.GetCCDpat(xmlDocCcd); // A match is not guaranteed, which is why we have a button to allow the user to change the patient.
-                        }
-                        catch
-                        {
-                            //Invalid XML.  Cannot match patient.
-                        }
-
-                    ehrSummaryCcd = new EhrSummaryCcd();
-                    ehrSummaryCcd.ContentSummary = strAttachText;
-                    ehrSummaryCcd.DateSummary = DateTime.Today;
-                    ehrSummaryCcd.EmailAttachNum = i; //Temporary value, so we can locate the FK down below.
-                    ehrSummaryCcd.PatNum = emailMessage.PatNum;
-                    break; //We can only handle one CCD message per email, because we only have one patnum field per email record and the ehrsummaryccd record requires a patnum.
-                }
-            }
-
+        
         if (emailMessage.PatNum == 0)
         {
             //If a patient match was not already found, try to locate patient based on the email address sent from.
@@ -1571,13 +1162,7 @@ public class EmailMessages
             Insert(emailMessage); //Also inserts all of the attachments in emailMessage.Attachments after setting each attachment EmailMessageNum properly.
         else
             Update(emailMessage);
-
-        if (ehrSummaryCcd != null)
-        {
-            ehrSummaryCcd.EmailAttachNum = emailMessage.Attachments[(int) ehrSummaryCcd.EmailAttachNum].EmailAttachNum;
-            EhrSummaryCcds.Insert(ehrSummaryCcd);
-        }
-
+        
         if (isEncrypted && isAck)
             //Send a Message Disposition Notification (MDN) message to the sender, as required by the Direct messaging specifications.
             //The MDN will be attached to the same patient as the incoming message.
@@ -1586,17 +1171,7 @@ public class EmailMessages
         return emailMessage;
     }
 
-    /// <summary>
-    ///     Email bodies can have multiple parts.  Usually, for HTML email, there will be one HTML mime part plus one mime
-    ///     part for each image (in base64) which is part of the email message.  HTML messages usually also have one mime part
-    ///     for the text version of the email message, in case the email client does not have html capabilities.  This function
-    ///     extracts the text for all mime body parts which fully or partially match the specified mime content types.  For
-    ///     example, you could specify a mime content of "image/" to find images of all types, or you could specify a mime
-    ///     content type of "image/jpeg" to find only jpeg images.  Always returns one valid list for each specified mime
-    ///     content types, where the individual lists are always present but may be zero length.
-    /// </summary>
-    public static List<List<MimeEntity>> GetMimePartsForMimeTypes(string strRawEmailIn, EmailAddress emailAddressInbox,
-        params string[] stringArrayMimeContentTypes)
+    public static List<List<MimeEntity>> GetMimePartsForMimeTypes(string strRawEmailIn, EmailAddress emailAddressInbox, params string[] stringArrayMimeContentTypes)
     {
         IncomingMessage incomingMessage = null;
         List<MimeEntity> listMimeEntityLeafNodes = null;
@@ -1672,14 +1247,9 @@ public class EmailMessages
         return mimeEntityForImage.Headers["Content-ID"].Value.Replace("<", "").Replace(">", "");
     }
 
-    /// <summary>
-    ///     Generates the image and returns the path to where the file was saved.  Returns null if the image could not be
-    ///     created.
-    ///     Used to save images for received html messages.
-    /// </summary>
-    public static string SaveMimeImageToFile(MimeEntity mimeEntityForImage, string directoryPath, string sourceFileName)
+    public static void SaveMimeImageToFile(MimeEntity mimeEntityForImage, string directoryPath, string sourceFileName)
     {
-        if (!IsMimeEntityBase64(mimeEntityForImage)) return null;
+        if (!IsMimeEntityBase64(mimeEntityForImage)) return;
 
         try
         {
@@ -1692,12 +1262,12 @@ public class EmailMessages
             {
                 //Access the bitmap via passed in actualFilePath and actualFileName from EmailAttach obj, since we strip out embedded images from emails
                 //and save them separately as attachments.
-                bitmap = FileAtoZ.GetImage(FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(), sourceFileName));
+                bitmap = new Bitmap(Path.Combine(EmailAttaches.GetAttachPath(), sourceFileName));
             }
             catch (Exception ex)
             {
                 //Something went wrong fetching image from file. Attempt to get from mimeEntityForImage, in case we didn't extract it during download.
-                if (!IsMimeEntityBase64(mimeEntityForImage)) return null;
+                if (!IsMimeEntityBase64(mimeEntityForImage)) return;
 
                 var byteArrayForImage = Convert.FromBase64String(mimeEntityForImage.Body.Text);
                 memoryStream = new MemoryStream(byteArrayForImage);
@@ -1745,23 +1315,13 @@ public class EmailMessages
             bitmap.Save(filePath, imageFormat);
             bitmap.Dispose();
             memoryStream?.Dispose();
-            return filePath;
+            return;
         }
         catch
         {
         }
-
-        return null;
     }
 
-    #endregion Receiving
-
-    #region Helpers
-
-    /// <summary>
-    ///     Refreshes our cached copy of the public key certificate store and the anchor certificate store from the
-    ///     Windows certificate store.
-    /// </summary>
     public static void RefreshCertStoreExternal(EmailAddress emailAddressLocal)
     {
         var strSenderAddress = emailAddressLocal.EmailUsername.Trim(); //Cannot be emailAddressFrom.SenderAddress, or else will not find the right encryption certificate.
@@ -1775,7 +1335,6 @@ public class EmailMessages
         }
     }
 
-    ///<summary>Helper method that refreshes the user's Gmail Access Token and updates it in the database.</summary>
     public static void RefreshGmailToken(EmailAddress emailAddress)
     {
         var dbToken = EmailAddresses.GetOneFromDb(emailAddress.EmailAddressNum).AccessToken;
@@ -1791,29 +1350,6 @@ public class EmailMessages
         Signalods.SetInvalid(InvalidType.Email);
     }
 
-    ///<summary>Attempts to refresh the Access token for the passed in EmailAddress.</summary>
-    public static void RefreshMicrosoftToken(EmailAddress emailAddress)
-    {
-        var dbToken = EmailAddresses.GetOneFromDb(emailAddress.EmailAddressNum).AccessToken;
-        if (!dbToken.IsNullOrEmpty() && dbToken != emailAddress.AccessToken)
-        {
-            emailAddress.AccessToken = dbToken; //This means that another service has already updated the token in the db, so use that one
-            return;
-        }
-
-        var microsoftTokenHelper = System.Threading.Tasks.Task.Run(async () =>
-            await MicrosoftApiConnector.GetAccessToken(emailAddress.EmailUsername, emailAddress.RefreshToken)).GetAwaiter().GetResult();
-
-        if (microsoftTokenHelper.ErrorMessage != "" || microsoftTokenHelper.AccessToken == "") return; //authentication was cancelled or there was an error so just return.
-
-        emailAddress.AccessToken = microsoftTokenHelper.AccessToken;
-        emailAddress.RefreshToken = microsoftTokenHelper.AccountInfo;
-        EmailAddresses.Update(emailAddress);
-        EmailAddresses.RefreshCache();
-        Signalods.SetInvalid(InvalidType.Email);
-    }
-
-    ///<summary>Converts an OD email address to a basic email address. Decrypts the password.</summary>
     public static BasicEmailAddress ODEmailAddressToBasic(EmailAddress emailAddressOd)
     {
         var basicEmailAddress = new BasicEmailAddress();
@@ -1828,7 +1364,6 @@ public class EmailMessages
         return basicEmailAddress;
     }
 
-    ///<summary>Converts an OD email message to a basic email message. Tidys all fields and downloads any attachments.</summary>
     public static BasicEmailMessage ODEmailMessageToBasic(EmailMessage emailMessageOd)
     {
         var basicEmailMessage = new BasicEmailMessage();
@@ -1852,11 +1387,6 @@ public class EmailMessages
         return basicEmailMessage;
     }
 
-    /// <summary>
-    ///     Returns a list of attachments for the given od email message. The first item in the tuple is the full path to the
-    ///     attachment and
-    ///     the second item is the display name. Downloads the attachments to ensure they are accessible before returning.
-    /// </summary>
     public static List<BasicEmailAttachment> GetListAttachmentsAndDownload(params EmailAttach[] emailAttachArray)
     {
         var listBasicEmailAttachmentsFilePaths = new List<BasicEmailAttachment>();
@@ -1873,13 +1403,6 @@ public class EmailMessages
         return listBasicEmailAttachmentsFilePaths;
     }
 
-    /// <summary>
-    ///     Call to cleanup newlines within a string before including in an email. The RFC 822 guide states that every
-    ///     single line in a raw email message must end with \r\n, also known as CRLF. Certain email providers will reject
-    ///     outgoing email from us if we have any lines ending with \n or \r. Email providers that we know care: Prosites.
-    ///     Other email providers seem to handle all different types of newlines, even though \r or \n by itself is not
-    ///     standard. This function replaces all \r and \n with \r\n.
-    /// </summary>
     public static string BodyTidy(string str)
     {
         //This function assumes the worst case, which is a string that has all 3 types of newlines: \r, \n and \r\n
@@ -1890,11 +1413,6 @@ public class EmailMessages
         return retVal;
     }
 
-    /// <summary>
-    ///     Appends an autograph to the bottom of the email body text if the autograph is not already present and returns
-    ///     the modified body text. When the functionality to reply to emails is implemented, this will need to be modified so
-    ///     that it inserts the autograph text at the bottom of the new message being composed, but above the message history.
-    /// </summary>
     public static string InsertAutograph(string bodyText, EmailAutograph emailAutograph)
     {
         if (emailAutograph == null) return bodyText;
@@ -1907,12 +1425,6 @@ public class EmailMessages
         return bodyText;
     }
 
-    /// <summary>
-    ///     Throws an exception if there is a permission issue.  Creates all of the necessary certificate stores for email
-    ///     encryption (Direct and Standard) if they do not already exist.
-    ///     There is no way for the user to create these stores manually through Microsoft Management Console (mmc.exe) and
-    ///     they are needed to import certificates.
-    /// </summary>
     public static void CreateCertificateStoresIfNeeded()
     {
         SystemX509Store.OpenAnchorEdit().Dispose(); //Create the NHINDAnchor certificate store if it does not already exist on the local machine.
@@ -1920,11 +1432,6 @@ public class EmailMessages
         SystemX509Store.OpenPrivateEdit().Dispose(); //Create the NHINDPrivate certificate store if it does not already exist on the local machine.
     }
 
-    /// <summary>
-    ///     Throws exceptions. Annuls the attachment text in the body section of all attachment mime parts (the Base64
-    ///     content). Returns the entire incoming message as raw text which is meant to be stored in the RawEmailIn column as
-    ///     to save space in the database.
-    /// </summary>
     private static string DissolveAttachmentsFromIncomingMessage(IncomingMessage incomingMessage)
     {
         var rawEmail = incomingMessage.SerializeMessage(); //The original raw message, unaltered.
@@ -1952,10 +1459,6 @@ public class EmailMessages
         return rawEmail;
     }
 
-    /// <summary>
-    ///     Performs wiki tag replacements for images and attaches images to email. Will return the whole correct html
-    ///     text that needs to be sent. Downloads the files locally if needed. The out variable is a list of local paths.
-    /// </summary>
     public static string FindAndReplaceImageTagsWithAttachedImage(string localHtml, bool areImagesDownloaded, out List<string> listLocalImagePaths)
     {
         return FindAndReplaceImageTags(localHtml, areImagesDownloaded, ReplaceSrcWithCid, out listLocalImagePaths);
@@ -1978,14 +1481,12 @@ public class EmailMessages
         return Regex.Replace(value, @"src\s*=\s*""(.*?)""", replacement);
     }
 
-    ///<summary>Replaces html img tags with embeded base64 representations of the images.</summary>
     public static string EmbedImages(string localHtml, bool areImagesDownloaded)
     {
         return FindAndReplaceImageTags(localHtml, areImagesDownloaded, ReplaceSrcWithEmbedded, out _);
     }
 
-    private static string FindAndReplaceImageTags(string localHtml, bool areImagesDownloaded, ReplaceImgSrc replaceImgSrc
-        , out List<string> listLocalImagePaths)
+    private static string FindAndReplaceImageTags(string localHtml, bool areImagesDownloaded, ReplaceImgSrc replaceImgSrc, out List<string> listLocalImagePaths)
     {
         listLocalImagePaths = new List<string>();
         var matchCollection = Regex.Matches(localHtml, @"<img\s+.*?src\s*=\s*""(.*?)""");
@@ -1995,28 +1496,14 @@ public class EmailMessages
             var imagePath = matchCollection[i].Result("$1").Replace("&amp;", "&");
             var imgName = Path.GetFileName(imagePath);
             var imageDir = ImageStore.GetEmailImagePath();
-            var imagePathLocal = FileAtoZ.CombinePaths(imageDir, imgName);
+            var imagePathLocal = Path.Combine(imageDir, imgName);
             imgName = HttpUtility.UrlEncode(imgName); //File names with spaces won't show as embedded image without doing this.
-            if (false)
-            {
-                if (areImagesDownloaded)
-                {
-                    imagePathLocal = imagePath; //temp file has already been created when selecting image, use the path to the temp file. 
-                }
-                else
-                {
-                    //The attachment needs to be a local file, so we download the images to temp files.	
-                    var tempFile = PrefC.GetRandomTempFile(Path.GetExtension(imagePathLocal));
-                    FileAtoZ.Copy(FileAtoZ.CombinePaths(imageDir, imagePath), tempFile, FileAtoZSourceDestination.AtoZToLocal);
-                    imagePathLocal = tempFile;
-                }
-            }
-            else if (!FileAtoZ.Exists(imagePathLocal) && FileAtoZ.Exists(imagePath))
+            if (!File.Exists(imagePathLocal) && File.Exists(imagePath))
             {
                 //File is not in OpenDentImages folder, but is elsewhere locally, so copy it there.
-                FileAtoZ.Copy(imagePath, imagePathLocal, FileAtoZSourceDestination.AtoZToLocal);
+                File.Copy(imagePath, imagePathLocal);
             }
-            else if (!FileAtoZ.Exists(imagePathLocal) && !FileAtoZ.Exists(imagePath))
+            else if (!File.Exists(imagePathLocal) && !File.Exists(imagePath))
             {
                 //File not found.  Leave the <img src="filename"></img> alone.  This will either be an internet hosted image or a broken image link.
                 continue;
@@ -2031,11 +1518,6 @@ public class EmailMessages
         return localHtml;
     }
 
-    /// <summary>
-    ///     If EmailDisclaimerIsOn is false then returns emailBody unedited. Otherwise appends EmailDisclaimerTemplate to
-    ///     bottom of emailBody and returns. Considers clinic postal address when necessary. Defaults to practice postal
-    ///     address if clinics are turned off or current clinic addres is not available.
-    /// </summary>
     public static string FindAndReplacePostalAddressTag(string emailBody, long clinicNum)
     {
         var disclaimerWithAddress = GetEmailDisclaimer(clinicNum);
@@ -2044,11 +1526,6 @@ public class EmailMessages
         return emailBody + "\r\n\r\n\r\n" + disclaimerWithAddress;
     }
 
-    /// <summary>
-    ///     Traverses the mime tree of the given email message and returns all attachment mime parts,
-    ///     including older attachments from the beginning of the email thread.
-    ///     Set limitCount to a number greater than 0 if you wish to stop searching for attachments once this threshold is met.
-    /// </summary>
     private static List<MimeEntity> GetAttachmentMimeParts(Message message, int limitCount = 0)
     {
         var listMimeEntitesAttachments = new List<MimeEntity>();
@@ -2085,10 +1562,6 @@ public class EmailMessages
         return listMimeEntitesAttachments;
     }
 
-    /// <summary>
-    ///     Gets the value in the EmailDisclaimerTemplate preference with the [PostalAddress] replaced. Returns an empty
-    ///     string if the pref is off.
-    /// </summary>
     public static string GetEmailDisclaimer(long clinicNum)
     {
         if (!PrefC.GetBool(PrefName.EmailDisclaimerIsOn)) return "";
@@ -2118,10 +1591,6 @@ public class EmailMessages
         return StringBuilder.ToString();
     }
 
-    /// <summary>
-    ///     Throws exceptions if there are permission issues.  Recreates the directagent in order to refresh the
-    ///     certificate stores.
-    /// </summary>
     private static DirectAgent GetDirectAgentForEmailAddress(params string[] stringArrayEmailAddresses)
     {
         var listDomains = new List<string>();
@@ -2143,11 +1612,6 @@ public class EmailMessages
         return _directAgent;
     }
 
-    /// <summary>
-    ///     Returns -1 if the given address has at least one known and trusted certificate.
-    ///     Returns a non-negative count of the number of known untrusted certificates if there are no known trusted
-    ///     certificates.
-    /// </summary>
     public static int GetReceiverUntrustedCount(string strAddressTest)
     {
         var emailPublicResolver = new EmailPublicResolver();
@@ -2182,7 +1646,6 @@ public class EmailMessages
         return isTrusted;
     }
 
-    /// <summary>Replaces new lines with a space. Emails with new line characters in the subject won't send.</summary>
     public static string SubjectTidy(string str)
     {
         var retVal = str.Replace("\r\n", " ");
@@ -2191,9 +1654,7 @@ public class EmailMessages
         return retVal;
     }
 
-    ///<summary>Returns true if trust already exists or has just been established for the given email address.</summary>
-    public static bool TryAddTrustDirect(string strAddressTest,
-        List<X509Certificate2> listX509Certificate2sValidDirect = null, List<X509Certificate2> listX509Certificate2sInvalidDirect = null)
+    public static bool TryAddTrustDirect(string strAddressTest, List<X509Certificate2> listX509Certificate2sValidDirect = null, List<X509Certificate2> listX509Certificate2sInvalidDirect = null)
     {
         if (strAddressTest.Trim() == "") return false;
 
@@ -2226,7 +1687,6 @@ public class EmailMessages
         }
     }
 
-    ///<summary>Throws exceptions.  The smimeP7sFilePath must point to a smime.p7s file.</summary>
     public static X509Certificate2 GetEmailSignatureFromSmimeP7sFile(string smimeP7sFilePath)
     {
         X509Certificate2 x509Certificate2Signed2 = null;
@@ -2243,13 +1703,6 @@ public class EmailMessages
         return x509Certificate2Signed2;
     }
 
-    /// <summary>
-    ///     Returns the encryption/decryption certificate for the specified emailAddress from the store of private
-    ///     certificates, or returns null if none found.
-    ///     Used for creating a signing signature in email encryption, which requires the private key (the public key alone is
-    ///     not enough, we tried it and an exception is thrown by Dot NET).
-    ///     IMPORTANT: Be careful what you do with the private certificate.  It must never be shared with another party.
-    /// </summary>
     public static X509Certificate2 GetCertFromPrivateStore(string emailAddress)
     {
         //Look for domain level and address level trust certificates.
@@ -2278,7 +1731,6 @@ public class EmailMessages
         return x509Certificate2CollectionPriv[0];
     }
 
-    ///<summary>Throws exceptions.</summary>
     public static void TryAddTrustForSignature(X509Certificate2 x509Certificate2Signed)
     {
         try
@@ -2302,10 +1754,6 @@ public class EmailMessages
         }
     }
 
-    /// <summary>
-    ///     Sometimes an email From address will contain the person's name along with their email address.  This function
-    ///     strips out the person's name if present.
-    /// </summary>
     public static string GetAddressSimple(string emailAddress)
     {
         if (string.IsNullOrEmpty(emailAddress)) return "";
@@ -2319,7 +1767,6 @@ public class EmailMessages
         return emailAddress.Substring(startIndex, endIndex - startIndex + 1).Trim();
     }
 
-    ///<summary>The specified emailAddress must be a properly formatted email address or properly formatted domain name.</summary>
     private static string GetDomainForAddress(string emailAddress)
     {
         emailAddress = GetAddressSimple(emailAddress);
@@ -2328,16 +1775,7 @@ public class EmailMessages
         return emailAddress;
     }
 
-    /// <summary>
-    ///     Searches the internet (DNS and LDAP) for hosted public certificates.
-    ///     If public certificates are discovered from the Internet, then existing certificates in the store for that address
-    ///     will be replaced with the
-    ///     discovered certificates.  The trust for any certificate must be added separately.
-    ///     Returns true if the strAddressTest given is a Direct address (certificates were located in DNS or LDAP).
-    ///     Returns false if the strAddressTest is to be treated as a standard encrypted email address.
-    ///     Throws exceptions when no certificates were found or if there was a network failure.
-    /// </summary>
-    private static bool FindPublicCertForAddress(string strAddressTest, List<X509Certificate2> listX509Certificate2sValid, List<X509Certificate2> listX509Certificate2sInvalid)
+    private static void FindPublicCertForAddress(string strAddressTest, List<X509Certificate2> listX509Certificate2sValid, List<X509Certificate2> listX509Certificate2sInvalid)
     {
         listX509Certificate2sValid.Clear();
         listX509Certificate2sInvalid.Clear();
@@ -2385,7 +1823,7 @@ public class EmailMessages
 
             emailPublicResolver.Store.Add(listX509Certificate2sValid); //Write the discovered certificates to the Windows certificate store for future reference.
             emailPublicResolver.Store.Add(listX509Certificate2sInvalid); //Write the discovered certificates to the Windows certificate store for future reference.
-            return true;
+            return;
         }
 
         if (emailPublicResolver == null) emailPublicResolver = new EmailPublicResolver(); //Open for read only.  Nearly all users have read-only permission.
@@ -2393,16 +1831,9 @@ public class EmailMessages
         //No certificates discovered in DNS or LDAP.  Either the address is not a Direct address or the servers are down.
         //Treat the address as a standard encrypted email address and get the existing certificates from the store.
         emailPublicResolver.GetCertificates(strAddressTest, listX509Certificate2sValid, listX509Certificate2sInvalid);
-        return false;
     }
 
-    /// <summary>
-    ///     Send certificate DNS query to DNS server IP address to look for an email encryption certificate for the given
-    ///     emailAddress.
-    ///     Adds the discovered certificates (if any) to the two X509Certificate2 lists given.
-    /// </summary>
-    private static void DnsQueryForCert(IPAddress ipAddressDnsServer, MailAddress emailAddress,
-        List<X509Certificate2> listX509Certificate2sDiscoveredActive, List<X509Certificate2> listX509Certificate2sDiscoveredInactive)
+    private static void DnsQueryForCert(IPAddress ipAddressDnsServer, MailAddress emailAddress, List<X509Certificate2> listX509Certificate2sDiscoveredActive, List<X509Certificate2> listX509Certificate2sDiscoveredInactive)
     {
         ICertificateResolver certResolverInternetDns =
             new DnsCertResolver(ipAddressDnsServer);
@@ -2423,7 +1854,6 @@ public class EmailMessages
         }
     }
 
-    ///<summary>Gets all mime parts in the message which do not have child mime parts.  Returns null on error.</summary>
     private static List<MimeEntity> GetMimeLeafNodes(Message message)
     {
         //Think of the mime structure as a tree.
@@ -2470,10 +1900,6 @@ public class EmailMessages
         return listMimeEntitiesLeafNodes;
     }
 
-    /// <summary>
-    ///     Throws exceptions.  Converts the Health.Direct.Common.Mail.Message into an OD EmailMessage.  The Direct
-    ///     library is used for both encrypted and unencrypted email.  Set hasAttachments to false to exclude attachments.
-    /// </summary>
     private static EmailMessage ConvertMessageToEmailMessage(Message message, bool hasAttachments, bool isOutbound)
     {
         var emailMessage = new EmailMessage();
@@ -2649,12 +2075,12 @@ public class EmailMessages
             //Failed to extract all attachments from the email message.  Cleanup the attachments which were successfully extracted.
             for (var i = 0; i < emailMessage.Attachments.Count; i++)
             {
-                var attachFilePath = FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(), emailMessage.Attachments[i].ActualFileName);
-                if (!FileAtoZ.Exists(attachFilePath)) continue;
+                var attachFilePath = Path.Combine(EmailAttaches.GetAttachPath(), emailMessage.Attachments[i].ActualFileName);
+                if (!File.Exists(attachFilePath)) continue;
 
                 try
                 {
-                    FileAtoZ.Delete(attachFilePath);
+                    File.Delete(attachFilePath);
                 }
                 catch
                 {
@@ -2668,10 +2094,6 @@ public class EmailMessages
         return emailMessage;
     }
 
-    /// <summary>
-    ///     Converts our internal EmailMessage object to a Direct message object.  Used for outgoing email.  Wraps the
-    ///     message.
-    /// </summary>
     private static Message ConvertEmailMessageToMessage(EmailMessage emailMessage, bool hasAttachments)
     {
         //We need to use emailAddressFrom.Username instead of emailAddressFrom.SenderAddress, because of how strict encryption is for matching the name to the certificate.
@@ -2727,9 +2149,9 @@ public class EmailMessages
             var strAttachPath = EmailAttaches.GetAttachPath();
             for (var i = 0; i < emailMessage.Attachments.Count; i++)
             {
-                var strAttachFile = FileAtoZ.CombinePaths(strAttachPath, emailMessage.Attachments[i].ActualFileName);
+                var strAttachFile = Path.Combine(strAttachPath, emailMessage.Attachments[i].ActualFileName);
                 //We always attach with base64 encoding, so that we do not have to worry about violating the RFC822 email format with binary characters or invalid newlines.
-                var mimeEntityAttach = new MimeEntity(Convert.ToBase64String(FileAtoZ.ReadAllBytes(strAttachFile)));
+                var mimeEntityAttach = new MimeEntity(Convert.ToBase64String(File.ReadAllBytes(strAttachFile)));
                 mimeEntityAttach.ContentTransferEncoding = "base64";
                 mimeEntityAttach.ContentDisposition = "attachment; filename=\"" + emailMessage.Attachments[i].DisplayedFileName + "\"";
                 mimeEntityAttach.ContentType = Mime.GetMimeTypeForEmail(strAttachFile) + "; name=\"" + emailMessage.Attachments[i].DisplayedFileName + "\"";
@@ -2753,10 +2175,6 @@ public class EmailMessages
         return message;
     }
 
-    /// <summary>
-    ///     Decodes the subject line of an email, which may contain non-ascii characters, either due to base64 or
-    ///     quoted-printable encoding.
-    /// </summary>
     public static string ProcessInlineEncodedText(string text)
     {
         //str must be in "=?bodycharset?[B,Q,iso-8859-1,etc]?input?=" format for Attachment to properly decode non-ascii chars.  This is the case for 
@@ -2837,7 +2255,6 @@ public class EmailMessages
         return DecodeBodyText(sp, stringBuilderBodyText.ToString(), encoding);
     }
 
-    ///<summary>Decodes the body text of an email.</summary>
     public static string DecodeBodyText(string sp, string strBodyTextUnwrapped, Encoding encoding)
     {
         var listBodyEncodeds = strBodyTextUnwrapped.Split(new[] {sp}, StringSplitOptions.None).ToList();
@@ -2938,7 +2355,6 @@ public class EmailMessages
         return true;
     }
 
-    ///<summary>Returns true if plain text, xml, html, etc...</summary>
     private static bool IsMimeEntityText(MimeEntity mimeEntity)
     {
         if (mimeEntity.ContentType == null) return false;
@@ -2948,7 +2364,6 @@ public class EmailMessages
         return true;
     }
 
-    ///<summary>Returns true if plain text, xml, html, etc...</summary>
     private static bool IsMimeEntityTextPlain(MimeEntity mimeEntity)
     {
         if (mimeEntity.ContentType == null) return false;
@@ -3001,7 +2416,6 @@ public class EmailMessages
             .ToList();
         return listEmailSentOrReceivedsSecureTypes.Contains(emailSentOrReceived);
     }
-
 
     public static bool IsUnsent(EmailSentOrReceived emailSentOrReceived)
     {
@@ -3093,8 +2507,7 @@ public class EmailMessages
 
         return listEmailSentOrReceivedsSent;
     }
-
-
+    
     public static EmailMessage CreateReply(EmailMessage emailMessageReceived, EmailAddress emailAddress, bool isReplyAll = false)
     {
         var emailMessageReply = new EmailMessage();
@@ -3116,7 +2529,6 @@ public class EmailMessages
         return emailMessageReply;
     }
 
-    ///<summary>Sets emailReply.ToAddress and emailReply.FromAddress such that emailReply is a reply email to emailReceived.</summary>
     public static void FillEmailAddressesForReply(EmailMessage emailMessageReply, EmailMessage emailMessageReceived, EmailAddress emailAddressSender, bool isReplyAll)
     {
         emailMessageReply.ToAddress = ProcessInlineEncodedText(emailMessageReceived.FromAddress);
@@ -3141,7 +2553,6 @@ public class EmailMessages
         emailMessageReply.FromAddress = ProcessInlineEncodedText(emailMessageReceived.RecipientAddress);
     }
 
-    //Copies CC addresses from  received email into reply email, and removes the users email address from CC.
     public static void FillCCAddressesForReply(EmailMessage emailMessageReply, EmailMessage emailMessageReceived, EmailAddress emailAddressSender)
     {
         if (emailMessageReceived.CcAddress.IsNullOrEmpty()) return;
@@ -3187,10 +2598,6 @@ public class EmailMessages
         return emailMessageForward;
     }
 
-    /// <summary>
-    ///     Sets the EmailMessage body for forward or reply emails from the emailMessageReceived. This method also handles
-    ///     the logic for setting it's attachments from emailMessageReceieved.
-    /// </summary>
     private static EmailMessage SetForwardOrReplyBody(EmailMessage emailMessage, EmailMessage emailMessageReceived, EmailAddress emailAddress)
     {
         var bodyTextHeader = "\r\n\r\n\r\nOn " + emailMessageReceived.MsgDateTime + " " + ProcessInlineEncodedText(emailMessageReceived.FromAddress) + " sent:\r\n";
@@ -3227,7 +2634,7 @@ public class EmailMessages
             var rawEmailText = "";
             try
             {
-                rawEmailText = MarkupEdit.TranslateToXhtml(bodyText, false, isEmail: true);
+                rawEmailText = MarkupEdit.TranslateToXhtml(bodyText, isEmail: true);
             }
             catch (Exception e)
             {
@@ -3262,12 +2669,6 @@ public class EmailMessages
         return emailMessage;
     }
 
-    /// <summary>
-    ///     This method sets message.HtmlText by putting the BodyText into an HTML body.  Will only set
-    ///     HtmlText,AreImagesDownloaded,HtmlType if
-    ///     the email contains HTML tags.  If HTML tags are not found, makes no changes.
-    /// </summary>
-    /// <exception cref="ApplicationException">For BodyText not properly formatted as HTML.</exception>
     public static void PrepHtmlEmail(EmailMessage emailMessage)
     {
         if (emailMessage.HtmlType != EmailType.RawHtml)
@@ -3287,7 +2688,7 @@ public class EmailMessages
             return;
         }
 
-        emailMessage.HtmlText = MarkupEdit.TranslateToXhtml(emailMessage.BodyText, false, false, true);
+        emailMessage.HtmlText = MarkupEdit.TranslateToXhtml(emailMessage.BodyText, true);
         emailMessage.HtmlType = EmailType.Html;
         emailMessage.AreImagesDownloaded = true;
     }
@@ -3299,8 +2700,8 @@ public class EmailMessages
         var attachPath = EmailAttaches.GetAttachPath();
         var random = new Random();
         var fileName = DateTime.Now.ToString("yyyyMMdd") + DateTime.Now.TimeOfDay.Ticks + random.Next(1000) + ".pdf";
-        var filePathAndName = FileAtoZ.CombinePaths(attachPath, fileName);
-        FileAtoZ.Copy(ImageStore.GetFilePath(document, patFolder), filePathAndName, FileAtoZSourceDestination.AtoZToAtoZ);
+        var filePathAndName = Path.Combine(attachPath, fileName);
+        File.Copy(ImageStore.GetFilePath(document, patFolder), filePathAndName);
         var emailMessage = Statements.GetEmailMessageForStatement(statement, patient);
         var emailAttach = new EmailAttach();
         emailAttach.DisplayedFileName = "Statement.pdf";
@@ -3309,23 +2710,11 @@ public class EmailMessages
         return emailMessage;
     }
 
-    #endregion Helpers
-
-    #region Testing
-
-    /// <summary>
-    ///     This method is only for ehr testing purposes, and it always uses the hidden pref EHREmailToAddress to send to.
-    ///     For privacy reasons, this cannot be used with production patient info.  AttachName should include extension.
-    /// </summary>
     public static void SendTestUnsecure(string subjectAndBody, string attachName, string attachContents)
     {
         SendTestUnsecure(subjectAndBody, attachName, attachContents, "", "");
     }
 
-    /// <summary>
-    ///     This method is only for ehr testing purposes, and it always uses the hidden pref EHREmailToAddress to send to.
-    ///     For privacy reasons, this cannot be used with production patient info.  AttachName should include extension.
-    /// </summary>
     public static void SendTestUnsecure(string subjectAndBody, string attachName1, string attachContents1, string attachName2, string attachContents2)
     {
         var strTo = PrefC.GetString(PrefName.EHREmailToAddress);
@@ -3354,578 +2743,16 @@ public class EmailMessages
         emailMessage.MsgType = EmailMessageSource.EHR;
         SendEmail(emailMessage, emailAddressFrom);
     }
-
-    private static string GetTestEmail1()
-    {
-        return @"This is a multipart message in MIME format.
-
-------=_NextPart_000_0074_01CC35A4.193BF450
-Content-Type: multipart/alternative;
-	boundary=""----=_NextPart_001_0075_01CC35A4.193BF450""
-
-
-------=_NextPart_001_0075_01CC35A4.193BF450
-Content-Type: text/plain;
-	charset=""us-ascii""
-Content-Transfer-Encoding: 7bit
-
-test
-
-
-------=_NextPart_001_0075_01CC35A4.193BF450
-Content-Type: text/html;
-	charset=""us-ascii""
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D""urn:schemas-microsoft-com:vml"" =
-xmlns:o=3D""urn:schemas-microsoft-com:office:office"" =
-xmlns:w=3D""urn:schemas-microsoft-com:office:word"" =
-xmlns:m=3D""http://schemas.microsoft.com/office/2004/12/omml"" =
-xmlns=3D""http://www.w3.org/TR/REC-html40""><head><meta =
-http-equiv=3DContent-Type content=3D""text/html; =
-charset=3Dus-ascii""><meta name=3DGenerator content=3D""Microsoft Word 14 =
-(filtered medium)""><style><!--
-/* Font Definitions */
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-/* Style Definitions */
-p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:""Calibri"",""sans-serif"";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:""Calibri"",""sans-serif"";
-	color:windowtext;}
-..MsoChpDefault
-	{mso-style-type:export-only;
-	font-family:""Calibri"",""sans-serif"";}
-@page WordSection1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.WordSection1
-	{page:WordSection1;}
---></style><!--[if gte mso 9]><xml>
-<o:shapedefaults v:ext=3D""edit"" spidmax=3D""1026"" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<o:shapelayout v:ext=3D""edit"">
-<o:idmap v:ext=3D""edit"" data=3D""1"" />
-</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue =
-vlink=3Dpurple><div class=3DWordSection1><p =
-class=3DMsoNormal>test<o:p></o:p></p></div></body></html>
-------=_NextPart_001_0075_01CC35A4.193BF450--
-
-------=_NextPart_000_0074_01CC35A4.193BF450
-Content-Type: text/plain;
-	name=""SarahEbbert_v4.txt""
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename=""SarahEbbert_v4.txt""
-
-<?xml version=3D""1.0"" encoding=3D""UTF-8""?>
-<ClinicalDocument xmlns=3D""urn:hl7-org:v3"">
-   <typeId extension=3D""POCD_HD0000040"" root=3D""2.16.840.1.113883.1.3"" =
-/>
-   <templateId root=3D""2.16.840.1.113883.10.20.1"" />
-   <id />
-   <code code=3D""34133-9"" codeSystemName=3D""LOINC"" =
-codeSystem=3D""2.16.840.1.113883.6.1"" displayName=3D""Summary of episode =
-note"" />
-   <documentationOf>
-      <serviceEvent classCode=3D""PCPR"">
-         <effectiveTime>
-            <high value=3D""20110628075321-0700"" />
-            <low value=3D""19621008000000-0700"" />
-         </effectiveTime>
-      </serviceEvent>
-   </documentationOf>
-   <languageCode value=3D""en-US"" />
-   <templateId root=3D""2.16.840.1.113883.10.20.1"" />
-   <effectiveTime value=3D""20110628075321-0700"" />
-   <recordTarget>
-      <patientRole>
-         <id value=3D""7"" />
-         <addr use=3D""HP"">
-            <streetAddressLine>856 Salt Street</streetAddressLine>
-            <streetAddressLine></streetAddressLine>
-            <city>Shawville</city>
-            <state>PA</state>
-            <country></country>
-         </addr>
-         <patient>
-            <name use=3D""L"">
-               <given>Sarah</given>
-               <given></given>
-               <family>Ebbert</family>
-               <suffix qualifier=3D""TITLE""></suffix>
-            </name>
-         </patient>
-      </patientRole>
-      <text>
-         <table width=3D""100%"" border=3D""1"">
-            <thead>
-               <tr>
-                  <th>Name</th>
-                  <th>Date of Birth</th>
-                  <th>Gender</th>
-                  <th>Identification Number</th>
-                  <th>Identification Number Type</th>
-                  <th>Address/Phone</th>
-               </tr>
-            </thead>
-            <tbody>
-               <tr>
-                  <td>Ebbert, Sarah </td>
-                  <td>10/08/1962</td>
-                  <td>Female</td>
-                  <td>7</td>
-                  <td>Open Dental PatNum</td>
-                  <td>856 Salt Street=20
-Shawville, PA
-16873
-(814)645-6489</td>
-               </tr>
-            </tbody>
-         </table>
-      </text>
-   </recordTarget>
-   <author>
-      <assignedAuthor>
-         <assignedPerson>
-            <name>Auto Generated</name>
-         </assignedPerson>
-      </assignedAuthor>
-   </author>
-   <component>
-      <!--Problems-->
-      <section>
-         <templateId root=3D""2.16.840.1.113883.10.20.1.11"" =
-assigningAuthorityName=3D""HL7 CCD"" />
-         <!--Problems section template-->
-         <code code=3D""11450-4"" codeSystemName=3D""LOINC"" =
-codeSystem=3D""2.16.840.1.113883.6.1"" displayName=3D""Problem list"" />
-         <title>Problems</title>
-         <text>
-            <table width=3D""100%"" border=3D""1"">
-               <thead>
-                  <tr>
-                     <th>ICD-9 Code</th>
-                     <th>Patient Problem</th>
-                     <th>Date Diagnosed</th>
-                     <th>Status</th>
-                  </tr>
-               </thead>
-               <tbody>
-                  <tr ID=3D""CondID-1"">
-                     <td>272.4</td>
-                     <td>OTHER AND UNSPECIFIED HYPERLIPIDEMIA</td>
-                     <td>07/05/2006</td>
-                     <td>Active</td>
-                  </tr>
-                  <tr ID=3D""CondID-1"">
-                     <td>401.9</td>
-                     <td>UNSPECIFIED ESSENTIAL HYPERTENSION</td>
-                     <td>07/05/2006</td>
-                     <td>Active</td>
-                  </tr>
-               </tbody>
-            </table>
-         </text>
-      </section>
-      <component>
-         <!--Alerts-->
-         <section>
-            <templateId root=3D""2.16.840.1.113883.10.20.1.2"" =
-assigningAuthorityName=3D""HL7 CCD"" />
-            <!--Alerts section template-->
-            <code code=3D""48765-2"" codeSystemName=3D""LOINC"" =
-codeSystem=3D""2.16.840.1.113883.6.1"" displayName=3D""Allergies, adverse =
-reactions, alerts"" />
-            <title>Allergies and Adverse Reactions</title>
-            <text>
-               <table width=3D""100%"" border=3D""1"">
-                  <thead>
-                     <tr>
-                        <th>SNOMED Allergy Type Code</th>
-                        <th>Medication/Agent Allergy</th>
-                        <th>Reaction</th>
-                        <th>Adverse Event Date</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     <tr>
-                        <td>416098002 - Drug allergy (disorder)</td>
-                        <td>617314 - Lipitor</td>
-                        <td>Rash and anaphylaxis</td>
-                        <td>05/22/1998</td>
-                     </tr>
-                  </tbody>
-               </table>
-            </text>
-         </section>
-         <component>
-            <!--Medications-->
-            <section>
-               <templateId root=3D""2.16.840.1.113883.10.20.1.8"" =
-assigningAuthorityName=3D""HL7 CCD"" />
-               <!--Medications section template-->
-               <code code=3D""10160-0"" codeSystemName=3D""LOINC"" =
-codeSystem=3D""2.16.840.1.113883.6.1"" displayName=3D""History of =
-medication use"" />
-               <title>Medications</title>
-               <text>
-                  <table width=3D""100%"" border=3D""1"">
-                     <thead>
-                        <tr>
-                           <th>RxNorm Code</th>
-                           <th>Product</th>
-                           <th>Generic Name</th>
-                           <th>Brand Name</th>
-                           <th>Instructions</th>
-                           <th>Date Started</th>
-                           <th>Status</th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        <tr>
-                           <td>617314</td>
-                           <td>Medication</td>
-                           <td>atorvastatin calcium</td>
-                           <td>Lipitor</td>
-                           <td>10 mg, 1 Tablet, Q Day</td>
-                           <td>07/05/2006</td>
-                           <td>Active</td>
-                        </tr>
-                        <tr>
-                           <td>200801</td>
-                           <td>Medication</td>
-                           <td>furosemide</td>
-                           <td>Lasix</td>
-                           <td>20 mg, 1 Tablet, BID</td>
-                           <td>07/05/2006</td>
-                           <td>Active</td>
-                        </tr>
-                        <tr>
-                           <td>628958</td>
-                           <td>Medication</td>
-                           <td>potassium chloride</td>
-                           <td>Klor-Con</td>
-                           <td>10 mEq, 1 Tablet, BID</td>
-                           <td>07/05/2006</td>
-                           <td>Active</td>
-                        </tr>
-                     </tbody>
-                  </table>
-               </text>
-            </section>
-            <component>
-               <!--Results-->
-               <section>
-                  <templateId root=3D""2.16.840.1.113883.10.20.1.14"" =
-assigningAuthorityName=3D""HL7 CCD"" />
-                  <!--Relevant diagnostic tests and/or labratory data-->
-                  <code code=3D""30954-2"" codeSystemName=3D""LOINC"" =
-codeSystem=3D""2.16.840.1.113883.6.1"" displayName=3D""Allergies, adverse =
-reactions, alerts"" />
-                  <title>Results</title>
-                  <text>
-                     <table width=3D""100%"" border=3D""1"">
-                        <thead>
-                           <tr>
-                              <th>LOINC Code</th>
-                              <th>Test</th>
-                              <th>Result</th>
-                              <th>Abnormal Flag</th>
-                              <th>Date Performed</th>
-                           </tr>
-                        </thead>
-                        <tbody>
-                           <tr>
-                              <td>2823-3</td>
-                              <td>Potassium</td>
-                              <td>Normal</td>
-                              <td>02/15/2009</td>
-                           </tr>
-                           <tr>
-                              <td>14647-2</td>
-                              <td>Total cholesterol</td>
-                              <td>Normal</td>
-                              <td>07/15/2009</td>
-                           </tr>
-                           <tr>
-                              <td>14646-4</td>
-                              <td>HDL cholesterol</td>
-                              <td>Normal</td>
-                              <td>07/15/2009</td>
-                           </tr>
-                           <tr>
-                              <td>2089-1</td>
-                              <td>LDL cholesterol</td>
-                              <td>Above</td>
-                              <td>07/15/2009</td>
-                           </tr>
-                           <tr>
-                              <td>14927-8</td>
-                              <td>Triglycerides</td>
-                              <td>Above</td>
-                              <td>07/15/2009</td>
-                           </tr>
-                        </tbody>
-                     </table>
-                  </text>
-               </section>
-            </component>
-         </component>
-      </component>
-   </component>
-</ClinicalDocument>
-------=_NextPart_000_0074_01CC35A4.193BF450--";
-    }
-
-    private static string GetTestEmail2()
-    {
-        return @"This is a multi-part message in MIME format.
---------------070304090505090508040909
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Clinical Exchange Test
-
---------------070304090505090508040909
-Content-Type: text/plain;
- name=""SarahEbbert_v4.txt""
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename=""SarahEbbert_v4.txt""
-
-PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjxDbGluaWNhbERvY3Vt
-ZW50IHhtbG5zPSJ1cm46aGw3LW9yZzp2MyI+DQogICA8dHlwZUlkIGV4dGVuc2lvbj0iUE9D
-RF9IRDAwMDAwNDAiIHJvb3Q9IjIuMTYuODQwLjEuMTEzODgzLjEuMyIgLz4NCiAgIDx0ZW1w
-bGF0ZUlkIHJvb3Q9IjIuMTYuODQwLjEuMTEzODgzLjEwLjIwLjEiIC8+DQogICA8aWQgLz4N
-CiAgIDxjb2RlIGNvZGU9IjM0MTMzLTkiIGNvZGVTeXN0ZW1OYW1lPSJMT0lOQyIgY29kZVN5
-c3RlbT0iMi4xNi44NDAuMS4xMTM4ODMuNi4xIiBkaXNwbGF5TmFtZT0iU3VtbWFyeSBvZiBl
-cGlzb2RlIG5vdGUiIC8+DQogICA8ZG9jdW1lbnRhdGlvbk9mPg0KICAgICAgPHNlcnZpY2VF
-dmVudCBjbGFzc0NvZGU9IlBDUFIiPg0KICAgICAgICAgPGVmZmVjdGl2ZVRpbWU+DQogICAg
-ICAgICAgICA8aGlnaCB2YWx1ZT0iMjAxMTA2MjgwNzUzMjEtMDcwMCIgLz4NCiAgICAgICAg
-ICAgIDxsb3cgdmFsdWU9IjE5NjIxMDA4MDAwMDAwLTA3MDAiIC8+DQogICAgICAgICA8L2Vm
-ZmVjdGl2ZVRpbWU+DQogICAgICA8L3NlcnZpY2VFdmVudD4NCiAgIDwvZG9jdW1lbnRhdGlv
-bk9mPg0KICAgPGxhbmd1YWdlQ29kZSB2YWx1ZT0iZW4tVVMiIC8+DQogICA8dGVtcGxhdGVJ
-ZCByb290PSIyLjE2Ljg0MC4xLjExMzg4My4xMC4yMC4xIiAvPg0KICAgPGVmZmVjdGl2ZVRp
-bWUgdmFsdWU9IjIwMTEwNjI4MDc1MzIxLTA3MDAiIC8+DQogICA8cmVjb3JkVGFyZ2V0Pg0K
-ICAgICAgPHBhdGllbnRSb2xlPg0KICAgICAgICAgPGlkIHZhbHVlPSI3IiAvPg0KICAgICAg
-ICAgPGFkZHIgdXNlPSJIUCI+DQogICAgICAgICAgICA8c3RyZWV0QWRkcmVzc0xpbmU+ODU2
-IFNhbHQgU3RyZWV0PC9zdHJlZXRBZGRyZXNzTGluZT4NCiAgICAgICAgICAgIDxzdHJlZXRB
-ZGRyZXNzTGluZT48L3N0cmVldEFkZHJlc3NMaW5lPg0KICAgICAgICAgICAgPGNpdHk+U2hh
-d3ZpbGxlPC9jaXR5Pg0KICAgICAgICAgICAgPHN0YXRlPlBBPC9zdGF0ZT4NCiAgICAgICAg
-ICAgIDxjb3VudHJ5PjwvY291bnRyeT4NCiAgICAgICAgIDwvYWRkcj4NCiAgICAgICAgIDxw
-YXRpZW50Pg0KICAgICAgICAgICAgPG5hbWUgdXNlPSJMIj4NCiAgICAgICAgICAgICAgIDxn
-aXZlbj5TYXJhaDwvZ2l2ZW4+DQogICAgICAgICAgICAgICA8Z2l2ZW4+PC9naXZlbj4NCiAg
-ICAgICAgICAgICAgIDxmYW1pbHk+RWJiZXJ0PC9mYW1pbHk+DQogICAgICAgICAgICAgICA8
-c3VmZml4IHF1YWxpZmllcj0iVElUTEUiPjwvc3VmZml4Pg0KICAgICAgICAgICAgPC9uYW1l
-Pg0KICAgICAgICAgPC9wYXRpZW50Pg0KICAgICAgPC9wYXRpZW50Um9sZT4NCiAgICAgIDx0
-ZXh0Pg0KICAgICAgICAgPHRhYmxlIHdpZHRoPSIxMDAlIiBib3JkZXI9IjEiPg0KICAgICAg
-ICAgICAgPHRoZWFkPg0KICAgICAgICAgICAgICAgPHRyPg0KICAgICAgICAgICAgICAgICAg
-PHRoPk5hbWU8L3RoPg0KICAgICAgICAgICAgICAgICAgPHRoPkRhdGUgb2YgQmlydGg8L3Ro
-Pg0KICAgICAgICAgICAgICAgICAgPHRoPkdlbmRlcjwvdGg+DQogICAgICAgICAgICAgICAg
-ICA8dGg+SWRlbnRpZmljYXRpb24gTnVtYmVyPC90aD4NCiAgICAgICAgICAgICAgICAgIDx0
-aD5JZGVudGlmaWNhdGlvbiBOdW1iZXIgVHlwZTwvdGg+DQogICAgICAgICAgICAgICAgICA8
-dGg+QWRkcmVzcy9QaG9uZTwvdGg+DQogICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAg
-ICAgPC90aGVhZD4NCiAgICAgICAgICAgIDx0Ym9keT4NCiAgICAgICAgICAgICAgIDx0cj4N
-CiAgICAgICAgICAgICAgICAgIDx0ZD5FYmJlcnQsIFNhcmFoIDwvdGQ+DQogICAgICAgICAg
-ICAgICAgICA8dGQ+MTAvMDgvMTk2MjwvdGQ+DQogICAgICAgICAgICAgICAgICA8dGQ+RmVt
-YWxlPC90ZD4NCiAgICAgICAgICAgICAgICAgIDx0ZD43PC90ZD4NCiAgICAgICAgICAgICAg
-ICAgIDx0ZD5PcGVuIERlbnRhbCBQYXROdW08L3RkPg0KICAgICAgICAgICAgICAgICAgPHRk
-Pjg1NiBTYWx0IFN0cmVldCANClNoYXd2aWxsZSwgUEENCjE2ODczDQooODE0KTY0NS02NDg5
-PC90ZD4NCiAgICAgICAgICAgICAgIDwvdHI+DQogICAgICAgICAgICA8L3Rib2R5Pg0KICAg
-ICAgICAgPC90YWJsZT4NCiAgICAgIDwvdGV4dD4NCiAgIDwvcmVjb3JkVGFyZ2V0Pg0KICAg
-PGF1dGhvcj4NCiAgICAgIDxhc3NpZ25lZEF1dGhvcj4NCiAgICAgICAgIDxhc3NpZ25lZFBl
-cnNvbj4NCiAgICAgICAgICAgIDxuYW1lPkF1dG8gR2VuZXJhdGVkPC9uYW1lPg0KICAgICAg
-ICAgPC9hc3NpZ25lZFBlcnNvbj4NCiAgICAgIDwvYXNzaWduZWRBdXRob3I+DQogICA8L2F1
-dGhvcj4NCiAgIDxjb21wb25lbnQ+DQogICAgICA8IS0tUHJvYmxlbXMtLT4NCiAgICAgIDxz
-ZWN0aW9uPg0KICAgICAgICAgPHRlbXBsYXRlSWQgcm9vdD0iMi4xNi44NDAuMS4xMTM4ODMu
-MTAuMjAuMS4xMSIgYXNzaWduaW5nQXV0aG9yaXR5TmFtZT0iSEw3IENDRCIgLz4NCiAgICAg
-ICAgIDwhLS1Qcm9ibGVtcyBzZWN0aW9uIHRlbXBsYXRlLS0+DQogICAgICAgICA8Y29kZSBj
-b2RlPSIxMTQ1MC00IiBjb2RlU3lzdGVtTmFtZT0iTE9JTkMiIGNvZGVTeXN0ZW09IjIuMTYu
-ODQwLjEuMTEzODgzLjYuMSIgZGlzcGxheU5hbWU9IlByb2JsZW0gbGlzdCIgLz4NCiAgICAg
-ICAgIDx0aXRsZT5Qcm9ibGVtczwvdGl0bGU+DQogICAgICAgICA8dGV4dD4NCiAgICAgICAg
-ICAgIDx0YWJsZSB3aWR0aD0iMTAwJSIgYm9yZGVyPSIxIj4NCiAgICAgICAgICAgICAgIDx0
-aGVhZD4NCiAgICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgIDx0
-aD5JQ0QtOSBDb2RlPC90aD4NCiAgICAgICAgICAgICAgICAgICAgIDx0aD5QYXRpZW50IFBy
-b2JsZW08L3RoPg0KICAgICAgICAgICAgICAgICAgICAgPHRoPkRhdGUgRGlhZ25vc2VkPC90
-aD4NCiAgICAgICAgICAgICAgICAgICAgIDx0aD5TdGF0dXM8L3RoPg0KICAgICAgICAgICAg
-ICAgICAgPC90cj4NCiAgICAgICAgICAgICAgIDwvdGhlYWQ+DQogICAgICAgICAgICAgICA8
-dGJvZHk+DQogICAgICAgICAgICAgICAgICA8dHIgSUQ9IkNvbmRJRC0xIj4NCiAgICAgICAg
-ICAgICAgICAgICAgIDx0ZD4yNzIuNDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICA8dGQ+
-T1RIRVIgQU5EIFVOU1BFQ0lGSUVEIEhZUEVSTElQSURFTUlBPC90ZD4NCiAgICAgICAgICAg
-ICAgICAgICAgIDx0ZD4wNy8wNS8yMDA2PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgIDx0
-ZD5BY3RpdmU8L3RkPg0KICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAg
-ICAgIDx0ciBJRD0iQ29uZElELTEiPg0KICAgICAgICAgICAgICAgICAgICAgPHRkPjQwMS45
-PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgIDx0ZD5VTlNQRUNJRklFRCBFU1NFTlRJQUwg
-SFlQRVJURU5TSU9OPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgIDx0ZD4wNy8wNS8yMDA2
-PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgIDx0ZD5BY3RpdmU8L3RkPg0KICAgICAgICAg
-ICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAgIDwvdGJvZHk+DQogICAgICAgICAgICA8
-L3RhYmxlPg0KICAgICAgICAgPC90ZXh0Pg0KICAgICAgPC9zZWN0aW9uPg0KICAgICAgPGNv
-bXBvbmVudD4NCiAgICAgICAgIDwhLS1BbGVydHMtLT4NCiAgICAgICAgIDxzZWN0aW9uPg0K
-ICAgICAgICAgICAgPHRlbXBsYXRlSWQgcm9vdD0iMi4xNi44NDAuMS4xMTM4ODMuMTAuMjAu
-MS4yIiBhc3NpZ25pbmdBdXRob3JpdHlOYW1lPSJITDcgQ0NEIiAvPg0KICAgICAgICAgICAg
-PCEtLUFsZXJ0cyBzZWN0aW9uIHRlbXBsYXRlLS0+DQogICAgICAgICAgICA8Y29kZSBjb2Rl
-PSI0ODc2NS0yIiBjb2RlU3lzdGVtTmFtZT0iTE9JTkMiIGNvZGVTeXN0ZW09IjIuMTYuODQw
-LjEuMTEzODgzLjYuMSIgZGlzcGxheU5hbWU9IkFsbGVyZ2llcywgYWR2ZXJzZSByZWFjdGlv
-bnMsIGFsZXJ0cyIgLz4NCiAgICAgICAgICAgIDx0aXRsZT5BbGxlcmdpZXMgYW5kIEFkdmVy
-c2UgUmVhY3Rpb25zPC90aXRsZT4NCiAgICAgICAgICAgIDx0ZXh0Pg0KICAgICAgICAgICAg
-ICAgPHRhYmxlIHdpZHRoPSIxMDAlIiBib3JkZXI9IjEiPg0KICAgICAgICAgICAgICAgICAg
-PHRoZWFkPg0KICAgICAgICAgICAgICAgICAgICAgPHRyPg0KICAgICAgICAgICAgICAgICAg
-ICAgICAgPHRoPlNOT01FRCBBbGxlcmd5IFR5cGUgQ29kZTwvdGg+DQogICAgICAgICAgICAg
-ICAgICAgICAgICA8dGg+TWVkaWNhdGlvbi9BZ2VudCBBbGxlcmd5PC90aD4NCiAgICAgICAg
-ICAgICAgICAgICAgICAgIDx0aD5SZWFjdGlvbjwvdGg+DQogICAgICAgICAgICAgICAgICAg
-ICAgICA8dGg+QWR2ZXJzZSBFdmVudCBEYXRlPC90aD4NCiAgICAgICAgICAgICAgICAgICAg
-IDwvdHI+DQogICAgICAgICAgICAgICAgICA8L3RoZWFkPg0KICAgICAgICAgICAgICAgICAg
-PHRib2R5Pg0KICAgICAgICAgICAgICAgICAgICAgPHRyPg0KICAgICAgICAgICAgICAgICAg
-ICAgICAgPHRkPjQxNjA5ODAwMiAtIERydWcgYWxsZXJneSAoZGlzb3JkZXIpPC90ZD4NCiAg
-ICAgICAgICAgICAgICAgICAgICAgIDx0ZD42MTczMTQgLSBMaXBpdG9yPC90ZD4NCiAgICAg
-ICAgICAgICAgICAgICAgICAgIDx0ZD5SYXNoIGFuZCBhbmFwaHlsYXhpczwvdGQ+DQogICAg
-ICAgICAgICAgICAgICAgICAgICA8dGQ+MDUvMjIvMTk5ODwvdGQ+DQogICAgICAgICAgICAg
-ICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAgICAgPC90Ym9keT4NCiAgICAgICAgICAg
-ICAgIDwvdGFibGU+DQogICAgICAgICAgICA8L3RleHQ+DQogICAgICAgICA8L3NlY3Rpb24+
-DQogICAgICAgICA8Y29tcG9uZW50Pg0KICAgICAgICAgICAgPCEtLU1lZGljYXRpb25zLS0+
-DQogICAgICAgICAgICA8c2VjdGlvbj4NCiAgICAgICAgICAgICAgIDx0ZW1wbGF0ZUlkIHJv
-b3Q9IjIuMTYuODQwLjEuMTEzODgzLjEwLjIwLjEuOCIgYXNzaWduaW5nQXV0aG9yaXR5TmFt
-ZT0iSEw3IENDRCIgLz4NCiAgICAgICAgICAgICAgIDwhLS1NZWRpY2F0aW9ucyBzZWN0aW9u
-IHRlbXBsYXRlLS0+DQogICAgICAgICAgICAgICA8Y29kZSBjb2RlPSIxMDE2MC0wIiBjb2Rl
-U3lzdGVtTmFtZT0iTE9JTkMiIGNvZGVTeXN0ZW09IjIuMTYuODQwLjEuMTEzODgzLjYuMSIg
-ZGlzcGxheU5hbWU9Ikhpc3Rvcnkgb2YgbWVkaWNhdGlvbiB1c2UiIC8+DQogICAgICAgICAg
-ICAgICA8dGl0bGU+TWVkaWNhdGlvbnM8L3RpdGxlPg0KICAgICAgICAgICAgICAgPHRleHQ+
-DQogICAgICAgICAgICAgICAgICA8dGFibGUgd2lkdGg9IjEwMCUiIGJvcmRlcj0iMSI+DQog
-ICAgICAgICAgICAgICAgICAgICA8dGhlYWQ+DQogICAgICAgICAgICAgICAgICAgICAgICA8
-dHI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICA8dGg+UnhOb3JtIENvZGU8L3RoPg0K
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoPlByb2R1Y3Q8L3RoPg0KICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgPHRoPkdlbmVyaWMgTmFtZTwvdGg+DQogICAgICAgICAgICAg
-ICAgICAgICAgICAgICA8dGg+QnJhbmQgTmFtZTwvdGg+DQogICAgICAgICAgICAgICAgICAg
-ICAgICAgICA8dGg+SW5zdHJ1Y3Rpb25zPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIDx0aD5EYXRlIFN0YXJ0ZWQ8L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
-PHRoPlN0YXR1czwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KICAgICAg
-ICAgICAgICAgICAgICAgPC90aGVhZD4NCiAgICAgICAgICAgICAgICAgICAgIDx0Ym9keT4N
-CiAgICAgICAgICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIDx0ZD42MTczMTQ8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPk1l
-ZGljYXRpb248L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPmF0b3J2YXN0
-YXRpbiBjYWxjaXVtPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5MaXBp
-dG9yPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD4xMCBtZywgMSBUYWJs
-ZXQsIFEgRGF5PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD4wNy8wNS8y
-MDA2PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5BY3RpdmU8L3RkPg0K
-ICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAgICAgICAgICAg
-IDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD4yMDA4MDE8L3RkPg0KICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgPHRkPk1lZGljYXRpb248L3RkPg0KICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgPHRkPmZ1cm9zZW1pZGU8L3RkPg0KICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgPHRkPkxhc2l4PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-IDx0ZD4yMCBtZywgMSBUYWJsZXQsIEJJRDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAg
-ICAgICA8dGQ+MDcvMDUvMjAwNjwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICA8
-dGQ+QWN0aXZlPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgIDwvdHI+DQogICAgICAg
-ICAgICAgICAgICAgICAgICA8dHI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQ+
-NjI4OTU4PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5NZWRpY2F0aW9u
-PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5wb3Rhc3NpdW0gY2hsb3Jp
-ZGU8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPktsb3ItQ29uPC90ZD4N
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD4xMCBtRXEsIDEgVGFibGV0LCBCSUQ8
-L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPjA3LzA1LzIwMDY8L3RkPg0K
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPkFjdGl2ZTwvdGQ+DQogICAgICAgICAg
-ICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAgICAgICAgPC90Ym9keT4NCiAg
-ICAgICAgICAgICAgICAgIDwvdGFibGU+DQogICAgICAgICAgICAgICA8L3RleHQ+DQogICAg
-ICAgICAgICA8L3NlY3Rpb24+DQogICAgICAgICAgICA8Y29tcG9uZW50Pg0KICAgICAgICAg
-ICAgICAgPCEtLVJlc3VsdHMtLT4NCiAgICAgICAgICAgICAgIDxzZWN0aW9uPg0KICAgICAg
-ICAgICAgICAgICAgPHRlbXBsYXRlSWQgcm9vdD0iMi4xNi44NDAuMS4xMTM4ODMuMTAuMjAu
-MS4xNCIgYXNzaWduaW5nQXV0aG9yaXR5TmFtZT0iSEw3IENDRCIgLz4NCiAgICAgICAgICAg
-ICAgICAgIDwhLS1SZWxldmFudCBkaWFnbm9zdGljIHRlc3RzIGFuZC9vciBsYWJyYXRvcnkg
-ZGF0YS0tPg0KICAgICAgICAgICAgICAgICAgPGNvZGUgY29kZT0iMzA5NTQtMiIgY29kZVN5
-c3RlbU5hbWU9IkxPSU5DIiBjb2RlU3lzdGVtPSIyLjE2Ljg0MC4xLjExMzg4My42LjEiIGRp
-c3BsYXlOYW1lPSJBbGxlcmdpZXMsIGFkdmVyc2UgcmVhY3Rpb25zLCBhbGVydHMiIC8+DQog
-ICAgICAgICAgICAgICAgICA8dGl0bGU+UmVzdWx0czwvdGl0bGU+DQogICAgICAgICAgICAg
-ICAgICA8dGV4dD4NCiAgICAgICAgICAgICAgICAgICAgIDx0YWJsZSB3aWR0aD0iMTAwJSIg
-Ym9yZGVyPSIxIj4NCiAgICAgICAgICAgICAgICAgICAgICAgIDx0aGVhZD4NCiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IDx0aD5MT0lOQyBDb2RlPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0
-aD5UZXN0PC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aD5SZXN1bHQ8
-L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoPkFibm9ybWFsIEZsYWc8
-L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoPkRhdGUgUGVyZm9ybWVk
-PC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdHI+DQogICAgICAgICAgICAg
-ICAgICAgICAgICA8L3RoZWFkPg0KICAgICAgICAgICAgICAgICAgICAgICAgPHRib2R5Pg0K
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRyPg0KICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgPHRkPjI4MjMtMzwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICA8dGQ+UG90YXNzaXVtPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0
-ZD5Ob3JtYWw8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPjAyLzE1
-LzIwMDk8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IDx0ZD4xNDY0Ny0yPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5U
-b3RhbCBjaG9sZXN0ZXJvbDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8
-dGQ+Tm9ybWFsPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD4wNy8x
-NS8yMDA5PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdHI+DQogICAgICAg
-ICAgICAgICAgICAgICAgICAgICA8dHI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICA8dGQ+MTQ2NDYtNDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQ+
-SERMIGNob2xlc3Rlcm9sPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0
-ZD5Ob3JtYWw8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPjA3LzE1
-LzIwMDk8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IDx0ZD4yMDg5LTE8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPkxE
-TCBjaG9sZXN0ZXJvbDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQ+
-QWJvdmU8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkPjA3LzE1LzIw
-MDk8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0
-ZD4xNDkyNy04PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5Ucmln
-bHljZXJpZGVzPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZD5BYm92
-ZTwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQ+MDcvMTUvMjAwOTwv
-dGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAg
-ICAgICAgICAgPC90Ym9keT4NCiAgICAgICAgICAgICAgICAgICAgIDwvdGFibGU+DQogICAg
-ICAgICAgICAgICAgICA8L3RleHQ+DQogICAgICAgICAgICAgICA8L3NlY3Rpb24+DQogICAg
-ICAgICAgICA8L2NvbXBvbmVudD4NCiAgICAgICAgIDwvY29tcG9uZW50Pg0KICAgICAgPC9j
-b21wb25lbnQ+DQogICA8L2NvbXBvbmVudD4NCjwvQ2xpbmljYWxEb2N1bWVudD4=
---------------070304090505090508040909--
-
-";
-    }
-
-    #endregion Testing
 }
 
-public class EmailPublicResolver : EmailNameResolver
+public class EmailPublicResolver(bool isReadOnly = true) : EmailNameResolver(isReadOnly ? SystemX509Store.OpenExternal() : SystemX509Store.OpenExternalEdit());
+
+public class EmailPrivateResolver(bool isReadOnly = true) : EmailNameResolver(isReadOnly ? SystemX509Store.OpenPrivate() : SystemX509Store.OpenPrivateEdit());
+
+public class EmailNameResolver(CertificateStore certificateStore) : ICertificateResolver
 {
-    public EmailPublicResolver(bool isReadOnly = true) : base(isReadOnly ? SystemX509Store.OpenExternal() : SystemX509Store.OpenExternalEdit())
-    {
-    }
-}
+    public CertificateStore Store = certificateStore;
 
-public class EmailPrivateResolver : EmailNameResolver
-{
-    public EmailPrivateResolver(bool isReadOnly = true) : base(isReadOnly ? SystemX509Store.OpenPrivate() : SystemX509Store.OpenPrivateEdit())
-    {
-    }
-}
-
-public class EmailNameResolver : ICertificateResolver
-{
-    public CertificateStore Store;
-
-    /// <summary>
-    ///     If isPublic is true then will resolve against public certificates, otherwise will resolve against private
-    ///     certificates.
-    /// </summary>
-    public EmailNameResolver(CertificateStore certificateStore)
-    {
-        Store = certificateStore;
-    }
-
-    /// <summary>
-    ///     Gets all active and valid address-level certificates for the specified email address.
-    ///     If none found, then gets active and valid domain-level certificates for the specified email address.
-    ///     If neither type of certificate is found, returns null.
-    /// </summary>
     public X509Certificate2Collection GetCertificates(MailAddress address)
     {
         var listX509Certificate2sValid = new List<X509Certificate2>();
@@ -3936,7 +2763,6 @@ public class EmailNameResolver : ICertificateResolver
         return null;
     }
 
-    ///<summary>Gets all active and valid domain-level certificates for the specified domain name.</summary>
     public X509Certificate2Collection GetCertificatesForDomain(string domain)
     {
         var listX509Certificate2sValid = new List<X509Certificate2>();
@@ -3945,7 +2771,6 @@ public class EmailNameResolver : ICertificateResolver
         return new X509Certificate2Collection(listX509Certificate2sValid.ToArray());
     }
 
-    ///<summary>This is required by the interface.</summary>
     public event Action<ICertificateResolver, Exception> Error;
 
     ~EmailNameResolver()
@@ -3957,12 +2782,6 @@ public class EmailNameResolver : ICertificateResolver
         }
     }
 
-    /// <summary>
-    ///     Gets all address-level certificates for the specified email address into the two specified lists, separated by
-    ///     validity.
-    ///     If none found, then gets domain-level certificates for the specified email address into the two specified lists,
-    ///     separated by validity.
-    /// </summary>
     public void GetCertificates(string addressOrDomain, List<X509Certificate2> listX509Certificate2sValid, List<X509Certificate2> listlistX509Certificate2sInvalid)
     {
         if (addressOrDomain.Contains("@"))
@@ -3987,7 +2806,6 @@ public class EmailNameResolver : ICertificateResolver
         GetCertificatesForDomain(domain, listX509Certificate2sValid, listlistX509Certificate2sInvalid);
     }
 
-    ///<summary>Gets all active and valid address-level certificates for the specified email address.</summary>
     public X509Certificate2Collection GetCertificatesForAddress(string emailAddress)
     {
         var listX509Certificate2sValid = new List<X509Certificate2>();
@@ -3996,10 +2814,6 @@ public class EmailNameResolver : ICertificateResolver
         return new X509Certificate2Collection(listX509Certificate2sValid.ToArray());
     }
 
-    /// <summary>
-    ///     Gets all address-level certificates for the specified email address into the two specified lists, separated by
-    ///     validity.
-    /// </summary>
     public void GetCertificatesForAddress(string emailAddress, List<X509Certificate2> listX509Certificate2sValid, List<X509Certificate2> listX509Certificate2sInvalid)
     {
         var x509Certificate2Collection = Store.GetAllCertificates();
@@ -4020,10 +2834,6 @@ public class EmailNameResolver : ICertificateResolver
         }
     }
 
-    /// <summary>
-    ///     Gets all domain-level certificates for the specified domain name into the two specified lists, separated by
-    ///     validity.
-    /// </summary>
     public void GetCertificatesForDomain(string domain, List<X509Certificate2> listX509Certificate2sValid, List<X509Certificate2> listX509Certificate2sInvalid)
     {
         var x509Certificate2Collection = Store.GetAllCertificates();
@@ -4044,11 +2854,6 @@ public class EmailNameResolver : ICertificateResolver
         }
     }
 
-    /// <summary>
-    ///     Returns the subject name intended for email security from the given signed certificate.
-    ///     Returns empty string if a subject name was not found for email security, which would imply that the certificate is
-    ///     not for email encryption use.
-    /// </summary>
     public static string GetCertSubjectName(X509Certificate2 x509Certificate2)
     {
         var listSubjectNames = x509Certificate2.SubjectName.Name.Split(',').ToList();
@@ -4065,7 +2870,6 @@ public class EmailNameResolver : ICertificateResolver
         return "";
     }
 
-    ///<summary>The RFC822 name is the fully quilified email address.</summary>
     public static string GetCertRfc822Name(X509Certificate2 x509Certificate2)
     {
         for (var i = 0; i < x509Certificate2.Extensions.Count; i++)
@@ -4085,7 +2889,6 @@ public class EmailNameResolver : ICertificateResolver
         return "";
     }
 
-    ///<summary>The DNS name is the domain name part of the email address.</summary>
     public static string GetCertDnsName(X509Certificate2 x509Certificate2)
     {
         for (var i = 0; i < x509Certificate2.Extensions.Count; i++)
@@ -4105,12 +2908,6 @@ public class EmailNameResolver : ICertificateResolver
         return "";
     }
 
-    /// <summary>
-    ///     Before returning the certificate, verify that it is valid using the default trust flags provided by Direct.
-    ///     This is how we avoid returning expired or revoked certificates etc.
-    ///     This will ignore whether or not the certificate is trusted as a result of a matching trust anchor (this step is
-    ///     done later).
-    /// </summary>
     public static bool IsCertValid(X509Certificate2 x509Certificate2)
     {
         //This code mimics Health.Direct.Agent.TrustChainValidator.IsTrustedCertificate().

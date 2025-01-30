@@ -7,6 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace SparksToothChart {
@@ -151,7 +152,7 @@ namespace SparksToothChart {
 		public bool AutoFinish{
 			get{
 				if(drawMode==DrawingMode.OpenGL) {
-					return toothChartOpenGL.autoFinish;
+					return toothChartOpenGL.AutoFinish;
 				}
 				else {
 					return false;
@@ -159,7 +160,7 @@ namespace SparksToothChart {
 			}
 			set{
 				if(drawMode==DrawingMode.OpenGL) {
-					toothChartOpenGL.autoFinish=value;
+					toothChartOpenGL.AutoFinish=value;
 				}
 			}
 		}

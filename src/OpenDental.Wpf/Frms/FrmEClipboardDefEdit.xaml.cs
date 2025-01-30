@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	///<summary>Used with FormEClipboardDefs to modify Definitions specifically for the eClipboard. Only Definitions with Category=53 should be used with this frm.</summary>
@@ -61,14 +62,14 @@ namespace OpenDental {
 			DefCur.ItemName=textName.Text;
 			DefCur.ItemValue=textPatInstructions.Text;
 			if(DefCur.IsNew){//Insert
-				string logText=Lang.g("Defintions","Definition created:")+" "+DefCur.ItemName+" "
-					+Lang.g("Defintions","with category:")+" "+DefCur.Category.GetDescription();
+				string logText="Definition created: "+DefCur.ItemName+" "
+					+"with category: "+DefCur.Category.GetDescription();
 				SecurityLogs.MakeLogEntry(EnumPermType.DefEdit,0,logText);
 				Defs.Insert(DefCur);
 			}
 			else{//Update
-				string logText=Lang.g("Defintions","Definition edited:")+" "+DefCur.ItemName+" "
-					+Lang.g("Defintions","with category:")+" "+DefCur.Category.GetDescription();
+				string logText="Definition edited: "+DefCur.ItemName+" "
+					+"with category: "+DefCur.Category.GetDescription();
 				SecurityLogs.MakeLogEntry(EnumPermType.DefEdit,0,logText);
 				Defs.Update(DefCur);
 			}

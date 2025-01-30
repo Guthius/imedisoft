@@ -6,10 +6,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SignalodCrud
 {
@@ -98,14 +100,14 @@ public class SignalodCrud
 
         command +=
             SOut.Date(signalod.DateViewing) + ","
-                                            + DbHelper.Now() + ","
+                                            + "NOW()" + ","
                                             + SOut.Long(signalod.FKey) + ","
                                             + "'" + SOut.String(signalod.FKeyType.ToString()) + "',"
                                             + SOut.Int((int) signalod.IType) + ","
                                             + SOut.Int(signalod.RemoteRole) + ","
                                             + DbHelper.ParamChar + "paramMsgValue)";
         if (signalod.MsgValue == null) signalod.MsgValue = "";
-        var paramMsgValue = new OdSqlParameter("paramMsgValue", OdDbType.Text, SOut.StringParam(signalod.MsgValue));
+        var paramMsgValue = new OdSqlParameter("paramMsgValue", SOut.StringParam(signalod.MsgValue));
         {
             signalod.SignalNum = Db.NonQ(command, true, "SignalNum", "signalod", paramMsgValue);
         }
@@ -148,7 +150,7 @@ public class SignalodCrud
 
             sbRow.Append(SOut.Date(signalod.DateViewing));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.Long(signalod.FKey));
             sbRow.Append(",");
@@ -190,14 +192,14 @@ public class SignalodCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(signalod.SignalNum) + ",";
         command +=
             SOut.Date(signalod.DateViewing) + ","
-                                            + DbHelper.Now() + ","
+                                            + "NOW()" + ","
                                             + SOut.Long(signalod.FKey) + ","
                                             + "'" + SOut.String(signalod.FKeyType.ToString()) + "',"
                                             + SOut.Int((int) signalod.IType) + ","
                                             + SOut.Int(signalod.RemoteRole) + ","
                                             + DbHelper.ParamChar + "paramMsgValue)";
         if (signalod.MsgValue == null) signalod.MsgValue = "";
-        var paramMsgValue = new OdSqlParameter("paramMsgValue", OdDbType.Text, SOut.StringParam(signalod.MsgValue));
+        var paramMsgValue = new OdSqlParameter("paramMsgValue", SOut.StringParam(signalod.MsgValue));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramMsgValue);
         else
@@ -217,7 +219,7 @@ public class SignalodCrud
                       + "MsgValue   =  " + DbHelper.ParamChar + "paramMsgValue "
                       + "WHERE SignalNum = " + SOut.Long(signalod.SignalNum);
         if (signalod.MsgValue == null) signalod.MsgValue = "";
-        var paramMsgValue = new OdSqlParameter("paramMsgValue", OdDbType.Text, SOut.StringParam(signalod.MsgValue));
+        var paramMsgValue = new OdSqlParameter("paramMsgValue", SOut.StringParam(signalod.MsgValue));
         Db.NonQ(command, paramMsgValue);
     }
 
@@ -263,7 +265,7 @@ public class SignalodCrud
 
         if (command == "") return false;
         if (signalod.MsgValue == null) signalod.MsgValue = "";
-        var paramMsgValue = new OdSqlParameter("paramMsgValue", OdDbType.Text, SOut.StringParam(signalod.MsgValue));
+        var paramMsgValue = new OdSqlParameter("paramMsgValue", SOut.StringParam(signalod.MsgValue));
         command = "UPDATE signalod SET " + command
                                          + " WHERE SignalNum = " + SOut.Long(signalod.SignalNum);
         Db.NonQ(command, paramMsgValue);

@@ -9,6 +9,8 @@ using CodeBase;
 using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	///<summary>RESTful bridge to podium service. Without using REST Sharp or JSON libraries this code might not work properly.</summary>
@@ -68,11 +70,11 @@ namespace OpenDentBusiness {
 				FROM appointment
 				LEFT JOIN commlog ON commlog.PatNum=appointment.PatNum
 					AND commlog.CommSource={SOut.Int((int)CommItemSource.ProgramLink)}
-					AND DATE(commlog.DateTimeEnd)={DbHelper.Curdate()}
+					AND DATE(commlog.DateTimeEnd)={"CURDATE()"}
 					AND commlog.ProgramNum={SOut.Long(programNum)}
 				WHERE ISNULL(commlog.PatNum)
 				AND appointment.IsNewPatient={SOut.Bool(isNewPatient)}
-				AND appointment.AptDateTime BETWEEN {DbHelper.Curdate()} AND {DbHelper.Now()} + INTERVAL 1 HOUR";//Hard coded 1 hour to allow for appts that have an early DateTimeArrived
+				AND appointment.AptDateTime BETWEEN {"CURDATE()"} AND {"NOW()"} + INTERVAL 1 HOUR";//Hard coded 1 hour to allow for appts that have an early DateTimeArrived
 			if(trigger==ReviewInvitationTrigger.AppointmentCompleted) {
 				command+=$@"
 				AND appointment.AptStatus={SOut.Int((int)ApptStatus.Complete)}
@@ -86,7 +88,7 @@ namespace OpenDentBusiness {
 						AND h2.AptStatus!={SOut.Int((int)ApptStatus.Complete)}
 						AND h2.HistDateTStamp>histappointment.HistDateTStamp
 					)
-					HAVING MIN(histappointment.HistDateTStamp)<={DbHelper.Now()} - INTERVAL {minsWaitComplete} MINUTE
+					HAVING MIN(histappointment.HistDateTStamp)<={"NOW()"} - INTERVAL {minsWaitComplete} MINUTE
 				)";
 			}
 			else {//trigger==AppointmentTimeArrived or AppointmentTimeDismissed
@@ -105,16 +107,16 @@ namespace OpenDentBusiness {
 								AND h2.AptStatus!={SOut.Int((int)ApptStatus.Complete)}
 								AND h2.HistDateTStamp>histappointment.HistDateTStamp
 							)
-							HAVING MIN(histappointment.HistDateTStamp)<={DbHelper.Now()} - INTERVAL {(isArriveTrigger?minsWaitComplete:"90")} MINUTE
+							HAVING MIN(histappointment.HistDateTStamp)<={"NOW()"} - INTERVAL {(isArriveTrigger?minsWaitComplete:"90")} MINUTE
 						)
 					)
 					OR (
-						appointment.{(isArriveTrigger?"DateTimeArrived":"DateTimeDismissed")}>{DbHelper.Curdate()}
-						AND appointment.{(isArriveTrigger?"DateTimeArrived":"DateTimeDismissed")}<={DbHelper.Now()} - INTERVAL {minsWaitArriveOrDismiss} MINUTE
+						appointment.{(isArriveTrigger?"DateTimeArrived":"DateTimeDismissed")}>{"CURDATE()"}
+						AND appointment.{(isArriveTrigger?"DateTimeArrived":"DateTimeDismissed")}<={"NOW()"} - INTERVAL {minsWaitArriveOrDismiss} MINUTE
 					)
 				)";
 			}
-			return Crud.AppointmentCrud.SelectMany(command);
+			return AppointmentCrud.SelectMany(command);
 		}
 
 		///<summary>Throws exceptions.</summary>

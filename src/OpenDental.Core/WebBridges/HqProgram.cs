@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Remoting;
 using OpenDentBusiness.UI;
 

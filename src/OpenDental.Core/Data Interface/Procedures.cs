@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -12,11 +10,10 @@ using System.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using ODCrypt;
-using OpenDentBusiness.Crud;
-using OpenDentBusiness.SheetFramework;
-using OpenDentBusiness.UI;
 
 namespace OpenDentBusiness;
 
@@ -24,64 +21,30 @@ public class Procedures
 {
     public const string AutoNotePromptRegex = @"\[Prompt:""[a-zA-Z_0-9 ]+""\]";
 
-    #region Global Update Fees Variables
-
-    /// <summary>
-    ///     Queue to hold batches for FIFO processing.  A batch is a DataTable of TPd procs.  One thread fills the queue with
-    ///     db data while the
-    ///     main thread processes the batches of data.  Make sure to use _lockObjQueueBatchData when manipulating this queue.
-    /// </summary>
     private static Queue<DataTable> _queueDataTables;
 
-    ///<summary>Lock object to keep the queue thread safe.</summary>
     private static readonly object _lockObjQueueThread = new();
 
-    /// <summary>
-    ///     False until the filling thread has added the last batch of data to the queue.  Once true AND the queue is empty,
-    ///     the main thread is
-    ///     finished as well.
-    /// </summary>
     private static bool _isQueueDone;
 
-    /// <summary>
-    ///     10,000. Number of ProcNums the filling thread uses for each batch of data.  The processing takes longer than
-    ///     filling, so we can keep this
-    ///     number relatively small to reduce total program memory consumption.
-    /// </summary>
     private const int ROWS_BATCH_MAX_SIZE = 10000;
-
-    /// <summary>
-    ///     1000. The number of procnums to update at one time with the same fee.  This gets around transaction size
-    ///     limits.
-    /// </summary>
     private const int UPDATE_PROCNUM_IN_MAX_SIZE = 1000;
 
-    ///<summary>If this thread is not null then GlobalUpdateFees is in the middle of running.</summary>
     private static ODThread _odThreadQueueData;
-
     
     private static List<long> _listProcNumsMaxForGroups;
 
     private static int _totCount;
-
-    #endregion Global Update Fees Variables
-
-    #region Get Methods
-
-    ///<summary>Gets all procedures for a single planned appointment.  Does not include deleted procedures.</summary>
+    
     public static List<Procedure> GetForPlanned(long patNum, long plannedAptNum)
     {
-        if (patNum == 0 || plannedAptNum == 0) return new List<Procedure>();
+        if (patNum == 0 || plannedAptNum == 0) return [];
         var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum)
                                                                  + " AND PlannedAptNum=" + SOut.Long(plannedAptNum)
                                                                  + " AND ProcStatus !=" + SOut.Int((int) ProcStat.D); //don't include deleted
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets a list of all tp'd procedures for a specified clinic.  Uses a MySqlDataReader to get the by converting one
-    ///     row to a procedure object at a time to reduce memory load.  Only used in the global update writeoff estimates fee .
-    /// </summary>
     public static List<Procedure> GetAllTp(long clinicNum = -1)
     {
         var command = "SELECT * FROM procedurelog WHERE procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.TP);
@@ -89,36 +52,9 @@ public class Procedures
         return DataCore.GetList(command, ProcedureCrud.RowToObj);
     }
 
-    ///<summary>Gets the most recently completed procedure, if any, for each patNum in listPatNums.</summary>
-    public static List<Procedure> GetMostRecentCompletedProcedureForPatNums(List<long> listPatNums)
-    {
-        if (listPatNums.IsNullOrEmpty()) return new List<Procedure>();
-
-        var command = "SELECT * FROM procedurelog procedurelogall"
-                      + " INNER JOIN ("
-                      + " SELECT ProcNum, PatNum, MAX(DateComplete) FROM procedurelog"
-                      + " WHERE ProcStatus=" + SOut.Int((int) ProcStat.C)
-                      + " And DateComplete>" + SOut.Date(DateTime.MinValue)
-                      + " And PatNum IN" + " (" + string.Join(",", listPatNums) + ")"
-                      + " GROUP BY PatNum"
-                      + " ) procedurelogmax"
-                      + " ON procedurelogall.ProcNum = procedurelogmax.ProcNum";
-        return DataCore.GetList(command, ProcedureCrud.RowToObj);
-    }
-
-    ///<summary>Gets a list of distinct PatNums who have at least one completed procedure.</summary>
-    public static List<long> GetAllPatNumsWithCompletedProcs(List<long> listPatNums)
-    {
-        if (listPatNums.IsNullOrEmpty()) return new List<long>();
-        var command = "SELECT DISTINCT PatNum FROM procedurelog "
-                      + "WHERE ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "And PatNum IN" + " (" + string.Join(",", listPatNums) + ")";
-        return Db.GetListLong(command);
-    }
-
     public static List<Procedure> GetAllForPatsAndStatuses(List<long> listPatNums, params ProcStat[] arrayProcStats)
     {
-        if (listPatNums.IsNullOrEmpty() || arrayProcStats.IsNullOrEmpty()) return new List<Procedure>();
+        if (listPatNums.IsNullOrEmpty() || arrayProcStats.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM procedurelog "
                       + "WHERE procedurelog.PatNum IN (" + string.Join(",", listPatNums) + ") "
@@ -126,7 +62,6 @@ public class Procedures
         return DataCore.GetList(command, ProcedureCrud.RowToObj);
     }
 
-    ///<summary>Gets all procedures for a single patient, without notes.  Does not include deleted procedures.</summary>
     public static List<Procedure> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum)
@@ -135,7 +70,6 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all procedures for a single patient, without notes.  Does not include deleted procedures.</summary>
     public static List<Procedure> Refresh(long patNum)
     {
         var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum)
@@ -144,7 +78,6 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all procedures for a single patient, without notes.  Does not include deleted procedures.</summary>
     public static List<Procedure> RefreshForStatus(long patNum, ProcStat procStatus, bool isNotOnApt = true)
     {
         var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum) + " "
@@ -153,13 +86,9 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all procedures with a code num in listProcCodeNums for a single patient, without notes.  Does not include
-    ///     deleted procedures.
-    /// </summary>
     public static List<Procedure> RefreshForProcCodeNums(long patNum, List<long> listProcCodeNums)
     {
-        if (listProcCodeNums == null || listProcCodeNums.Count == 0) return new List<Procedure>();
+        if (listProcCodeNums == null || listProcCodeNums.Count == 0) return [];
         var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum) + " " +
                       "AND CodeNum IN (" + string.Join(",", listProcCodeNums) + ") " +
                       "AND ProcStatus !=" + SOut.Int((int) ProcStat.D) + " " + //don't include deleted
@@ -167,10 +96,9 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all completed procedures with the matching codeNum for a list of patients, without notes.</summary>
     public static List<Procedure> GetCompleteForProcCodeNum(List<long> listPatNums, long codeNum)
     {
-        if (listPatNums == null || listPatNums.Count == 0) return new List<Procedure>();
+        if (listPatNums == null || listPatNums.Count == 0) return [];
 
         var command = "SELECT * FROM procedurelog WHERE PatNum IN" + " (" + string.Join(",", listPatNums) + ") " +
                       "AND CodeNum=" + SOut.Long(codeNum) + " " +
@@ -179,30 +107,18 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all completed procedures without notes for a list of patients. Used when making auto splits. Also returns
-    ///     any procedures attached to payplans that the current patient is responsible for.
-    /// </summary>
     public static List<Procedure> GetCompleteForPats(List<long> listPatNums)
     {
-        if (listPatNums == null || listPatNums.Count < 1) return new List<Procedure>();
+        if (listPatNums == null || listPatNums.Count < 1) return [];
         return GetProceduresForStatusHelper(ProcStat.C, listPatNums);
     }
 
-    /// <summary>
-    ///     Gets all treatment planned procedures without notes for a list of patients. Used when making auto splits. Also
-    ///     returns any procedures attached to payplans that the current patient is responsible for.
-    /// </summary>
     public static List<Procedure> GetTpForPats(List<long> listPatNums)
     {
-        if (listPatNums == null || listPatNums.Count < 1) return new List<Procedure>();
+        if (listPatNums == null || listPatNums.Count < 1) return [];
         return GetProceduresForStatusHelper(ProcStat.TP, listPatNums);
     }
 
-    /// <summary>
-    ///     Gets procedures of a specified status for the patients passed in. Also returns any procedures attached to
-    ///     payplans that the patients are responsible for.
-    /// </summary>
     private static List<Procedure> GetProceduresForStatusHelper(ProcStat stat, List<long> listPatNums)
     {
         //No RemotingRole check; private method
@@ -235,10 +151,9 @@ public class Procedures
         return listProcedures;
     }
 
-    ///<summary>Gets a limited procedure list.</summary>
     public static List<Procedure> GetForProcTPs(List<ProcTP> listProcTP, params ProcStat[] procStats)
     {
-        if (listProcTP.Count == 0) return new List<Procedure>();
+        if (listProcTP.Count == 0) return [];
         var command = "SELECT ProcNum,CodeNum,AptNum,ProcDate,ClinicNum,ProcStatus,ProcFee,BaseUnits,UnitQty FROM procedurelog "
                       + "WHERE procedurelog.ProcNum IN (" + string.Join(",", listProcTP.Select(x => x.ProcNumOrig).ToList()) + ") "
                       + "AND procedurelog.ProcStatus IN (" + string.Join(",", procStats.Select(x => (int) x)) + ")";
@@ -262,13 +177,9 @@ public class Procedures
         return listProcs;
     }
 
-    /// <summary>
-    ///     Pass in a list of guarantors.
-    ///     Gets all procedures that have a remaining balance on them for any member of the guarantor's family.
-    /// </summary>
     public static List<RpUnearnedIncome.UnearnedProc> GetRemainingProcsForFamilies(List<long> listGuarantorNums)
     {
-        if (listGuarantorNums.Count == 0) return new List<RpUnearnedIncome.UnearnedProc>();
+        if (listGuarantorNums.Count == 0) return [];
 
         var listAllFamilyPatNums = Patients.GetAllFamilyPatNums(listGuarantorNums);
         /*given a list of families, get all procedures with a remaining pat port for those families.*/
@@ -330,23 +241,6 @@ public class Procedures
         return retVal;
     }
 
-    ///<summary>Gets all completed and TP procedures for a family.</summary>
-    public static List<Procedure> GetCompAndTpForPats(List<long> listPatNums)
-    {
-        var command = "SELECT * from procedurelog WHERE PatNum IN(" + string.Join(", ", listPatNums) + ") "
-                      + "AND ProcStatus IN(" + (int) ProcStat.C + "," + (int) ProcStat.TP + ") "
-                      + "ORDER BY ProcDate";
-        return ProcedureCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets one procedure directly from the db. Option to include the note.
-    ///     If the procNum is 0 or if the procNum does not exist in the database, this will return a new Procedure object with
-    ///     uninitialized fields.
-    ///     If a new Procedure object is sent through the middle tier with an uninitialized ProcStatus=0, this will fail
-    ///     validation since the ProcStatus
-    ///     enum starts with 1.  Make sure to handle a new Procedure object with uninitialized fields.
-    /// </summary>
     public static Procedure GetOneProc(long procNum, bool includeNote)
     {
         //Doing this before remoting role check because Middle Tier can't serialize a Procedure with ProcStatus=0.
@@ -366,18 +260,9 @@ public class Procedures
         return proc;
     }
 
-    /// <summary>
-    ///     Gets many procedures directly from the db.  Option to include the note.  If the procNum is 0 or if the procNum does
-    ///     not exist in
-    ///     the database, this will return a new Procedure object with uninitialized fields.  If, for example, a new Procedure
-    ///     object is sent through
-    ///     the middle tier with an uninitialized ProcStatus=0, this will fail validation since the ProcStatus enum starts with
-    ///     1.  Make sure to handle a
-    ///     new Procedure object with uninitialized fields.
-    /// </summary>
     public static List<Procedure> GetManyProc(List<long> listProcNums, bool includeNote)
     {
-        if (listProcNums == null || listProcNums.Count == 0) return new List<Procedure>();
+        if (listProcNums == null || listProcNums.Count == 0) return [];
 
         var command = "";
         if (!includeNote)
@@ -407,7 +292,6 @@ public class Procedures
         return listProcs;
     }
 
-    ///<summary>Gets Procedures for a single appointment directly from the database</summary>
     public static List<Procedure> GetProcsForSingle(long aptNum, bool isPlanned)
     {
         string command;
@@ -418,7 +302,6 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all Procedures that need to be displayed in FormApptEdit.</summary>
     public static List<Procedure> GetProcsForApptEdit(Appointment appt)
     {
         var command = "SELECT procedurelog.* FROM procedurelog "
@@ -437,13 +320,12 @@ public class Procedures
         if (appt.AptStatus == ApptStatus.Scheduled || appt.AptStatus == ApptStatus.Complete
                                                    || appt.AptStatus == ApptStatus.Broken)
             command += "OR (procedurelog.AptNum=0 AND procedurelog.ProcStatus=" + SOut.Long((int) ProcStat.C) + " AND "
-                       + DbHelper.DtimeToDate("procedurelog.ProcDate") + "=" + SOut.Date(appt.AptDateTime) + ") ";
+                       + "DATE(procedurelog.ProcDate)=" + SOut.Date(appt.AptDateTime) + ") ";
         command += ") AND procedurelog.ProcStatus != " + SOut.Long((int) ProcStat.D);
         var result = ProcedureCrud.SelectMany(command);
         for (var i = 0; i < result.Count; i++)
         {
-            command = "SELECT * FROM procnote WHERE ProcNum=" + SOut.Long(result[i].ProcNum) + " ORDER BY EntryDateTime DESC";
-            command = DbHelper.LimitOrderBy(command, 1);
+            command = "SELECT * FROM procnote WHERE ProcNum=" + SOut.Long(result[i].ProcNum) + " ORDER BY EntryDateTime DESC LIMIT 1";
             var table = DataCore.GetTable(command);
             if (table.Rows.Count == 0) continue;
             result[i].UserNum = SIn.Long(table.Rows[0]["UserNum"].ToString());
@@ -456,10 +338,6 @@ public class Procedures
         return result;
     }
 
-    /// <summary>
-    ///     Gets all Procedures for a single date for the specified patient directly from the database.  Excludes deleted
-    ///     procs.
-    /// </summary>
     public static List<Procedure> GetProcsForPatByDate(long patNum, DateTime date)
     {
         var command = "SELECT * FROM procedurelog "
@@ -482,7 +360,6 @@ public class Procedures
         return result;
     }
 
-    /// <summary>Returns a list of Procedures attached to a given ClaimNum</summary>
     public static List<Procedure> GetProcsForClaimNum(long claimNum)
     {
         var command = "SELECT * FROM procedurelog " +
@@ -492,22 +369,17 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all procedures associated with corresponding claimprocs. Returns empty procedure list if an empty list
-    ///     was passed in.
-    /// </summary>
     public static List<Procedure> GetProcsFromClaimProcs(List<ClaimProc> listClaimProc)
     {
-        if (listClaimProc.Count == 0) return new List<Procedure>();
+        if (listClaimProc.Count == 0) return [];
         var listProcNums = listClaimProc.Select(x => x.ProcNum).ToList();
         var command = "SELECT * FROM procedurelog WHERE ProcNum IN (" + string.Join(",", listProcNums) + ")";
         return ProcedureCrud.SelectMany(command);
     }
 
-    ///<summary>Grabs columns specifically needed for Claims.GetQueueList() for the sake of speed enhancement.</summary>
     public static List<ProcQueued> GetProcQueuedsFromClaimProcQueueds(List<ClaimProcs.ClaimProcQueued> listClaimProcQueueds)
     {
-        if (listClaimProcQueueds.IsNullOrEmpty()) return new List<ProcQueued>();
+        if (listClaimProcQueueds.IsNullOrEmpty()) return [];
         var listProcNums = listClaimProcQueueds.Select(x => x.ProcNum).ToList();
         var command = "SELECT ProcNum,CodeNum,IcdVersion,DiagnosticCode,DiagnosticCode2,DiagnosticCode3,DiagnosticCode4" +
                       " FROM procedurelog WHERE ProcNum IN (" + string.Join(",", listProcNums) + ")";
@@ -530,7 +402,6 @@ public class Procedures
         return listProcForIcds;
     }
 
-    ///<summary>Bite-Sized Procedure class for speed enhancement</summary>
     public class ProcQueued
     {
         public long CodeNum;
@@ -542,10 +413,9 @@ public class Procedures
         public long ProcNum;
     }
 
-    ///<summary>Gets a list of TP procedures that are attached to scheduled appointments that are not flagged as CPOE.</summary>
     public static List<Procedure> GetProcsNonCpoeAttachedToApptsForProv(long provNum)
     {
-        if (provNum == 0) return new List<Procedure>();
+        if (provNum == 0) return [];
         var command = "SELECT procedurelog.* "
                       + "FROM procedurelog "
                       + "INNER JOIN appointment ON procedurelog.AptNum=appointment.AptNum "
@@ -555,43 +425,11 @@ public class Procedures
                       + "AND procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.TP) + " "
                       + "AND procedurelog.IsCpoe=0 "
                       + "AND procedurelog.ProvNum=" + SOut.Long(provNum) + " "
-                      + "AND " + DbHelper.DtimeToDate("appointment.AptDateTime") + " >= " + DbHelper.Curdate() + " "
+                      + "AND DATE(appointment.AptDateTime) >= CURDATE() "
                       + "ORDER BY appointment.AptDateTime";
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets count of non-CPOE radiology procedures that are TP'd and attached to scheduled appointments for every provider
-    ///     who has ever had
-    ///     an ehrprovkey.  Only used by the OpenDentalService AlertRadiologyProceduresThread.
-    /// </summary>
-    public static Dictionary<long, long> GetCountNonCpoeProcsAttachedToAppts()
-    {
-        var command = "SELECT procedurelog.ProvNum,COUNT(*) procCount "
-                      + "FROM procedurelog USE INDEX (RadiologyProcs) "
-                      + "INNER JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum AND procedurecode.IsRadiology=1 "
-                      + "INNER JOIN appointment ON appointment.AptNum=procedurelog.AptNum AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + " AND appointment.AptDateTime>=CURDATE() "
-                      + "WHERE procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.TP) + " "
-                      + "AND procedurelog.IsCpoe=0 "
-                      + "AND procedurelog.ProvNum IN("
-                      + "SELECT ProvNum FROM provider "
-                      + "WHERE provider.LName!='' " //SQL standard says ''=='  ', an empty string is equal to a string composed entirely of any number of spaces
-                      + "AND provider.FName!='' " //so no need to trim LName or FName
-                      + "AND EXISTS("
-                      + "SELECT * FROM ehrprovkey "
-                      + "WHERE provider.LName=ehrprovkey.LName "
-                      + "AND provider.FName=ehrprovkey.FName "
-                      + ")"
-                      + ") "
-                      + "GROUP BY procedurelog.ProvNum";
-        return DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProvNum"].ToString()), x => SIn.Long(x["procCount"].ToString()));
-    }
-
-    /// <summary>
-    ///     Gets a list of TP or C procedures starting a year into the past that are flagged as IsRadiology and IsCpoe for the
-    ///     specified patient.
-    ///     Primarily used for showing patient specific MU data in the EHR dashboard.
-    /// </summary>
     public static List<Procedure> GetProcsRadiologyCpoeForPat(long patNum)
     {
         //Since this is used for the dashboard and not directly used in any reporting calculations, we do not need to worry about the date that the
@@ -610,15 +448,11 @@ public class Procedures
 
     public static List<Procedure> GetProcsByStatusForPat(long patNum, params ProcStat[] procStatuses)
     {
-        if (procStatuses == null || procStatuses.Length == 0) return new List<Procedure>();
+        if (procStatuses == null || procStatuses.Length == 0) return [];
         var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum) + " AND ProcStatus IN (" + string.Join(",", procStatuses.Select(x => (int) x)) + ")";
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets a string in M/yy format for the most recent completed procedure in the specified code range.  Gets
-    ///     directly from the database.
-    /// </summary>
     public static string GetRecentProcDateString(long patNum, DateTime aptDate, string procCodeRange)
     {
         if (aptDate.Year < 1880) aptDate = DateTime.Today;
@@ -651,29 +485,9 @@ public class Procedures
         return date.ToString("M/yy");
     }
 
-    /// <summary>
-    ///     Gets the first completed procedure within the family.  Used to determine the earliest date the family became a
-    ///     customer.
-    /// </summary>
-    public static Procedure GetFirstCompletedProcForFamily(long guarantor)
-    {
-        var command = "SELECT procedurelog.* FROM procedurelog "
-                      + "LEFT JOIN patient ON procedurelog.PatNum=patient.PatNum AND patient.Guarantor=" + SOut.Long(guarantor) + " "
-                      + "WHERE " + DbHelper.Year("procedurelog.ProcDate") + ">1 "
-                      + "AND procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "ORDER BY procedurelog.ProcDate";
-        command = DbHelper.LimitOrderBy(command, 1);
-        return ProcedureCrud.SelectOne(command);
-    }
-
-    /// <summary>
-    ///     Gets a list of all the procedures attached to the specified appointments.  Then, use GetProcsOneApt to pull
-    ///     procedures for one appointment from this list or GetProductionOneApt.  This process requires only one call to the
-    ///     database.  "myAptNums" is the list of appointments to get procedures for.
-    /// </summary>
     public static List<Procedure> GetProcsMultApts(List<long> listAptNums)
     {
-        if (listAptNums.IsNullOrEmpty()) return new List<Procedure>();
+        if (listAptNums.IsNullOrEmpty()) return [];
 
         var strAptNums = "";
         for (var i = 0; i < listAptNums.Count; i++)
@@ -687,10 +501,6 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets procedures for one appointment by looping through the procsMultApts which was filled previously from
-    ///     GetProcsMultApts.
-    /// </summary>
     public static List<Procedure> GetProcsOneApt(long myAptNum, List<Procedure> procsMultApts, bool isForPlanned = false)
     {
         var listProcedures = new List<Procedure>();
@@ -705,35 +515,9 @@ public class Procedures
         return listProcedures;
     }
 
-    /// <summary>
-    ///     Gets procedures for one appointment for use in the API direct from the DB. If none are found, this returns
-    ///     null.
-    /// </summary>
-    public static List<ProcedureForApi> GetProcsOneAptForApi(long aptNum, DateTime dateTStamp)
-    {
-        var listProcedureForApis = new List<ProcedureForApi>();
-        var command = "SELECT * FROM procedurelog "
-                      + "WHERE DateTStamp>=" + SOut.DateTime(dateTStamp) + " ";
-        if (aptNum != 0) command += "AND AptNum='" + SOut.Long(aptNum) + "'";
-        command += " ORDER BY ProcNum DESC";
-        var commandDatetime = "SELECT " + DbHelper.Now();
-        var dateTimeServer = SIn.DateTime(DataCore.GetScalar(commandDatetime)); //run before procedures for rigorous inclusion of procedures
-        var listProcedures = ProcedureCrud.SelectMany(command);
-        for (var i = 0; i < listProcedures.Count; i++)
-        {
-            var procedureForApi = new ProcedureForApi();
-            procedureForApi.ProcedureCur = listProcedures[i];
-            procedureForApi.DateTimeServer = dateTimeServer;
-            listProcedureForApis.Add(procedureForApi);
-        }
-
-        return listProcedureForApis;
-    }
-
-    ///<summary>Gets list of TP procedures for patient with codes included in Ortho Setup's Banding procedure list.</summary>
     public static List<Procedure> GetProcsForFormProcBandingSelect(long patNum)
     {
-        if (PrefC.GetString(PrefName.OrthoBandingCodes) == "") return new List<Procedure>();
+        if (PrefC.GetString(PrefName.OrthoBandingCodes) == "") return [];
         var listBandingProcedures = OrthoCases.GetListProcTypeProcCodes(PrefName.OrthoBandingCodes);
         var command = $@"SELECT procedurelog.* FROM procedurelog
 				JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum
@@ -743,29 +527,12 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Used in FormClaimEdit,FormClaimPrint,FormClaimPayTotal,ContrAccount etc to get description of procedure.  Procedure
-    ///     list needs to
-    ///     include the procedure we are looking for.  If procNum could be 0 (e.g. total payment claimprocs) or if the list
-    ///     does not contain the procNum,
-    ///     this will return a new Procedure with uninitialized fields.
-    ///     If, for example, a new Procedure object is sent through the middle tier with an uninitialized ProcStatus=0, this
-    ///     will fail validation since the
-    ///     ProcStatus enum starts with 1.  Make sure to handle a new Procedure object with uninitialized fields.
-    /// </summary>
     public static Procedure GetProcFromList(List<Procedure> listProcs, long procNum)
     {
         return listProcs.FirstOrDefault(x => x.ProcNum == procNum) ?? new Procedure();
     }
 
-    /// <summary>
-    ///     Gets all completed procedures within a date range with optional ProcCodeNum and PatientNum filters. Date range is
-    ///     inclusive.
-    ///     If including GroupNotes, make sure to include the GroupNote code in the list of ProcCodeNums when explicitly
-    ///     specifying code nums.
-    /// </summary>
-    public static List<Procedure> GetCompletedForDateRange(DateTime dateStart, DateTime dateStop, List<long> listProcCodeNums = null
-        , List<long> listPatNums = null, bool includeNote = false, bool includeGroupNote = false)
+    public static List<Procedure> GetCompletedForDateRange(DateTime dateStart, DateTime dateStop, List<long> listProcCodeNums = null, List<long> listPatNums = null, bool includeNote = false, bool includeGroupNote = false)
     {
         var command = "";
         var whereClause = "WHERE procedurelog.ProcStatus IN(" + SOut.Int((int) ProcStat.C);
@@ -801,7 +568,6 @@ public class Procedures
         return listProcs;
     }
 
-    ///<summary>Gets all completed procedures having procedurelog.DateComplete within the date range. Date range is inclusive.</summary>
     public static List<Procedure> GetCompletedByDateCompleteForDateRange(DateTime dateStart, DateTime dateStop)
     {
         var command = "SELECT * FROM procedurelog WHERE ProcStatus=" + SOut.Int((int) ProcStat.C)
@@ -810,10 +576,6 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Determines what the ProcFee should be based on the given inputs.  If listFees is not null, it must include
-    ///     include fees for medical codes, which are needed here.
-    /// </summary>
     public static double GetProcFee(Patient pat, List<PatPlan> listPatPlans, List<InsSub> listInsSubs, List<InsPlan> listInsPlans, Procedure procedure, List<Benefit> listBenefits = null, List<Fee> listFees = null)
     {
         //Do not change proc fee for completed procedures before today
@@ -877,12 +639,6 @@ public class Procedures
         return ProcedureCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Returns table of patients with completed procedure count and most recent completed procedure ProcDate for each
-    ///     provider.  Used for reassigning patients PriProv to their most used provider with highest procedure count.  Ordered
-    ///     by most procedures starting from highest.  The return list will be huge, with some patients having multiple rows.
-    ///     If a patient has no procedures, then this returns zero rows.
-    /// </summary>
     public static DataTable GetTablePatProvUsed(List<long> listPatNums)
     {
         var command = "SELECT PatNum,procedurelog.ProvNum,COUNT(ProcNum) procCount "
@@ -895,7 +651,6 @@ public class Procedures
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Gets the ProvNum from the appointment that will be used on the procedure passed in.</summary>
     public static long GetProvNumFromAppointment(Appointment apt, Procedure proc, ProcedureCode procCode)
     {
         long provNum;
@@ -908,12 +663,6 @@ public class Procedures
         return provNum;
     }
 
-    /// <summary>
-    ///     Gets a list of procedures representing extracted teeth.  Status of C,EC,orEO. Includes procs with toothNum
-    ///     "1"-"32".  Will not include procs with procdate before 1880.  Used for Canadian e-claims instead of the usual
-    ///     ToothInitials.GetMissingOrHiddenTeeth, because Canada requires dates on the extracted teeth.  Supply all procedures
-    ///     for the patient.
-    /// </summary>
     public static List<Procedure> GetCanadianExtractedTeeth(List<Procedure> procList)
     {
         var extracted = new List<Procedure>();
@@ -943,7 +692,6 @@ public class Procedures
         return extracted.OrderByDescending(x => x.DateTStamp).ToList();
     }
 
-    ///<summary>Takes the list of all procedures for the patient, and finds any that are attached as lab procs to that proc.</summary>
     public static List<Procedure> GetCanadianLabFees(long procNumLab, List<Procedure> procList)
     {
         var retVal = new List<Procedure>();
@@ -956,44 +704,23 @@ public class Procedures
         return retVal;
     }
 
-    ///<summary>Pulls the lab fees for the given procnums directly from the database.</summary>
     public static List<Procedure> GetCanadianLabFees(List<long> listProcNums)
     {
-        if (listProcNums.Count == 0) return new List<Procedure>();
+        if (listProcNums.Count == 0) return [];
         return ProcedureCrud.SelectMany("SELECT * FROM procedurelog WHERE ProcStatus<>" + SOut.Int((int) ProcStat.D) + " AND ProcNumLab IN (" + string.Join(",", listProcNums) + ")");
     }
 
-    ///<summary>Pulls the lab fees for the given procnum directly from the database.</summary>
     public static List<Procedure> GetCanadianLabFees(long procNum)
     {
         if (procNum == 0) //By Total payment rows do not have labs.
-            return new List<Procedure>();
+            return [];
         var command = "SELECT * FROM procedurelog WHERE ProcStatus<>" + SOut.Int((int) ProcStat.D) + " AND ProcNumLab=" + SOut.Long(procNum);
         return ProcedureCrud.SelectMany(command);
     }
 
-    ///<summary>Uses similar logic to ComputeEstimates() to find old estimates which need to be recomputed.</summary>
-    public static List<Procedure> GetProcsWithOldEstimates()
-    {
-        //only claimprocs which are estimate or capestimate for all procedures which are not Canadian labs.
-        var command = @"SELECT procedurelog.*
-				FROM procedurelog
-				INNER JOIN claimproc ON claimproc.ProcNum=procedurelog.ProcNum
-					AND claimproc.PlanNum!=0
-					AND claimproc.Status IN (6,8)
-					AND (claimproc.InsSubNum,claimproc.PlanNum) NOT IN (SELECT patplan.InsSubNum,inssub.PlanNum FROM patplan INNER JOIN inssub ON inssub.InsSubNum=patplan.InsSubNum WHERE patplan.PatNum=claimproc.PatNum)
-				WHERE procedurelog.ProcNumLab=0
-				GROUP BY procedurelog.ProcNum";
-        return ProcedureCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets patients treatment planned procedures associated to future scheduled appointments including today.
-    ///     Returns an empty list if listPatNum or listCodeNums is empty.
-    /// </summary>
     public static List<Procedure> GetProcsAttachedToFutureAppt(List<long> listPatNums, List<long> listCodeNums)
     {
-        if (listPatNums.Count == 0 || listCodeNums.Count == 0) return new List<Procedure>();
+        if (listPatNums.Count == 0 || listCodeNums.Count == 0) return [];
         var command = "SELECT procedurelog.* "
                       + "FROM procedurelog "
                       + "INNER JOIN appointment ON appointment.AptNum=procedurelog.AptNum "
@@ -1006,16 +733,6 @@ public class Procedures
         return ProcedureCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns list of ProcNums such that each ProcNum is the max ProcNum in it's group of numPerGroup ProcNums.
-    ///     Example: If there are 1000 procedures in the db with sequential ProcNums and each ProcStatus is in the list of
-    ///     ProcStatuses and the numPerGroup
-    ///     is 500, the returned list would have 2 values in it, 500 and 1000. Each number is the max ProcNum such that if you
-    ///     selected the procedures with
-    ///     ProcNum greater than the previous entry (or greater than 0 if it is the first entry) and less than or equal to the
-    ///     current entry you would get
-    ///     at most numPerGroup procedures (the last group could, of course, have fewer in it).
-    /// </summary>
     public static List<long> GetProcNumMaxForGroups(int numPerGroup, List<ProcStat> listProcStatuses, long clinicNum)
     {
         _totCount = 0;
@@ -1043,15 +760,10 @@ public class Procedures
         return retval;
     }
 
-    /// <summary>
-    ///     Used from TP to get a list of all TP procs, ordered by their treatment plan's priority, (conditionally) toothnum.
-    ///     Uses the preference 'TreatPlanSortByTooth' to determine if procedures should be sorted by tooth order.
-    /// </summary>
     public static List<Procedure> GetListTPandTPi(List<Procedure> procList, List<TreatPlanAttach> listTreatPlanAttaches = null)
     {
         return SortListByTreatPlanPriority(procList.FindAll(x => x.ProcStatus == ProcStat.TP || x.ProcStatus == ProcStat.TPi), listTreatPlanAttaches);
     }
-
     
     public static long GetClinicNum(long procNum)
     {
@@ -1059,7 +771,6 @@ public class Procedures
         return SIn.Long(DataCore.GetScalar(command));
     }
 
-    ///<summary>Returns the most recent SRP for the passed in procedures.</summary>
     public static Procedure GetMostRecentSRP(List<Procedure> listProcedures)
     {
         var listSRPCodeNums = ProcedureCodes.GetCodeNumsForCodeGroupFixed(EnumCodeGroupFixed.SRP);
@@ -1070,27 +781,11 @@ public class Procedures
         return listSRPProceduresOrdered.LastOrDefault();
     }
 
-    /// <summary>
-    ///     Returns all the unique diagnostic codes in the list.  If there is less than 12 unique codes then it will pad the
-    ///     list with empty
-    ///     entries if isPadded is true.  Will always place the principal diagnosis as the first item in the list.
-    /// </summary>
     public static List<string> GetUniqueDiagnosticCodes(List<Procedure> listProcs, bool isPadded)
     {
-        return GetUniqueDiagnosticCodes(listProcs, isPadded, new List<byte>());
+        return GetUniqueDiagnosticCodes(listProcs, isPadded, []);
     }
 
-    /// <summary>
-    ///     Returns all the unique diagnostic codes in the list.  If there is less than 12 unique codes then it will pad the
-    ///     list with empty
-    ///     entries if isPadded is true.  Will always place the principal diagnosis as the first item in the list.  The
-    ///     returned list and
-    ///     listDiagnosticVersions will be the same length upon return.  When returning, listDiagnosticVersions will contain
-    ///     the diagnostic code versions
-    ///     of each code in the returned list, used for allowing the user to mix diagnostic code versions on a single claim.
-    ///     The listDiagnosticVersions
-    ///     must be a valid list (not null).
-    /// </summary>
     public static List<string> GetUniqueDiagnosticCodes(List<Procedure> listProcs, bool isPadded, List<byte> listDiagnosticVersions)
     {
         var listDiagnosticCodes = new List<string>();
@@ -1148,7 +843,6 @@ public class Procedures
         return listDiagnosticCodes;
     }
 
-    ///<summary>Gets a list of procedures for </summary>
     public static DataTable GetReferred(DateTime dateFrom, DateTime dateTo, bool complete)
     {
         var command =
@@ -1163,10 +857,6 @@ public class Procedures
         return DataCore.GetTable(command);
     }
 
-    /// <summary>
-    ///     Gets all completed procedures within a date range with optional ProcCodeNum and PatientNum filters. Date range
-    ///     is inclusive.
-    /// </summary>
     public static List<Procedure> GetCompletedForDateRangeLimited(DateTime dateStart, DateTime dateStop, List<long> listClinicNums)
     {
         var command = "SELECT ProcNum,ProcFee,UnitQty,BaseUnits,ClinicNum,CodeNum,ProcDate "
@@ -1191,13 +881,7 @@ public class Procedures
         return listProcsLim;
     }
 
-    /// <summary>
-    ///     Helper method that returns a list of helper ProcExtended objects that will aggregate and sum up things based
-    ///     on the lists passed in.
-    /// </summary>
-    public static List<ProcExtended> GetProcExtendedEntriesFromProcedures(List<Procedure> listProcs, List<Adjustment> listAdjs,
-        List<PaySplit> listPaySplits, List<ClaimProc> listClaimProcs, List<PayPlanCharge> listPayPlanCharges, List<PaySplit> listSplitsCur = null,
-        params ProcAttachTypes[] excludedTypes)
+    public static List<ProcExtended> GetProcExtendedEntriesFromProcedures(List<Procedure> listProcs, List<Adjustment> listAdjs, List<PaySplit> listPaySplits, List<ClaimProc> listClaimProcs, List<PayPlanCharge> listPayPlanCharges, List<PaySplit> listSplitsCur = null, params ProcAttachTypes[] excludedTypes)
     {
         var retVal = new List<ProcExtended>();
         foreach (var proc in listProcs)
@@ -1217,98 +901,8 @@ public class Procedures
 
         return retVal;
     }
-
-    ///<summary>Gets one ProcedureForApi from db. Returns null if not found. Please notify the API team before modifying.</summary>
-    public static ProcedureForApi GetOneProcForApi(long procNum)
-    {
-        if (procNum == 0) return null;
-        var command = "SELECT * FROM procedurelog "
-                      + "WHERE ProcNum = '" + SOut.Long(procNum) + "'";
-        var commandDatetime = "SELECT " + DbHelper.Now();
-        var dateTimeServer = SIn.DateTime(DataCore.GetScalar(commandDatetime)); //run before procedures for rigorous inclusion of procedures
-        var procedureForApi = new ProcedureForApi();
-        procedureForApi.ProcedureCur = ProcedureCrud.SelectOne(command);
-        procedureForApi.DateTimeServer = dateTimeServer;
-        return procedureForApi;
-    }
-
-    /// <summary>
-    ///     Gets a list of ProcedureForApi from db. Returns an empty list if not found. Please notify the API team before
-    ///     modifying.
-    /// </summary>
-    public static List<ProcedureForApi> GetProceduresForApi(int limit, int offset, long patNum, DateTime dateTStamp, long aptNum, long plannedAptNum, long clinicNum)
-    {
-        var listProcedureForApis = new List<ProcedureForApi>();
-        var command = "SELECT * FROM procedurelog "
-                      + "WHERE DateTStamp>=" + SOut.DateTime(dateTStamp) + " ";
-        if (patNum != 0) command += "AND PatNum='" + SOut.Long(patNum) + "' ";
-        if (aptNum != 0) command += "AND AptNum='" + SOut.Long(aptNum) + "' ";
-        if (plannedAptNum != 0) command += "AND PlannedAptNum='" + SOut.Long(plannedAptNum) + "' ";
-        if (clinicNum > -1) command += "AND ClinicNum='" + SOut.Long(clinicNum) + "' ";
-        command += "ORDER BY ProcNum DESC "
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        var commandDatetime = "SELECT " + DbHelper.Now();
-        var dateTimeServer = SIn.DateTime(DataCore.GetScalar(commandDatetime)); //run before procedures for rigorous inclusion of procedures
-        var listProcedures = ProcedureCrud.SelectMany(command);
-        for (var i = 0; i < listProcedures.Count; i++)
-        {
-            var procedureForApi = new ProcedureForApi();
-            procedureForApi.ProcedureCur = listProcedures[i];
-            procedureForApi.DateTimeServer = dateTimeServer;
-            listProcedureForApis.Add(procedureForApi);
-        }
-
-        return listProcedureForApis;
-    }
-
-    /// <summary>
-    ///     Gets a list of treatment planned (TP) procedures for a planned appointment. Returns an empty list if not
-    ///     found.
-    /// </summary>
-    public static List<Procedure> GetProceduresPlannedForApi(long patNum)
-    {
-        var command = "SELECT procedurelog.* FROM procedurelog "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
-                      + "AND ProcStatus=" + SOut.Long((int) ProcStat.TP) + " ";
-        return ProcedureCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets a list of a patient's procedures (including notes). Filters by ProcStatus of (C), (EC), or (EO).</summary>
-    public static List<Procedure> GetProceduresWithNotesForApi(long patNum, List<long> listProcNums)
-    {
-        var command = "SELECT * FROM procedurelog "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
-                      + $"AND ProcNum IN ({string.Join(",", listProcNums)}) "
-                      + "AND (ProcStatus=" + SOut.Int((int) ProcStat.C) + //Group Notes can only be ProcStatus of (C), (EC), or (EO).
-                      " OR ProcStatus=" + SOut.Int((int) ProcStat.EC) +
-                      " OR ProcStatus=" + SOut.Int((int) ProcStat.EO) + ")";
-        var listProcedures = ProcedureCrud.SelectMany(command);
-        for (var i = 0; i < listProcedures.Count; i++)
-        {
-            command = "SELECT * FROM procnote WHERE ProcNum=" + SOut.Long(listProcedures[i].ProcNum) + " ORDER BY EntryDateTime DESC";
-            command = DbHelper.LimitOrderBy(command, 1); //Get the most recent procnote.
-            var dataTable = DataCore.GetTable(command);
-            if (dataTable.Rows.Count == 0) continue;
-            listProcedures[i].Note = SIn.String(dataTable.Rows[0]["Note"].ToString());
-            listProcedures[i].Signature = SIn.String(dataTable.Rows[0]["Signature"].ToString());
-        }
-
-        return listProcedures;
-    }
-
-    #endregion
-
-    #region Insert
-
-    /// <summary>
-    ///     Inserts a procedure into the db, including adjustments automatically created for sales tax or discount plans.
-    ///     (HQ only) If a sales tax was already calculated (pre-payments only), set doCalcTax to false to avoid making an
-    ///     extra AvaTax call.  isSilent indicates if the procedure is being inserted by the repeat charge tool, currently only
-    ///     used to supress error messages in the Avatax API. =jordan 2020-05-29- This is a bad pattern.  Do not do anything
-    ///     like this in other S classes.  Insert and Update methods are sacred and should never have additional logic in them.
-    ///     We will need to untangle and remove all this code when we have time.
-    /// </summary>
-    public static long Insert(Procedure procedure, bool doCalcTax = true, bool isRepeatCharge = false, bool skipDiscountPlanAdjustment = false)
+    
+    public static long Insert(Procedure procedure, bool skipDiscountPlanAdjustment = false)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         procedure.SecUserNumEntry = Security.CurUser.UserNum;
@@ -1332,18 +926,10 @@ public class Procedures
 
         return procedure.ProcNum;
     }
-
-
+    
     public static bool ExceedsFreqLimitation;
     public static bool ExceedsAnnualMax;
 
-    /// <summary>
-    ///     Returns 0 if the procedure will exceed AnnualMax or FreqLimitations. If the patient attached to the procedure
-    ///     doesn't have a discountplan will return 0.
-    ///     Will also return 0 if there is no associated Fee with the procedure. Otherwise returns the expected
-    ///     DiscountPlanAmt.
-    ///     freqLimitationMessage and annualMaxMessage will be blank if no limitations have been met.
-    /// </summary>
     public static double GetDiscountAmountForDiscountPlanAndValidate(Procedure procedure, DiscountPlanSub discountPlanSub = null, DiscountPlan discountPlan = null, double runningTotal = 0, List<Procedure> listAddHistProcs = null)
     {
         ExceedsFreqLimitation = false;
@@ -1393,13 +979,6 @@ public class Procedures
         return GetDiscountAmountForDiscountPlan(procedure, discountPlanSub.PatNum, dateEffectiveFinal, dateTermFinal, dictDiscountFees.First().Value, discountPlan, runningTotal, listAddHistProcs);
     }
 
-    /// <summary>
-    ///     Returns 0 if the procedure will exceed AnnualMax or FreqLimitations. If the patient attached to the procedure
-    ///     doesn't have a discountplan will return 0.
-    ///     Will also return 0 if there is no associated Fee with the procedure. Otherwise returns the expected
-    ///     DiscountPlanAmt.
-    ///     freqLimitationMessage and annualMaxMessage will be blank if no limitations have been met.
-    /// </summary>
     public static double GetDiscountAmountForDiscountPlanEstimate(Procedure procedure, long patNum, DateTime dateEffective, DateTime dateTerm, DiscountPlan discountPlan = null, double runningTotal = 0, List<Procedure> listAddHistProcs = null)
     {
         ExceedsFreqLimitation = false;
@@ -1421,13 +1000,6 @@ public class Procedures
         return GetDiscountAmountForDiscountPlan(procedure, patNum, dateEffectiveFinal, dateTermFinal, discountPlan.FeeSchedNum, discountPlan, runningTotal, listAddHistProcs);
     }
 
-    /// <summary>
-    ///     Returns 0 if the procedure will exceed AnnualMax or FreqLimitations. If the patient attached to the procedure
-    ///     doesn't have a discountplan will return 0.
-    ///     Will also return 0 if there is no associated Fee with the procedure. Otherwise returns the expected
-    ///     DiscountPlanAmt.
-    ///     freqLimitationMessage and annualMaxMessage will be blank if no limitations have been met.
-    /// </summary>
     public static double GetDiscountAmountForDiscountPlan(Procedure procedure, long patNum, DateTime dateStart, DateTime dateStop, long feeSchedNum, DiscountPlan discountPlan = null, double runningTotal = 0, List<Procedure> listAddHistProcs = null)
     {
         var procFee = Fees.GetFee(procedure.CodeNum, feeSchedNum, procedure.ClinicNum, procedure.ProvNum);
@@ -1479,17 +1051,8 @@ public class Procedures
 
         return estimatedDiscountAmt;
     }
-
-    #endregion
-
-    #region Update
-
-    /// <summary>
-    ///     A centralized form of Update combined with logic that was in FormProcEdit.  This should be called when you
-    ///     wish to matain the same logic as FormProcEdit AFTER changes are validated.
-    /// </summary>
-    public static void FormProcEditUpdate(Procedure procNew, Procedure procOld, ProcedureCode procCode, bool isProcLinkedToOrthoCase, bool isNew = false
-        , string procTeethStr = "")
+    
+    public static void FormProcEditUpdate(Procedure procNew, Procedure procOld, ProcedureCode procCode, bool isProcLinkedToOrthoCase, bool isNew = false, string procTeethStr = "")
     {
         if (!CultureInfo.CurrentCulture.Name.EndsWith("CA") || procOld.ProcNumLab == 0) //Canadian. en-CA or fr-CA
             Update(procNew, procOld, isProcLinkedToOrthoCase: isProcLinkedToOrthoCase); //Do not update Canadian labs here, because they are handled in SetCanadianLabFeesCompleteForProc below.
@@ -1551,20 +1114,13 @@ public class Procedures
         #endregion
     }
 
-    /// <summary>
-    ///     Updates only the changed columns.  Called from 44 places.  Also creates adjustments for discounts and sales
-    ///     tax, and updates payment plan charges.  =jordan 2020-05-29- This is a bad pattern.  Do not do anything like this in
-    ///     other S classes.  Insert and Update methods are sacred and should never have additional logic in them.  We will
-    ///     need to untangle and remove all this code when we have time.
-    /// </summary>
-    public static bool Update(Procedure procedure, Procedure oldProcedure, bool isPaySplit = false, bool isSilent = false
-        , bool isProcLinkedToOrthoCase = false)
+    public static void Update(Procedure procedure, Procedure oldProcedure, bool isPaySplit = false, bool isProcLinkedToOrthoCase = false)
     {
         //Setting any procedure to TP, get a tax estimate only if the procedure amount is changing and the procedure is taxable
         if (procedure.ProcStatus == ProcStat.TP)
             //Status changed and is attached to appointment (do not care about planned appointments since that is what treatment planning is for).
             if (procedure.ProcStatus != oldProcedure.ProcStatus && procedure.AptNum != 0)
-                foreach (var appt in Appointments.GetAppointmentsForProcs(new List<Procedure> {procedure}))
+                foreach (var appt in Appointments.GetAppointmentsForProcs([procedure]))
                     //only 0,1, or 2 of these
                     //Detach the procedure from completed appointment.
                     if (appt.AptStatus == ApptStatus.Complete && procedure.AptNum == appt.AptNum)
@@ -1624,13 +1180,11 @@ public class Procedures
             note.Signature = procedure.Signature;
             ProcNotes.Insert(note);
         }
-
-        return hasChanged;
     }
 
     public static void UpdateAptNum(long procNum, long newAptNum)
     {
-        UpdateAptNums(new List<long> {procNum}, newAptNum);
+        UpdateAptNums([procNum], newAptNum);
     }
 
     public static void UpdateAptNums(List<long> listProcNums, long newAptNum, bool isPlannedAptNum = false)
@@ -1643,30 +1197,11 @@ public class Procedures
         Db.NonQ(command);
     }
 
-    public static void UpdatePriority(long procNum, long newPriority)
-    {
-        var command = "UPDATE procedurelog SET Priority = " + SOut.Long(newPriority)
-                                                            + " WHERE ProcNum = " + SOut.Long(procNum);
-        Db.NonQ(command);
-    }
-
-    /// <summary>
-    ///     Updates IsCpoe column in the procedurelog table with the passed in value for the corresponding procedure.
-    ///     This method explicitly used instead of the generic Update method because this (and only this) field can get updated
-    ///     when a user cancels out
-    ///     of the Procedure Edit window and no other changes should accidentally make their way to the database.
-    /// </summary>
     public static void UpdateCpoeForProc(long procNum, bool isCpoe)
     {
-        UpdateCpoeForProcs(new List<long> {procNum}, isCpoe);
+        UpdateCpoeForProcs([procNum], isCpoe);
     }
 
-    /// <summary>
-    ///     Updates IsCpoe column in the procedurelog table with the passed in value for the corresponding procedures.
-    ///     This method explicitly used instead of the generic Update method because this (and only this) field can get updated
-    ///     when a user cancels out
-    ///     of the Procedure Edit window and no other changes should accidentally make their way to the database.
-    /// </summary>
     public static void UpdateCpoeForProcs(List<long> listProcNums, bool isCpoe)
     {
         if (listProcNums == null || listProcNums.Count < 1) return;
@@ -1675,19 +1210,6 @@ public class Procedures
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Sets the patient.DateFirstVisit if necessary. A visitDate is required to be passed in because it may not be today's
-    ///     date. This is triggered by:
-    ///     1. When any procedure is inserted regardless of status. From Chart or appointment. If no C procs and date blank,
-    ///     changes date.
-    ///     2. When updating a procedure to status C. If no C procs, update visit date. Ask user first?
-    ///     #2 was recently changed to only happen if date is blank or less than 7 days old.
-    ///     3. When an appointment is deleted. If no C procs, clear visit date.
-    ///     #3 was recently changed to not occur at all unless appt is of type IsNewPatient
-    ///     4. Changing an appt date of type IsNewPatient. If no C procs, change visit date.
-    ///     Old: when setting a procedure complete in the Chart module or the ProcEdit window.  Also when saving an appointment
-    ///     that is marked IsNewPat.
-    /// </summary>
     public static void SetDateFirstVisit(DateTime visitDate, int situation, Patient pat)
     {
         if (situation == 1)
@@ -1723,13 +1245,6 @@ public class Procedures
         Db.NonQ(command);
     }
 
-    public static void AttachToApt(long procNum, long aptNum, bool isPlanned)
-    {
-        var procNums = new List<long>();
-        procNums.Add(procNum);
-        AttachToApt(procNums, aptNum, isPlanned);
-    }
-
     public static void AttachToApt(List<long> procNums, long aptNum, bool isPlanned)
     {
         if (procNums.Count == 0) return;
@@ -1748,58 +1263,6 @@ public class Procedures
         Db.NonQ(command);
     }
 
-    public static void AttachToApptForApi(List<long> procNums, Appointment appointment, bool isPlanned)
-    {
-        if (procNums.Count == 0) return;
-        var command = "UPDATE procedurelog SET ";
-        if (isPlanned)
-            command += "PlannedAptNum";
-        else
-            command += "AptNum";
-        command += "=" + SOut.Long(appointment.AptNum) + ", ";
-        command += "ProcDate=" + SOut.Date(appointment.AptDateTime) + " ";
-        command += "WHERE ProcNum IN (" + string.Join(",", procNums) + ")";
-        Db.NonQ(command);
-    }
-
-    public static void DetachFromApt(List<long> procNums, bool isPlanned)
-    {
-        if (procNums.Count == 0) return;
-        var command = "UPDATE procedurelog SET ";
-        if (isPlanned)
-            command += "PlannedAptNum";
-        else
-            command += "AptNum";
-        command += "=0 WHERE ";
-        for (var i = 0; i < procNums.Count; i++)
-        {
-            if (i > 0) command += " OR ";
-            command += "ProcNum=" + SOut.Long(procNums[i]);
-        }
-
-        Db.NonQ(command);
-    }
-
-    public static void DetachFromInvoice(long statementNum)
-    {
-        var command = "UPDATE procedurelog SET StatementNum=0 WHERE StatementNum=" + SOut.Long(statementNum);
-        Db.NonQ(command);
-    }
-
-    public static void DetachAllFromInvoices(List<long> listStatementNums)
-    {
-        if (listStatementNums == null || listStatementNums.Count == 0) return;
-        var command = "UPDATE procedurelog SET StatementNum=0 WHERE StatementNum IN (" + string.Join(",", listStatementNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
-    }
-
-    /// <Summary>
-    ///     Supply the list of procedures attached to the appointment.  It will loop through each and assign the correct
-    ///     provider.
-    ///     Also sets clinic.  Also sets procDate for TP procs.  js 7/24/12 This is not supposed to be called if the
-    ///     appointment is complete.
-    ///     When isUpdatingFees is true, we also update the ProcFee based on PrefName.ProcFeeUpdatePrompt
-    /// </Summary>
     public static void SetProvidersInAppointment(Appointment apt, List<Procedure> listProcOrig, bool isUpdatingFees, ProcFeeHelper procFeeHelper)
     {
         var listProcNew = new List<Procedure>();
@@ -1899,7 +1362,6 @@ public class Procedures
             Update(parentProcNew, parentProcOld);
         }
     }
-
     
     public static void Lock(DateTime date1, DateTime date2)
     {
@@ -1911,7 +1373,6 @@ public class Procedures
         Db.NonQ(command);
     }
 
-    ///<summary>Inserts, updates, or deletes database rows to match supplied list.  Must always pass in two lists.</summary>
     public static void Sync(List<Procedure> listNew, List<Procedure> listOld)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -1935,14 +1396,7 @@ public class Procedures
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Returns true when automation needed.
-    ///     Sets the provider and clinic for a proc based on the appt to which it is attached.
-    ///     Also sets ProcDate for TP procs. Will automatically set procs in listProcs to complete and make securitylogs.
-    /// </summary>
-    public static bool UpdateProcsInApptHelper(List<Procedure> listProcsForAppt, Patient pat, Appointment AptCur, Appointment AptOld,
-        List<InsPlan> PlanList, List<InsSub> SubList, List<int> listProcSelectedIndices, bool removeCompletedProcs, bool doUpdateProcFees = false,
-        LogSources logSource = LogSources.None)
+    public static bool UpdateProcsInApptHelper(List<Procedure> listProcsForAppt, Patient pat, Appointment AptCur, Appointment AptOld, List<InsPlan> PlanList, List<InsSub> SubList, List<int> listProcSelectedIndices, bool removeCompletedProcs, bool doUpdateProcFees = false, LogSources logSource = LogSources.None)
     {
         if (AptCur.AptStatus != ApptStatus.Complete)
         {
@@ -1994,7 +1448,6 @@ public class Procedures
 
         return false;
     }
-
     
     public static void UpdateDiscountPlanAmt(long procNum, double newDiscountPlanAmt)
     {
@@ -2012,21 +1465,7 @@ public class Procedures
     {
         listProcs.ForEach(x => UpdateDiscountPlanAmt(x.ProcNum, x.DiscountPlanAmt));
     }
-
-    #endregion
-
-    #region Delete
-
-    /// <summary>
-    ///     If not allowed to delete, then it throws an exception, so surround it with a try catch.
-    ///     Also deletes any claimProcs, adjustments, and payplancharge credits.
-    ///     This does not actually delete the procedure, but just changes the status to deleted.
-    /// </summary>
-    /// <param name="forceDelete">If true, forcefully deletes all objects attached to the procedure.</param>
-    /// <param name="hideGraphics">
-    ///     If true, sets the procedure's "HideGraphics" db field to true so that it will not show up on
-    ///     the chart.
-    /// </param>
+    
     public static void Delete(long procNum, bool forceDelete = false, bool hideGraphics = false)
     {
         if (CultureInfo.CurrentCulture.Name.EndsWith("CA")) DeleteCanadianLabFeesForProcCode(procNum); //Deletes lab fees attached to current procedures.
@@ -2088,10 +1527,6 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Deletes the lab procedure if it's not attached to anything important. Updates the fee to $0 if unable to
-    ///     delete.
-    /// </summary>
     public static void TryDeleteLab(Procedure procLab)
     {
         try
@@ -2114,11 +1549,6 @@ public class Procedures
         var labFeeProcs = ProcedureCrud.SelectMany(command);
         for (var i = 0; i < labFeeProcs.Count; i++) Delete(labFeeProcs[i].ProcNum);
     }
-
-    #endregion
-
-    #region Misc Methods
-
     
     public static void DiscountChangeSecLogEntry(Procedure procNew, Procedure procOld)
     {
@@ -2130,7 +1560,6 @@ public class Procedures
                       + procNew.Discount.ToString("c");
         SecurityLogs.MakeLogEntry(EnumPermType.TreatPlanDiscountEdit, procNew.PatNum, message);
     }
-
     
     public static void UpdateTpProcPriority(Procedure proc)
     {
@@ -2144,7 +1573,6 @@ public class Procedures
         TreatPlanAttaches.Sync(listTpAttaches, activePlan.TreatPlanNum);
     }
 
-    ///<summary>Called when setting a proc that was not complete to complete.</summary>
     public static bool ProcWasSetComplete(Procedure procNew, Procedure procOld, ProcedureCode procCode)
     {
         if (procOld.ProcStatus == ProcStat.C || procNew.ProcStatus != ProcStat.C) return false;
@@ -2157,10 +1585,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     When proc.ProcStatus is C,EC or EO and the associated proc code paint type is Extraction
-    ///     this updates the tooth paint type to missing.
-    /// </summary>
     public static void SetToothInitialForCompExtraction(Procedure proc)
     {
         if (!proc.ProcStatus.In(ProcStat.C, ProcStat.EC, ProcStat.EO)
@@ -2169,33 +1593,13 @@ public class Procedures
         ToothInitials.SetValue(proc.PatNum, proc.ToothNum, ToothInitialType.Missing);
     }
 
-    /// <summary>
-    ///     Counts the number of patients who have had completed procedures in the date range. D9986 and D9987 are not counted
-    ///     in this query.
-    /// </summary>
-    public static int GetCountPatsComplete(DateTime dateStart, DateTime dateEnd)
-    {
-        var command = @"SELECT COUNT(DISTINCT PatNum) 
-				FROM procedurelog 
-				INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum
-					AND procedurecode.ProcCode NOT IN('D9986','D9987')
-				WHERE procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.C) + @"
-				AND procedurelog.ProcDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd);
-        return SIn.Int(Db.GetCount(command));
-    }
-
-    /// <summary>
-    ///     Gets all procedures with a specific StatementNum.  Currently, procedurelog.StatementNum is only used for
-    ///     invoices.
-    /// </summary>
     public static List<long> GetForInvoice(long statementNum)
     {
-        if (statementNum == 0) return new List<long>();
+        if (statementNum == 0) return [];
         var command = "SELECT ProcNum FROM procedurelog WHERE procedurelog.StatementNum = " + SOut.Long(statementNum);
         return Db.GetListLong(command);
     }
 
-    ///<summary>Throws an exception if the given procedure cannot be deleted safely.</summary>
     public static void ValidateDelete(long procNum)
     {
         //Test to see if the procedure is attached to a claim (excluding pre-auths)
@@ -2224,26 +1628,13 @@ public class Procedures
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to a payment plan."));
     }
 
-    /// <summary>
-    ///     Creates a new procedure with the patient, surface, toothnum, and status for the specified procedure code.
-    ///     Make sure to make a security log after calling this method.  This method requires that Security.CurUser be set
-    ///     prior to invoking.
-    ///     Returns null procedure if one was not created for the patient.
-    /// </summary>
     public static Procedure CreateProcForPatNum(long patNum, long codeNum, string surf, string toothNum, ProcStat procStatus, long provNum)
     {
         var pat = Patients.GetPat(patNum);
         return CreateProcForPat(pat, codeNum, surf, toothNum, procStatus, provNum);
     }
 
-    /// <summary>
-    ///     Creates a new procedure with the patient, surface, toothnum, and status for the specified procedure code.
-    ///     Make sure to make a security log after calling this method.  This method requires that Security.CurUser be set
-    ///     prior to invoking.
-    ///     Returns null procedure if one was not created for the patient.
-    /// </summary>
-    public static Procedure CreateProcForPat(Patient pat, long codeNum, string surf, string toothNum, ProcStat procStatus, long provNum, long aptNum = 0
-        , List<InsSub> subList = null, List<InsPlan> insPlanList = null, List<PatPlan> patPlanList = null, List<Benefit> benefitList = null, long clinicNum = -1, DateTime dateAppt = default)
+    public static Procedure CreateProcForPat(Patient pat, long codeNum, string surf, string toothNum, ProcStat procStatus, long provNum, long aptNum = 0, List<InsSub> subList = null, List<InsPlan> insPlanList = null, List<PatPlan> patPlanList = null, List<Benefit> benefitList = null, long clinicNum = -1, DateTime dateAppt = default)
     {
         if (codeNum < 1) return null;
         if (provNum == 0) provNum = Patients.GetProvNum(pat);
@@ -2308,35 +1699,10 @@ public class Procedures
         proc.DateEntryC = DateTime.Now;
         proc.PlaceService = Clinics.GetPlaceService(proc.ClinicNum);
         proc.ProcNum = Insert(proc);
-        ComputeEstimates(proc, pat.PatNum, new List<ClaimProc>(), true, insPlanList, patPlanList, benefitList, pat.Age, subList);
+        ComputeEstimates(proc, pat.PatNum, [], true, insPlanList, patPlanList, benefitList, pat.Age, subList);
         return proc;
     }
 
-    /// <summary>
-    ///     Used by WebSched to create a new procedure for every proc code passed in.  Make sure to make a security log after
-    ///     calling this method.
-    ///     This method requires that Security.CurUser be set prior to invoking.  Returns an empty list if none were created
-    ///     for the patient.
-    /// </summary>
-    public static List<Procedure> CreateProcsForPat(long patNum, List<long> listProcCodeNums, string surf, string toothNum, ProcStat procStatus
-        , long provNum, long aptNum, DateTime dateAppt, long clinicNum = -1)
-    {
-        var listProcedures = new List<Procedure>();
-        var patient = Patients.GetPat(patNum);
-        var subList = InsSubs.RefreshForFam(Patients.GetFamily(patNum));
-        var insPlanList = InsPlans.RefreshForSubList(subList);
-        var patPlanList = PatPlans.Refresh(patNum);
-        var benefitList = Benefits.Refresh(patPlanList, subList);
-        foreach (var codeNum in listProcCodeNums)
-        {
-            var proc = CreateProcForPat(patient, codeNum, surf, toothNum, procStatus, provNum, aptNum, subList, insPlanList, patPlanList, benefitList, clinicNum, dateAppt);
-            if (proc != null) listProcedures.Add(proc);
-        }
-
-        return listProcedures;
-    }
-
-    ///<summary>Creates the auto ortho procedure for the passed-in patient.</summary>
     public static Procedure CreateOrthoAutoProcsForPat(long patNum, long codeNum, long provNum, long clinicNum, DateTime procDate)
     {
         var procedure = new Procedure();
@@ -2357,10 +1723,6 @@ public class Procedures
         return procedure;
     }
 
-    /// <summary>
-    ///     Generates a procedure that will represent a sales tax.
-    ///     Sums the Sales Tax values of all passed in procs.
-    /// </summary>
     public static void CreateSalesTaxProc(long patNum, List<Procedure> listProcs)
     {
         var listProcNums = listProcs.Select(x => x.ProcNum).ToList();
@@ -2390,10 +1752,6 @@ public class Procedures
         Insert(procedureSalesTax);
     }
 
-    /// <summary>
-    ///     Called from FormApptsOther when creating a new appointment.  Returns true if there are any procedures marked
-    ///     complete for this patient.  The result is that the NewPt box on the appointment won't be checked.
-    /// </summary>
     public static bool AreAnyComplete(long patNum)
     {
         var command = "SELECT COUNT(*) FROM procedurelog "
@@ -2407,10 +1765,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Called from AutoCodeItems.  Makes a call to the database to determine whether the specified tooth has been
-    ///     extracted or will be extracted. This could then trigger a pontic code.
-    /// </summary>
     public static bool WillBeMissing(string toothNum, long patNum)
     {
         //first, check for missing teeth
@@ -2433,11 +1787,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Used in ContrAccount.CreateClaim when validating selected procedures. Returns true if there is any claimproc
-    ///     for this procedure and plan which is marked NoBillIns.  The claimProcList can be all claimProcs for the patient or
-    ///     only those attached to this proc. Will be true if any claimProcs attached to this procedure are set NoBillIns.
-    /// </summary>
     public static bool NoBillIns(Procedure proc, List<ClaimProc> claimProcList, long planNum)
     {
         if (proc == null) return false;
@@ -2450,14 +1799,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Called from FormProcEdit to signal when to disable much of the editing in that form.  If the procedure is
-    ///     'AttachedToClaim' then user
-    ///     should not change it very much.  Also prevents user from Invalidating a locked procedure if attached to a claim.
-    ///     The claimProcList can be all
-    ///     claimProcs for the patient or only those attached to this proc.  Ignore preauth claims by setting isPreauthIncluded
-    ///     to false.
-    /// </summary>
     public static bool IsAttachedToClaim(Procedure proc, List<ClaimProc> claimProcList, bool isPreauthIncluded = true)
     {
         for (var i = 0; i < claimProcList.Count; i++)
@@ -2474,10 +1815,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Only called from FormProcEdit.  When attached  to a claim and user clicks Edit Anyway, we need to know the
-    ///     oldest claim date for security reasons.  The claimProcsForProc should only be claimprocs for this procedure.
-    /// </summary>
     public static DateTime GetOldestClaimDate(List<ClaimProc> claimProcsForProc, bool includePreAuth = true)
     {
         Claim claim;
@@ -2502,10 +1839,6 @@ public class Procedures
         return retVal;
     }
 
-    /// <summary>
-    ///     Used to check any date restrictions in FormProcEdit for a procedure attached to a sent or recevied
-    ///     preauthorization.
-    /// </summary>
     public static DateTime GetOldestPreAuth(List<ClaimProc> claimProcsForProc)
     {
         Claim claim;
@@ -2520,11 +1853,6 @@ public class Procedures
         return retVal;
     }
 
-    /// <summary>
-    ///     Takes in a procedure and returns proc.DateEntryC if procedure is EO,EC, TP, or TPi. Default parameter used where a
-    ///     textbox is providing the date that is being
-    ///     checked for a permission. See ProcedureL.CheckPermissionsAndGlobalLockDate for example
-    /// </summary>
     public static DateTime GetDateForPermCheck(Procedure proc, DateTime dateOverride = default)
     {
         var date = dateOverride == DateTime.MinValue ? proc.ProcDate : dateOverride;
@@ -2532,11 +1860,6 @@ public class Procedures
         return date;
     }
 
-    /// <summary>
-    ///     Only called from FormProcEditAll to signal when to disable much of the editing in that form. If the procedure
-    ///     is 'AttachedToClaim' then user should not change it very much.  The claimProcList can be all claimProcs for the
-    ///     patient or only those attached to this proc.
-    /// </summary>
     public static bool IsAttachedToClaim(List<Procedure> procList, List<ClaimProc> claimprocList)
     {
         for (var j = 0; j < procList.Count; j++)
@@ -2546,7 +1869,6 @@ public class Procedures
         return false;
     }
 
-    ///<summary>Queries the database to determine if this procedure is attached to a claim already.</summary>
     public static bool IsAttachedToClaim(long procNum)
     {
         var command = "SELECT COUNT(*) FROM claimproc "
@@ -2557,10 +1879,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Used in ContrAccount.CreateClaim to validate that procedure is not already attached to a claim for this
-    ///     specific insPlan.  The claimProcList can be all claimProcs for the patient or only those attached to this proc.
-    /// </summary>
     public static bool IsAlreadyAttachedToClaim(Procedure proc, List<ClaimProc> claimProcList, long insSubNum)
     {
         for (var i = 0; i < claimProcList.Count; i++)
@@ -2580,12 +1898,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Returns true if this procedure needs to be sent to insurance.
-    ///     This happens if there is at least one claimproc attached for this inssub that is an estimate, and it is not set to
-    ///     NoBillIns.
-    ///     The list can be all ClaimProcs for patient or just those for this procedure.
-    /// </summary>
     public static bool NeedsSent(long procNum, long insSubNum, List<ClaimProc> listClaimProcs)
     {
         for (var i = 0; i < listClaimProcs.Count; i++)
@@ -2598,12 +1910,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Only used in ContrAccount.CreateClaim and FormRepeatChargeUpdate.CreateClaim to decide whether a given
-    ///     procedure has an estimate that can be used to attach to a claim for the specified plan.  Returns a valid claimProc
-    ///     if this procedure has an estimate attached that is not set to NoBillIns.  The list can be all ClaimProcs for
-    ///     patient, or just those for this procedure. Returns null if there are no claimprocs that would work.
-    /// </summary>
     public static ClaimProc GetClaimProcEstimate(long procNum, List<ClaimProc> claimProcList, InsPlan plan, long insSubNum)
     {
         //bool matchOfWrongType=false;
@@ -2627,7 +1933,6 @@ public class Procedures
         return null;
     }
 
-    /// <summary>Used by GetProcsForSingle and GetProcsMultApts to generate a short string description of a procedure.</summary>
     public static string ConvertProcToString(long codeNum, string surf, string toothNum, bool forAccount)
     {
         var code = ProcedureCodes.GetProcCode(codeNum);
@@ -2640,7 +1945,6 @@ public class Procedures
             strLine += " " + code.Descript;
         return strLine;
     }
-
     
     private static string GetToothAndSurfForCodeNum(long codeNum, string surf, string toothNum, bool hasToothNum)
     {
@@ -2672,13 +1976,11 @@ public class Procedures
         return strLine;
     }
 
-    ///<summary>Used to display procedure descriptions on appointments. The returned string also includes surf and toothNum.</summary>
     public static string GetDescription(Procedure proc, bool forAccount = false)
     {
         return ConvertProcToString(proc.CodeNum, proc.Surf, proc.ToothNum, forAccount);
     }
 
-    ///<summary>Used to display procedure descriptions on letters. The returned string also includes surf and toothNum.</summary>
     public static string GetDescriptionForLetter(Procedure proc)
     {
         var code = ProcedureCodes.GetProcCode(proc.CodeNum);
@@ -2692,10 +1994,6 @@ public class Procedures
         return retVal;
     }
 
-    /// <summary>
-    ///     Sets the provider and clinic for a proc based on the appt to which it is attached.  Also sets ProcDate for TP
-    ///     procs.  Changes are reflected in proc returned, but not saved to the db (for synch later).
-    /// </summary>
     public static Procedure ChangeProcInAppointment(Appointment apt, Procedure proc)
     {
         if (!IsProcComplEditAuthorized(proc))
@@ -2735,12 +2033,6 @@ public class Procedures
         return IsProcComplAuthorized(EnumPermType.ProcCompleteEdit, proc, includeCodeNumAndFee);
     }
 
-    /// <summary>
-    ///     Returns true when we want to allow procedure fees to be changed.
-    ///     Depending on PrefName.ProcFeeUpdatePrompt, may prompt user for input. We will need to show a MsgBox to the user
-    ///     when promptText is not empty after returing true.  Not translated here. Should only be called after identifying a
-    ///     procedurelog or appointment provider change.
-    /// </summary>
     public static bool ShouldFeesChange(List<Procedure> listNewProcs, List<Procedure> listOldProcs, ref string promptText, ProcFeeHelper procFeeHelper)
     {
         //this method was called FeeUpdatePromptHelper
@@ -2797,12 +2089,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Goes through the database looking for TP procedures that might need their proc fee updated.
-    ///     Only updates the TP proc fee, does not compute estimates.  Returns number of fees changed.
-    ///     Pass in a valid clinic num, or zero for HQ.  Pass in listFees for the HQ fees, and get individual clinic fees
-    ///     inside here.
-    /// </summary>
     public static long GlobalUpdateFees(List<Fee> listFeesHQ, long clinicNumGlobal, string progressText)
     {
         //There are three parts to this:
@@ -2834,7 +2120,7 @@ public class Procedures
             _queueDataTables = new Queue<DataTable>();
         }
 
-        _listProcNumsMaxForGroups = GetProcNumMaxForGroups(ROWS_BATCH_MAX_SIZE, new List<ProcStat> {ProcStat.TP}, clinicNumGlobal);
+        _listProcNumsMaxForGroups = GetProcNumMaxForGroups(ROWS_BATCH_MAX_SIZE, [ProcStat.TP], clinicNumGlobal);
         if (_totCount == 0 || _listProcNumsMaxForGroups.Count == 0)
         {
             //not likely to happen, this would mean there are 0 TP procedures in the db, nothing to do
@@ -3047,7 +2333,7 @@ public class Procedures
                         continue;
                     }
 
-                    if (!dictFeeListCodes.ContainsKey(newFee)) dictFeeListCodes[newFee] = new List<List<long>> {new(UPDATE_PROCNUM_IN_MAX_SIZE)};
+                    if (!dictFeeListCodes.ContainsKey(newFee)) dictFeeListCodes[newFee] = [new(UPDATE_PROCNUM_IN_MAX_SIZE)];
                     if (dictFeeListCodes[newFee].Last().Count >= UPDATE_PROCNUM_IN_MAX_SIZE) dictFeeListCodes[newFee].Add(new List<long>(UPDATE_PROCNUM_IN_MAX_SIZE));
                     dictFeeListCodes[newFee].Last().Add(procNum);
                     currentRowCount++;
@@ -3118,7 +2404,6 @@ public class Procedures
         return procFeesUpdatedCount;
     }
 
-    ///<summary>Thread that gets batches of data to put into a queue for another thread to process.</summary>
     private static void QueueDataBatches(ODThread odThread)
     {
         var s = new Stopwatch();
@@ -3219,24 +2504,11 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Sorts the given list based on the procedure's priority, tooth, date, and procnum.
-    ///     SortListByTreatPlanPriority() should be the only method of sorting procedures that need to emulate the treatment
-    ///     plan module.
-    ///     This is to prevent recurring bugs due to different sort methodology.
-    /// </summary>
     public static List<Procedure> SortListByTreatPlanPriority(List<Procedure> listProcs, List<TreatPlanAttach> listTreatPlanAttaches = null)
     {
         return SortListByTreatPlanPriority(listProcs, PrefC.GetBool(PrefName.TreatPlanSortByTooth), listTreatPlanAttaches);
     }
 
-    /// <summary>
-    ///     Sorts the given list based on the procedure's priority, tooth, date, and procnum.
-    ///     isTreatPlanSortByTooth is generally either PrefC.IsTreatPlanSortByTooth or PrefName.TreatPlanSortByTooth.
-    ///     SortListByTreatPlanPriority() should be the only method of sorting procedures that need to emulate the treatment
-    ///     plan module.
-    ///     This is to prevent recurring bugs due to different sort methodology.
-    /// </summary>
     public static List<Procedure> SortListByTreatPlanPriority(List<Procedure> listProcs, bool isTreatPlanSortByTooth, List<TreatPlanAttach> listTreatPlanAttaches = null)
     {
         var dictPriorities = new Dictionary<long, int>();
@@ -3275,11 +2547,6 @@ public class Procedures
         return listOrderedProcs;
     }
 
-    /// <summary>
-    ///     Checks for frequency conflicts with the passed-in list of procedures.
-    ///     Returns empty string if there are no conflicts, new line delimited list of proc codes if there are.  Throws
-    ///     exceptions.
-    /// </summary>
     public static string CheckFrequency(List<Procedure> procList, long patNum, DateTime aptDateTime)
     {
         if (procList == null) throw new ArgumentException("Invalid procedure list passed in.", "procList");
@@ -3346,15 +2613,8 @@ public class Procedures
 
         return frequencyConflicts;
     }
-
     
-    public static void ComputeEstimates(Procedure proc, long patNum, List<ClaimProc> claimProcs, bool isInitialEntry, List<InsPlan> planList,
-        List<PatPlan> patPlans, List<Benefit> benefitList,
-        //missing histList,loopList,saveToDb
-        int patientAge, List<InsSub> subList,
-        OrthoProcLink orthoProcLink = null, OrthoCase orthoCase = null, OrthoSchedule orthoSchedule = null, List<OrthoProcLink> listOrthoProcLinksForOrthoCase = null,
-        //missing listClaimProcsAll,isClaimProcRemoveNeeded,useProcDateOnProc,listSubLinks,isForOrtho
-        List<Fee> listFees = null, BlueBookEstimateData blueBookEstimateData = null)
+    public static void ComputeEstimates(Procedure proc, long patNum, List<ClaimProc> claimProcs, bool isInitialEntry, List<InsPlan> planList, List<PatPlan> patPlans, List<Benefit> benefitList, int patientAge, List<InsSub> subList, OrthoProcLink orthoProcLink = null, OrthoCase orthoCase = null, OrthoSchedule orthoSchedule = null, List<OrthoProcLink> listOrthoProcLinksForOrthoCase = null, List<Fee> listFees = null, BlueBookEstimateData blueBookEstimateData = null)
     {
         ComputeEstimates(proc, patNum, ref claimProcs, isInitialEntry, planList, patPlans, benefitList,
             null, null, true,
@@ -3363,65 +2623,6 @@ public class Procedures
             listFees, null, orthoProcLink, orthoCase, orthoSchedule, listOrthoProcLinksForOrthoCase, blueBookEstimateData);
     }
 
-    /// <summary>
-    ///     Used whenever a procedure changes or a plan changes.  All estimates for a given procedure must be updated. This
-    ///     frequently includes
-    ///     adding claimprocs, but can also just edit the appropriate existing claimprocs. Skips
-    ///     status=Adjustment,CapClaim,Preauth,Supplemental.
-    ///     Also fixes date,status,and provnum if appropriate.  The claimProc list only needs to include claimprocs for this
-    ///     proc, although it can
-    ///     include more.
-    /// </summary>
-    /// <param name="claimProcs">
-    ///     claimProcs is the list of claimprocs for the patNum, sometimes only estimate cp's or only those for non-completed
-    ///     and
-    ///     non-deleted procs and other times all claimprocs for the patNum or all claimprocs for the procedure, modified by
-    ///     this method if necessary.
-    /// </param>
-    /// <param name="isInitialEntry">
-    ///     Set this to true when this is the first time computing estimates for this procedure. It is only used for
-    ///     capitation plans. If true, a claim proc that is CapComplete will still calculate estimate.
-    /// </param>
-    /// <param name="planList">planList is insplans for the subList, so all insplans for the family of patNum.</param>
-    /// <param name="patPlans">patPlans is patplans for the patNum (NOT for entire family).</param>
-    /// <param name="benefitList">
-    ///     benefitList is benefits with PatPlanNum in patPlans or PlanNum in subList.PlanNums where subList[i].InsSubNum is in
-    ///     the patPlans.InsSubNums.  So benefitList is only benefits affecting patPlans for patNum (NOT for entire family).
-    /// </param>
-    /// <param name="histList">
-    ///     histList contains claimprochists for the pat or family (depending on coverage level, individual or family) where
-    ///     the
-    ///     claimproc.InsSubNum is in patPlans.InsSubNums and there is a benefit in benefitList that applies to this claimproc.
-    ///     Used for determining
-    ///     annual max, deductibles, and other limitations/frequency limits.
-    /// </param>
-    /// <param name="loopList">
-    ///     loopList contains all claimprocs in the current list (TP or claim) that come before this procedure.  Used in the TP
-    ///     module and in claims to determine (pending) benefits used prior to this one.  loopList can be null, i.e.
-    ///     FormProcEdit or checking frequency
-    ///     limits for appt scheduling, since there is no list of pending benefits used prior to this one.
-    /// </param>
-    /// <param name="subList">subList is the list of inssubs for the family of patNum.</param>
-    /// <param name="orthoProcLink">The link between proc and an ortho case.</param>
-    /// <param name="orthoCase">The ortho case the proc is linked to.</param>
-    /// <param name="orthoSchedule">Contains fee information regarding an ortho case.</param>
-    /// <param name="listOrthoProcLinksForOrthoCase">All proc links for an ortho case.</param>
-    /// <param name="listClaimProcsAll">
-    ///     listClaimProcsAll holds all claimprocs for the patNum, even ones that are received. The purpose of this list
-    ///     is to hold all claim procs for reference. This list will not be modified.  Only sent from PatPlans.Delete,
-    ///     otherwise it's set to claimProcs.
-    /// </param>
-    /// <param name="listSubstLinks">If null, gets list from db, so don't use this in a loop with listSubstLinks null.</param>
-    /// <param name="listFees">
-    ///     Normally, pass in a short listFees or short lookupFees. Ok to leave null if not much looping,
-    ///     and can get fee directly from db.  listFees gets converted to lookupFees before being passed off to
-    ///     Procedures.ComputerForOrdinal
-    /// </param>
-    /// <param name="lookupFees">In the case of GlobalUpdateWriteoffs, pass in this huge lookup instead of listFees.</param>
-    /// <param name="blueBookEstimateData">
-    ///     If null, we will create it before calling ComputeForOrdinal(). Data needed to
-    ///     produce estimates using the Blue Book feature.
-    /// </param>
     public static void ComputeEstimates(
         Procedure proc,
         long patNum,
@@ -3453,9 +2654,11 @@ public class Procedures
         {
             if (listApptNums == null)
             {
-                listApptNums = new List<long>();
-                listApptNums.Add(proc.AptNum);
-                listApptNums.Add(proc.PlannedAptNum);
+                listApptNums =
+                [
+                    proc.AptNum,
+                    proc.PlannedAptNum
+                ];
                 listApptNums = listApptNums.FindAll(x => x != 0).Distinct().ToList();
             }
 
@@ -3644,7 +2847,7 @@ public class Procedures
         if (listFees != null && lookupFees == null)
             //we are just dealing with a very short list of fees, so this doesn't cost anything.
             lookupFees = (Lookup<FeeKey2, Fee>) listFees.ToLookup(x => new FeeKey2(x.CodeNum, x.FeeSched));
-        if (blueBookEstimateData == null) blueBookEstimateData = new BlueBookEstimateData(planList, subList, patPlans, new List<Procedure> {proc}, listSubstLinks);
+        if (blueBookEstimateData == null) blueBookEstimateData = new BlueBookEstimateData(planList, subList, patPlans, [proc], listSubstLinks);
         //because secondary claimproc might come before primary claimproc in the list, we cannot simply loop through the claimprocs
         ComputeForOrdinal(1, claimProcs, proc, planList, isInitialEntry, ref paidOtherInsEstTotal, ref paidOtherInsBaseEst, ref writeOffEstOtherIns,
             patPlans, benefitList, histList, loopList, saveToDb, patientAge, subList, listSubstLinks, useProcDateOnProc, lookupFees, blueBookEstimateData);
@@ -3710,16 +2913,7 @@ public class Procedures
         #endregion
     }
 
-    /// <summary>
-    ///     Passing in ordinal 4 will compute for 4 as well as any other situation such as dropped plan.
-    ///     For Canada, a lab estimate will be created and added to list claimProcs if any of the procs have labs without
-    ///     estimates.
-    /// </summary>
-    private static void ComputeForOrdinal(int ordinal, List<ClaimProc> claimProcs, Procedure proc, List<InsPlan> planList, bool isInitialEntry,
-            ref double paidOtherInsEstTotal, ref double paidOtherInsBaseEst, ref double writeOffEstOtherIns,
-            List<PatPlan> patPlans, List<Benefit> benefitList, List<ClaimProcHist> histList, List<ClaimProcHist> loopList, bool saveToDb, int patientAge,
-            List<InsSub> listInsSubs, List<SubstitutionLink> listSubstLinks, bool useProcDateOnProc, Lookup<FeeKey2, Fee> lookupFees, BlueBookEstimateData blueBookEstimateData)
-        //lookupFees passed in will also contain all possible alternate codes and medical codes
+    private static void ComputeForOrdinal(int ordinal, List<ClaimProc> claimProcs, Procedure proc, List<InsPlan> planList, bool isInitialEntry, ref double paidOtherInsEstTotal, ref double paidOtherInsBaseEst, ref double writeOffEstOtherIns, List<PatPlan> patPlans, List<Benefit> benefitList, List<ClaimProcHist> histList, List<ClaimProcHist> loopList, bool saveToDb, int patientAge, List<InsSub> listInsSubs, List<SubstitutionLink> listSubstLinks, bool useProcDateOnProc, Lookup<FeeKey2, Fee> lookupFees, BlueBookEstimateData blueBookEstimateData)
     {
         InsPlan PlanCur;
         PatPlan patplan;
@@ -3989,9 +3183,7 @@ public class Procedures
         }
     }
 
-    ///<summary>Returns true if a frequency benefit has been met this time period.</summary>
-    public static bool HasMetFrequencyLimitation(ClaimProc claimProc, List<ClaimProcHist> histList, List<Benefit> listBenefits, Procedure procedure,
-        ProcedureCode procedureCode, InsPlan planCur, List<InsPlan> listInsPlans, PatPlan patPlan = null, List<ClaimProcHist> loopList = null, List<InsSub> listInsSubs = null)
+    public static bool HasMetFrequencyLimitation(ClaimProc claimProc, List<ClaimProcHist> histList, List<Benefit> listBenefits, Procedure procedure, ProcedureCode procedureCode, InsPlan planCur, List<InsPlan> listInsPlans, PatPlan patPlan = null, List<ClaimProcHist> loopList = null, List<InsSub> listInsSubs = null)
     {
         if (histList == null || listBenefits == null || !PrefC.GetBool(PrefName.InsChecksFrequency) || procedure.ProcDate.Year < 1880 || claimProc.NoBillIns) return false;
         var listClaimProcHists = new List<ClaimProcHist>(histList);
@@ -4124,16 +3316,7 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     This method is a helper for checking frequency limitations in ComputeForOrdinal(). The below booleans pain
-    ///     stakingly vet the passed in nums/ranges for handling empty strings.
-    ///     Because we store toothrange,toothnum, and surf as strings they default to be empty which results in false positives
-    ///     in our logic. Checking for empty strings whilst doing our logic
-    ///     in ComputeForOrdinal() results in a very ugly and unreadable linq statement. This method simply pulls out that
-    ///     logic and simplifies the linq statement above.
-    /// </summary>
-    public static bool IsSameProcedureArea(string histToothNum, string procCurToothNum, string histToothRangeStr, string procCurToothRangeStr,
-        string histSurf, string procCurSurf, TreatmentArea procCurTreatArea, TreatmentArea benTreatArea = TreatmentArea.None)
+    public static bool IsSameProcedureArea(string histToothNum, string procCurToothNum, string histToothRangeStr, string procCurToothRangeStr, string histSurf, string procCurSurf, TreatmentArea procCurTreatArea, TreatmentArea benTreatArea = TreatmentArea.None)
     {
         //Procedures like exams and BW's do not ever specify a toothnum, toothrange, or surface.
         if (string.IsNullOrEmpty(histToothNum)
@@ -4145,17 +3328,17 @@ public class Procedures
             return true;
         if (benTreatArea == TreatmentArea.Mouth) return true;
 
-        var histToothRange = histToothRangeStr?.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
-        var procCurToothRange = procCurToothRangeStr?.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+        var histToothRange = histToothRangeStr?.Split([','], StringSplitOptions.RemoveEmptyEntries) ?? [];
+        var procCurToothRange = procCurToothRangeStr?.Split([','], StringSplitOptions.RemoveEmptyEntries) ?? [];
         if (benTreatArea == TreatmentArea.ToothRange)
         {
             if (histToothRange.Length == 0 && histSurf == "U")
-                histToothRange = new[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}; //See Tooth.IsMaxillary().
+                histToothRange = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]; //See Tooth.IsMaxillary().
             else if (histToothRange.Length == 0 && histSurf == "L")
-                histToothRange = new[] {"17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"};
+                histToothRange = ["17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"];
             else if (procCurToothRange.Length == 0 && procCurSurf == "U")
-                procCurToothRange = new[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}; //See Tooth.IsMaxillary().
-            else if (procCurToothRange.Length == 0 && procCurSurf == "L") procCurToothRange = new[] {"17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"};
+                procCurToothRange = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]; //See Tooth.IsMaxillary().
+            else if (procCurToothRange.Length == 0 && procCurSurf == "L") procCurToothRange = ["17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"];
         }
 
         var hasToothRangeOverlap = histToothRange.Intersect(procCurToothRange).Count() > 0;
@@ -4184,19 +3367,13 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     After changing important coverage plan info, this is called to recompute estimates for all procedures for this
-    ///     patient.
-    /// </summary>
-    public static void ComputeEstimatesForAll(long patNum, List<ClaimProc> claimProcs, List<Procedure> procs, List<InsPlan> planList,
-        List<PatPlan> patPlans, List<Benefit> benefitList, int patientAge, List<InsSub> subList, List<ClaimProc> listClaimProcsAll = null, bool isClaimProcRemoveNeeded = false,
-        List<SubstitutionLink> listSubstLinks = null, List<Fee> listFees = null)
+    public static void ComputeEstimatesForAll(long patNum, List<ClaimProc> claimProcs, List<Procedure> procs, List<InsPlan> planList, List<PatPlan> patPlans, List<Benefit> benefitList, int patientAge, List<InsSub> subList, List<ClaimProc> listClaimProcsAll = null, bool isClaimProcRemoveNeeded = false, List<SubstitutionLink> listSubstLinks = null, List<Fee> listFees = null)
     {
         //Get data for any OrthoCases that may be linked to procs in procs list
         List<long> listApptNums = null;
         if (PrefC.GetBool(PrefName.EnterpriseHygProcUsePriProvFee))
         {
-            listApptNums = new List<long>();
+            listApptNums = [];
             for (var i = 0; i < procs.Count; i++)
             {
                 listApptNums.Add(procs[i].AptNum);
@@ -4244,14 +3421,7 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Only called from one place in this same class.  Loops through list of procs for appt.
-    ///     Does not add notes to a procedure that already has notes. Only called from ProcedureL.SetCompleteInAppt, security
-    ///     checked
-    ///     before calling this.  Also sets provider for each proc and claimproc.
-    /// </summary>
-    public static List<Procedure> SetCompleteInApptInList(Appointment apt, List<InsPlan> planList, List<PatPlan> patPlans, Patient patient,
-        List<Procedure> listProcsForAppt, List<InsSub> subList, Userod curUser)
+    public static List<Procedure> SetCompleteInApptInList(Appointment apt, List<InsPlan> planList, List<PatPlan> patPlans, Patient patient, List<Procedure> listProcsForAppt, List<InsSub> subList, Userod curUser)
     {
         if (listProcsForAppt.Count == 0) return listProcsForAppt; //Nothing to do.
         var claimProcList = ClaimProcs.Refresh(apt.PatNum);
@@ -4274,7 +3444,7 @@ public class Procedures
         var discountPlanNum = DiscountPlanSubs.GetDiscountPlanNumForPat(patient.PatNum, apt.AptDateTime);
         var listFees = Fees.GetListFromObjects(listProcedureCodes, listProcsForAppt.Select(x => x.MedicalCode).ToList(),
             listProcsForAppt.Select(x => x.ProvNum).ToList(), patient.PriProv, patient.SecProv, patient.FeeSched, planList,
-            listProcsForAppt.Select(x => x.ClinicNum).ToList(), new List<Appointment> {apt}, listSubstLinks, discountPlanNum);
+            listProcsForAppt.Select(x => x.ClinicNum).ToList(), [apt], listSubstLinks, discountPlanNum);
         ProcedureCode procCode;
         Procedure procOld;
         var encounterProvNums = new List<long>(); //for auto-inserting default encounters
@@ -4371,7 +3541,6 @@ public class Procedures
         //Reporting.Allocators.AllocatorCollection.CallAll_Allocators(pt.Guarantor);
     }
 
-    ///<summary>Both listDiagCodes and listDiagVersions must be the same length and not null.</summary>
     private static bool ExistsDiagnosticCode(List<string> listDiagCodes, List<byte> listDiagVersions, string diagnosticCode, byte diagnosticVersion)
     {
         for (var i = 0; i < listDiagCodes.Count; i++)
@@ -4381,11 +3550,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Gets the placement date for ortho patients.
-    ///     Takes the patient's patientNote.DateOrthoPlacementOverride and preference.OrthoPlacementProcsList into account.
-    ///     Uses the first D8* procedure if neither of the above are found.  Returns DateTime.MinValue if no proc found.
-    /// </summary>
     public static DateTime GetFirstOrthoProcDate(PatientNote patNoteCur)
     {
         if (patNoteCur.DateOrthoPlacementOverride != DateTime.MinValue)
@@ -4402,14 +3566,6 @@ public class Procedures
         return firstOrthoProcDate;
     }
 
-    /// <summary>
-    ///     Does nothing if not an ortho proc (dictated by the pref OrthoPlacementProcsList or a code starting with D8 if pref
-    ///     not set).
-    ///     PatPlan table needs to be updated when an ortho placement procedure is set complete.
-    ///     Only updates the date if no OrthoAutoNextClaimDate is set on the corresponding PatPlan. Updates
-    ///     PatientNote.OrthoMonthsTreatOverride
-    ///     if this is the first Ortho placement proc set complete.
-    /// </summary>
     public static void SetOrthoProcComplete(Procedure procCur, ProcedureCode procCode)
     {
         if (procCode == null || procCur == null) //this should never happen unless they have some corruption
@@ -4434,7 +3590,7 @@ public class Procedures
         foreach (var patPlanCur in listPatPlans)
         {
             if (patPlanCur.OrthoAutoNextClaimDate.Date != DateTime.MinValue.Date) continue;
-            var insPlanCur = InsPlans.GetByInsSubs(new List<long> {patPlanCur.InsSubNum}).FirstOrDefault();
+            var insPlanCur = InsPlans.GetByInsSubs([patPlanCur.InsSubNum]).FirstOrDefault();
             if (insPlanCur == null || insPlanCur.OrthoType != OrthoClaimType.InitialPlusPeriodic) continue;
             var waitDays = TimeSpan.FromDays(0);
             waitDays = TimeSpan.FromDays(insPlanCur.OrthoAutoClaimDaysWait);
@@ -4462,10 +3618,6 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     This method will set their auto proc's Months Treatment to the number of months from the start date to the
-    ///     completed procedure.
-    /// </summary>
     private static void SetAutoOrthoMonthsTreat(Procedure procCur, string procCode)
     {
         var patCur = Patients.GetLim(procCur.PatNum);
@@ -4478,12 +3630,7 @@ public class Procedures
         PatientNotes.Update(patNoteCur, patCur.Guarantor);
     }
 
-    /// <summary>
-    ///     Decides the base description to send to insurance based off of the claimproc.
-    ///     This function mimics logic from ContrAccount.CreateClaim() when setting CodeSent.
-    ///     If the logic in this function changes, then consider changing ContrAccount.CreateClaim() as well.
-    /// </summary>
-    public static string GetClaimDescript(ClaimProc claimProcCur, ProcedureCode procCodeSent, Procedure procCur, ProcedureCode procCodeCur, InsPlan planCur = null)
+    public static string GetClaimDescript(ClaimProc claimProcCur, ProcedureCode procCodeSent, ProcedureCode procCodeCur, InsPlan planCur = null)
     {
         var descript = procCodeSent.Descript;
         if (PrefC.GetBool(PrefName.ClaimPrintProcChartedDesc))
@@ -4499,14 +3646,7 @@ public class Procedures
         return descript;
     }
 
-    /// <summary>
-    ///     Sets either the AptNum or Planned AptNum for given procs.
-    ///     Uses listSelectedRows and listProcNumsAttachedStart to determine if procs are attaching to or detaching from
-    ///     AptCur.
-    ///     When moving proc from another appt, other appt descriptions are updated.
-    /// </summary>
-    public static void ProcsAptNumHelper(List<Procedure> listProcs, Appointment AptCur, List<Appointment> listAppointments,
-        List<int> listSelectedRows, List<long> listProcNumsAttachedStart, bool isAptPlanned = false, LogSources logSource = LogSources.None)
+    public static void ProcsAptNumHelper(List<Procedure> listProcs, Appointment AptCur, List<Appointment> listAppointments, List<int> listSelectedRows, List<long> listProcNumsAttachedStart, bool isAptPlanned = false, LogSources logSource = LogSources.None)
     {
         if (listProcs == null || AptCur == null || listAppointments == null || listSelectedRows == null || listProcNumsAttachedStart == null) return;
         for (var i = 0; i < listProcs.Count; i++)
@@ -4580,11 +3720,6 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Updates the procs description and AptNum of the both the old appointment and appt.
-    ///     listAppts should contain the procs previous appt.
-    ///     ListProcsForAppt and listProcCodes can be null.
-    /// </summary>
     public static void UpdateOtherApptDesc(Procedure proc, Appointment appt, bool isApptPlanned, List<Appointment> listAppts, List<Procedure> listProcsForAppt)
     {
         Appointment apptPrevious;
@@ -4604,10 +3739,6 @@ public class Procedures
             Appointments.SetProcDescript(apptPrevious, listProcsForAppt);
     }
 
-    /// <summary>
-    ///     Creates securitylog entry for a completed procedure.  Set toothNum to empty string and it will be omitted from
-    ///     the log entry. toothNums can be null or empty.
-    /// </summary>
     public static void LogProcComplCreate(long patNum, Procedure procCur, string toothNums)
     {
         if (procCur == null) return; //Nothing to do.  Should never happen.
@@ -4618,10 +3749,6 @@ public class Procedures
         SecurityLogs.MakeLogEntry(EnumPermType.ProcComplCreate, patNum, logText);
     }
 
-    /// <summary>
-    ///     Creates securitylog entry for completed procedure where appointment ProvNum is different than the procedures
-    ///     provnum.
-    /// </summary>
     private static void LogProcComplEdit(Procedure proc, Procedure procOld, List<ProcedureCode> listProcedureCodes = null)
     {
         var procCode = ProcedureCodes.GetProcCode(proc.CodeNum, listProcedureCodes);
@@ -4633,12 +3760,7 @@ public class Procedures
         SecurityLogs.MakeLogEntry(EnumPermType.ProcCompleteEdit, proc.PatNum, logText, proc.ProcNum, LogSources.None, procOld.DateTStamp);
     }
 
-    /// <summary>
-    ///     Sets all procedures for apt complete.  Flags procedures as CPOE as needed (when prov logged in).  Makes a log
-    ///     entry for each completed proc.
-    /// </summary>
-    public static List<Procedure> SetCompleteInAppt(Appointment apt, List<InsPlan> PlanList, List<PatPlan> patPlans, Patient patient, List<InsSub> subList,
-        bool removeCompletedProcs)
+    public static List<Procedure> SetCompleteInAppt(Appointment apt, List<InsPlan> PlanList, List<PatPlan> patPlans, Patient patient, List<InsSub> subList, bool removeCompletedProcs)
     {
         //Get all procs attached to the appointment and go through the set complete logic.
         //We must go through all procedures. Remove completed procs if removeCompletedProcs is set to true. We don't want to change completed procedures 
@@ -4662,12 +3784,7 @@ public class Procedures
         return listProcsInAppt;
     }
 
-    /// <summary>
-    ///     Constructs a procedure from a passed-in codenum. Does not prompt you to fill in info like toothNum, etc.
-    ///     Does NOT insert the procedure into the DB, just returns it.
-    /// </summary>
-    public static Procedure ConstructProcedureForAppt(long codeNum, Appointment appt, Patient pat, List<PatPlan> listPatPlans,
-        List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<Fee> listFees = null)
+    public static Procedure ConstructProcedureForAppt(long codeNum, Appointment appt, Patient pat, List<PatPlan> listPatPlans, List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<Fee> listFees = null)
     {
         var proc = new Procedure();
         proc.CodeNum = codeNum;
@@ -4707,17 +3824,7 @@ public class Procedures
             proc.IsCpoe = true;
         return proc;
     }
-
-    /// <summary>
-    ///     Procedure comparer to sort procedures specifically like how they display in the Account Module.  DataRows
-    ///     should be sorted via ProcDate first.
-    /// </summary>
-    private static int ProcedureComparer(DataRow x, DataRow y)
-    {
-        return ProcedureLogic.CompareProcedures(x, y);
-    }
-
-    ///<summary>Returns true if the procedure's ProcCode is a banding, debond, or visit code</summary>
+    
     public static bool IsAnOrthoCaseProcCode(string procCode)
     {
         var orthoProcCodes = OrthoCases.GetListProcTypeProcCodes(PrefName.OrthoBandingCodes);
@@ -4726,15 +3833,6 @@ public class Procedures
         return orthoProcCodes.Contains(procCode);
     }
 
-    /// <summary>
-    ///     Returns true if given values are valid for editing a procedure, otherwisw false.
-    ///     Values passed in by ref can be modified in this method.
-    ///     Set actionOnFailure to handle a message that explains the reasons that this method returned false. Error messages
-    ///     are pre-translated.
-    ///     Set funcYesNoPrompt to handle situations where the user needs to confirm or block behavior. Message prompts are
-    ///     pre-translated.
-    ///     Set actionOnProcedureCodeFailure to handle when ProcedureCodes.GetStringProcCode(...) throws an exception.
-    /// </summary>
     public static bool EntriesAreValid(string textNotes, bool isSigChangedAndNotBlank, string textTimeStart, string textTimeEnd, int unityQty, long provNumSelected,
         string textMedicalCode, bool isTextDrugNdcNotBlank, string textDrugQty, ref DateTime textDate, bool isNew, double procFee, bool isQuickAdd,
         bool isCheckTypeCodeNonXChecked, bool isCheckTypeCodeXChecked, int listProsthSelectedIndex, bool isQuadrantSelected,
@@ -4970,10 +4068,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Returns true if quantity is valid, otherwise false.
-    ///     Optionally calls actionOnFailure with a translated message if validation failed.
-    /// </summary>
     public static bool IsQuantityValid(int quantity, Action<string> actionOnFailure = null)
     {
         if (quantity < 1)
@@ -4985,10 +4079,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Returns true if timeStart and timeEnd are valid, otherwise false.
-    ///     Optionally calls actionOnFailure with a translated message if validation failed.
-    /// </summary>
     public static bool AreTimesValid(string timeStart, string timeEnd, Action<string> actionOnFailure = null)
     {
         if (PrefC.GetBool(PrefName.ShowFeatureMedicalInsurance))
@@ -5022,7 +4112,6 @@ public class Procedures
         return true;
     }
 
-    ///<summary>Returns true if given time value is a valid time, otherwise false. Empty string is considered valid.</summary>
     public static bool ValidateTime(string time)
     {
         var militaryTime = time;
@@ -5053,10 +4142,6 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Returns true if provider change is valid, otherwise false.
-    ///     Optionally calls actionOnFailure with a translated message if validation failed.
-    /// </summary>
     public static bool ValidateProvider(List<ClaimProc> listClaimProcsForProc, long selectedProvNum, long provNumForProc, Action<string> actionOnFailure = null)
     {
         //validate for provider change
@@ -5071,9 +4156,7 @@ public class Procedures
         return true;
     }
 
-    ///<summary>Only needs to be called when procOld.ProcStatus is C, EO or EC.</summary>
-    public static bool CheckPermissionsAndGlobalLockDate(Procedure procOld, Procedure procNew, DateTime procDate, Userod user,
-        double procFeeOverride = double.MinValue, Action<string> actionNotAuthorized = null)
+    public static bool CheckPermissionsAndGlobalLockDate(Procedure procOld, Procedure procNew, DateTime procDate, Userod user, double procFeeOverride = double.MinValue, Action<string> actionNotAuthorized = null)
     {
         if (!procOld.ProcStatus.In(ProcStat.C, ProcStat.EO, ProcStat.EC)) //that was already complete
             return true;
@@ -5112,10 +4195,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Returns true if given values are valid for a tooth number, otherwise false.
-    ///     toothSurface is a ref because the value can run through some tidy functions for display.
-    /// </summary>
     public static bool ValidateToothValue(string toothNumLabel, ref string toothSurface, Action<string> actionOnFailure = null)
     {
         if (toothNumLabel == "")
@@ -5137,11 +4216,6 @@ public class Procedures
         return true;
     }
 
-    /// <summary>
-    ///     Returns true if hasSextantSelection is true, otherwise false.
-    ///     This method exist so that it can serve both error providers in FormProcEdit and centralized Procedures.cs
-    ///     validation.
-    /// </summary>
     public static bool ValidateSextant(bool hasSextantSelection, Action<string> actionOnFailure = null)
     {
         if (hasSextantSelection) return true;
@@ -5149,11 +4223,6 @@ public class Procedures
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if isArchSelected is true, otherwise false.
-    ///     This method exist so that it can serve both error providers in FormProcEdit and centralized Procedures.cs
-    ///     validation.
-    /// </summary>
     public static bool ValidateArch(bool isArchSelected, Action<string> actionOnFailure = null)
     {
         if (isArchSelected) return true;
@@ -5161,11 +4230,7 @@ public class Procedures
         return false;
     }
 
-    ///<summary>A helper method that updates various fields for the given procedure.</summary>
-    public static void UpdateProcedureFields(Procedure procedure, Patient patient, string textMedicalCodeText, double discount, Snomed snomedBodySite,
-        bool checkIcdVersionChecked, List<string> diagnosticCodes, bool checkIsPrincDiagChecked, long selectedProvOrderNum, Referral referralOrdering,
-        string textCodeMod1, string textCodeMod2, string textCodeMod3, string textCodeMod4, int unitQty, ProcUnitQtyType unitQtyType, string revCode, EnumProcDrugUnit drugUnit,
-        float drugQty, ProcUrgency procUrgency, long selectedProvNum, long clinicNum)
+    public static void UpdateProcedureFields(Procedure procedure, Patient patient, string textMedicalCodeText, double discount, Snomed snomedBodySite, bool checkIcdVersionChecked, List<string> diagnosticCodes, bool checkIsPrincDiagChecked, long selectedProvOrderNum, Referral referralOrdering, string textCodeMod1, string textCodeMod2, string textCodeMod3, string textCodeMod4, int unitQty, ProcUnitQtyType unitQtyType, string revCode, EnumProcDrugUnit drugUnit, float drugQty, ProcUrgency procUrgency, long selectedProvNum, long clinicNum)
     {
         procedure.PatNum = patient.PatNum;
         procedure.MedicalCode = textMedicalCodeText;
@@ -5203,18 +4268,8 @@ public class Procedures
         procedure.ProvNum = selectedProvNum;
         procedure.ClinicNum = clinicNum;
     }
-
-    /// <summary>
-    ///     Returns false if;
-    ///     <para>
-    ///         1) Given proc was previously compete but was changed and either the user declines adjustment changes due to
-    ///         status change or there are paysplits assocaited to the proc.
-    ///     </para>
-    ///     <para>2) Proc was set complete when it previously wasn't and there are hidden proc codes.</para>
-    ///     Otherwise returns true. This method can also update various properties for given procedure.
-    /// </summary>
-    public static bool VerifyCompletedProcStatusChange(List<PaySplit> listPaySplitsForProc, Procedure procedure, Procedure procedureOld,
-        string translationSource, Func<string, bool> funcYesNoPrompt, Action<string> actionOnFailure = null)
+    
+    public static bool VerifyCompletedProcStatusChange(List<PaySplit> listPaySplitsForProc, Procedure procedure, Procedure procedureOld, string translationSource, Func<string, bool> funcYesNoPrompt, Action<string> actionOnFailure = null)
     {
         double sumPaySplits = 0;
         for (var i = 0; i < listPaySplitsForProc.Count; i++) sumPaySplits += listPaySplitsForProc[i].SplitAmt;
@@ -5250,14 +4305,8 @@ public class Procedures
 
         return true;
     }
-
-    /// <summary>
-    ///     Returns true if provider was not changed or if the provider was changed and there are no pay splits or adustments
-    ///     associated to the procedure or
-    ///     if user confirms pay split and/or adjustment changes. Otherwise false.
-    /// </summary>
-    public static bool VerifyProviderChange(Procedure procedure, Procedure procedureOld, List<Adjustment> listAdjusts, out bool hasSplitProvChanged, out bool hasAdjProvChanged,
-        string translationSource, Func<string, bool> funcYesNoPrompt, Action<string> actionNotAuthorized = null)
+    
+    public static bool VerifyProviderChange(Procedure procedure, Procedure procedureOld, List<Adjustment> listAdjusts, out bool hasSplitProvChanged, out bool hasAdjProvChanged, string translationSource, Func<string, bool> funcYesNoPrompt, Action<string> actionNotAuthorized = null)
     {
         hasSplitProvChanged = false;
         hasAdjProvChanged = false;
@@ -5291,7 +4340,6 @@ public class Procedures
         return true;
     }
 
-    ///<summary>Helper method that sets various datetime fields on the procedure.</summary>
     public static void SetMiscDateAndTimeEditFields(Procedure procedure, string textDateTP, DateTime procDate, string textTimeStart, string textTimeEnd)
     {
         // textDateTP.Text is blank upon load if date in DB is before 1/1/1880. We don't want to update this if the DateTP box is left blank.
@@ -5308,7 +4356,6 @@ public class Procedures
         }
     }
 
-    ///<summary>Returns min value if blank or invalid string passed in.</summary>
     public static DateTime ParseTime(string time)
     {
         var militaryTime = time;
@@ -5339,14 +4386,7 @@ public class Procedures
         return dTime;
     }
 
-    /// <summary>
-    ///     Return true if given procedureCode TreatArea is NOT associated to a tooth range (TreatArea or AreaAlsoToothRange).
-    ///     Also returns true when given procedureCode IS associated to a tooth range and tooth selection can be validated.
-    ///     This method can modify procedure; ToothRange, ToothNum and Surf.
-    /// </summary>
-    public static bool SetAndValidateToothData(ProcedureCode procedureCode, Procedure procedure, string textTooth, string textSurfaces,
-        List<int> listBoxTeethSelectedIndices, List<int> listBoxTeeth2SelectedIndices, List<string> listPriTeeth,
-        string translationSource, Action<string> actionOnFailure = null)
+    public static bool SetAndValidateToothData(ProcedureCode procedureCode, Procedure procedure, string textTooth, string textSurfaces, List<int> listBoxTeethSelectedIndices, List<int> listBoxTeeth2SelectedIndices, List<string> listPriTeeth, string translationSource, Action<string> actionOnFailure = null)
     {
         if (procedureCode.TreatArea == TreatmentArea.None
             || procedureCode.TreatArea == TreatmentArea.Mouth)
@@ -5410,7 +4450,6 @@ public class Procedures
         return true;
     }
 
-    ///<summary>Helper method that sets procedure Note field..</summary>
     public static void SetNote(Procedure procedure, Procedure procedureOld, string textNotes)
     {
         //Status taken care of when list pushed
@@ -5440,9 +4479,7 @@ public class Procedures
         }
     }
 
-    ///<summary>Does NOT check region, verify region is in CA prior to calling this method.</summary>
-    public static void SetCanadianEditFields(Procedure procedure, bool checkTypeCodeAChecked, bool checkTypeCodeBChecked, bool checkTypeCodeCChecked, bool checkTypeCodeEChecked,
-        bool checkTypeCodeLChecked, bool checkTypeCodeSChecked, bool checkTypeCodeXChecked)
+    public static void SetCanadianEditFields(Procedure procedure, bool checkTypeCodeAChecked, bool checkTypeCodeBChecked, bool checkTypeCodeCChecked, bool checkTypeCodeEChecked, bool checkTypeCodeLChecked, bool checkTypeCodeSChecked, bool checkTypeCodeXChecked)
     {
         procedure.CanadianTypeCodes = "";
         if (checkTypeCodeAChecked) procedure.CanadianTypeCodes += "A";
@@ -5503,11 +4540,6 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Centralizes the code to create a lab fee. Should only be called in Canada region but we return if we're not to
-    ///     protect against labs procedures
-    ///     being created in non-Canadian offices.
-    /// </summary>
     public static void CanadaLabProcEditHelper(Procedure procedure, double labFeeAmt)
     {
         if (!CultureInfo.CurrentCulture.Name.EndsWith("CA")) return; //We don't care if we're not Canadian.
@@ -5542,7 +4574,6 @@ public class Procedures
         Insert(labFee);
     }
 
-    ///<summary>Currently is only called by FormProcEdit.cs when NOT running in Cananda.</summary>
     public static void SetProsthEditFields(ProcedureCode procedureCode, Procedure procedure, int listProsthSelectedIndex, DateTime dateOriginalProsth, bool checkIsDateProsthEstChecked)
     {
         if (procedureCode.IsProsth)
@@ -5571,16 +4602,7 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Checks auto codes if the procedure is not complete or the user has permission to edit completed procedures, can
-    ///     prompt user.
-    ///     Returns false if the user is required by the ProcEditRequireAutoCodes preference to use the suggested procedure
-    ///     code and they chose
-    ///     to return to the edit procedure window. If a user is not passed in, it will be set to the current user that is
-    ///     logged in.
-    /// </summary>
-    public static bool TryAutoCodesPrompt(ref Procedure procedure, Procedure procedureOld, ProcedureCode procedureCode, bool isMandibular, Patient patient, ref List<ClaimProc> listClaimProcsForProc,
-        Func<long, Procedure> funcPromptFormACLI, Userod userod = null)
+    public static bool TryAutoCodesPrompt(ref Procedure procedure, Procedure procedureOld, ProcedureCode procedureCode, bool isMandibular, Patient patient, ref List<ClaimProc> listClaimProcsForProc, Func<long, Procedure> funcPromptFormACLI, Userod userod = null)
     {
         var perm = GroupPermissions.SwitchExistingPermissionIfNeeded(EnumPermType.ProcCompleteEdit, procedure);
         var dateForPerm = GetDateForPermCheck(procedure);
@@ -5606,37 +4628,14 @@ public class Procedures
         return true;
     }
 
-    ///<summary>Called in our mobile applications, mimics FormProcEdit logic.</summary>
-    public static void TryValidateProcFee(Procedure procedure, Procedure procedureOld, Patient patient, Func<string, bool> funcYesNoPrompt,
-        out List<PatPlan> listPatPlans, out List<InsSub> listInsSubs, out List<InsPlan> listInsPlans, out List<SubstitutionLink> listSubstitutionLinks,
-        out List<Benefit> listBenefits, out List<Fee> listFees)
-    {
-        //Mimics FormProcEdit.cs
-        listPatPlans = PatPlans.Refresh(patient.PatNum);
-        listInsSubs = InsSubs.RefreshForFam(Patients.GetFamily(patient.PatNum));
-        listInsPlans = InsPlans.RefreshForSubList(listInsSubs);
-        var listProcedureCodes = new List<ProcedureCode> {ProcedureCodes.GetProcCode(procedure.CodeNum)};
-        var listProcedures = new List<Procedure> {procedure};
-        var discountPlanNum = DiscountPlanSubs.GetDiscountPlanNumForPat(patient.PatNum, procedure.ProcDate);
-        listSubstitutionLinks = SubstitutionLinks.GetAllForPlans(listInsPlans);
-        listFees = Fees.GetListFromObjects(listProcedureCodes, listProcedures.Select(x => x.MedicalCode).ToList(), listProcedures.Select(x => x.ProvNum).ToList(),
-            patient.PriProv, patient.SecProv, patient.FeeSched, listInsPlans, listProcedures.Select(x => x.ClinicNum).ToList(), null, //appts not needed
-            listSubstitutionLinks, discountPlanNum
-        );
-        listBenefits = Benefits.Refresh(listPatPlans, listInsSubs);
-        TryValidateProcFee(procedure, procedureOld, patient, listFees, listPatPlans, listInsSubs, listInsPlans, listBenefits, funcYesNoPrompt);
-    }
-
-    ///<summary>If fees should change, will prompt the user and update procedure.ProcFee.</summary>
-    public static void TryValidateProcFee(Procedure procedure, Procedure procedureOld, Patient patient, List<Fee> listFees, List<PatPlan> listPatPlans,
-        List<InsSub> listInsSubs, List<InsPlan> listInsPlans, List<Benefit> listBenefits, Func<string, bool> funcYesNoPrompt)
+    public static void TryValidateProcFee(Procedure procedure, Procedure procedureOld, Patient patient, List<Fee> listFees, List<PatPlan> listPatPlans, List<InsSub> listInsSubs, List<InsPlan> listInsPlans, List<Benefit> listBenefits, Func<string, bool> funcYesNoPrompt)
     {
         if (procedure.ProvNum != procedureOld.ProvNum
             && procedure.ProcFee == procedureOld.ProcFee)
         {
             var promptText = "";
             var procFeeHelper = new ProcFeeHelper(patient, listFees, listPatPlans, listInsSubs, listInsPlans, listBenefits);
-            var isUpdatingFee = ShouldFeesChange(new List<Procedure> {procedure.Copy()}, new List<Procedure> {procedureOld.Copy()},
+            var isUpdatingFee = ShouldFeesChange([procedure.Copy()], [procedureOld.Copy()],
                 ref promptText, procFeeHelper
             );
             if (isUpdatingFee)
@@ -5650,26 +4649,6 @@ public class Procedures
         }
     }
 
-    ///<summary>Used by mobile apps to trigger automation when a procedure is set complete.</summary>
-    public static void CompleteProcedureAutomation(Procedure procedure, Procedure procedureOld,
-        Dictionary<long, Dictionary<long, DateTime>> dicBlockedAutomations, Action<string> actionOnShowMsg,
-        Func<string, bool> funcYesNoPrompt, Action<Commlog> onShowCommLog, Action<Sheet> onShowSheetFillEdit)
-    {
-        if (procedureOld.ProcStatus != ProcStat.C && procedure.ProcStatus == ProcStat.C)
-        {
-            var procCodeList = new List<string>
-            {
-                ProcedureCodes.GetStringProcCode(procedure.CodeNum)
-            };
-            Func<List<Procedure>, Image> funcCreateToothChartImage = listProcs => { return ToothChartHelper.GetImage(procedure.PatNum, false, listProceduresFilteredOverride: listProcs); };
-            Automations.Trigger<object>(EnumAutomationTrigger.ProcedureComplete, procCodeList, procedure.PatNum,
-                dicBlockedAutomations, actionOnShowMsg, (msg, caption) => funcYesNoPrompt.Invoke(msg), onShowCommLog, onShowSheetFillEdit, funcCreateToothChartImage
-            );
-            AfterProcsSetComplete(new List<Procedure> {procedure});
-        }
-    }
-
-    ///<summary>Should be run after procedures are set complete, automates logic such as adding sales tax.</summary>
     public static void AfterProcsSetComplete(List<Procedure> listProcedures)
     {
         if (PrefC.GetBool(PrefName.SalesTaxDoAutomate))
@@ -5677,7 +4656,6 @@ public class Procedures
                 Adjustments.AddSalesTaxIfNoneExists(listProcedures[i]);
     }
 
-    ///<summary>Used in mobile applications.</summary>
     public static string GetSignatureKeyData(Procedure procedure, string updatedNote = null)
     {
         var keyData = procedure.Note;
@@ -5687,21 +4665,6 @@ public class Procedures
         return keyData;
     }
 
-    ///<summary>Used in mobile applications.</summary>
-    public static bool TryValidateSignatures(Procedure procedure, string signature, out string signatureResult, out string error)
-    {
-        error = null;
-        var keyData = GetSignatureKeyData(procedure);
-        //331 and 79 are the width and height of the signature box in FormTPsign.cs
-        signatureResult = SigBox.EncryptSigString(MD5.Hash(Encoding.UTF8.GetBytes(keyData)), TreatPlans.GetScaledSignature(signature));
-        if (signatureResult.IsNullOrEmpty()) error = "Error occurred when encrypting the patient signature.";
-        return error.IsNullOrEmpty();
-    }
-
-    /// <summary>
-    ///     This method modifies DiagnosticCode, DiagnosticCode2, DiagnosticCode3, and DiagnosticCode4 on the passed in
-    ///     procedure.
-    /// </summary>
     public static void SetDiagnosticCodesToDefault(Procedure procedure, ProcedureCode procedureCode)
     {
         if (string.IsNullOrEmpty(procedureCode.DiagnosticCodes))
@@ -5718,11 +4681,6 @@ public class Procedures
         }
     }
 
-    /// <summary>
-    ///     Checks permissions and preferences to validate the user can delete the procedure. If everything passes, this method
-    ///     will try and delete the method also.
-    ///     Will return a result object with a msg that should be used to display to the user.
-    /// </summary>
     public static Result DeleteProcedure(Procedure procedure, Procedure procedureOld)
     {
         var result = new Result {IsSuccess = false};
@@ -5747,7 +4705,7 @@ public class Procedures
 
         if (PrefC.GetBool(PrefName.ApptsRequireProc))
         {
-            var listAppointmentsEmpty = Appointments.GetApptsGoingToBeEmpty(new List<Procedure> {procedure});
+            var listAppointmentsEmpty = Appointments.GetApptsGoingToBeEmpty([procedure]);
             if (listAppointmentsEmpty.Count > 0)
             {
                 result.Msg = "Not allowed to delete the last procedure from an appointment.";
@@ -5758,7 +4716,7 @@ public class Procedures
         if (procedure.AptNum != 0 || procedure.PlannedAptNum != 0)
         {
             //If the procedure is attached to an appointment
-            var res = Appointments.CheckRequiredProcForApptType(new List<Procedure> {procedure});
+            var res = Appointments.CheckRequiredProcForApptType([procedure]);
             if (res != "")
             {
                 result.Msg = res;
@@ -5798,11 +4756,6 @@ public class Procedures
         return result;
     }
 
-    /// <summary>
-    ///     This method is called where a user is attempting to edit a procedure that is attached to a claim. There are two
-    ///     separate permissions
-    ///     that deal with this scenario and we need to consider if we need to check for one or both and why.
-    /// </summary>
     public static bool HasPermissionsToEditProcWithClaim(List<ClaimProc> listClaimProcs, List<Claim> listClaims, long userNum = 0, bool suppressMessage = false)
     {
         var hasSentOrRecPreauth = false;
@@ -5845,43 +4798,7 @@ public class Procedures
 
         return isAllowed;
     }
-
-    #endregion
-
-    //--------------------Taken from Procedure class--------------------------------------------------
-    /*
-    ///<summary>Gets allowedOverride for this procedure based on supplied claimprocs. Includes all claimproc types.  Only used in main TP module when calculating PPOs. The claimProc array typically includes all claimProcs for the patient, but must at least include all claimprocs for this proc.</summary>
-    public static double GetAllowedOverride(Procedure proc,ClaimProc[] claimProcs,int priPlanNum) {
-        //double retVal=0;
-        for(int i=0;i<claimProcs.Length;i++) {
-            if(claimProcs[i].ProcNum==proc.ProcNum && claimProcs[i].PlanNum==priPlanNum) {
-                return claimProcs[i].AllowedOverride;
-                //retVal+=claimProcs[i].WriteOff;
-            }
-        }
-        return 0;//retVal;
-    }*/
-
-    /*
-    ///<summary>Gets total writeoff for this procedure based on supplied claimprocs. Includes all claimproc types.  Only used in main TP module. The claimProc array typically includes all claimProcs for the patient, but must at least include all claimprocs for this proc.</summary>
-    public static double GetWriteOff(Procedure proc,List<ClaimProc> claimProcs) {
-        Meth.NoCheckMiddleTierRole();
-        double retVal=0;
-        for(int i=0;i<claimProcs.Count;i++) {
-            if(claimProcs[i].ProcNum==proc.ProcNum) {
-                retVal+=claimProcs[i].WriteOff;
-            }
-        }
-        return retVal;
-    }*/
-
-    #region InsHist Preference
-
-    /// <summary>
-    ///     Returns a procedure with the date passed in. New procedure defaults to the patient's clinic, primary provider and
-    ///     uses the
-    ///     first code in the InsHistPref passed in.
-    /// </summary>
+    
     private static Procedure CreateProcedureForInsHist(Patient patient, DateTime date, PrefName prefName)
     {
         //Create new EO procedure. Default to the patient's clinic, primary provider, and the first code in the InsHistPref
@@ -5912,7 +4829,6 @@ public class Procedures
         return procedure;
     }
 
-    ///<summary>Returns the most recent procedure for the InsHist preference CodeNums. Returns null if no precedure is found.</summary>
     public static Procedure GetMostRecentInsHistProc(List<Procedure> listProcedures, List<long> listCodeNumsInsHist, PrefName prefName)
     {
         var listProceduresHistCodeNum = listProcedures.FindAll(x => listCodeNumsInsHist.Contains(x.CodeNum));
@@ -5942,11 +4858,6 @@ public class Procedures
         return listProceduresFiltered.OrderBy(x => x.ProcDate).LastOrDefault();
     }
 
-    /// <summary>
-    ///     Add new/update EO procedure for the patient. New procedures will use the patient's default clinic and provider
-    ///     using the date specified.
-    ///     New procedure will use the first code in the category for the preference passed in.
-    /// </summary>
     public static void InsertOrUpdateInsHistProcedure(Patient patient, PrefName prefName, DateTime date, long planNum, long insSubNum, Procedure procedure, List<ClaimProc> listClaimProcsForProc)
     {
         //Add a new EO procedure if the proc is null or proc does not have a Status of EO and the new date is greater. 
@@ -5970,108 +4881,24 @@ public class Procedures
                 ClaimProcs.InsertClaimProcForInsHist(procedure, planNum, insSubNum);
         }
     }
-
-    /// <summary>
-    ///     Adds and returns a new EO procedure for the patient. New procedures will use the patient's default clinic and
-    ///     provider using the date specified.
-    ///     New procedure will use the first code in the category for the preference passed in.
-    /// </summary>
-    public static Procedure InsertInsHistProcedureForApi(Patient patient, PrefName prefName, DateTime date, long planNum, long insSubNum)
-    {
-        var procedure = CreateProcedureForInsHist(patient, date, prefName);
-        Insert(procedure);
-        ClaimProcs.InsertClaimProcForInsHist(procedure, planNum, insSubNum);
-        Recalls.Synch(patient.PatNum); //A new EO procedure was added, run recall sync.
-        return procedure;
-    }
-
-    #endregion
-
-    //public static ProcExtended GetProcExtendedEntry(Procedure proc,params ProcAttachTypes[] excludedTypes) {
-    //	Meth.NoCheckMiddleTierRole();
-    //	ProcExtended procE = new ProcExtended() {
-    //		Proc=proc,
-    //		Adjustments=Adjustments.GetForProc(proc.ProcNum),
-    //		PaySplits=PaySplits.GetPaySplitsFromProc(proc.ProcNum),
-    //		ClaimProcs=ClaimProcs.RefreshForProc(proc.ProcNum),
-    //		PayPlanCredits=PayPlanCharges.GetFromProc(proc.ProcNum),
-    //		AmountOriginal=proc.ProcFee * (proc.UnitQty + proc.BaseUnits),
-    //		ExcludedTypes = excludedTypes.ToList()
-    //	};
-    //	procE.AmountEnd=procE.AmountStart;
-    //	return procE;
-    //}
 }
 
-/*================================================================================================================
-=========================================== class ProcedureComparer =============================================*/
-
-/// <summary>
-///     This sorts procedures based on priority, then tooth number, then code (but if Canadian lab code, uses proc
-///     code here instead of lab code).  Finally, if comparing a proc and its Canadian lab code, it puts the lab code after
-///     the proc.  It does not care about dates or status.  Currently used in TP module only.  The Chart module, Account
-///     module, and appointments use Procedurelog.CompareProcedures().
-/// </summary>
-public class ProcedureComparer : IComparer
-{
-	/// <summary>
-	///     This sorts procedures based on priority, then tooth number.  It does not care about dates or status.
-	///     Currently used in TP module and Chart module sorting.
-	/// </summary>
-	int IComparer.Compare(object objx, object objy)
-    {
-        var x = (Procedure) objx;
-        var y = (Procedure) objy;
-        //first, by priority
-        if (x.Priority != y.Priority)
-        {
-            //if priorities are different
-            if (x.Priority == 0) return 1; //x is greater than y. Priorities always come first.
-            if (y.Priority == 0) return -1; //x is less than y. Priorities always come first.
-            return Defs.GetOrder(DefCat.TxPriorities, x.Priority).CompareTo(Defs.GetOrder(DefCat.TxPriorities, y.Priority));
-        }
-
-        //priorities are the same, so sort by toothrange
-        if (x.ToothRange != y.ToothRange)
-            //empty toothranges come before filled toothrange values
-            return x.ToothRange.CompareTo(y.ToothRange);
-        //toothranges are the same (usually empty), so compare toothnumbers
-        if (x.ToothNum != y.ToothNum)
-            //this also puts invalid or empty toothnumbers before the others.
-            return Tooth.ToInt(x.ToothNum).CompareTo(Tooth.ToInt(y.ToothNum));
-        //priority and toothnums are the same, so sort by code.
-        /*string adaX=x.Code;
-        if(x.ProcNumLab !=0){//if x is a Canadian lab proc
-            //then use the Code of the procedure instead of the lab code
-            adaX=Procedures.GetOneProc(
-        }
-        string adaY=y.Code;*/
-        return ProcedureCodes.GetStringProcCode(x.CodeNum).CompareTo(ProcedureCodes.GetStringProcCode(y.CodeNum));
-        //return x.Code.CompareTo(y.Code);
-        //return 0;//priority, tooth number, and code are all the same
-    }
-}
-
-///<summary>Helper class that contains properties that give specific results based on data that is currently set.</summary>
 public class ProcExtended
 {
     private static long _procExtendedAutoIncrementValue = 1;
 
     //Variables below will be changed as needed.
-    public List<Adjustment> Adjustments = new();
-    public List<ClaimProc> ClaimProcs = new();
-    public List<ProcAttachTypes> ExcludedTypes = new();
-    public List<PayPlanCharge> PayPlanCredits = new();
+    public List<Adjustment> Adjustments = [];
+    public List<ClaimProc> ClaimProcs = [];
+    public List<ProcAttachTypes> ExcludedTypes = [];
+    public List<PayPlanCharge> PayPlanCredits = [];
 
-    public List<PaySplit> PaySplits = new();
+    public List<PaySplit> PaySplits = [];
 
     //Read only data.  Do not modify.
     public Procedure Proc;
 
-    ///<summary>No matter which constructor is used, the AccountEntryNum will be unique and automatically assigned.</summary>
-    public long ProcExtendedEntryNum = _procExtendedAutoIncrementValue++;
-
-    public List<PaySplit> SplitsCur = new();
+    public List<PaySplit> SplitsCur = [];
 
     public double NegativeAdjTotals
     {
@@ -6162,18 +4989,9 @@ public enum ProcAttachTypes
 
 public enum CreditCalcType
 {
-    ///<summary>Used to be called 'FIFO'.</summary>
     IncludeAll,
-
-    ///<summary>Used to be called 'ExplicitOnly'.</summary>
     AllocatedOnly,
     ExcludeAll
-}
-
-public class ProcedureForApi
-{
-    public DateTime DateTimeServer;
-    public Procedure ProcedureCur;
 }
 
 public class BenefitProcCodes

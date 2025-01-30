@@ -10,25 +10,22 @@ using CDT;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.AutoComm;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.HL7;
 using OpenDentBusiness.Misc;
 using OpenDentBusiness.WebTypes;
 
 namespace OpenDentBusiness;
 
-
 public class Patients
 {
-    public const string LANGUAGE_DECLINED_TO_SPECIFY = "Declined to Specify";
+    public const string LanguageDeclinedToSpecify = "Declined to Specify";
 
-    /// <summary>
-    ///     This is the array used in the MergeTwoPatientPointOfNoReturn method. Add new Table.PatNum combos whenever a
-    ///     table has a new PatNum field.
-    /// </summary>
     public static string[] StringArrayPatNumForeignKeys
     {
         get
@@ -175,15 +172,7 @@ public class Patients
         }
     }
 
-    /// <summary>
-    ///     Creates and inserts a "new patient" using the information passed in.  Validation must be done prior to calling
-    ///     this.
-    ///     securityLogMsg is typically set to something that lets the customer know where this new patient was created from.
-    ///     Used by multiple applications so be very careful when changing this method.  E.g. Open Dental and Web Sched.
-    /// </summary>
-    public static Patient CreateNewPatient(string lName, string fName, DateTime birthDate, long priProv, long clinicNum, string securityLogMsg
-        , LogSources logSource = LogSources.None, string email = "", string hmPhone = "", string wirelessPhone = "", PatientStatus patStatus = PatientStatus.Patient,
-        long patNum = 0, bool setTxtOk = false)
+    public static Patient CreateNewPatient(string lName, string fName, DateTime birthDate, long priProv, long clinicNum, string securityLogMsg, LogSources logSource = LogSources.None, string email = "", string hmPhone = "", string wirelessPhone = "", PatientStatus patStatus = PatientStatus.Patient, long patNum = 0, bool setTxtOk = false)
     {
         var patient = new Patient();
         patient.LName = CreateNewPatientNameHelper(lName);
@@ -205,7 +194,7 @@ public class Patients
         patient.HmPhone = TelephoneNumbers.AutoFormat(hmPhone);
         patient.WirelessPhone = TelephoneNumbers.AutoFormat(wirelessPhone);
         if (setTxtOk && !wirelessPhone.IsNullOrEmpty()) patient.TxtMsgOk = YN.Yes;
-        Insert(patient, doUseExistingPK);
+        Insert(patient);
         SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate, patient.PatNum, securityLogMsg, logSource);
         var custRef = new CustReference();
         custRef.PatNum = patient.PatNum;
@@ -216,10 +205,6 @@ public class Patients
         return patient;
     }
 
-    /// <summary>
-    ///     Helper method to address the situation where a patient's first or last name is only one character long but is
-    ///     still saved to the DB.
-    /// </summary>
     private static string CreateNewPatientNameHelper(string name)
     {
         if (name.Length == 1) return name.ToUpper();
@@ -230,27 +215,11 @@ public class Patients
         return "";
     }
 
-    /// <summary>Get the patient's Billing Cycle Day of the month.  Will return 0 if it doesn't exist.</summary>
-    public static int GetBillingCycleDayForPat(long patNum)
-    {
-        var command = "SELECT BillingCycleDay FROM patient WHERE PatNum=" + SOut.Long(patNum);
-        return (int) Db.GetLong(command);
-    }
-
-    /// <summary>
-    ///     Returns a Family object for the supplied patNum.  Use Family.GetPatient to extract the desired patient from
-    ///     the family.
-    /// </summary>
     public static Family GetFamily(long patNum)
     {
         return GetFamilies(new List<long> {patNum}).FirstOrDefault() ?? new Family();
     }
 
-    /// <summary>
-    ///     Most modules pull this data when refreshing family info for patients.  It is essential that we include deleted
-    ///     patients to avoid concurrency issues.  Not including deleted patients will crash OD when switching between modules
-    ///     after a patient has been deleted by another workstation.
-    /// </summary>
     public static List<Family> GetFamilies(List<long> listPatNums)
     {
         if (listPatNums == null || listPatNums.Count < 1) return new List<Family>();
@@ -286,25 +255,12 @@ public class Patients
         return listPatients;
     }
 
-    ///<summary>Returns a list of patients that have the associated FeeSchedNum.  Used when attempting to hide FeeScheds.</summary>
     public static List<Patient> GetForFeeSched(long feeSchedNum)
     {
         var command = "SELECT * FROM patient WHERE FeeSched=" + SOut.Long(feeSchedNum);
         return PatientCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a patient, or null, based on an internally defined or externally defined globaly unique identifier.
-    ///     This can be an OID, GUID, IID, UUID, etc.
-    /// </summary>
-    /// <param name="IDNumber">
-    ///     The extension portion of the GUID/OID.  Example: 333224444 if using SSN as a the unique
-    ///     identifier
-    /// </param>
-    /// <param name="OID">
-    ///     root OID that the IDNumber extends.  Example: 2.16.840.1.113883.4.1 is the OID for the Social
-    ///     Security Numbers.
-    /// </param>
     public static Patient GetByGUID(string IDNumber, string OID)
     {
         if (OID == OIDInternals.GetForType(IdentifierType.Patient).IDRoot) //OID matches the localy defined patnum OID.
@@ -315,10 +271,6 @@ public class Patients
         return GetPat(oidExt.IDInternal);
     }
 
-    /// <summary>
-    ///     This is a way to get a single patient from the database if you don't already have a family object to use.
-    ///     Will return null if not found.
-    /// </summary>
     public static Patient GetPat(long patNum)
     {
         if (patNum == 0) return null;
@@ -329,7 +281,6 @@ public class Patients
         return pat;
     }
 
-    ///<summary>Will return null if not found.</summary>
     public static Patient GetPatByChartNumber(string chartNumber)
     {
         if (chartNumber == "") return null;
@@ -348,8 +299,7 @@ public class Patients
         return pat;
     }
 
-    ///<summary>Will return null if not found.</summary>
-    public static Patient GetPatBySSN(string ssn)
+    public static Patient GetPatBySsn(string ssn)
     {
         if (ssn == "") return null;
         var command = "SELECT * FROM patient WHERE SSN='" + SOut.String(ssn) + "'";
@@ -367,7 +317,6 @@ public class Patients
         return pat;
     }
 
-    ///<summary>Gets all of the PatNums for the family members of the PatNums passed in.  Returns a distinct list of PatNums.</summary>
     public static List<long> GetAllFamilyPatNums(List<long> listPatNums)
     {
         if (listPatNums == null || listPatNums.Count < 1) return new List<long>();
@@ -379,12 +328,6 @@ public class Patients
         return Db.GetListLong(command);
     }
 
-    /// <summary>
-    ///     Gets all of the PatNums for the family members of the Guarantor nums passed in.  Returns a distinct list of PatNums
-    ///     that will include
-    ///     the guarantor PatNums passed in and will include all PatStatuses including archived and deleted.  Used in
-    ///     Ledgers.cs for aging.
-    /// </summary>
     public static List<long> GetAllFamilyPatNumsForGuars(List<long> listGuarNums)
     {
         if (listGuarNums == null || listGuarNums.Count < 1) return new List<long>();
@@ -408,89 +351,17 @@ public class Patients
         return Db.GetListLong(command);
     }
 
-    public static List<Patient> GetChangedSince(DateTime changedSince)
-    {
-        var command = "SELECT * FROM patient WHERE DateTStamp > " + SOut.DateTime(changedSince);
-        //command+=" "+DbHelper.LimitAnd(1000);
-        return PatientCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Used if the number of records are very large, in which case using GetChangedSince(DateTime changedSince) is
-    ///     not the preffered route due to memory problems caused by large recordsets.
-    /// </summary>
-    public static List<long> GetChangedSincePatNums(DateTime changedSince)
-    {
-        var command = "SELECT PatNum From patient WHERE DateTStamp > " + SOut.DateTime(changedSince);
-        var dt = DataCore.GetTable(command);
-        var patnums = new List<long>(dt.Rows.Count);
-        for (var i = 0; i < dt.Rows.Count; i++) patnums.Add(SIn.Long(dt.Rows[i]["PatNum"].ToString()));
-        return patnums;
-    }
-
-    ///<summary>Gets multiple Patients from database. Returns null if not found.</summary>
-    public static List<PatientWithServerDT> GetPatientsSimpleForApi(int limit, int offset, string lName, string fName,
-        DateTime birthdate, int patStatus, long clinicNum, DateTime dateTStamp, long priProv, int gender, int position, long guarantor, long superFamily, long employerNum)
-    {
-        var command = "SELECT * FROM patient WHERE DateTStamp >= " + SOut.DateTime(dateTStamp) + " "
-                      + "AND PatStatus != " + SOut.Int((int) PatientStatus.Deleted) + " "; //Do not return Deleted patients.
-        if (!lName.IsNullOrEmpty()) command += "AND LName LIKE '%" + SOut.String(lName) + "%' ";
-        if (!fName.IsNullOrEmpty()) command += "AND FName LIKE '%" + SOut.String(fName) + "%' ";
-        if (patStatus > -1) command += "AND PatStatus=" + SOut.Int(patStatus) + " ";
-        if (clinicNum > -1) command += "AND ClinicNum=" + SOut.Long(clinicNum) + " ";
-        if (birthdate > DateTime.MinValue) command += "AND Birthdate=" + SOut.Date(birthdate) + " ";
-        if (priProv > -1) command += "AND PriProv=" + SOut.Long(priProv) + " ";
-        if (gender > -1) command += "AND Gender=" + SOut.Int(gender) + " ";
-        if (position > -1) command += "AND Position=" + SOut.Int(position) + " ";
-        if (guarantor > -1) command += "AND Guarantor=" + SOut.Long(guarantor) + " ";
-        if (superFamily > -1) command += "AND SuperFamily=" + SOut.Long(superFamily) + " ";
-        if (employerNum > -1) command += "AND EmployerNum=" + SOut.Long(employerNum) + " ";
-        command += "ORDER BY PatNum " //same fixed order each time
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        var commandDatetime = "SELECT " + DbHelper.Now();
-        var dateTimeServer = SIn.DateTime(DataCore.GetScalar(commandDatetime)); //run before patients for rigorous inclusion of patient
-        var listPatients = PatientCrud.SelectMany(command);
-        var listPatientForApis = new List<PatientWithServerDT>();
-        for (var i = 0; i < listPatients.Count; i++)
-        {
-            var patientForApi = new PatientWithServerDT();
-            patientForApi.PatientCur = listPatients[i];
-            patientForApi.DateTimeServer = dateTimeServer;
-            listPatientForApis.Add(patientForApi);
-        }
-
-        return listPatientForApis;
-    }
-
-    /// <summary>Gets PatNums of patients whose online password is  blank</summary>
-    public static List<long> GetPatNumsForDeletion()
-    {
-        var command = "SELECT PatNum FROM patient "
-                      + "LEFT JOIN userweb ON userweb.FKey=patient.PatNum "
-                      + "AND userweb.FKeyType=" + SOut.Int((int) UserWebFKeyType.PatientPortal) + " "
-                      + "WHERE userweb.FKey IS NULL OR userweb.Password='' ";
-        return Db.GetListLong(command);
-    }
-
-    /// <summary>
-    ///     ONLY for new patients. Set includePatNum to true for use the patnum from the import function.  Used in HL7.
-    ///     Otherwise, uses InsertID to fill PatNum.
-    /// </summary>
-    public static long Insert(Patient pat, bool useExistingPK)
+    public static long Insert(Patient pat)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         pat.SecUserNumEntry = Security.CurUser.UserNum;
-        pat.PatNum = PatientCrud.Insert(pat, useExistingPK);
+        pat.PatNum = PatientCrud.Insert(pat);
         pat.SecurityHash = HashFields(pat);
         PatientCrud.Update(pat);
         if (PrefC.GetBool(PrefName.PatientPhoneUsePhonenumberTable)) PhoneNumbers.SyncPat(pat);
         return pat.PatNum;
     }
 
-    /// <summary>
-    ///     Updates only the changed columns and returns true if changes were made.  Supply the old Patient object to
-    ///     compare for changes.
-    /// </summary>
     public static bool Update(Patient patient, Patient oldPatient)
     {
         if (IsPatientHashValid(oldPatient)) patient.SecurityHash = HashFields(patient);
@@ -503,11 +374,6 @@ public class Patients
         return retval;
     }
 
-    /// <summary>
-    ///     This is only used when entering a new patient and user clicks cancel.  It used to actually delete the patient, but
-    ///     that will mess up
-    ///     UAppoint synch function.  DateTStamp needs to track deleted patients. So now, the PatStatus is simply changed to 4.
-    /// </summary>
     public static void Delete(Patient pat)
     {
         var command = "UPDATE patient SET PatStatus=" + SOut.Long((int) PatientStatus.Deleted) + ", "
@@ -517,10 +383,6 @@ public class Patients
         //no need to call PhoneNumbers.SyncPat since only the status and guar are changed here
     }
 
-    /// <summary>
-    ///     Only used for the Select Patient dialog. Pass in a billing type of 0 for all billing types.
-    ///     Will use the Read-Only server if one is setup, otherwise runs on the current server like normal.
-    /// </summary>
     public static DataTable GetPtDataTable(PtTableSearchParams ptSearchArgs)
     {
         var exactMatchSnippet = GetExactMatchSnippet(ptSearchArgs);
@@ -794,9 +656,9 @@ public class Patients
             if ((ptSearchArgs.HasNextLastVisit && ptSearchArgs.DoLimit) || PrefC.GetBool(PrefName.OmhNy))
             {
                 command = $@"SELECT PatNum,
-						COALESCE(MIN(CASE WHEN AptStatus={SOut.Int((int) ApptStatus.Scheduled)} AND AptDateTime>={DbHelper.Now()}
+						COALESCE(MIN(CASE WHEN AptStatus={SOut.Int((int) ApptStatus.Scheduled)} AND AptDateTime>={"NOW()"}
 							THEN AptDateTime END),{SOut.DateTime(DateTime.MinValue)}) NextVisit,
-						COALESCE(MAX(CASE WHEN AptStatus={SOut.Int((int) ApptStatus.Complete)} AND AptDateTime<={DbHelper.Now()}
+						COALESCE(MAX(CASE WHEN AptStatus={SOut.Int((int) ApptStatus.Complete)} AND AptDateTime<={"NOW()"}
 							THEN AptDateTime END),{SOut.DateTime(DateTime.MinValue)}) LastVisit
 						FROM appointment 
 						WHERE AptStatus IN({SOut.Int((int) ApptStatus.Scheduled)},{SOut.Int((int) ApptStatus.Complete)})
@@ -807,11 +669,9 @@ public class Patients
             }
 
         var listPatNums = new List<long>();
-        var listEhrPatients = new List<EhrPatient>();
         if (DisplayFields.IsInUse(DisplayFieldCategory.PatientSelect, "DischargeDate"))
         {
             listPatNums = listPatNumStrs.Select(x => SIn.Long(x)).ToList();
-            listEhrPatients = EhrPatients.GetByPatNums(listPatNums);
         }
 
         var PtDataTable = table.Clone(); //does not copy any data
@@ -912,9 +772,6 @@ public class Patients
             var dateDischarge = DateTime.MinValue;
             if (dateAdmit.Year > 1880) r["AdmitDate"] = dateAdmit.ToShortDateString();
             var patNum = SIn.Long(r["PatNum"].ToString());
-            dateDischarge = listEhrPatients.Find(x => x.PatNum == patNum)?.DischargeDate ?? new DateTime();
-            if (dateDischarge.Year > 1880) r["DischargeDate"] = dateDischarge.ToShortDateString();
-
             #region New York Mental Health
 
             if (PrefC.GetBool(PrefName.OmhNy))
@@ -942,13 +799,6 @@ public class Patients
         return PtDataTable;
     }
 
-    /// <summary>
-    ///     Returns a query snippet intended to be used within the ORDER BY clause in order to push exact matches towards the
-    ///     top.
-    ///     Returns '0' if there were no search parameters set that the user could type into (e.g. LName, FName, etc).
-    ///     Note: some of the clauses in the snippet are dependent on join clauses of the query constructed in
-    ///     GetPtDataTable().
-    /// </summary>
     private static string GetExactMatchSnippet(PtTableSearchParams args)
     {
         var listClauses = new List<string>();
@@ -983,11 +833,6 @@ public class Patients
         return false;
     }
 
-    /// <summary>
-    ///     Used when filling appointments for an entire day. Gets a list of Pats, multPats, of all the specified
-    ///     patients.  Then, use GetOnePat to pull one patient from this list.  This process requires only one call to the
-    ///     database.
-    /// </summary>
     public static Patient[] GetMultPats(List<long> patNums)
     {
         var table = new DataTable();
@@ -1001,17 +846,6 @@ public class Patients
         return multPats;
     }
 
-    /// <summary>
-    ///     Get all patients who have a corresponding entry in the RegistrationKey table. DO NOT REMOVE! Used by OD
-    ///     WebApps solution.
-    /// </summary>
-    public static List<Patient> GetPatientsWithRegKeys()
-    {
-        var command = "SELECT * FROM patient WHERE PatNum IN (SELECT PatNum FROM registrationkey)";
-        return PatientCrud.SelectMany(command);
-    }
-
-    ///<summary>First call GetMultPats to fill the list of multPats. Then, use this to return one patient from that list.</summary>
     public static Patient GetOnePat(Patient[] multPats, long patNum)
     {
         for (var i = 0; i < multPats.Length; i++)
@@ -1021,10 +855,6 @@ public class Patients
         return new Patient();
     }
 
-    /// <summary>
-    ///     Gets the most useful fields from the db for the given patnum.  If invalid PatNum, returns new Patient rather
-    ///     than null.
-    /// </summary>
     public static Patient GetLim(long patNum)
     {
         if (patNum == 0) return new Patient();
@@ -1049,7 +879,6 @@ public class Patients
         return Lim;
     }
 
-    
     public static Dictionary<long, string> GetStatesForPats(List<long> listPatNums)
     {
         var retVal = new Dictionary<long, string>();
@@ -1069,10 +898,6 @@ public class Patients
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets only PatNum, FName, LName, Birthdate, and PatStatus for use in 834 matching to reduce memory consumption
-    ///     compared to getting the complete patient table.
-    /// </summary>
     public static List<PatientFor834Import> GetAllPatsFor834Imports()
     {
         var retVal = new List<PatientFor834Import>();
@@ -1092,10 +917,6 @@ public class Patients
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets nine of the most useful fields from the db for the given PatNums, with option to include
-    ///     patient.ClinicNum.
-    /// </summary>
     public static List<Patient> GetLimForPats(List<long> listPatNums, bool doIncludeClinicNum = false)
     {
         if (listPatNums == null || listPatNums.Count < 1) return new List<Patient>();
@@ -1124,19 +945,11 @@ public class Patients
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets the patient and provider balances for all patients in the family.  Used from the payment window to help
-    ///     visualize and automate the family splits.
-    /// </summary>
     public static DataTable GetPaymentStartingBalances(long guarNum, long excludePayNum)
     {
         return GetPaymentStartingBalances(guarNum, excludePayNum, false);
     }
 
-    /// <summary>
-    ///     Gets the patient and provider balances for all patients in the family.  Used from the payment window to help
-    ///     visualize and automate the family splits. groupByProv means group by provider only not provider/clinic.
-    /// </summary>
     public static DataTable GetPaymentStartingBalances(long guarNum, long excludePayNum, bool groupByProv)
     {
         //This method no longer uses a temporary table due to the problems it was causing replication users.
@@ -1217,7 +1030,6 @@ public class Patients
         return DataCore.GetTable(command);
     }
 
-    
     public static void ChangeGuarantorToCur(Family Fam, Patient patientOld)
     {
         //Move famfinurgnote to current patient:
@@ -1254,7 +1066,6 @@ public class Patients
         }
     }
 
-    
     public static void CombineGuarantors(Family Fam, Patient Pat)
     {
         var command = "";
@@ -1296,10 +1107,6 @@ public class Patients
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Key=patNum, value=formatted name. Stop using this.  Just use GetLimForPats, and then something like
-    ///     listPatients.Find...patient.GetNameLF().
-    /// </summary>
     [Obsolete]
     public static Dictionary<long, string> GetPatientNames(List<long> listPatNums)
     {
@@ -1307,7 +1114,6 @@ public class Patients
             .ToDictionary(x => x.PatNum, x => x.GetNameLF());
     }
 
-    
     [Obsolete]
     public static List<PatientName> GetPatientNameList(List<long> listPatNums)
     {
@@ -1324,11 +1130,6 @@ public class Patients
         return listPatientNames;
     }
 
-    /// <summary>
-    ///     Key=PatNum, value=formatted name.  Only allowed to be used in the 1 current place.  This gets all patients in
-    ///     the db, which can be very time consuming.  If you want to convert PatNums to names somewhere else, use
-    ///     Patients.GetLimForPats() followed by ListPatients.Find(...etc.
-    /// </summary>
     public static Dictionary<long, string> GetDictAllPatientNames()
     {
         var table = GetAllPatientNamesTable();
@@ -1347,7 +1148,7 @@ public class Patients
 
         return dict;
     }
-    
+
     public static DataTable GetAllPatientNamesTable()
     {
         var command = "SELECT patnum,lname,fname,middlei,preferred "
@@ -1356,25 +1157,6 @@ public class Patients
         return table;
     }
 
-    /// <summary>
-    ///     Useful when you expect to individually examine most of the patients in the database during a data import.  Excludes
-    ///     deleted patients.
-    ///     Saves time and database calls to call this method once and keep a short term cache than it is to run a series of
-    ///     select statements.
-    /// </summary>
-    public static List<Patient> GetAllPatients()
-    {
-        var command = "SELECT * FROM patient WHERE PatStatus != " + SOut.Int((int) PatientStatus.Deleted);
-        return PatientCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Determines if all Patients in the Superfamily have ths same HmPhone, Address, Address2, City, State, Country,
-    ///     and Zip.
-    /// </summary>
-    /// <param name="pat">A Patient in the Superfamily.</param>
-    /// <param name="isArchivedIncluded">Includes Archived Patients if true, excludes Archived Patients from logic if false.</param>
-    /// <returns></returns>
     public static bool SuperFamHasSameAddrPhone(Patient pat, bool isArchivedIncluded)
     {
         var command = "SELECT COUNT(*) FROM patient WHERE SuperFamily=" + SOut.Long(pat.SuperFamily) + " "
@@ -1391,16 +1173,6 @@ public class Patients
         return false; //At least one patient in the superfamily has different information
     }
 
-    /// <summary>
-    ///     Updates all address information for patients within a family or super family to the address information of the
-    ///     patient passed in.
-    /// </summary>
-    /// <param name="pat">The patient whose information will be synced to others within the family or super family.</param>
-    /// <param name="isSuperFam">
-    ///     Indicates whether the address information should be synced to the family(patient.guarantor) or to the
-    ///     super family(patient.SuperFamily). True indicates to sync the information to the super family.
-    /// </param>
-    /// <param name="isAuthArchivedEdit">Indicates whether Archived patients in the family/superfamily should be synced.</param>
     public static void UpdateAddressForFam(Patient pat, bool isSuperFam, bool isAuthArchivedEdit)
     {
         var strWhere = "";
@@ -1437,7 +1209,6 @@ public class Patients
         if (didPhoneChange && PrefC.GetBool(PrefName.PatientPhoneUsePhonenumberTable)) PhoneNumbers.SyncPats(listPatsNew);
     }
 
-    ///<summary>Adds a securitylog entry if any of the patient's information (patient name, status, or address) is changed.</summary>
     public static void InsertAddressChangeSecurityLogEntry(Patient patOld, Patient patCur)
     {
         var secLogText = new StringBuilder();
@@ -1458,7 +1229,6 @@ public class Patients
         if (secLogText.ToString() != "") SecurityLogs.MakeLogEntry(EnumPermType.PatientEdit, patCur.PatNum, secLogText.ToString());
     }
 
-    ///<summary>Adds a PatientBillingEdit securitylog entry if the patient's billing type is changed.</summary>
     public static void InsertBillTypeChangeSecurityLogEntry(Patient patOld, Patient patCur)
     {
         var strLog = SecurityLogEntryHelper(Defs.GetName(DefCat.BillingTypes, patOld.BillingType), Defs.GetName(DefCat.BillingTypes, patCur.BillingType),
@@ -1467,7 +1237,6 @@ public class Patients
         SecurityLogs.MakeLogEntry(EnumPermType.PatientBillingEdit, patCur.PatNum, strLog);
     }
 
-    ///<summary>Adds a PatPriProvEdit securitylog entry if the patient's primary provider is changed.</summary>
     public static void InsertPrimaryProviderChangeSecurityLogEntry(Patient patOld, Patient patCur)
     {
         var strLog = SecurityLogEntryHelper(patOld.PriProv == 0 ? "'blank'" : Providers.GetLongDesc(patOld.PriProv),
@@ -1477,7 +1246,6 @@ public class Patients
         SecurityLogs.MakeLogEntry(EnumPermType.PatPriProvEdit, patCur.PatNum, strLog);
     }
 
-    ///<summary>Returns a line that can be used in a security log entry if the entries are changed.</summary>
     private static string SecurityLogEntryHelper(string oldVal, string newVal, string textInLog)
     {
         if (oldVal != newVal) return "Patient " + textInLog + " changed from '" + oldVal + "' to '" + newVal + "'\r\n";
@@ -1511,23 +1279,6 @@ public class Patients
         }
     }
 
-    ///<summary>Used in patient terminal, aka sheet import.  Synchs less fields than the normal synch.</summary>
-    public static void UpdateAddressForFamTerminal(Patient pat)
-    {
-        var command = "UPDATE patient SET "
-                      + "Address = '" + SOut.String(pat.Address) + "'"
-                      + ",Address2 = '" + SOut.String(pat.Address2) + "'"
-                      + ",City = '" + SOut.String(pat.City) + "'"
-                      + ",State = '" + SOut.String(pat.State) + "'"
-                      + ",Zip = '" + SOut.String(pat.Zip) + "'"
-                      + ",HmPhone = '" + SOut.String(pat.HmPhone) + "'"
-                      + " WHERE guarantor = '" + SOut.Long(pat.Guarantor) + "'";
-        Db.NonQ(command);
-        if (PrefC.GetBool(PrefName.PatientPhoneUsePhonenumberTable)) PhoneNumbers.SyncPats(GetFamily(pat.PatNum).ListPats.ToList());
-    }
-
-    /// <summary>Updates the 'AskToArriveEarly' field for all members of this patient's family.</summary>
-    /// <param name="isAuthArchivedEdit">Indicates whether Archived patients in the family should be synced.</param>
     public static void UpdateArriveEarlyForFam(Patient pat, bool isAuthArchivedEdit)
     {
         var command = "UPDATE patient SET "
@@ -1537,7 +1288,6 @@ public class Patients
         var table = DataCore.GetTable(command);
     }
 
-    
     public static void UpdateNotesForFam(Patient pat, bool isAuthArchivedEdit)
     {
         var command = "UPDATE patient SET "
@@ -1547,7 +1297,6 @@ public class Patients
         Db.NonQ(command);
     }
 
-    ///<summary>Updates every family members' Email, WirelessPhone, WkPhone, and TxtMsgOk to the passed in patient object.</summary>
     public static void UpdateEmailPhoneForFam(Patient pat, bool isAuthArchivedEdit)
     {
         var strWhere = " WHERE Guarantor = " + SOut.Long(pat.Guarantor);
@@ -1573,13 +1322,6 @@ public class Patients
         }
     }
 
-    /// <summary>
-    ///     Does not udpate the patient in the database. Takes the new patient data and old patient data. If the new patient
-    ///     status  is
-    ///     archived, deceased, inactive, nonpatient, or prospective, disable all recalls for this patient. If the new patient
-    ///     status is patient
-    ///     and the old patient status is different, re-active any previously disabled recalls attached to the patient.
-    /// </summary>
     public static void UpdateRecalls(Patient patNew, Patient patOld, string sender)
     {
         //if patient is inactive, deceased, etc., then disable any recalls
@@ -1617,37 +1359,7 @@ public class Patients
         }
     }
 
-
-    /// <summary>
-    ///     Filters a list of Patients by the numToMatch (matching against PatNum and Guarantor for each entry). Removes
-    ///     clones from the list if the PatNum filter didn't narrow down the list to a single entry (this can happen if the
-    ///     PatNum provided is the GuarantorNum and there is a clone of someone in the same family).
-    /// </summary>
-    public static List<Patient> FilterDuplicatePatientsByPatNumOrGuarantorNum(List<Patient> listPats, long numToMatch)
-    {
-        if (listPats.IsNullOrEmpty()) return new List<Patient>();
-        var filteredListPats = listPats.FindAll(x => x.PatNum == numToMatch || x.Guarantor == numToMatch);
-        if (filteredListPats.Count > 1)
-        {
-            //This should only occur when the list includes a clone of a patient
-            var listPatientLinks = PatientLinks.GetLinks(listPats.Select(x => x.PatNum).ToList(), PatientLinkType.Clone);
-            filteredListPats.RemoveAll(x => listPatientLinks.Any(y => y.PatNumTo == x.PatNum)); //Remove any clones of the patient
-            //If the list is *still* larger than 1, just filter it down to the one with the lowest PatNum.
-            if (filteredListPats.Count > 1)
-            {
-                var lowestPatNum = filteredListPats.Min(x => x.PatNum);
-                filteredListPats = filteredListPats.Where(x => x.PatNum == lowestPatNum).ToList();
-            }
-        }
-
-        return filteredListPats;
-    }
-
-    ///<summary>This is used in the Billing dialog and with Finance/Billing Charges.</summary>
-    public static List<PatAging> GetAgingList(string age, DateTime lastStatement, List<long> billingNums, bool excludeAddr, bool excludeNeg,
-        double excludeLessThan, bool excludeInactive, bool ignoreInPerson, List<long> clinicNums, bool isSuperStatements, bool isSinglePatient,
-        List<long> listPendingInsPatNums, List<long> listUnsentPatNums, Dictionary<long, List<PatAgingTransaction>> dictPatAgingTransactions,
-        bool excludeNoTil = false, bool excludeNotBilledSince = false, bool isFinanceBilling = false, List<long> listPatNumsToExclude = null)
+    public static List<PatAging> GetAgingList(string age, DateTime lastStatement, List<long> billingNums, bool excludeAddr, bool excludeNeg, double excludeLessThan, bool excludeInactive, bool ignoreInPerson, List<long> clinicNums, bool isSuperStatements, bool isSinglePatient, List<long> listPendingInsPatNums, List<long> listUnsentPatNums, Dictionary<long, List<PatAgingTransaction>> dictPatAgingTransactions, bool excludeNoTil = false, bool excludeNotBilledSince = false, bool isFinanceBilling = false, List<long> listPatNumsToExclude = null)
     {
         var listPatStatusExclude = new List<int>();
         listPatStatusExclude.Add((int) PatientStatus.Deleted); //Always hide deleted.
@@ -1794,12 +1506,12 @@ public class Patients
             patage.PatNum = SIn.Long(rowCur["PatNum"].ToString());
             patage.SuperFamily = SIn.Long(rowCur["SuperFamily"].ToString());
             patage.HasSuperBilling = SIn.Bool(rowCur["HasSuperBilling"].ToString());
-            patage.HasSignedTil = SIn.Bool(rowCur["HasSignedTil"].ToString());
+            SIn.Bool(rowCur["HasSignedTil"].ToString());
             patage.ClinicNum = SIn.Long(rowCur["ClinicNum"].ToString());
             dateLastStatement = DateTime.MinValue;
             patage.PriProv = SIn.Long(rowCur["PriProv"].ToString());
             patage.Zip = SIn.String(rowCur["Zip"].ToString());
-            patage.PatStatus = SIn.Enum<PatientStatus>(rowCur["PatStatus"].ToString());
+            SIn.Enum<PatientStatus>(rowCur["PatStatus"].ToString());
             PatAging superPat;
             if (patage.HasSuperBilling && dictSuperFamPatAging.TryGetValue(patage.SuperFamily, out superPat)) dateLastStatement = superPat.DateLastStatement;
             //If pat HasSuperBilling and super head has received a super statement, dateLastStatement will be the more recent date of the last super 
@@ -1839,17 +1551,7 @@ public class Patients
         return agingList;
     }
 
-    /// <summary>
-    ///     Will include negative and zero bals if doIncludeZeroBalance is true.  If including zero bals and isGuarsOnly is
-    ///     false, this will
-    ///     include non-guars as well as guars with a zero bal.  Will only include pats with PatNum=Guarantor is isGuarsOnly is
-    ///     true.  Will include all
-    ///     pats if listGuarantors is null or empty.  Will include all billing types if listBillingTypeNums is null or empty.
-    ///     Filters by pat or guar
-    ///     ClinicNum if listClinicNums is provided.
-    /// </summary>
-    public static List<PatAging> GetAgingListSimple(List<long> listBillingTypeNums, List<long> listGuarantors, bool doIncludeZeroBalance = false,
-        bool isGuarsOnly = false, List<long> listClinicNums = null, bool doIncludeSuperFamilyHeads = false)
+    public static List<PatAging> GetAgingListSimple(List<long> listBillingTypeNums, List<long> listGuarantors, bool doIncludeZeroBalance = false, bool isGuarsOnly = false, List<long> listClinicNums = null, bool doIncludeSuperFamilyHeads = false)
     {
         var listWhereAnds = new List<string>();
         if (!doIncludeZeroBalance) listWhereAnds.Add("Bal_0_30 + Bal_31_60 + Bal_61_90 + BalOver90 - InsEst > '0.005'"); //more that 1/2 cent
@@ -1895,12 +1597,6 @@ public class Patients
             });
     }
 
-    /// <summary>
-    ///     Used only by the OpenDentalService Transworld thread to sync accounts sent for collection.  Gets a list of
-    ///     PatAgings for the guars
-    ///     identified by the PatNums in listGuarNums.  Will return all, even negative bals.  Does not consider SuperFamilies,
-    ///     only individual guars.
-    /// </summary>
     public static List<PatAging> GetAgingListFromGuarNums(List<long> listGuarNums)
     {
         if (listGuarNums.Count < 1) return new List<PatAging>();
@@ -1936,7 +1632,6 @@ public class Patients
         return listPatAgings;
     }
 
-    ///<summary>Gets the next available integer chart number.  Will later add a where clause based on preferred format.</summary>
     public static string GetNextChartNum()
     {
         var command = "SELECT ChartNumber from patient WHERE "
@@ -1958,7 +1653,6 @@ public class Patients
         }
     }
 
-    ///<summary>Returns the name(only one) of the patient using this chartnumber.</summary>
     public static string ChartNumUsedBy(string chartNum, long excludePatNum)
     {
         var command = "SELECT LName,FName from patient WHERE "
@@ -1971,7 +1665,6 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>Used in the patient select window to determine if a trial version user is over their limit.</summary>
     public static int GetNumberPatients()
     {
         var command = "SELECT Count(*) FROM patient";
@@ -1979,7 +1672,6 @@ public class Patients
         return SIn.Int(table.Rows[0][0].ToString());
     }
 
-    ///<summary>Makes a call to the db to figure out if the current HasIns status is correct.  If not, then it changes it.</summary>
     public static void SetHasIns(long patNum)
     {
         var command = "SELECT patient.HasIns,COUNT(patplan.PatNum) FROM patient "
@@ -1997,10 +1689,6 @@ public class Patients
         }
     }
 
-    /// <summary>
-    ///     Gets the provider for this patient.  If provNum==0, then it gets the practice default prov.
-    ///     If no practice default set, returns the first non-hidden ProvNum from the provider cache.
-    /// </summary>
     public static long GetProvNum(Patient pat)
     {
         var retval = pat.PriProv;
@@ -2009,24 +1697,11 @@ public class Patients
         return retval;
     }
 
-    /// <summary>
-    ///     Calls Patients.GetProvNum after getting the patient with this patNum. Gets the provider for this patient.  If
-    ///     pat.PriProv==0, then it
-    ///     gets the practice default prov.  If no practice default set, returns the first non-hidden ProvNum from the provider
-    ///     cache.
-    /// </summary>
     public static long GetProvNum(long patNum)
     {
         return GetProvNum(GetPat(patNum));
     }
 
-    /// <summary>
-    ///     Gets the list of all valid patient primary keys. Allows user to specify whether to include non-deleted
-    ///     patients. Used when checking for missing ADA procedure codes after a user has begun entering them manually. This
-    ///     function is necessary because not all patient numbers are necessarily consecutive (say if the database was created
-    ///     due to a conversion from another program and the customer wanted to keep their old patient ids after the
-    ///     conversion).
-    /// </summary>
     public static long[] GetAllPatNums(bool hasDeleted)
     {
         var command = "";
@@ -2040,7 +1715,6 @@ public class Patients
         return patnums;
     }
 
-    ///<summary>Converts a date to an age. If age is over 115, then returns 0.</summary>
     public static int DateToAge(DateTime date)
     {
         if (date.Year < 1880) return 0;
@@ -2051,7 +1725,6 @@ public class Patients
         return DateTime.Now.Year - date.Year - 1;
     }
 
-    ///<summary>Converts a date to an age. If age is over 115, then returns 0.</summary>
     public static int DateToAge(DateTime birthdate, DateTime asofDate)
     {
         if (birthdate.Year < 1880)
@@ -2063,7 +1736,6 @@ public class Patients
         return asofDate.Year - birthdate.Year - 1;
     }
 
-    ///<summary>If zero, returns empty string.  Otherwise returns simple year.  Also see PatientLogic.DateToAgeString().</summary>
     public static string AgeToString(int age)
     {
         if (age == 0) return "";
@@ -2160,7 +1832,6 @@ public class Patients
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Will return 0 if can't find exact matching pat.</summary>
     public static long GetPatNumByNameAndBirthday(string lName, string fName, DateTime birthdate)
     {
         var command = "SELECT PatNum FROM patient WHERE "
@@ -2172,11 +1843,6 @@ public class Patients
         return SIn.Long(DataCore.GetScalar(command));
     }
 
-    /// <summary>
-    ///     Returns an empty list if it can't find matching patients. Excludes archived and deleted patients.
-    ///     Query is case-insensitive by default, since patient.LName and patient.FName columns have utf8_general_ci collation
-    ///     in the database (ci=case-insensitive).
-    /// </summary>
     public static List<long> GetListPatNumsByNameAndBirthday(string lName, string fName, DateTime birthdate, bool isPreferredMatch = false, bool isExactMatch = true, long clinicNum = -1)
     {
         //B47528, starting in iOS 11, the iOS keyboard has the Smart Punctuation feature. It enters a curly single quote when the single quote key is pressed.
@@ -2223,43 +1889,7 @@ public class Patients
         return Db.GetListLong(command);
     }
 
-    /// <summary>
-    ///     Returns a list of all patients within listSortedPatients which match the given pat.LName, pat.FName and
-    ///     pat.Birthdate.
-    ///     Ignores case and leading/trailing space.  The listSortedPatients MUST be sorted by LName, then FName, then
-    ///     Birthdate or else the result will be
-    ///     wrong.  Call listSortedPatients.Sort() before calling this function.  This function uses a binary search to much
-    ///     more efficiently locate
-    ///     matches than a linear search would be able to.
-    /// </summary>
-    public static List<Patient> GetPatientsByNameAndBirthday(Patient pat, List<Patient> listSortedPatients)
-    {
-        if (pat.LName.Trim().ToLower().Length == 0 || pat.FName.Trim().ToLower().Length == 0 || pat.Birthdate.Year < 1880)
-            //We do not allow a match unless Last Name, First Name, AND birthdate are specified.  Otherwise at match could be meaningless.
-            return new List<Patient>();
-        var patIdx = listSortedPatients.BinarySearch(pat); //If there are multiple matches, then this will only return one of the indexes randomly.
-        if (patIdx < 0)
-            //No matches found.
-            return new List<Patient>();
-        //The matched indicies will all be consecutive and will include the returned index from the binary search, because the list is sorted.
-        var beginIdx = patIdx;
-        for (var i = patIdx - 1; i >= 0 && pat.CompareTo(listSortedPatients[i]) == 0; i--) beginIdx = i;
-        var endIdx = patIdx;
-        for (var i = patIdx + 1; i < listSortedPatients.Count && pat.CompareTo(listSortedPatients[i]) == 0; i++) endIdx = i;
-        var listPatientMatches = new List<Patient>();
-        for (var i = beginIdx; i <= endIdx; i++) listPatientMatches.Add(listSortedPatients[i]);
-        return listPatientMatches;
-    }
-
-    /// <summary>
-    ///     Returns the PatNums with the same name and birthday as passed in. The email and the phone numbers passed in will
-    ///     only be considered
-    ///     if there is more than one patient with the same name and birthday. If a patient's family member's email or phone
-    ///     matches the ones passed in,
-    ///     then that patient will be included.
-    /// </summary>
-    public static List<long> GetPatNumsByNameBirthdayEmailAndPhone(string lName, string fName, DateTime birthDate, string email,
-        List<string> listPhones)
+    public static List<long> GetPatNumsByNameBirthdayEmailAndPhone(string lName, string fName, DateTime birthDate, string email, List<string> listPhones)
     {
         //Get all potential matches by name and birthdate first.
         var listMatchingNameDOB = GetListPatNumsByNameAndBirthday(lName, fName, birthDate);
@@ -2289,66 +1919,6 @@ public class Patients
         return listMatchingNameDOB;
     }
 
-    /// <summary>
-    ///     Returns true if there is an exact match in the database based on the lName, fName, and birthDate passed in.
-    ///     Also, the phone number or the email must match at least one phone number or email on file for any patient within
-    ///     the family.
-    ///     Otherwise we assume a match is not within the database because some offices have multiple clinics and we need
-    ///     strict matching.
-    /// </summary>
-    public static bool GetHasDuplicateForNameBirthdayEmailAndPhone(string lName, string fName, DateTime birthDate, string email, string phone, bool doCompareFNameAgainstPreferred = false)
-    {
-        return GetHasDuplicateForNameBirthdayEmailAndPhone(lName, fName, birthDate, email, new List<string> {phone}, doCompareFNameAgainstPreferred);
-    }
-
-    /// <summary>
-    ///     Returns true if there is an exact match in the database based on the lName, fName, and birthDate passed in.
-    ///     Also, one of the phone numbers or the email must match at least one phone number or email on file for any patient
-    ///     within the family.
-    ///     Otherwise we assume a match is not within the database because some offices have multiple clinics and we need
-    ///     strict matching.
-    /// </summary>
-    public static bool GetHasDuplicateForNameBirthdayEmailAndPhone(string lName, string fName, DateTime birthDate, string email,
-        List<string> listPhones, bool doCompareFNameAgainstPreferred = false)
-    {
-        //Get all potential matches by name and birth date first.
-        var listPatNums = GetListPatNumsByNameAndBirthday(lName, fName, birthDate, doCompareFNameAgainstPreferred);
-        if (listPatNums.Count < 1) return false; //No matches via name and birth date so no need to waste time checking for phone / email matches in the family.
-        var command = "";
-        //There are some potential duplicates found in the database.  Now we need to make sure that the email OR the phone is already on file.
-        //We are going to look at every single phone number and email address on all family members just in case.
-        var listFamilyPatNums = GetAllFamilyPatNums(listPatNums); //Should never return an empty list.
-        //Only waste time checking for patients with the same email address if an email was passed in.
-        if (!string.IsNullOrEmpty(email))
-        {
-            command = "SELECT COUNT(*) FROM patient "
-                      + "WHERE patient.Email='" + SOut.String(email) + "' "
-                      + "AND PatNum IN (" + string.Join(",", listFamilyPatNums) + ")";
-            if (Db.GetCount(command) != "0") return true; //The name and birth date match AND someone in the family has the exact email address passed in.  This is consider a duplicate.
-        }
-
-        //Query to get all phone numbers from both the patient table and the 
-        command = "SELECT HmPhone FROM patient WHERE PatNum IN (" + string.Join(",", listFamilyPatNums) + ") "
-                  + "UNION SELECT WkPhone Phone FROM patient WHERE PatNum IN (" + string.Join(",", listFamilyPatNums) + ") "
-                  + "UNION SELECT WirelessPhone Phone FROM patient WHERE PatNum IN (" + string.Join(",", listFamilyPatNums) + ") "
-                  + "UNION SELECT PhoneNumberVal Phone FROM phonenumber WHERE PatNum IN (" + string.Join(",", listFamilyPatNums) + ") ";
-        var listAllFamilyPhones = Db.GetListString(command).Where(x => !string.IsNullOrEmpty(x)).ToList();
-        listPhones = listPhones.Where(x => x != null)
-            .Select(x => StringTools.StripNonDigits(x)).ToList(); //Get rid of non-digit characters
-        //Go through each phone number and strip out all non-digit chars and compare them to the phone passed in.
-        foreach (var phoneFamily in listAllFamilyPhones)
-        {
-            var phoneFamDigitsOnly = StringTools.StripNonDigits(phoneFamily);
-            if (listPhones.Any(x => x.Contains(phoneFamDigitsOnly) || phoneFamDigitsOnly.Contains(x))) return true; //The name and birth date match AND someone in the family has the exact phone passed in.  This is consider a duplicate.
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    ///     Will return 0 if can't find an exact matching pat.  Because it does not include birthdate, it's not specific
-    ///     enough for most situations.
-    /// </summary>
     public static long GetPatNumByName(string lName, string fName)
     {
         var command = "SELECT PatNum FROM patient WHERE "
@@ -2359,26 +1929,6 @@ public class Patients
         return SIn.Long(DataCore.GetScalar(command));
     }
 
-    /// <summary>
-    ///     Gets a list of patients that have any part of their name (last, first, middle, preferred) that matches the given
-    ///     criteria.
-    ///     Optionally give a clinicNum and the query will only include patients associated with that clinic
-    ///     (patient.ClinicNum).
-    /// </summary>
-    public static List<Patient> GetPatientsByPartialName(string partialName, long clinicNum = 0)
-    {
-        var command = "SELECT * FROM patient WHERE 1 ";
-        var listNames = partialName.Split().Select(x => SOut.String(x.ToLower())).ToList();
-        foreach (var name in listNames)
-            command += "AND (LName LIKE '%" + SOut.String(name) + "%' "
-                       + "OR FName LIKE '%" + SOut.String(name) + "%' "
-                       + "OR MiddleI LIKE '%" + SOut.String(name) + "%' "
-                       + "OR Preferred LIKE '%" + SOut.String(name) + "%') ";
-        if (clinicNum > 0) command += "AND ClinicNum=" + SOut.Long(clinicNum) + " ";
-        return PatientCrud.SelectMany(command);
-    }
-
-    /// <summary>When importing webforms, if it can't find an exact match, this method attempts a similar match.</summary>
     public static List<Patient> GetSimilarList(string lName, string fName, DateTime birthdate)
     {
         var subStrIndexlName = 2;
@@ -2395,7 +1945,6 @@ public class Patients
         return PatientCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a list of patients that match last and first name.  Case insensitive depending on table collation.</summary>
     public static List<Patient> GetListByName(string lName, string fName, long PatNum)
     {
         var command = $@"SELECT * FROM patient
@@ -2404,28 +1953,6 @@ public class Patients
 				AND FName='{SOut.String(fName)}'
 				AND LName='{SOut.String(lName)}'";
         return PatientCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Returns a list of patients that have the same last name, first name, and birthdate, ignoring case sensitivity,
-    ///     but different patNum.  Used to find duplicate patients that may be clones of the patient identified by the patNum
-    ///     parameter, or are the non-clone version of the patient.  Currently only used with GetCloneAndNonClone to find the
-    ///     non-clone and clone patients for the pateint sent in if they exist.
-    /// </summary>
-    public static List<Patient> GetListByNameAndBirthdate(long patNum, string lName, string fName, DateTime birthdate)
-    {
-        var command = "SELECT * FROM patient WHERE LName LIKE '" + SOut.String(lName) + "' AND FName LIKE '" + SOut.String(fName) + "' "
-                      + "AND Birthdate=" + SOut.Date(birthdate, true) + " AND PatNum!=" + SOut.Long(patNum) + " AND PatStatus!=" + SOut.Int((int) PatientStatus.Deleted);
-        return PatientCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Checks for duplicate patients in the db by running first method to only check fName against existing fNames.
-    ///     If that fails, runs again with method set to check fName against existing preferred names as well.
-    /// </summary>
-    public static bool GetHasDuplicateForNameOrPreferredBirthdayEmailAndPhone(string lName, string fName, DateTime birthDate, string email, string phone)
-    {
-        return GetHasDuplicateForNameBirthdayEmailAndPhone(lName, fName, birthDate, email, phone) || GetHasDuplicateForNameBirthdayEmailAndPhone(lName, fName, birthDate, email, phone, true);
     }
 
     public static void UpdateFamilyBillingType(long billingType, long Guarantor)
@@ -2466,7 +1993,6 @@ public class Patients
         return SIn.String(table.Rows[0][1].ToString()) + ", " + SIn.String(table.Rows[0][0].ToString()) + " is Eligible";
     }
 
-    ///<summary>Only a partial folderName will be sent in.  Not the .rvg part.</summary>
     public static bool IsTrophyFolderInUse(string folderName)
     {
         var command = "SELECT COUNT(*) FROM patient WHERE TrophyFolder LIKE '%" + SOut.String(folderName) + "%'";
@@ -2474,7 +2000,6 @@ public class Patients
         return true;
     }
 
-    ///<summary>Used to check if a billing type is in use when user is trying to hide it.</summary>
     public static bool IsBillingTypeInUse(long defNum)
     {
         var command = "SELECT COUNT(*) FROM patient WHERE BillingType=" + SOut.Long(defNum) + " AND PatStatus!=" + SOut.Int((int) PatientStatus.Deleted);
@@ -2497,8 +2022,6 @@ public class Patients
         return false;
     }
 
-    /// <summary>Returns true if this is a valid U.S Social Security Number.</summary>
-    /// <param name="formattedSSN">9 digits with dashes.</param>
     public static bool IsValidSSN(string ssn, out string formattedSSN)
     {
         if (Regex.IsMatch(ssn, @"^\d{9}$")) //if just 9 numbers, reformat with dashes.
@@ -2507,7 +2030,6 @@ public class Patients
         return Regex.IsMatch(formattedSSN, @"^\d\d\d-\d\d-\d\d\d\d$");
     }
 
-    ///<summary>If the current culture is U.S. and the ssn is 9 digits with dashes, removes the dashes.</summary>
     public static string SSNRemoveDashes(string ssn)
     {
         if (CultureInfo.CurrentCulture.Name == "en-US")
@@ -2517,12 +2039,6 @@ public class Patients
         return ssn; //other cultures
     }
 
-    /// <summary>
-    ///     Updated 09/16/2020 v19.4.46(Check this convert method when updating merge methods).  To prevent orphaned
-    ///     patients, if patFrom is a guarantor then all family members of patFrom are moved into the family patTo belongs to,
-    ///     and then the merge of the two specified accounts is performed.  Returns false if the merge was canceled by the
-    ///     user.
-    /// </summary>
     public static bool MergeTwoPatients(long patTo, long patFrom)
     {
         if (patTo == patFrom)
@@ -2585,7 +2101,6 @@ public class Patients
         return isMergeSuccessful;
     }
 
-    ///<summary>Only call this method after all checks have been done to make sure the user wants these patients merged.</summary>
     public static bool MergeTwoPatientPointOfNoReturn(long patTo, long patFrom, List<PatField> patFieldsToDelete, List<PatField> patFieldsToUpdate)
     {
         var command = "";
@@ -2616,30 +2131,7 @@ public class Patients
             newCustRef.IsBadRef = custRefFrom.IsBadRef || custRefTo.IsBadRef; //If either entry is a bad reference, count as a bad reference.
             CustReferences.Update(newCustRef); //Overwrites the old custRefTo entry.
         }
-
-        //Merge ehrpatient.  We only do something here if there is a FROM patient entry and no INTO patient entry, in which case we change the patnum on the row to bring it over.
-        var ehrPatFrom = EhrPatients.GetOne(patientFrom.PatNum);
-        var ehrPatTo = EhrPatients.GetOne(patientTo.PatNum);
-        if (ehrPatFrom != null && ehrPatTo == null)
-        {
-            //There is an entry for the FROM patient, but not the INTO patient.
-            ehrPatFrom.PatNum = patientTo.PatNum;
-            EhrPatients.Update(ehrPatFrom); //Bring the patfrom entry over to the new.
-        }
-
-        //Move the patient documents if they are stored in the database.
-        //We do not have to worry about documents having the same name when storing within the database, only physical documents need to be renamed.
-        //Physical documents are handled on the client side (not here) due to middle tier issues.
-        if (false)
-        {
-            //Storing documents in the database.  Simply update the PatNum column accordingly. 
-            //This query cannot be ran below where all the other tables are handled dyncamically because we do NOT want to update the PatNums in the case that documents are stored physically.
-            command = "UPDATE document "
-                      + "SET PatNum=" + SOut.Long(patTo) + " "
-                      + "WHERE PatNum=" + SOut.Long(patFrom);
-            Db.NonQ(command);
-        }
-
+        
         //If the 'patFrom' had any ties to guardians, they should be deleted to prevent duplicate entries.
         command = "DELETE FROM guardian"
                   + " WHERE PatNumChild=" + SOut.Long(patFrom)
@@ -2735,26 +2227,6 @@ public class Patients
                   + "SET KeyNum=" + SOut.Long(patTo) + " "
                   + "WHERE KeyNum=" + SOut.Long(patFrom) + " AND ObjectType=" + (int) TaskObjectType.Patient;
         Db.NonQ(command);
-        //We have to move over the tasks belonging to the 'patFrom' patient in a seperate step because the IDInternal field of the oidexternal table 
-        //  might be a foreign key to something other than a patnum depending on the IDType
-        //There are 4 cases:
-        //1) Neither patTo nor patFrom have used DoseSpot.  In this case, there is nothing to do.
-        //2) Only patTo has used DoseSpot and patFrom has not.  Nothing to do.
-        //3) Only patFrom has used DoseSpot and patTo has not.  Move the DoseSpot OID for patFrom to patTo, to preserve DoseSpot eRx history when clicking through.
-        //4) Both patTo and patFrom have used DoseSpot.  Do nothing.  DoseSpot history for patFrom will be archived and no longer used.
-        var doseSpotRoot = DoseSpot.GetDoseSpotRootOid();
-        var hasPatToUsedDoseSpot = false;
-        if (doseSpotRoot != null)
-        {
-            var oidPatTo = DoseSpot.GetDoseSpotPatID(patTo);
-            hasPatToUsedDoseSpot = oidPatTo != null;
-        }
-
-        command = "UPDATE oidexternal "
-                  + "SET IDInternal=" + SOut.Long(patTo) + " "
-                  + "WHERE IDInternal=" + SOut.Long(patFrom) + " AND IDType='" + IdentifierType.Patient + "' "
-                  + (hasPatToUsedDoseSpot ? "AND rootExternal!='" + DoseSpot.GetDoseSpotRoot() + "." + SOut.Int((int) IdentifierType.Patient) + "'" : "");
-        Db.NonQ(command);
         //Mark the patient where data was pulled from as archived unless the patient is already marked as deceased.
         //We need to have the patient marked either archived or deceased so that it is hidden by default, and
         //we also need the customer to be able to access the account again in case a particular table gets missed
@@ -2812,12 +2284,6 @@ public class Patients
         return true;
     }
 
-    /// <summary>
-    ///     Returns the patient's preferred pronouns. If ShowPreferredPronounsForPats is turned off, assigns He/Him to Male,
-    ///     She/Her to Female,
-    ///     They/Them to Other, and None to Unknown.
-    ///     If turned on and the patient has None set but also has an unknown gender, returns pronounPreferred.None
-    /// </summary>
     public static PronounPreferred GetPronoun(PatientGender patientGender, PronounPreferred pronounPreferred)
     {
         if (PrefC.GetBool(PrefName.ShowPreferredPronounsForPats))
@@ -2840,7 +2306,6 @@ public class Patients
         }
     }
 
-    ///<summary>LName, 'Preferred' FName M</summary>
     public static string GetNameLF(string LName, string FName, string Preferred, string MiddleI)
     {
         var retVal = "";
@@ -2862,14 +2327,12 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>LName, 'Preferred' FName M for the patnum passed in.  Uses the database.</summary>
     public static string GetNameLF(long patNum)
     {
         var pat = GetLim(patNum);
         return GetNameLF(pat);
     }
 
-    ///<summary>Does not call DB to retrieve a patient, only uses the passed in object.</summary>
     public static string GetNameLF(Patient pat)
     {
         var retVal = "";
@@ -2891,13 +2354,11 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>LName, FName M</summary>
     public static string GetNameLFnoPref(string LName, string FName, string MiddleI)
     {
         return GetNameLF(LName, FName, "", MiddleI);
     }
 
-    ///<summary>FName 'Preferred' M LName. Returns empty string if patnum is 0 or if patient can't be found.</summary>
     public static string GetNameFL(long patNum)
     {
         if (patNum == 0) return "";
@@ -2906,7 +2367,6 @@ public class Patients
         return GetNameFL(pat.LName, pat.FName, pat.Preferred, pat.MiddleI);
     }
 
-    ///<summary>FName 'Preferred' M LName</summary>
     public static string GetNameFL(string LName, string FName, string Preferred, string MiddleI)
     {
         var retVal = "";
@@ -2928,7 +2388,6 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>FName M LName</summary>
     public static string GetNameFLnoPref(string LName, string FName, string MiddleI)
     {
         var retVal = "";
@@ -2944,7 +2403,6 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>FName/Preferred LName</summary>
     public static string GetNameFirstOrPrefL(string LName, string FName, string Preferred)
     {
         var retVal = "";
@@ -2957,7 +2415,6 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>FName/Preferred M. LName</summary>
     public static string GetNameFirstOrPrefML(string LName, string FName, string Preferred, string MiddleI)
     {
         var retVal = "";
@@ -2982,13 +2439,11 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>Title FName M LName</summary>
     public static string GetNameFLFormal(string LName, string FName, string MiddleI, string Title)
     {
         return string.Join(" ", new[] {Title, FName, MiddleI, LName}.Where(x => !string.IsNullOrEmpty(x))); //returns "" if all strings are null or empty.
     }
 
-    ///<summary>Includes preferred.</summary>
     public static string GetNameFirst(string FName, string Preferred)
     {
         var retVal = FName;
@@ -2996,14 +2451,12 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>Returns preferred name if one exists, otherwise returns first name.</summary>
     public static string GetNameFirstOrPreferred(string nameFirst, string namePreferred)
     {
         if (string.IsNullOrWhiteSpace(namePreferred)) return nameFirst ?? "";
         return namePreferred;
     }
 
-    ///<summary>Returns first name if one exists or returns preferred name,otherwise returns last name.</summary>
     public static string GetNameFirstOrPreferredOrLast(string FName, string Preferred, string LName)
     {
         if (FName != "") return FName;
@@ -3011,14 +2464,12 @@ public class Patients
         return LName;
     }
 
-    ///<summary>Adds a space if the passed in string is not empty.  Used for name functions to add a space only when needed.</summary>
     private static string AddSpaceIfNeeded(string name)
     {
         if (name != "") return name + " ";
         return name;
     }
 
-    ///<summary>Dear __.  Does not include the "Dear" or the comma.</summary>
     public static string GetSalutation(string Salutation, string Preferred, string FName)
     {
         if (Salutation != "") return Salutation;
@@ -3026,7 +2477,6 @@ public class Patients
         return FName;
     }
 
-    /// <summary>Result will be multiline.</summary>
     public static string GetAddressFull(string address, string address2, string city, string state, string zip)
     {
         var retVal = address;
@@ -3035,14 +2485,12 @@ public class Patients
         return retVal;
     }
 
-    /// <summary>Change preferred provider for all patients with provNumFrom to provNumTo.</summary>
     public static void ChangePrimaryProviders(long provNumFrom, long provNumTo)
     {
         var command = "UPDATE patient SET PriProv=" + SOut.Long(provNumTo) + " WHERE PriProv=" + SOut.Long(provNumFrom);
         Db.NonQ(command);
     }
 
-    ///<summary>Change secondary provider for all patients with provNumFrom to provNumTo.</summary>
     public static void ChangeSecondaryProviders(long provNumFrom, long provNumTo)
     {
         var command = "UPDATE patient "
@@ -3051,7 +2499,6 @@ public class Patients
         Db.NonQ(command);
     }
 
-    /// <summary>Gets all patients whose primary provider PriProv is in the list provNums.</summary>
     public static DataTable GetPatNumsByPriProvs(List<long> listProvNums)
     {
         if (listProvNums == null || listProvNums.Count == 0) return new DataTable();
@@ -3059,7 +2506,6 @@ public class Patients
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Gets the PatNum for all patients belonging to a specific clinic. </summary>
     public static List<long> GetPatNumsByClinic(long clinicNum, bool getAllStatuses = false)
     {
         var command = "SELECT PatNum FROM patient WHERE ClinicNum=" + SOut.Long(clinicNum);
@@ -3069,151 +2515,18 @@ public class Patients
         return Db.GetListLong(command);
     }
 
-    ///<summary>Gets the PatNum and ClinicNum for all patients whose ClinicNum is in listClinicNums.</summary>
-    public static DataTable GetPatNumsByClinic(List<long> listClinicNums)
-    {
-        if (listClinicNums == null || listClinicNums.Count == 0) return new DataTable();
-        var command = "SELECT PatNum,ClinicNum FROM patient WHERE ClinicNum IN (" + string.Join(",", listClinicNums) + ")";
-        return DataCore.GetTable(command);
-    }
-
-    /// <summary>Change clinic for all patients with clinicNumFrom to clinicNumTo.</summary>
     public static void ChangeClinicsForAll(long clinicNumFrom, long clinicNumTo)
     {
         var command = "UPDATE patient SET ClinicNum=" + SOut.Long(clinicNumTo) + " WHERE ClinicNum=" + SOut.Long(clinicNumFrom);
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Find the most used provider for a single patient. Bias towards the most recently used provider if they have
-    ///     done an equal number of procedures.
-    /// </summary>
-    public static long ReassignProvGetMostUsed(long patNum)
-    {
-        var command = "SELECT ProvNum,MAX(ProcDate) MaxProcDate,COUNT(ProvNum) ProcCount "
-                      + "FROM procedurelog "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
-                      + "AND ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "GROUP BY ProvNum";
-        var table = DataCore.GetTable(command);
-        long newProv = 0;
-        var mostVisits = 0;
-        var maxProcDate = new DateTime();
-        for (var i = 0; i < table.Rows.Count; i++) //loop through providers
-            if (SIn.Int(table.Rows[i]["ProcCount"].ToString()) > mostVisits)
-            {
-                //New leader for most visits.
-                mostVisits = SIn.Int(table.Rows[i]["ProcCount"].ToString());
-                maxProcDate = SIn.DateTime(table.Rows[i]["MaxProcDate"].ToString());
-                newProv = SIn.Long(table.Rows[i]["ProvNum"].ToString());
-            }
-            else if (SIn.Int(table.Rows[i]["ProcCount"].ToString()) == mostVisits)
-            {
-                //Tie for most visits, use MaxProcDate as a tie breaker.
-                if (SIn.DateTime(table.Rows[i]["MaxProcDate"].ToString()) > maxProcDate)
-                {
-                    //mostVisits same as before
-                    maxProcDate = SIn.DateTime(table.Rows[i]["MaxProcDate"].ToString());
-                    newProv = SIn.Long(table.Rows[i]["ProvNum"].ToString());
-                }
-            }
-
-        return newProv;
-    }
-
-    /// <summary>Change preferred provider PriProv to provNumNew for patient with PatNum=patNum.</summary>
     public static void UpdateProv(long patNum, long provNumNew)
     {
         var command = "UPDATE patient SET PriProv =" + SOut.Long(provNumNew) + " WHERE PatNum = " + SOut.Long(patNum);
         Db.NonQ(command);
     }
 
-    ///<summary>Gets the number of patients with unknown Zip.</summary>
-    public static int GetZipUnknown(DateTime dateFrom, DateTime dateTo)
-    {
-        var command = "SELECT COUNT(*) "
-                      + "FROM patient "
-                      + "WHERE " + DbHelper.Regexp("Zip", "^[0-9]{5}", false) + " " //Does not start with five numbers
-                      + "AND PatNum IN ( "
-                      + "SELECT DISTINCT PatNum FROM procedurelog "
-                      + "WHERE ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "AND DateEntryC >= " + SOut.Date(dateFrom) + " "
-                      + "AND DateEntryC <= " + SOut.Date(dateTo) + ") "
-                      + "AND Birthdate<=CURDATE() " //Birthday not in the future (at least 0 years old)
-                      + "AND Birthdate>SUBDATE(CURDATE(),INTERVAL 200 YEAR) "; //Younger than 200 years old
-        return SIn.Int(Db.GetCount(command));
-    }
-
-    /// <summary>
-    ///     Gets the number of qualified patients (having a completed procedure within the given time frame) in zip codes
-    ///     with less than 9 other qualified patients in that same zip code.
-    /// </summary>
-    public static int GetZipOther(DateTime dateFrom, DateTime dateTo)
-    {
-        var command = "SELECT SUM(Patients) FROM "
-                      + "(SELECT SUBSTR(Zip,1,5) Zip_Code,COUNT(*) Patients " //Column headings Zip_Code and Patients are provided by the USD 2010 Manual.
-                      + "FROM patient "
-                      + "WHERE " + DbHelper.Regexp("Zip", "^[0-9]{5}") + " " //Starts with five numbers
-                      + "AND PatNum IN ( "
-                      + "SELECT DISTINCT PatNum FROM procedurelog "
-                      + "WHERE ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "AND DateEntryC >= " + SOut.Date(dateFrom) + " "
-                      + "AND DateEntryC <= " + SOut.Date(dateTo) + ") "
-                      + "AND Birthdate<=CURDATE() " //Birthday not in the future (at least 0 years old)
-                      + "AND Birthdate>SUBDATE(CURDATE(),INTERVAL 200 YEAR) " //Younger than 200 years old
-                      + "GROUP BY Zip "
-                      + "HAVING COUNT(*) < 10) patzip"; //Has less than 10 patients in that zip code for the given time frame.
-        return SIn.Int(Db.GetCount(command));
-    }
-
-    /// <summary>
-    ///     Gets the total number of patients with completed procedures between dateFrom and dateTo. Also checks for age
-    ///     between 0 and 200.
-    /// </summary>
-    public static int GetPatCount(DateTime dateFrom, DateTime dateTo)
-    {
-        var command = "SELECT COUNT(*) "
-                      + "FROM patient "
-                      + "WHERE PatNum IN ( "
-                      + "SELECT DISTINCT PatNum FROM procedurelog "
-                      + "WHERE ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "AND DateEntryC >= " + SOut.Date(dateFrom) + " "
-                      + "AND DateEntryC <= " + SOut.Date(dateTo) + ") "
-                      + "AND Birthdate<=CURDATE() " //Birthday not in the future (at least 0 years old)
-                      + "AND Birthdate>SUBDATE(CURDATE(),INTERVAL 200 YEAR) "; //Younger than 200 years old
-        return SIn.Int(Db.GetCount(command));
-    }
-
-    ///<summary>Counts all patients that are not deleted.</summary>
-    public static int GetPatCountAll()
-    {
-        var command = "SELECT COUNT(*) FROM patient WHERE PatStatus!=" + SOut.Int((int) PatientStatus.Deleted);
-        return SIn.Int(Db.GetCount(command));
-    }
-
-
-    /// <summary>
-    ///     Gets the total number of patients with completed procedures between dateFrom and dateTo who are at least
-    ///     agelow and strictly younger than agehigh.
-    /// </summary>
-    public static int GetAgeGenderCount(int agelow, int agehigh, PatientGender gender, DateTime dateFrom, DateTime dateTo)
-    {
-        var male = true; //Since all the numbers must add up to equal, we count unknown and other genders as female.
-        if (gender != 0) male = false;
-        var command = "SELECT COUNT(*) "
-                      + "FROM patient pat "
-                      + "WHERE PatNum IN ( "
-                      + "SELECT DISTINCT PatNum FROM procedurelog "
-                      + "WHERE ProcStatus=" + SOut.Int((int) ProcStat.C) + " "
-                      + "AND DateEntryC >= " + SOut.Date(dateFrom) + " "
-                      + "AND DateEntryC <= " + SOut.Date(dateTo) + ") "
-                      + "AND Gender" + (male ? "=0" : "!=0") + " "
-                      + "AND Birthdate<=SUBDATE(CURDATE(),INTERVAL " + agelow + " YEAR) " //Born before this date
-                      + "AND Birthdate>SUBDATE(CURDATE(),INTERVAL " + agehigh + " YEAR)"; //Born after this date
-        return SIn.Int(Db.GetCount(command));
-    }
-
-    ///<summary>Gets completed procedures, adjustments, and pay plan charges for a superfamily, ordered by datetime.</summary>
     public static DataTable GetSuperFamProcAdjustsPPCharges(long superFamily)
     {
         var listPatients = GetBySuperFamily(superFamily);
@@ -3248,12 +2561,11 @@ public class Patients
                       + "AND payplancharge.ChargeType=" + SOut.Int((int) PayPlanChargeType.Debit) + " "
                       + "AND StatementNum=0 "
                       + "AND " + SOut.Bool(PrefC.GetInt(PrefName.PayPlansVersion) == (int) PayPlanVersions.AgeCreditsAndDebits) + " "
-                      + "AND payplancharge.ChargeDate<" + DbHelper.DateAddMonth(DbHelper.Now(), "3") + " " //Only show payplan charges less than 3 mos into the future
+                      + "AND payplancharge.ChargeDate<ADDDATE(NOW(), INTERVAL 3 MONTH) " //Only show payplan charges less than 3 mos into the future
                       + ") procadj ORDER BY procadj.Date DESC";
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Returns a list of patients belonging to the SuperFamily</summary>
     public static List<Patient> GetBySuperFamily(long SuperFamilyNum)
     {
         if (SuperFamilyNum == 0) return new List<Patient>(); //return empty list
@@ -3263,7 +2575,6 @@ public class Patients
         return PatientCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a list of patients that are the guarantors for the patients in the Super Family</summary>
     public static List<Patient> GetSuperFamilyGuarantors(long SuperFamilyNum)
     {
         if (SuperFamilyNum == 0) return new List<Patient>(); //return empty list
@@ -3297,14 +2608,6 @@ public class Patients
         Db.NonQ(command);
     }
 
-    public static List<Patient> GetPatsForScreenGroup(long screenGroupNum)
-    {
-        if (screenGroupNum == 0) return new List<Patient>();
-        var command = "SELECT * FROM patient WHERE PatNum IN (SELECT PatNum FROM screenpat WHERE ScreenGroupNum=" + SOut.Long(screenGroupNum) + ")";
-        return PatientCrud.SelectMany(command);
-    }
-
-    ///<summary>Get a list of patients for FormEhrPatientExport. If provNum, clinicNum, or siteNum are =0 get all.</summary>
     public static DataTable GetExportList(long patNum, string firstName, string lastName, long provNum, long clinicNum, long siteNum)
     {
         var command = "SELECT patient.PatNum, patient.FName, patient.LName, provider.Abbr AS Provider, clinic.Description AS Clinic, site.Description AS Site "
@@ -3323,7 +2626,6 @@ public class Patients
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Returns a list of Patients of which this PatNum is eligible to view given PHI constraints.</summary>
     public static List<Patient> GetPatientsForPhi(long patNum)
     {
         var listPatNums = GetPatNumsForPhi(patNum);
@@ -3335,10 +2637,6 @@ public class Patients
         return PatientCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a list of PatNum(s) of which this PatNum is eligible to view given PHI constraints.  Used internally
-    ///     and also used by Patient Portal.
-    /// </summary>
     public static List<long> GetPatNumsForPhi(long patNum)
     {
         var listPatNums = new List<long>();
@@ -3365,11 +2663,6 @@ public class Patients
         return listPatNums.Distinct().ToList();
     }
 
-    /// <summary>
-    ///     Validate password against strong password rules. Currently only used for patient portal passwords.
-    ///     Requirements: 8 characters, 1 uppercase character, 1 lowercase character, 1 number. Returns non-empty string if
-    ///     validation failed. Return string will be translated.
-    /// </summary>
     public static string IsPortalPasswordValid(string newPassword)
     {
         if (newPassword.Length < 8) return Lans.g("FormPatientPortal", "Password must be at least 8 characters long.");
@@ -3379,39 +2672,6 @@ public class Patients
         return "";
     }
 
-    /// <summary>
-    ///     Returns a distinct list of PatNums for guarantors that have any family member with passed in clinics, or have
-    ///     had work done at passed in clinics.
-    /// </summary>
-    public static string GetClinicGuarantors(string clinicNums)
-    {
-        var clinicGuarantors = "";
-        //Get guarantor of patients with clinic from comma delimited list
-        var command = "SELECT DISTINCT Guarantor FROM patient WHERE ClinicNum IN (" + clinicNums + ")";
-        var table = DataCore.GetTable(command);
-        for (var i = 0; i < table.Rows.Count; i++)
-        {
-            if (i > 0 || clinicGuarantors != "") clinicGuarantors += ",";
-            clinicGuarantors += SIn.String(table.Rows[i]["Guarantor"].ToString());
-        }
-
-        //Get guarantor of patients who have had work done at clinic in comma delimited list
-        command = "SELECT DISTINCT Guarantor "
-                  + "FROM procedurelog "
-                  + "INNER JOIN patient ON patient.PatNum=procedurelog.PatNum "
-                  + "AND patient.PatStatus !=4 "
-                  + "WHERE procedurelog.ProcStatus IN (1,2) "
-                  + "AND procedurelog.ClinicNum IN (" + clinicNums + ")";
-        table = DataCore.GetTable(command);
-        for (var i = 0; i < table.Rows.Count; i++)
-        {
-            if (i > 0 || clinicGuarantors != "") clinicGuarantors += ",";
-            clinicGuarantors += SIn.String(table.Rows[i]["Guarantor"].ToString());
-        }
-
-        return clinicGuarantors;
-    }
-
     public static List<Patient> GetPatsByEmailAddress(string emailAddress)
     {
         var command = "SELECT * FROM patient WHERE Email LIKE '%" + SOut.String(emailAddress) + "%' "
@@ -3419,40 +2679,6 @@ public class Patients
         return PatientCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns all PatNums for whom the specified PatNum is the Guarantor. If this patient is not a guarantor, returns an
-    ///     empty list. If the
-    ///     patient is a guarantor, this patient's PatNum will be included in the list.
-    /// </summary>
-    public static List<long> GetDependents(long patNum)
-    {
-        var command = "SELECT PatNum FROM patient WHERE Guarantor=" + SOut.Long(patNum);
-        return Db.GetListLong(command);
-    }
-
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching patNum as FKey and are related to Patient.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Patient table type.
-    /// </summary>
-    public static void ClearFkey(long patNum)
-    {
-        PatientCrud.ClearFkey(patNum);
-    }
-
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching patNums as FKey and are related to Patient.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Patient table type.
-    /// </summary>
-    public static void ClearFkey(List<long> listPatNums)
-    {
-        PatientCrud.ClearFkey(listPatNums);
-    }
-
-    /// <summary>
-    ///     List of all patients in the current family along with any patients associated to payment plans of which a member of
-    ///     this family is the guarantor.
-    ///     Only gets patients that are associated to active plans.
-    /// </summary>
     public static List<Patient> GetAssociatedPatients(long patNum)
     {
         //patients associated to payment plans of which any member of this family is the guarantor UNION patients in the family
@@ -3558,17 +2784,6 @@ public class Patients
         return listPatComms;
     }
 
-    /// <summary>
-    ///     Returns list of PatNums such that the PatNum is the max PatNum in it's group of numPerGroup PatNums ordered by
-    ///     PatNum ascending.
-    ///     Example: If there are 1000 PatNums in the db and they are all sequential and each PatStatus is in the list of
-    ///     PatStatuses and the numPerGroup
-    ///     is 500, the returned list would have 2 values in it, 500 and 1000.  Each number is the max PatNum such that if you
-    ///     selected the patients with
-    ///     PatNum greater than the previous entry (or greater than 0 if it is the first entry) and less than or equal to the
-    ///     current entry you would get
-    ///     at most numPerGroup patients (the last group could, of course, have fewer in it).
-    /// </summary>
     public static List<long> GetPatNumMaxForGroups(int numPerGroup, List<PatientStatus> listPatStatuses)
     {
         var retval = new List<long>();
@@ -3590,13 +2805,7 @@ public class Patients
         return retval;
     }
 
-    /// <summary>
-    ///     Gets a list of patients (with limited columns) who have had OR not had TPed procs, completed procs and/or completed
-    ///     appointments
-    ///     after the specified date, depending on values given.
-    /// </summary>
-    public static List<Patient> GetPatsToChangeStatus(PatientStatus patStatus, DateTime fromDate, bool doIncludeTPProc
-        , bool doIncludeCompletedProc, bool doIncludeAppointments, List<long> listClinicNums)
+    public static List<Patient> GetPatsToChangeStatus(PatientStatus patStatus, DateTime fromDate, bool doIncludeTPProc, bool doIncludeCompletedProc, bool doIncludeAppointments, List<long> listClinicNums)
     {
         var whereClause = "WHERE PatStatus=" + SOut.Int((int) patStatus) + " AND (";
         //A selectedClinicNum of -2 corresponds to clincs not enabled or all clinics
@@ -3647,10 +2856,6 @@ public class Patients
         return listPatients;
     }
 
-    /// <summary>
-    ///     Formats the passed in SSN for text output.  If doMask=true it will mask the SSN and only show the last 4 digits.
-    ///     If patSSN is null, returns empty string.
-    /// </summary>
     public static string SSNFormatHelper(string patSSN, bool doMask)
     {
         if (string.IsNullOrEmpty(patSSN)) return "";
@@ -3664,10 +2869,6 @@ public class Patients
         return stringSSN;
     }
 
-    /// <summary>
-    ///     Formats the passed in Birthdate for text output.  If doMask=true it will return on x's and seperators like
-    ///     xx/xx/xxxx
-    /// </summary>
     public static string DOBFormatHelper(DateTime patBirthdate, bool doMask)
     {
         if (patBirthdate.Year < 1880) return ""; //In most places anything older than this (usually minval) is just shown as blank.  Don't bother masking.
@@ -3676,7 +2877,6 @@ public class Patients
         return retval;
     }
 
-    ///<summary>Selects a random patient from the database.</summary>
     public static Patient GetRandomPatient()
     {
         var attempts = 0;
@@ -3696,10 +2896,6 @@ public class Patients
         return pat;
     }
 
-    /// <summary>
-    ///     Returns the salted hash for the patient. Will return an empty string if the calling program is unable to use
-    ///     CDT.dll.
-    /// </summary>
     public static string HashFields(Patient patient)
     {
         var unhashedText = patient.PatNum.ToString();
@@ -3713,10 +2909,6 @@ public class Patients
         }
     }
 
-    /// <summary>
-    ///     Validates the hash string in patient.SecurityHash. Returns true if it matches the expected hash, otherwise
-    ///     false.
-    /// </summary>
     public static bool IsPatientHashValid(Patient patient)
     {
         if (patient == null) return true;
@@ -3727,11 +2919,6 @@ public class Patients
         return false;
     }
 
-    /// <summary>
-    ///     Checks all passed lists protected by SecurityHash columns. Returns false if a single row in any table is
-    ///     invalidly hashed. Limited to only 20 rows per table to reduce this process's impact on performance. Ignores rows
-    ///     occuring before SecurityHash.DateStart.
-    /// </summary>
     public static bool AreAllHashesValid(Patient patient, List<Appointment> listAppointments, List<PayPlan> listPayPlans, List<PaySplit> listPaySplits, List<Claim> listClaims, List<ClaimProc> listClaimProcs)
     {
         if (patient != null && !IsPatientHashValid(patient)) return false;
@@ -3793,11 +2980,6 @@ public class Patients
         #endregion ClaimProcs
 
         return true;
-    }
-
-    public static bool IsMinor(DateTime birthdate, DateTime dateCompare, int minorAge)
-    {
-        return new DateSpan(birthdate, dateCompare).YearsDiff < minorAge;
     }
 
     public static List<PatientStatus> GetPatientStatuses(Patient patient)
@@ -3874,7 +3056,6 @@ public class Patients
         return listCanadianEligibilityCodes;
     }
 
-    
     public static long GetEmployerNumForPatient(Patient patient, string employerName)
     {
         if (patient.EmployerNum == 0)
@@ -3891,7 +3072,7 @@ public class Patients
         return patient.EmployerNum; //no change
     }
 
-    public static Result ValidatePatientEdit(Patient patient, EhrPatient ehrPatient, Patient patientOld, bool isNew, string site)
+    public static Result ValidatePatientEdit(Patient patient, Patient patientOld, bool isNew, string site)
     {
         var result = new Result {IsSuccess = false};
         var dateTimeDeceased = DateTime.MinValue;
@@ -3919,21 +3100,7 @@ public class Patients
             result.Msg = "County name invalid. The County entered is not present in the list of Counties. Please add the new County.";
             return result;
         }
-
-        if (ehrPatient.SexualOrientation == EnumTools.GetAttributeOrDefault<EhrAttribute>(SexOrientation.AdditionalOrientation).Snomed
-            && string.IsNullOrEmpty(ehrPatient.SexualOrientationNote.Trim()))
-        {
-            result.Msg = "Sexual orientation must be specified.";
-            return result;
-        }
-
-        if (ehrPatient.GenderIdentity == EnumTools.GetAttributeOrDefault<EhrAttribute>(GenderId.AdditionalGenderCategory).Snomed
-            && string.IsNullOrEmpty(ehrPatient.GenderIdentityNote.Trim()))
-        {
-            result.Msg = "Gender identity must be specified.";
-            return result;
-        }
-
+        
         if (!string.IsNullOrEmpty(site) && site != Sites.GetDescription(patient.SiteNum) && Sites.FindMatchSiteNum(site) == -1)
         {
             result.Msg = "Invalid Site description.";
@@ -3967,14 +3134,11 @@ public class Patients
         return result;
     }
 
-    public static Result SavePatientEdit(Userod userod, Patient patient, Patient patientOld, PatientNote patientNote, EhrPatient ehrPatient, Family family, bool isNew, bool restrictSched,
-        bool arriveEarlySame, bool addressSame, bool addressSameSuperFamily, bool billProvSame, bool notesSame, bool emailPhoneSame, DefLink defLink, long specialtyDefNum, List<PatientRace> listPatientRaces,
-        CommOptOut commOptOut)
+    public static Result SavePatientEdit(Userod userod, Patient patient, Patient patientOld, PatientNote patientNote, Family family, bool isNew, bool restrictSched, bool arriveEarlySame, bool addressSame, bool addressSameSuperFamily, bool billProvSame, bool notesSame, bool emailPhoneSame, DefLink defLink, long specialtyDefNum, List<PatientRace> listPatientRaces, CommOptOut commOptOut)
     {
         var result = new Result();
         Update(patient, patientOld);
         PatientNotes.Update(patientNote, patient.Guarantor);
-        EhrPatients.Update(ehrPatient);
         PatientRaces.Reconcile(patient.PatNum, listPatientRaces); //Insert, Update, Delete if needed.
         CommOptOuts.Upsert(commOptOut);
         var strPatPriProvDesc = Providers.GetLongDesc(patient.PriProv);
@@ -4052,7 +3216,7 @@ public class Patients
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (/* ODBuild.IsDebug() */ false) result.Msg = messageHL7.ToString();
+                if ( /* ODBuild.IsDebug() */ false) result.Msg = messageHL7.ToString();
             }
         }
 
@@ -4089,10 +3253,6 @@ public class Patients
         return result;
     }
 
-    /// <summary>
-    ///     Determines if the user should be given the opportunity to send a text message to the patient when changes have
-    ///     been made to texting settings.
-    /// </summary>
     public static bool DoPromptForOptInSms(Patient patient, Patient patientOld)
     {
         if (!Clinics.IsTextingEnabled(patient.ClinicNum)) return false; //Office doesn't use texting.
@@ -4104,10 +3264,6 @@ public class Patients
         return true;
     }
 
-    /// <summary>
-    ///     Determines if the user should be given the opportunity to send a text message to the patient when changes have
-    ///     been made to texting settings.
-    /// </summary>
     public static bool DoSendOptOutText(Patient patient, Patient patientOld)
     {
         if (!Clinics.IsTextingEnabled(patient.ClinicNum)) return false; //Office doesn't use texting.
@@ -4210,7 +3366,6 @@ public class Patients
         return result;
     }
 
-    
     [Obsolete]
     public class PatientName
     {
@@ -4218,14 +3373,6 @@ public class Patients
         public long PatNum;
     }
 
-    #region Get Methods
-
-    /// <summary>
-    ///     Returns a list of all potential clones for the patient passed in.  The list returned will always contain the patNum
-    ///     passed in.
-    ///     It is okay for patNum passed in to be a clone, a master, or even a patient that is not even related to clones at
-    ///     all.
-    /// </summary>
     public static List<long> GetClonePatNumsAll(long patNum)
     {
         var patNumOriginal = patNum;
@@ -4234,20 +3381,6 @@ public class Patients
         return PatientLinks.GetPatNumsLinkedFromRecursive(patNumOriginal, PatientLinkType.Clone);
     }
 
-    ///<summary>Returns the patient's guarantors email. Will return the patient email if guarantors email is blank.</summary>
-    public static string GetEmailAddressForGuarantorOrPatient(Patient patient)
-    {
-        if (patient == null) return "";
-        Patient patientGuar = null;
-        if (patient.PatNum != patient.Guarantor) patientGuar = GetGuarForPat(patient.PatNum);
-        if (patientGuar == null || EmailAddresses.GetValidMailAddress(patientGuar.Email) == null) return patient.Email;
-        return patientGuar.Email;
-    }
-
-    /// <summary>
-    ///     Returns a Def representing the patient specialty associated through DefLinks to the passed in Patient.
-    ///     Returns null if no specialty found.
-    /// </summary>
     public static Def GetPatientSpecialtyDef(long patNum)
     {
         var command = "SELECT DefNum FROM deflink WHERE LinkType=" + SOut.Int((int) DefLinkType.Patient) + " AND FKey=" + SOut.Long(patNum);
@@ -4255,11 +3388,6 @@ public class Patients
         return Defs.GetDef(DefCat.ClinicSpecialty, defNum);
     }
 
-    /// <summary>
-    ///     Returns the master or original patient for the clone passed in otherwise returns the patient passed in if patCur is
-    ///     not a clone.
-    ///     Will return null if the patCur is a clone but the master or original patient could not be found in the database.
-    /// </summary>
     public static Patient GetOriginalPatientForClone(Patient patCur)
     {
         if (patCur == null || !IsPatientAClone(patCur.PatNum)) return patCur;
@@ -4267,11 +3395,6 @@ public class Patients
         return GetPat(PatientLinks.GetOriginalPatNumFromClone(patCur.PatNum));
     }
 
-    /// <summary>
-    ///     Gets any patient whose wireless, home, or work number matches the passed phone number. Be careful with what you
-    ///     pass in as
-    ///     phoneNumber. If you pass in '1', you will get almost every patient.
-    /// </summary>
     public static List<Patient> GetPatientsByPhone(string phoneNumber, string countryCode, List<PhoneType> listPhoneTypes = null)
     {
         phoneNumber ??= ""; //Avoid any null reference exceptions.
@@ -4312,7 +3435,6 @@ public class Patients
         return listPats;
     }
 
-    ///<summary>Returns a MySQL clause to search the phonenumber table for an exact match.</summary>
     private static string GetPhoneNumberWhereClause(string phoneNumber, List<PhoneType> listPhoneTypes)
     {
         var strPhoneDigits = PhoneNumbers.RemoveNonDigitsAndTrimStart(phoneNumber); //Digits only, strip leading 0/1
@@ -4322,7 +3444,6 @@ public class Patients
         return where;
     }
 
-    ///<summary>Returns a MySQL clause to search the patient table for a phone number with REGEXP</summary>
     private static string GetPatientPhoneRegexpClause(string phoneNumber, string countryCode, List<PhoneType> listPhoneTypes)
     {
         var listPhoneFields = listPhoneTypes.Select(x => x switch
@@ -4337,10 +3458,6 @@ public class Patients
         return string.Join(" OR ", listPhoneFields.Select(x => DbHelper.Regexp(SOut.String($"patient.{x}"), phoneRegexp)));
     }
 
-    /// <summary>
-    ///     Expands a phone number into a string that can be used to ignore punctuation in a phone number.
-    ///     Any string that passes through this function does not need to, and should not, go through POut.String()
-    /// </summary>
     private static string ConvertPhoneToRegexp(string phoneRaw, string countryCode)
     {
         //Strip all non-numeric characters just in case.
@@ -4373,13 +3490,6 @@ public class Patients
         return retVal;
     }
 
-    /// <summary>
-    ///     Gets an AgingList for all patients who are not deleted and are not archived with a $0 balance.  Includes the list
-    ///     of tsitranslogs, a
-    ///     value indicating whether or not insurance is pending, and a value indicating whether or not there are any unsent
-    ///     procs for each pataging.
-    ///     Only used for the A/R Manager.
-    /// </summary>
     public static List<PatAging> GetAgingList(long clinicNum = 0)
     {
         var collectionBillType = Defs.GetDefsForCategory(DefCat.BillingTypes, true).FirstOrDefault(x => x.ItemValue.ToLower() == "c")?.DefNum ?? 0;
@@ -4514,7 +3624,6 @@ public class Patients
         }
     }
 
-    ///<summary>Used by the OpenDentalService Transworld thread to sync accounts sent to collection.</summary>
     public static List<long> GetListCollectionGuarNums(bool doIncludeSuspended = true)
     {
         var listBillTypes = Defs.GetDefsForCategory(DefCat.BillingTypes, true).FindAll(x => x.ItemValue.ToLower() == "c");
@@ -4528,12 +3637,6 @@ public class Patients
         return Db.GetListLong(command).Union(listSuspendedGuarNums).ToList();
     }
 
-    /// <summary>
-    ///     Used to determine whether or not the guarantor of a family is sent to collections.  Used in order to prompt the
-    ///     user to specify
-    ///     whether the payment or adjustment being entered on a collection patient came from Transworld and therefore
-    ///     shouldn't be sent to Transworld.
-    /// </summary>
     public static bool IsGuarCollections(long guarNum, bool includeSuspended = true)
     {
         if (includeSuspended && TsiTransLogs.IsGuarSuspended(guarNum)) return true;
@@ -4548,24 +3651,6 @@ public class Patients
         return SIn.Bool(DataCore.GetScalar(command));
     }
 
-    /// <summary>
-    ///     Fetches all Gurantor patnums who have family members where some have a positive estimated balance and some
-    ///     negative.
-    /// </summary>
-    public static List<long> GetAllTransferGuarantors()
-    {
-        //We use SUM() in this query so the GROUP BY behaves correctly and summarizes GreaterThan and Lessthan.
-        var command = @"SELECT family.Guarantor FROM ( 
-					SELECT patient.Guarantor, 
-					SUM(CASE WHEN patient.EstBalance>0 THEN 1 ELSE 0 END) AS GreaterThan, 
-					SUM(CASE WHEN patient.EstBalance<0 THEN 1 ELSE 0 END) AS LessThan 
-				FROM patient 
-				WHERE PatStatus=" + SOut.Int((int) PatientStatus.Patient) + @"
-				GROUP BY patient.Guarantor
-				HAVING GreaterThan>0 AND LessThan>0) family";
-        return Db.GetListLong(command);
-    }
-
     public static List<long> GetGuarantorsForPatNums(List<long> listPatNums)
     {
         if (listPatNums.IsNullOrEmpty()) return new List<long>();
@@ -4575,11 +3660,6 @@ public class Patients
         return Db.GetListLong(command);
     }
 
-    /// <summary>
-    ///     Returns a list of guarantors in charge of families that have had financial data changed after the specified date.
-    ///     The time portion of the date passed in is ignored in order to include families that have changes on or after the
-    ///     date passed in.
-    /// </summary>
     public static List<long> GetGuarantorsWithFinancialDataChangedAfterDate(DateTime dateChanged)
     {
         //Find all of the PatNums that have had financial data changed since the specified date (at midnight).
@@ -4600,32 +3680,9 @@ public class Patients
         return GetGuarantorsForPatNums(listPatNums);
     }
 
-    ///<summary>Returns a list of PatNums for every guarantor in the database that hasn't been flagged as deleted.</summary>
     public static List<long> GetAllGuarantors()
     {
         var command = $"SELECT DISTINCT Guarantor FROM patient WHERE patient.PatStatus!={SOut.Int((int) PatientStatus.Deleted)}";
-        return Db.GetListLong(command);
-    }
-
-    public static List<long> GetAllGuarantorsWithFamilies()
-    {
-        var command = "SELECT DISTINCT Guarantor FROM patient WHERE Guarantor<>PatNum";
-        return Db.GetListLong(command);
-    }
-
-    /// <summary>
-    ///     Returns a list of PatNums for every guarantor in the database that has at least one other patient in the
-    ///     family.
-    /// </summary>
-    public static List<long> GetAllGuarantorsWithFamiliesAlphabetical()
-    {
-        //In the future we may want to limit the status of guarantors returned.
-        //Ignore patients flagged as deleted to prevent returning guarantors that appear to not have any other family members in their family.
-        var command = $@"SELECT DISTINCT guar.PatNum FROM patient 
-				INNER JOIN patient guar ON guar.PatNum=patient.Guarantor
-				WHERE patient.Guarantor!=patient.PatNum
-				AND patient.PatStatus!={SOut.Int((int) PatientStatus.Deleted)}
-				ORDER BY guar.LName, guar.FName, guar.PatNum";
         return Db.GetListLong(command);
     }
 
@@ -4638,69 +3695,13 @@ public class Patients
         return PatientCrud.SelectOne(command);
     }
 
-    public static DataTable GetPatientsWithFirstLastAppointments(List<PatientStatus> listPatStatus, bool doExcludePatsWithFutureAppts,
-        List<long> listClinicNums, int ageFrom, int ageTo, DateTime dateExcludeSeenSince, DateTime dateExcludeNotSeenSince, List<Def> listBillingType, int contactMethod = -1
-        , List<long> listPatNums = null)
-    {
-        var command = @$"SELECT patient.PatNum,patient.FName,patient.LName,patient.Email,patient.PatStatus,patient.PreferContactMethod,patient.ClinicNum,
-				patient.Preferred,patient.Birthdate,patient.Address,patient.Address2,patient.City,patient.State,patient.Zip,patient.Country,apt.DateTimeLastApt,
-				DATE(apt.DateTimeNextApt) DateTimeNextApt,a.AptNum NextAptNum
-				FROM patient 
-				LEFT JOIN (
-					SELECT appointment.PatNum PatNum,
-					MAX(DATE((CASE WHEN appointment.AptDateTime < CURDATE() AND appointment.AptStatus={SOut.Int((int) ApptStatus.Complete)} 
-						THEN appointment.AptDateTime ELSE NULL END))) DateTimeLastApt,
-					MIN((CASE WHEN appointment.AptDateTime >= CURDATE() AND appointment.AptStatus IN ({SOut.Int((int) ApptStatus.Scheduled)}
-						,{SOut.Int((int) ApptStatus.ASAP)}) THEN appointment.AptDateTime ELSE NULL END)) DateTimeNextApt
-					FROM appointment
-					WHERE appointment.AptStatus IN ({SOut.Int((int) ApptStatus.Complete)},{SOut.Int((int) ApptStatus.ASAP)},{SOut.Int((int) ApptStatus.Scheduled)})
-					GROUP BY appointment.PatNum
-				)apt ON apt.PatNum=patient.PatNum
-				LEFT JOIN appointment a ON apt.DateTimeNextApt = a.AptDateTime AND apt.PatNum = a.PatNum
-				WHERE patient.PatStatus IN ({string.Join(",", listPatStatus.Select(x => SOut.Int((int) x)))}) 
-				AND (((YEAR(CURDATE()) - YEAR(patient.Birthdate)) - (RIGHT(CURDATE(),5)< RIGHT(patient.Birthdate,5))) BETWEEN {ageFrom} AND {ageTo} 
-					OR YEAR(patient.Birthdate) = '0001') "; //minval year
-        if (true && listClinicNums.Count > 0) command += $"AND patient.ClinicNum IN ({string.Join(",", listClinicNums.Select(x => SOut.Long(x)))}) ";
-        if (contactMethod != -1) command += $"AND patient.PreferContactMethod={contactMethod} ";
-        if (doExcludePatsWithFutureAppts) command += "AND apt.DateTimeNextApt IS NULL ";
-        if (!listBillingType.IsNullOrEmpty()) command += $"AND patient.BillingType IN({string.Join(",", listBillingType.Select(x => SOut.Long(x.DefNum)))}) ";
-        if (dateExcludeSeenSince != DateTime.MinValue)
-            //Exclude patients that have been seen since (after) the passed in date
-            command += @$"AND (DATE(apt.DateTimeLastApt) < {SOut.Date(dateExcludeSeenSince)} OR apt.DateTimeLastApt IS NULL)";
-        if (dateExcludeNotSeenSince != DateTime.MinValue)
-            //Exclude patients that have not been seen since (before) the passed in date
-            command += @$"AND DATE(apt.DateTimeLastApt) >= {SOut.Date(dateExcludeNotSeenSince)} ";
-        if (listPatNums != null && listPatNums.Count > 0) command += @$"AND patient.PatNum IN ({string.Join(",", listPatNums.Select(x => SOut.Long(x)))}) ";
-        command += "ORDER BY patient.LName,patient.FName ";
-        return DataCore.GetTable(command);
-    }
-
-    #endregion
-
-    #region Insert
-
-    /// <summary>
-    ///     Creates a clone from the patient passed in and then links them together as master and clone via the patientlink
-    ///     table.
-    ///     After the patient has been cloned successfully, this method will call SynchCloneWithPatient().
-    ///     That synch method will take care of synching all fields that should be synched for a brand new clone.
-    /// </summary>
-    public static Patient CreateCloneAndSynch(Patient patient, Family familyCur = null, List<InsPlan> listInsPlans = null, List<InsSub> listInsSubs = null
-        , List<Benefit> listBenefits = null, long primaryProvNum = 0, long clinicNum = 0)
+    public static Patient CreateCloneAndSynch(Patient patient, Family familyCur = null, List<InsPlan> listInsPlans = null, List<InsSub> listInsSubs = null, List<Benefit> listBenefits = null, long primaryProvNum = 0, long clinicNum = 0)
     {
         var patientSynch = CreateClone(patient, primaryProvNum, clinicNum);
         SynchCloneWithPatient(patient, patientSynch, familyCur, listInsPlans, listInsSubs, listBenefits);
         return patientSynch;
     }
 
-    /// <summary>
-    ///     Creates a clone from the patient passed in and then links them together as master and clone via the patientlink
-    ///     table.
-    ///     This method only sets a few crucial variables on the patient clone returned.  Call any additional synch methods
-    ///     afterwards.
-    ///     The clone that was created will be returned.  Optionally pass in a primary provider and / or clinic that should be
-    ///     used.
-    /// </summary>
     public static Patient CreateClone(Patient patient, long primaryProvNum = 0, long clinicNum = 0)
     {
         var patientSynch = new Patient();
@@ -4712,7 +3713,7 @@ public class Patients
         if (primaryProvNum == 0) primaryProvNum = PrefC.GetLong(PrefName.PracticeDefaultProv);
         patientSynch.PriProv = primaryProvNum;
         patientSynch.ClinicNum = clinicNum;
-        Insert(patientSynch, false);
+        Insert(patientSynch);
         SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate, patientSynch.PatNum, Lans.g("ContrFamily", "Created from Family Module Clones Add button."));
         PatientLinks.Insert(new PatientLink
         {
@@ -4759,17 +3760,7 @@ public class Patients
         return patientSynch;
     }
 
-    #endregion
-
-    #region Update
-
-    /// <summary>
-    ///     Synchs all clones related to the patient passed in with it's current information.  Returns a string representing
-    ///     what happened.
-    ///     Optionally pass in the lists of insurance information to save db calls within a loop.
-    /// </summary>
-    public static string SynchClonesWithPatient(Patient patient, Family familyCur = null, List<InsPlan> listInsPlans = null
-        , List<InsSub> listInsSubs = null, List<Benefit> listBenefits = null, List<PatPlan> listPatPlans = null)
+    public static string SynchClonesWithPatient(Patient patient, Family familyCur = null, List<InsPlan> listInsPlans = null, List<InsSub> listInsSubs = null, List<Benefit> listBenefits = null, List<PatPlan> listPatPlans = null)
     {
         var stringBuilder = new StringBuilder();
         //Get all clones for the patient passed in and then synch each one and return a string regarding what happened during the synch.
@@ -4794,12 +3785,7 @@ public class Patients
         return stringBuilder.ToString();
     }
 
-    /// <summary>
-    ///     Synchs current information for patient to patientSynch passed in.  Returns a string representing what happened.
-    ///     Optionally pass in the list of PatPlans for the clone and non-clone in order to potentially save db calls.
-    /// </summary>
-    public static string SynchCloneWithPatient(Patient patient, Patient patientSynch, Family familyCur = null, List<InsPlan> listInsPlans = null
-        , List<InsSub> listInsSubs = null, List<Benefit> listBenefits = null, List<PatPlan> listPatPlans = null, List<PatPlan> listPatPlansForSynch = null)
+    public static string SynchCloneWithPatient(Patient patient, Patient patientSynch, Family familyCur = null, List<InsPlan> listInsPlans = null, List<InsSub> listInsSubs = null, List<Benefit> listBenefits = null, List<PatPlan> listPatPlans = null, List<PatPlan> listPatPlansForSynch = null)
     {
         var patCloneOld = patientSynch.Copy();
         var patientCloneDemoChanges = SynchCloneDemographics(patient, patientSynch);
@@ -4833,12 +3819,6 @@ public class Patients
         return strDataUpdated;
     }
 
-    /// <summary>
-    ///     Synchs the demographics from patient to patientSynch.
-    ///     Returns a PatientCloneSynch object that represents specifics regarding anything that changed during the synching
-    ///     process.
-    ///     This method does not synch the family or the super family on purpose.
-    /// </summary>
     private static PatientCloneDemographicChanges SynchCloneDemographics(Patient patient, Patient patientSynch)
     {
         var patientCloneDemoChanges = new PatientCloneDemographicChanges();
@@ -5129,14 +4109,7 @@ public class Patients
         return patientCloneDemoChanges;
     }
 
-    /// <summary>
-    ///     Synchs the pat plan information from patient to patientSynch passed in.
-    ///     Returns a PatientClonePatPlanChanges object that represents specifics regarding anything that changed during the
-    ///     synch.
-    ///     Optionally pass in the lists of insurance information in order to potentially save db calls.
-    /// </summary>
-    public static PatientClonePatPlanChanges SynchClonePatPlans(Patient patient, Patient patientSynch, Family familyCur, List<InsPlan> listInsPlans
-        , List<InsSub> listInsSubs, List<Benefit> listBenefits, List<PatPlan> listPatPlans = null, List<PatPlan> listPatPlansForSynch = null)
+    public static PatientClonePatPlanChanges SynchClonePatPlans(Patient patient, Patient patientSynch, Family familyCur, List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<Benefit> listBenefits, List<PatPlan> listPatPlans = null, List<PatPlan> listPatPlansForSynch = null)
     {
         //TODO: correct all messages so that they don't refer to "the clone" or "the original".
         var patientClonePatPlanChanges = new PatientClonePatPlanChanges();
@@ -5288,40 +4261,21 @@ public class Patients
         return patientClonePatPlanChanges;
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Returns true if the patient passed in is a clone otherwise false.</summary>
     public static bool IsPatientAClone(long patNum)
     {
         return PatientLinks.IsPatientAClone(patNum);
     }
 
-    /// <summary>
-    ///     Returns true if the patient passed in is a clone or the original patient of clones, otherwise false.
-    ///     This method is helpful when trying to determine if the patient passed in is related in any way to the clone system.
-    /// </summary>
     public static bool IsPatientACloneOrOriginal(long patNum)
     {
         return PatientLinks.IsPatientACloneOrOriginal(patNum);
     }
 
-    /// <summary>
-    ///     Returns true if one patient is a clone of the other or if both are clones of the same master, otherwise false.
-    ///     Always returns false if patNum1 and patNum2 are the same PatNum.
-    /// </summary>
     public static bool ArePatientsClonesOfEachOther(long patNum1, long patNum2)
     {
         return PatientLinks.ArePatientsClonesOfEachOther(patNum1, patNum2);
     }
 
-    /// <summary>
-    ///     Replaces all patient fields in the given message with the given patient's information.  Returns the resulting
-    ///     string.
-    ///     Replaces: [FName], [LName], [LNameLetter], [NameF], [NameFL], [PatNum],
-    ///     [ChartNumber], [HmPhone], [WkPhone], [WirelessPhone], [ReferredFromProvNameFL], etc.
-    /// </summary>
     public static string ReplacePatient(string message, Patient pat, bool isHtmlEmail = false)
     {
         if (pat == null) return message;
@@ -5383,11 +4337,6 @@ public class Patients
         return template.ToString();
     }
 
-    /// <summary>
-    ///     Replaces all patient guarantor fields in the given message with the given patient's guarantor information.  Returns
-    ///     the resulting string.
-    ///     Replaces: [GuarantorPatnum], [GuarantorTitle], [GuarantorNameF], [GuarantorNameL], [GuarantorMiddleInitial],etc.
-    /// </summary>
     public static string ReplaceGuarantor(string message, Patient pat)
     {
         if (pat == null) return message;
@@ -5409,90 +4358,43 @@ public class Patients
         return retVal;
     }
 
-    ///<summary>Returns true if the replacement field is PHI. Case insensitive.</summary>
     public static bool IsFieldPHI(string field)
     {
         return ListPHIFields.Select(x => x.ToLower()).Contains(field.ToLower());
     }
 
-    ///<summary>Returns true if the text contains a replacement field that is PHI. Case insensitive.</summary>
     public static bool DoesContainPHIField(string text)
     {
         var textLower = text.ToLower();
         return ListPHIFields.Select(x => x.ToLower()).Any(x => textLower.Contains(x));
     }
 
-    /// <summary>
-    ///     The list of fields that are considered PHI.
-    ///     <para />
-    ///     According to the United States Electronic Code of Federal Regulations Title 45 160.103, protected health
-    ///     information is individually
-    ///     identifiable health information that:
-    ///     "... (1) Is created or received by a health care provider, health plan, employer, or health care clearinghouse; and
-    ///     (2) Relates to the past, present, or future physical or mental health or condition of an individual; the provision
-    ///     of health care to an individual; or the past, present, or future payment for the provision of health care to an
-    ///     individual; and
-    ///     (i) That identifies the individual; or
-    ///     (ii) With respect to which there is a reasonable basis to believe the information can be used to identify the
-    ///     individual".
-    ///     (https://www.ecfr.gov/cgi-bin/text-idx?SID=2f948e08dbf4b32b8e30a4f0ac6f66cf&amp;mc=true&amp;node=se45.1.160_1103
-    ///     &amp;rgn=div8)
-    /// </summary>
     public static List<string> ListPHIFields =>
-        new()
-        {
-            "[LName]",
-            "[NameFL]",
-            "[NameLF]",
-            "[WirelessPhone]",
-            "[HmPhone]",
-            "[WkPhone]",
-            "[Birthdate]",
-            "[Birthdate_yyyyMMdd]",
-            "[SSN]",
-            "[Address]",
-            "[Address2]",
-            "[City]",
-            "[Zip]"
-        };
-
-    ///<summary>For sales tax. True if the patient zipcode matches the pattern "12345" or "12345-6789" </summary>
-    public static bool HasValidUSZipCode(Patient patient)
-    {
-        //Patient pat=Patients.GetPat(patNum);
-        //Regular Expression found at:
-        //https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s14.html
-        var regexp = "^[0-9]{5}(?:-[0-9]{4})?$";
-        if (Regex.IsMatch(patient.Zip, regexp)) return true;
-        return false;
-    }
-
-    #endregion
+    [
+        "[LName]",
+        "[NameFL]",
+        "[NameLF]",
+        "[WirelessPhone]",
+        "[HmPhone]",
+        "[WkPhone]",
+        "[Birthdate]",
+        "[Birthdate_yyyyMMdd]",
+        "[SSN]",
+        "[Address]",
+        "[Address2]",
+        "[City]",
+        "[Zip]"
+    ];
 }
 
-///<summary>A helper class to keep track of the 'Same For Family' checkboxes on the Patient Edit window.</summary>
-[Serializable]
 public class PatientEditSameForFamily
 {
-    ///<summary>bool</summary>
     public bool AddressSameForFamily;
-
-    
     public bool AddressSameForSuperFamily;
-
-    
     public bool AddressSameForSuperFamilyVisible;
-
-    
     public bool AddrPhoneNotesSameForFamily;
-
-    
     public bool ArriveEarlySameForFamily;
-
-    
     public bool BillingProviderSameForFamily;
-
-    
     public bool EmailPhoneSameForFamily;
 
     public PatientEditSameForFamily(Patient patient, Family family)
@@ -5568,80 +4470,40 @@ public class PatientEditSameForFamily
     }
 }
 
-///<summary>A helper class to keep track of changes made to clone demographics when synching.</summary>
-[Serializable]
 public class PatientCloneDemographicChanges
 {
-    ///<summary>A list of field names that have been cleared due to a clone synch.</summary>
     public List<string> ListFieldsCleared;
-
-    ///<summary>A list of patient fields that have changed for the clone.</summary>
     public List<PatientCloneField> ListFieldsUpdated;
 }
 
-///<summary>A helper class to keep track of changes made to clone PatPlans when synching.</summary>
-[Serializable]
 public class PatientClonePatPlanChanges
 {
-    ///<summary>A boolean indicating if there were any PatPlan changes necessary due to a synch.</summary>
     public bool PatPlansChanged;
-
-    ///<summary>A boolean indicating if there were any PatPlan inserted due to a synch.</summary>
     public bool PatPlansInserted;
-
-    ///<summary>A string that represents all changes made to the clone's PatPlan due to a synch.</summary>
     public string StrDataUpdated;
 }
 
-///<summary>A helper class to keep track of changes to specific clone fields when synching.</summary>
-[Serializable]
-public class PatientCloneField
+public class PatientCloneField(string fieldName, string oldValue, string newValue)
 {
-    ///<summary>The name of the field that would display to the user.  E.g. "First Name", "Middle Initial", etc.</summary>
-    public string FieldName;
-
-    ///<summary>The value of the corresponding FieldName after the clone has been synched.</summary>
-    public string NewValue;
-
-    ///<summary>The original value of the corresponding FieldName before the synch.</summary>
-    public string OldValue;
-
-    public PatientCloneField(string fieldName, string oldValue, string newValue)
-    {
-        FieldName = fieldName;
-        OldValue = oldValue;
-        NewValue = newValue;
-    }
+    public string FieldName = fieldName;
+    public string NewValue = newValue;
+    public string OldValue = oldValue;
 }
 
-///<summary>PatComm gets the fields of the patient table that are needed to determine electronic communications.</summary>
-[Serializable]
 public class PatComm : WebBase
 {
-    public DateTime Birthdate;
     public long ClinicNum;
-
-    ///<summary>Initialized to a new CommOptOut so null checking not required.</summary>
     public CommOptOut CommOptOut = new();
-
     public string Email;
     public string FName;
     public long Guarantor;
-    public string HmPhone;
     public bool IsEmailAnOption;
     public bool IsEmailValidForClinic;
     public bool IsSmsAnOption;
     public bool IsSmsPhoneFormatOk;
     public bool IsTextingEnabledForClinic;
     public string Language;
-
     public string LName;
-
-    //Jordan 2023-09-25 This is too complex to quickly deprecate, but it's a pattern that would not be allowed in new code.
-    //Try not to stack more complexity on top of this.
-    //Instead of creating a class that is an amalgam of different database tables,
-    //the correct pattern would have been to use flat simple objects or lists of objects that reflect the same structure as the database,
-    //only pulling from the simple objects at the last minute as needed.
     public long PatNum;
     public PatientStatus PatStatus;
     public ContactMethod PreferConfirmMethod;
@@ -5650,27 +4512,11 @@ public class PatComm : WebBase
     public ContactMethod PreferRecallMethod;
     public string PreferredName;
     public bool Premed;
-
-    ///<summary>Use this number for texting.</summary>
     public string SmsPhone;
-
     public YN TxtMsgOk;
-
-    ///<summary>Do not use this number for texting. Use SmsPhone.</summary>
     public string WirelessPhone;
 
-    public string WkPhone;
-
-    /// <summary>
-    ///     Parameterless constructor required in order to be serialized.  E.g. returns a list of PatComms in
-    ///     Patients.GetPatComms()
-    /// </summary>
-    public PatComm()
-    {
-    }
-
-    public PatComm(Patient pat, bool isEmailValidForClinic, bool isTextingEnabledForClinic, bool isUnknownNo, string curCulture,
-        string smsPhoneCountryCode)
+    public PatComm(Patient pat, bool isEmailValidForClinic, bool isTextingEnabledForClinic, bool isUnknownNo, string curCulture, string smsPhoneCountryCode)
     {
         PatNum = pat.PatNum;
         PatStatus = pat.PatStatus;
@@ -5679,8 +4525,6 @@ public class PatComm : WebBase
         PreferRecallMethod = pat.PreferRecallMethod;
         PreferContactConfidential = pat.PreferContactConfidential;
         TxtMsgOk = pat.TxtMsgOk;
-        HmPhone = pat.HmPhone;
-        WkPhone = pat.WkPhone;
         WirelessPhone = pat.WirelessPhone;
         Email = GetEmailAddresses(pat.Email);
         FName = pat.FName;
@@ -5689,13 +4533,11 @@ public class PatComm : WebBase
         Guarantor = pat.Guarantor;
         ClinicNum = pat.ClinicNum;
         Language = pat.Language;
-        Birthdate = pat.Birthdate;
         Premed = pat.Premed;
         SetSmsEmailFields(isEmailValidForClinic, isTextingEnabledForClinic, isUnknownNo, curCulture, smsPhoneCountryCode);
     }
 
-    public PatComm(DataRow dataRow, bool isEmailValidForClinic, bool isTextingEnabledForClinic, bool isUnknownNo, string curCulture,
-        string smsPhoneCountryCode)
+    public PatComm(DataRow dataRow, bool isEmailValidForClinic, bool isTextingEnabledForClinic, bool isUnknownNo, string curCulture, string smsPhoneCountryCode)
     {
         PatNum = SIn.Long(dataRow["PatNum"].ToString());
         PatStatus = (PatientStatus) SIn.Int(dataRow["PatStatus"].ToString());
@@ -5704,8 +4546,8 @@ public class PatComm : WebBase
         PreferRecallMethod = (ContactMethod) SIn.Int(dataRow["PreferRecallMethod"].ToString());
         PreferContactConfidential = (ContactMethod) SIn.Int(dataRow["PreferContactConfidential"].ToString());
         TxtMsgOk = (YN) SIn.Int(dataRow["TxtMsgOk"].ToString());
-        HmPhone = SIn.String(dataRow["HmPhone"].ToString());
-        WkPhone = SIn.String(dataRow["WkPhone"].ToString());
+        SIn.String(dataRow["HmPhone"].ToString());
+        SIn.String(dataRow["WkPhone"].ToString());
         WirelessPhone = SIn.String(dataRow["WirelessPhone"].ToString());
         Email = GetEmailAddresses(SIn.String(dataRow["Email"].ToString()));
         FName = SIn.String(dataRow["FName"].ToString());
@@ -5714,19 +4556,17 @@ public class PatComm : WebBase
         Guarantor = SIn.Long(dataRow["Guarantor"].ToString());
         ClinicNum = SIn.Long(dataRow["ClinicNum"].ToString());
         Language = SIn.String(dataRow["Language"].ToString());
-        Birthdate = SIn.Date(dataRow["Birthdate"].ToString());
+        SIn.Date(dataRow["Birthdate"].ToString());
         Premed = SIn.Bool(dataRow["Premed"].ToString());
         SetSmsEmailFields(isEmailValidForClinic, isTextingEnabledForClinic, isUnknownNo, curCulture, smsPhoneCountryCode);
     }
 
-    ///<summary>Returns a semi-colon delimited list of valid email addresses. Public for unit testing</summary>
     public static string GetEmailAddresses(string emailAddresses)
     {
-        return string.Join($"{EmailAddresses.ADDRESS_DELIMITERS.First()}", EmailAddresses.GetValidAddresses(emailAddresses));
+        return string.Join($"{EmailAddresses.AddressDelimiters.First()}", EmailAddresses.GetValidAddresses(emailAddresses));
     }
 
-    private void SetSmsEmailFields(bool isEmailValidForClinic, bool isTextingEnabledForClinic, bool isUnknownNo, string curCulture,
-        string smsPhoneCountryCode)
+    private void SetSmsEmailFields(bool isEmailValidForClinic, bool isTextingEnabledForClinic, bool isUnknownNo, string curCulture, string smsPhoneCountryCode)
     {
         IsSmsPhoneFormatOk = false;
         if (TxtMsgOk == YN.No || (isUnknownNo && TxtMsgOk == YN.Unknown))
@@ -5774,7 +4614,6 @@ public class PatComm : WebBase
         IsEmailValidForClinic = isEmailValidForClinic;
     }
 
-    ///<summary>Returns the reason that the patient cannot receive text messages.</summary>
     public string GetReasonCantText(CommOptOutType type = 0)
     {
         if (!IsTextingEnabledForClinic) return "Not sending text because texting is not enabled for this clinic.";
@@ -5786,7 +4625,6 @@ public class PatComm : WebBase
         return "";
     }
 
-    ///<summary>Returns the reason that the patient cannot receive emails.</summary>
     public string GetReasonCantEmail(CommOptOutType type = 0)
     {
         if (!IsEmailValidForClinic) return "Not sending email because email is not enabled for this clinic.";
@@ -5797,7 +4635,6 @@ public class PatComm : WebBase
         return "";
     }
 
-    ///<summary>Builds a confirmation message string based on the appropriate preference, given patient, and given date.</summary>
     public static string BuildConfirmMessage(ContactMethod contactMethod, Patient pat, Appointment appt)
     {
         var template = contactMethod switch
@@ -5810,12 +4647,7 @@ public class PatComm : WebBase
         return BuildAppointmentMessage(pat, appt, template);
     }
 
-    /// <summary>
-    ///     Builds an appointment information message string based on the given patient, appointment, and template.
-    ///     Changes here should match the behavior of eConfirmations.
-    /// </summary>
-    public static string BuildAppointmentMessage(Patient pat, Appointment appt
-        , string template = "[NameF]:  [date] at [time]", bool isEmail = false)
+    public static string BuildAppointmentMessage(Patient pat, Appointment appt, string template = "[NameF]:  [date] at [time]", bool isEmail = false)
     {
         var dateTime = appt.AptDateTime;
         if (appt.DateTimeAskedToArrive.Year > 1880) dateTime = appt.DateTimeAskedToArrive;
@@ -5844,144 +4676,55 @@ public class PatComm : WebBase
         return Patients.GetNameFirstOrPreferred(FName, PreferredName);
     }
 
-    #region Short Codes
-
-    /// <summary>
-    ///     Returns true if the clinic is using an eService automated texting feature for which it is set to use Short Codes
-    ///     and the patient is
-    ///     set to receive sms.
-    /// </summary>
     public bool IsPatientShortCodeEligible(long clinicNum)
     {
         return IsSmsAnOption //Patient set to receive sms.
                && IsAnyShortCodeServiceEnabled(clinicNum); //At least one Short Code eService is enabled
     }
 
-    ///<summary>Determines if any of the eServices the clinic is set to use Short Codes are actually enabled.</summary>
     public static bool IsAnyShortCodeServiceEnabled(long clinicNum)
     {
         return EnumTools.GetFlags((ShortCodeTypeFlag) ClinicPrefs.GetLong(PrefName.ShortCodeApptReminderTypes, clinicNum))
             .Any(x => EnumTools.GetAttributeOrDefault<ShortCodeAttribute>(x).IsServiceEnabled(clinicNum));
     }
-
-    #endregion
 }
 
-///<summary>Not a database table.  Just used in billing and finance charges.</summary>
 public class PatAging
 {
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public string Address;
-
-    
     public double AmountDue;
-
-    
     public double Bal_0_30;
-
-    
     public double Bal_31_60;
-
-    
     public double Bal_61_90;
-
-    
     public double BalOver90;
-
-    
     public double BalTotal;
-
-    ///<summary>FK to defNum.</summary>
     public long BillingType;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public DateTime Birthdate;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public string City;
-
-    ///<summary>Only set in some areas.</summary>
     public long ClinicNum;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public DateTime DateBalBegan;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public DateTime DateLastPay;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public DateTime DateLastProc;
-
-    ///<summary>The date of the last statement.</summary>
     public DateTime DateLastStatement;
-
-    
     public long Guarantor;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public bool HasInsPending;
-
-    ///<summary>Signed Truth in Lending</summary>
-    public bool HasSignedTil;
-
-    
     public bool HasSuperBilling;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public bool HasUnsentProcs;
-
-    
     public double InsEst;
-
-    /// <summary>
-    ///     Only used for Transworld AR Manager.  All trans sent to TSI for this guarantor, ordered by TransDateTime
-    ///     descending.
-    /// </summary>
     public List<TsiTransLog> ListTsiLogs;
-
-    
     public string PatName;
-
-    
     public long PatNum;
-
-    /// <summary>Enum:PatientStatus</summary>
-    public PatientStatus PatStatus;
-
-    
     public double PayPlanDue;
-
-    ///<summary>The patient priprov to assign the finance charge to.</summary>
     public long PriProv;
-
-    ///<summary>Only used for Transworld AR Manager.</summary>
     public string State;
-
-    
     public long SuperFamily;
-
-    ///<summary>Only used for Transworld AR Manager.  Used to exclude bad addresses from the list.</summary>
     public string Zip;
-
-    
-    public PatAging Copy()
-    {
-        var retval = (PatAging) MemberwiseClone();
-        retval.ListTsiLogs = ListTsiLogs.Select(x => x.Copy()).ToList();
-        return retval;
-    }
 }
 
-public class ClinicBalBegans
+public class ClinicBalBegans(long clinicNum, Dictionary<long, DateTime> dictGuarDateBals)
 {
-    public long ClinicNum;
-    public Dictionary<long, DateTime> DictGuarDateBals;
-
-    public ClinicBalBegans(long clinicNum, Dictionary<long, DateTime> dictGuarDateBals)
-    {
-        ClinicNum = clinicNum;
-        DictGuarDateBals = dictGuarDateBals;
-    }
+    public long ClinicNum = clinicNum;
+    public Dictionary<long, DateTime> DictGuarDateBals = dictGuarDateBals;
 }
 
 [Serializable]
@@ -5992,16 +4735,12 @@ public class PtTableSearchParams
     public DateTime Birthdate;
     public string ChartNumber;
     public string City;
-
-    ///<summary>Used in CEMT because we don't have access to ClinicNums</summary>
     public string ClinicName;
-
     public string ClinicNums;
     public string Country;
     public bool DoLimit;
     public string Email;
     public string FName;
-    public long Guarantor;
     public bool GuarOnly;
     public bool HasNextLastVisit;
     public bool HasSpecialty;
@@ -6021,13 +4760,11 @@ public class PtTableSearchParams
     public string Ssn;
     public string State;
     public string SubscriberId;
-
     
     public PtTableSearchParams()
     {
     }
 
-    ///<summary>SOut's all string values to be used in search query.</summary>
     public PtTableSearchParams(bool doLimit, string lname, string fname, string phone, string address, bool hideInactive, string city,
         string state, string ssn, string patNumStr, string chartNumber, long billingType, bool guarOnly, bool showArchived, DateTime birthdate, long siteNum,
         string subscriberId, string email, string country, string regKey, string clinicNums, string clinicName, string invoiceNumber, List<long> listExplicitPatNums = null,
@@ -6065,7 +4802,7 @@ public class PtTableSearchParams
         PageNum = pageNum; //int
     }
 
-    
+
     public PtTableSearchParams Copy()
     {
         var retval = (PtTableSearchParams) MemberwiseClone();
@@ -6073,10 +4810,6 @@ public class PtTableSearchParams
         return retval;
     }
 
-    /// <summary>
-    ///     Used to determine if the select patient query search params are the same as the previous run or if the query
-    ///     should be run again.
-    /// </summary>
     public override bool Equals(object obj)
     {
         if (!(obj is PtTableSearchParams)) return false;
@@ -6116,7 +4849,6 @@ public class PtTableSearchParams
         return true;
     }
 
-    ///<summary>We must define GetHashCode() because we defined Equals() above, or else we get a warning message.</summary>
     public override int GetHashCode()
     {
         //Always return the same value (0 is acceptable). This will defer to the Equals override as the tie-breaker, which is what we want in this case.
@@ -6124,16 +4856,9 @@ public class PtTableSearchParams
     }
 }
 
-public class PatientWithServerDT
-{
-    public DateTime DateTimeServer;
-    public Patient PatientCur;
-}
-
 public class PatientFor834Import : IComparable
 {
-    //This is used for filtering out what we are considering "active" vs "inactive" patients. 
-    private static readonly List<PatientStatus> _listPatientStatuses = new() {PatientStatus.Patient, PatientStatus.Inactive, PatientStatus.NonPatient, PatientStatus.Prospective};
+    private static readonly List<PatientStatus> _listPatientStatuses = [PatientStatus.Patient, PatientStatus.Inactive, PatientStatus.NonPatient, PatientStatus.Prospective];
     public DateTime Birthdate;
     public string FName;
     public string LName;
@@ -6153,14 +4878,6 @@ public class PatientFor834Import : IComparable
         PatStatus = patient.PatStatus;
     }
 
-    /// <summary>
-    ///     Useful for sorting and binary searching.  The X12 834 implementation uses this for binary searching to improve
-    ///     efficiency.
-    ///     If this function is changed in the future, it will heavily impact our X12 834 implementation.  Be cautious.  In the
-    ///     end, this function
-    ///     will probably not need to change anyway, since it will only be used for comparing patients when the PatNums are not
-    ///     known.
-    /// </summary>
     public int CompareTo(object patOther)
     {
         var p1 = this;
@@ -6176,15 +4893,6 @@ public class PatientFor834Import : IComparable
         return p1.Birthdate.Date.CompareTo(p2.Birthdate.Date);
     }
 
-    /// <summary>
-    ///     Returns a list of all patients within listSortedPatients which match the given pat.LName, pat.FName and
-    ///     pat.Birthdate.
-    ///     Ignores case and leading/trailing space.  The listSortedPatients MUST be sorted by LName, then FName, then
-    ///     Birthdate or else the result will be
-    ///     wrong.  Call listSortedPatients.Sort() before calling this function.  This function uses a binary search to much
-    ///     more efficiently locate
-    ///     matches than a linear search would be able to.
-    /// </summary>
     public static List<PatientFor834Import> GetPatientLimitedsByNameAndBirthday(Patient patient, List<PatientFor834Import> listSortedPatients)
     {
         var pat = new PatientFor834Import(patient);
@@ -6204,11 +4912,7 @@ public class PatientFor834Import : IComparable
         for (var i = beginIdx; i <= endIdx; i++) listPatientMatches.Add(listSortedPatients[i]);
         return listPatientMatches;
     }
-
-    //filters list of potential matches. First checks to see if we have any patient's with a status of Patient, Non-Patient, Inactive, or Prospective.
-    //If there are no patients with those status's, don't modify the list. 
-    //If there is at least one patient in that status, filter out Archived and Deceased patients from the list/ 
-    //We want to make sure that we still show duplicates if they are both archived and/or deceased
+    
     public static void FilterMatchingList(ref List<PatientFor834Import> listPatientMatches)
     {
         if (listPatientMatches.Where(x => _listPatientStatuses.Contains(x.PatStatus)).ToList().Count == 0) return;

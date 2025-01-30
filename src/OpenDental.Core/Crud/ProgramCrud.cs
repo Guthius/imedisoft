@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProgramCrud
 {
@@ -106,15 +108,15 @@ public class ProgramCrud
             + SOut.Bool(program.IsDisabledByHq) + ","
             + "'" + SOut.String(program.CustErr) + "')";
         if (program.Path == null) program.Path = "";
-        var paramPath = new OdSqlParameter("paramPath", OdDbType.Text, SOut.StringParam(program.Path));
+        var paramPath = new OdSqlParameter("paramPath", SOut.StringParam(program.Path));
         if (program.CommandLine == null) program.CommandLine = "";
-        var paramCommandLine = new OdSqlParameter("paramCommandLine", OdDbType.Text, SOut.StringParam(program.CommandLine));
+        var paramCommandLine = new OdSqlParameter("paramCommandLine", SOut.StringParam(program.CommandLine));
         if (program.Note == null) program.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(program.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(program.Note));
         if (program.ButtonImage == null) program.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(program.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(program.ButtonImage));
         if (program.FileTemplate == null) program.FileTemplate = "";
-        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", OdDbType.Text, SOut.StringParam(program.FileTemplate));
+        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", SOut.StringParam(program.FileTemplate));
         {
             program.ProgramNum = Db.NonQ(command, true, "ProgramNum", "program", paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
         }
@@ -147,15 +149,15 @@ public class ProgramCrud
             + SOut.Bool(program.IsDisabledByHq) + ","
             + "'" + SOut.String(program.CustErr) + "')";
         if (program.Path == null) program.Path = "";
-        var paramPath = new OdSqlParameter("paramPath", OdDbType.Text, SOut.StringParam(program.Path));
+        var paramPath = new OdSqlParameter("paramPath", SOut.StringParam(program.Path));
         if (program.CommandLine == null) program.CommandLine = "";
-        var paramCommandLine = new OdSqlParameter("paramCommandLine", OdDbType.Text, SOut.StringParam(program.CommandLine));
+        var paramCommandLine = new OdSqlParameter("paramCommandLine", SOut.StringParam(program.CommandLine));
         if (program.Note == null) program.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(program.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(program.Note));
         if (program.ButtonImage == null) program.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(program.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(program.ButtonImage));
         if (program.FileTemplate == null) program.FileTemplate = "";
-        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", OdDbType.Text, SOut.StringParam(program.FileTemplate));
+        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", SOut.StringParam(program.FileTemplate));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
         else
@@ -180,15 +182,15 @@ public class ProgramCrud
                       + "CustErr       = '" + SOut.String(program.CustErr) + "' "
                       + "WHERE ProgramNum = " + SOut.Long(program.ProgramNum);
         if (program.Path == null) program.Path = "";
-        var paramPath = new OdSqlParameter("paramPath", OdDbType.Text, SOut.StringParam(program.Path));
+        var paramPath = new OdSqlParameter("paramPath", SOut.StringParam(program.Path));
         if (program.CommandLine == null) program.CommandLine = "";
-        var paramCommandLine = new OdSqlParameter("paramCommandLine", OdDbType.Text, SOut.StringParam(program.CommandLine));
+        var paramCommandLine = new OdSqlParameter("paramCommandLine", SOut.StringParam(program.CommandLine));
         if (program.Note == null) program.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(program.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(program.Note));
         if (program.ButtonImage == null) program.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(program.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(program.ButtonImage));
         if (program.FileTemplate == null) program.FileTemplate = "";
-        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", OdDbType.Text, SOut.StringParam(program.FileTemplate));
+        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", SOut.StringParam(program.FileTemplate));
         Db.NonQ(command, paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
     }
 
@@ -269,15 +271,15 @@ public class ProgramCrud
 
         if (command == "") return false;
         if (program.Path == null) program.Path = "";
-        var paramPath = new OdSqlParameter("paramPath", OdDbType.Text, SOut.StringParam(program.Path));
+        var paramPath = new OdSqlParameter("paramPath", SOut.StringParam(program.Path));
         if (program.CommandLine == null) program.CommandLine = "";
-        var paramCommandLine = new OdSqlParameter("paramCommandLine", OdDbType.Text, SOut.StringParam(program.CommandLine));
+        var paramCommandLine = new OdSqlParameter("paramCommandLine", SOut.StringParam(program.CommandLine));
         if (program.Note == null) program.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(program.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(program.Note));
         if (program.ButtonImage == null) program.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(program.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(program.ButtonImage));
         if (program.FileTemplate == null) program.FileTemplate = "";
-        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", OdDbType.Text, SOut.StringParam(program.FileTemplate));
+        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", SOut.StringParam(program.FileTemplate));
         command = "UPDATE program SET " + command
                                         + " WHERE ProgramNum = " + SOut.Long(program.ProgramNum);
         Db.NonQ(command, paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);

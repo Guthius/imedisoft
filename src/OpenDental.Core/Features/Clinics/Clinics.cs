@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness;
 

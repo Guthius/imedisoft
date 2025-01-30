@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace WpfControls {
 	public class EFormL {
@@ -165,7 +166,7 @@ namespace WpfControls {
 		///<summary>Fills a combo language box on a variety of eForm windows. Sets it visible false if the office has not set up any languages.</summary>
 		public static void FillComboLanguage(ComboBox comboLanguage){
 			comboLanguage.Items.Clear();
-			comboLanguage.Items.Add(Lang.g("EFormLanguage","Default"));
+			comboLanguage.Items.Add("Default");
 			comboLanguage.SelectedIndex=0;
 			List<string> listLangs=LanguagePats.GetLanguagesForCombo();
 			if(listLangs.Count==0){

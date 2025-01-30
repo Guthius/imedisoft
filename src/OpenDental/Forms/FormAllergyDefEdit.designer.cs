@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAllergyDefEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -33,10 +33,7 @@ namespace OpenDental{
 			this.textMedication = new System.Windows.Forms.TextBox();
 			this.groupBox1 = new OpenDental.UI.GroupBox();
 			this.groupBox2 = new OpenDental.UI.GroupBox();
-			this.textUnii = new System.Windows.Forms.TextBox();
-			this.butNoneUnii = new OpenDental.UI.Button();
 			this.butNone = new OpenDental.UI.Button();
-			this.butUniiSelect = new OpenDental.UI.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.butMedicationSelect = new OpenDental.UI.Button();
 			this.butSave = new OpenDental.UI.Button();
@@ -117,10 +114,7 @@ namespace OpenDental{
 			// 
 			// groupBox2
 			// 
-			this.groupBox2.Controls.Add(this.textUnii);
-			this.groupBox2.Controls.Add(this.butNoneUnii);
 			this.groupBox2.Controls.Add(this.butNone);
-			this.groupBox2.Controls.Add(this.butUniiSelect);
 			this.groupBox2.Controls.Add(this.textMedication);
 			this.groupBox2.Controls.Add(this.label1);
 			this.groupBox2.Controls.Add(this.butMedicationSelect);
@@ -132,23 +126,6 @@ namespace OpenDental{
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Allergen (only one)";
 			// 
-			// textUnii
-			// 
-			this.textUnii.Location = new System.Drawing.Point(118, 25);
-			this.textUnii.Name = "textUnii";
-			this.textUnii.Size = new System.Drawing.Size(276, 20);
-			this.textUnii.TabIndex = 21;
-			// 
-			// butNoneUnii
-			// 
-			this.butNoneUnii.Enabled = false;
-			this.butNoneUnii.Location = new System.Drawing.Point(423, 24);
-			this.butNoneUnii.Name = "butNoneUnii";
-			this.butNoneUnii.Size = new System.Drawing.Size(51, 22);
-			this.butNoneUnii.TabIndex = 24;
-			this.butNoneUnii.Text = "None";
-			this.butNoneUnii.Click += new System.EventHandler(this.butNoneUniiTo_Click);
-			// 
 			// butNone
 			// 
 			this.butNone.Location = new System.Drawing.Point(423, 48);
@@ -156,17 +133,7 @@ namespace OpenDental{
 			this.butNone.Size = new System.Drawing.Size(51, 22);
 			this.butNone.TabIndex = 9;
 			this.butNone.Text = "None";
-			this.butNone.Click += new System.EventHandler(this.butNone_Click);
-			// 
-			// butUniiSelect
-			// 
-			this.butUniiSelect.Enabled = false;
-			this.butUniiSelect.Location = new System.Drawing.Point(398, 24);
-			this.butUniiSelect.Name = "butUniiSelect";
-			this.butUniiSelect.Size = new System.Drawing.Size(22, 22);
-			this.butUniiSelect.TabIndex = 23;
-			this.butUniiSelect.Text = "...";
-			this.butUniiSelect.Click += new System.EventHandler(this.butUniiToSelect_Click);
+			this.butNone.Click += new System.EventHandler(this.ButtonNone_Click);
 			// 
 			// label1
 			// 
@@ -184,7 +151,7 @@ namespace OpenDental{
 			this.butMedicationSelect.Size = new System.Drawing.Size(22, 22);
 			this.butMedicationSelect.TabIndex = 3;
 			this.butMedicationSelect.Text = "...";
-			this.butMedicationSelect.Click += new System.EventHandler(this.butMedicationSelect_Click);
+			this.butMedicationSelect.Click += new System.EventHandler(this.ButtonMedicationSelect_Click);
 			// 
 			// butSave
 			// 
@@ -194,7 +161,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butDelete
 			// 
@@ -206,7 +173,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 2;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// FormAllergyDefEdit
 			// 
@@ -244,9 +211,6 @@ namespace OpenDental{
 		private UI.Button butNone;
 		private OpenDental.UI.GroupBox groupBox1;
 		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.TextBox textUnii;
-		private UI.Button butUniiSelect;
-		private UI.Button butNoneUnii;
 		private OpenDental.UI.GroupBox groupBox2;
 	}
 }

@@ -1,25 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InsPlanCrud
 {
-    public static InsPlan SelectOne(long planNum)
-    {
-        var command = "SELECT * FROM insplan "
-                      + "WHERE PlanNum = " + SOut.Long(planNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static InsPlan SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -93,68 +81,7 @@ public class InsPlanCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<InsPlan> listInsPlans, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "InsPlan";
-        var table = new DataTable(tableName);
-        table.Columns.Add("PlanNum");
-        table.Columns.Add("GroupName");
-        table.Columns.Add("GroupNum");
-        table.Columns.Add("PlanNote");
-        table.Columns.Add("FeeSched");
-        table.Columns.Add("PlanType");
-        table.Columns.Add("ClaimFormNum");
-        table.Columns.Add("UseAltCode");
-        table.Columns.Add("ClaimsUseUCR");
-        table.Columns.Add("CopayFeeSched");
-        table.Columns.Add("EmployerNum");
-        table.Columns.Add("CarrierNum");
-        table.Columns.Add("AllowedFeeSched");
-        table.Columns.Add("TrojanID");
-        table.Columns.Add("DivisionNo");
-        table.Columns.Add("IsMedical");
-        table.Columns.Add("FilingCode");
-        table.Columns.Add("DentaideCardSequence");
-        table.Columns.Add("ShowBaseUnits");
-        table.Columns.Add("CodeSubstNone");
-        table.Columns.Add("IsHidden");
-        table.Columns.Add("MonthRenew");
-        table.Columns.Add("FilingCodeSubtype");
-        table.Columns.Add("CanadianPlanFlag");
-        table.Columns.Add("CanadianDiagnosticCode");
-        table.Columns.Add("CanadianInstitutionCode");
-        table.Columns.Add("RxBIN");
-        table.Columns.Add("CobRule");
-        table.Columns.Add("SopCode");
-        table.Columns.Add("SecUserNumEntry");
-        table.Columns.Add("SecDateEntry");
-        table.Columns.Add("SecDateTEdit");
-        table.Columns.Add("HideFromVerifyList");
-        table.Columns.Add("OrthoType");
-        table.Columns.Add("OrthoAutoProcFreq");
-        table.Columns.Add("OrthoAutoProcCodeNumOverride");
-        table.Columns.Add("OrthoAutoFeeBilled");
-        table.Columns.Add("OrthoAutoClaimDaysWait");
-        table.Columns.Add("BillingType");
-        table.Columns.Add("HasPpoSubstWriteoffs");
-        table.Columns.Add("ExclusionFeeRule");
-        table.Columns.Add("ManualFeeSchedNum");
-        table.Columns.Add("IsBlueBookEnabled");
-        table.Columns.Add("InsPlansZeroWriteOffsOnAnnualMaxOverride");
-        table.Columns.Add("InsPlansZeroWriteOffsOnFreqOrAgingOverride");
-        table.Columns.Add("PerVisitPatAmount");
-        table.Columns.Add("PerVisitInsAmount");
-        foreach (var insPlan in listInsPlans)
-            table.Rows.Add(SOut.Long(insPlan.PlanNum), insPlan.GroupName, insPlan.GroupNum, insPlan.PlanNote, SOut.Long(insPlan.FeeSched), insPlan.PlanType, SOut.Long(insPlan.ClaimFormNum), SOut.Bool(insPlan.UseAltCode), SOut.Bool(insPlan.ClaimsUseUCR), SOut.Long(insPlan.CopayFeeSched), SOut.Long(insPlan.EmployerNum), SOut.Long(insPlan.CarrierNum), SOut.Long(insPlan.AllowedFeeSched), insPlan.TrojanID, insPlan.DivisionNo, SOut.Bool(insPlan.IsMedical), SOut.Long(insPlan.FilingCode), SOut.Byte(insPlan.DentaideCardSequence), SOut.Bool(insPlan.ShowBaseUnits), SOut.Bool(insPlan.CodeSubstNone), SOut.Bool(insPlan.IsHidden), SOut.Byte(insPlan.MonthRenew), SOut.Long(insPlan.FilingCodeSubtype), insPlan.CanadianPlanFlag, insPlan.CanadianDiagnosticCode, insPlan.CanadianInstitutionCode, insPlan.RxBIN, SOut.Int((int) insPlan.CobRule), insPlan.SopCode, SOut.Long(insPlan.SecUserNumEntry), SOut.DateTime(insPlan.SecDateEntry, false), SOut.DateTime(insPlan.SecDateTEdit, false), SOut.Bool(insPlan.HideFromVerifyList), SOut.Int((int) insPlan.OrthoType), SOut.Int((int) insPlan.OrthoAutoProcFreq), SOut.Long(insPlan.OrthoAutoProcCodeNumOverride), SOut.Double(insPlan.OrthoAutoFeeBilled), SOut.Int(insPlan.OrthoAutoClaimDaysWait), SOut.Long(insPlan.BillingType), SOut.Bool(insPlan.HasPpoSubstWriteoffs), SOut.Int((int) insPlan.ExclusionFeeRule), SOut.Long(insPlan.ManualFeeSchedNum), SOut.Bool(insPlan.IsBlueBookEnabled), SOut.Int((int) insPlan.InsPlansZeroWriteOffsOnAnnualMaxOverride), SOut.Int((int) insPlan.InsPlansZeroWriteOffsOnFreqOrAgingOverride), SOut.Double(insPlan.PerVisitPatAmount), SOut.Double(insPlan.PerVisitInsAmount));
-        return table;
-    }
-
     public static long Insert(InsPlan insPlan)
-    {
-        return Insert(insPlan, false);
-    }
-
-    public static long Insert(InsPlan insPlan, bool useExistingPK)
     {
         var command = "INSERT INTO insplan (";
 
@@ -190,7 +117,7 @@ public class InsPlanCrud
             + SOut.Int((int) insPlan.CobRule) + ","
             + "'" + SOut.String(insPlan.SopCode) + "',"
             + SOut.Long(insPlan.SecUserNumEntry) + ","
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             //SecDateTEdit can only be set by MySQL
             + SOut.Bool(insPlan.HideFromVerifyList) + ","
             + SOut.Int((int) insPlan.OrthoType) + ","
@@ -208,137 +135,14 @@ public class InsPlanCrud
             + SOut.Double(insPlan.PerVisitPatAmount) + ","
             + SOut.Double(insPlan.PerVisitInsAmount) + ")";
         if (insPlan.PlanNote == null) insPlan.PlanNote = "";
-        var paramPlanNote = new OdSqlParameter("paramPlanNote", OdDbType.Text, SOut.StringParam(insPlan.PlanNote));
+        var paramPlanNote = new OdSqlParameter("paramPlanNote", SOut.StringParam(insPlan.PlanNote));
         {
             insPlan.PlanNum = Db.NonQ(command, true, "PlanNum", "insPlan", paramPlanNote);
         }
         return insPlan.PlanNum;
     }
 
-    public static long InsertNoCache(InsPlan insPlan)
-    {
-        return InsertNoCache(insPlan, false);
-    }
-
-    public static long InsertNoCache(InsPlan insPlan, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO insplan (";
-        if (isRandomKeys || useExistingPK) command += "PlanNum,";
-        command += "GroupName,GroupNum,PlanNote,FeeSched,PlanType,ClaimFormNum,UseAltCode,ClaimsUseUCR,CopayFeeSched,EmployerNum,CarrierNum,AllowedFeeSched,TrojanID,DivisionNo,IsMedical,FilingCode,DentaideCardSequence,ShowBaseUnits,CodeSubstNone,IsHidden,MonthRenew,FilingCodeSubtype,CanadianPlanFlag,CanadianDiagnosticCode,CanadianInstitutionCode,RxBIN,CobRule,SopCode,SecUserNumEntry,SecDateEntry,HideFromVerifyList,OrthoType,OrthoAutoProcFreq,OrthoAutoProcCodeNumOverride,OrthoAutoFeeBilled,OrthoAutoClaimDaysWait,BillingType,HasPpoSubstWriteoffs,ExclusionFeeRule,ManualFeeSchedNum,IsBlueBookEnabled,InsPlansZeroWriteOffsOnAnnualMaxOverride,InsPlansZeroWriteOffsOnFreqOrAgingOverride,PerVisitPatAmount,PerVisitInsAmount) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(insPlan.PlanNum) + ",";
-        command +=
-            "'" + SOut.String(insPlan.GroupName) + "',"
-            + "'" + SOut.String(insPlan.GroupNum) + "',"
-            + DbHelper.ParamChar + "paramPlanNote,"
-            + SOut.Long(insPlan.FeeSched) + ","
-            + "'" + SOut.String(insPlan.PlanType) + "',"
-            + SOut.Long(insPlan.ClaimFormNum) + ","
-            + SOut.Bool(insPlan.UseAltCode) + ","
-            + SOut.Bool(insPlan.ClaimsUseUCR) + ","
-            + SOut.Long(insPlan.CopayFeeSched) + ","
-            + SOut.Long(insPlan.EmployerNum) + ","
-            + SOut.Long(insPlan.CarrierNum) + ","
-            + SOut.Long(insPlan.AllowedFeeSched) + ","
-            + "'" + SOut.String(insPlan.TrojanID) + "',"
-            + "'" + SOut.String(insPlan.DivisionNo) + "',"
-            + SOut.Bool(insPlan.IsMedical) + ","
-            + SOut.Long(insPlan.FilingCode) + ","
-            + SOut.Byte(insPlan.DentaideCardSequence) + ","
-            + SOut.Bool(insPlan.ShowBaseUnits) + ","
-            + SOut.Bool(insPlan.CodeSubstNone) + ","
-            + SOut.Bool(insPlan.IsHidden) + ","
-            + SOut.Byte(insPlan.MonthRenew) + ","
-            + SOut.Long(insPlan.FilingCodeSubtype) + ","
-            + "'" + SOut.String(insPlan.CanadianPlanFlag) + "',"
-            + "'" + SOut.String(insPlan.CanadianDiagnosticCode) + "',"
-            + "'" + SOut.String(insPlan.CanadianInstitutionCode) + "',"
-            + "'" + SOut.String(insPlan.RxBIN) + "',"
-            + SOut.Int((int) insPlan.CobRule) + ","
-            + "'" + SOut.String(insPlan.SopCode) + "',"
-            + SOut.Long(insPlan.SecUserNumEntry) + ","
-            + DbHelper.Now() + ","
-            //SecDateTEdit can only be set by MySQL
-            + SOut.Bool(insPlan.HideFromVerifyList) + ","
-            + SOut.Int((int) insPlan.OrthoType) + ","
-            + SOut.Int((int) insPlan.OrthoAutoProcFreq) + ","
-            + SOut.Long(insPlan.OrthoAutoProcCodeNumOverride) + ","
-            + SOut.Double(insPlan.OrthoAutoFeeBilled) + ","
-            + SOut.Int(insPlan.OrthoAutoClaimDaysWait) + ","
-            + SOut.Long(insPlan.BillingType) + ","
-            + SOut.Bool(insPlan.HasPpoSubstWriteoffs) + ","
-            + SOut.Int((int) insPlan.ExclusionFeeRule) + ","
-            + SOut.Long(insPlan.ManualFeeSchedNum) + ","
-            + SOut.Bool(insPlan.IsBlueBookEnabled) + ","
-            + SOut.Int((int) insPlan.InsPlansZeroWriteOffsOnAnnualMaxOverride) + ","
-            + SOut.Int((int) insPlan.InsPlansZeroWriteOffsOnFreqOrAgingOverride) + ","
-            + SOut.Double(insPlan.PerVisitPatAmount) + ","
-            + SOut.Double(insPlan.PerVisitInsAmount) + ")";
-        if (insPlan.PlanNote == null) insPlan.PlanNote = "";
-        var paramPlanNote = new OdSqlParameter("paramPlanNote", OdDbType.Text, SOut.StringParam(insPlan.PlanNote));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramPlanNote);
-        else
-            insPlan.PlanNum = Db.NonQ(command, true, "PlanNum", "insPlan", paramPlanNote);
-        return insPlan.PlanNum;
-    }
-
-    public static void Update(InsPlan insPlan)
-    {
-        var command = "UPDATE insplan SET "
-                      + "GroupName                                 = '" + SOut.String(insPlan.GroupName) + "', "
-                      + "GroupNum                                  = '" + SOut.String(insPlan.GroupNum) + "', "
-                      + "PlanNote                                  =  " + DbHelper.ParamChar + "paramPlanNote, "
-                      + "FeeSched                                  =  " + SOut.Long(insPlan.FeeSched) + ", "
-                      + "PlanType                                  = '" + SOut.String(insPlan.PlanType) + "', "
-                      + "ClaimFormNum                              =  " + SOut.Long(insPlan.ClaimFormNum) + ", "
-                      + "UseAltCode                                =  " + SOut.Bool(insPlan.UseAltCode) + ", "
-                      + "ClaimsUseUCR                              =  " + SOut.Bool(insPlan.ClaimsUseUCR) + ", "
-                      + "CopayFeeSched                             =  " + SOut.Long(insPlan.CopayFeeSched) + ", "
-                      + "EmployerNum                               =  " + SOut.Long(insPlan.EmployerNum) + ", "
-                      + "CarrierNum                                =  " + SOut.Long(insPlan.CarrierNum) + ", "
-                      + "AllowedFeeSched                           =  " + SOut.Long(insPlan.AllowedFeeSched) + ", "
-                      + "TrojanID                                  = '" + SOut.String(insPlan.TrojanID) + "', "
-                      + "DivisionNo                                = '" + SOut.String(insPlan.DivisionNo) + "', "
-                      + "IsMedical                                 =  " + SOut.Bool(insPlan.IsMedical) + ", "
-                      + "FilingCode                                =  " + SOut.Long(insPlan.FilingCode) + ", "
-                      + "DentaideCardSequence                      =  " + SOut.Byte(insPlan.DentaideCardSequence) + ", "
-                      + "ShowBaseUnits                             =  " + SOut.Bool(insPlan.ShowBaseUnits) + ", "
-                      + "CodeSubstNone                             =  " + SOut.Bool(insPlan.CodeSubstNone) + ", "
-                      + "IsHidden                                  =  " + SOut.Bool(insPlan.IsHidden) + ", "
-                      + "MonthRenew                                =  " + SOut.Byte(insPlan.MonthRenew) + ", "
-                      + "FilingCodeSubtype                         =  " + SOut.Long(insPlan.FilingCodeSubtype) + ", "
-                      + "CanadianPlanFlag                          = '" + SOut.String(insPlan.CanadianPlanFlag) + "', "
-                      + "CanadianDiagnosticCode                    = '" + SOut.String(insPlan.CanadianDiagnosticCode) + "', "
-                      + "CanadianInstitutionCode                   = '" + SOut.String(insPlan.CanadianInstitutionCode) + "', "
-                      + "RxBIN                                     = '" + SOut.String(insPlan.RxBIN) + "', "
-                      + "CobRule                                   =  " + SOut.Int((int) insPlan.CobRule) + ", "
-                      + "SopCode                                   = '" + SOut.String(insPlan.SopCode) + "', "
-                      //SecUserNumEntry excluded from update
-                      //SecDateEntry not allowed to change
-                      //SecDateTEdit can only be set by MySQL
-                      + "HideFromVerifyList                        =  " + SOut.Bool(insPlan.HideFromVerifyList) + ", "
-                      + "OrthoType                                 =  " + SOut.Int((int) insPlan.OrthoType) + ", "
-                      + "OrthoAutoProcFreq                         =  " + SOut.Int((int) insPlan.OrthoAutoProcFreq) + ", "
-                      + "OrthoAutoProcCodeNumOverride              =  " + SOut.Long(insPlan.OrthoAutoProcCodeNumOverride) + ", "
-                      + "OrthoAutoFeeBilled                        =  " + SOut.Double(insPlan.OrthoAutoFeeBilled) + ", "
-                      + "OrthoAutoClaimDaysWait                    =  " + SOut.Int(insPlan.OrthoAutoClaimDaysWait) + ", "
-                      + "BillingType                               =  " + SOut.Long(insPlan.BillingType) + ", "
-                      + "HasPpoSubstWriteoffs                      =  " + SOut.Bool(insPlan.HasPpoSubstWriteoffs) + ", "
-                      + "ExclusionFeeRule                          =  " + SOut.Int((int) insPlan.ExclusionFeeRule) + ", "
-                      + "ManualFeeSchedNum                         =  " + SOut.Long(insPlan.ManualFeeSchedNum) + ", "
-                      + "IsBlueBookEnabled                         =  " + SOut.Bool(insPlan.IsBlueBookEnabled) + ", "
-                      + "InsPlansZeroWriteOffsOnAnnualMaxOverride  =  " + SOut.Int((int) insPlan.InsPlansZeroWriteOffsOnAnnualMaxOverride) + ", "
-                      + "InsPlansZeroWriteOffsOnFreqOrAgingOverride=  " + SOut.Int((int) insPlan.InsPlansZeroWriteOffsOnFreqOrAgingOverride) + ", "
-                      + "PerVisitPatAmount                         =  " + SOut.Double(insPlan.PerVisitPatAmount) + ", "
-                      + "PerVisitInsAmount                         =  " + SOut.Double(insPlan.PerVisitInsAmount) + " "
-                      + "WHERE PlanNum = " + SOut.Long(insPlan.PlanNum);
-        if (insPlan.PlanNote == null) insPlan.PlanNote = "";
-        var paramPlanNote = new OdSqlParameter("paramPlanNote", OdDbType.Text, SOut.StringParam(insPlan.PlanNote));
-        Db.NonQ(command, paramPlanNote);
-    }
-
-    public static bool Update(InsPlan insPlan, InsPlan oldInsPlan)
+    public static void Update(InsPlan insPlan, InsPlan oldInsPlan)
     {
         var command = "";
         if (insPlan.GroupName != oldInsPlan.GroupName)
@@ -602,13 +406,12 @@ public class InsPlanCrud
             command += "PerVisitInsAmount = " + SOut.Double(insPlan.PerVisitInsAmount) + "";
         }
 
-        if (command == "") return false;
+        if (command == "") return;
         if (insPlan.PlanNote == null) insPlan.PlanNote = "";
-        var paramPlanNote = new OdSqlParameter("paramPlanNote", OdDbType.Text, SOut.StringParam(insPlan.PlanNote));
+        var paramPlanNote = new OdSqlParameter("paramPlanNote", SOut.StringParam(insPlan.PlanNote));
         command = "UPDATE insplan SET " + command
                                         + " WHERE PlanNum = " + SOut.Long(insPlan.PlanNum);
         Db.NonQ(command, paramPlanNote);
-        return true;
     }
 
     public static bool UpdateComparison(InsPlan insPlan, InsPlan oldInsPlan)
@@ -662,34 +465,10 @@ public class InsPlanCrud
         return false;
     }
 
-    public static void Delete(long planNum)
-    {
-        ClearFkey(planNum);
-        var command = "DELETE FROM insplan "
-                      + "WHERE PlanNum = " + SOut.Long(planNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listPlanNums)
-    {
-        if (listPlanNums == null || listPlanNums.Count == 0) return;
-        ClearFkey(listPlanNums);
-        var command = "DELETE FROM insplan "
-                      + "WHERE PlanNum IN(" + string.Join(",", listPlanNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
-    }
-
     public static void ClearFkey(long planNum)
     {
         if (planNum == 0) return;
         var command = "UPDATE securitylog SET FKey=0 WHERE FKey=" + SOut.Long(planNum) + " AND PermType IN (65)";
-        Db.NonQ(command);
-    }
-
-    public static void ClearFkey(List<long> listPlanNums)
-    {
-        if (listPlanNums == null || listPlanNums.FindAll(x => x != 0).Count == 0) return;
-        var command = "UPDATE securitylog SET FKey=0 WHERE FKey IN(" + string.Join(",", listPlanNums.FindAll(x => x != 0)) + ") AND PermType IN (65)";
         Db.NonQ(command);
     }
 }

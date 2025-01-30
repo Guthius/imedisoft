@@ -20,6 +20,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using OpenDental.Drawing;
 using OpenDental.UI;
@@ -161,7 +163,7 @@ Jordan is the only one allowed to edit this file.
 			}
 			if(_listUnmountedObjects[_selectedIndex].Document_!=null){
 				long patnum=_listUnmountedObjects[_selectedIndex].Document_.PatNum;
-				string patFolder=ImageStore.GetPatientFolder(Patients.GetPat(patnum),ImageStore.GetPreferredAtoZpath());
+				string patFolder=ImageStore.GetPatientFolder(Patients.GetPat(patnum),ImageStore.GetDataFolder());
 				ImageStore.DeleteDocuments(new List<Document>{ _listUnmountedObjects[_selectedIndex].Document_ },patFolder);
 			}
 			MountItems.Delete(_listUnmountedObjects[_selectedIndex].MountItem_);

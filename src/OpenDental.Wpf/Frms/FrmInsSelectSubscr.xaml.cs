@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -44,11 +45,11 @@ namespace OpenDental {
 				insPlan=InsPlans.GetPlan(_listInsSubs[i].PlanNum,listInsPlans);
 				str=InsPlans.GetCarrierName(_listInsSubs[i].PlanNum,listInsPlans);
 				if(insPlan.GroupNum!="") {
-					str+=Lans.g(this," group:")+insPlan.GroupNum;
+					str+=Lans.g(" group:")+insPlan.GroupNum;
 				}
 				int countPatPlans=PatPlans.GetCountBySubNum(_listInsSubs[i].InsSubNum);
 				if(countPatPlans==0) {
-					str+=" "+Lans.g(this,"(not in use)");
+					str+=" "+Lans.g("(not in use)");
 				}
 				listPlans.Items.Add(str);
 			}

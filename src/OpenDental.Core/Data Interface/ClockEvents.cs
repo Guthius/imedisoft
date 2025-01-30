@@ -6,15 +6,15 @@ using System.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class ClockEvents
 {
-    
     public static List<ClockEvent> Refresh(long employeeNum, DateTime dateTimeFrom, DateTime dateTimeTo, bool isBreaks)
     {
         var command =
@@ -32,11 +32,6 @@ public class ClockEvents
         return ClockEventCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns clock events for the employee and date range passed in. Validates the events and throws an exception if
-    ///     there are any errors.
-    ///     Set isBreaks true to explicitly validate and return break events instead of clock in and out events.
-    /// </summary>
     public static List<ClockEvent> GetValidList(long employeeNum, DateTime dateTimeFrom, DateTime dateTimeTo, bool isBreaks)
     {
         var listClockEvents = new List<ClockEvent>();
@@ -80,21 +75,12 @@ public class ClockEvents
         throw new Exception(message + "\r\n" + stringBuilderErrors);
     }
 
-    /// <summary>
-    ///     Returns all clock events (Breaks and Non-Breaks) for all employees across all clinics. Currently only used
-    ///     internally for
-    ///     payroll benefits report.
-    /// </summary>
     public static List<ClockEvent> GetAllForPeriod(DateTime dateTimeFrom, DateTime dateTimeTo)
     {
         var command = "SELECT * FROM clockevent WHERE TimeDisplayed1 >= " + SOut.Date(dateTimeFrom) + " AND TimeDisplayed1 < " + SOut.Date(dateTimeTo.AddDays(1));
         return ClockEventCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a list of clock events (not breaks) within the date range for the employees.
-    ///     No option for breaks because this is just used in summing for time card report; use GetTimeCardRule instead.
-    /// </summary>
     public static List<ClockEvent> GetListForTimeCardManage(List<long> listEmployeeNums, long clinicNum, DateTime dateTimeFrom, DateTime dateTimeTo, bool isAll)
     {
         if (listEmployeeNums.IsNullOrEmpty()) return new List<ClockEvent>();
@@ -110,11 +96,6 @@ public class ClockEvents
         return ClockEventCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns an error message containing a description of what is wrong with the clock events passed in if any problems
-    ///     are detected.
-    ///     Otherwise; returns an empty string if no problems are detected.
-    /// </summary>
     public static string ValidateEvents(List<ClockEvent> listClockEvents)
     {
         if (listClockEvents.IsNullOrEmpty()) return "";
@@ -132,14 +113,7 @@ public class ClockEvents
         return "";
     }
 
-    ///<summary>Gets one ClockEvent from the db.</summary>
-    public static ClockEvent GetOne(long clockEventNum)
-    {
-        return ClockEventCrud.SelectOne(clockEventNum);
-    }
-
-    
-    public static long Insert(ClockEvent clockEvent)
+    public static void Insert(ClockEvent clockEvent)
     {
         long clockEventNum = 0;
         clockEventNum = ClockEventCrud.Insert(clockEvent);
@@ -149,30 +123,19 @@ public class ClockEvents
             var command = "UPDATE clockevent SET TimeEntered1=" + SOut.DateTime(DateTime.Now) + ", TimeDisplayed1=" + SOut.DateTime(DateTime.Now) + " WHERE clockEventNum=" + SOut.Long(clockEventNum);
             Db.NonQ(command);
         }
-
-        return clockEventNum;
     }
 
-    
     public static void Update(ClockEvent clockEvent)
     {
         ClockEventCrud.Update(clockEvent);
     }
 
-    
     public static void Delete(long clockEventNum)
     {
         var command = "DELETE FROM clockevent WHERE ClockEventNum = " + SOut.Long(clockEventNum);
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Gets directly from the database.  If the last event is a completed break, then it instead grabs the half-finished
-    ///     clock in.
-    ///     Other possibilities include half-finished clock in which truly was the last event, a finished clock in/out,
-    ///     a half-finished clock out for break, or null for a new employee.
-    ///     Returns null if employeeNum of 0 passed in or no clockevent was found for the corresponding employee.
-    /// </summary>
     public static ClockEvent GetLastEvent(long employeeNum)
     {
         if (employeeNum == 0)
@@ -193,7 +156,6 @@ public class ClockEvents
         return clockEvent;
     }
 
-    ///<summary>Will throw an exception if already clocked in.</summary>
     public static void ClockIn(long employeeNum, bool isAtHome)
     {
         var timeSpanMinClockIn = TimeCardRules.GetWhere(x => x.EmployeeNum.In(0, employeeNum) && x.MinClockInTime != TimeSpan.Zero)
@@ -256,7 +218,6 @@ public class ClockEvents
         SecurityLogs.MakeLogEntry(EnumPermType.UserLogOnOff, 0, employee.FName + " " + employee.LName + " " + "clocked in from " + clockEvent.ClockStatus + ".");
     }
 
-    ///<summary>Will throw an exception if already clocked out.</summary>
     public static void ClockOut(long employeeNum, TimeClockStatus timeClockStatus)
     {
         var clockEvent = GetLastEvent(employeeNum);
@@ -304,10 +265,6 @@ public class ClockEvents
         SecurityLogs.MakeLogEntry(EnumPermType.UserLogOnOff, 0, employee.FName + " " + employee.LName + " " + "clocked out for " + clockEvent.ClockStatus + ".");
     }
 
-    /// <summary>
-    ///     Used in the timecard to track hours worked per week when the week started in a previous time period.  This
-    ///     gets all the hours of the first week before the date listed.  Also adds in any adjustments for that week.
-    /// </summary>
     public static TimeSpan GetWeekTotal(long employeeNum, DateTime date)
     {
         var timeSpan = new TimeSpan(0);
@@ -382,10 +339,6 @@ public class ClockEvents
         return timeSpan;
     }
 
-    /// <summary>
-    ///     -hh:mm or -hh.mm.ss or -hh.mm, depending on the pref.TimeCardsUseDecimalInsteadOfColon and
-    ///     pref.TimeCardShowSeconds.  Blank if zero.
-    /// </summary>
     public static string Format(TimeSpan timeSpan)
     {
         if (PrefC.GetBool(PrefName.TimeCardsUseDecimalInsteadOfColon))
@@ -403,17 +356,6 @@ public class ClockEvents
         return timeSpan.ToStringHmm(); //blank if zero
     }
 
-    /// <summary>
-    ///     Avoids some funky behavior from TimeSpan.Parse(). Surround in try/catch.
-    ///     Valid formats:
-    ///     hh:mm
-    ///     hh:mm:ss
-    ///     hh:mm:ss.fff
-    ///     TimeSpan.Parse("23:00:00") returns 23 hours.
-    ///     TimeSpan.Parse("25:00:00") returns 25 days.
-    ///     In this method, '25:00:00' is treated as 25 hours.
-    ///     Throws exceptions
-    /// </summary>
     public static TimeSpan ParseHours(string timeString)
     {
         var listParts = timeString.TrimStart('-').Split(':').ToList();
@@ -484,11 +426,6 @@ public class ClockEvents
         return timeSpan;
     }
 
-    /// <summary>
-    ///     Returns time card information for employees that have events during the pay period passed in.
-    ///     Setting a clinicNum will only consider clock events and time adjusts from that clinic.
-    ///     Set isAll true to return time card information for all employees regardless of having worked during the pay period.
-    /// </summary>
     public static List<EmployeeTimeCard> GetTimeCardManage(PayPeriod payPeriod, long clinicNum, bool isAll)
     {
         var listEmployeeTimeCards = new List<EmployeeTimeCard>();
@@ -713,7 +650,6 @@ public class ClockEvents
         return listEmployeeTimeCards;
     }
 
-    ///<summary>Returns all clock events, of all statuses, for a given employee between the date range (inclusive).</summary>
     public static List<ClockEvent> GetSimpleList(long employeeNum, DateTime dateTimeStart, DateTime dateTimeStop)
     {
         //Fill list-----------------------------------------------------------------------------------------------------------------------------
@@ -731,8 +667,8 @@ public class EmployeeTimeCard
 {
     public Employee Employee;
     public bool HasError;
-    public List<TimeCardWeek> ListTimeCardWeeks = new();
-    public List<TimeCardWeek> ListTimeCardWeeksIncomplete = new();
+    public List<TimeCardWeek> ListTimeCardWeeks = [];
+    public List<TimeCardWeek> ListTimeCardWeeksIncomplete = [];
     public string Note = "";
     public TimeSpan ProtectedLeaveHours;
     public TimeSpan PTOHours;
@@ -764,19 +700,17 @@ public class EmployeeTimeCard
         return string.Join("\t", listExportValues);
     }
 
-    private string GetTimeFomatted(TimeSpan timeSpan)
+    private static string GetTimeFomatted(TimeSpan timeSpan)
     {
-        if (PrefC.GetBool(PrefName.TimeCardsUseDecimalInsteadOfColon)) return timeSpan.TotalHours.ToString("n");
+        if (PrefC.GetBool(PrefName.TimeCardsUseDecimalInsteadOfColon))
+        {
+            return timeSpan.TotalHours.ToString("n");
+        }
 
-        if (PrefC.GetBool(PrefName.TimeCardShowSeconds))
-            //Colon format with seconds
-            return timeSpan.ToStringHmmss();
-
-        //Colon format without seconds
-        return timeSpan.ToStringHmm();
+        return PrefC.GetBool(PrefName.TimeCardShowSeconds) ? timeSpan.ToStringHmmss() : timeSpan.ToStringHmm();
     }
 
-    private string Tidy(string text)
+    private static string Tidy(string text)
     {
         return text.Replace("\t", "").Replace("\r\n", ";  ");
     }

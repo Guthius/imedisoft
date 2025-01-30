@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class OrthoChartCrud
 {
@@ -91,7 +93,7 @@ public class OrthoChartCrud
                                          + SOut.Long(orthoChart.ProvNum) + ","
                                          + SOut.Long(orthoChart.OrthoChartRowNum) + ")";
         if (orthoChart.FieldValue == null) orthoChart.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(orthoChart.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(orthoChart.FieldValue));
         {
             orthoChart.OrthoChartNum = Db.NonQ(command, true, "OrthoChartNum", "orthoChart", paramFieldValue);
         }
@@ -119,7 +121,7 @@ public class OrthoChartCrud
                                          + SOut.Long(orthoChart.ProvNum) + ","
                                          + SOut.Long(orthoChart.OrthoChartRowNum) + ")";
         if (orthoChart.FieldValue == null) orthoChart.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(orthoChart.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(orthoChart.FieldValue));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramFieldValue);
         else
@@ -139,7 +141,7 @@ public class OrthoChartCrud
                       + "OrthoChartRowNum=  " + SOut.Long(orthoChart.OrthoChartRowNum) + " "
                       + "WHERE OrthoChartNum = " + SOut.Long(orthoChart.OrthoChartNum);
         if (orthoChart.FieldValue == null) orthoChart.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(orthoChart.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(orthoChart.FieldValue));
         Db.NonQ(command, paramFieldValue);
     }
 
@@ -190,7 +192,7 @@ public class OrthoChartCrud
 
         if (command == "") return false;
         if (orthoChart.FieldValue == null) orthoChart.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(orthoChart.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(orthoChart.FieldValue));
         command = "UPDATE orthochart SET " + command
                                            + " WHERE OrthoChartNum = " + SOut.Long(orthoChart.OrthoChartNum);
         Db.NonQ(command, paramFieldValue);

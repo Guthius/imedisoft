@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class OrthoChartRowCrud
 {
@@ -85,7 +87,7 @@ public class OrthoChartRowCrud
                                             + SOut.Long(orthoChartRow.ProvNum) + ","
                                             + DbHelper.ParamChar + "paramSignature)";
         if (orthoChartRow.Signature == null) orthoChartRow.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(orthoChartRow.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(orthoChartRow.Signature));
         {
             orthoChartRow.OrthoChartRowNum = Db.NonQ(command, true, "OrthoChartRowNum", "orthoChartRow", paramSignature);
         }
@@ -111,7 +113,7 @@ public class OrthoChartRowCrud
                                             + SOut.Long(orthoChartRow.ProvNum) + ","
                                             + DbHelper.ParamChar + "paramSignature)";
         if (orthoChartRow.Signature == null) orthoChartRow.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(orthoChartRow.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(orthoChartRow.Signature));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramSignature);
         else
@@ -129,7 +131,7 @@ public class OrthoChartRowCrud
                       + "Signature       =  " + DbHelper.ParamChar + "paramSignature "
                       + "WHERE OrthoChartRowNum = " + SOut.Long(orthoChartRow.OrthoChartRowNum);
         if (orthoChartRow.Signature == null) orthoChartRow.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(orthoChartRow.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(orthoChartRow.Signature));
         Db.NonQ(command, paramSignature);
     }
 
@@ -168,7 +170,7 @@ public class OrthoChartRowCrud
 
         if (command == "") return false;
         if (orthoChartRow.Signature == null) orthoChartRow.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(orthoChartRow.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(orthoChartRow.Signature));
         command = "UPDATE orthochartrow SET " + command
                                               + " WHERE OrthoChartRowNum = " + SOut.Long(orthoChartRow.OrthoChartRowNum);
         Db.NonQ(command, paramSignature);

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -13,9 +14,9 @@ namespace OpenDentBusiness {
 		///<summary>If not using clinics then supply an empty list of clinicNums. dateStart and dateEnd can be MinVal/MaxVal to indicate "forever".</summary>
 		public static DataTable GetActivePatientTable(DateTime dateStart,DateTime dateEnd,List<long> listProvNums,List<long> listClinicNums,List<long> listBillingTypes,List<long> listPatientStatuses,bool hasAllProvs,bool hasAllClinics,bool hasAllBilling) {
 			bool hasClinicsEnabled=true;
-			List<Provider> listProvs=ReportsComplex.RunFuncOnReportServer(() => Providers.GetAll());
-			List<Def> listDefs=ReportsComplex.RunFuncOnReportServer(() => Defs.GetDefsNoCache(DefCat.BillingTypes));
-			List<ClinicDto> listClinics=ReportsComplex.RunFuncOnReportServer(() => Clinics.GetDeepCopy());
+			List<Provider> listProvs=Providers.GetAll();
+			List<Def> listDefs=Defs.GetDefsNoCache(DefCat.BillingTypes);
+			List<ClinicDto> listClinics=Clinics.GetDeepCopy();
 			DataTable table=new DataTable();
 			table.Columns.Add("name");
 			table.Columns.Add("priProv");
@@ -58,7 +59,7 @@ namespace OpenDentBusiness {
 			else {//Using clinics
 				command+=" ORDER BY patient.ClinicNum,provider.Abbr,patient.LName,patient.FName";
 			}
-			DataTable raw=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(command));
+			DataTable raw=ReportsComplex.GetTable(command);
 			Patient pat;
 			for(int i=0;i<raw.Rows.Count;i++) {
 				Def billingType=listDefs.FirstOrDefault(x => x.DefNum==SIn.Long(raw.Rows[i]["BillingType"].ToString()));

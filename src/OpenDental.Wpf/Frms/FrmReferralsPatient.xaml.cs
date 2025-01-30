@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls;
 using WpfControls.UI;
@@ -79,13 +79,13 @@ namespace OpenDental {
 			}
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Referral Type"),85));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Name"),120));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Date"),65));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Status"),70));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Proc"),120));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Note"),170));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableRefList","Email"),190));
+			gridMain.Columns.Add(new GridColumn("Referral Type",85));
+			gridMain.Columns.Add(new GridColumn("Name",120));
+			gridMain.Columns.Add(new GridColumn("Date",65));
+			gridMain.Columns.Add(new GridColumn("Status",70));
+			gridMain.Columns.Add(new GridColumn("Proc",120));
+			gridMain.Columns.Add(new GridColumn("Note",170));
+			gridMain.Columns.Add(new GridColumn("Email",190));
 			gridMain.ListGridRows.Clear();
 			bool hasInvalidRef=false;
 			GridRow row;
@@ -106,7 +106,7 @@ namespace OpenDental {
 				else {
 					row.Cells.Add(refAttach.RefDate.ToShortDateString());
 				}
-				row.Cells.Add(Lang.g("enumReferralToStatus",refAttach.RefToStatus.ToString()));
+				row.Cells.Add(refAttach.RefToStatus.ToString());
 				if(refAttach.ProcNum==0) {
 					row.Cells.Add("");
 				}
@@ -181,87 +181,6 @@ namespace OpenDental {
 			}
 		}
 
-		private void sendSummaryOfCare(Referral referral, long refAttachNum) {
-			Patient patient=Patients.GetPat(PatNum);
-			string strCcdValidationErrors=EhrCCD.ValidateSettings();
-			//This is like FormEhrClinicalSummary.butSendToPortal_Click such that the email gets treated like a web mail.
-			if(strCcdValidationErrors!="") {
-				MsgBox.Show(this,"There was a problem automatically sending a summary of care.  Please go to the EHR dashboard to send a summary of care to meet the summary of care core measure.");
-				return;
-			}
-			strCcdValidationErrors=EhrCCD.ValidatePatient(patient);
-			if(strCcdValidationErrors!="") {
-				MsgBox.Show(this,"There was a problem automatically sending a summary of care.  Please go to the EHR dashboard to send a summary of care to meet the summary of care core measure.");
-				return;
-			}
-			Provider provider=null;
-			if(Security.CurUser.ProvNum!=0) {
-				provider=Providers.GetProv(Security.CurUser.ProvNum);
-			}
-			else {
-				provider=Providers.GetProv(patient.PriProv);
-			}
-			EmailMessage emailMessage=new EmailMessage();//New mail object				
-			emailMessage.FromAddress=provider.GetFormalName();//Adding from address
-			emailMessage.ToAddress=patient.GetNameFL();//Adding to address
-			emailMessage.PatNum=patient.PatNum;//Adding patient number
-			emailMessage.SentOrReceived=EmailSentOrReceived.WebMailSent;//Setting to sent
-			emailMessage.ProvNumWebMail=provider.ProvNum;//Adding provider number
-			emailMessage.Subject="Referral To "+referral.GetNameFL();
-			emailMessage.BodyText=
-				"You have been referred to another provider.  Your summary of care is attached.\r\n"
-				+"You may give a copy of this summary of care to the referred provider if desired.\r\n"
-				+"The contact information for the doctor you are being referred to is as follows:\r\n"
-				+"\r\n";
-			//Here we provide the same information that would go out on a Referral Slip.
-			//When the user prints a Referral Slip, the doctor referred to information is included and contains the doctor's name, address, and phone.
-			emailMessage.BodyText+="Name: "+referral.GetNameFL()+"\r\n";
-			if(referral.Address.Trim()!="") {
-				emailMessage.BodyText+="Address: "+referral.Address.Trim()+"\r\n";
-				if(referral.Address2.Trim()!="") {
-					emailMessage.BodyText+="\t"+referral.Address2.Trim()+"\r\n";
-				}
-				emailMessage.BodyText+="\t"+referral.City+" "+referral.ST+" "+referral.Zip+"\r\n";
-			}
-			if(referral.Telephone!="") {
-				emailMessage.BodyText+="Phone: "+TelephoneNumbers.ReFormat(referral.Telephone)+"\r\n";
-			}
-			emailMessage.BodyText+=
-				"\r\n"
-				+"To view the Summary of Care for the referral to this provider:\r\n"
-				+"1) Download all attachments to the same folder.  Do not rename the files.\r\n"
-				+"2) Open the ccd.xml file in an internet browser.";
-			emailMessage.MsgDateTime=DateTime.Now;//Message time is now
-			emailMessage.PatNumSubj=patient.PatNum;//Subject of the message is current patient
-			string ccd="";
-			Cursor=Cursors.Wait;
-			try {
-				ccd=EhrCCD.GenerateSummaryOfCare(Patients.GetPat(PatNum),out string warnings);//Create summary of care, can throw exceptions
-				if(!string.IsNullOrEmpty(warnings)) {
-					this.Cursor=Cursors.Arrow; 
-					if(MsgBox.Show(this,MsgBoxButtons.OKCancel,warnings,"Warnings")==IsDialogCancel) {
-						return;
-					}
-				}
-				emailMessage.Attachments.Add(EmailAttaches.CreateAttach("ccd.xml",Encoding.UTF8.GetBytes(ccd)));//Create summary of care attachment, can throw exceptions
-				emailMessage.Attachments.Add(EmailAttaches.CreateAttach("ccd.xsl",Encoding.UTF8.GetBytes(EhrSummaryCcds.GetEhrResource("CCD"))));//Create xsl attachment, can throw exceptions
-			}
-			catch {
-				//We are just trying to be helpful so it doesn't really matter if something failed above. 
-				//They can simply go to the EHR dashboard and send the summary of care manually like they always have.  They will get detailed validation errors there.
-				MsgBox.Show(this,"There was a problem automatically sending a summary of care.  Please go to the EHR dashboard to send a summary of care to meet the summary of care core measure.");
-				return;
-			}
-			emailMessage.MsgType=EmailMessageSource.WebMail;
-			EmailMessages.Insert(emailMessage);//Insert mail into DB for patient portal
-			EhrMeasureEvent ehrMeasureEvent=new EhrMeasureEvent();
-			ehrMeasureEvent.DateTEvent=DateTime.Now;
-			ehrMeasureEvent.EventType=EhrMeasureEventType.SummaryOfCareProvidedToDr;
-			ehrMeasureEvent.PatNum=patient.PatNum;
-			ehrMeasureEvent.FKey=refAttachNum;//Can be 0 if user didn't pick a referral for some reason.
-			EhrMeasureEvents.Insert(ehrMeasureEvent);
-		}
-
 		private void butAddTo_Click(object sender,EventArgs e) {
 			if(!Security.IsAuthorized(EnumPermType.RefAttachAdd)) {
 				return;
@@ -294,18 +213,6 @@ namespace OpenDental {
 			}
 			RefAttaches.Insert(refattach);
 			SecurityLogs.MakeLogEntry(EnumPermType.RefAttachAdd,PatNum,"Referred To "+Referrals.GetNameFL(refattach.ReferralNum));
-			if(PrefC.GetBool(PrefName.AutomaticSummaryOfCareWebmail)) {
-				FrmRefAttachEdit frmRefAttachEdit=new FrmRefAttachEdit();
-				frmRefAttachEdit.RefAttachCur=refattach;
-				frmRefAttachEdit.ShowDialog();
-				//In order to help offices meet EHR Summary of Care measure 1 of Core Measure 15 of 17, we are going to send a summary of care to the patient portal behind the scenes.
-				//We can send the summary of care to the patient instead of to the Dr. because of the following point in the Additional Information section of the Core Measure:
-				//"The EP can send an electronic or paper copy of the summary care record directly to the next provider or can provide it to the patient to deliver to the next provider, if the patient can reasonably expected to do so and meet Measure 1."
-				//We will only send the summary of care if the ref attach is a TO referral and is a transition of care.
-				if(frmRefAttachEdit.IsDialogOK && refattach.RefType==ReferralType.RefTo && refattach.IsTransitionOfCare) {
-					sendSummaryOfCare(frmReferralSelect.ReferralSelected, frmRefAttachEdit.RefAttachCur.RefAttachNum);
-				}
-			}
 			Cursor=Cursors.Arrow; //Cursors.Default doesn't exist in WPF
 			FillGrid();
 			int index=-1;
@@ -437,23 +344,23 @@ namespace OpenDental {
 			if(IsSelectionMode && PrefC.GetBool(PrefName.ShowFeatureEhr)) {
 				string warning="";
 				if(_listRefAttaches[gridMain.GetSelectedIndex()].ProvNum==0) {
-					warning+=Lans.g(this,"Selected patient referral does not have a referring provider set.");
+					warning+=Lans.g("Selected patient referral does not have a referring provider set.");
 				}
 				if(_listRefAttaches[gridMain.GetSelectedIndex()].RefType!=ReferralType.RefTo) {
 					if(warning!="") {
 						warning+="\r\n";
 					}
-					warning+=Lans.g(this,"Selected patient referral is not an outgoing referral.");
+					warning+=Lans.g("Selected patient referral is not an outgoing referral.");
 				}
 				if(!_listRefAttaches[gridMain.GetSelectedIndex()].IsTransitionOfCare) {
 					if(warning!="") {
 						warning+="\r\n";
 					}
-					warning+=Lans.g(this,"Selected patient referral is not flagged as a transition of care.");
+					warning+=Lans.g("Selected patient referral is not flagged as a transition of care.");
 				}
 				if(warning!="") {
-					warning+="\r\n"+Lans.g(this,"It does not meet the EHR summary of care requirements.")+"  "+Lans.g(this,"Continue anyway?");
-					if(MsgBox.Show(this,MsgBoxButtons.OKCancel,warning,Lans.g(this,"EHR Measure Warning"))==IsDialogCancel) {
+					warning+="\r\n"+Lans.g("It does not meet the EHR summary of care requirements.")+"  "+Lans.g("Continue anyway?");
+					if(MsgBox.Show(this,MsgBoxButtons.OKCancel,warning,Lans.g("EHR Measure Warning"))==IsDialogCancel) {
 						return;
 					}
 				}

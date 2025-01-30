@@ -1,32 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ERoutingDefCrud
 {
-    public static ERoutingDef SelectOne(long eRoutingDefNum)
-    {
-        var command = "SELECT * FROM eroutingdef "
-                      + "WHERE ERoutingDefNum = " + SOut.Long(eRoutingDefNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ERoutingDef SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ERoutingDef> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -71,11 +52,6 @@ public class ERoutingDefCrud
 
     public static long Insert(ERoutingDef eRoutingDef)
     {
-        return Insert(eRoutingDef, false);
-    }
-
-    public static long Insert(ERoutingDef eRoutingDef, bool useExistingPK)
-    {
         var command = "INSERT INTO eroutingdef (";
 
         command += "ClinicNum,Description,UserNumCreated,UserNumModified,SecDateTEntered,DateLastModified) VALUES(";
@@ -85,37 +61,11 @@ public class ERoutingDefCrud
                                              + "'" + SOut.String(eRoutingDef.Description) + "',"
                                              + SOut.Long(eRoutingDef.UserNumCreated) + ","
                                              + SOut.Long(eRoutingDef.UserNumModified) + ","
-                                             + DbHelper.Now() + ","
+                                             + "NOW()" + ","
                                              + SOut.DateTime(eRoutingDef.DateLastModified) + ")";
         {
             eRoutingDef.ERoutingDefNum = Db.NonQ(command, true, "ERoutingDefNum", "eRoutingDef");
         }
-        return eRoutingDef.ERoutingDefNum;
-    }
-
-    public static long InsertNoCache(ERoutingDef eRoutingDef)
-    {
-        return InsertNoCache(eRoutingDef, false);
-    }
-
-    public static long InsertNoCache(ERoutingDef eRoutingDef, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO eroutingdef (";
-        if (isRandomKeys || useExistingPK) command += "ERoutingDefNum,";
-        command += "ClinicNum,Description,UserNumCreated,UserNumModified,SecDateTEntered,DateLastModified) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(eRoutingDef.ERoutingDefNum) + ",";
-        command +=
-            SOut.Long(eRoutingDef.ClinicNum) + ","
-                                             + "'" + SOut.String(eRoutingDef.Description) + "',"
-                                             + SOut.Long(eRoutingDef.UserNumCreated) + ","
-                                             + SOut.Long(eRoutingDef.UserNumModified) + ","
-                                             + DbHelper.Now() + ","
-                                             + SOut.DateTime(eRoutingDef.DateLastModified) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            eRoutingDef.ERoutingDefNum = Db.NonQ(command, true, "ERoutingDefNum", "eRoutingDef");
         return eRoutingDef.ERoutingDefNum;
     }
 
@@ -132,70 +82,10 @@ public class ERoutingDefCrud
         Db.NonQ(command);
     }
 
-    public static bool Update(ERoutingDef eRoutingDef, ERoutingDef oldERoutingDef)
-    {
-        var command = "";
-        if (eRoutingDef.ClinicNum != oldERoutingDef.ClinicNum)
-        {
-            if (command != "") command += ",";
-            command += "ClinicNum = " + SOut.Long(eRoutingDef.ClinicNum) + "";
-        }
-
-        if (eRoutingDef.Description != oldERoutingDef.Description)
-        {
-            if (command != "") command += ",";
-            command += "Description = '" + SOut.String(eRoutingDef.Description) + "'";
-        }
-
-        if (eRoutingDef.UserNumCreated != oldERoutingDef.UserNumCreated)
-        {
-            if (command != "") command += ",";
-            command += "UserNumCreated = " + SOut.Long(eRoutingDef.UserNumCreated) + "";
-        }
-
-        if (eRoutingDef.UserNumModified != oldERoutingDef.UserNumModified)
-        {
-            if (command != "") command += ",";
-            command += "UserNumModified = " + SOut.Long(eRoutingDef.UserNumModified) + "";
-        }
-
-        //SecDateTEntered not allowed to change
-        if (eRoutingDef.DateLastModified != oldERoutingDef.DateLastModified)
-        {
-            if (command != "") command += ",";
-            command += "DateLastModified = " + SOut.DateTime(eRoutingDef.DateLastModified) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE eroutingdef SET " + command
-                                            + " WHERE ERoutingDefNum = " + SOut.Long(eRoutingDef.ERoutingDefNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(ERoutingDef eRoutingDef, ERoutingDef oldERoutingDef)
-    {
-        if (eRoutingDef.ClinicNum != oldERoutingDef.ClinicNum) return true;
-        if (eRoutingDef.Description != oldERoutingDef.Description) return true;
-        if (eRoutingDef.UserNumCreated != oldERoutingDef.UserNumCreated) return true;
-        if (eRoutingDef.UserNumModified != oldERoutingDef.UserNumModified) return true;
-        //SecDateTEntered not allowed to change
-        if (eRoutingDef.DateLastModified != oldERoutingDef.DateLastModified) return true;
-        return false;
-    }
-
     public static void Delete(long eRoutingDefNum)
     {
         var command = "DELETE FROM eroutingdef "
                       + "WHERE ERoutingDefNum = " + SOut.Long(eRoutingDefNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listERoutingDefNums)
-    {
-        if (listERoutingDefNums == null || listERoutingDefNums.Count == 0) return;
-        var command = "DELETE FROM eroutingdef "
-                      + "WHERE ERoutingDefNum IN(" + string.Join(",", listERoutingDefNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

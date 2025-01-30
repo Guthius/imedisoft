@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Xml;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims;
 

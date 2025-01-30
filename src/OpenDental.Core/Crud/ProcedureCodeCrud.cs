@@ -6,10 +6,12 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcedureCodeCrud
 {
@@ -180,11 +182,11 @@ public class ProcedureCodeCrud
             + SOut.Bool(procedureCode.AreaAlsoToothRange) + ","
             + "'" + SOut.String(procedureCode.DiagnosticCodes) + "')";
         if (procedureCode.DefaultNote == null) procedureCode.DefaultNote = "";
-        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultNote));
+        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", SOut.StringParam(procedureCode.DefaultNote));
         if (procedureCode.DefaultClaimNote == null) procedureCode.DefaultClaimNote = "";
-        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultClaimNote));
+        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", SOut.StringParam(procedureCode.DefaultClaimNote));
         if (procedureCode.DefaultTPNote == null) procedureCode.DefaultTPNote = "";
-        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultTPNote));
+        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", SOut.StringParam(procedureCode.DefaultTPNote));
         {
             procedureCode.CodeNum = Db.NonQ(command, true, "CodeNum", "procedureCode", paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
         }
@@ -362,11 +364,11 @@ public class ProcedureCodeCrud
             + SOut.Bool(procedureCode.AreaAlsoToothRange) + ","
             + "'" + SOut.String(procedureCode.DiagnosticCodes) + "')";
         if (procedureCode.DefaultNote == null) procedureCode.DefaultNote = "";
-        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultNote));
+        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", SOut.StringParam(procedureCode.DefaultNote));
         if (procedureCode.DefaultClaimNote == null) procedureCode.DefaultClaimNote = "";
-        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultClaimNote));
+        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", SOut.StringParam(procedureCode.DefaultClaimNote));
         if (procedureCode.DefaultTPNote == null) procedureCode.DefaultTPNote = "";
-        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultTPNote));
+        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", SOut.StringParam(procedureCode.DefaultTPNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
         else
@@ -415,11 +417,11 @@ public class ProcedureCodeCrud
                       + "DiagnosticCodes   = '" + SOut.String(procedureCode.DiagnosticCodes) + "' "
                       + "WHERE CodeNum = " + SOut.Long(procedureCode.CodeNum);
         if (procedureCode.DefaultNote == null) procedureCode.DefaultNote = "";
-        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultNote));
+        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", SOut.StringParam(procedureCode.DefaultNote));
         if (procedureCode.DefaultClaimNote == null) procedureCode.DefaultClaimNote = "";
-        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultClaimNote));
+        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", SOut.StringParam(procedureCode.DefaultClaimNote));
         if (procedureCode.DefaultTPNote == null) procedureCode.DefaultTPNote = "";
-        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultTPNote));
+        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", SOut.StringParam(procedureCode.DefaultTPNote));
         Db.NonQ(command, paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
     }
 
@@ -634,11 +636,11 @@ public class ProcedureCodeCrud
 
         if (command == "") return false;
         if (procedureCode.DefaultNote == null) procedureCode.DefaultNote = "";
-        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultNote));
+        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", SOut.StringParam(procedureCode.DefaultNote));
         if (procedureCode.DefaultClaimNote == null) procedureCode.DefaultClaimNote = "";
-        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultClaimNote));
+        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", SOut.StringParam(procedureCode.DefaultClaimNote));
         if (procedureCode.DefaultTPNote == null) procedureCode.DefaultTPNote = "";
-        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", OdDbType.Text, SOut.StringParam(procedureCode.DefaultTPNote));
+        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", SOut.StringParam(procedureCode.DefaultTPNote));
         command = "UPDATE procedurecode SET " + command
                                               + " WHERE CodeNum = " + SOut.Long(procedureCode.CodeNum);
         Db.NonQ(command, paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);

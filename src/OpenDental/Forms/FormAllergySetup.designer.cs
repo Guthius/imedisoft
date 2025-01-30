@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAllergySetup {
 		/// <summary>
 		/// Required designer variable.
@@ -40,7 +40,7 @@ namespace OpenDental{
 			this.checkShowHidden.TabIndex = 5;
 			this.checkShowHidden.TabStop = false;
 			this.checkShowHidden.Text = "Show Hidden";
-			this.checkShowHidden.CheckedChanged += new System.EventHandler(this.checkShowHidden_CheckedChanged);
+			this.checkShowHidden.CheckedChanged += new System.EventHandler(this.CheckBoxShowHidden_CheckedChanged);
 			// 
 			// gridMain
 			// 
@@ -54,7 +54,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 4;
 			this.gridMain.Title = "Allergies";
 			this.gridMain.TranslationName = "TableAllergies";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butAdd
 			// 
@@ -66,7 +66,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 3;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butOK
 			// 
@@ -76,7 +76,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 6;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// buttonMerge
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental{
 			this.buttonMerge.Size = new System.Drawing.Size(75, 24);
 			this.buttonMerge.TabIndex = 7;
 			this.buttonMerge.Text = "Merge";
-			this.buttonMerge.Click += new System.EventHandler(this.buttonMerge_Click);
+			this.buttonMerge.Click += new System.EventHandler(this.ButtonMerge_Click);
 			// 
 			// FormAllergySetup
 			// 

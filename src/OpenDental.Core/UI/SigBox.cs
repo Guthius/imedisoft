@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.UI {
 	public class SigBox {

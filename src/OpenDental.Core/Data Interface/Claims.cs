@@ -8,21 +8,16 @@ using CDT;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.Misc;
 
 namespace OpenDentBusiness;
 
-
 public class Claims
 {
-    #region Get Methods
-
-    /// <summary>
-    ///     Returns a list of outstanding ClaimPaySplits for a given provider.
-    ///     It will only get outstanding claims with a date of service past dateTerm.
-    /// </summary>
     public static List<ClaimPaySplit> GetOutstandingClaimsByProvider(long provNum, DateTime dateTerm)
     {
         var command = "SELECT claim.ClaimNum,claim.PatNum,claim.ClaimStatus,claim.ClinicNum,claim.DateService,claim.ProvTreat,"
@@ -43,13 +38,6 @@ public class Claims
         return ClaimPaySplitTableToList(DataCore.GetTable(command));
     }
 
-    #endregion
-
-    /// <summary>
-    ///     Gets claimpaysplits attached to a claimpayment with the associated patient, insplan, and carrier. If
-    ///     showUnattached it also shows all claimpaysplits that have not been attached to a claimpayment. Pass (0,true) to
-    ///     just get all unattached (outstanding) claimpaysplits.
-    /// </summary>
     public static List<ClaimPaySplit> RefreshByCheckOld(long claimPaymentNum, bool showUnattached)
     {
         var command =
@@ -74,9 +62,6 @@ public class Claims
         return ClaimPaySplitTableToList(table);
     }
 
-    /// <summary>Gets all outstanding claims for the batch payment window.</summary>
-    /// <param name="carrierName">If not empty, will return claims with matching or partially matching carrier name.</param>
-    /// <param name="dateClaimPay">DateClaimReceivedAfter preference. Only considers claims after this day.</param>
     public static List<ClaimPaySplit> GetOutstandingClaims(string carrierName, DateTime dateClaimPay)
     {
         //Per Nathan, it is OK to return the DateService in the query result to display in the batch insurance window,
@@ -123,7 +108,6 @@ public class Claims
             .ThenBy(x => x.PatName).ToList();
     }
 
-    /// <summary>Gets all 'claims' attached to the claimpayment.</summary>
     public static List<ClaimPaySplit> GetAttachedToPayment(long claimPaymentNum)
     {
         var command =
@@ -143,7 +127,6 @@ public class Claims
         return ClaimPaySplitTableToList(table);
     }
 
-    /// <summary>Gets all secondary claims for the related ClaimPaySplits. Called after a payment has been received.</summary>
     public static DataTable GetSecondaryClaims(List<ClaimPaySplit> listClaimPaySplitsAttached)
     {
         var command = "SELECT DISTINCT ProcNum FROM claimproc WHERE ClaimNum IN (";
@@ -175,13 +158,6 @@ public class Claims
         return tableSecondaryClaims;
     }
 
-    /// <summary>
-    ///     Returns 'Unsent' or 'Hold Until Pri Received' claims that have unsent claimprocs and are associated with the
-    ///     procedures of the claimprocs passed in.
-    ///     Set isSecondaryClaim true to only return secondary claims. Otherwise, only returns primary claims.
-    ///     Typically used for getting secondary claims after primary is received or primary claims after a medical claim is
-    ///     received.
-    /// </summary>
     public static List<Claim> GetPrimaryOrSecondaryClaimsNotReceived(List<ClaimProc> listClaimProcsForClaims, bool isSecondaryClaim = true)
     {
         //Get a list of ProcNums associated with the claimprocs passed in..
@@ -198,7 +174,6 @@ public class Claims
             .FindAll(x => x.ClaimStatus.In("U", "H") && x.ClaimType == claimType);
     }
 
-    
     public static List<ClaimPaySplit> GetInsPayNotAttachedForFixTool()
     {
         var command =
@@ -221,11 +196,6 @@ public class Claims
         return ClaimPaySplitTableToList(table);
     }
 
-    /// <summary>
-    ///     Returns a list of the top CarrierNames that had the most claim volume for a defined starting number of days back
-    ///     (using claim.DateSent)
-    ///     through today. Only includes Sent and Received claims.
-    /// </summary>
     public static List<string> GetTopVolumeCarrierNamesForClinicAndPeriod(long clinicNum, int numDaysBack, int numTopCarriers)
     {
         var listTopVolumeCarrierNames = new List<string>();
@@ -250,7 +220,6 @@ public class Claims
         return listTopVolumeCarrierNames;
     }
 
-    
     private static List<ClaimPaySplit> ClaimPaySplitTableToList(DataTable table)
     {
         var listClaimPaySplits = new List<ClaimPaySplit>();
@@ -277,7 +246,6 @@ public class Claims
         return listClaimPaySplits;
     }
 
-    ///<summary>Gets the specified claim from the database.  Can be null.</summary>
     public static Claim GetClaim(long claimNum)
     {
         var command = "SELECT * FROM claim"
@@ -296,7 +264,6 @@ public class Claims
         return ClaimCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all claims for the specified patient. But without any attachments.</summary>
     public static List<Claim> Refresh(long patNum)
     {
         if (patNum == 0) return new List<Claim>();
@@ -316,7 +283,6 @@ public class Claims
         return null;
     }
 
-    
     public static long Insert(Claim claim)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -325,7 +291,6 @@ public class Claims
         return ClaimCrud.Insert(claim);
     }
 
-    
     public static void Update(Claim claim)
     {
         var claimOld = GetClaim(claim.ClaimNum);
@@ -342,7 +307,6 @@ public class Claims
         }
     }
 
-    ///<summary>Takes in a claim, checks to see if there's any differences, and then updates the database if necessary.</summary>
     public static void Update(Claim claim, Claim claimOld)
     {
         if (!ClaimCrud.UpdateComparison(claim, claimOld)) return;
@@ -351,17 +315,12 @@ public class Claims
         ClaimCrud.Update(claim, claimOld);
     }
 
-    ///<summary>Deletes the claim and also deletes any Etrans835Attaches when specified.</summary>
     public static void Delete(Claim claim, List<long> listEtrans835AttachNums = null)
     {
         Etrans835Attaches.DeleteMany(listEtrans835AttachNums);
         ClaimCrud.Delete(claim.ClaimNum);
     }
 
-    /// <summary>
-    ///     Called from claimsend window and from Claim edit window.  Use 0 to get all waiting claims, or an actual
-    ///     claimnum to get just one claim.
-    /// </summary>
     public static ClaimSendQueueItem[] GetQueueList(long claimNum, long clinicNum, long customTracking)
     {
         var listClaimNums = new List<long>();
@@ -369,10 +328,6 @@ public class Claims
         return GetQueueList(listClaimNums, clinicNum, customTracking);
     }
 
-    /// <summary>
-    ///     Called from claimsend window and from Claim edit window.  Use an empty listClaimNums to get all waiting
-    ///     claims.
-    /// </summary>
     public static ClaimSendQueueItem[] GetQueueList(List<long> listClaimNums, long clinicNum, long customTracking)
     {
         var listWhereAnds = new List<string>();
@@ -433,7 +388,6 @@ public class Claims
         return claimSendQueueItemArray;
     }
 
-    ///<summary>Supply claimnums. Called from X12 to begin the sorting process on claims going to one clearinghouse.</summary>
     public static List<X12TransactionItem> GetX12TransactionInfo(long claimNum)
     {
         var listClaimNums = new List<long>();
@@ -441,7 +395,6 @@ public class Claims
         return GetX12TransactionInfo(listClaimNums);
     }
 
-    ///<summary>Supply claimnums. Called from X12 to begin the sorting process on claims going to one clearinghouse.</summary>
     public static List<X12TransactionItem> GetX12TransactionInfo(List<long> listClaimNums)
     {
         //ArrayList queueItemss){
@@ -473,7 +426,6 @@ public class Claims
         return listX12TransactionItems;
     }
 
-    ///<summary>Also sets the DateSent to today.</summary>
     public static void SetClaimSent(long claimNum)
     {
         var claimOld = GetClaim(claimNum);
@@ -515,15 +467,6 @@ public class Claims
         return true;
     }
 
-    /// <summary>
-    ///     Returns a list of claimnums matching the list of x12claims given.
-    ///     The returned list is always same length as the list of x12claims, unless there is an error, in which case null is
-    ///     returned.
-    ///     If a claim in the database is not found for a specific x12claim, then a value of 0 will be placed into the return
-    ///     list for that x12claim.
-    ///     Each matched claim will either begin with the specified claimIdentifier, or will be for the patient name and
-    ///     subscriber ID specified.
-    /// </summary>
     public static List<long> GetClaimFromX12(List<X12ClaimMatch> listX12ClaimMatches)
     {
         if (listX12ClaimMatches.Count == 0) return null;
@@ -928,14 +871,6 @@ public class Claims
         return listClaimNums;
     }
 
-    /// <summary>
-    ///     We always require the claim fee and dates of service to match, then we use additional criteria to wisely choose
-    ///     from the shorter list
-    ///     of claims.  The list of claims with matching fee and date of service should be very short.  Worst case, the list
-    ///     would contain all of the
-    ///     claims if every claim had the same fee (rare).
-    ///     Includes PreAuths which have a date of service 0001-01-01.
-    /// </summary>
     public static DataTable GetClaimTable(List<DateTime> listDateTimes, List<double> listClaimFees)
     {
         var command = $@"SELECT a.ClaimNum,a.ClaimIdentifier,a.ClaimStatus,a.ClaimFee,a.DateService,patient.LName,patient.FName,inssub.SubscriberID
@@ -946,7 +881,7 @@ public class Claims
 					UNION
 					SELECT claim.ClaimNum,claim.ClaimIdentifier,claim.ClaimStatus,ROUND(ClaimFee, 2) ClaimFee,claim.DateService,claim.PatNum,claim.InsSubNum,claim.PlanNum
 					FROM claim
-					WHERE ClaimType='PreAuth' AND DateService={DbHelper.Year("DateService")}=1 AND SecDateEntry>{SOut.Date(listDateTimes.Min())}-INTERVAL 1 YEAR
+					WHERE ClaimType='PreAuth' AND DateService=YEAR(DateService)=1 AND SecDateEntry>{SOut.Date(listDateTimes.Min())}-INTERVAL 1 YEAR
 				) a
 				INNER JOIN patient ON patient.PatNum=a.PatNum
 				INNER JOIN inssub ON inssub.InsSubNum=a.InsSubNum AND a.PlanNum=inssub.PlanNum
@@ -954,14 +889,6 @@ public class Claims
         return DataCore.GetTable(command);
     }
 
-    /// <summary>
-    ///     We always require the claim fee and dates of service to match, then we use additional criteria to wisely choose
-    ///     from the shorter list
-    ///     of claims.  The list of claims with matching fee and date of service should be very short.  Worst case, the list
-    ///     would contain all of the
-    ///     claims if every claim had the same fee (rare).
-    ///     Includes PreAuths which have a date of service 0001-01-01.
-    /// </summary>
     public static DataTable GetClaimTable(DateTime dateMin, DateTime dateMax, List<double> listClaimFees)
     {
         var command = $@"SELECT a.ClaimNum,a.ClaimIdentifier,a.ClaimStatus,a.ClaimFee,a.DateService,patient.LName,patient.FName,inssub.SubscriberID
@@ -972,7 +899,7 @@ public class Claims
 					UNION
 					SELECT claim.ClaimNum,claim.ClaimIdentifier,claim.ClaimStatus,ROUND(ClaimFee, 2) ClaimFee,claim.DateService,claim.PatNum,claim.InsSubNum,claim.PlanNum
 					FROM claim
-					WHERE ClaimType='PreAuth' AND DateService={DbHelper.Year("DateService")}=1 AND SecDateEntry>{SOut.Date(dateMin)}-INTERVAL 1 YEAR
+					WHERE ClaimType='PreAuth' AND DateService=YEAR(DateService)=1 AND SecDateEntry>{SOut.Date(dateMin)}-INTERVAL 1 YEAR
 				) a
 				INNER JOIN patient ON patient.PatNum=a.PatNum
 				INNER JOIN inssub ON inssub.InsSubNum=a.InsSubNum AND a.PlanNum=inssub.PlanNum
@@ -980,16 +907,11 @@ public class Claims
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Returns the number of received claims attached to specified insplan.</summary>
     public static int GetCountReceived(long planNum)
     {
         return GetCountReceived(planNum, 0);
     }
 
-    /// <summary>
-    ///     Returns the number of received claims attached to specified subscriber with specified insplan.  Set insSubNum
-    ///     to zero to check all claims for all patients for the plan.
-    /// </summary>
     public static int GetCountReceived(long planNum, long insSubNum)
     {
         string command;
@@ -1001,14 +923,12 @@ public class Claims
         return SIn.Int(Db.GetCount(command));
     }
 
-    ///<summary>Updates ClaimIdentifier for specified claim.</summary>
     public static void UpdateClaimIdentifier(long claimNum, string claimIdentifier)
     {
         var command = "UPDATE claim SET ClaimIdentifier='" + SOut.String(claimIdentifier) + "' WHERE ClaimNum=" + SOut.Long(claimNum);
         Db.NonQ(command);
     }
 
-    ///<summary>Performs CalculateAndUpdateSecondaries given a list of primary claims. Grabs all necessary information.</summary>
     public static void CalculateAndUpdateSecondariesFromPrimaries(List<Claim> listPrimaryClaims)
     {
         if (listPrimaryClaims.Count < 1) return;
@@ -1018,7 +938,6 @@ public class Claims
         CalculateAndUpdateSecondaries(listSecondaryClaims);
     }
 
-    ///<summary>Performs CalculateAndUpdate on a list of secondary claims. Grabs all necessary information.</summary>
     public static void CalculateAndUpdateSecondaries(List<Claim> listSecondaryClaims)
     {
         if (listSecondaryClaims.Count < 1) return;
@@ -1050,12 +969,6 @@ public class Claims
         }
     }
 
-    /// <summary>
-    ///     Updates all claimproc estimates and also updates claim totals to db. Must supply procList which includes all
-    ///     procedures that this
-    ///     claim is linked to. Will also need to refresh afterwards to see the results.
-    ///     If the Claim is "S" Sent or "R" Received, FeeBilled and ClaimFee will not be updated.
-    /// </summary>
     public static void CalculateAndUpdate(List<Procedure> listProcedures, List<InsPlan> listInsPlans, Claim claim, List<PatPlan> listPatPlans, List<Benefit> listBenefits, Patient patient, List<InsSub> listInsSubs)
     {
         //we need more than just the claimprocs for this claim.
@@ -1246,9 +1159,7 @@ public class Claims
         Update(claim);
     }
 
-    ///<summary>Creates a claim for a newly created repeat charge procedure.</summary>
-    public static Claim CreateClaimForRepeatCharge(string claimType, List<PatPlan> listPatPlans, List<InsPlan> listInsPlans, List<ClaimProc> listClaimProcs,
-        Procedure procedure, List<InsSub> listInsSubs, Patient patient)
+    public static Claim CreateClaimForRepeatCharge(string claimType, List<PatPlan> listPatPlans, List<InsPlan> listInsPlans, List<ClaimProc> listClaimProcs, Procedure procedure, List<InsSub> listInsSubs, Patient patient)
     {
         long claimFormNum = 0;
         var insPlan = new InsPlan();
@@ -1377,9 +1288,7 @@ public class Claims
         return claim;
     }
 
-    ///<summary>Create claim for the automatic ortho procedure.</summary>
-    public static Claim CreateClaimForOrthoProc(string claimType, PatPlan patPlan, InsPlan insPlan, InsSub insSub,
-        ClaimProc claimProc, Procedure procedure, double feeBilled, DateTime dateBanding, int totalMonths, int monthsRem)
+    public static void CreateClaimForOrthoProc(string claimType, PatPlan patPlan, InsPlan insPlan, InsSub insSub, ClaimProc claimProc, Procedure procedure, double feeBilled, DateTime dateBanding, int totalMonths, int monthsRem)
     {
         var claimProc2 = Procedures.GetClaimProcEstimate(procedure.ProcNum, new List<ClaimProc> {claimProc}, insPlan, insSub.InsSubNum);
         var listPatPlansForPat = PatPlans.Refresh(patPlan.PatNum);
@@ -1506,13 +1415,8 @@ public class Claims
         claimProc.LineNumber = 1;
         claimProc.FeeBilled = feeBilled;
         ClaimProcs.Update(claimProc);
-        return claim;
     }
 
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching claimNums as FKey and are related to Claim.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Claim table type.
-    /// </summary>
     public static void ClearFkey(List<long> listClaimNums)
     {
         ClaimCrud.ClearFkey(listClaimNums);
@@ -1558,10 +1462,6 @@ public class Claims
         return ClaimCrud.SelectMany("SELECT * FROM claim WHERE PatNum = " + patNum);
     }
 
-    /// <summary>
-    ///     Gets the most recent ortho claim with a banding code attached.
-    ///     Returns null if no ortho banding code nums found or no corresponding claim found.
-    /// </summary>
     public static Claim GetOrthoBandingClaim(long patNum, long planNum)
     {
         var listProcCodeNums = ProcedureCodes.GetOrthoBandingCodeNums();
@@ -1584,17 +1484,12 @@ public class Claims
         return ClaimCrud.SelectOne(command);
     }
 
-    ///<summary>Returns the defalt/calculated claim ID based on the ClaimIdPrefix preference.</summary>
     public static string ConvertClaimId(Claim claim, Patient patient = null)
     {
         if (patient == null) patient = Patients.GetPat(claim.PatNum);
         return Patients.ReplacePatient(PrefC.GetString(PrefName.ClaimIdPrefix), patient) + claim.ClaimNum;
     }
 
-    /// <summary>
-    ///     Caller should validate claim and listClaimProcsToSplit prior to calling.
-    ///     Inserts and updates a new split claim. Also updates the given claimOriginal to reflect new values.
-    /// </summary>
     public static Claim InsertSplitClaim(Claim claimOriginal, List<ClaimProc> listClaimProcsToSplit, Patient patient = null)
     {
         var claimNew = claimOriginal.Copy();
@@ -1644,10 +1539,6 @@ public class Claims
         return claimNew;
     }
 
-    /// <summary>
-    ///     There is a Clinic override that will cause the InsPlan-level setting to be completely ignored.  Otherwise,
-    ///     this just returns the insSub.AssignBen.  The override is based on the clinic of the subscriber.
-    /// </summary>
     public static bool GetAssignmentOfBenefits(Claim claim, InsSub insSub)
     {
         var clinicPref = ClinicPrefs.GetPref(PrefName.InsDefaultAssignBen, claim.ClinicNum);
@@ -1657,7 +1548,6 @@ public class Claims
         return insSub.AssignBen;
     }
 
-    ///<summary>Provides ClaimStatus enum from the current claim.</summary>
     public static ClaimStatus GetClaimStatusEnumFromCurClaim(Claim claim)
     {
         var listClaimStatuses = Enum.GetValues(typeof(ClaimStatus)).OfType<ClaimStatus>().ToList();
@@ -1674,11 +1564,6 @@ public class Claims
         return ClaimStatus.Unsent; //Default
     }
 
-    /// <summary>
-    ///     Returns a list of strings detailing how procedures are over-credited and what their remaining balances would be.
-    ///     Considers patient payments, insurance payments, write-offs, and adjustments.
-    ///     Returns an empty list if no procedures are over-credited.
-    /// </summary>
     public static List<string> GetAllCreditsGreaterThanProcFees(List<ClaimProc> listClaimProcsHypothetical)
     {
         var listProcDescripts = new List<string>();
@@ -1720,12 +1605,6 @@ public class Claims
         return listProcDescripts;
     }
 
-    /// <summary>
-    ///     Returns a list of strings detailing how write-offs over-credit the procedures and what their remaining balances
-    ///     would be.
-    ///     Considers write-offs and adjustments.
-    ///     Returns an empty list if no write-offs over-credit the procedures.
-    /// </summary>
     public static List<string> GetWriteOffsGreaterThanProcFees(List<ClaimProc> listClaimProcsHypothetical)
     {
         var listProcDescripts = new List<string>();
@@ -1761,12 +1640,6 @@ public class Claims
         return listProcDescripts;
     }
 
-    /// <summary>
-    ///     Returns a list of strings detailing how initial write-offs and ins payments from primary insurance over-credit the
-    ///     procedures, and what their remaining balances would be.
-    ///     Considers initial writ-offs and ins payments from primary insurance and adjustments.
-    ///     Returns an empty list if no write-offs and ins payments over-credit the procedures.
-    /// </summary>
     public static List<string> GetInitialPrimaryInsGreaterThanProcFees(List<ClaimProc> listClaimProcsHypothetical)
     {
         var listProcDescripts = new List<string>();
@@ -1799,12 +1672,6 @@ public class Claims
         return listProcDescripts;
     }
 
-    /// <summary>
-    ///     Receives a claim and its claimprocs if the InsAutoReceiveNoAssign pref is on.
-    ///     Recalculates related secondary estimates if ClaimPrimaryReceivedRecalcSecondary pref is on.
-    ///     Fields that have financial impact other than write-off are set to $0. Ignores preauths.
-    ///     Returns true if the claim and claimprocs are received in this method.
-    /// </summary>
     public static bool ReceiveAsNoPaymentIfNeeded(long claimNum)
     {
         var claim = GetClaim(claimNum);
@@ -1860,10 +1727,6 @@ public class Claims
         return true;
     }
 
-    /// <summary>
-    ///     Returns the salted hash for the claim. Will return an empty string if the calling program is unable to use
-    ///     CDT.dll.
-    /// </summary>
     public static string HashFields(Claim claim)
     {
         var unhashedText = claim.ClaimFee.ToString("F2") + claim.ClaimStatus + claim.InsPayEst.ToString("F2") + claim.InsPayAmt.ToString("F2");
@@ -1877,10 +1740,6 @@ public class Claims
         }
     }
 
-    /// <summary>
-    ///     Validates the hash string in claim.SecurityHash. Returns true if it matches the expected hash, otherwise
-    ///     false.
-    /// </summary>
     public static bool IsClaimHashValid(Claim claim)
     {
         if (claim == null) return true;
@@ -1890,13 +1749,8 @@ public class Claims
         if (claim.SecurityHash == HashFields(claim)) return true;
         return false;
     }
-} //end class Claims
+}
 
-/// <summary>
-///     This is an odd class.  It holds data for the X12 (4010 only) generation process.  It replaces an older
-///     multi-dimensional array, so the names are funny, but helpful to prevent bugs.  Not an actual database table.
-/// </summary>
-[Serializable]
 public class X12TransactionItem
 {
     public long ClaimNum4;
@@ -1906,78 +1760,27 @@ public class X12TransactionItem
     public long Subscriber2;
 }
 
-///<summary>Holds a list of claims to show in the claims 'queue' waiting to be sent.  Not an actual database table.</summary>
-[Serializable]
 public class ClaimSendQueueItem
 {
-    
     public string Carrier;
-
-    
     public long ClaimNum;
-
-    /// <summary>Single char: U,H,W,P,S,or R.</summary>
-    /// <remarks>
-    ///     U=Unsent, H=Hold until pri received, W=Waiting in queue, P=Probably sent, S=Sent, R=Received.  A(adj) is no
-    ///     longer used.
-    /// </remarks>
     public string ClaimStatus;
-
-    ///<summary>ClearinghouseNum of HQ.</summary>
     public long ClearinghouseNum;
-
-    
     public long ClinicNum;
-
-    /// <summary>Used to save what tracking is used for filtering.</summary>
     public long CustomTracking;
-
-    
     public DateTime DateService;
-
-    ///<summary>Errors which will prevent FormClaimEdit.cs from saving the claim when the user clicks OK.</summary>
     public string ErrorsPreventingSave;
-
-    ///<summary>Claim has procedures with IcdVersion=9 and at least one Diagnostic.</summary>
     public bool HasIcd9;
-
-    /// <summary>
-    ///     False by default.  For speed purposes, claims should only be validated once, which is just before they are
-    ///     sent.
-    /// </summary>
     public bool IsValid;
-
-    ///<summary>Enum:EnumClaimMedType 0=Dental, 1=Medical, 2=Institutional</summary>
     public EnumClaimMedType MedType;
-
-    
     public string MissingData;
-
-    /// <summary>
-    ///     Enum:NoSendElectType 0 - send electronically, 1 - don't send electronically, 2 - don't send non-primary (secondary,
-    ///     tertiary, etc.) claims electronically.
-    /// </summary>
     public NoSendElectType NoSendElect;
-
-    ///<summary>The ordinal of the insurance plan for the subscriber associated with this claim.</summary>
     public int Ordinal;
-
-    
     public string PatName;
-
-    
     public long PatNum;
-
-    ///<summary>Comma separated ProcedureCode string for this claim.</summary>
     public string ProcedureCodeString;
-
-    ///<summary>The Provider of a given clinic.</summary>
     public long ProvTreat;
-
-    ///<summary>Date the claim was last edited.</summary>
     public DateTime SecDateTEdit;
-
-    
     public string Warnings;
 
     [XmlIgnore]
@@ -1989,62 +1792,27 @@ public class ClaimSendQueueItem
     }
 }
 
-///<summary>Holds a list of claims to show in the Claim Pay Edit window.  Not an actual database table.</summary>
-[Serializable]
 public class ClaimPaySplit
 {
-    
     public string Carrier;
-
-    
     public string ClaimIdentifier;
-
-    
     public long ClaimNum;
-
-    
     public long ClaimPaymentNum;
-
-    
     public string ClaimStatus;
-
-    
     public string ClinicDesc;
-
-    
     public DateTime DateClaim;
-
-    
     public double FeeBilled;
-
-    
     public double InsPayAmt;
-
-    
     public string PatName;
-
-    
     public long PatNum;
-
-    ///<summary>1-based</summary>
     public int PaymentRow;
-
-    
     public string ProvAbbr;
 }
 
-///<summary>Different types of filters for the Claims Not Sent report.</summary>
 public enum ClaimNotSentStatuses
 {
-    ///<summary>0</summary>
     All,
-
-    ///<summary>1</summary>
     Primary,
-
-    ///<summary>2</summary>
     Secondary,
-
-    ///<summary>3</summary>
     Holding
 }

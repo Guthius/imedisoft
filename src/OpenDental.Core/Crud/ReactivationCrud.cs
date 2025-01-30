@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ReactivationCrud
 {
@@ -82,7 +84,7 @@ public class ReactivationCrud
                                            + DbHelper.ParamChar + "paramReactivationNote,"
                                            + SOut.Bool(reactivation.DoNotContact) + ")";
         if (reactivation.ReactivationNote == null) reactivation.ReactivationNote = "";
-        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", OdDbType.Text, SOut.StringParam(reactivation.ReactivationNote));
+        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", SOut.StringParam(reactivation.ReactivationNote));
         {
             reactivation.ReactivationNum = Db.NonQ(command, true, "ReactivationNum", "reactivation", paramReactivationNote);
         }
@@ -107,7 +109,7 @@ public class ReactivationCrud
                                            + DbHelper.ParamChar + "paramReactivationNote,"
                                            + SOut.Bool(reactivation.DoNotContact) + ")";
         if (reactivation.ReactivationNote == null) reactivation.ReactivationNote = "";
-        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", OdDbType.Text, SOut.StringParam(reactivation.ReactivationNote));
+        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", SOut.StringParam(reactivation.ReactivationNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramReactivationNote);
         else
@@ -124,7 +126,7 @@ public class ReactivationCrud
                       + "DoNotContact      =  " + SOut.Bool(reactivation.DoNotContact) + " "
                       + "WHERE ReactivationNum = " + SOut.Long(reactivation.ReactivationNum);
         if (reactivation.ReactivationNote == null) reactivation.ReactivationNote = "";
-        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", OdDbType.Text, SOut.StringParam(reactivation.ReactivationNote));
+        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", SOut.StringParam(reactivation.ReactivationNote));
         Db.NonQ(command, paramReactivationNote);
     }
 
@@ -157,7 +159,7 @@ public class ReactivationCrud
 
         if (command == "") return false;
         if (reactivation.ReactivationNote == null) reactivation.ReactivationNote = "";
-        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", OdDbType.Text, SOut.StringParam(reactivation.ReactivationNote));
+        var paramReactivationNote = new OdSqlParameter("paramReactivationNote", SOut.StringParam(reactivation.ReactivationNote));
         command = "UPDATE reactivation SET " + command
                                              + " WHERE ReactivationNum = " + SOut.Long(reactivation.ReactivationNum);
         Db.NonQ(command, paramReactivationNote);

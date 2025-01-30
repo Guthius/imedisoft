@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DispSupplyCrud
 {
@@ -85,7 +87,7 @@ public class DispSupplyCrud
                                             + SOut.Float(dispSupply.DispQuantity) + ","
                                             + DbHelper.ParamChar + "paramNote)";
         if (dispSupply.Note == null) dispSupply.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(dispSupply.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(dispSupply.Note));
         {
             dispSupply.DispSupplyNum = Db.NonQ(command, true, "DispSupplyNum", "dispSupply", paramNote);
         }
@@ -111,7 +113,7 @@ public class DispSupplyCrud
                                             + SOut.Float(dispSupply.DispQuantity) + ","
                                             + DbHelper.ParamChar + "paramNote)";
         if (dispSupply.Note == null) dispSupply.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(dispSupply.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(dispSupply.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -129,7 +131,7 @@ public class DispSupplyCrud
                       + "Note         =  " + DbHelper.ParamChar + "paramNote "
                       + "WHERE DispSupplyNum = " + SOut.Long(dispSupply.DispSupplyNum);
         if (dispSupply.Note == null) dispSupply.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(dispSupply.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(dispSupply.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -168,7 +170,7 @@ public class DispSupplyCrud
 
         if (command == "") return false;
         if (dispSupply.Note == null) dispSupply.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(dispSupply.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(dispSupply.Note));
         command = "UPDATE dispsupply SET " + command
                                            + " WHERE DispSupplyNum = " + SOut.Long(dispSupply.DispSupplyNum);
         Db.NonQ(command, paramNote);

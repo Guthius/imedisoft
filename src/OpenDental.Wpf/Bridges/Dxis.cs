@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	/// <summary></summary>

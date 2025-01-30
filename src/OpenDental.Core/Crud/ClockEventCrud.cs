@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClockEventCrud
 {
@@ -68,8 +70,8 @@ public class ClockEventCrud
 
         command +=
             SOut.Long(clockEvent.EmployeeNum) + ","
-                                              + DbHelper.Now() + ","
-                                              + DbHelper.Now() + ","
+                                              + "NOW()" + ","
+                                              + "NOW()" + ","
                                               + SOut.Int((int) clockEvent.ClockStatus) + ","
                                               + DbHelper.ParamChar + "paramNote,"
                                               + SOut.DateTime(clockEvent.TimeEntered2) + ","
@@ -86,7 +88,7 @@ public class ClockEventCrud
                                               + "'" + SOut.TimeSpan(clockEvent.Rate3Auto) + "',"
                                               + SOut.Bool(clockEvent.IsWorkingHome) + ")";
         if (clockEvent.Note == null) clockEvent.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(clockEvent.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(clockEvent.Note));
         {
             clockEvent.ClockEventNum = Db.NonQ(command, true, "ClockEventNum", "clockEvent", paramNote);
         }
@@ -116,7 +118,7 @@ public class ClockEventCrud
                       + "IsWorkingHome     =  " + SOut.Bool(clockEvent.IsWorkingHome) + " "
                       + "WHERE ClockEventNum = " + SOut.Long(clockEvent.ClockEventNum);
         if (clockEvent.Note == null) clockEvent.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(clockEvent.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(clockEvent.Note));
         Db.NonQ(command, paramNote);
     }
 }

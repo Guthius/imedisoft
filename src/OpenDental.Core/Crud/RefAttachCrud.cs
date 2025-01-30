@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class RefAttachCrud
 {
@@ -106,7 +108,7 @@ public class RefAttachCrud
                                              + SOut.Long(refAttach.ProvNum) + ")";
         //DateTStamp can only be set by MySQL
         if (refAttach.Note == null) refAttach.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(refAttach.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(refAttach.Note));
         {
             refAttach.RefAttachNum = Db.NonQ(command, true, "RefAttachNum", "refAttach", paramNote);
         }
@@ -139,7 +141,7 @@ public class RefAttachCrud
                                              + SOut.Long(refAttach.ProvNum) + ")";
         //DateTStamp can only be set by MySQL
         if (refAttach.Note == null) refAttach.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(refAttach.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(refAttach.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -164,7 +166,7 @@ public class RefAttachCrud
                       //DateTStamp can only be set by MySQL
                       + "WHERE RefAttachNum = " + SOut.Long(refAttach.RefAttachNum);
         if (refAttach.Note == null) refAttach.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(refAttach.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(refAttach.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -240,7 +242,7 @@ public class RefAttachCrud
         //DateTStamp can only be set by MySQL
         if (command == "") return false;
         if (refAttach.Note == null) refAttach.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(refAttach.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(refAttach.Note));
         command = "UPDATE refattach SET " + command
                                           + " WHERE RefAttachNum = " + SOut.Long(refAttach.RefAttachNum);
         Db.NonQ(command, paramNote);

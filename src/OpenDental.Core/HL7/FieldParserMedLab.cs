@@ -1,5 +1,6 @@
 ﻿using System;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>Parses a single incoming MedLab HL7 field.</summary>

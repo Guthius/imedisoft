@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DisplayReportCrud
 {
-    public static DisplayReport SelectOne(long displayReportNum)
-    {
-        var command = "SELECT * FROM displayreport "
-                      + "WHERE DisplayReportNum = " + SOut.Long(displayReportNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static DisplayReport SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<DisplayReport> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -69,12 +51,7 @@ public class DisplayReportCrud
         return table;
     }
 
-    public static long Insert(DisplayReport displayReport)
-    {
-        return Insert(displayReport, false);
-    }
-
-    public static long Insert(DisplayReport displayReport, bool useExistingPK)
+    public static void Insert(DisplayReport displayReport)
     {
         var command = "INSERT INTO displayreport (";
 
@@ -90,46 +67,6 @@ public class DisplayReportCrud
         {
             displayReport.DisplayReportNum = Db.NonQ(command, true, "DisplayReportNum", "displayReport");
         }
-        return displayReport.DisplayReportNum;
-    }
-
-    public static long InsertNoCache(DisplayReport displayReport)
-    {
-        return InsertNoCache(displayReport, false);
-    }
-
-    public static long InsertNoCache(DisplayReport displayReport, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO displayreport (";
-        if (isRandomKeys || useExistingPK) command += "DisplayReportNum,";
-        command += "InternalName,ItemOrder,Description,Category,IsHidden,IsVisibleInSubMenu) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(displayReport.DisplayReportNum) + ",";
-        command +=
-            "'" + SOut.String(displayReport.InternalName) + "',"
-            + SOut.Int(displayReport.ItemOrder) + ","
-            + "'" + SOut.String(displayReport.Description) + "',"
-            + SOut.Int((int) displayReport.Category) + ","
-            + SOut.Bool(displayReport.IsHidden) + ","
-            + SOut.Bool(displayReport.IsVisibleInSubMenu) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            displayReport.DisplayReportNum = Db.NonQ(command, true, "DisplayReportNum", "displayReport");
-        return displayReport.DisplayReportNum;
-    }
-
-    public static void Update(DisplayReport displayReport)
-    {
-        var command = "UPDATE displayreport SET "
-                      + "InternalName      = '" + SOut.String(displayReport.InternalName) + "', "
-                      + "ItemOrder         =  " + SOut.Int(displayReport.ItemOrder) + ", "
-                      + "Description       = '" + SOut.String(displayReport.Description) + "', "
-                      + "Category          =  " + SOut.Int((int) displayReport.Category) + ", "
-                      + "IsHidden          =  " + SOut.Bool(displayReport.IsHidden) + ", "
-                      + "IsVisibleInSubMenu=  " + SOut.Bool(displayReport.IsVisibleInSubMenu) + " "
-                      + "WHERE DisplayReportNum = " + SOut.Long(displayReport.DisplayReportNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(DisplayReport displayReport, DisplayReport oldDisplayReport)
@@ -176,24 +113,6 @@ public class DisplayReportCrud
                                               + " WHERE DisplayReportNum = " + SOut.Long(displayReport.DisplayReportNum);
         Db.NonQ(command);
         return true;
-    }
-
-    public static bool UpdateComparison(DisplayReport displayReport, DisplayReport oldDisplayReport)
-    {
-        if (displayReport.InternalName != oldDisplayReport.InternalName) return true;
-        if (displayReport.ItemOrder != oldDisplayReport.ItemOrder) return true;
-        if (displayReport.Description != oldDisplayReport.Description) return true;
-        if (displayReport.Category != oldDisplayReport.Category) return true;
-        if (displayReport.IsHidden != oldDisplayReport.IsHidden) return true;
-        if (displayReport.IsVisibleInSubMenu != oldDisplayReport.IsVisibleInSubMenu) return true;
-        return false;
-    }
-
-    public static void Delete(long displayReportNum)
-    {
-        var command = "DELETE FROM displayreport "
-                      + "WHERE DisplayReportNum = " + SOut.Long(displayReportNum);
-        Db.NonQ(command);
     }
 
     public static void DeleteMany(List<long> listDisplayReportNums)

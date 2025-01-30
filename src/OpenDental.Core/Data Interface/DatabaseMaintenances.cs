@@ -6,7 +6,9 @@ using System.Reflection;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -108,7 +110,6 @@ public class DatabaseMaintenances
     [DbmMethodAttr]
     public static string DiseaseWithInvalidDiseaseDef(bool verbose, DbmMode dbmMode)
     {
-        
         var log = "";
         var command = @"SELECT DiseaseNum,DiseaseDefNum FROM disease WHERE DiseaseDefNum NOT IN(SELECT DiseaseDefNum FROM diseasedef)";
         var table = DataCore.GetTable(command);
@@ -146,7 +147,7 @@ public class DatabaseMaintenances
 
         return log;
     }
-    
+
     [DbmMethodAttr]
     public static string EbillMissingDefaultEntry(DbmMode dbmMode)
     {
@@ -181,7 +182,6 @@ public class DatabaseMaintenances
     [DbmMethodAttr(HasBreakDown = true, HasPatNum = true)]
     public static string InsSubNumMismatchPlanNum(bool verbose, DbmMode dbmMode, long patNumSpecific = 0)
     {
-        
         var log = "";
         //Not going to validate the following tables because they do not have an InsSubNum column: appointmentx2, benefit.
         //This DBM assumes that the inssub table is correct because that's what we're comparing against.
@@ -499,7 +499,7 @@ public class DatabaseMaintenances
                         insPlan.CarrierNum = Carriers.GetByNameAndPhone("UNKNOWN CARRIER", "", true).CarrierNum;
                         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
                         insPlan.SecUserNumEntry = Security.CurUser.UserNum;
-                        InsPlans.Insert(insPlan, true);
+                        InsPlans.Insert(insPlan);
                         var dbmLog = new DbmLog(Security.CurUser.UserNum, insPlan.PlanNum, DbmLogFKeyType.InsPlan, DbmLogActionType.Insert,
                             methodName, "Inserted new insplan from InsSubNumMismatchPlanNum.");
                         listDbmLogs.Add(dbmLog);
@@ -858,7 +858,7 @@ public class DatabaseMaintenances
 
         return log;
     }
-    
+
     [DbmMethodAttr(HasPatNum = true)]
     public static string ProcedurelogCodeNumInvalid(bool verbose, DbmMode dbmMode, long patNum = 0)
     {
@@ -1219,7 +1219,7 @@ HAVING cnt>1";
         //log+="Claimprocs deleted due duplicate entries: "+numberFixed.ToString()+".\r\n";
         return log;
     }
-    
+
     public static string FixMissingClaimProcs()
     {
         var log = "";

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace OpenDentBusiness
 {
@@ -53,7 +49,7 @@ namespace OpenDentBusiness
         }
 
         ///<summary>When deserializing, don't crash if there's an invalid key in the db; just skip over it instead.</summary>
-        public static void HandleDeserializationError(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs errorArgs)
+        public static void HandleDeserializationError(object sender, ErrorEventArgs errorArgs)
         {
             var currentError = errorArgs.ErrorContext.Error.Message;
             if (currentError.StartsWith("Could not convert string") && currentError.Contains("to dictionary key type"))
@@ -147,9 +143,6 @@ namespace OpenDentBusiness
 
             PayConnectWebServiceURL,
 
-            ///<summary>Override for non-IHS endpoints.</summary>
-            CareCreditApiURL,
-
             NewCropRxEntryURL,
 
             PDMPTestUserIL,
@@ -207,24 +200,9 @@ namespace OpenDentBusiness
             ///<summary>Formerly Appriss</summary>
             BambooTestUrl,
 
-            ///<summary>Formerly Appriss</summary>
-            BambooClientKey,
-
-            ///<summary>Formerly Appriss</summary>
-            BambooClientPassword,
-
-            QuickBooksOnlineSandboxUrl,
-
-            QuickBooksOnlineSandboxEnvironment,
-
-            QuickBooksOnlineSandboxClientIdAndSecret,
-
             EdgeExpressHostPay,
 
             EdgeExpressDirectPay,
-
-            ///<summary>Override for IHS endpoint.</summary>
-            CareCreditIHSApiURL,
 
             XWebGatewayURL,
 

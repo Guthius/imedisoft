@@ -5,12 +5,10 @@ namespace OpenDentBusiness;
 [AttributeUsage(AttributeTargets.Field)]
 public class CrudColumnAttribute : Attribute
 {
-    public bool IsPriKey { get; set; } = false;
+    public bool IsPriKey { get; set; }
     public CrudSpecialColType SpecialType { get; set; } = CrudSpecialColType.None;
-    public bool IsNotDbColumn { get; set; } = false;
-    public bool IsNotCemtColumn { get; set; } = false;
-    public int DefaultEnumAsString { get; set; } = 0;
-    public int DecimalPlaces { get; set; } = 2;
+    public bool IsNotDbColumn { get; set; }
+    public bool IsNotCemtColumn { get; set; }
 }
     
 [Flags]

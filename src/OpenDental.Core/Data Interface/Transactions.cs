@@ -1,22 +1,17 @@
 using System;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Transactions
 {
-    ///<summary>Since transactions are always viewed individually, this function returns one transaction</summary>
     public static Transaction GetTrans(long transactionNum)
     {
         return TransactionCrud.SelectOne(transactionNum);
     }
 
-    /// <summary>
-    ///     Gets one transaction directly from the database which has this deposit attached to it.  If none exist, then
-    ///     returns null.
-    /// </summary>
     public static Transaction GetAttachedToDeposit(long depositNum)
     {
         var command =
@@ -25,10 +20,6 @@ public class Transactions
         return TransactionCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Gets one transaction directly from the database which has this payment attached to it.  If none exist, then
-    ///     returns null.  There should never be more than one, so that's why it doesn't return more than one.
-    /// </summary>
     public static Transaction GetAttachedToPayment(long payNum)
     {
         var command =
@@ -37,15 +28,13 @@ public class Transactions
         return TransactionCrud.SelectOne(command);
     }
 
-    
-    public static long Insert(Transaction transaction)
+    public static void Insert(Transaction transaction)
     {
         transaction.SecUserNumEdit = Security.CurUser.UserNum; //Before middle tier check to catch user at workstation
 
-        return TransactionCrud.Insert(transaction);
+        TransactionCrud.Insert(transaction);
     }
 
-    
     public static void Update(Transaction transaction)
     {
         transaction.SecUserNumEdit = Security.CurUser.UserNum; //Before middle tier check to catch user at workstation
@@ -53,7 +42,6 @@ public class Transactions
         TransactionCrud.Update(transaction);
     }
 
-    
     public static void UpdateInvoiceNum(long transactionNum, long transactionInvoiceNum)
     {
         var command = "UPDATE transaction SET TransactionInvoiceNum=" + SOut.Long(transactionInvoiceNum)
@@ -61,10 +49,6 @@ public class Transactions
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Also deletes all journal entries for the transaction.  Will later throw an error if journal entries attached
-    ///     to any reconciles.  Be sure to surround with try-catch.
-    /// </summary>
     public static void Delete(Transaction transaction)
     {
         if (IsTransactionLocked(transaction.TransactionNum)) throw new ApplicationException(Lans.g("Transactions", "Not allowed to delete transactions because it is attached to a reconcile that is locked."));
@@ -96,7 +80,6 @@ public class Transactions
         return IsTransactionLocked(transaction.TransactionNum);
     }
 
-    
     public static bool IsReconciled(Transaction transaction)
     {
         var command = "SELECT COUNT(*) FROM journalentry WHERE ReconcileNum !=0"

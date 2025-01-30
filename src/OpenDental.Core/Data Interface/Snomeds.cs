@@ -1,95 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Snomeds
 {
-    //Not going to use the cache pattern for snomed, takes approximately 100 MB of ram.
-    //If this table type will exist as cached data, uncomment the CachePattern region below.
-
-    /*
-    #region CachePattern
-
-    private class SnomedCache : CacheListAbs<Snomed> {
-        protected override List<Snomed> GetCacheFromDb() {
-            string command="SELECT * FROM Snomed ORDER BY ItemOrder";
-            return Crud.SnomedCrud.SelectMany(command);
-        }
-        protected override List<Snomed> TableToList(DataTable table) {
-            return Crud.SnomedCrud.TableToList(table);
-        }
-        protected override Snomed Copy(Snomed Snomed) {
-            return Snomed.Clone();
-        }
-        protected override DataTable ListToTable(List<Snomed> listSnomeds) {
-            return Crud.SnomedCrud.ListToTable(listSnomeds,"Snomed");
-        }
-        protected override void FillCacheIfNeeded() {
-            Snomeds.GetTableFromCache(false);
-        }
-        protected override bool IsInListShort(Snomed Snomed) {
-            return !Snomed.IsHidden;
-        }
-    }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static SnomedCache _SnomedCache=new SnomedCache();
-
-    ///<summary>A list of all Snomeds. Returns a deep copy.</summary>
-    public static List<Snomed> ListDeep {
-        get {
-            return _SnomedCache.ListDeep;
-        }
-    }
-
-    ///<summary>A list of all visible Snomeds. Returns a deep copy.</summary>
-    public static List<Snomed> ListShortDeep {
-        get {
-            return _SnomedCache.ListShortDeep;
-        }
-    }
-
-    ///<summary>A list of all Snomeds. Returns a shallow copy.</summary>
-    public static List<Snomed> ListShallow {
-        get {
-            return _SnomedCache.ListShallow;
-        }
-    }
-
-    ///<summary>A list of all visible Snomeds. Returns a shallow copy.</summary>
-    public static List<Snomed> ListShort {
-        get {
-            return _SnomedCache.ListShallowShort;
-        }
-    }
-
-    ///<summary>Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's cache.</summary>
-    public static DataTable RefreshCache() {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table) {
-        _SnomedCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
-    public static DataTable GetTableFromCache(bool doRefreshCache) {
-
-        return _SnomedCache.GetTableFromCache(doRefreshCache);
-    }
-
-    #endregion
-    */
-
-    /// <summary>
-    ///     For FormSnomeds to get the list to be displayed in the ListBox. Only gets the first 10,000 in order to remain
-    ///     fast.
-    /// </summary>
     public static List<Snomed> GetByCodeOrDescription(string searchTxt)
     {
         var command = "SELECT * FROM snomed WHERE SnomedCode LIKE '%" + SOut.String(searchTxt) + "%' "
@@ -98,10 +16,6 @@ public class Snomeds
         return SnomedCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     For FormSnomeds. Must be in the format "code,code,code,code" for it to work properly. Harmless if malformed.
-    ///     Gets exactly the list of codes provided.
-    /// </summary>
     public static List<Snomed> GetByCodes(string searchTxt)
     {
         var listCodes = searchTxt.Split(',').ToList();
@@ -117,13 +31,6 @@ public class Snomeds
         return SnomedCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one Snomed from the db.</summary>
-    public static Snomed GetOne(long snomedNum)
-    {
-        return SnomedCrud.SelectOne(snomedNum);
-    }
-
-    ///<summary>Directly from db.</summary>
     public static bool CodeExists(string snomedCode)
     {
         var command = "SELECT COUNT(*) FROM snomed WHERE SnomedCode = '" + SOut.String(snomedCode) + "'";
@@ -131,69 +38,23 @@ public class Snomeds
         if (count == "0") return false;
         return true;
     }
-
     
-    public static long Insert(Snomed snomed)
+    public static void Insert(Snomed snomed)
     {
-        return SnomedCrud.Insert(snomed);
+        SnomedCrud.Insert(snomed);
     }
-
     
     public static void Update(Snomed snomed)
     {
         SnomedCrud.Update(snomed);
     }
 
-    
-    public static void Delete(long snomedNum)
-    {
-        //No need to check FKs from other tables since there are none. Snomeds are copied into the DiseaseDef table when in use.
-        var command = "DELETE FROM snomed WHERE SnomedNum = " + SOut.Long(snomedNum);
-        Db.NonQ(command);
-    }
-
-    ///<summary>Delete all for import. Before importing Snomed Codes, delete the existing list.</summary>
-    public static void DeleteAll()
-    {
-        var command = "DELETE FROM snomed";
-        Db.NonQ(command);
-    }
-
-    //Not going to use the cache pattern for snomed, takes approximately 100 MB of ram.
-    /////<summary>Returns the code and description of the snomed.</summary>
-    //public static string GetCodeAndDescription(string snomed) {
-    //	Meth.NoCheckMiddleTierRole();
-    //	for(int i=0;i<Listt.Count;i++) {
-    //		if(Listt[i].SnomedCode==snomed) {
-    //			return Listt[i].SnomedCode+"-"+Listt[i].Description;
-    //		}
-    //	}
-    //	return "";
-    //}
-
-    /// <summary>
-    ///     Gets the code and description of the snomed directly from the database by code value.  Re-written to not
-    ///     utilize the cache.
-    /// </summary>
     public static string GetCodeAndDescription(string snomedCode)
     {
         var command = "SELECT CONCAT(CONCAT(SnomedCode,'-'),Description) AS CodeAndDescription FROM snomed WHERE SnomedCode='" + SOut.String(snomedCode) + "'";
         return DataCore.GetScalar(command);
     }
-
-    //Not going to use the cache pattern for snomed, takes approximately 100 MB of ram.
-    /////<summary>Returns the Snomed of the code passed in by looking in cache.  If code does not exist, returns null.</summary>
-    //public static Snomed GetByCode(string snomedCode) {
-    //	Meth.NoCheckMiddleTierRole();
-    //	for(int i=0;i<Listt.Count;i++) {
-    //		if(Listt[i].SnomedCode==snomedCode) {
-    //			return Listt[i];
-    //		}
-    //	}
-    //	return null;
-    //}
-
-    ///<summary>Gets one snomed object directly from the database by CodeValue.  If code does not exist, returns null.</summary>
+    
     public static Snomed GetByCode(string snomedCode)
     {
         if (string.IsNullOrEmpty(snomedCode)) return null;
@@ -202,7 +63,6 @@ public class Snomeds
         return SnomedCrud.SelectOne(command);
     }
 
-    ///<summary>Returns dictionary&lt;ICD9Code,SNOMEDCode&gt; for crossmapping exact matches between ICD9 and SNOMED.</summary>
     public static Dictionary<string, string> GetICD9toSNOMEDDictionary()
     {
         return new Dictionary<string, string>
@@ -3545,16 +3405,6 @@ public class Snomeds
     {
         var command = "SELECT * FROM snomed";
         return SnomedCrud.SelectMany(command);
-    }
-
-    ///<summary>Returns a list of just the codes for use in update or insert logic.</summary>
-    public static List<string> GetAllCodes()
-    {
-        var listCodes = new List<string>();
-        var command = "SELECT SnomedCode FROM snomed";
-        var table = DataCore.GetTable(command);
-        for (var i = 0; i < table.Rows.Count; i++) listCodes.Add(table.Rows[i].ItemArray[0].ToString());
-        return listCodes;
     }
 
     public static long GetCodeCount()

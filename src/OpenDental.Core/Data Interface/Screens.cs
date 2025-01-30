@@ -3,40 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Screens
 {
-    ///<summary>Gets one Screen from the db.</summary>
-    public static Screen GetOne(long screenNum)
-    {
-        return ScreenCrud.SelectOne(screenNum);
-    }
-
-    /// <summary>
-    ///     After taking multiple screenings using a sheets, this method will import all sheets as screens and insert them into
-    ///     the db.
-    ///     The goal of this method is that the office will fill out a bunch of sheets (in the web?).
-    ///     Then after they get back to their office (with connection to their db) they will push a button to upload / insert a
-    ///     batch.
-    /// </summary>
-    public static List<Screen> CreateScreensFromSheets(List<Sheet> listSheets)
-    {
-        var listScreens = new List<Screen>();
-        for (var i = 0; i < listSheets.Count; i++) listScreens.Add(CreateScreenFromSheet(listSheets[i]));
-        return listScreens;
-    }
-
-    /// <summary>
-    ///     After taking a screening using a sheet, this method will import the sheet as a screen and insert it into the db.
-    ///     Returns null if the sheet passed in is not a Screening sheet type or if the sheet is missing the required
-    ///     ScreenGroupNum param.
-    ///     Optionally supply a screen if you want to preset some values.  E.g. ScreenGroupOrder is often preset before calling
-    ///     this method.
-    /// </summary>
     public static Screen CreateScreenFromSheet(Sheet sheet, Screen screen = null)
     {
         //Make sure that the sheet passed in is a screening and contains the required ScreenGroupNum parameter.
@@ -123,15 +96,7 @@ public class Screens
         return screen;
     }
 
-    /// <summary>
-    ///     Takes a screening sheet that is associated to a patient and processes any corresponding ScreenCharts found.
-    ///     Processing will create treatment planned or completed procedures for the patient.
-    ///     Supply the sheet and then a bitwise enum of screen chart types to digest.
-    ///     listSheetFieldsProcOrig, nulls are allowed, the first represents the fluoride field, second is assessment field,
-    ///     all others are other procs.
-    /// </summary>
-    public static void ProcessScreenChart(Sheet sheet, ScreenChartType screenChartTypes, long provNum, long sheetNum, List<SheetField> listSheetFieldsChartOrig
-        , List<SheetField> listSheetFieldsProcOrig)
+    public static void ProcessScreenChart(Sheet sheet, ScreenChartType screenChartTypes, long provNum, List<SheetField> listSheetFieldsChartOrig, List<SheetField> listSheetFieldsProcOrig)
     {
         if (sheet == null || sheet.PatNum == 0) return; //An invalid screening sheet was passed in.
         var listToothVals = new List<string>();
@@ -155,7 +120,7 @@ public class Screens
                 }
 
                 var screenChartType = ScreenChartType.TP;
-                ProcessScreenChartHelper(sheet.PatNum, listToothVals, screenChartType, provNum, sheetNum, listToothValsOld);
+                ProcessScreenChartHelper(sheet.PatNum, listToothVals, screenChartType, provNum, listToothValsOld);
                 break;
             }
 
@@ -179,7 +144,7 @@ public class Screens
                 }
 
                 var screenChartType = ScreenChartType.C;
-                ProcessScreenChartHelper(sheet.PatNum, listToothVals, screenChartType, provNum, sheetNum, listToothValsOld);
+                ProcessScreenChartHelper(sheet.PatNum, listToothVals, screenChartType, provNum, listToothValsOld);
                 break;
             }
 
@@ -215,12 +180,7 @@ public class Screens
         }
     }
 
-    /// <summary>
-    ///     Helper method so that we do not have to duplicate code.  The length of toothValues must match the length of
-    ///     chartOrigVals.
-    /// </summary>
-    private static void ProcessScreenChartHelper(long patNum, List<string> listToothValues, ScreenChartType screenChartType, long provNum, long sheetNum
-        , List<string> listChartOrigVals)
+    private static void ProcessScreenChartHelper(long patNum, List<string> listToothValues, ScreenChartType screenChartType, long provNum, List<string> listChartOrigVals)
     {
         for (var i = 0; i < listToothValues.Count; i++)
         {
@@ -381,7 +341,6 @@ public class Screens
         if (screenChartType == ScreenChartType.C) Recalls.Synch(patNum);
     }
 
-    ///<summary>Gets all screens associated to the screen group passed in.</summary>
     public static List<Screen> GetScreensForGroup(long screenGroupNum)
     {
         var command = "SELECT * FROM screen "
@@ -390,36 +349,28 @@ public class Screens
         return ScreenCrud.SelectMany(command);
     }
 
-    
-    public static long Insert(Screen screen)
+    public static void Insert(Screen screen)
     {
-        return ScreenCrud.Insert(screen);
+        ScreenCrud.Insert(screen);
     }
 
-    
     public static void Update(Screen screen)
     {
         ScreenCrud.Update(screen);
     }
 
-    
     public static void Delete(Screen screen)
     {
         var command = "DELETE from screen WHERE ScreenNum = '" + SOut.Long(screen.ScreenNum) + "'";
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Deletes a Screen that has the attached sheetNum.  Deleting screen sheets are the same as deleting the screen
-    ///     itself.
-    /// </summary>
     public static void DeleteForSheet(long sheetNum)
     {
         var command = "DELETE FROM screen WHERE SheetNum=" + SOut.Long(sheetNum);
         Db.NonQ(command);
     }
 
-    /// <summary>Deletes a list of Screens.</summary>
     public static void DeleteScreens(List<long> listScreenNums)
     {
         if (listScreenNums.IsNullOrEmpty()) return;

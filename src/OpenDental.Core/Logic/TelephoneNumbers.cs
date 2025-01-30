@@ -1,234 +1,221 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace OpenDentBusiness;
 
 public class TelephoneNumbers
 {
-    ///<summary>Formatting is only allowed when computer is set to en-US, en-CA, or fr-CA.</summary>
     public static bool IsFormattingAllowed()
     {
-        return (CultureInfo.CurrentCulture.Name == "en-US" || CultureInfo.CurrentCulture.Name.EndsWith("CA"));
+        return CultureInfo.CurrentCulture.Name == "en-US" || CultureInfo.CurrentCulture.Name.EndsWith("CA");
     }
 
-    ///<summary>Returns true if the phone number is a valid format.  The number passed in can contain formating.  Will strip out formatting of the passed in phone number.  Phone number will be considered invalid if a '1' is found at the beginning.</summary>
-    public static bool IsNumberValidTenDigit(string phoneNum)
+    public static bool IsNumberValidTenDigit(string phoneNumber)
     {
         if (!IsFormattingAllowed())
         {
             return true;
         }
 
-        phoneNum = phoneNum.Replace("(", "");
-        phoneNum = phoneNum.Replace(")", "");
-        phoneNum = phoneNum.Replace(" ", "");
-        phoneNum = phoneNum.Replace("-", "");
-        if (phoneNum.Length == 0 || phoneNum.Length == 10)
-        {
-            return true;
-        }
-
-        return false;
+        phoneNumber = phoneNumber.Replace("(", "");
+        phoneNumber = phoneNumber.Replace(")", "");
+        phoneNumber = phoneNumber.Replace(" ", "");
+        phoneNumber = phoneNumber.Replace("-", "");
+        
+        return phoneNumber.Length is 0 or 10;
     }
 
-    ///<summary>Used in the tool that loops through the database fixing telephone numbers.  Also used in the patient import from XML tool, form import, carrier edit window, and PT Dental bridge.</summary>
-    public static string ReFormat(string phoneNum)
+    public static string ReFormat(string phoneNumber)
     {
-        if (string.IsNullOrEmpty(phoneNum))
+        if (string.IsNullOrEmpty(phoneNumber))
         {
             return "";
         }
 
         if (!IsFormattingAllowed())
         {
-            return phoneNum;
+            return phoneNumber;
         }
 
-        Regex regex;
-        regex = new Regex(@"^\d{10}$"); //eg. 5033635432
-        if (regex.IsMatch(phoneNum))
+        var regex = new Regex(@"^\d{10}$"); //eg. 5033635432
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(3, 3) + "-" + phoneNum.Substring(6);
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(3, 3) + "-" + phoneNumber.Substring(6);
         }
 
         regex = new Regex(@"^\d{11}$"); //eg. 15033635432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return phoneNum.Substring(0, 1) + "(" + phoneNum.Substring(1, 3) + ")" + phoneNum.Substring(4, 3) + "-" + phoneNum.Substring(7);
+            return phoneNumber.Substring(0, 1) + "(" + phoneNumber.Substring(1, 3) + ")" + phoneNumber.Substring(4, 3) + "-" + phoneNumber.Substring(7);
         }
 
         regex = new Regex(@"^\d{3}-\d{3}-\d{4}"); //eg. 503-363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(4);
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(4);
         }
 
         regex = new Regex(@"^\d-\d{3}-\d{3}-\d{4}"); //eg. 1-503-363-5432 to 1(503)363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return phoneNum.Substring(0, 1) + "(" + phoneNum.Substring(2, 3) + ")" + phoneNum.Substring(6);
+            return phoneNumber.Substring(0, 1) + "(" + phoneNumber.Substring(2, 3) + ")" + phoneNumber.Substring(6);
         }
 
         regex = new Regex(@"^\d{3} \d{3}-\d{4}"); //eg 503 363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(4);
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(4);
         }
 
         regex = new Regex(@"^\d{3} \d{3} \d{4}"); //eg 916 363 5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(4, 3) + "-" + phoneNum.Substring(8);
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(4, 3) + "-" + phoneNumber.Substring(8);
         }
 
         regex = new Regex(@"^\(\d{3}\) \d{3} \d{4}"); //eg (916) 363 5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(1, 3) + ")" + phoneNum.Substring(6, 3) + "-" + phoneNum.Substring(10);
+            return "(" + phoneNumber.Substring(1, 3) + ")" + phoneNumber.Substring(6, 3) + "-" + phoneNumber.Substring(10);
         }
 
         regex = new Regex(@"^\(\d{3}\) \d{3}-\d{4}"); //eg (916) 363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(1, 3) + ")" + phoneNum.Substring(6, 3) + "-" + phoneNum.Substring(10);
+            return "(" + phoneNumber.Substring(1, 3) + ")" + phoneNumber.Substring(6, 3) + "-" + phoneNumber.Substring(10);
         }
 
         regex = new Regex(@"^\d{7}"); //eg 3635432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
             //this must be run after the d{10} match up above.
-            return (phoneNum.Substring(0, 3) + "-" + phoneNum.Substring(3));
+            return phoneNumber.Substring(0, 3) + "-" + phoneNumber.Substring(3);
         }
 
         regex = new Regex(@"^\(\d{3}-\d{3}-\d{4}"); //eg (916-363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(1, 3) + ")" + phoneNum.Substring(5, 3) + "-" + phoneNum.Substring(9);
+            return "(" + phoneNumber.Substring(1, 3) + ")" + phoneNumber.Substring(5, 3) + "-" + phoneNumber.Substring(9);
         }
 
         regex = new Regex(@"^\d{3}\)\d{3}-\d{4}"); //eg 916)363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(4, 3) + "-" + phoneNum.Substring(8);
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(4, 3) + "-" + phoneNumber.Substring(8);
         }
 
         regex = new Regex(@"^\d{6}-\d{4}"); //eg 916363-5432
-        if (regex.IsMatch(phoneNum))
+        if (regex.IsMatch(phoneNumber))
         {
-            return "(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(3, 3) + "-" + phoneNum.Substring(7);
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(3, 3) + "-" + phoneNumber.Substring(7);
         }
 
-        return phoneNum;
+        return phoneNumber;
     }
 
-    ///<summary>reformats initial entry with each keystroke</summary>
-    public static string AutoFormat(string phoneNum)
+    public static string AutoFormat(string phoneNumber)
     {
         if (!IsFormattingAllowed())
         {
-            return phoneNum;
+            return phoneNumber;
         }
 
-        if (Regex.IsMatch(phoneNum, @"^[2-9]$"))
+        if (Regex.IsMatch(phoneNumber, @"^[2-9]$"))
         {
-            return "(" + phoneNum;
+            return "(" + phoneNumber;
         }
 
-        if (Regex.IsMatch(phoneNum, @"^1\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^1\d$"))
         {
-            return "1(" + phoneNum.Substring(1);
+            return "1(" + phoneNumber.Substring(1);
         }
 
-        if (Regex.IsMatch(phoneNum, @"^\(\d\d\d\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^\(\d\d\d\d$"))
         {
-            return (phoneNum.Substring(0, 4) + ")" + phoneNum.Substring(4));
+            return phoneNumber.Substring(0, 4) + ")" + phoneNumber.Substring(4);
         }
 
-        if (Regex.IsMatch(phoneNum, @"^1\(\d\d\d\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^1\(\d\d\d\d$"))
         {
-            return (phoneNum.Substring(0, 5) + ")" + phoneNum.Substring(5));
+            return phoneNumber.Substring(0, 5) + ")" + phoneNumber.Substring(5);
         }
 
-        if (Regex.IsMatch(phoneNum, @"^\(\d\d\d\)\d\d\d\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^\(\d\d\d\)\d\d\d\d$"))
         {
-            return (phoneNum.Substring(0, 8) + "-" + phoneNum.Substring(8));
+            return phoneNumber.Substring(0, 8) + "-" + phoneNumber.Substring(8);
         }
 
-        if (Regex.IsMatch(phoneNum, @"^1\(\d\d\d\)\d\d\d\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^1\(\d\d\d\)\d\d\d\d$"))
         {
-            return (phoneNum.Substring(0, 9) + "-" + phoneNum.Substring(9));
+            return phoneNumber.Substring(0, 9) + "-" + phoneNumber.Substring(9);
         }
 
-        if (Regex.IsMatch(phoneNum, @"^1\d\d\d\d\d\d\d\d\d\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^1\d\d\d\d\d\d\d\d\d\d$"))
         {
-            //If the value is pasted into the field, this could be the format.
-            return (phoneNum.Substring(0, 1) + "(" + phoneNum.Substring(1, 3) + ")" + phoneNum.Substring(4, 3) + "-" + phoneNum.Substring(7));
+            return phoneNumber.Substring(0, 1) + "(" + phoneNumber.Substring(1, 3) + ")" + phoneNumber.Substring(4, 3) + "-" + phoneNumber.Substring(7);
         }
 
-        if (Regex.IsMatch(phoneNum, @"^\d\d\d\d\d\d\d\d\d\d$"))
+        if (Regex.IsMatch(phoneNumber, @"^\d\d\d\d\d\d\d\d\d\d$"))
         {
-            //If the value is pasted into the field, this could be the format.
-            return ("(" + phoneNum.Substring(0, 3) + ")" + phoneNum.Substring(3, 3) + "-" + phoneNum.Substring(6));
+            return "(" + phoneNumber.Substring(0, 3) + ")" + phoneNumber.Substring(3, 3) + "-" + phoneNumber.Substring(6);
         }
 
-        //Got through all other validation.  Make sure phoneNum is in correct final format.
-        if (!Regex.IsMatch(phoneNum, @"^\(\d\d\d\)\d\d\d-\d\d\d\d$") || !Regex.IsMatch(phoneNum, @"^1\(\d\d\d\)\d\d\d-\d\d\d\d$"))
+        if (!Regex.IsMatch(phoneNumber, @"^\(\d\d\d\)\d\d\d-\d\d\d\d$") || !Regex.IsMatch(phoneNumber, @"^1\(\d\d\d\)\d\d\d-\d\d\d\d$"))
         {
-            return ReFormat(phoneNum);
+            return ReFormat(phoneNumber);
         }
 
-        return phoneNum;
+        return phoneNumber;
     }
 
-    ///<Summary>Also truncates if more than two non-numbers in a row.  This is to avoid the notes that can follow phone numbers.</Summary>
-    public static string FormatNumbersOnly(string phoneNum)
+    public static string FormatNumbersOnly(string phoneNumber)
     {
-        string phoneRetVal = "";
-        int countNonNums = 0;
-        for (int i = 0; i < phoneNum.Length; i++)
+        var result = "";
+        var count = 0;
+        
+        for (var i = 0; i < phoneNumber.Length; i++)
         {
-            if (countNonNums == 2)
+            if (count == 2)
             {
-                return phoneRetVal;
+                return result;
             }
 
-            if (Char.IsNumber(phoneNum, i))
+            if (char.IsNumber(phoneNumber, i))
             {
-                phoneRetVal += phoneNum.Substring(i, 1);
-                countNonNums = 0;
+                result += phoneNumber.Substring(i, 1);
+                count = 0;
             }
             else
             {
-                countNonNums++;
+                count++;
             }
         }
 
-        return phoneRetVal;
+        return result;
     }
-        
-    public static string FormatNumbersExactTen(string phoneNum)
+
+    public static string FormatNumbersExactTen(string phoneNumber)
     {
-        string phoneRetVal = "";
-        for (int i = 0; i < phoneNum.Length; i++)
+        var result = "";
+        
+        for (var i = 0; i < phoneNumber.Length; i++)
         {
-            if (Char.IsNumber(phoneNum, i))
+            if (char.IsNumber(phoneNumber, i))
             {
-                if (phoneRetVal == "" && phoneNum.Substring(i, 1) == "1")
+                if (result == "" && phoneNumber.Substring(i, 1) == "1")
                 {
-                    continue; //skip leading 1.
+                    continue;
                 }
 
-                phoneRetVal += phoneNum.Substring(i, 1);
+                result += phoneNumber.Substring(i, 1);
             }
 
-            if (phoneRetVal.Length == 10)
+            if (result.Length == 10)
             {
-                return phoneRetVal;
+                return result;
             }
         }
-
-        //never made it to 10
+        
         return "";
     }
 }

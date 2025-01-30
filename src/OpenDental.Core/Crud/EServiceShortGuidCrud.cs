@@ -6,10 +6,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EServiceShortGuidCrud
 {
@@ -115,7 +117,7 @@ public class EServiceShortGuidCrud
             + SOut.Long(eServiceShortGuid.FKey) + ","
             + "'" + SOut.String(eServiceShortGuid.FKeyType.ToString()) + "',"
             + SOut.DateTime(eServiceShortGuid.DateTimeExpiration) + ","
-            + DbHelper.Now() + ")";
+            + "NOW()" + ")";
         {
             eServiceShortGuid.EServiceShortGuidNum = Db.NonQ(command, true, "EServiceShortGuidNum", "eServiceShortGuid");
         }
@@ -168,7 +170,7 @@ public class EServiceShortGuidCrud
             sbRow.Append(",");
             sbRow.Append(SOut.DateTime(eServiceShortGuid.DateTimeExpiration));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(")");
             if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
             {
@@ -205,7 +207,7 @@ public class EServiceShortGuidCrud
             + SOut.Long(eServiceShortGuid.FKey) + ","
             + "'" + SOut.String(eServiceShortGuid.FKeyType.ToString()) + "',"
             + SOut.DateTime(eServiceShortGuid.DateTimeExpiration) + ","
-            + DbHelper.Now() + ")";
+            + "NOW()" + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpInsAging {
@@ -18,7 +19,7 @@ namespace OpenDentBusiness {
 			string ninetyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-90));
 			string patOrGuar=(rpo.IsGroupByFam?"guar":"patient");
 			string command="SELECT guarAging.PatNum,";
-			if(ReportsComplex.RunFuncOnReportServer(() => Prefs.GetBoolNoCache(PrefName.ReportsShowPatNum))) {
+			if(Prefs.GetBoolNoCache(PrefName.ReportsShowPatNum)) {
 				command+=DbHelper.Concat("guarAging.PatNum","' - '","guarAging.LName","', '","guarAging.FName","' '","guarAging.MiddleI");
 			}
 			else {
@@ -74,13 +75,13 @@ namespace OpenDentBusiness {
 					OR ABS(guarAging.InsPayEst_Total) > 0.005)
 				ORDER BY guarAging.LName,guarAging.FName";
 			ODEvent.Fire(ODEventType.ReportComplex,Lans.g("ReportComplex","Running Insurance Estimate Query..."));
-			DataTable insTable = ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(command));
+			DataTable insTable = DataCore.GetTable(command);
 			#endregion Insurance Aging
 			#region Regular Aging
 			DataTable regAging=new DataTable();
 			//Don't run regular aging if detailed breakdown as it can take a long time to run for large customers.
 			if(!rpo.IsDetailedBreakdown) {
-				regAging=ReportsComplex.RunFuncOnReportServer(() => RpAging.GetAgingTable(rpo));
+				regAging=RpAging.GetAgingTable(rpo);
 			}
 			#endregion Regular Aging
 			#region Merge Insurance and Regular Aging

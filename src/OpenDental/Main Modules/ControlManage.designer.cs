@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Threading;
-using System.Windows.Forms;
-using CodeBase;
+﻿using System.Windows.Forms;
 using OpenDental.UI;
-using OpenDentBusiness;
 
-namespace OpenDental {
+namespace OpenDental.Main_Modules {
 	partial class ControlManage {
 
 		#region Dispose
@@ -574,7 +564,6 @@ namespace OpenDental {
 			this.Controls.Add(this.groupBox1);
 			this.Name = "ControlManage";
 			this.Size = new System.Drawing.Size(908, 702);
-			this.Load += new System.EventHandler(this.ControlManage_Load);
 			this.groupBox3.ResumeLayout(false);
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();

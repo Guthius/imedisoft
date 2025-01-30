@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class CommlogCrud
 {
@@ -71,13 +73,13 @@ public class CommlogCrud
                                       + SOut.DateTime(commlog.DateTimeEnd) + ","
                                       + SOut.Int((int) commlog.CommSource) + ","
                                       + SOut.Long(commlog.ProgramNum) + ","
-                                      + DbHelper.Now() + ","
+                                      + "NOW()" + ","
                                       + SOut.Long(commlog.ReferralNum) + ","
                                       + SOut.Int((int) commlog.CommReferralBehavior) + ")";
         if (commlog.Note == null) commlog.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(commlog.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(commlog.Note));
         if (commlog.Signature == null) commlog.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(commlog.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(commlog.Signature));
         {
             commlog.CommlogNum = Db.NonQ(command, true, "CommlogNum", "commlog", paramNote, paramSignature);
         }
@@ -105,9 +107,9 @@ public class CommlogCrud
                       + "CommReferralBehavior=  " + SOut.Int((int) commlog.CommReferralBehavior) + " "
                       + "WHERE CommlogNum = " + SOut.Long(commlog.CommlogNum);
         if (commlog.Note == null) commlog.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(commlog.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(commlog.Note));
         if (commlog.Signature == null) commlog.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(commlog.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(commlog.Signature));
         Db.NonQ(command, paramNote, paramSignature);
     }
 
@@ -202,9 +204,9 @@ public class CommlogCrud
 
         if (command == "") return false;
         if (commlog.Note == null) commlog.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(commlog.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(commlog.Note));
         if (commlog.Signature == null) commlog.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(commlog.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(commlog.Signature));
         command = "UPDATE commlog SET " + command
                                         + " WHERE CommlogNum = " + SOut.Long(commlog.CommlogNum);
         Db.NonQ(command, paramNote, paramSignature);

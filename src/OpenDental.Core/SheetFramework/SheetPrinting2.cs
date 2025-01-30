@@ -1,17 +1,15 @@
-﻿using OpenDentBusiness.FileIO;
-using PdfSharp.Drawing;
+﻿using PdfSharp.Drawing;
 using PdfSharp.Pdf;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness{
 	public class SheetPrinting{
@@ -136,115 +134,6 @@ namespace OpenDentBusiness{
 					new RectangleF(xPos+16,yPos-1,TextRenderer.MeasureText(Lans.g("ContrTreat","Treatment Planned"),bodyFont).Width,14),HorizontalAlignment.Left);
 				//gx.DrawString(Lans.g("ContrTreat","Treatment Planned"),bodyFontX,Brushes.Black,p(xPos+16),p(yPos));
 			}
-		}
-
-		///<summary>Draws all images from the sheet onto the graphic passed in.  Used when printing, exporting to pdfs, or rendering the sheet fill edit window.</summary>
-		public static void DrawImages(Sheet sheet,Graphics graphics,bool drawAll,ref int yPosPrint) {
-			Sheets.SetPageMargin(sheet,_printMargin);
-			Bitmap bitmap=null;
-			if(drawAll){// || _forceSinglePage) {//reset _yPosPrint because we are drawing all.
-				yPosPrint=0;
-			}
-			foreach(SheetField field in sheet.SheetFields) {
-				if(!drawAll ){//&& !_forceSinglePage) {
-					if(field.YPos<yPosPrint) {
-						continue; //skip if on previous page
-					}
-					if(field.Bounds.Bottom>yPosPrint+sheet.HeightPage-_printMargin.Bottom
-						&& field.YPos!= yPosPrint+_printMargin.Top) {
-						break; //Skip if on next page
-					} 
-				}
-				if(field.Height==0 || field.Width==0) {
-					continue;//might be possible with really old sheets.
-				}
-				#region Get the path for the image
-				string filePathAndName="";
-				Document document=new Document();
-				switch(field.FieldType) {
-					case SheetFieldType.Image:
-						filePathAndName=FileAtoZ.CombinePaths(SheetUtil.GetClinicImagePath(field.FieldName),field.FieldName);
-						break;
-					case SheetFieldType.PatImage:
-						continue;
-						//moving patImages into controls on FormSheetFillEdit
-						if(field.FieldValue=="") {
-							//There is no document object to use for display, but there may be a baked in image and that situation is dealt with below.
-							filePathAndName="";
-							break;
-						}
-						document=Documents.GetByNum(SIn.Long(field.FieldValue));
-						List<string> paths=Documents.GetPaths(new List<long> { document.DocNum },ImageStore.GetPreferredAtoZpath());
-						if(paths.Count < 1) {//No path was found so we cannot draw the image.
-							continue;
-						}
-						filePathAndName=paths[0];
-						break;
-					default:
-						//not an image field
-						continue;
-				}
-				#endregion
-				#region Load the image into bmpOriginal
-				if(field.FieldName=="Patient Info.gif") {
-					bitmap=OpenDentBusiness.Properties.Resources.Patient_Info;
-				}
-				else if(false) {
-					try {
-						bitmap=FileAtoZ.GetImage(filePathAndName);
-						if(bitmap==null) {
-							continue;
-						}
-					}
-					catch(Exception ex) {
-						continue;//If the image is not an actual image file, leave the image field blank.
-					}
-				}
-				else if(File.Exists(filePathAndName)) {//Local AtoZ
-					try {
-						bitmap=new Bitmap(filePathAndName);
-					}
-					catch {
-						continue;//If the image is not an actual image file, leave the image field blank.
-					}
-				}
-				else {
-					continue;
-				}
-				if(field.FieldType==SheetFieldType.PatImage && document.DocNum!=0) {
-					Bitmap bitmapCopy = ImageHelper.ApplyDocumentSettingsToImage(document,bitmap,ImageSettingFlags.ALL);
-					bitmap?.Dispose();
-					bitmap=bitmapCopy;
-				}
-				#endregion
-				#region Calculate the image ratio and location, set values for imgDrawWidth and imgDrawHeight
-				//inscribe image in field while maintaining aspect ratio.
-				float ratioBitmap=(float)bitmap.Width/(float)bitmap.Height;
-				float ratioField=(float)field.Width/(float)field.Height;
-				float heightBitmap=field.Height;//drawn size of image
-				float widthBitmap=field.Width;//drawn size of image
-				int adjustY=0;//added to YPos
-				int adjustX=0;//added to XPos
-				//For patient images, we need to make sure the images will fit and can maintain aspect ratio.
-				if(field.FieldType==SheetFieldType.PatImage && ratioBitmap>ratioField) {//image is too wide
-					//X pos and width of field remain unchanged
-					//Y pos and height must change
-					heightBitmap=(float)bitmap.Height*((float)field.Width/(float)bitmap.Width);//img.Height*(width based scale) This also handles images that are too small.
-					adjustY=(int)((field.Height-heightBitmap)/2f);//adjustY= half of the unused vertical field space
-				}
-				else if(field.FieldType==SheetFieldType.PatImage && ratioBitmap<ratioField) {//image is too tall
-					//X pos and width must change
-					//Y pos and height remain unchanged
-					widthBitmap=(float)bitmap.Width*((float)field.Height/(float)bitmap.Height);//img.Height*(width based scale) This also handles images that are too small.
-					adjustX=(int)((field.Width-widthBitmap)/2f);//adjustY= half of the unused horizontal field space
-				}
-				else {//image ratio == field ratio
-					//do nothing
-				}
-				#endregion
-				graphics.DrawImage(bitmap,field.XPos+adjustX,field.YPos+adjustY-yPosPrint,widthBitmap,heightBitmap);
-			}
-			bitmap?.Dispose();
 		}
 
 		public static Rectangle GetBoundingBox(int xPos,int yPos,int fieldWidth,int fieldHeight,int contrWidth,int contrHeight) {

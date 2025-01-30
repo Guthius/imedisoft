@@ -3,10 +3,10 @@ using System.Drawing;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
-
 
 public class OrthoHardwares
 {
@@ -17,25 +17,21 @@ public class OrthoHardwares
         Elastic
     }
 
-    
-    public static long Insert(OrthoHardware orthoHardware)
+    public static void Insert(OrthoHardware orthoHardware)
     {
-        return OrthoHardwareCrud.Insert(orthoHardware);
+        OrthoHardwareCrud.Insert(orthoHardware);
     }
 
-    
     public static void Update(OrthoHardware orthoHardware)
     {
         OrthoHardwareCrud.Update(orthoHardware);
     }
 
-    
     public static void Delete(long orthoHardwareNum)
     {
         OrthoHardwareCrud.Delete(orthoHardwareNum);
     }
 
-    ///<summary>An elastic is actually a combination of multiple line segements. This calculates all the segments.</summary>
     public static List<OrthoWire> GetElastics(string toothRange, Color color)
     {
         var listOrthoWires = new List<OrthoWire>();
@@ -58,10 +54,6 @@ public class OrthoHardwares
         return listOrthoWires;
     }
 
-    /// <summary>
-    ///     A single wire is actually a combination of a bunch of different wire segments. This calculates all the shorter
-    ///     wire segments.
-    /// </summary>
     public static List<OrthoWire> GetWires(string toothRange, Color color)
     {
         var listOrthoWires = new List<OrthoWire>();
@@ -78,9 +70,7 @@ public class OrthoHardwares
             if (int1 > int2)
             {
                 //flip them
-                var temp = int1;
-                int1 = int2;
-                int2 = temp;
+                (int1, int2) = (int2, int1);
             }
 
             //They will all be in one arch
@@ -111,21 +101,14 @@ public class OrthoHardwares
         return listOrthoWires;
     }
 
-    ///<summary>Also used for ortho elastics.</summary>
     public class OrthoWire
     {
         public Color ColorDraw;
         public EnumOrthoWireType EnumOrthoWireType_;
-
-        ///<summary>Only used for BetweenBracket and Elastic.</summary>
         public string ToothIDend;
-
         public string ToothIDstart;
     }
 
-    #region Methods - Get
-
-    
     public static List<OrthoHardware> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM orthohardware WHERE PatNum = " + SOut.Long(patNum);
@@ -135,7 +118,6 @@ public class OrthoHardwares
         return listOrthoHardwares;
     }
 
-    ///<summary>Returns the int representation of the tooth or range so that proper ordering can take place.</summary>
     private static int GetToothInt(OrthoHardware orthoHardware)
     {
         if (orthoHardware.OrthoHardwareType == EnumOrthoHardwareType.Bracket)
@@ -160,13 +142,4 @@ public class OrthoHardwares
 
         return 0;
     }
-
-    /*
-    ///<summary>Gets one OrthoHardware from the db.</summary>
-    public static OrthoHardware GetOne(long orthoHardwareNum){
-
-        return Crud.OrthoHardwareCrud.SelectOne(orthoHardwareNum);
-    }*/
-
-    #endregion Methods - Get
 }

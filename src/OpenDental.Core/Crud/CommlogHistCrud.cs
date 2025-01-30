@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class CommlogHistCrud
 {
@@ -55,7 +57,7 @@ public class CommlogHistCrud
             "'" + SOut.String(commlogHist.CustomerNumberRaw) + "',"
             + SOut.Int((int) commlogHist.HistSource) + ","
             //DateTStamp can only be set by MySQL
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.Long(commlogHist.CommlogNum) + ","
             + SOut.Long(commlogHist.PatNum) + ","
             + SOut.DateTime(commlogHist.CommDateTime) + ","
@@ -72,9 +74,9 @@ public class CommlogHistCrud
             + SOut.Long(commlogHist.ReferralNum) + ","
             + SOut.Int((int) commlogHist.CommReferralBehavior) + ")";
         if (commlogHist.Note == null) commlogHist.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(commlogHist.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(commlogHist.Note));
         if (commlogHist.Signature == null) commlogHist.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(commlogHist.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(commlogHist.Signature));
         {
             commlogHist.CommlogHistNum = Db.NonQ(command, true, "CommlogHistNum", "commlogHist", paramNote, paramSignature);
         }

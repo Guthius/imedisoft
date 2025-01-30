@@ -14,9 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Task = OpenDentBusiness.Task;
+using Task = Imedisoft.Core.Entities.Task;
 
 namespace OpenDental {
 	/// <summary></summary>

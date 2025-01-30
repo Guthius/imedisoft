@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormCertificationSetup {
 		/// <summary>
 		/// Required designer variable.
@@ -41,7 +41,7 @@ namespace OpenDental{
 			this.gridMain.Name = "gridMain";
 			this.gridMain.Size = new System.Drawing.Size(586, 621);
 			this.gridMain.TabIndex = 6;
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butDown
 			// 
@@ -53,7 +53,7 @@ namespace OpenDental{
 			this.butDown.Size = new System.Drawing.Size(79, 24);
 			this.butDown.TabIndex = 3;
 			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -66,7 +66,7 @@ namespace OpenDental{
 			this.butUp.Size = new System.Drawing.Size(79, 24);
 			this.butUp.TabIndex = 2;
 			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butAdd
 			// 
@@ -78,7 +78,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(79, 24);
 			this.butAdd.TabIndex = 4;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// listBoxCategories
 			// 
@@ -87,7 +87,7 @@ namespace OpenDental{
 			this.listBoxCategories.Size = new System.Drawing.Size(120, 316);
 			this.listBoxCategories.TabIndex = 1;
 			this.listBoxCategories.Text = "listBoxOD1";
-			this.listBoxCategories.SelectionChangeCommitted += new System.EventHandler(this.listBoxCategories_SelectionChangeCommitted);
+			this.listBoxCategories.SelectionChangeCommitted += new System.EventHandler(this.ListBoxCategories_SelectionChangeCommitted);
 			// 
 			// labelCategories
 			// 

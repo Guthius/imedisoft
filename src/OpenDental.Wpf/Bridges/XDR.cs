@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using CodeBase;
 using System.Linq;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDental.Bridges{

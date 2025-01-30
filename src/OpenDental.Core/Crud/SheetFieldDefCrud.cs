@@ -6,10 +6,12 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SheetFieldDefCrud
 {
@@ -156,11 +158,11 @@ public class SheetFieldDefCrud
                                                  + SOut.Bool(sheetFieldDef.CanElectronicallySign) + ","
                                                  + SOut.Bool(sheetFieldDef.IsSigProvRestricted) + ")";
         if (sheetFieldDef.FieldValue == null) sheetFieldDef.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(sheetFieldDef.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(sheetFieldDef.FieldValue));
         if (sheetFieldDef.UiLabelMobile == null) sheetFieldDef.UiLabelMobile = "";
-        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobile));
+        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", SOut.StringParam(sheetFieldDef.UiLabelMobile));
         if (sheetFieldDef.UiLabelMobileRadioButton == null) sheetFieldDef.UiLabelMobileRadioButton = "";
-        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
+        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
         {
             sheetFieldDef.SheetFieldDefNum = Db.NonQ(command, true, "SheetFieldDefNum", "sheetFieldDef", paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
         }
@@ -209,11 +211,11 @@ public class SheetFieldDefCrud
                                                  + SOut.Bool(sheetFieldDef.CanElectronicallySign) + ","
                                                  + SOut.Bool(sheetFieldDef.IsSigProvRestricted) + ")";
         if (sheetFieldDef.FieldValue == null) sheetFieldDef.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(sheetFieldDef.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(sheetFieldDef.FieldValue));
         if (sheetFieldDef.UiLabelMobile == null) sheetFieldDef.UiLabelMobile = "";
-        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobile));
+        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", SOut.StringParam(sheetFieldDef.UiLabelMobile));
         if (sheetFieldDef.UiLabelMobileRadioButton == null) sheetFieldDef.UiLabelMobileRadioButton = "";
-        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
+        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
         else
@@ -254,11 +256,11 @@ public class SheetFieldDefCrud
                       + "IsSigProvRestricted     =  " + SOut.Bool(sheetFieldDef.IsSigProvRestricted) + " "
                       + "WHERE SheetFieldDefNum = " + SOut.Long(sheetFieldDef.SheetFieldDefNum);
         if (sheetFieldDef.FieldValue == null) sheetFieldDef.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(sheetFieldDef.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(sheetFieldDef.FieldValue));
         if (sheetFieldDef.UiLabelMobile == null) sheetFieldDef.UiLabelMobile = "";
-        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobile));
+        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", SOut.StringParam(sheetFieldDef.UiLabelMobile));
         if (sheetFieldDef.UiLabelMobileRadioButton == null) sheetFieldDef.UiLabelMobileRadioButton = "";
-        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
+        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
         Db.NonQ(command, paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
     }
 
@@ -435,11 +437,11 @@ public class SheetFieldDefCrud
 
         if (command == "") return false;
         if (sheetFieldDef.FieldValue == null) sheetFieldDef.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringParam(sheetFieldDef.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(sheetFieldDef.FieldValue));
         if (sheetFieldDef.UiLabelMobile == null) sheetFieldDef.UiLabelMobile = "";
-        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobile));
+        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", SOut.StringParam(sheetFieldDef.UiLabelMobile));
         if (sheetFieldDef.UiLabelMobileRadioButton == null) sheetFieldDef.UiLabelMobileRadioButton = "";
-        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", OdDbType.Text, SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
+        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
         command = "UPDATE sheetfielddef SET " + command
                                               + " WHERE SheetFieldDefNum = " + SOut.Long(sheetFieldDef.SheetFieldDefNum);
         Db.NonQ(command, paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);

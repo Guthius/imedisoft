@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Linq;
 using DataConnectionBase;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpDPPOvercharged {
@@ -93,7 +94,7 @@ namespace OpenDentBusiness {
 				if(patNum!=0) {//If no Patient is selected, show all patients
 					query+=" AND payplan.PatNum="+SOut.Long(patNum);
 				}
-			DataTable result=ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
+			DataTable result=DataCore.GetTable(query);
 			//Get all distinct PayPlanNums from resulting table.
 			List<long> listPayPlanNumsInTable=result.AsEnumerable().Select(x => x.Field<long>("PayPlanNum")).Distinct().ToList();
 			//Remove any PayPlanNums from list that are for plans that aren't overcharged.

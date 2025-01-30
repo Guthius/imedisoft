@@ -1,52 +1,68 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using CodeBase;
 using OpenDentBusiness;
 
-namespace OpenDental
+namespace OpenDental;
+
+///<summary>Used for wiki and HTML email editing.</summary>
+public class MarkupL
 {
-    ///<summary>Used for wiki and HTML email editing.</summary>
-    public class MarkupL
+    private static string _lanThis = "MarkupEdit";
+
+    public static void AddTag(string tagStart, string tagClose, ODcodeBox codeBox)
     {
-        private static string _lanThis = "MarkupEdit";
-
-        //remember to call focus outside of this method since it can no longer be called from the form here. 
-        public static void AddTag(string tagStart, string tagClose, ODcodeBox codeBox)
+        var startSelection = codeBox.SelectionStart;
+        var lengthSelection = codeBox.SelectionLength;
+        var str = tagStart + codeBox.SelectedText + tagClose;
+        codeBox.SelectedText = str;
+            
+        if (lengthSelection == 0)
         {
-            int startSelection = codeBox.SelectionStart;
-            int lengthSelection = codeBox.SelectionLength;
-            string str = tagStart + codeBox.SelectedText + tagClose;
-            codeBox.SelectedText = str;
-            //textContentEmail.Focus();
-            if (lengthSelection == 0)
-            {
-                //nothing selected, place cursor in middle of new tags
-                codeBox.SelectionStart = startSelection + tagStart.Length + lengthSelection;
-                return;
-            }
-
-            codeBox.SelectionStart = startSelection + str.Length;
-            codeBox.SelectionLength = 0;
+            codeBox.SelectionStart = startSelection + tagStart.Length + lengthSelection;
+            return;
         }
 
-        ///<summary>Validates content, and keywords.  isForSaving can be false if just validating for refresh.</summary>
-        public static bool ValidateMarkup(ODcodeBox codeBox, bool isForSaving, bool showMsgBox = true, bool isEmail = false)
+        codeBox.SelectionStart = startSelection + str.Length;
+        codeBox.SelectionLength = 0;
+    }
+        
+    public static bool ValidateMarkup(ODcodeBox codeBox, bool isForSaving, bool showMsgBox = true, bool isEmail = false)
+    {
+        MatchCollection matchCollection;
+            
+        var str = codeBox.Text;
+            
+        str = str.Replace("&", "&amp;");
+        str = str.Replace("&amp;<", "&lt;");
+        str = str.Replace("&amp;>", "&gt;");
+        str = "<body>" + str + "</body>";
+            
+        var xmlDocument = new XmlDocument();
+        var stringReader = new StringReader(str);
+            
+        try
         {
-            MatchCollection matchCollection;
-            //xml validation----------------------------------------------------------------------------------------------------
-            string str = codeBox.Text;
-            //"<",">", and "&"-----------------------------------------------------------------------------------------------------------
-            str = str.Replace("&", "&amp;");
-            str = str.Replace("&amp;<", "&lt;"); //because "&" was changed to "&amp;" in the line above.
-            str = str.Replace("&amp;>", "&gt;"); //because "&" was changed to "&amp;" in the line above.
-            str = "<body>" + str + "</body>";
-            XmlDocument xmlDocument = new XmlDocument();
-            StringReader stringReader = new StringReader(str);
+            xmlDocument.Load(stringReader);
+        }
+        catch (Exception ex)
+        {
+            if (showMsgBox)
+            {
+                ODMessageBox.Show(ex.Message);
+            }
+
+            return false;
+        }
+
+        if (!isEmail)
+        {
             try
             {
-                xmlDocument.Load(stringReader);
+                MarkupEdit.ValidateNodes(xmlDocument.DocumentElement.ChildNodes);
             }
             catch (Exception ex)
             {
@@ -57,317 +73,207 @@ namespace OpenDental
 
                 return false;
             }
+        }
 
-            if (!isEmail)
+        var matchCollectionTags = Regex.Matches(codeBox.Text, "(?<!&)<.*?>", RegexOptions.Singleline);
+        for (var i = 0; i < matchCollectionTags.Count; i++)
+        {
+            if (!matchCollectionTags[i].ToString().Contains("\n"))
             {
-                //We are allowing any XHTML markup in emails.
-                try
+                continue;
+            }
+                
+            if (showMsgBox)
+            {
+                ODMessageBox.Show(
+                    "Error at line: " + codeBox.GetLineFromCharIndex(matchCollectionTags[i].Index) + " - " +
+                    "Tag definitions cannot contain a return line: " + matchCollectionTags[i].Value.Replace("\n", ""));
+            }
+
+            return false;
+        }
+
+        if (isEmail)
+        {
+            var emailImagePath = "";
+            try
+            {
+                emailImagePath = ImageStore.GetEmailImagePath();
+            }
+            catch
+            {
+                // ignored
+            }
+
+            matchCollection = Regex.Matches(codeBox.Text, @"\[\[(img:).*?\]\]");
+            if (isForSaving)
+            {
+                for (var i = 0; i < matchCollection.Count; i++)
                 {
-                    //we do it this way to skip checking the main node itself since it's a dummy node.
-                    MarkupEdit.ValidateNodes(xmlDocument.DocumentElement.ChildNodes);
+                    var imageName = matchCollection[i].Value.Substring(6).Trim(']');
+                    if (MiscUtils.IsValidHttpUri(imageName))
+                    {
+                        continue;
+                    }
+
+                    var imgPath = Path.Combine(emailImagePath, imageName);
+                    if (File.Exists(imgPath))
+                    {
+                        continue;
+                    }
+                        
+                    if (showMsgBox)
+                    {
+                        ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - Not allowed to save because image does not exist:  " + imgPath);
+                    }
+
+                    return false;
                 }
-                catch (Exception ex)
+            }
+        }
+
+        var lines = codeBox.Text.Split(["\n"], StringSplitOptions.None);
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].Trim().StartsWith("*"))
+            {
+                if (!lines[i].StartsWith("*"))
                 {
                     if (showMsgBox)
                     {
-                        ODMessageBox.Show(ex.Message);
+                        ODMessageBox.Show("Error at line: " + (i + 1) + " - Stars used for lists may not have a space before them.");
+                    }
+
+                    return false;
+                }
+
+                if (lines[i].Trim().StartsWith("* "))
+                {
+                    if (showMsgBox)
+                    {
+                        ODMessageBox.Show("Error at line: " + (i + 1) + " - Stars used for lists may not have a space after them.");
                     }
 
                     return false;
                 }
             }
 
-            //Cannot have CR within tag definition---------------------------------------------------------------------------------
-            //(?<!&) means only match strings that do not start with an '&'. This is so we can continue to use '&' as an escape character for '<'.
-            //<.*?> means anything as short as possible that is contained inside a tag
-            MatchCollection matchCollectionTags = Regex.Matches(codeBox.Text, "(?<!&)<.*?>", RegexOptions.Singleline);
-            for (int i = 0; i < matchCollectionTags.Count; i++)
+            if (!lines[i].Trim().StartsWith("#"))
             {
-                if (matchCollectionTags[i].ToString().Contains("\n"))
+                continue;
+            }
+                
+            if (!lines[i].StartsWith("#"))
+            {
+                if (showMsgBox)
                 {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollectionTags[i].Index) + " - "
-                                        + Lans.g(_lanThis, "Tag definitions cannot contain a return line:") + " " + matchCollectionTags[i].Value.Replace("\n", ""));
-                    }
-
-                    return false;
+                    ODMessageBox.Show("Error at line: " + (i + 1) + " - Hashes used for lists may not have a space before them.");
                 }
+
+                return false;
             }
 
-            //wiki image validation-----------------------------------------------------------------------------------------------------
-            if (!isEmail)
+            if (!lines[i].Trim().StartsWith("# "))
             {
-                string wikiImagePath = "";
-                try
-                {
-                    wikiImagePath = WikiPages.GetWikiPath(); //this also creates folder if it's missing.
-                }
-                catch (Exception ex)
-                {
-                    //do nothing, the wikiImagePath is only important if the user adds an image to the wiki page and is checked below
-                }
-
-                matchCollection = Regex.Matches(codeBox.Text, @"\[\[(img:).*?\]\]"); // [[img:myimage.jpg]]
-                if (matchCollection.Count > 0 && false)
-                {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[0].Index) + " - "
-                                        + Lans.g(_lanThis, "Cannot use images in wiki if storing images in database."));
-                    }
-
-                    return false;
-                }
-
-                if (isForSaving)
-                {
-                    for (int i = 0; i < matchCollection.Count; i++)
-                    {
-                        string imgPath = FileAtoZ.CombinePaths(wikiImagePath, matchCollection[i].Value.Substring(6).Trim(']'));
-                        if (!FileAtoZ.Exists(imgPath))
-                        {
-                            if (showMsgBox)
-                            {
-                                ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - "
-                                                + Lans.g(_lanThis, "Not allowed to save because image does not exist:") + " " + imgPath);
-                            }
-
-                            return false;
-                        }
-                    }
-                }
+                continue;
+            }
+                    
+            if (showMsgBox)
+            {
+                ODMessageBox.Show("Error at line: " + (i + 1) + " - Hashes used for lists may not have a space after them.");
             }
 
-            //Email image validation----------------------------------------------------------------------------------------------
-            if (isEmail)
+            return false;
+        }
+
+        matchCollection = Regex.Matches(codeBox.Text, @"\[\[.*?\]\]");
+        for (var m = 0; m < matchCollection.Count; m++)
+        {
+            if (matchCollection[m].Value.Contains("\"") && !matchCollection[m].Value.StartsWith("[[color:") && !matchCollection[m].Value.StartsWith("[[font:"))
             {
-                string emailImagePath = "";
-                try
+                if (showMsgBox)
                 {
-                    emailImagePath = ImageStore.GetEmailImagePath();
-                }
-                catch (Exception ex)
-                {
+                    ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - Link cannot contain double quotes:" + " " + matchCollection[m].Value);
                 }
 
-                matchCollection = Regex.Matches(codeBox.Text, @"\[\[(img:).*?\]\]");
-                if (isForSaving)
-                {
-                    for (int i = 0; i < matchCollection.Count; i++)
-                    {
-                        string imageName = matchCollection[i].Value.Substring(6).Trim(']');
-                        //Don't validate URL links.
-                        if (MiscUtils.IsValidHttpUri(imageName))
-                        {
-                            continue;
-                        }
-
-                        string imgPath = FileAtoZ.CombinePaths(emailImagePath, imageName);
-                        if (!FileAtoZ.Exists(imgPath))
-                        {
-                            if (showMsgBox)
-                            {
-                                ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - "
-                                                + Lans.g(_lanThis, "Not allowed to save because image does not exist: ") + " " + imgPath);
-                            }
-
-                            return false;
-                        }
-                    }
-                }
+                return false;
             }
 
-            //List validation-----------------------------------------------------------------------------------------------------
-            matchCollection = Regex.Matches(codeBox.Text, @"\[\[(list:).*?\]\]"); // [[list:CustomList]]
-            for (int m = 0; m < matchCollection.Count; m++)
+            if (matchCollection[m].Value.StartsWith("[[img:") || 
+                matchCollection[m].Value.StartsWith("[[keywords:") || 
+                matchCollection[m].Value.StartsWith("[[file:") || 
+                matchCollection[m].Value.StartsWith("[[folder:") || 
+                matchCollection[m].Value.StartsWith("[[list:") || 
+                matchCollection[m].Value.StartsWith("[[color:") || 
+                matchCollection[m].Value.StartsWith("[[font:"))
             {
-                if (!WikiLists.CheckExists(matchCollection[m].Value.Substring(7).Trim(']')))
-                {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
-                                        + Lans.g(_lanThis, "Wiki list does not exist in database:") + " " + matchCollection[m].Value.Substring(7).Trim(']'));
-                    }
-
-                    return false;
-                }
+                continue;
             }
 
-            //spacing around bullets-----------------------------------------------------------------------------------------------
-            string[] stringArrayLines = codeBox.Text.Split(new string[] {"\n"}, StringSplitOptions.None);
-            for (int i = 0; i < stringArrayLines.Length; i++)
+            if (!matchCollection[m].Value.Contains("|"))
             {
-                if (stringArrayLines[i].Trim().StartsWith("*"))
-                {
-                    if (!stringArrayLines[i].StartsWith("*"))
-                    {
-                        if (showMsgBox)
-                        {
-                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
-                                            + Lans.g(_lanThis, "Stars used for lists may not have a space before them."));
-                        }
-
-                        return false;
-                    }
-
-                    if (stringArrayLines[i].Trim().StartsWith("* "))
-                    {
-                        if (showMsgBox)
-                        {
-                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
-                                            + Lans.g(_lanThis, "Stars used for lists may not have a space after them."));
-                        }
-
-                        return false;
-                    }
-                }
-
-                if (stringArrayLines[i].Trim().StartsWith("#"))
-                {
-                    if (!stringArrayLines[i].StartsWith("#"))
-                    {
-                        if (showMsgBox)
-                        {
-                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
-                                            + Lans.g(_lanThis, "Hashes used for lists may not have a space before them."));
-                        }
-
-                        return false;
-                    }
-
-                    if (stringArrayLines[i].Trim().StartsWith("# "))
-                    {
-                        if (showMsgBox)
-                        {
-                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + (i + 1) + " - "
-                                            + Lans.g(_lanThis, "Hashes used for lists may not have a space after them."));
-                        }
-
-                        return false;
-                    }
-                }
+                continue;
+            }
+                
+            if (showMsgBox)
+            {
+                ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - Internal link cannot contain a pipe character: " + matchCollection[m].Value);
             }
 
-            //Invalid characters inside of various tags--------------------------------------------
-            matchCollection = Regex.Matches(codeBox.Text, @"\[\[.*?\]\]");
-            for (int m = 0; m < matchCollection.Count; m++)
+            return false;
+        }
+            
+        matchCollection = Regex.Matches(str, @"\{\|\n.+?\n\|\}", RegexOptions.Singleline);
+        for (var m = 0; m < matchCollection.Count; m++)
+        {
+            lines = matchCollection[m].Value.Split(["{|\n", "\n|-\n", "\n|}"], StringSplitOptions.RemoveEmptyEntries);
+            if (!lines[0].StartsWith("!"))
             {
-                if (matchCollection[m].Value.Contains("\"")
-                    && !matchCollection[m].Value.StartsWith("[[color:")
-                    && !matchCollection[m].Value.StartsWith("[[font:")) //allow colored text to have quotes.
+                if (showMsgBox)
                 {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
-                                        + Lans.g(_lanThis, "Link cannot contain double quotes:") + " " + matchCollection[m].Value);
-                    }
-
-                    return false;
+                    ODMessageBox.Show( "Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - The second line of a table markup section must start with ! to indicate column headers.");
                 }
 
-                //This is not needed because our regex doesn't even catch them if the span a line break.  It's just interpreted as plain text.
-                //if(match.Value.Contains("\r") || match.Value.Contains("\n")) {
-                //	MessageBox.Show(Lan.g(this,"Link cannot contain carriage returns: ")+match.Value);
-                //	return false;
-                //}
-                if (matchCollection[m].Value.StartsWith("[[img:")
-                    || matchCollection[m].Value.StartsWith("[[keywords:")
-                    || matchCollection[m].Value.StartsWith("[[file:")
-                    || matchCollection[m].Value.StartsWith("[[folder:")
-                    || matchCollection[m].Value.StartsWith("[[list:")
-                    || matchCollection[m].Value.StartsWith("[[color:")
-                    || matchCollection[m].Value.StartsWith("[[font:"))
+                return false;
+            }
+
+            if (lines[0].StartsWith("! "))
+            {
+                if (showMsgBox)
                 {
-                    //other tags
+                    ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - In the table, at line 2, there cannot be a space after the first !");
+                }
+
+                return false;
+            }
+
+            var cells = lines[0].Substring(1).Split(["!!"], StringSplitOptions.None);
+            if (cells.Any(cell => !Regex.IsMatch(cell, """^(Width=")\d+"\|""")))
+            {
+                if (showMsgBox)
+                {
+                    ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - In the table markup, each header must be formatted like this: Width=\"#\"|...");
+                }
+
+                return false;
+            }
+
+            for (var i = 1; i < lines.Length; i++)
+            {
+                if (lines[i].StartsWith("|"))
+                {
                     continue;
                 }
-
-                if (matchCollection[m].Value.Contains("|"))
+                    
+                if (showMsgBox)
                 {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
-                                        + Lans.g(_lanThis, "Internal link cannot contain a pipe character:") + " " + matchCollection[m].Value);
-                    }
-
-                    return false;
+                    ODMessageBox.Show("Table rows must start with |.  At line " + (i + 1) + ", this was found instead:" + lines[i]);
                 }
+
+                return false;
             }
-
-            //Table markup rigorously formatted----------------------------------------------------------------------
-            //{|
-            //!Width="100"|Column Heading 1!!Width="150"|Column Heading 2!!Width="75"|Column Heading 3
-            //|- 
-            //|Cell 1||Cell 2||Cell 3 
-            //|-
-            //|Cell A||Cell B||Cell C 
-            //|}
-            //Although rarely needed, it might still come in handy in certain cases, like paste, or when user doesn't add the |} until later, and other hacks.
-            matchCollection = Regex.Matches(str, @"\{\|\n.+?\n\|\}", RegexOptions.Singleline);
-            //matches = Regex.Matches(textContent.Text,
-            //	@"(?<=(?:\n|<body>))" //Checks for preceding newline or beggining of file
-            //	+@"\{\|.+?\n\|\}" //Matches the table markup.
-            //	+@"(?=(?:\n|</body>))" //Checks for following newline or end of file
-            //	,RegexOptions.Singleline);
-            for (int m = 0; m < matchCollection.Count; m++)
-            {
-                stringArrayLines = matchCollection[m].Value.Split(new string[] {"{|\n", "\n|-\n", "\n|}"}, StringSplitOptions.RemoveEmptyEntries);
-                if (!stringArrayLines[0].StartsWith("!"))
-                {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
-                                        + Lans.g(_lanThis, "The second line of a table markup section must start with ! to indicate column headers."));
-                    }
-
-                    return false;
-                }
-
-                if (stringArrayLines[0].StartsWith("! "))
-                {
-                    if (showMsgBox)
-                    {
-                        ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
-                                        + Lans.g(_lanThis, "In the table, at line 2, there cannot be a space after the first !"));
-                    }
-
-                    return false;
-                }
-
-                string[] stringArrayCells = stringArrayLines[0].Substring(1).Split(new string[] {"!!"}, StringSplitOptions.None); //this also strips off the leading !
-                for (int c = 0; c < stringArrayCells.Length; c++)
-                {
-                    if (!Regex.IsMatch(stringArrayCells[c], @"^(Width="")\d+""\|"))
-                    {
-                        //e.g. Width="90"| 
-                        if (showMsgBox)
-                        {
-                            ODMessageBox.Show(Lans.g(_lanThis, "Error at line:") + " " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - "
-                                            + Lans.g(_lanThis, "In the table markup, each header must be formatted like this: Width=\"#\"|..."));
-                        }
-
-                        return false;
-                    }
-                }
-
-                for (int i = 1; i < stringArrayLines.Length; i++)
-                {
-                    //loop through the lines after the header
-                    if (!stringArrayLines[i].StartsWith("|"))
-                    {
-                        if (showMsgBox)
-                        {
-                            ODMessageBox.Show(Lans.g(_lanThis, "Table rows must start with |.  At line ") + (i + 1).ToString() + Lans.g(_lanThis, ", this was found instead:")
-                                            + stringArrayLines[i]);
-                        }
-
-                        return false;
-                    }
-                }
-            }
-
-            return true;
         }
+
+        return true;
     }
 }

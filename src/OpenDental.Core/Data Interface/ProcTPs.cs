@@ -3,16 +3,13 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ProcTPs
 {
-    #region Update
-
-    ///<summary>Sets the priority for the procedures passed in that are associated to the designated treatment plan.</summary>
     public static void SetPriorityForTreatPlanProcs(long priority, long treatPlanNum, List<long> listProcNums)
     {
         if (listProcNums.IsNullOrEmpty()) return;
@@ -22,9 +19,6 @@ public class ProcTPs
 				AND ProcNumOrig IN({string.Join(",", listProcNums.Select(x => SOut.Long(x)))})");
     }
 
-    #endregion
-
-    ///<summary>Gets all ProcTPs for a given Patient ordered by ItemOrder.</summary>
     public static List<ProcTP> Refresh(long patNum)
     {
         var command = "SELECT * FROM proctp "
@@ -33,7 +27,6 @@ public class ProcTPs
         return ProcTPCrud.SelectMany(command);
     }
 
-    ///<summary>Ordered by ItemOrder.</summary>
     public static List<ProcTP> RefreshForTP(long tpNum)
     {
         var command = "SELECT * FROM proctp "
@@ -43,13 +36,11 @@ public class ProcTPs
         return ProcTPCrud.SelectMany(command);
     }
 
-    
     public static void Update(ProcTP proc)
     {
         ProcTPCrud.Update(proc);
     }
 
-    
     public static long Insert(ProcTP proc)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -57,7 +48,6 @@ public class ProcTPs
         return ProcTPCrud.Insert(proc);
     }
 
-    
     public static void InsertOrUpdate(ProcTP proc, bool isNew)
     {
         if (isNew)
@@ -66,14 +56,12 @@ public class ProcTPs
             Update(proc);
     }
 
-    ///<summary>There are no dependencies.</summary>
     public static void Delete(ProcTP proc)
     {
         var command = "DELETE from proctp WHERE ProcTPNum = '" + SOut.Long(proc.ProcTPNum) + "'";
         Db.NonQ(command);
     }
 
-    ///<summary>No dependencies to worry about.</summary>
     public static void DeleteForTP(long treatPlanNum)
     {
         var command = "DELETE FROM proctp "
@@ -89,7 +77,6 @@ public class ProcTPs
         return ProcTPCrud.SelectMany(command);
     }
 
-    ///<summary>Returns only three columns from all ProcTPs -- TreatPlanNum, PatNum, and ProcNumOrig.</summary>
     public static List<ProcTP> GetAllLim(List<long> listTreatPlanNums)
     {
         if (listTreatPlanNums.IsNullOrEmpty()) //No need to go through middletier if we know listTreatPlanNums is empty. Return early.
@@ -151,11 +138,5 @@ public class ProcTPs
         }
 
         return listProcTPs;
-    }
-
-    ///<summary>Gets one ProcTP object from the database using the primary key. Returns null if not found.</summary>
-    public static ProcTP GetOneyByProcTPNum(long procTPNum)
-    {
-        return ProcTPCrud.SelectOne(procTPNum);
     }
 }

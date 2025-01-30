@@ -5,20 +5,18 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class PatPlans
 {
-    
     public static List<PatPlan> GetPatientData(long patNum)
     {
         return Refresh(patNum);
     }
 
-    ///<summary>Gets a list of all patplans for a given patient</summary>
     public static List<PatPlan> Refresh(long patNum)
     {
         var command = "SELECT * from patplan"
@@ -27,7 +25,6 @@ public class PatPlans
         return PatPlanCrud.SelectMany(command);
     }
 
-    
     public static void Update(PatPlan patPlan)
     {
         //ordinal was already set using SetOrdinal, but it's harmless to set it again.
@@ -45,7 +42,6 @@ public class PatPlans
         PatPlanCrud.Update(patPlanNew, patPlanOld);
     }
 
-    
     public static long Insert(PatPlan patPlan)
     {
         //Cameron_ Possibly create outbound ADT message to update insurance info
@@ -56,23 +52,6 @@ public class PatPlans
         return patPlanNum;
     }
 
-    /*
-    ///<summary>Supply a PatPlan list.  This function loops through the list and returns the plan num of the specified ordinal.  If ordinal not valid, then it returns 0.  The main purpose of this function is so we don't have to check the length of the list.</summary>
-    public static long GetPlanNum(List<PatPlan> list,int ordinal) {
-        Meth.NoCheckMiddleTierRole();
-        for(int i=0;i<list.Count;i++){
-            if(list[i].Ordinal==ordinal){
-                return list[i].PlanNum;
-            }
-        }
-        return 0;
-    }*/
-
-    /// <summary>
-    ///     Supply a PatPlan list.  This function loops through the list and returns the insSubNum of the specified
-    ///     ordinal.  If ordinal not valid, then it returns 0.  The main purpose of this function is so we don't have to check
-    ///     the length of the list.
-    /// </summary>
     public static long GetInsSubNum(List<PatPlan> list, int ordinal)
     {
         for (var i = 0; i < list.Count; i++)
@@ -96,10 +75,6 @@ public class PatPlans
         return null;
     }
 
-    /// <summary>
-    ///     Supply a PatPlan list.  This function loops through the list and returns the relationship of the specified
-    ///     ordinal.  If ordinal not valid, then it returns self (0).
-    /// </summary>
     public static Relat GetRelat(List<PatPlan> list, int ordinal)
     {
         for (var i = 0; i < list.Count; i++)
@@ -118,10 +93,6 @@ public class PatPlans
         return "";
     }
 
-    /// <summary>
-    ///     Since there can be multiple patplans for an InsSubNum, you should pass in ONLY patplans for the patient.
-    ///     Will return 1 for primary insurance, etc.  Will return 0 if planNum not found in the list.
-    /// </summary>
     public static int GetOrdinal(long subNum, List<PatPlan> patPlans)
     {
         for (var p = 0; p < patPlans.Count; p++)
@@ -131,14 +102,10 @@ public class PatPlans
         return 0;
     }
 
-    /// <summary>
-    ///     Returns the ordinal (1-based) for the patplan matching the given PriSecMed. Returns 0 if no match.
-    ///     You must pass ALL plans for the patient into this method.
-    /// </summary>
-    public static int GetOrdinal(PriSecMed priSecMed, List<PatPlan> PatPlanList, List<InsPlan> planList, List<InsSub> subList)
+    public static int GetOrdinal(PriSecMed priSecMed, List<PatPlan> patPlanList, List<InsPlan> planList, List<InsSub> subList)
     {
         var dentalOrdinal = 0;
-        var listPatPlanOrdered = PatPlanList.OrderBy(x => x.Ordinal).ToList();
+        var listPatPlanOrdered = patPlanList.OrderBy(x => x.Ordinal).ToList();
         for (var i = 0; i < listPatPlanOrdered.Count; i++)
         {
             var sub = InsSubs.GetSub(listPatPlanOrdered[i].InsSubNum, subList);
@@ -169,7 +136,6 @@ public class PatPlans
         return 0;
     }
 
-    ///<summary>Will return null if subNum not found in the list.</summary>
     public static PatPlan GetFromList(List<PatPlan> patPlans, long subNum)
     {
         for (var p = 0; p < patPlans.Count; p++)
@@ -179,8 +145,7 @@ public class PatPlans
         return null;
     }
 
-    public static DateTime GetOrthoNextClaimDate(DateTime currentOrthoClaimDate, DateTime dateFirstOrthoProc
-        , OrthoAutoProcFrequency freq, int monthsTreat)
+    public static DateTime GetOrthoNextClaimDate(DateTime currentOrthoClaimDate, DateTime dateFirstOrthoProc, OrthoAutoProcFrequency freq, int monthsTreat)
     {
         //No remotingrole check needed; no call to db.
         var claimDate = currentOrthoClaimDate;
@@ -205,7 +170,6 @@ public class PatPlans
         return claimDate;
     }
 
-
     public static void IncrementOrthoNextClaimDates(PatPlan patPlan, InsPlan insPlan, int monthsTreat, PatientNote patNoteCur)
     {
         var dateFirstOrthoProc = Procedures.GetFirstOrthoProcDate(patNoteCur);
@@ -213,11 +177,6 @@ public class PatPlans
         Update(patPlan);
     }
 
-    /// <summary>
-    ///     Sets the ordinal of the specified patPlan.  Rearranges the other patplans for the patient to keep the ordinal
-    ///     sequence contiguous.  Estimates must be recomputed after this.  FormInsPlan currently updates estimates every time
-    ///     it closes.  Only used in one place.  Returns the new ordinal.
-    /// </summary>
     public static int SetOrdinal(long patPlanNum, int newOrdinal)
     {
         var command = "SELECT PatNum FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
@@ -251,7 +210,6 @@ public class PatPlans
         return newOrdinal;
     }
 
-    ///<summary>Loops through the supplied list to find the one patplan needed.</summary>
     public static PatPlan GetFromList(PatPlan[] patPlans, long patPlanNum)
     {
         for (var i = 0; i < patPlans.Length; i++)
@@ -261,10 +219,6 @@ public class PatPlans
         return null;
     }
 
-    /// <summary>
-    ///     Loops through the supplied list to find the one patplanNum needed based on the planNum.  Returns 0 if patient
-    ///     is not currently covered by the planNum supplied.
-    /// </summary>
     public static long GetPatPlanNum(long subNum, List<PatPlan> patPlanList)
     {
         for (var i = 0; i < patPlanList.Count; i++)
@@ -274,26 +228,6 @@ public class PatPlans
         return 0;
     }
 
-    ///<summary>Gets multiple PatPlans from database. Returns null if not found.</summary>
-    public static List<PatPlan> GetPatPlansForApi(int limit, int offset, long patNum, long insSubNum)
-    {
-        var command = "SELECT * FROM patplan WHERE SecDateTEdit>=" + SOut.DateTime(DateTime.MinValue) + " ";
-        if (patNum > -1) command += "AND PatNum=" + SOut.Long(patNum) + " ";
-        if (insSubNum > -1) command += "AND InsSubNum=" + SOut.Long(insSubNum) + " ";
-        command += "ORDER BY PatPlanNum " //same fixed order each time
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return PatPlanCrud.SelectMany(command);
-    }
-
-    /*Deprecated
-    ///<summary>Gets one patPlanNum directly from database.  Only used once in FormClaimProc.</summary>
-    public static long GetPatPlanNum(long patNum,long planNum) {
-
-        string command="SELECT PatPlanNum FROM patplan WHERE PatNum="+POut.Long(patNum)+" AND PlanNum="+POut.Long(planNum);
-        return PIn.Long(DataCore.GetScalar(command));
-    }*/
-
-    ///<summary>Gets directly from database.  Used by Trojan.</summary>
     public static PatPlan[] GetByPlanNum(long planNum)
     {
         //string command="SELECT * FROM patplan WHERE PlanNum='"+POut.Long(planNum)+"'";
@@ -304,7 +238,6 @@ public class PatPlans
         return PatPlanCrud.SelectMany(command).ToArray();
     }
 
-    
     public static int GetCountBySubNum(long insSubNum)
     {
         var command = "SELECT COUNT(*) FROM patplan WHERE InsSubNum='" + SOut.Long(insSubNum) + "'";
@@ -318,7 +251,6 @@ public class PatPlans
         return SIn.Int(Db.GetCount(command));
     }
 
-    ///<summary>Returns a list of PatNums based on the list of insfilingcode.InsFilingCodeNums passed in.</summary>
     public static List<long> GetPatNumsByInsFilingCodes(List<long> listInsFilingCodeNums)
     {
         if (listInsFilingCodeNums.IsNullOrEmpty()) return new List<long>();
@@ -330,7 +262,6 @@ public class PatPlans
         return Db.GetListLong(command);
     }
 
-    ///<summary>Will return null if none exists.</summary>
     public static PatPlan GetPatPlan(long patNum, int ordinal)
     {
         var command = "SELECT * FROM patplan WHERE PatNum=" + SOut.Long(patNum)
@@ -338,7 +269,6 @@ public class PatPlans
         return PatPlanCrud.SelectOne(command);
     }
 
-    ///<summary>Will return an empty list if none exists.</summary>
     public static List<PatPlan> GetPatPlans(List<long> listPatPlanNums)
     {
         var command = "SELECT * FROM patplan WHERE PatPlanNum IN (" + string.Join(",", listPatPlanNums) + ")";
@@ -361,11 +291,6 @@ public class PatPlans
         return PatPlanCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Deletes the patplan with the specified patPlanNum.  Rearranges the other patplans for the patient to keep the
-    ///     ordinal sequence contiguous.  Then, recomputes all estimates for this patient because their coverage is now
-    ///     different.  Also sets patient.HasIns to the correct value.
-    /// </summary>
     public static void Delete(long patPlanNum)
     {
         var command = "SELECT PatNum FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
@@ -406,11 +331,6 @@ public class PatPlans
 //Cameron_ Possibly create outbound ADT message to update insurance info
     }
 
-    /// <summary>
-    ///     Removes the assigned user from the InsVerify of the InsPlan that is associated to the PatPlan passed in.
-    ///     Will only unassign if the user assigned to the patplan matches the user assigned to the insplan. Used when a plan
-    ///     gets deleted.
-    /// </summary>
     private static void RemoveAssignedUser(PatPlan patPlanCur)
     {
         //Get the insurance verified assigned to the PatPlan.
@@ -438,10 +358,6 @@ public class PatPlans
         }
     }
 
-    /// <summary>
-    ///     Deletes the patplan and benefits with the specified patPlanNum.  Does not rearrange the other patplans for the
-    ///     patient.  A patplan must be inserted after this function is called to take the place of the patplan being deleted.
-    /// </summary>
     public static void DeleteNonContiguous(long patPlanNum)
     {
         var command = "DELETE FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
@@ -451,7 +367,6 @@ public class PatPlans
         InsVerifies.DeleteByFKey(patPlanNum, VerifyTypes.PatientEnrollment);
     }
 
-    ///<summary>There can be multiple PatPlans returned for a single InsSubNum.</summary>
     public static List<PatPlan> GetListByInsSubNums(List<long> listInsSubNums)
     {
         if (listInsSubNums.IsNullOrEmpty()) return new List<PatPlan>();
@@ -460,7 +375,6 @@ public class PatPlans
         return PatPlanCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all patplans with DateNextClaims that are today or in the past.</summary>
     public static DataTable GetOutstandingOrtho()
     {
         var orthoMonthsTreat = PrefC.GetByte(PrefName.OrthoDefaultMonthsTreat);
@@ -516,7 +430,7 @@ public class PatPlans
         if (listOrthoBandingCodeNums.Count > 0) command += @"AND procedurelog.CodeNum IN ( " + string.Join(",", listOrthoBandingCodeNums) + @") ";
         command += @"	GROUP BY procedurelog.PatNum
 				)banding ON banding.PatNum = patplan.PatNum
-				WHERE (patplan.OrthoAutoNextClaimDate > " + SOut.Date(new DateTime(1880, 1, 1)) + " AND patplan.OrthoAutoNextClaimDate <= " + DbHelper.Curdate() + @")
+				WHERE (patplan.OrthoAutoNextClaimDate > " + SOut.Date(new DateTime(1880, 1, 1)) + " AND patplan.OrthoAutoNextClaimDate <= " + "CURDATE()" + @")
 				AND patplan.Ordinal IN (1,2)
 				ORDER BY patient.LName,patient.FName,patient.PatNum ";
         //TODO: Consider the edge case where an office falls behind and the patient really needs to create multiple claims.
@@ -524,12 +438,7 @@ public class PatPlans
         return DataCore.GetTable(command);
     }
 
-    /// <summary>
-    ///     Checks all attached inssubs to make sure they have valid insplans. returns true if list is valid. If it
-    ///     returns false, it fixed the db, and a new list will be needed.
-    /// </summary>
-    public static bool IsPatPlanListValid(List<PatPlan> listPatPlan, bool doFixIfInvalid = true, List<InsSub> listInsSubs = null
-        , List<InsPlan> listInsPlans = null)
+    public static bool IsPatPlanListValid(List<PatPlan> listPatPlan, bool doFixIfInvalid = true, List<InsSub> listInsSubs = null, List<InsPlan> listInsPlans = null)
     {
         var isValid = true;
         for (var i = 0; i < listPatPlan.Count; i++)

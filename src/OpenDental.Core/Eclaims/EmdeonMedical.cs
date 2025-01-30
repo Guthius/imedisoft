@@ -4,6 +4,7 @@ using System.IO;
 using OpenDentBusiness;
 using Ionic.Zip;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims {
 	public class EmdeonMedical{

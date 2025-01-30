@@ -1,26 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class FamAgingCrud
 {
-    public static FamAging SelectOne(long patNum)
-    {
-        var command = "SELECT * FROM famaging "
-                      + "WHERE PatNum = " + SOut.Long(patNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static FamAging SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -53,53 +41,6 @@ public class FamAgingCrud
         }
 
         return retVal;
-    }
-
-    public static DataTable ListToTable(List<FamAging> listFamAgings, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "FamAging";
-        var table = new DataTable(tableName);
-        table.Columns.Add("PatNum");
-        table.Columns.Add("Bal_0_30");
-        table.Columns.Add("Bal_31_60");
-        table.Columns.Add("Bal_61_90");
-        table.Columns.Add("BalOver90");
-        table.Columns.Add("InsEst");
-        table.Columns.Add("BalTotal");
-        table.Columns.Add("PayPlanDue");
-        foreach (var famAging in listFamAgings)
-            table.Rows.Add(SOut.Long(famAging.PatNum), SOut.Double(famAging.Bal_0_30), SOut.Double(famAging.Bal_31_60), SOut.Double(famAging.Bal_61_90), SOut.Double(famAging.BalOver90), SOut.Double(famAging.InsEst), SOut.Double(famAging.BalTotal), SOut.Double(famAging.PayPlanDue));
-        return table;
-    }
-
-    public static long Insert(FamAging famAging)
-    {
-        return Insert(famAging, false);
-    }
-
-    public static long Insert(FamAging famAging, bool useExistingPK)
-    {
-        var command = "INSERT INTO famaging (";
-
-        command += "Bal_0_30,Bal_31_60,Bal_61_90,BalOver90,InsEst,BalTotal,PayPlanDue) VALUES(";
-
-        command +=
-            SOut.Double(famAging.Bal_0_30) + ","
-                                           + SOut.Double(famAging.Bal_31_60) + ","
-                                           + SOut.Double(famAging.Bal_61_90) + ","
-                                           + SOut.Double(famAging.BalOver90) + ","
-                                           + SOut.Double(famAging.InsEst) + ","
-                                           + SOut.Double(famAging.BalTotal) + ","
-                                           + SOut.Double(famAging.PayPlanDue) + ")";
-        {
-            famAging.PatNum = Db.NonQ(command, true, "PatNum", "famAging");
-        }
-        return famAging.PatNum;
-    }
-
-    public static void InsertMany(List<FamAging> listFamAgings)
-    {
-        InsertMany(listFamAgings, false);
     }
 
     public static void InsertMany(List<FamAging> listFamAgings, bool useExistingPK)
@@ -159,125 +100,5 @@ public class FamAgingCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(FamAging famAging)
-    {
-        return InsertNoCache(famAging, false);
-    }
-
-    public static long InsertNoCache(FamAging famAging, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO famaging (";
-        if (isRandomKeys || useExistingPK) command += "PatNum,";
-        command += "Bal_0_30,Bal_31_60,Bal_61_90,BalOver90,InsEst,BalTotal,PayPlanDue) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(famAging.PatNum) + ",";
-        command +=
-            SOut.Double(famAging.Bal_0_30) + ","
-                                           + SOut.Double(famAging.Bal_31_60) + ","
-                                           + SOut.Double(famAging.Bal_61_90) + ","
-                                           + SOut.Double(famAging.BalOver90) + ","
-                                           + SOut.Double(famAging.InsEst) + ","
-                                           + SOut.Double(famAging.BalTotal) + ","
-                                           + SOut.Double(famAging.PayPlanDue) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            famAging.PatNum = Db.NonQ(command, true, "PatNum", "famAging");
-        return famAging.PatNum;
-    }
-
-    public static void Update(FamAging famAging)
-    {
-        var command = "UPDATE famaging SET "
-                      + "Bal_0_30  =  " + SOut.Double(famAging.Bal_0_30) + ", "
-                      + "Bal_31_60 =  " + SOut.Double(famAging.Bal_31_60) + ", "
-                      + "Bal_61_90 =  " + SOut.Double(famAging.Bal_61_90) + ", "
-                      + "BalOver90 =  " + SOut.Double(famAging.BalOver90) + ", "
-                      + "InsEst    =  " + SOut.Double(famAging.InsEst) + ", "
-                      + "BalTotal  =  " + SOut.Double(famAging.BalTotal) + ", "
-                      + "PayPlanDue=  " + SOut.Double(famAging.PayPlanDue) + " "
-                      + "WHERE PatNum = " + SOut.Long(famAging.PatNum);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(FamAging famAging, FamAging oldFamAging)
-    {
-        var command = "";
-        if (famAging.Bal_0_30 != oldFamAging.Bal_0_30)
-        {
-            if (command != "") command += ",";
-            command += "Bal_0_30 = " + SOut.Double(famAging.Bal_0_30) + "";
-        }
-
-        if (famAging.Bal_31_60 != oldFamAging.Bal_31_60)
-        {
-            if (command != "") command += ",";
-            command += "Bal_31_60 = " + SOut.Double(famAging.Bal_31_60) + "";
-        }
-
-        if (famAging.Bal_61_90 != oldFamAging.Bal_61_90)
-        {
-            if (command != "") command += ",";
-            command += "Bal_61_90 = " + SOut.Double(famAging.Bal_61_90) + "";
-        }
-
-        if (famAging.BalOver90 != oldFamAging.BalOver90)
-        {
-            if (command != "") command += ",";
-            command += "BalOver90 = " + SOut.Double(famAging.BalOver90) + "";
-        }
-
-        if (famAging.InsEst != oldFamAging.InsEst)
-        {
-            if (command != "") command += ",";
-            command += "InsEst = " + SOut.Double(famAging.InsEst) + "";
-        }
-
-        if (famAging.BalTotal != oldFamAging.BalTotal)
-        {
-            if (command != "") command += ",";
-            command += "BalTotal = " + SOut.Double(famAging.BalTotal) + "";
-        }
-
-        if (famAging.PayPlanDue != oldFamAging.PayPlanDue)
-        {
-            if (command != "") command += ",";
-            command += "PayPlanDue = " + SOut.Double(famAging.PayPlanDue) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE famaging SET " + command
-                                         + " WHERE PatNum = " + SOut.Long(famAging.PatNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(FamAging famAging, FamAging oldFamAging)
-    {
-        if (famAging.Bal_0_30 != oldFamAging.Bal_0_30) return true;
-        if (famAging.Bal_31_60 != oldFamAging.Bal_31_60) return true;
-        if (famAging.Bal_61_90 != oldFamAging.Bal_61_90) return true;
-        if (famAging.BalOver90 != oldFamAging.BalOver90) return true;
-        if (famAging.InsEst != oldFamAging.InsEst) return true;
-        if (famAging.BalTotal != oldFamAging.BalTotal) return true;
-        if (famAging.PayPlanDue != oldFamAging.PayPlanDue) return true;
-        return false;
-    }
-
-    public static void Delete(long patNum)
-    {
-        var command = "DELETE FROM famaging "
-                      + "WHERE PatNum = " + SOut.Long(patNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listPatNums)
-    {
-        if (listPatNums == null || listPatNums.Count == 0) return;
-        var command = "DELETE FROM famaging "
-                      + "WHERE PatNum IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

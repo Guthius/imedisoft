@@ -5,47 +5,23 @@ using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class TimeCardRules
 {
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<TimeCardRule> Refresh(long patNum){
-
-        string command="SELECT * FROM timecardrule WHERE PatNum = "+POut.Long(patNum);
-        return Crud.TimeCardRuleCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one TimeCardRule from the db.</summary>
-    public static TimeCardRule GetOne(long timeCardRuleNum){
-
-        return Crud.TimeCardRuleCrud.SelectOne(timeCardRuleNum);
-    }*/
-
-    
-    public static long Insert(TimeCardRule timeCardRule)
-    {
-        return TimeCardRuleCrud.Insert(timeCardRule);
-    }
-
-    
     public static void InsertMany(List<TimeCardRule> listTimeCardRules)
     {
         TimeCardRuleCrud.InsertMany(listTimeCardRules);
     }
-
     
     public static void Update(TimeCardRule timeCardRule)
     {
         TimeCardRuleCrud.Update(timeCardRule);
     }
-
     
     public static void Delete(long timeCardRuleNum)
     {
@@ -53,7 +29,6 @@ public class TimeCardRules
         Db.NonQ(command);
     }
 
-    
     public static void DeleteMany(List<long> listTimeCardRuleNums)
     {
         if (listTimeCardRuleNums == null || listTimeCardRuleNums.Count == 0) return;
@@ -62,10 +37,6 @@ public class TimeCardRules
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Validates pay period before making any adjustments.
-    ///     If today falls before the stopDate passed in, stopDate will be set to today's date.
-    /// </summary>
     public static string ValidatePayPeriod(Employee employee, DateTime dateStart, DateTime dateStop)
     {
         //If calculating breaks before the end date of the pay period, only calculate breaks and validate clock in and out events for days
@@ -77,7 +48,7 @@ public class TimeCardRules
         var listClockEventsBreak = ClockEvents.Refresh(employee.EmployeeNum, dateStart, dateStop, true);
         var listClockEvents = ClockEvents.Refresh(employee.EmployeeNum, dateStart, dateStop, false);
         var hasError = false;
-        var retVal = "Time card errors for employee : " + Employees.GetNameFL(employee) + "\r\n";
+        var retVal = "Time card errors for employee : " + Employees.GetName(employee) + "\r\n";
         //Validate clock events
         for (var i = 0; i < listClockEvents.Count; i++)
             if (listClockEvents[i].TimeDisplayed2.Year < 1880)
@@ -122,11 +93,6 @@ public class TimeCardRules
         return "";
     }
 
-    /// <summary>
-    ///     Cannot have both AM/PM rules and OverHours rules defined.
-    ///     We no longer block having multiple rules defined. With a better interface we can improve some of this
-    ///     functionality. Per NS 09/15/2015.
-    /// </summary>
     public static string ValidateOvertimeRules(List<long> listEmployeeNums = null)
     {
         var stringBuilder = new StringBuilder();
@@ -152,7 +118,7 @@ public class TimeCardRules
             if (listTimeCardRulesEmp.Any(x => x.AfterTimeOfDay > TimeSpan.Zero || x.BeforeTimeOfDay > TimeSpan.Zero) //There exists an AM or PM rule
                 && listTimeCardRulesEmp.Any(x => x.OverHoursPerDay > TimeSpan.Zero)) //There also exists an Over hours rule.
             {
-                var empName = Employees.GetNameFL(Employees.GetEmp(empNum));
+                var empName = Employees.GetName(Employees.GetEmp(empNum));
                 stringBuilder.AppendLine("Time card errors found for " + empName + ":");
                 stringBuilder.AppendLine("  Both a time of day rule and an over hours per day rule found. Only one or the other is allowed.\r\n");
             }
@@ -161,7 +127,6 @@ public class TimeCardRules
         return stringBuilder.ToString();
     }
 
-    ///<summary>Clears automatic adjustment/adjustOT values and deletes automatic TimeAdjusts for period.</summary>
     public static void ClearAuto(long employeeNum, DateTime dateStart, DateTime dateStop)
     {
         var listClockEvents = ClockEvents.GetSimpleList(employeeNum, dateStart, dateStop);
@@ -179,14 +144,10 @@ public class TimeCardRules
         {
             TimeAdjusts.Delete(listTimeAdjusts[i]);
             SecurityLogs.MakeLogEntry(EnumPermType.TimeAdjustEdit, 0,
-                $"Automatic Time Card Adjustments were cleared. Adjustment deleted for Employee: {Employees.GetNameFL(listTimeAdjusts[i].EmployeeNum)}.");
+                $"Automatic Time Card Adjustments were cleared. Adjustment deleted for Employee: {Employees.GetName(listTimeAdjusts[i].EmployeeNum)}.");
         }
     }
 
-    /// <summary>
-    ///     Clears all manual adjustments/Adjust OT values from clock events. Does not alter adjustments to
-    ///     clockevent.TimeDisplayed1/2 nor does it delete or alter any TimeAdjusts.
-    /// </summary>
     public static void ClearManual(long employeeNum, DateTime dateStart, DateTime dateStop)
     {
         var listClockEvents = ClockEvents.GetSimpleList(employeeNum, dateStart, dateStop);
@@ -201,10 +162,6 @@ public class TimeCardRules
         }
     }
 
-    /// <summary>
-    ///     Validates list and throws exceptions. Always returns a value. Creates a timecard rule based on all applicable
-    ///     timecard rules for a given employee.
-    /// </summary>
     public static TimeCardRule GetTimeCardRule(Employee employee)
     {
         //Validate Rules---------------------------------------------------------------------------------------------------------------
@@ -226,12 +183,6 @@ public class TimeCardRules
         return timeCardRule;
     }
 
-    /// <summary>
-    ///     Calculates daily overtime.  Daily overtime does not take into account any time adjust events.
-    ///     All manually entered time adjust events are assumed to be entered correctly and should not be used in calculating
-    ///     automatic totals.
-    ///     Throws exceptions when encountering errors.
-    /// </summary>
     public static void CalculateDailyOvertime(Employee employee, DateTime dateStart, DateTime dateStop)
     {
         #region Fill Lists, validate data sets, generate error messages.
@@ -303,7 +254,7 @@ public class TimeCardRules
 
         //Report Errors---------------------------------------------------------------------------------------------------------------------------------------------
         errors = ruleErrors + clockErrors + breakErrors;
-        if (errors != "") throw new Exception(Employees.GetNameFL(employee) + " has the following errors:\r\n" + errors);
+        if (errors != "") throw new Exception(Employees.GetName(employee) + " has the following errors:\r\n" + errors);
         //throw new Exception(errors);
 
         #endregion
@@ -532,10 +483,6 @@ public class TimeCardRules
         return timeSpan;
     }
 
-    /// <summary>
-    ///     Returns true if two clock events overlap. Useful for determining if a break applies to a given clock event.
-    ///     Does not matter which order clock events are provided.
-    /// </summary>
     private static bool TimeClockEventsOverlapHelper(ClockEvent clockEvent1, ClockEvent clockEvent2)
     {
         //Visual representation
@@ -547,10 +494,6 @@ public class TimeCardRules
         return false;
     }
 
-    /// <summary>
-    ///     Calculates weekly overtime and inserts TimeAdjusts accordingly. Throws an exception if there are any time card
-    ///     events with errors.
-    /// </summary>
     public static void CalculateWeeklyOvertime(Employee employee, PayPeriod payPeriod)
     {
         var timeCardRule = GetTimeCardRule(employee);
@@ -593,7 +536,7 @@ public class TimeCardRules
         if (errors != "")
         {
             var message = Lans.g("TimeCardRules", "has the following errors:");
-            throw new Exception(Employees.GetNameFL(employee) + " " + message + "\r\n" + errors);
+            throw new Exception(Employees.GetName(employee) + " " + message + "\r\n" + errors);
         }
 
         #endregion Get ClockEvents and TimeAdjusts
@@ -605,7 +548,7 @@ public class TimeCardRules
         if (listTimeAdjustNumsAuto.Count > 0)
         {
             TimeAdjusts.DeleteMany(listTimeAdjustNumsAuto);
-            var logText = Lans.g("TimeCardRules", "Weekly overtime was calculated. Time Card Adjustments deleted for Employee:") + " " + Employees.GetNameFL(employee);
+            var logText = Lans.g("TimeCardRules", "Weekly overtime was calculated. Time Card Adjustments deleted for Employee:") + " " + Employees.GetName(employee);
             SecurityLogs.MakeLogEntry(EnumPermType.TimeAdjustEdit, 0, logText);
             //Remove the TimeAdjusts that were just deleted from the list of all TimeAdjusts.
             listTimeAdjusts.RemoveAll(x => listTimeAdjustNumsAuto.Contains(x.TimeAdjustNum));
@@ -712,37 +655,23 @@ public class TimeCardRules
 
         if (hasCreatedTimeAdjust)
         {
-            var logText = Lans.g("TimeCardRules", "Weekly overtime was calculated. Time Card Adjustment created for Employee:") + " " + Employees.GetNameFL(employee);
+            var logText = Lans.g("TimeCardRules", "Weekly overtime was calculated. Time Card Adjustment created for Employee:") + " " + Employees.GetName(employee);
             SecurityLogs.MakeLogEntry(EnumPermType.TimeAdjustEdit, 0, logText);
         }
     }
 
-    private class ClinicNumTotalHours
+    private class ClinicNumTotalHours(long clinicNum, double totalHours)
     {
-        public readonly long ClinicNum;
-        public readonly double TotalHours;
-
-        public ClinicNumTotalHours(long clinicNum, double totalHours)
-        {
-            ClinicNum = clinicNum;
-            TotalHours = totalHours;
-        }
+        public readonly long ClinicNum = clinicNum;
+        public readonly double TotalHours = totalHours;
     }
 
-    private class ClinicNumTimeSpan
+    private class ClinicNumTimeSpan(long clinicNum, TimeSpan timeSpan)
     {
-        public readonly long ClinicNum;
-        public TimeSpan TimeSpan;
-
-        public ClinicNumTimeSpan(long clinicNum, TimeSpan timeSpan)
-        {
-            ClinicNum = clinicNum;
-            TimeSpan = timeSpan;
-        }
+        public readonly long ClinicNum = clinicNum;
+        public TimeSpan TimeSpan = timeSpan;
     }
-
-    #region CachePattern
-
+    
     private class TimeCardRuleCache : CacheListAbs<TimeCardRule>
     {
         protected override List<TimeCardRule> GetCacheFromDb()
@@ -772,44 +701,30 @@ public class TimeCardRules
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly TimeCardRuleCache _timeCardRuleCache = new();
+    private static readonly TimeCardRuleCache Cache = new();
 
     public static List<TimeCardRule> GetDeepCopy(bool isShort = false)
     {
-        return _timeCardRuleCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<TimeCardRule> GetWhere(Predicate<TimeCardRule> match, bool isShort = false)
     {
-        return _timeCardRuleCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _timeCardRuleCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return _timeCardRuleCache.GetTableFromCache(refreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()
     {
-        _timeCardRuleCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

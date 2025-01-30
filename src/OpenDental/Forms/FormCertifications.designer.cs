@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormCertifications {
 		/// <summary>
 		/// Required designer variable.
@@ -58,7 +58,7 @@ namespace OpenDental{
 			this.listBoxEmployee.Size = new System.Drawing.Size(120, 524);
 			this.listBoxEmployee.TabIndex = 3;
 			this.listBoxEmployee.Text = "listBoxOD1";
-			this.listBoxEmployee.SelectionChangeCommitted += new System.EventHandler(this.listBoxEmployee_SelectionChangeCommitted);
+			this.listBoxEmployee.SelectionChangeCommitted += new System.EventHandler(this.ListBoxEmployee_SelectionChangeCommitted);
 			// 
 			// gridMain
 			// 
@@ -69,7 +69,7 @@ namespace OpenDental{
 			this.gridMain.Name = "gridMain";
 			this.gridMain.Size = new System.Drawing.Size(708, 620);
 			this.gridMain.TabIndex = 5;
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// listBoxCategories
 			// 
@@ -79,7 +79,7 @@ namespace OpenDental{
 			this.listBoxCategories.Size = new System.Drawing.Size(120, 316);
 			this.listBoxCategories.TabIndex = 4;
 			this.listBoxCategories.Text = "listBoxOD1";
-			this.listBoxCategories.SelectionChangeCommitted += new System.EventHandler(this.listBoxCategories_SelectionChangeCommitted);
+			this.listBoxCategories.SelectionChangeCommitted += new System.EventHandler(this.ListBoxCategories_SelectionChangeCommitted);
 			// 
 			// butSetup
 			// 
@@ -88,7 +88,7 @@ namespace OpenDental{
 			this.butSetup.Size = new System.Drawing.Size(75, 24);
 			this.butSetup.TabIndex = 8;
 			this.butSetup.Text = "Setup";
-			this.butSetup.Click += new System.EventHandler(this.butSetup_Click);
+			this.butSetup.Click += new System.EventHandler(this.ButtonSetup_Click);
 			// 
 			// labelEmployee
 			// 
@@ -130,7 +130,7 @@ namespace OpenDental{
 			this.radioCategory.TabStop = true;
 			this.radioCategory.Text = "Category";
 			this.radioCategory.UseVisualStyleBackColor = true;
-			this.radioCategory.Click += new System.EventHandler(this.radioCategory_Click);
+			this.radioCategory.Click += new System.EventHandler(this.RadioButtonCategory_Click);
 			// 
 			// radioCertification
 			// 
@@ -140,7 +140,7 @@ namespace OpenDental{
 			this.radioCertification.TabIndex = 2;
 			this.radioCertification.Text = "Cert Complete";
 			this.radioCertification.UseVisualStyleBackColor = true;
-			this.radioCertification.Click += new System.EventHandler(this.radioCertification_Click);
+			this.radioCertification.Click += new System.EventHandler(this.RadioButtonCertification_Click);
 			// 
 			// labelCertification
 			// 
@@ -158,7 +158,7 @@ namespace OpenDental{
 			this.listBoxCertification.Size = new System.Drawing.Size(120, 524);
 			this.listBoxCertification.TabIndex = 32;
 			this.listBoxCertification.Text = "listBoxOD1";
-			this.listBoxCertification.SelectionChangeCommitted += new System.EventHandler(this.listBoxCertification_SelectionChangeCommitted);
+			this.listBoxCertification.SelectionChangeCommitted += new System.EventHandler(this.ListBoxCertification_SelectionChangeCommitted);
 			// 
 			// labelEmpSearch
 			// 
@@ -175,7 +175,7 @@ namespace OpenDental{
 			this.textEmpSearch.Name = "textEmpSearch";
 			this.textEmpSearch.Size = new System.Drawing.Size(120, 20);
 			this.textEmpSearch.TabIndex = 1;
-			this.textEmpSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textEmpSearch_KeyUp);
+			this.textEmpSearch.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TextBoxEmployeeSearch_KeyUp);
 			// 
 			// butPrint
 			// 
@@ -187,7 +187,7 @@ namespace OpenDental{
 			this.butPrint.Size = new System.Drawing.Size(75, 24);
 			this.butPrint.TabIndex = 9;
 			this.butPrint.Text = "Print";
-			this.butPrint.Click += new System.EventHandler(this.butPrint_Click);
+			this.butPrint.Click += new System.EventHandler(this.ButtonPrint_Click);
 			// 
 			// checkIncomplete
 			// 
@@ -196,7 +196,7 @@ namespace OpenDental{
 			this.checkIncomplete.Size = new System.Drawing.Size(150, 18);
 			this.checkIncomplete.TabIndex = 6;
 			this.checkIncomplete.Text = "Show Only Incomplete";
-			this.checkIncomplete.Click += new System.EventHandler(this.checkIncomplete_Click);
+			this.checkIncomplete.Click += new System.EventHandler(this.CheckBoxIncomplete_Click);
 			// 
 			// checkSortDate
 			// 
@@ -205,7 +205,7 @@ namespace OpenDental{
 			this.checkSortDate.Size = new System.Drawing.Size(150, 18);
 			this.checkSortDate.TabIndex = 7;
 			this.checkSortDate.Text = "Sort By Date Completed";
-			this.checkSortDate.Click += new System.EventHandler(this.checkSortDate_Click);
+			this.checkSortDate.Click += new System.EventHandler(this.CheckBoxSortDate_Click);
 			// 
 			// labelCategories2
 			// 
@@ -224,7 +224,7 @@ namespace OpenDental{
 			this.listBoxCategories2.Size = new System.Drawing.Size(120, 316);
 			this.listBoxCategories2.TabIndex = 31;
 			this.listBoxCategories2.Text = "listBoxOD1";
-			this.listBoxCategories2.SelectionChangeCommitted += new System.EventHandler(this.listBoxCategories2_SelectionChangeCommitted);
+			this.listBoxCategories2.SelectionChangeCommitted += new System.EventHandler(this.ListBoxCategories2_SelectionChangeCommitted);
 			// 
 			// comboSupervisor
 			// 
@@ -233,7 +233,7 @@ namespace OpenDental{
 			this.comboSupervisor.Size = new System.Drawing.Size(121, 21);
 			this.comboSupervisor.TabIndex = 2;
 			this.comboSupervisor.Text = "comboBoxOD1";
-			this.comboSupervisor.SelectionChangeCommitted += new System.EventHandler(this.comboSupervisor_SelectionChangeCommitted);
+			this.comboSupervisor.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxSupervisor_SelectionChangeCommitted);
 			// 
 			// labelReportsTo
 			// 
@@ -251,7 +251,7 @@ namespace OpenDental{
 			this.checkSortDateCertComplete.Size = new System.Drawing.Size(150, 18);
 			this.checkSortDateCertComplete.TabIndex = 54;
 			this.checkSortDateCertComplete.Text = "Sort By Date Completed";
-			this.checkSortDateCertComplete.Click += new System.EventHandler(this.checkSortDateCertComplete_Click);
+			this.checkSortDateCertComplete.Click += new System.EventHandler(this.CheckBoxSortDateCertComplete_Click);
 			// 
 			// FormCertifications
 			// 

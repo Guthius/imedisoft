@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Xml;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 using WpfControls;
@@ -120,22 +121,22 @@ namespace OpenDental {
 
 		private void LayoutToolBar() {
 			EventHandler eventHandlerCut=(sender,e)=>ApplicationCommands.Cut.Execute(null,_textRichCurrent.richTextBox);
-			toolBarMain.Add(Lans.g(this,"Cut"),eventHandlerCut);
+			toolBarMain.Add(Lans.g("Cut"),eventHandlerCut);
 			EventHandler eventHandlerCopy=(sender,e)=>ApplicationCommands.Copy.Execute(null,_textRichCurrent.richTextBox);
-			toolBarMain.Add(Lans.g(this,"Copy"),eventHandlerCopy);
+			toolBarMain.Add(Lans.g("Copy"),eventHandlerCopy);
 			EventHandler eventHandlerPaste=(sender,e)=>ApplicationCommands.Paste.Execute(null,_textRichCurrent.richTextBox);
-			toolBarMain.Add(Lans.g(this,"Paste"),eventHandlerPaste);
+			toolBarMain.Add(Lans.g("Paste"),eventHandlerPaste);
 			toolBarMain.AddSeparator();
 			EventHandler eventHandlerBold=(sender,e)=>EditingCommands.ToggleBold.Execute(null,_textRichCurrent.richTextBox);
-			toolBarMain.Add(Lans.g(this,"Bold"),eventHandlerBold);
+			toolBarMain.Add(Lans.g("Bold"),eventHandlerBold);
 			EventHandler eventHandlerItalic=(sender,e)=>EditingCommands.ToggleItalic.Execute(null,_textRichCurrent.richTextBox);
-			toolBarMain.Add(Lans.g(this,"Italic"),eventHandlerItalic);
+			toolBarMain.Add(Lans.g("Italic"),eventHandlerItalic);
 			EventHandler eventHandlerUnderline=(sender,e)=>EditingCommands.ToggleUnderline.Execute(null,_textRichCurrent.richTextBox);
-			toolBarMain.Add(Lans.g(this,"Underline"),eventHandlerUnderline);
+			toolBarMain.Add(Lans.g("Underline"),eventHandlerUnderline);
 			toolBarMain.AddSeparator();
-			toolBarMain.Add(Lans.g(this,"Font"),Font_Click);
+			toolBarMain.Add(Lans.g("Font"),Font_Click);
 			toolBarMain.AddSeparator();
-			toolBarMain.Add(Lans.g(this,"Paragraph"),Paragraph_Click);
+			toolBarMain.Add(Lans.g("Paragraph"),Paragraph_Click);
 		}
 
 		private void TextLabel_Click(object sender,EventArgs e) {

@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TransactionInvoiceCrud
 {
@@ -79,7 +81,7 @@ public class TransactionInvoiceCrud
             + DbHelper.ParamChar + "paramInvoiceData,"
             + "'" + SOut.String(transactionInvoice.FilePath) + "')";
         if (transactionInvoice.InvoiceData == null) transactionInvoice.InvoiceData = "";
-        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", OdDbType.Text, SOut.StringParam(transactionInvoice.InvoiceData));
+        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", SOut.StringParam(transactionInvoice.InvoiceData));
         {
             transactionInvoice.TransactionInvoiceNum = Db.NonQ(command, true, "TransactionInvoiceNum", "transactionInvoice", paramInvoiceData);
         }
@@ -103,7 +105,7 @@ public class TransactionInvoiceCrud
             + DbHelper.ParamChar + "paramInvoiceData,"
             + "'" + SOut.String(transactionInvoice.FilePath) + "')";
         if (transactionInvoice.InvoiceData == null) transactionInvoice.InvoiceData = "";
-        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", OdDbType.Text, SOut.StringParam(transactionInvoice.InvoiceData));
+        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", SOut.StringParam(transactionInvoice.InvoiceData));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramInvoiceData);
         else
@@ -119,7 +121,7 @@ public class TransactionInvoiceCrud
                       + "FilePath             = '" + SOut.String(transactionInvoice.FilePath) + "' "
                       + "WHERE TransactionInvoiceNum = " + SOut.Long(transactionInvoice.TransactionInvoiceNum);
         if (transactionInvoice.InvoiceData == null) transactionInvoice.InvoiceData = "";
-        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", OdDbType.Text, SOut.StringParam(transactionInvoice.InvoiceData));
+        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", SOut.StringParam(transactionInvoice.InvoiceData));
         Db.NonQ(command, paramInvoiceData);
     }
 
@@ -146,7 +148,7 @@ public class TransactionInvoiceCrud
 
         if (command == "") return false;
         if (transactionInvoice.InvoiceData == null) transactionInvoice.InvoiceData = "";
-        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", OdDbType.Text, SOut.StringParam(transactionInvoice.InvoiceData));
+        var paramInvoiceData = new OdSqlParameter("paramInvoiceData", SOut.StringParam(transactionInvoice.InvoiceData));
         command = "UPDATE transactioninvoice SET " + command
                                                    + " WHERE TransactionInvoiceNum = " + SOut.Long(transactionInvoice.TransactionInvoiceNum);
         Db.NonQ(command, paramInvoiceData);

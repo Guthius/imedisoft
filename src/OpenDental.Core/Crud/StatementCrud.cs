@@ -6,10 +6,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class StatementCrud
 {
@@ -168,11 +170,11 @@ public class StatementCrud
                                         + SOut.Int((int) statement.SmsSendStatus) + ","
                                         + SOut.Int((int) statement.LimitedCustomFamily) + ")";
         if (statement.Note == null) statement.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(statement.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(statement.Note));
         if (statement.NoteBold == null) statement.NoteBold = "";
-        var paramNoteBold = new OdSqlParameter("paramNoteBold", OdDbType.Text, SOut.StringParam(statement.NoteBold));
+        var paramNoteBold = new OdSqlParameter("paramNoteBold", SOut.StringParam(statement.NoteBold));
         if (statement.EmailBody == null) statement.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(statement.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(statement.EmailBody));
         {
             statement.StatementNum = Db.NonQ(command, true, "StatementNum", "statement", paramNote, paramNoteBold, paramEmailBody);
         }
@@ -326,11 +328,11 @@ public class StatementCrud
                                         + SOut.Int((int) statement.SmsSendStatus) + ","
                                         + SOut.Int((int) statement.LimitedCustomFamily) + ")";
         if (statement.Note == null) statement.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(statement.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(statement.Note));
         if (statement.NoteBold == null) statement.NoteBold = "";
-        var paramNoteBold = new OdSqlParameter("paramNoteBold", OdDbType.Text, SOut.StringParam(statement.NoteBold));
+        var paramNoteBold = new OdSqlParameter("paramNoteBold", SOut.StringParam(statement.NoteBold));
         if (statement.EmailBody == null) statement.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(statement.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(statement.EmailBody));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramNoteBold, paramEmailBody);
         else
@@ -371,11 +373,11 @@ public class StatementCrud
                       + "LimitedCustomFamily=  " + SOut.Int((int) statement.LimitedCustomFamily) + " "
                       + "WHERE StatementNum = " + SOut.Long(statement.StatementNum);
         if (statement.Note == null) statement.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(statement.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(statement.Note));
         if (statement.NoteBold == null) statement.NoteBold = "";
-        var paramNoteBold = new OdSqlParameter("paramNoteBold", OdDbType.Text, SOut.StringParam(statement.NoteBold));
+        var paramNoteBold = new OdSqlParameter("paramNoteBold", SOut.StringParam(statement.NoteBold));
         if (statement.EmailBody == null) statement.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(statement.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(statement.EmailBody));
         Db.NonQ(command, paramNote, paramNoteBold, paramEmailBody);
     }
 
@@ -547,11 +549,11 @@ public class StatementCrud
 
         if (command == "") return false;
         if (statement.Note == null) statement.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(statement.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(statement.Note));
         if (statement.NoteBold == null) statement.NoteBold = "";
-        var paramNoteBold = new OdSqlParameter("paramNoteBold", OdDbType.Text, SOut.StringParam(statement.NoteBold));
+        var paramNoteBold = new OdSqlParameter("paramNoteBold", SOut.StringParam(statement.NoteBold));
         if (statement.EmailBody == null) statement.EmailBody = "";
-        var paramEmailBody = new OdSqlParameter("paramEmailBody", OdDbType.Text, SOut.StringParam(statement.EmailBody));
+        var paramEmailBody = new OdSqlParameter("paramEmailBody", SOut.StringParam(statement.EmailBody));
         command = "UPDATE statement SET " + command
                                           + " WHERE StatementNum = " + SOut.Long(statement.StatementNum);
         Db.NonQ(command, paramNote, paramNoteBold, paramEmailBody);

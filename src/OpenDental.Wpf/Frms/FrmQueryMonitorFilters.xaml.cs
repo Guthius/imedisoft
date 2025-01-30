@@ -13,6 +13,7 @@ using WpfControls.UI;
 using Newtonsoft.Json;
 using Microsoft.Win32;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	

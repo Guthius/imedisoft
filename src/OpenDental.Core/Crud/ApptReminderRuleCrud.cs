@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ApptReminderRuleCrud
 {
@@ -116,29 +118,29 @@ public class ApptReminderRuleCrud
                                                      + SOut.Int((int) apptReminderRule.SendMultipleInvites) + ","
                                                      + "'" + SOut.Long(apptReminderRule.TimeSpanMultipleInvites.Ticks) + "')";
         if (apptReminderRule.TemplateSMS == null) apptReminderRule.TemplateSMS = "";
-        var paramTemplateSMS = new OdSqlParameter("paramTemplateSMS", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateSMS));
+        var paramTemplateSMS = new OdSqlParameter("paramTemplateSMS", SOut.StringParam(apptReminderRule.TemplateSMS));
         if (apptReminderRule.TemplateEmailSubject == null) apptReminderRule.TemplateEmailSubject = "";
-        var paramTemplateEmailSubject = new OdSqlParameter("paramTemplateEmailSubject", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailSubject));
+        var paramTemplateEmailSubject = new OdSqlParameter("paramTemplateEmailSubject", SOut.StringParam(apptReminderRule.TemplateEmailSubject));
         if (apptReminderRule.TemplateEmail == null) apptReminderRule.TemplateEmail = "";
-        var paramTemplateEmail = new OdSqlParameter("paramTemplateEmail", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmail));
+        var paramTemplateEmail = new OdSqlParameter("paramTemplateEmail", SOut.StringParam(apptReminderRule.TemplateEmail));
         if (apptReminderRule.TemplateSMSAggShared == null) apptReminderRule.TemplateSMSAggShared = "";
-        var paramTemplateSMSAggShared = new OdSqlParameter("paramTemplateSMSAggShared", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateSMSAggShared));
+        var paramTemplateSMSAggShared = new OdSqlParameter("paramTemplateSMSAggShared", SOut.StringParam(apptReminderRule.TemplateSMSAggShared));
         if (apptReminderRule.TemplateSMSAggPerAppt == null) apptReminderRule.TemplateSMSAggPerAppt = "";
-        var paramTemplateSMSAggPerAppt = new OdSqlParameter("paramTemplateSMSAggPerAppt", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateSMSAggPerAppt));
+        var paramTemplateSMSAggPerAppt = new OdSqlParameter("paramTemplateSMSAggPerAppt", SOut.StringParam(apptReminderRule.TemplateSMSAggPerAppt));
         if (apptReminderRule.TemplateEmailSubjAggShared == null) apptReminderRule.TemplateEmailSubjAggShared = "";
-        var paramTemplateEmailSubjAggShared = new OdSqlParameter("paramTemplateEmailSubjAggShared", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailSubjAggShared));
+        var paramTemplateEmailSubjAggShared = new OdSqlParameter("paramTemplateEmailSubjAggShared", SOut.StringParam(apptReminderRule.TemplateEmailSubjAggShared));
         if (apptReminderRule.TemplateEmailAggShared == null) apptReminderRule.TemplateEmailAggShared = "";
-        var paramTemplateEmailAggShared = new OdSqlParameter("paramTemplateEmailAggShared", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailAggShared));
+        var paramTemplateEmailAggShared = new OdSqlParameter("paramTemplateEmailAggShared", SOut.StringParam(apptReminderRule.TemplateEmailAggShared));
         if (apptReminderRule.TemplateEmailAggPerAppt == null) apptReminderRule.TemplateEmailAggPerAppt = "";
-        var paramTemplateEmailAggPerAppt = new OdSqlParameter("paramTemplateEmailAggPerAppt", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailAggPerAppt));
+        var paramTemplateEmailAggPerAppt = new OdSqlParameter("paramTemplateEmailAggPerAppt", SOut.StringParam(apptReminderRule.TemplateEmailAggPerAppt));
         if (apptReminderRule.TemplateAutoReply == null) apptReminderRule.TemplateAutoReply = "";
-        var paramTemplateAutoReply = new OdSqlParameter("paramTemplateAutoReply", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateAutoReply));
+        var paramTemplateAutoReply = new OdSqlParameter("paramTemplateAutoReply", SOut.StringParam(apptReminderRule.TemplateAutoReply));
         if (apptReminderRule.TemplateAutoReplyAgg == null) apptReminderRule.TemplateAutoReplyAgg = "";
-        var paramTemplateAutoReplyAgg = new OdSqlParameter("paramTemplateAutoReplyAgg", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateAutoReplyAgg));
+        var paramTemplateAutoReplyAgg = new OdSqlParameter("paramTemplateAutoReplyAgg", SOut.StringParam(apptReminderRule.TemplateAutoReplyAgg));
         if (apptReminderRule.TemplateFailureAutoReply == null) apptReminderRule.TemplateFailureAutoReply = "";
-        var paramTemplateFailureAutoReply = new OdSqlParameter("paramTemplateFailureAutoReply", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateFailureAutoReply));
+        var paramTemplateFailureAutoReply = new OdSqlParameter("paramTemplateFailureAutoReply", SOut.StringParam(apptReminderRule.TemplateFailureAutoReply));
         if (apptReminderRule.TemplateComeInMessage == null) apptReminderRule.TemplateComeInMessage = "";
-        var paramTemplateComeInMessage = new OdSqlParameter("paramTemplateComeInMessage", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateComeInMessage));
+        var paramTemplateComeInMessage = new OdSqlParameter("paramTemplateComeInMessage", SOut.StringParam(apptReminderRule.TemplateComeInMessage));
         {
             apptReminderRule.ApptReminderRuleNum = Db.NonQ(command, true, "ApptReminderRuleNum", "apptReminderRule", paramTemplateSMS, paramTemplateEmailSubject, paramTemplateEmail, paramTemplateSMSAggShared, paramTemplateSMSAggPerAppt, paramTemplateEmailSubjAggShared, paramTemplateEmailAggShared, paramTemplateEmailAggPerAppt, paramTemplateAutoReply, paramTemplateAutoReplyAgg, paramTemplateFailureAutoReply, paramTemplateComeInMessage);
         }
@@ -317,29 +319,29 @@ public class ApptReminderRuleCrud
 
         if (command == "") return false;
         if (apptReminderRule.TemplateSMS == null) apptReminderRule.TemplateSMS = "";
-        var paramTemplateSMS = new OdSqlParameter("paramTemplateSMS", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateSMS));
+        var paramTemplateSMS = new OdSqlParameter("paramTemplateSMS", SOut.StringParam(apptReminderRule.TemplateSMS));
         if (apptReminderRule.TemplateEmailSubject == null) apptReminderRule.TemplateEmailSubject = "";
-        var paramTemplateEmailSubject = new OdSqlParameter("paramTemplateEmailSubject", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailSubject));
+        var paramTemplateEmailSubject = new OdSqlParameter("paramTemplateEmailSubject", SOut.StringParam(apptReminderRule.TemplateEmailSubject));
         if (apptReminderRule.TemplateEmail == null) apptReminderRule.TemplateEmail = "";
-        var paramTemplateEmail = new OdSqlParameter("paramTemplateEmail", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmail));
+        var paramTemplateEmail = new OdSqlParameter("paramTemplateEmail", SOut.StringParam(apptReminderRule.TemplateEmail));
         if (apptReminderRule.TemplateSMSAggShared == null) apptReminderRule.TemplateSMSAggShared = "";
-        var paramTemplateSMSAggShared = new OdSqlParameter("paramTemplateSMSAggShared", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateSMSAggShared));
+        var paramTemplateSMSAggShared = new OdSqlParameter("paramTemplateSMSAggShared", SOut.StringParam(apptReminderRule.TemplateSMSAggShared));
         if (apptReminderRule.TemplateSMSAggPerAppt == null) apptReminderRule.TemplateSMSAggPerAppt = "";
-        var paramTemplateSMSAggPerAppt = new OdSqlParameter("paramTemplateSMSAggPerAppt", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateSMSAggPerAppt));
+        var paramTemplateSMSAggPerAppt = new OdSqlParameter("paramTemplateSMSAggPerAppt", SOut.StringParam(apptReminderRule.TemplateSMSAggPerAppt));
         if (apptReminderRule.TemplateEmailSubjAggShared == null) apptReminderRule.TemplateEmailSubjAggShared = "";
-        var paramTemplateEmailSubjAggShared = new OdSqlParameter("paramTemplateEmailSubjAggShared", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailSubjAggShared));
+        var paramTemplateEmailSubjAggShared = new OdSqlParameter("paramTemplateEmailSubjAggShared", SOut.StringParam(apptReminderRule.TemplateEmailSubjAggShared));
         if (apptReminderRule.TemplateEmailAggShared == null) apptReminderRule.TemplateEmailAggShared = "";
-        var paramTemplateEmailAggShared = new OdSqlParameter("paramTemplateEmailAggShared", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailAggShared));
+        var paramTemplateEmailAggShared = new OdSqlParameter("paramTemplateEmailAggShared", SOut.StringParam(apptReminderRule.TemplateEmailAggShared));
         if (apptReminderRule.TemplateEmailAggPerAppt == null) apptReminderRule.TemplateEmailAggPerAppt = "";
-        var paramTemplateEmailAggPerAppt = new OdSqlParameter("paramTemplateEmailAggPerAppt", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateEmailAggPerAppt));
+        var paramTemplateEmailAggPerAppt = new OdSqlParameter("paramTemplateEmailAggPerAppt", SOut.StringParam(apptReminderRule.TemplateEmailAggPerAppt));
         if (apptReminderRule.TemplateAutoReply == null) apptReminderRule.TemplateAutoReply = "";
-        var paramTemplateAutoReply = new OdSqlParameter("paramTemplateAutoReply", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateAutoReply));
+        var paramTemplateAutoReply = new OdSqlParameter("paramTemplateAutoReply", SOut.StringParam(apptReminderRule.TemplateAutoReply));
         if (apptReminderRule.TemplateAutoReplyAgg == null) apptReminderRule.TemplateAutoReplyAgg = "";
-        var paramTemplateAutoReplyAgg = new OdSqlParameter("paramTemplateAutoReplyAgg", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateAutoReplyAgg));
+        var paramTemplateAutoReplyAgg = new OdSqlParameter("paramTemplateAutoReplyAgg", SOut.StringParam(apptReminderRule.TemplateAutoReplyAgg));
         if (apptReminderRule.TemplateFailureAutoReply == null) apptReminderRule.TemplateFailureAutoReply = "";
-        var paramTemplateFailureAutoReply = new OdSqlParameter("paramTemplateFailureAutoReply", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateFailureAutoReply));
+        var paramTemplateFailureAutoReply = new OdSqlParameter("paramTemplateFailureAutoReply", SOut.StringParam(apptReminderRule.TemplateFailureAutoReply));
         if (apptReminderRule.TemplateComeInMessage == null) apptReminderRule.TemplateComeInMessage = "";
-        var paramTemplateComeInMessage = new OdSqlParameter("paramTemplateComeInMessage", OdDbType.Text, SOut.StringParam(apptReminderRule.TemplateComeInMessage));
+        var paramTemplateComeInMessage = new OdSqlParameter("paramTemplateComeInMessage", SOut.StringParam(apptReminderRule.TemplateComeInMessage));
         command = "UPDATE apptreminderrule SET " + command
                                                  + " WHERE ApptReminderRuleNum = " + SOut.Long(apptReminderRule.ApptReminderRuleNum);
         Db.NonQ(command, paramTemplateSMS, paramTemplateEmailSubject, paramTemplateEmail, paramTemplateSMSAggShared, paramTemplateSMSAggPerAppt, paramTemplateEmailSubjAggShared, paramTemplateEmailAggShared, paramTemplateEmailAggPerAppt, paramTemplateAutoReply, paramTemplateAutoReplyAgg, paramTemplateFailureAutoReply, paramTemplateComeInMessage);

@@ -4,62 +4,40 @@ using System.Data;
 using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ProcButtons
 {
-    ///<summary>must have already checked procCode for nonduplicate.</summary>
-    public static long Insert(ProcButton but)
+    public static void Insert(ProcButton but)
     {
-        return ProcButtonCrud.Insert(but);
+        ProcButtonCrud.Insert(but);
     }
 
-    
     public static void Update(ProcButton but)
     {
         ProcButtonCrud.Update(but);
     }
 
-    
     public static void Delete(ProcButton but)
     {
-        var command = "DELETE FROM procbuttonitem WHERE ProcButtonNum = '"
-                      + SOut.Long(but.ProcButtonNum) + "'";
-        Db.NonQ(command);
-        command = "DELETE FROM procbutton WHERE ProcButtonNum = '"
-                  + SOut.Long(but.ProcButtonNum) + "'";
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM procbuttonitem WHERE ProcButtonNum = " + but.ProcButtonNum);
+        Db.NonQ("DELETE FROM procbutton WHERE ProcButtonNum = " + but.ProcButtonNum);
     }
 
-    
     public static ProcButton[] GetForCat(long selectedCat)
     {
         return GetWhere(x => x.Category == selectedCat).ToArray();
     }
 
-    public static ProcButton GetOne(long procButtonNum)
-    {
-        var listProcButtons = GetWhere(x => x.ProcButtonNum == procButtonNum);
-        ProcButton procButton = null;
-        if (listProcButtons != null && listProcButtons.Count > 0) procButton = listProcButtons[0];
-        return procButton;
-    }
-
-    /// <summary>
-    ///     Deletes all current ProcButtons from the Chart module, and then adds the default ProcButtons.  Procedure codes
-    ///     must have already been entered or they cannot be added as a ProcButton.
-    /// </summary>
     public static void SetToDefault()
     {
-        var command = "DELETE FROM procbutton";
-        Db.NonQ(command);
-        command = "DELETE FROM procbuttonitem";
-        Db.NonQ(command);
-        command = "DELETE FROM definition WHERE Category=" + SOut.Enum(DefCat.ProcButtonCats);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM procbutton");
+        Db.NonQ("DELETE FROM procbuttonitem");
+        Db.NonQ("DELETE FROM definition WHERE Category=" + SOut.Enum(DefCat.ProcButtonCats));
+
         if (CultureInfo.CurrentCulture.Name.EndsWith("CA"))
             SetToDefaultMySQLCanada();
         else
@@ -2173,8 +2151,6 @@ public class ProcButtons
         SetToDefaultMySQLCanadaMisc();
     }
 
-    #region CachePattern
-
     private class ProcButtonCache : CacheListAbs<ProcButton>
     {
         protected override List<ProcButton> GetCacheFromDb()
@@ -2204,49 +2180,35 @@ public class ProcButtons
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ProcButtonCache _procButtonCache = new();
+    private static readonly ProcButtonCache Cache = new();
 
     public static int GetCount(bool isShort = false)
     {
-        return _procButtonCache.GetCount(isShort);
+        return Cache.GetCount(isShort);
     }
 
     public static List<ProcButton> GetDeepCopy(bool isShort = false)
     {
-        return _procButtonCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<ProcButton> GetWhere(Predicate<ProcButton> match, bool isShort = false)
     {
-        return _procButtonCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _procButtonCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _procButtonCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _procButtonCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

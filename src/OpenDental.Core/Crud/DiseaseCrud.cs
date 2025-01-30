@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class DiseaseCrud
 {
@@ -97,7 +99,7 @@ public class DiseaseCrud
                                       + "'" + SOut.String(disease.SnomedProblemType) + "',"
                                       + SOut.Int((int) disease.FunctionStatus) + ")";
         if (disease.PatNote == null) disease.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(disease.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(disease.PatNote));
         {
             disease.DiseaseNum = Db.NonQ(command, true, "DiseaseNum", "disease", paramPatNote);
         }
@@ -127,7 +129,7 @@ public class DiseaseCrud
                                       + "'" + SOut.String(disease.SnomedProblemType) + "',"
                                       + SOut.Int((int) disease.FunctionStatus) + ")";
         if (disease.PatNote == null) disease.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(disease.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(disease.PatNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPatNote);
         else
@@ -149,7 +151,7 @@ public class DiseaseCrud
                       + "FunctionStatus   =  " + SOut.Int((int) disease.FunctionStatus) + " "
                       + "WHERE DiseaseNum = " + SOut.Long(disease.DiseaseNum);
         if (disease.PatNote == null) disease.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(disease.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(disease.PatNote));
         Db.NonQ(command, paramPatNote);
     }
 
@@ -207,7 +209,7 @@ public class DiseaseCrud
 
         if (command == "") return false;
         if (disease.PatNote == null) disease.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(disease.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(disease.PatNote));
         command = "UPDATE disease SET " + command
                                         + " WHERE DiseaseNum = " + SOut.Long(disease.DiseaseNum);
         Db.NonQ(command, paramPatNote);

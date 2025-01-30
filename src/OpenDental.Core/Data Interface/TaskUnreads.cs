@@ -3,25 +3,18 @@ using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class TaskUnreads
 {
-    
-    public static long Insert(TaskUnread taskUnread)
+    public static void Insert(TaskUnread taskUnread)
     {
-        return TaskUnreadCrud.Insert(taskUnread);
+        TaskUnreadCrud.Insert(taskUnread);
     }
 
-    /// <summary>
-    ///     Batch inserts one TaskUnread for every entry in listTasks.
-    ///     Does not validate if the tasks were previously unread or not.  Do not use this method if caller has not already
-    ///     validated that inserting many
-    ///     TaskUnreads will not create duplicates.  All values in listTask will have IsUnread set true.
-    /// </summary>
     public static void InsertManyForTasks(List<Task> listTasks, long userNum)
     {
         if (listTasks.IsNullOrEmpty() || userNum == 0)
@@ -41,7 +34,6 @@ public class TaskUnreads
         TaskUnreadCrud.InsertMany(listTaskUnreads);
     }
 
-    ///<summary>Sets a task read by a user by deleting all the matching taskunreads.  Quick and efficient to run any time.</summary>
     public static void SetRead(long userNum, params Task[] taskArray)
     {
         if (taskArray == null || taskArray.Length == 0) return;
@@ -52,16 +44,16 @@ public class TaskUnreads
         Db.NonQ(command);
     }
 
-    public static bool AddUnreads(Task task, long userNumOrig)
+    public static void AddUnreads(Task task, long userNumOrig)
     {
         //if the task is done, don't add unreads
-        var command = "SELECT TaskStatus,UserNum,ReminderGroupId,DateTimeEntry," + DbHelper.Now() + " DbTime "
+        var command = "SELECT TaskStatus,UserNum,ReminderGroupId,DateTimeEntry," + "NOW()" + " DbTime "
                       + "FROM task WHERE TaskNum = " + SOut.Long(task.TaskNum);
         var table = DataCore.GetTable(command);
-        if (table.Rows.Count == 0) return task.IsUnread; //only happens when a task was deleted by one user but left open on another user's computer.
+        if (table.Rows.Count == 0) return;
         var taskStatusEnum = (TaskStatusEnum) SIn.Int(table.Rows[0]["TaskStatus"].ToString());
         var userNumOwner = SIn.Long(table.Rows[0]["UserNum"].ToString());
-        if (taskStatusEnum == TaskStatusEnum.Done) return task.IsUnread;
+        if (taskStatusEnum == TaskStatusEnum.Done) return;
         //Set it unread for the original owner of the task.
         if (userNumOwner != userNumOrig) //but only if it's some other user
             SetUnread(userNumOwner, task);
@@ -97,7 +89,6 @@ public class TaskUnreads
         }
 
         SetUnreadMany(listUserNums, task); //This no longer results in duplicates like it used to
-        return task.IsUnread;
     }
 
     public static bool IsUnread(long userNum, Task task)
@@ -124,7 +115,6 @@ public class TaskUnreads
         return DataCore.GetTable(command);
     }
 
-    ///<summary>Sets unread for a single user.  Works well without duplicates, whether it's already set to Unread(new) or not.</summary>
     public static void SetUnread(long userNum, Task task)
     {
         if (IsUnread(userNum, task)) return; //Already set to unread, so nothing else to do
@@ -135,11 +125,7 @@ public class TaskUnreads
         Insert(taskUnread);
     }
 
-    /// <summary>
-    ///     Sets unread for a list of users.  This assumes that the list passed in has already checked for duplicate task
-    ///     unreads.
-    /// </summary>
-    public static bool SetUnreadMany(List<long> listUserNums, Task task)
+    public static void SetUnreadMany(List<long> listUserNums, Task task)
     {
         var listTaskUnreadsToInsert = new List<TaskUnread>();
         for (var i = 0; i < listUserNums.Count; i++)
@@ -153,7 +139,6 @@ public class TaskUnreads
         TaskUnreadCrud.InsertMany(listTaskUnreadsToInsert);
         if (listUserNums.Contains(Security.CurUser.UserNum)) //The IsUnread flag is only used for local refreshes.
             task.IsUnread = true;
-        return task.IsUnread;
     }
 
     public static void DeleteForTask(Task task)

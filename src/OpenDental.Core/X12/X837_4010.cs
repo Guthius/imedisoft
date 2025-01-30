@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Eclaims;
@@ -1352,7 +1354,7 @@ namespace OpenDentBusiness {
 		///<summary>This is depedent only on the electronic payor id # rather than the clearinghouse.  Used for billing prov and also for treating prov. Returns the number of segments written</summary>
 		private static int WriteProv_REF(StreamWriter sw,Provider prov,string payorID) {
 			int retVal=0;
-			ElectID electID=ElectIDs.GetID(payorID);
+			ElectID electID=ElectIDs.GetId(payorID);
 			//if(electID==null){
 			//	return;
 			//}
@@ -1710,7 +1712,7 @@ namespace OpenDentBusiness {
 			}
 			Carrier carrier=Carriers.GetCarrier(insPlan.CarrierNum);
 			X12Validate.Carrier(carrier,strb);
-			ElectID electID=ElectIDs.GetID(carrier.ElectID);
+			ElectID electID=ElectIDs.GetId(carrier.ElectID);
 			if(electID!=null && electID.IsMedicaid && billProv.MedicaidID=="") {
 				if(strb.Length!=0) {
 					strb.Append(",");

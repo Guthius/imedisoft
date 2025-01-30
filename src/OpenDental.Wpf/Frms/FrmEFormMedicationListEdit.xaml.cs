@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using OpenDentBusiness;
 using WpfControls;

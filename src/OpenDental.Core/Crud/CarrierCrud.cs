@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class CarrierCrud
 {
@@ -119,7 +121,7 @@ public class CarrierCrud
             + SOut.Byte(carrier.CanadianEncryptionMethod) + ","
             + SOut.Int((int) carrier.CanadianSupportedTypes) + ","
             + SOut.Long(carrier.SecUserNumEntry) + ","
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             //SecDateTEdit can only be set by MySQL
             + "'" + SOut.String(carrier.TIN) + "',"
             + SOut.Long(carrier.CarrierGroupName) + ","

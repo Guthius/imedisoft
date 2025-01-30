@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness{
 	public class X12Generator {

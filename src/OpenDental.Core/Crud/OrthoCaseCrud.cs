@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class OrthoCaseCrud
 {
@@ -112,7 +114,7 @@ public class OrthoCaseCrud
                                         + SOut.Date(orthoCase.DebondDateExpected) + ","
                                         + SOut.Bool(orthoCase.IsTransfer) + ","
                                         + SOut.Long(orthoCase.OrthoType) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + SOut.Long(orthoCase.SecUserNumEntry) + ","
                                         //SecDateTEdit can only be set by MySQL
                                         + SOut.Bool(orthoCase.IsActive) + ","
@@ -147,7 +149,7 @@ public class OrthoCaseCrud
                                         + SOut.Date(orthoCase.DebondDateExpected) + ","
                                         + SOut.Bool(orthoCase.IsTransfer) + ","
                                         + SOut.Long(orthoCase.OrthoType) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + SOut.Long(orthoCase.SecUserNumEntry) + ","
                                         //SecDateTEdit can only be set by MySQL
                                         + SOut.Bool(orthoCase.IsActive) + ","

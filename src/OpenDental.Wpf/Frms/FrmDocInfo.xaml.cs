@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Thinfinity;
 using OpenDental.UI;
@@ -143,7 +144,7 @@ namespace OpenDental {
 		private string TryGetPatientFolder() {
 			string patFolderName;
 			try {
-				patFolderName=ImageStore.GetPatientFolder(_patient,ImageStore.GetPreferredAtoZpath());
+				patFolderName=ImageStore.GetPatientFolder(_patient,ImageStore.GetDataFolder());
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(ex.Message,ex);

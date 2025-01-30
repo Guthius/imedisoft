@@ -21,6 +21,8 @@ using System.Windows.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using OpenDental.UI;//even though they are in this project
 
@@ -1244,7 +1246,7 @@ Only used once in Imaging module.
 			Cursor=Cursors.Arrow;
 			_isLeftMouseDownDragging=false;
 			_hasDraggedOutsideTheTree=true;
-			string patFolder=ImageStore.GetPatientFolder(_patient,ImageStore.GetPreferredAtoZpath());
+			string patFolder=ImageStore.GetPatientFolder(_patient,ImageStore.GetDataFolder());
 			string[] stringArray=new string[0];
 			if(_nodeObjTagSelected.NodeType==EnumImageNodeType.Document){
 				Document document=Documents.GetByNum(_nodeObjTagSelected.DocNum);

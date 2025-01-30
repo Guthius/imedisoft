@@ -3,147 +3,150 @@ using System.Data;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class AutoCodeItems
 {
-    
-    public static long Insert(AutoCodeItem autoCodeItem)
+    public static void Insert(AutoCodeItem autoCodeItem)
     {
-        return AutoCodeItemCrud.Insert(autoCodeItem);
+        AutoCodeItemCrud.Insert(autoCodeItem);
     }
 
-    
     public static void Update(AutoCodeItem autoCodeItem)
     {
         AutoCodeItemCrud.Update(autoCodeItem);
     }
 
-    
     public static void Delete(AutoCodeItem autoCodeItem)
     {
-        var command = "DELETE FROM autocodeitem WHERE AutoCodeItemNum = '"
-                      + SOut.Long(autoCodeItem.AutoCodeItemNum) + "'";
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM autocodeitem WHERE AutoCodeItemNum = " + autoCodeItem.AutoCodeItemNum);
     }
 
-    ///<summary>Gets from cache.  No call to db.</summary>
     public static List<AutoCodeItem> GetListForCode(long autoCodeNum)
     {
-        return _autoCodeItemCache.GetWhereFromList(x => x.AutoCodeNum == autoCodeNum);
+        return Cache.GetWhereFromList(x => x.AutoCodeNum == autoCodeNum);
     }
 
-    //-----
-
-    /// <summary>
-    ///     Only called from ContrChart.listProcButtons_Click.  Called once for each tooth selected and for each autocode
-    ///     item attached to the button.
-    /// </summary>
-    public static long GetCodeNum(long autoCodeNum, string toothNum, string surf, bool isAdditional, long patNum, int age, bool willBeMissing)
+    public static long GetCodeNum(long autoCodeNum, string toothNum, string surf, bool isAdditional, int age, bool willBeMissing)
     {
-        bool areAllCondsMet;
-        var listAutoCodeItemsForCode = GetListForCode(autoCodeNum);
-        if (listAutoCodeItemsForCode.Count == 0) return 0;
-        //bool willBeMissing=Procedures.WillBeMissing(toothNum,patNum);//moved this out so that this method has no db call
-        List<AutoCodeCond> listAutoCodeConds;
-        for (var i = 0; i < listAutoCodeItemsForCode.Count; i++)
+        var autoCodeItemsForCode = GetListForCode(autoCodeNum);
+        if (autoCodeItemsForCode.Count == 0)
         {
-            listAutoCodeConds = AutoCodeConds.GetListForItem(listAutoCodeItemsForCode[i].AutoCodeItemNum);
-            areAllCondsMet = true;
-            for (var j = 0; j < listAutoCodeConds.Count; j++)
-                if (!AutoCodeConds.ConditionIsMet(listAutoCodeConds[j].Cond, toothNum, surf, isAdditional, willBeMissing, age))
+            return 0;
+        }
+        
+        foreach (var autoCodeItem in autoCodeItemsForCode)
+        {
+            var autoCodeConds = AutoCodeConds.GetListForItem(autoCodeItem.AutoCodeItemNum);
+            var areAllCondsMet = true;
+            
+            foreach (var autoCodeCond in autoCodeConds)
+            {
+                if (!AutoCodeConds.ConditionIsMet(autoCodeCond.Cond, toothNum, surf, isAdditional, willBeMissing, age))
+                {
                     areAllCondsMet = false;
+                }
+            }
 
-            if (areAllCondsMet) return listAutoCodeItemsForCode[i].CodeNum;
+            if (areAllCondsMet)
+            {
+                return autoCodeItem.CodeNum;
+            }
         }
 
-        return listAutoCodeItemsForCode[0].CodeNum; //if couldn't find a better match
+        return autoCodeItemsForCode[0].CodeNum;
     }
 
-    /// <summary>
-    ///     Only called when closing the procedure edit window. Usually returns the supplied CodeNum, unless a better
-    ///     match is found.
-    /// </summary>
     public static long VerifyCode(long codeNum, string toothNum, string surf, bool isAdditional, long patNum, int age)
     {
-        bool areAllCondsMet;
-        AutoCode autoCode;
-        if (!GetContainsKey(codeNum)) return codeNum;
-        if (!AutoCodes.GetContainsKey(GetOne(codeNum).AutoCodeNum)) return codeNum; //just in case.
-        autoCode = AutoCodes.GetOne(GetOne(codeNum).AutoCodeNum);
-        if (autoCode.LessIntrusive) return codeNum;
+        if (!GetContainsKey(codeNum))
+        {
+            return codeNum;
+        }
+        
+        if (!AutoCodes.GetContainsKey(GetOne(codeNum).AutoCodeNum))
+        {
+            return codeNum;
+        }
+        
+        var autoCode = AutoCodes.GetOne(GetOne(codeNum).AutoCodeNum);
+        if (autoCode.LessIntrusive)
+        {
+            return codeNum;
+        }
+        
         var willBeMissing = Procedures.WillBeMissing(toothNum, patNum);
-        var listAutoCodeItems = GetListForCode(GetOne(codeNum).AutoCodeNum);
-        List<AutoCodeCond> listAutoCodeConds;
-        for (var i = 0; i < listAutoCodeItems.Count; i++)
+        var autoCodeItems = GetListForCode(GetOne(codeNum).AutoCodeNum);
+        
+        foreach (var autoCodeItem in autoCodeItems)
         {
-            listAutoCodeConds = AutoCodeConds.GetListForItem(listAutoCodeItems[i].AutoCodeItemNum);
-            areAllCondsMet = true;
-            for (var j = 0; j < listAutoCodeConds.Count; j++)
-                if (!AutoCodeConds.ConditionIsMet(listAutoCodeConds[j].Cond, toothNum, surf, isAdditional, willBeMissing, age))
+            var autoCodeConds = AutoCodeConds.GetListForItem(autoCodeItem.AutoCodeItemNum);
+            
+            var areAllCondsMet = true;
+            foreach (var autoCodeCond in autoCodeConds)
+            {
+                if (!AutoCodeConds.ConditionIsMet(autoCodeCond.Cond, toothNum, surf, isAdditional, willBeMissing, age))
+                {
                     areAllCondsMet = false;
+                }
+            }
 
-            if (areAllCondsMet) return listAutoCodeItems[i].CodeNum;
+            if (areAllCondsMet)
+            {
+                return autoCodeItem.CodeNum;
+            }
         }
 
-        return codeNum; //if couldn't find a better match
+        return codeNum;
     }
 
-    /// <summary>
-    ///     Checks inputs and returns either the same code or a slightly different code that is a better fit for the
-    ///     situation.
-    /// </summary>
-    public static long GetRecommendedCodeNum(Procedure procedure, ProcedureCode procedureCode, Patient patient, bool isMandibular,
-        List<ClaimProc> claimProcsForProc)
+    public static long GetRecommendedCodeNum(Procedure procedure, ProcedureCode procedureCode, Patient patient, bool isMandibular, List<ClaimProc> claimProcsForProc)
     {
-        var codeNumRecommended = procedure.CodeNum;
-        //these areas have no autocodes
-        if (procedureCode.TreatArea == TreatmentArea.Mouth
-            || procedureCode.TreatArea == TreatmentArea.None
-            || procedureCode.TreatArea == TreatmentArea.Quad
-            || procedureCode.TreatArea == TreatmentArea.Sextant
-            || Procedures.IsAttachedToClaim(procedure, claimProcsForProc))
-            return codeNumRecommended;
-        //this represents the suggested code based on the autocodes set up.
-        if (procedureCode.TreatArea == TreatmentArea.Arch)
+        var ecommendedCodeNum = procedure.CodeNum;
+
+        if (procedureCode.TreatArea == TreatmentArea.Mouth || procedureCode.TreatArea == TreatmentArea.None || procedureCode.TreatArea == TreatmentArea.Quad || procedureCode.TreatArea == TreatmentArea.Sextant || Procedures.IsAttachedToClaim(procedure, claimProcsForProc))
         {
-            if (string.IsNullOrEmpty(procedure.Surf)) return codeNumRecommended;
-            if (procedure.Surf == "U")
-                codeNumRecommended = VerifyCode(procedureCode.CodeNum, "1", "", procedure.IsAdditional, patient.PatNum, patient.Age); //max
-            else
-                codeNumRecommended = VerifyCode(procedureCode.CodeNum, "32", "", procedure.IsAdditional, patient.PatNum, patient.Age); //mand
+            return ecommendedCodeNum;
         }
-        else if (procedureCode.TreatArea == TreatmentArea.ToothRange)
+        
+        switch (procedureCode.TreatArea)
         {
-            if (string.IsNullOrEmpty(procedure.ToothRange)) return codeNumRecommended;
-            //test for max or mand.
-            codeNumRecommended = VerifyCode(procedureCode.CodeNum, isMandibular ? "32" : "1", "", procedure.IsAdditional, patient.PatNum, patient.Age);
-        }
-        else
-        {
-            //surf or tooth
-            var claimSurf = Tooth.SurfTidyForClaims(procedure.Surf, procedure.ToothNum);
-            codeNumRecommended = VerifyCode(procedureCode.CodeNum, procedure.ToothNum, claimSurf, procedure.IsAdditional, patient.PatNum, patient.Age);
+            case TreatmentArea.Arch when string.IsNullOrEmpty(procedure.Surf):
+                return ecommendedCodeNum;
+            
+            case TreatmentArea.Arch:
+                ecommendedCodeNum = VerifyCode(procedureCode.CodeNum, procedure.Surf == "U" ? "1" : "32", "", procedure.IsAdditional, patient.PatNum, patient.Age);
+                break;
+            
+            case TreatmentArea.ToothRange when string.IsNullOrEmpty(procedure.ToothRange):
+                return ecommendedCodeNum;
+            
+            case TreatmentArea.ToothRange:
+                ecommendedCodeNum = VerifyCode(procedureCode.CodeNum, isMandibular ? "32" : "1", "", procedure.IsAdditional, patient.PatNum, patient.Age);
+                break;
+            
+            default:
+            {
+                var claimSurf = Tooth.SurfTidyForClaims(procedure.Surf, procedure.ToothNum);
+            
+                ecommendedCodeNum = VerifyCode(procedureCode.CodeNum, procedure.ToothNum, claimSurf, procedure.IsAdditional, patient.PatNum, patient.Age);
+                
+                break;
+            }
         }
 
-        return codeNumRecommended;
+        return ecommendedCodeNum;
     }
 
-    #region Cache Pattern
-
-    /// <summary>
-    ///     Utilizes the NonPkAbs version of CacheDict because it uses CodeNum as the Key instead of the PK
-    ///     AutoCodeItemNum.
-    /// </summary>
     private class AutoCodeItemCache : CacheDictNonPkAbs<AutoCodeItem, long, AutoCodeItem>
     {
         protected override List<AutoCodeItem> GetCacheFromDb()
         {
-            var command = "SELECT * FROM autocodeitem";
-            return AutoCodeItemCrud.SelectMany(command);
+            return AutoCodeItemCrud.SelectMany("SELECT * FROM autocodeitem");
         }
 
         protected override List<AutoCodeItem> TableToList(DataTable dataTable)
@@ -187,44 +190,30 @@ public class AutoCodeItems
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly AutoCodeItemCache _autoCodeItemCache = new();
+    private static readonly AutoCodeItemCache Cache = new();
 
     public static AutoCodeItem GetOne(long codeNum)
     {
-        return _autoCodeItemCache.GetOne(codeNum);
+        return Cache.GetOne(codeNum);
     }
 
     public static bool GetContainsKey(long codeNum)
     {
-        return _autoCodeItemCache.GetContainsKey(codeNum);
+        return Cache.GetContainsKey(codeNum);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _autoCodeItemCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _autoCodeItemCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _autoCodeItemCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
 }

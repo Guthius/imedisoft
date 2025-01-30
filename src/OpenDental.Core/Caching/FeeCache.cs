@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Caching;

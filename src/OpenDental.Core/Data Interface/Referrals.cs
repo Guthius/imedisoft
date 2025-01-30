@@ -5,27 +5,25 @@ using System.Linq;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class Referrals
 {
-    
     public static void Update(Referral refer)
     {
         ReferralCrud.Update(refer);
     }
 
-    
-    public static long Insert(Referral refer)
+    public static void Insert(Referral refer)
     {
-        return ReferralCrud.Insert(refer);
+        ReferralCrud.Insert(refer);
     }
 
-    
     public static void Delete(Referral refer)
     {
         if (RefAttaches.IsReferralAttached(refer.ReferralNum)) throw new ApplicationException(Lans.g("FormReferralEdit", "Cannot delete Referral because it is attached to patients"));
@@ -36,20 +34,11 @@ public class Referrals
         Db.NonQ(command);
     }
 
-    ///<summary>Get all matching rows where input email is found in the Email column.</summary>
-    public static List<Referral> GetEmailMatch(string email)
-    {
-        var command = "SELECT * FROM referral "
-                      + "WHERE IsDoctor=1 AND UPPER(EMail) LIKE '%" + email.ToUpper() + "%'";
-        return ReferralCrud.SelectMany(command);
-    }
-
     public static Referral GetFromList(long referralNum)
     {
         return GetFirstOrDefault(x => x.ReferralNum == referralNum);
     }
 
-    ///<summary>Includes title like DMD on the end.</summary>
     public static string GetNameLF(long referralNum)
     {
         if (referralNum == 0) return "";
@@ -63,7 +52,6 @@ public class Referrals
         return retVal;
     }
 
-    ///<summary>Includes title, such as DMD.</summary>
     public static string GetNameFL(long referralNum)
     {
         if (referralNum == 0) return "";
@@ -72,7 +60,6 @@ public class Referrals
         return referral.GetNameFL();
     }
 
-    
     public static string GetPhone(long referralNum)
     {
         var referral = GetFirstOrDefault(x => x.ReferralNum == referralNum);
@@ -85,37 +72,6 @@ public class Referrals
         return "";
     }
 
-    public static List<Referral> GetAllReferrals()
-    {
-        var command = "SELECT * FROM Referral";
-        return ReferralCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Returns a list of Referrals with names similar to the supplied string.  Used in dropdown list from referral
-    ///     field in FormPatientAddAll for faster entry.
-    /// </summary>
-    public static List<Referral> GetSimilarNames(string referralLName)
-    {
-        return GetWhere(x => x.LName.ToUpper().IndexOf(referralLName.ToUpper()) == 0);
-    }
-
-    /// <summary>
-    ///     Used by API. Returns a single Referral with LName exactly matching the supplied string, or null if no match
-    ///     found.
-    /// </summary>
-    public static Referral GetReferralByLName(string LName)
-    {
-        var command = "SELECT * FROM Referral WHERE LName LIKE '" + SOut.String(LName) + "'"; //matches regardless of case 
-        return ReferralCrud.SelectOne(command);
-    }
-
-    /// <summary>
-    ///     Gets Referral info from memory.  Does not make a call to the database unless needed.
-    ///     Returns the true if the referral for the passed in referralNum could be found and sets the out parameter
-    ///     accordingly.
-    ///     Otherwise returns false and referral will be null.
-    /// </summary>
     [Obsolete("Use GetReferral() and surround with try/catch")]
     public static bool TryGetReferral(long referralNum, out Referral referral)
     {
@@ -131,11 +87,6 @@ public class Referrals
         return referral != null;
     }
 
-    /// <summary>
-    ///     Gets Referral info from memory.  Does not make a call to the database unless needed.
-    ///     Returns the first referral matching the referralNum passed in, null if 0 is passed in, or throws an exception if no
-    ///     match found.
-    /// </summary>
     public static Referral GetReferral(long referralNum)
     {
         if (referralNum == 0) return null;
@@ -144,7 +95,6 @@ public class Referrals
         return referral;
     }
 
-    ///<summary>Gets the first referral "from" for the given patient.  Will return null if no "from" found for patient.</summary>
     public static Referral GetReferralForPat(long patNum, List<RefAttach> listRefAttaches = null)
     {
         listRefAttaches = listRefAttaches ?? RefAttaches.Refresh(patNum);
@@ -158,31 +108,6 @@ public class Referrals
         return null;
     }
 
-    ///<summary>Gets a referral from the database.</summary>
-    public static Referral GetReferralForApi(long referralNum)
-    {
-        var command = "SELECT * FROM referral WHERE ReferralNum='" + SOut.Long(referralNum) + "'";
-        return ReferralCrud.SelectOne(command);
-    }
-
-    ///<summary>Gets all Referrals from the database. Returns empty list if not found.</summary>
-    public static List<Referral> GetReferralsForApi(int limit, int offset, bool isHidden, bool notPerson, bool isDoctor, bool isPreferred, bool isPatient)
-    {
-        var command = "SELECT * FROM referral WHERE DateTStamp>=" + SOut.DateTime(DateTime.MinValue) + " ";
-        if (isHidden) command += "AND IsHidden=1 ";
-        if (notPerson) command += "AND NotPerson=1 ";
-        if (isDoctor) command += "AND IsDoctor=1 ";
-        if (isPreferred) command += "AND IsPreferred=1 ";
-        if (isPatient) command += "AND PatNum>0 ";
-        command += "ORDER BY referralNum " //same fixed order each time
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return ReferralCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets IsDoctors referred "from" referrals for the given patient.  Will return empty list if no "from" and
-    ///     IsDoctor found for patient.
-    /// </summary>
     public static List<Referral> GetIsDoctorReferralsForPat(long patNum, List<RefAttach> listRefAttaches = null)
     {
         var retVal = new List<Referral>();
@@ -197,10 +122,6 @@ public class Referrals
         return retVal;
     }
 
-    /// <summary>
-    ///     Replaces all patient's referral "From" and "IsDoctor" fields in the given message.  Returns the resulting string.
-    ///     Replaces: [ReferredFromProvInitialReferralNum], [ReferredFromProvInitialNameF],etc.
-    /// </summary>
     public static string ReplaceRefProvider(string message, Patient pat)
     {
         if (pat == null) return message;
@@ -232,21 +153,11 @@ public class Referrals
         return retVal;
     }
 
-    ///<summary>Gets all referrals by RefNum.  Returns an empty list if no matches.</summary>
     public static List<Referral> GetReferrals(List<long> listRefNums)
     {
         return GetWhere(x => listRefNums.Contains(x.ReferralNum));
     }
 
-    /// <summary>
-    ///     Gets the referral information string that is displayed on the Patient Edit window. Returns a 'Result' object. Pass
-    ///     in textbox if you want this method to
-    ///     abbreviate the generated string so that it fits within certain bounds. If there was an error generating the string,
-    ///     returns the result object with the 'IsSuccess' flag
-    ///     set to false, and possibly with an error message as well. If successful, then we return the result object with the
-    ///     'IsSuccess' flag set to true, and with the
-    ///     full string in Result.Msg and the abbreviated string in Result.Msg2.
-    /// </summary>
     public static Result GetReferralText(long patNum, TextBox textBox = null)
     {
         var result = new Result {IsSuccess = false};
@@ -299,7 +210,6 @@ public class Referrals
         return result;
     }
 
-    ///<summary>Merges two referrals into a single referral. Returns false if both referrals are the same.</summary>
     public static bool MergeReferrals(long refNumInto, long refNumFrom)
     {
         if (refNumInto == refNumFrom)
@@ -320,7 +230,6 @@ public class Referrals
         return true;
     }
 
-    ///<summary>Returns the number of refattaches that this referral has.</summary>
     public static int CountReferralAttach(long referralNum)
     {
         var command = "SELECT COUNT(*) FROM refattach "
@@ -328,7 +237,6 @@ public class Referrals
         return SIn.Int(Db.GetCount(command));
     }
 
-    ///<summary>Used to check if a specialty is in use when user is trying to hide it.</summary>
     public static bool IsSpecialtyInUse(long defNum)
     {
         var command = "SELECT COUNT(*) FROM referral WHERE Specialty=" + SOut.Long(defNum);
@@ -336,10 +244,6 @@ public class Referrals
         return true;
     }
 
-    /// <summary>
-    ///     When importing referrals from forms, we attach them to a referral with LName=Other and FName empty. This
-    ///     single referral gets reused by any import. This method gets that referral, inserting it if it does not yet exist.
-    /// </summary>
     public static Referral GetOther()
     {
         var referral = GetFirstOrDefault(x => x.LName == "Other" && x.FName == "");
@@ -353,8 +257,6 @@ public class Referrals
         RefreshCache();
         return referral;
     }
-
-    #region CachePattern
 
     private class ReferralCache : CacheListAbs<Referral>
     {
@@ -390,54 +292,40 @@ public class Referrals
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ReferralCache _referralCache = new();
+    private static readonly ReferralCache Cache = new();
 
     public static bool GetExists(Predicate<Referral> match, bool isShort = false)
     {
-        return _referralCache.GetExists(match, isShort);
+        return Cache.GetExists(match, isShort);
     }
 
     public static List<Referral> GetDeepCopy(bool isShort = false)
     {
-        return _referralCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<Referral> GetWhere(Predicate<Referral> match, bool isShort = false)
     {
-        return _referralCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static Referral GetFirstOrDefault(Func<Referral, bool> match, bool isShort = false)
     {
-        return _referralCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _referralCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _referralCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _referralCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

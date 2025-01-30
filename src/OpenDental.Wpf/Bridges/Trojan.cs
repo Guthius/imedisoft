@@ -14,6 +14,8 @@ using CodeBase;
 using System.Globalization;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	public class Trojan {
@@ -107,7 +109,7 @@ namespace OpenDental.Bridges {
 			for(int i=0;i<records.Count;i++){
 				if(records[i][1]=="F") {
 					try {
-						InsPlan[] insplans=InsPlans.GetByTrojanID(records[i][0]);
+						InsPlan[] insplans=InsPlans.GetByTrojanId(records[i][0]);
 						for(int j=0;j<insplans.Length;j++) {
 							InsPlan planOld = insplans[j].Copy();
 							insplans[j].PlanNote="PLAN DROPPED BY TROJAN"+Environment.NewLine+insplans[j].PlanNote;

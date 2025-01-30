@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class LabCaseCrud
 {
@@ -112,7 +114,7 @@ public class LabCaseCrud
                                       //DateTStamp can only be set by MySQL
                                       + "'" + SOut.String(labCase.InvoiceNum) + "')";
         if (labCase.Instructions == null) labCase.Instructions = "";
-        var paramInstructions = new OdSqlParameter("paramInstructions", OdDbType.Text, SOut.StringParam(labCase.Instructions));
+        var paramInstructions = new OdSqlParameter("paramInstructions", SOut.StringParam(labCase.Instructions));
         {
             labCase.LabCaseNum = Db.NonQ(command, true, "LabCaseNum", "labCase", paramInstructions);
         }
@@ -147,7 +149,7 @@ public class LabCaseCrud
                                       //DateTStamp can only be set by MySQL
                                       + "'" + SOut.String(labCase.InvoiceNum) + "')";
         if (labCase.Instructions == null) labCase.Instructions = "";
-        var paramInstructions = new OdSqlParameter("paramInstructions", OdDbType.Text, SOut.StringParam(labCase.Instructions));
+        var paramInstructions = new OdSqlParameter("paramInstructions", SOut.StringParam(labCase.Instructions));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramInstructions);
         else
@@ -174,7 +176,7 @@ public class LabCaseCrud
                       + "InvoiceNum     = '" + SOut.String(labCase.InvoiceNum) + "' "
                       + "WHERE LabCaseNum = " + SOut.Long(labCase.LabCaseNum);
         if (labCase.Instructions == null) labCase.Instructions = "";
-        var paramInstructions = new OdSqlParameter("paramInstructions", OdDbType.Text, SOut.StringParam(labCase.Instructions));
+        var paramInstructions = new OdSqlParameter("paramInstructions", SOut.StringParam(labCase.Instructions));
         Db.NonQ(command, paramInstructions);
     }
 
@@ -262,7 +264,7 @@ public class LabCaseCrud
 
         if (command == "") return false;
         if (labCase.Instructions == null) labCase.Instructions = "";
-        var paramInstructions = new OdSqlParameter("paramInstructions", OdDbType.Text, SOut.StringParam(labCase.Instructions));
+        var paramInstructions = new OdSqlParameter("paramInstructions", SOut.StringParam(labCase.Instructions));
         command = "UPDATE labcase SET " + command
                                         + " WHERE LabCaseNum = " + SOut.Long(labCase.LabCaseNum);
         Db.NonQ(command, paramInstructions);

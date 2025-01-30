@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 //using MigraDoc.DocumentObjectModel;
 //using MigraDoc.DocumentObjectModel.Shapes;
 //using MigraDoc.DocumentObjectModel.Tables;

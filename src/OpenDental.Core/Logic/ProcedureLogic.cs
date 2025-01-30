@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -13,67 +14,47 @@ public class ProcedureLogic
         {
             if (dataRowX["ProcStatus"].ToString() != dataRowY["ProcStatus"].ToString())
             {
-                //Cn,TP,R,EO,C,EC,D
-                //EC procs will draw on top of C procs of same date in the 3D tooth chart, 
-                //but this is not a problem since C procs should always have a later date than EC procs.
-                //EC must come after C so that group notes will come after their procedures in Progress Notes.
-                int idxX = 0;
-                switch (dataRowX["ProcStatus"].ToString())
+                var idxX = dataRowX["ProcStatus"].ToString() switch
                 {
-                    case "8": //TPi
-                        idxX = 0;
-                        break;
-                    case "7": //Cn
-                        idxX = 1;
-                        break;
-                    case "1": //TP
-                        idxX = 2;
-                        break;
-                    case "5": //R
-                        idxX = 3;
-                        break;
-                    case "4": //EO
-                        idxX = 4;
-                        break;
-                    case "2": //C
-                        idxX = 5;
-                        break;
-                    case "3": //EC
-                        idxX = 6;
-                        break;
-                    case "6": //D
-                        idxX = 7;
-                        break;
-                }
+                    "8" => //TPi
+                        0,
+                    "7" => //Cn
+                        1,
+                    "1" => //TP
+                        2,
+                    "5" => //R
+                        3,
+                    "4" => //EO
+                        4,
+                    "2" => //C
+                        5,
+                    "3" => //EC
+                        6,
+                    "6" => //D
+                        7,
+                    _ => 0
+                };
 
-                int idxY = 0;
-                switch (dataRowY["ProcStatus"].ToString())
+                var idxY = dataRowY["ProcStatus"].ToString() switch
                 {
-                    case "8": //TPi
-                        idxY = 0;
-                        break;
-                    case "7": //Cn
-                        idxY = 1;
-                        break;
-                    case "1": //TP
-                        idxY = 2;
-                        break;
-                    case "5": //R
-                        idxY = 3;
-                        break;
-                    case "4": //EO
-                        idxY = 4;
-                        break;
-                    case "2": //C
-                        idxY = 5;
-                        break;
-                    case "3": //EC
-                        idxY = 6;
-                        break;
-                    case "6": //D
-                        idxY = 7;
-                        break;
-                }
+                    "8" => //TPi
+                        0,
+                    "7" => //Cn
+                        1,
+                    "1" => //TP
+                        2,
+                    "5" => //R
+                        3,
+                    "4" => //EO
+                        4,
+                    "2" => //C
+                        5,
+                    "3" => //EC
+                        6,
+                    "6" => //D
+                        7,
+                    _ => 0
+                };
 
                 return idxX.CompareTo(idxY);
             }
@@ -95,8 +76,8 @@ public class ProcedureLogic
                     return -1; //x is less than y. Priorities always come first.
                 }
 
-                int defOrderX = Defs.GetOrder(DefCat.TxPriorities, SIn.Long(dataRowX["Priority"].ToString()));
-                int defOrderY = Defs.GetOrder(DefCat.TxPriorities, SIn.Long(dataRowY["Priority"].ToString()));
+                var defOrderX = Defs.GetOrder(DefCat.TxPriorities, SIn.Long(dataRowX["Priority"].ToString()));
+                var defOrderY = Defs.GetOrder(DefCat.TxPriorities, SIn.Long(dataRowY["Priority"].ToString()));
                 return defOrderX.CompareTo(defOrderY);
             }
         }
@@ -145,8 +126,7 @@ public class ProcedureLogic
             //EC procs will draw on top of C procs of same date in the 3D tooth chart, 
             //but this is not a problem since C procs should always have a later date than EC procs.
             //EC must come after C so that group notes will come after their procedures in Progress Notes.
-            int idxX, idxY;
-            List<ProcStat> sortOrder = new List<ProcStat>
+            var sortOrder = new List<ProcStat>
             {
                 //The order of statuses in this list is very important and determines the sort order for procedures.
                 ProcStat.TPi,
@@ -158,8 +138,8 @@ public class ProcedureLogic
                 ProcStat.EC,
                 ProcStat.D
             };
-            idxX = sortOrder.IndexOf(procedureX.ProcStatus);
-            idxY = sortOrder.IndexOf(procedureY.ProcStatus);
+            var idxX = sortOrder.IndexOf(procedureX.ProcStatus);
+            var idxY = sortOrder.IndexOf(procedureY.ProcStatus);
             return idxX.CompareTo(idxY);
         }
 
@@ -199,7 +179,7 @@ public class ProcedureLogic
         {
             //GetProcCode(...).ProcCode can be null.
             //We do not protect the second call because comparing any string to null doesn't cause an error.
-            string procCode = ProcedureCodes.GetProcCode(procedureX.CodeNum).ProcCode ?? "";
+            var procCode = ProcedureCodes.GetProcCode(procedureX.CodeNum).ProcCode ?? "";
             return procCode.CompareTo(ProcedureCodes.GetProcCode(procedureY.CodeNum).ProcCode);
         }
 
@@ -210,15 +190,15 @@ public class ProcedureLogic
     public static void SortProcedures(List<Procedure> listProcedures)
     {
         //Keep track of all Canadian labs which will be manually re-inserted underneath their corresponding parent procedure.
-        List<Procedure> listProceduresLab = listProcedures.FindAll(x => x.ProcNumLab != 0);
+        var listProceduresLab = listProcedures.FindAll(x => x.ProcNumLab != 0);
         //Remove all labs from the list prior to sorting.  Labs are always below their parent proc.
         listProcedures.RemoveAll(x => x.ProcNumLab != 0);
         //Sort the list of procedures that are missing Canadian labs.
         listProcedures.Sort(CompareProcedures);
         //Loop backward so we can insert as we go without affecting the index.
-        for (int i = listProcedures.Count - 1; i >= 0; i--)
+        for (var i = listProcedures.Count - 1; i >= 0; i--)
         {
-            List<Procedure> listProceduresChildren = listProceduresLab.FindAll(x => x.ProcNumLab == listProcedures[i].ProcNum);
+            var listProceduresChildren = listProceduresLab.FindAll(x => x.ProcNumLab == listProcedures[i].ProcNum);
             listProcedures.InsertRange(i + 1, listProceduresChildren); //Insert labs below parent proc.
         }
     }

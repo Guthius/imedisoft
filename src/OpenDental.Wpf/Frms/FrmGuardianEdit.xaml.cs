@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -84,7 +86,7 @@ End of Checklist================================================================
 			_listGuardianRelationshipNames=new List<string>(Enum.GetNames(typeof(GuardianRelationship)));
 			_listGuardianRelationshipNames.Sort();
 			for(int i=0;i<_listGuardianRelationshipNames.Count;i++){
-				comboRelationship.Items.Add(Lang.g("enumGuardianRelationship",_listGuardianRelationshipNames[i]));
+				comboRelationship.Items.Add(_listGuardianRelationshipNames[i]);
 				if(_listGuardianRelationshipNames[i]==_guardian.Relationship.ToString()) {
 					comboRelationship.SelectedIndex=i;
 				}

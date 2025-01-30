@@ -3,41 +3,29 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class CustReferences
 {
-    ///<summary>Gets one CustReference from the db.</summary>
     public static CustReference GetOne(long custReferenceNum)
     {
         return CustReferenceCrud.SelectOne(custReferenceNum);
     }
 
-    
-    public static long Insert(CustReference custReference)
+    public static void Insert(CustReference custReference)
     {
-        return CustReferenceCrud.Insert(custReference);
+        CustReferenceCrud.Insert(custReference);
     }
 
-    
     public static void Update(CustReference custReference)
     {
         CustReferenceCrud.Update(custReference);
     }
 
-    ///<summary>Might not be used.  Might implement when a patient is deleted but doesn't happen often if ever.</summary>
-    public static void Delete(long custReferenceNum)
-    {
-        var command = "DELETE FROM custreference WHERE CustReferenceNum = " + SOut.Long(custReferenceNum);
-        Db.NonQ(command);
-    }
-
-    ///<summary>Used only from FormReferenceSelect to get the list of references.</summary>
-    public static DataTable GetReferenceTable(bool limit, List<long> listBillingTypes, bool showBadRefs, bool showUsed, bool showGuarOnly, string city, string state, string zip,
-        string areaCode, string specialty, int superFam, string lname, string fname, string patnum, int age, string country)
+    public static DataTable GetReferenceTable(bool limit, List<long> listBillingTypes, bool showBadRefs, bool showUsed, bool showGuarOnly, string city, string state, string zip, string areaCode, string specialty, int superFam, string lname, string fname, string patnum, int age, string country)
     {
         var billingSnippet = "";
         if (listBillingTypes.Count != 0)
@@ -154,7 +142,6 @@ public class CustReferences
         return table;
     }
 
-    ///<summary>Returns FName 'Preferred' M LName.  This is here because I get names by patnum a lot with references.</summary>
     public static string GetCustNameFL(long patNum)
     {
         //Calls to the db happen in the other s classes.
@@ -162,11 +149,6 @@ public class CustReferences
         return Patients.GetNameFL(patient.LName, patient.FName, patient.Preferred, patient.MiddleI);
     }
 
-    /// <summary>
-    ///     Gets the most recent CustReference entry for that patient.  Returns null if none found.  There should be only
-    ///     one entry for each patient, but there was a bug before 14.3 that could have created multiple so we only get the
-    ///     more relevant entry.
-    /// </summary>
     public static CustReference GetOneByPatNum(long patNum)
     {
         var command = "SELECT * "

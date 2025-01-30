@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using ODCrypt;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class OrthoCharts
 {
-    
     public static List<OrthoChart> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM orthochart WHERE PatNum =" + SOut.Long(patNum)
@@ -21,7 +21,6 @@ public class OrthoCharts
         return OrthoChartCrud.SelectMany(command);
     }
 
-    
     public static List<OrthoChart> GetByOrthoChartRowNums(List<long> listOrthoChartRowNums)
     {
         if (listOrthoChartRowNums.IsNullOrEmpty()) return new List<OrthoChart>();
@@ -30,7 +29,6 @@ public class OrthoCharts
         return OrthoChartCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all distinct field names used by any ortho chart.  Useful for displaying the "available" display fields.</summary>
     public static List<string> GetDistinctFieldNames()
     {
         var command = "SELECT FieldName FROM orthochart GROUP BY FieldName";
@@ -47,19 +45,11 @@ public class OrthoCharts
         return true;
     }
 
-    
-    public static long Insert(OrthoChart orthoChart)
+    public static void Insert(OrthoChart orthoChart)
     {
-        return OrthoChartCrud.Insert(orthoChart);
+        OrthoChartCrud.Insert(orthoChart);
     }
 
-    
-    public static void Update(OrthoChart orthoChart)
-    {
-        OrthoChartCrud.Update(orthoChart);
-    }
-
-    
     public static void Update(OrthoChart orthoChart, OrthoChart orthoChartOld)
     {
         var command = "";
@@ -100,21 +90,12 @@ public class OrthoCharts
         //Crud.OrthoChartCrud.Update(orthoChartNew,orthoChartOld);
     }
 
-    /// <summary>
-    ///     Ortho charts were briefly not deleted between 05/06/2014 and 01/02/2015.  Deleting occurs regularly when
-    ///     FieldValue="".
-    /// </summary>
     public static void Delete(long orthoChartNum)
     {
         var command = "DELETE FROM orthochart WHERE OrthoChartNum = " + SOut.Long(orthoChartNum);
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Modified Sync pattern for the OrthoChart.  We cannot use the standard Sync pattern because we have to perform
-    ///     logging when updating
-    ///     or deleting.
-    /// </summary>
     public static void Sync(Patient patient, List<OrthoChartRow> listOrthoChartRows, List<OrthoChart> listOrthoChartsNew, List<DisplayField> listDisplayFieldsOrth)
     {
         var listOrthoChartRowsForPat = OrthoChartRows.GetAllForPatient(patient.PatNum, false);
@@ -237,14 +218,6 @@ public class OrthoCharts
             Delete(listOrthoChartsDel[i].OrthoChartNum);
     }
 
-    /// <summary>
-    ///     Used for ortho chart audit trail.  Attempts to parse the DateOfService from the security log text. If it is unable
-    ///     to parse the date, it will return MinDate.
-    ///     <para>
-    ///         Returning MinDate from this function results in the audit trail entries for multiple dates of service
-    ///         displaying intermingled on the date "0001-01-01", harmless.
-    ///     </para>
-    /// </summary>
     public static DateTime GetOrthoDateFromLog(SecurityLog securityLog)
     {
         //There are 3 cases to try, in order of ascending complexity. If a simple case succeeds at parsing a date, that date is returned.
@@ -309,26 +282,12 @@ public class OrthoCharts
         return dateRetVal; //Should be DateTime.MinVal if we are returning here.
     }
 
-    /// <summary>
-    ///     Gets the hashstring for generating signatures.
-    ///     Should only be used when saving signatures, for validating see GetKeyDataForSignatureHash() and
-    ///     GetHashStringForSignature()
-    /// </summary>
     public static string GetKeyDataForSignatureSaving(List<OrthoChart> listOrthoCharts, DateTime dateService)
     {
         var keyData = GetKeyDataForSignatureHash(null, listOrthoCharts, dateService);
         return GetHashStringForSignature(keyData);
     }
 
-    /// <summary>
-    ///     Gets the key data string needed to create a hashstring to be used later when filling the signature.
-    ///     This is done separate from the hashing so that new line replacements can be done when validating signatures before
-    ///     hashing.
-    ///     The reason for the doUsePatName parameter is that we originally hashed ortho charts using the patient name. Later
-    ///     we switched to not use
-    ///     the patient name. For ortho charts that existed before we made the switch, we have to use the patient name when
-    ///     hashing.
-    /// </summary>
     public static string GetKeyDataForSignatureHash(Patient patient, List<OrthoChart> listOrthoCharts, DateTime dateService, bool doUsePatName = false)
     {
         var stringBuilder = new StringBuilder();
@@ -351,32 +310,8 @@ public class OrthoCharts
         return stringBuilder.ToString();
     }
 
-    /// <summary>
-    ///     Gets the hashstring from the provided string that is typically generated from GetStringForSignatureHash().
-    ///     This is done seperate of building the string so that new line replacements can be done when validating signatures
-    ///     before hashing.
-    /// </summary>
     public static string GetHashStringForSignature(string str)
     {
         return Encoding.ASCII.GetString(MD5.Hash(Encoding.UTF8.GetBytes(str)));
     }
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<OrthoChart> Refresh(long patNum){
-
-        string command="SELECT * FROM orthochart WHERE PatNum = "+POut.Long(patNum);
-        return Crud.OrthoChartCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one OrthoChart from the db.</summary>
-    public static OrthoChart GetOne(long orthoChartNum){
-
-        return Crud.OrthoChartCrud.SelectOne(orthoChartNum);
-    }
-
-
-    */
 }

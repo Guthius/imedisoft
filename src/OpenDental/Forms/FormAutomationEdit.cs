@@ -1,319 +1,385 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
-using System.Linq;
-using CodeBase;
 
-namespace OpenDental{
-	/// <summary></summary>
-	public partial class FormAutomationEdit:FormODBase {
-		
-		public bool IsNew;
-		private Automation _automation;
-		private List<AutomationCondition> _listAutomationConditions;
-		///<summary>List of actions currently in the drop down.  Some actions are only available for specific triggers, so this is possibly a sub-set of
-		///all AutomationAction enum values.</summary>
-		private List<AutomationAction> _listAutomationActions;
-		///<summary>Matches list of appointments in comboAppointmentType. Does not include hidden types unless current automation already has that type set.</summary>
-		private List<AppointmentType> _listAppointmentTypes;
-		private List<Def> _listDefs;
+namespace OpenDental.Forms;
 
-		
-		public FormAutomationEdit(Automation automation)
-		{
-			//
-			// Required for Windows Form Designer support
-			//
-			_automation=automation.Copy();
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormAutomationEdit : FormODBase
+{
+    private readonly Automation _automation;
+    private List<AutomationCondition> _automationConditions;
+    private List<AutomationAction> _automationActions;
+    private List<AppointmentType> _appointmentTypes;
+    private List<Def> _commLogTypesDefs;
 
-		private void FormAutomationEdit_Load(object sender, System.EventArgs e) {
-			_listDefs=Defs.GetDefsForCategory(DefCat.CommLogTypes,true);
-			textDescription.Text=_automation.Description;
-			_listAppointmentTypes=new List<AppointmentType>() { new AppointmentType() { AppointmentTypeName="none" } };
-			AppointmentTypes.GetWhere(x => !x.IsHidden || x.AppointmentTypeNum==_automation.AppointmentTypeNum)
-				.ForEach(x => _listAppointmentTypes.Add(x));
-			_listAppointmentTypes=_listAppointmentTypes.OrderBy(x => x.AppointmentTypeNum>0).ThenBy(x => x.ItemOrder).ToList();
-			Enum.GetNames(typeof(EnumAutomationTrigger)).ToList().ForEach(x => comboTrigger.Items.Add(x));
-			comboTrigger.SelectedIndex=(int)_automation.Autotrigger;
-			textProcCodes.Text=_automation.ProcCodes;//although might not be visible.
-			textMessage.Text=_automation.MessageContent;
-			FillGrid();
-		}
+    public FormAutomationEdit(Automation automation)
+    {
+        _automation = automation.Copy();
 
-		private void FillGrid() {
-			AutomationConditions.RefreshCache();
-			_listAutomationConditions=AutomationConditions.GetListByAutomationNum(_automation.AutomationNum);
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			gridMain.Columns.Add(new GridColumn(Lan.g("AutomationCondition","Field"),200));
-			gridMain.Columns.Add(new GridColumn(Lan.g("AutomationCondition","Comparison"),75));
-			gridMain.Columns.Add(new GridColumn(Lan.g("AutomationCondition","Text"),100));
-			gridMain.ListGridRows.Clear();
-			_listAutomationConditions.ForEach(x => gridMain.ListGridRows.Add(new GridRow(x.CompareField.ToString(),x.Comparison.ToString(),x.CompareString)));
-			gridMain.EndUpdate();
-		}
+        InitializeComponent();
+    }
 
-		private void comboTrigger_SelectedIndexChanged(object sender,EventArgs e) {
-			comboAction.Items.Clear();
-			_listAutomationActions=Enum.GetValues(typeof(AutomationAction)).OfType<AutomationAction>().ToList();
-			//only add the SetApptASAP and SetApptType actions if the triggers CreateAppt or CreateApptNewPat are selected
-			if(!comboTrigger.SelectedIndex.In((int)EnumAutomationTrigger.ApptCreate,(int)EnumAutomationTrigger.ApptNewPatCreate)) {
-				_listAutomationActions.Remove(AutomationAction.SetApptASAP);
-				_listAutomationActions.Remove(AutomationAction.SetApptType);
-			}
-			//only add the PrintRxInstructions actions if the trigger RxCreate is selected
-			if(!comboTrigger.SelectedIndex.In((int)EnumAutomationTrigger.RxCreate)) {
-				_listAutomationActions.Remove(AutomationAction.PrintRxInstruction);
-			}
-			_listAutomationActions.ForEach(x => comboAction.Items.Add(x.GetDescription()));
-			if((int)_automation.Autotrigger==comboTrigger.SelectedIndex) {
-				comboAction.SelectedIndex=_listAutomationActions.IndexOf(_automation.AutoAction);
-			}
-			else {
-				comboAction.SelectedIndex=0;//default to first in the list
-			}
-			if(comboTrigger.SelectedIndex.In((int)EnumAutomationTrigger.ProcedureComplete,(int)EnumAutomationTrigger.ProcSchedule)) {
-				labelProcCodes.Visible=true;
-				textProcCodes.Visible=true;
-				butProcCode.Visible=true;
-			}
-			else{
-				labelProcCodes.Visible=false;
-				textProcCodes.Visible=false;
-				butProcCode.Visible=false;
-			}
-		}
+    private void FormAutomationEdit_Load(object sender, EventArgs e)
+    {
+        textDescription.Text = _automation.Description;
 
-		///<summary>Fills comboActionObject with the correct type of items based on the comboAction selection and sets labelActionObject text.
-		///Also handles setting combos/labels/texts visibility based on selected action.</summary>
-		private void comboAction_SelectedIndexChanged(object sender,EventArgs e) {
-			labelActionObject.Text="Action Object";//user should never see this text, just to help with troubleshooting in case of bug
-			labelActionObject.Visible=false;
-			comboActionObject.Visible=false;
-			labelMessage.Visible=false;
-			textMessage.Visible=false;
-			if(comboAction.SelectedIndex<0 || comboAction.SelectedIndex>=_listAutomationActions.Count) {
-				return;
-			}
-			comboActionObject.Items.Clear();
-			switch(_listAutomationActions[comboAction.SelectedIndex]) {
-				case AutomationAction.CreateCommlog:
-					labelActionObject.Visible=true;
-					labelActionObject.Text=Lan.g(this,"Commlog Type");
-					comboActionObject.Visible=true;
-					_listDefs.ForEach(x => comboActionObject.Items.Add(x.ItemName));
-					comboActionObject.SelectedIndex=_listDefs.FindIndex(x => x.DefNum==_automation.CommType);
-					labelMessage.Visible=true;
-					textMessage.Visible=true;
-					return;
-				case AutomationAction.PopUp:
-				case AutomationAction.PopUpThenDisable10Min:
-					labelMessage.Visible=true;
-					textMessage.Visible=true;
-					return;
-				case AutomationAction.SetApptASAP:
-					return;
-				case AutomationAction.SetApptType:
-					labelActionObject.Visible=true;
-					labelActionObject.Text=Lan.g(this,"Appointment Type");
-					comboActionObject.Visible=true;
-					//_listAppointmentType contains 'none' with AppointmentTypeNum of 0 at index 0, just add list to combo and FindIndex will always be valid
-					_listAppointmentTypes.ForEach(x => comboActionObject.Items.Add(x.AppointmentTypeName));
-					comboActionObject.SelectedIndex=_listAppointmentTypes.FindIndex(x => _automation.AppointmentTypeNum==x.AppointmentTypeNum);//should always be >=0
-					return;
-				case AutomationAction.PrintPatientLetter:
-				case AutomationAction.PrintReferralLetter:
-				case AutomationAction.ShowConsentForm:
-				case AutomationAction.ShowExamSheet:
-				case AutomationAction.PrintRxInstruction:
-					labelActionObject.Visible=true;
-					labelActionObject.Text=Lan.g(this,"Sheet Definition");
-					comboActionObject.Visible=true;
-					List<SheetDef> listSheetDefs=SheetDefs.GetDeepCopy().FindAll(x => !SheetDefs.IsDashboardType(x));
-					//Filter which items show based on SheetType
-					for(int i=0;i<listSheetDefs.Count;i++) {
-						if(listSheetDefs[i].SheetType==SheetTypeEnum.PatientLetter && _listAutomationActions[comboAction.SelectedIndex]==AutomationAction.PrintPatientLetter) {
-							comboActionObject.Items.Add(listSheetDefs[i].Description,listSheetDefs[i].SheetDefNum);
-						}
-						else if(listSheetDefs[i].SheetType==SheetTypeEnum.ReferralLetter && _listAutomationActions[comboAction.SelectedIndex]==AutomationAction.PrintReferralLetter) {
-							comboActionObject.Items.Add(listSheetDefs[i].Description,listSheetDefs[i].SheetDefNum);
-						}
-						else if(listSheetDefs[i].SheetType==SheetTypeEnum.Consent && _listAutomationActions[comboAction.SelectedIndex]==AutomationAction.ShowConsentForm) {
-							comboActionObject.Items.Add(listSheetDefs[i].Description,listSheetDefs[i].SheetDefNum);
-						}
-						else if(listSheetDefs[i].SheetType==SheetTypeEnum.ExamSheet && _listAutomationActions[comboAction.SelectedIndex]==AutomationAction.ShowExamSheet) {
-							comboActionObject.Items.Add(listSheetDefs[i].Description,listSheetDefs[i].SheetDefNum);
-						}
-						else if(listSheetDefs[i].SheetType==SheetTypeEnum.RxInstruction && _listAutomationActions[comboAction.SelectedIndex]==AutomationAction.PrintRxInstruction) {
-							comboActionObject.Items.Add(listSheetDefs[i].Description,listSheetDefs[i].SheetDefNum);
-						}
-					}
-					comboActionObject.SetSelectedKey<long>(_automation.SheetDefNum,x => x);//can be -1
-					return;
-				case AutomationAction.ChangePatStatus:
-					labelActionObject.Visible=true;
-					labelActionObject.Text=Lan.g(this,"Patient Status");
-					comboActionObject.Visible=true;
-					//comboActionObject.Items.AddEnums<PatientStatus>();//can't use this because we are not including all the enums
-					List<PatientStatus> listPatientStatuses=new List<PatientStatus>();
-					listPatientStatuses.AddRange(Enum.GetValues(typeof(PatientStatus)).Cast<PatientStatus>());
-					for(int i=0;i<listPatientStatuses.Count;i++) {
-						if(listPatientStatuses[i]==PatientStatus.Deleted) {
-							continue;//'Deleted' should not be automationAction
-						}
-						comboActionObject.Items.Add(Lan.g("enum"+nameof(PatientStatus),listPatientStatuses[i].GetDescription()),listPatientStatuses[i]);
-					}
-					comboActionObject.SetSelectedEnum(_automation.PatStatus);
-					return;
-			}
-		}
+        _commLogTypesDefs = Defs.GetDefsForCategory(DefCat.CommLogTypes, true);
 
-		private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
-			using FormAutomationConditionEdit formAutmationConditionEdit=new FormAutomationConditionEdit();
-			formAutmationConditionEdit.AutomationConditionCur=_listAutomationConditions[e.Row];
-			formAutmationConditionEdit.ShowDialog();
-			FillGrid();
-		}
+        _appointmentTypes = [new AppointmentType {AppointmentTypeName = "none"}];
+        _appointmentTypes.AddRange(AppointmentTypes.GetWhere(x => !x.IsHidden || x.AppointmentTypeNum == _automation.AppointmentTypeNum));
+        _appointmentTypes = _appointmentTypes
+            .OrderBy(x => x.AppointmentTypeNum > 0)
+            .ThenBy(x => x.ItemOrder)
+            .ToList();
 
-		private void butProcCode_Click(object sender,EventArgs e) {
-			using FormProcCodes formProcCodes=new FormProcCodes();
-			formProcCodes.IsSelectionMode=true;
-			formProcCodes.ShowDialog();
-			if(formProcCodes.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			textProcCodes.Text=string.Join(",",new[] { textProcCodes.Text,ProcedureCodes.GetStringProcCode(formProcCodes.CodeNumSelected) }.Where(x => !string.IsNullOrEmpty(x)));
-		}
+        Enum.GetNames(typeof(EnumAutomationTrigger)).ToList().ForEach(x => comboTrigger.Items.Add(x));
 
-		private void butAdd_Click(object sender,EventArgs e) {
-			using FormAutomationConditionEdit formAutomationConditionEdit=new FormAutomationConditionEdit();
-			formAutomationConditionEdit.IsNew=true;
-			formAutomationConditionEdit.AutomationConditionCur=new AutomationCondition();
-			formAutomationConditionEdit.AutomationConditionCur.AutomationNum=_automation.AutomationNum;
-			formAutomationConditionEdit.ShowDialog();
-			if(formAutomationConditionEdit.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			FillGrid();
-		}
+        comboTrigger.SelectedIndex = (int) _automation.Autotrigger;
 
-		private void butDelete_Click(object sender,EventArgs e) {
-			if(IsNew) {
-				DialogResult=DialogResult.Cancel;//delete takes place in FormClosing
-			}
-			else {
-				AutomationConditions.DeleteByAutomationNum(_automation.AutomationNum);
-				Automations.Delete(_automation);
-				DialogResult=DialogResult.OK;
-			}
-		}
+        textProcCodes.Text = _automation.ProcCodes;
+        textMessage.Text = _automation.MessageContent;
 
-		private void butSave_Click(object sender, System.EventArgs e) {
-			if(textDescription.Text==""){
-				MsgBox.Show(this,"Description not allowed to be blank.");
-				return;
-			}
-			if(comboAction.SelectedIndex==-1) {
-				MsgBox.Show(this,"Action not allowed to be blank.");
-				return;
-			}
-			_automation.Description=textDescription.Text;
-			_automation.Autotrigger=(EnumAutomationTrigger)comboTrigger.SelectedIndex;//should never be <0
-			#region ProcCodes
-			_automation.ProcCodes="";//set to correct proc code string below if necessary
-			if(new[] { EnumAutomationTrigger.ProcedureComplete,EnumAutomationTrigger.ProcSchedule }.Contains(_automation.Autotrigger)) {
-				if(textProcCodes.Text.Contains(" ")){
-					MsgBox.Show(this,"Procedure codes cannot contain any spaces.");
-					return;
-				}
-				if(textProcCodes.Text=="") {
-					MsgBox.Show(this,"Please enter valid procedure code(s) first.");
-					return;
-				}
-				string strInvalidCodes=string.Join(", ",textProcCodes.Text.Split(',').Where(x => !ProcedureCodes.IsValidCode(x)));
-				if(!string.IsNullOrEmpty(strInvalidCodes)) {
-					ODMessageBox.Show(Lan.g(this,"The following procedure code(s) are not valid")+": "+strInvalidCodes);
-					return;
-				}
-				_automation.ProcCodes=textProcCodes.Text;
-			}
-			#endregion ProcCodes
-			#region Automation Action
-			_automation.AutoAction=_listAutomationActions[comboAction.SelectedIndex];
-			_automation.SheetDefNum=0;
-			_automation.CommType=0;
-			_automation.MessageContent="";
-			_automation.AptStatus=ApptStatus.None;
-			_automation.AppointmentTypeNum=0;
-			switch(_automation.AutoAction) {
-				case AutomationAction.CreateCommlog:
-					if(comboActionObject.SelectedIndex==-1) {
-						MsgBox.Show(this,"A commlog type must be selected.");
-						return;
-					}
-					_automation.CommType=_listDefs[comboActionObject.SelectedIndex].DefNum;
-					_automation.MessageContent=textMessage.Text;
-					break;
-				case AutomationAction.PopUp:
-				case AutomationAction.PopUpThenDisable10Min:
-					if(string.IsNullOrEmpty(textMessage.Text.Trim())) {
-						MsgBox.Show(this,"The message cannot be blank.");
-						return;
-					}
-					_automation.MessageContent=textMessage.Text;
-					break;
-				case AutomationAction.PrintPatientLetter:
-				case AutomationAction.PrintReferralLetter:
-				case AutomationAction.ShowExamSheet:
-				case AutomationAction.ShowConsentForm:
-				case AutomationAction.PrintRxInstruction:
-					if(comboActionObject.SelectedIndex==-1) {
-						MsgBox.Show(this,"A sheet definition must be selected.");
-						return;
-					}
-					_automation.SheetDefNum=comboActionObject.GetSelected<long>();
-					break;
-				case AutomationAction.SetApptASAP:
-					break;
-				case AutomationAction.SetApptType:
-					if(comboActionObject.SelectedIndex==-1) {
-						MsgBox.Show(this,"An appointment type must be selected.");
-						return;
-					}
-					_automation.AppointmentTypeNum=_listAppointmentTypes[comboActionObject.SelectedIndex].AppointmentTypeNum;
-					break;
-				case AutomationAction.ChangePatStatus:
-					if(comboAction.SelectedIndex==-1) {
-						MsgBox.Show(this,"A patient status must be selected.");
-						return;
-					}
-					_automation.PatStatus=comboActionObject.GetSelected<PatientStatus>();
-					break;
-			}
-			#endregion Automation Action
-			Automations.Update(_automation);//Because always inserted before opening this form.
-			DialogResult=DialogResult.OK;
-		}
+        FillGrid();
+    }
 
-		private void FormAutomationEdit_FormClosing(object sender,FormClosingEventArgs e) {
-			if(DialogResult==DialogResult.OK) {
-				return;
-			}
-			//this happens if cancel or if user deletes a new automation
-			if(IsNew) {
-				AutomationConditions.DeleteByAutomationNum(_automation.AutomationNum);
-				Automations.Delete(_automation);
-			}
-		}
+    private void FormAutomationEdit_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (DialogResult == DialogResult.OK)
+        {
+            return;
+        }
 
-	}
+        if (_automation.AutomationNum > 0)
+        {
+            return;
+        }
+
+        AutomationConditions.DeleteByAutomationNum(_automation.AutomationNum);
+        Automations.Delete(_automation);
+    }
+
+    private void FillGrid()
+    {
+        AutomationConditions.RefreshCache();
+
+        _automationConditions = AutomationConditions.GetListByAutomationNum(_automation.AutomationNum);
+
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Field", 200));
+        gridMain.Columns.Add(new GridColumn("Comparison", 75));
+        gridMain.Columns.Add(new GridColumn("Text", 100));
+
+        gridMain.ListGridRows.Clear();
+
+        _automationConditions.ForEach(x => gridMain.ListGridRows.Add(new GridRow(x.CompareField.ToString(), x.Comparison.ToString(), x.CompareString)));
+
+        gridMain.EndUpdate();
+    }
+
+    private void ComboBoxTrigger_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        comboAction.Items.Clear();
+
+        _automationActions = Enum.GetValues(typeof(AutomationAction)).OfType<AutomationAction>().ToList();
+
+        var automationTrigger = (EnumAutomationTrigger) comboTrigger.SelectedIndex;
+        if (automationTrigger is not (EnumAutomationTrigger.ApptCreate or EnumAutomationTrigger.ApptNewPatCreate))
+        {
+            _automationActions.Remove(AutomationAction.SetApptASAP);
+            _automationActions.Remove(AutomationAction.SetApptType);
+        }
+
+        if (automationTrigger is not EnumAutomationTrigger.RxCreate)
+        {
+            _automationActions.Remove(AutomationAction.PrintRxInstruction);
+        }
+
+        _automationActions.ForEach(x => comboAction.Items.Add(x.GetDescription()));
+
+        comboAction.SelectedIndex = _automation.Autotrigger == automationTrigger ? _automationActions.IndexOf(_automation.AutoAction) : 0;
+
+        if (automationTrigger is EnumAutomationTrigger.ProcedureComplete or EnumAutomationTrigger.ProcSchedule)
+        {
+            labelProcCodes.Visible = true;
+            textProcCodes.Visible = true;
+            butProcCode.Visible = true;
+        }
+        else
+        {
+            labelProcCodes.Visible = false;
+            textProcCodes.Visible = false;
+            butProcCode.Visible = false;
+        }
+    }
+
+    private void ComboBoxAction_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        labelActionObject.Text = "Action Object";
+        labelActionObject.Visible = false;
+        comboActionObject.Visible = false;
+        labelMessage.Visible = false;
+        textMessage.Visible = false;
+
+        if (comboAction.SelectedIndex < 0 || comboAction.SelectedIndex >= _automationActions.Count)
+        {
+            return;
+        }
+
+        comboActionObject.Items.Clear();
+        switch (_automationActions[comboAction.SelectedIndex])
+        {
+            case AutomationAction.CreateCommlog:
+                labelActionObject.Visible = true;
+                labelActionObject.Text = "Commlog Type";
+                comboActionObject.Visible = true;
+                _commLogTypesDefs.ForEach(x => comboActionObject.Items.Add(x.ItemName));
+                comboActionObject.SelectedIndex = _commLogTypesDefs.FindIndex(x => x.DefNum == _automation.CommType);
+                labelMessage.Visible = true;
+                textMessage.Visible = true;
+                return;
+
+            case AutomationAction.PopUp:
+            case AutomationAction.PopUpThenDisable10Min:
+                labelMessage.Visible = true;
+                textMessage.Visible = true;
+                return;
+
+            case AutomationAction.SetApptASAP:
+                return;
+
+            case AutomationAction.SetApptType:
+                labelActionObject.Visible = true;
+                labelActionObject.Text = "Appointment Type";
+                comboActionObject.Visible = true;
+                _appointmentTypes.ForEach(x => comboActionObject.Items.Add(x.AppointmentTypeName));
+                comboActionObject.SelectedIndex = _appointmentTypes.FindIndex(x => _automation.AppointmentTypeNum == x.AppointmentTypeNum);
+                return;
+
+            case AutomationAction.PrintPatientLetter:
+            case AutomationAction.PrintReferralLetter:
+            case AutomationAction.ShowConsentForm:
+            case AutomationAction.ShowExamSheet:
+            case AutomationAction.PrintRxInstruction:
+                labelActionObject.Visible = true;
+                labelActionObject.Text = "Sheet Definition";
+                comboActionObject.Visible = true;
+
+                var sheetDefs = SheetDefs.GetDeepCopy().FindAll(x => !SheetDefs.IsDashboardType(x));
+                foreach (var sheetDef in sheetDefs)
+                {
+                    switch (sheetDef.SheetType)
+                    {
+                        case SheetTypeEnum.PatientLetter when _automationActions[comboAction.SelectedIndex] == AutomationAction.PrintPatientLetter:
+                        case SheetTypeEnum.ReferralLetter when _automationActions[comboAction.SelectedIndex] == AutomationAction.PrintReferralLetter:
+                        case SheetTypeEnum.Consent when _automationActions[comboAction.SelectedIndex] == AutomationAction.ShowConsentForm:
+                        case SheetTypeEnum.ExamSheet when _automationActions[comboAction.SelectedIndex] == AutomationAction.ShowExamSheet:
+                        case SheetTypeEnum.RxInstruction when _automationActions[comboAction.SelectedIndex] == AutomationAction.PrintRxInstruction:
+                            comboActionObject.Items.Add(sheetDef.Description, sheetDef.SheetDefNum);
+                            break;
+                    }
+                }
+
+                comboActionObject.SetSelectedKey<long>(_automation.SheetDefNum, x => x);
+                return;
+
+            case AutomationAction.ChangePatStatus:
+                labelActionObject.Visible = true;
+                labelActionObject.Text = "Patient Status";
+                comboActionObject.Visible = true;
+
+                var patientStatuses = Enum.GetValues(typeof(PatientStatus)).Cast<PatientStatus>().ToList();
+
+                foreach (var patientStatus in patientStatuses)
+                {
+                    if (patientStatus == PatientStatus.Deleted)
+                    {
+                        continue;
+                    }
+
+                    comboActionObject.Items.Add(patientStatus.GetDescription(), patientStatus);
+                }
+
+                comboActionObject.SetSelectedEnum(_automation.PatStatus);
+                return;
+        }
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        using var formAutmationConditionEdit = new FormAutomationConditionEdit(_automationConditions[e.Row]);
+
+        formAutmationConditionEdit.ShowDialog();
+
+        FillGrid();
+    }
+
+    private void ButtonProcCode_Click(object sender, EventArgs e)
+    {
+        using var formProcCodes = new FormProcCodes();
+
+        formProcCodes.IsSelectionMode = true;
+
+        if (formProcCodes.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        textProcCodes.Text = string.Join(",", new[] {textProcCodes.Text, ProcedureCodes.GetStringProcCode(formProcCodes.CodeNumSelected)}.Where(x => !string.IsNullOrEmpty(x)));
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        var automationCondition = new AutomationCondition
+        {
+            AutomationNum = _automation.AutomationNum
+        };
+
+        using var formAutomationConditionEdit = new FormAutomationConditionEdit(automationCondition);
+
+        if (formAutomationConditionEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (_automation.AutomationNum == 0)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
+        else
+        {
+            AutomationConditions.DeleteByAutomationNum(_automation.AutomationNum);
+            Automations.Delete(_automation);
+
+            DialogResult = DialogResult.OK;
+        }
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (textDescription.Text == "")
+        {
+            ShowError("Description not allowed to be blank.");
+            return;
+        }
+
+        if (comboAction.SelectedIndex == -1)
+        {
+            ShowError("Action not allowed to be blank.");
+            return;
+        }
+
+        _automation.Description = textDescription.Text;
+        _automation.Autotrigger = (EnumAutomationTrigger) comboTrigger.SelectedIndex;
+        _automation.ProcCodes = "";
+
+        if (_automation.Autotrigger is EnumAutomationTrigger.ProcedureComplete or EnumAutomationTrigger.ProcSchedule)
+        {
+            if (textProcCodes.Text.Contains(" "))
+            {
+                ShowError("Procedure codes cannot contain any spaces.");
+                return;
+            }
+
+            if (textProcCodes.Text == "")
+            {
+                ShowError("Please enter valid procedure code(s) first.");
+                return;
+            }
+
+            var invalidCodes = string.Join(", ", textProcCodes.Text.Split(',').Where(x => !ProcedureCodes.IsValidCode(x)));
+            if (!string.IsNullOrEmpty(invalidCodes))
+            {
+                ShowError("The following procedure code(s) are not valid: " + invalidCodes);
+                return;
+            }
+
+            _automation.ProcCodes = textProcCodes.Text;
+        }
+
+        _automation.AutoAction = _automationActions[comboAction.SelectedIndex];
+        _automation.SheetDefNum = 0;
+        _automation.CommType = 0;
+        _automation.MessageContent = "";
+        _automation.AptStatus = ApptStatus.None;
+        _automation.AppointmentTypeNum = 0;
+
+        switch (_automation.AutoAction)
+        {
+            case AutomationAction.CreateCommlog:
+                if (comboActionObject.SelectedIndex == -1)
+                {
+                    ShowError("A commlog type must be selected.");
+                    return;
+                }
+
+                _automation.CommType = _commLogTypesDefs[comboActionObject.SelectedIndex].DefNum;
+                _automation.MessageContent = textMessage.Text;
+                break;
+
+            case AutomationAction.PopUp:
+            case AutomationAction.PopUpThenDisable10Min:
+                if (string.IsNullOrEmpty(textMessage.Text.Trim()))
+                {
+                    ShowError("The message cannot be blank.");
+                    return;
+                }
+
+                _automation.MessageContent = textMessage.Text;
+                break;
+
+            case AutomationAction.PrintPatientLetter:
+            case AutomationAction.PrintReferralLetter:
+            case AutomationAction.ShowExamSheet:
+            case AutomationAction.ShowConsentForm:
+            case AutomationAction.PrintRxInstruction:
+                if (comboActionObject.SelectedIndex == -1)
+                {
+                    ShowError("A sheet definition must be selected.");
+                    return;
+                }
+
+                _automation.SheetDefNum = comboActionObject.GetSelected<long>();
+                break;
+
+            case AutomationAction.SetApptASAP:
+                break;
+
+            case AutomationAction.SetApptType:
+                if (comboActionObject.SelectedIndex == -1)
+                {
+                    ShowError("An appointment type must be selected.");
+                    return;
+                }
+
+                _automation.AppointmentTypeNum = _appointmentTypes[comboActionObject.SelectedIndex].AppointmentTypeNum;
+                break;
+
+            case AutomationAction.ChangePatStatus:
+                if (comboAction.SelectedIndex == -1)
+                {
+                    ShowError("A patient status must be selected.");
+                    return;
+                }
+
+                _automation.PatStatus = comboActionObject.GetSelected<PatientStatus>();
+                break;
+        }
+
+        Automations.Update(_automation);
+
+        DialogResult = DialogResult.OK;
+    }
 }

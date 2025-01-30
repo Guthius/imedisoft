@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	///<summary>This bridge is now known as "Dimaxis" in the program links list.</summary>
@@ -16,7 +17,7 @@ namespace OpenDental.Bridges{
 		///<summary>Launches the program using the patient.Cur data.</summary>
 		public static void SendData(Program ProgramCur, Patient pat){
 			string path=Programs.GetProgramPath(ProgramCur);
-			//DxStart.exe ”PatientID” ”FamilyName” ”FirstName” ”BirthDate”
+			//DxStart.exe ï¿½PatientIDï¿½ ï¿½FamilyNameï¿½ ï¿½FirstNameï¿½ ï¿½BirthDateï¿½
 			List<ProgramProperty> ForProgram=ProgramProperties.GetForProgram(ProgramCur.ProgramNum);
 			if(pat==null){
 				MessageBox.Show("Please select a patient first");

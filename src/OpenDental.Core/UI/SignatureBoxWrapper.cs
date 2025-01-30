@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDental.UI {
@@ -672,7 +673,7 @@ In FormClosing:
 		private void butESign_Click(object sender,EventArgs e) {
 			Userod curUser=_userSig??Security.CurUser;
 			Provider provCur=Providers.GetProv(curUser.ProvNum);
-			string digitalSignature=Lans.g(this,"Digitally Signed by ");
+			string digitalSignature=Lans.g("Digitally Signed by ");
 			if(provCur!=null) {
 				digitalSignature+=provCur.GetLongDesc();
 			}
@@ -681,9 +682,9 @@ In FormClosing:
 			}
 			else {
 				//should never happen
-				digitalSignature= Lans.g(this,"Digitally signed by unknown user.");
+				digitalSignature= Lans.g("Digitally signed by unknown user.");
 			}
-			digitalSignature+="\r\n"+Lans.g(this,"Date Signed")+": "+MiscData.GetNowDateTime().ToString();
+			digitalSignature+="\r\n"+Lans.g("Date Signed")+": "+MiscData.GetNowDateTime().ToString();
 			signatureBox.SetDigitalSig(digitalSignature);
 			OnSignatureChanged();
 			signatureBox.Enabled=false;

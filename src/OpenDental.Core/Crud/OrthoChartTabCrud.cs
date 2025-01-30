@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class OrthoChartTabCrud
 {
-    public static OrthoChartTab SelectOne(long orthoChartTabNum)
-    {
-        var command = "SELECT * FROM orthocharttab "
-                      + "WHERE OrthoChartTabNum = " + SOut.Long(orthoChartTabNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static OrthoChartTab SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<OrthoChartTab> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -63,12 +45,7 @@ public class OrthoChartTabCrud
         return table;
     }
 
-    public static long Insert(OrthoChartTab orthoChartTab)
-    {
-        return Insert(orthoChartTab, false);
-    }
-
-    public static long Insert(OrthoChartTab orthoChartTab, bool useExistingPK)
+    public static void Insert(OrthoChartTab orthoChartTab)
     {
         var command = "INSERT INTO orthocharttab (";
 
@@ -81,40 +58,6 @@ public class OrthoChartTabCrud
         {
             orthoChartTab.OrthoChartTabNum = Db.NonQ(command, true, "OrthoChartTabNum", "orthoChartTab");
         }
-        return orthoChartTab.OrthoChartTabNum;
-    }
-
-    public static long InsertNoCache(OrthoChartTab orthoChartTab)
-    {
-        return InsertNoCache(orthoChartTab, false);
-    }
-
-    public static long InsertNoCache(OrthoChartTab orthoChartTab, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO orthocharttab (";
-        if (isRandomKeys || useExistingPK) command += "OrthoChartTabNum,";
-        command += "TabName,ItemOrder,IsHidden) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(orthoChartTab.OrthoChartTabNum) + ",";
-        command +=
-            "'" + SOut.String(orthoChartTab.TabName) + "',"
-            + SOut.Int(orthoChartTab.ItemOrder) + ","
-            + SOut.Bool(orthoChartTab.IsHidden) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            orthoChartTab.OrthoChartTabNum = Db.NonQ(command, true, "OrthoChartTabNum", "orthoChartTab");
-        return orthoChartTab.OrthoChartTabNum;
-    }
-
-    public static void Update(OrthoChartTab orthoChartTab)
-    {
-        var command = "UPDATE orthocharttab SET "
-                      + "TabName         = '" + SOut.String(orthoChartTab.TabName) + "', "
-                      + "ItemOrder       =  " + SOut.Int(orthoChartTab.ItemOrder) + ", "
-                      + "IsHidden        =  " + SOut.Bool(orthoChartTab.IsHidden) + " "
-                      + "WHERE OrthoChartTabNum = " + SOut.Long(orthoChartTab.OrthoChartTabNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(OrthoChartTab orthoChartTab, OrthoChartTab oldOrthoChartTab)
@@ -145,21 +88,6 @@ public class OrthoChartTabCrud
         return true;
     }
 
-    public static bool UpdateComparison(OrthoChartTab orthoChartTab, OrthoChartTab oldOrthoChartTab)
-    {
-        if (orthoChartTab.TabName != oldOrthoChartTab.TabName) return true;
-        if (orthoChartTab.ItemOrder != oldOrthoChartTab.ItemOrder) return true;
-        if (orthoChartTab.IsHidden != oldOrthoChartTab.IsHidden) return true;
-        return false;
-    }
-
-    public static void Delete(long orthoChartTabNum)
-    {
-        var command = "DELETE FROM orthocharttab "
-                      + "WHERE OrthoChartTabNum = " + SOut.Long(orthoChartTabNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listOrthoChartTabNums)
     {
         if (listOrthoChartTabNums == null || listOrthoChartTabNums.Count == 0) return;
@@ -168,7 +96,7 @@ public class OrthoChartTabCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<OrthoChartTab> listNew, List<OrthoChartTab> listDB)
+    public static void Sync(List<OrthoChartTab> listNew, List<OrthoChartTab> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<OrthoChartTab>();
@@ -237,7 +165,6 @@ public class OrthoChartTabCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.OrthoChartTabNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

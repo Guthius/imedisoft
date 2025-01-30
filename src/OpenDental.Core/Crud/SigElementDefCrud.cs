@@ -5,10 +5,12 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SigElementDefCrud
 {
@@ -89,7 +91,7 @@ public class SigElementDefCrud
                                               + DbHelper.ParamChar + "paramSound,"
                                               + SOut.Int(sigElementDef.ItemOrder) + ")";
         if (sigElementDef.Sound == null) sigElementDef.Sound = "";
-        var paramSound = new OdSqlParameter("paramSound", OdDbType.Text, SOut.StringParam(sigElementDef.Sound));
+        var paramSound = new OdSqlParameter("paramSound", SOut.StringParam(sigElementDef.Sound));
         {
             sigElementDef.SigElementDefNum = Db.NonQ(command, true, "SigElementDefNum", "sigElementDef", paramSound);
         }
@@ -116,7 +118,7 @@ public class SigElementDefCrud
                                               + DbHelper.ParamChar + "paramSound,"
                                               + SOut.Int(sigElementDef.ItemOrder) + ")";
         if (sigElementDef.Sound == null) sigElementDef.Sound = "";
-        var paramSound = new OdSqlParameter("paramSound", OdDbType.Text, SOut.StringParam(sigElementDef.Sound));
+        var paramSound = new OdSqlParameter("paramSound", SOut.StringParam(sigElementDef.Sound));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramSound);
         else
@@ -135,7 +137,7 @@ public class SigElementDefCrud
                       + "ItemOrder       =  " + SOut.Int(sigElementDef.ItemOrder) + " "
                       + "WHERE SigElementDefNum = " + SOut.Long(sigElementDef.SigElementDefNum);
         if (sigElementDef.Sound == null) sigElementDef.Sound = "";
-        var paramSound = new OdSqlParameter("paramSound", OdDbType.Text, SOut.StringParam(sigElementDef.Sound));
+        var paramSound = new OdSqlParameter("paramSound", SOut.StringParam(sigElementDef.Sound));
         Db.NonQ(command, paramSound);
     }
 
@@ -180,7 +182,7 @@ public class SigElementDefCrud
 
         if (command == "") return false;
         if (sigElementDef.Sound == null) sigElementDef.Sound = "";
-        var paramSound = new OdSqlParameter("paramSound", OdDbType.Text, SOut.StringParam(sigElementDef.Sound));
+        var paramSound = new OdSqlParameter("paramSound", SOut.StringParam(sigElementDef.Sound));
         command = "UPDATE sigelementdef SET " + command
                                               + " WHERE SigElementDefNum = " + SOut.Long(sigElementDef.SigElementDefNum);
         Db.NonQ(command, paramSound);

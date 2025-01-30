@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using WpfControls.UI;
@@ -101,14 +103,14 @@ namespace OpenDental {
 			}
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","LastName"),150));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","FirstName"),80));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","MI"),30));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","Title"),70));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","Specialty"),60));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","Patient"),45));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","Business Name"),150));
-			gridMain.Columns.Add(new GridColumn(Lang.g("TableSelectRefferal","Note"),0));
+			gridMain.Columns.Add(new GridColumn("LastName",150));
+			gridMain.Columns.Add(new GridColumn("FirstName",80));
+			gridMain.Columns.Add(new GridColumn("MI",30));
+			gridMain.Columns.Add(new GridColumn("Title",70));
+			gridMain.Columns.Add(new GridColumn("Specialty",60));
+			gridMain.Columns.Add(new GridColumn("Patient",45));
+			gridMain.Columns.Add(new GridColumn("Business Name",150));
+			gridMain.Columns.Add(new GridColumn("Note",0));
 			gridMain.ListGridRows.Clear();
 			GridRow row;
 			int indexSelectedRef=-1;
@@ -118,7 +120,7 @@ namespace OpenDental {
 				row.Cells.Add(_listReferrals[i].FName);
 				row.Cells.Add(StringTools.Truncate(_listReferrals[i].MName,1).ToUpper());//Truncate will return empty string if MName is null or empty string, so ToUpper is null safe
 				row.Cells.Add(_listReferrals[i].Title);
-				row.Cells.Add(_listReferrals[i].IsDoctor?Lang.g("enumDentalSpecialty",Defs.GetName(DefCat.ProviderSpecialties,_listReferrals[i].Specialty)):"");
+				row.Cells.Add(_listReferrals[i].IsDoctor?Defs.GetName(DefCat.ProviderSpecialties,_listReferrals[i].Specialty):"");
 				row.Cells.Add(_listReferrals[i].PatNum>0?"X":"");
 				row.Cells.Add(_listReferrals[i].BusinessName);
 				row.Cells.Add(_listReferrals[i].Note);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDental.Bridges {
@@ -140,7 +141,7 @@ namespace OpenDental.Bridges {
 					OpenDentBusiness.Shared.Sirona.WriteToSendBoxFile(path,listIniLines);
 				}
 				catch(Exception ex) {
-					FriendlyException.Show(Lang.g("Sirona","Error preparing Sidexis for patient message."),ex);
+					FriendlyException.Show("Error preparing Sidexis for patient message.",ex);
 					return;
 				}
 			}//if patient is loaded

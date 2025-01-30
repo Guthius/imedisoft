@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PatFieldCrud
 {
@@ -85,10 +87,10 @@ public class PatFieldCrud
                                        + "'" + SOut.String(patField.FieldName) + "',"
                                        + DbHelper.ParamChar + "paramFieldValue,"
                                        + SOut.Long(patField.SecUserNumEntry) + ","
-                                       + DbHelper.Now() + ")";
+                                       + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (patField.FieldValue == null) patField.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringNote(patField.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringNote(patField.FieldValue));
         {
             patField.PatFieldNum = Db.NonQ(command, true, "PatFieldNum", "patField", paramFieldValue);
         }
@@ -112,10 +114,10 @@ public class PatFieldCrud
                                        + "'" + SOut.String(patField.FieldName) + "',"
                                        + DbHelper.ParamChar + "paramFieldValue,"
                                        + SOut.Long(patField.SecUserNumEntry) + ","
-                                       + DbHelper.Now() + ")";
+                                       + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (patField.FieldValue == null) patField.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringNote(patField.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringNote(patField.FieldValue));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramFieldValue);
         else
@@ -134,7 +136,7 @@ public class PatFieldCrud
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE PatFieldNum = " + SOut.Long(patField.PatFieldNum);
         if (patField.FieldValue == null) patField.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringNote(patField.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringNote(patField.FieldValue));
         Db.NonQ(command, paramFieldValue);
     }
 
@@ -164,7 +166,7 @@ public class PatFieldCrud
         //SecDateTEdit can only be set by MySQL
         if (command == "") return false;
         if (patField.FieldValue == null) patField.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", OdDbType.Text, SOut.StringNote(patField.FieldValue));
+        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringNote(patField.FieldValue));
         command = "UPDATE patfield SET " + command
                                          + " WHERE PatFieldNum = " + SOut.Long(patField.PatFieldNum);
         Db.NonQ(command, paramFieldValue);

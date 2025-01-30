@@ -3,22 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class DiscountPlanSubs
 {
-    #region Methods - Get
-
-    ///<summary>Gets one DiscountPlanSub from the db.</summary>
-    public static DiscountPlanSub GetOne(long discountSubNum)
-    {
-        return DiscountPlanSubCrud.SelectOne(discountSubNum);
-    }
-
-    
     public static DiscountPlanSub GetSubForPat(long patNum)
     {
         var command = "SELECT * FROM discountplansub WHERE PatNum = " + SOut.Long(patNum);
@@ -33,7 +24,6 @@ public class DiscountPlanSubs
         return DiscountPlanSubCrud.SelectMany(command);
     }
 
-    /// <summary>Returns the start date for the passed in effective date, with a modified year to the current year.</summary>
     public static DateTime GetAnnualMaxDateEffective(DateTime dateEffective)
     {
         var dateStart = dateEffective;
@@ -42,7 +32,6 @@ public class DiscountPlanSubs
         return dateStart;
     }
 
-    
     public static DateTime GetAnnualMaxDateTerm(DateTime dateTerm)
     {
         var dateEnd = dateTerm;
@@ -50,10 +39,6 @@ public class DiscountPlanSubs
         return dateEnd;
     }
 
-    /// <summary>
-    ///     Returns a DateTime. If the reference point is within the provided date range, it will set dateEffective.Year
-    ///     to the closest year of the reference point.
-    /// </summary>
     public static DateTime GetDateEffectiveForAnnualDateRangeSegment(DateTime dateRefPoint, DateTime dateEffective, DateTime dateTerm)
     {
         if (dateRefPoint < dateEffective || dateRefPoint > dateTerm) //Outside of date range
@@ -76,10 +61,6 @@ public class DiscountPlanSubs
         return dateEffective;
     }
 
-    /// <summary>
-    ///     Returns a DateTime. If the reference point is within the provided date range, it will set dateTerm.Year to the
-    ///     closest year of the reference point.
-    /// </summary>
     public static DateTime GetDateTermForAnnualDateRangeSegment(DateTime dateRefPoint, DateTime dateEffective, DateTime dateTerm)
     {
         if (dateRefPoint < dateEffective || dateRefPoint > dateTerm) //Outside of date range
@@ -103,20 +84,11 @@ public class DiscountPlanSubs
         return dateTerm;
     }
 
-    #endregion Methods - Get
-
-    #region Methods - Update
-
-    
     public static void Update(DiscountPlanSub discountPlanSub)
     {
         DiscountPlanSubCrud.Update(discountPlanSub);
     }
 
-    /// <summary>
-    ///     Updates all TP procedures.DiscountPlanAmt in the associated DiscountPlanSub date range. Order priority is
-    ///     based on TreatPlanPriority.
-    /// </summary>
     public static void UpdateAssociatedDiscountPlanAmts(List<DiscountPlanSub> listDiscountPlanSubs, bool isDiscountPlanSubBeingDeleted = false)
     {
         if (listDiscountPlanSubs.IsNullOrEmpty()) return;
@@ -159,17 +131,11 @@ public class DiscountPlanSubs
         }
     }
 
-    #endregion
-
-    #region Methods - Modify
-
-    
-    public static long Insert(DiscountPlanSub discountPlanSub)
+    public static void Insert(DiscountPlanSub discountPlanSub)
     {
-        return DiscountPlanSubCrud.Insert(discountPlanSub);
+        DiscountPlanSubCrud.Insert(discountPlanSub);
     }
 
-    
     public static void Delete(long discountSubNum)
     {
         DiscountPlanSubCrud.Delete(discountSubNum);
@@ -181,14 +147,6 @@ public class DiscountPlanSubs
         Db.NonQ(command);
     }
 
-    #endregion Methods - Modify
-
-    #region Methods - Misc
-
-    /// <summary>
-    ///     Returns 0 if the patient has no discount plan, or if the given date is not within the effective and term
-    ///     dates.
-    /// </summary>
     public static long GetDiscountPlanNumForPat(long patNum, DateTime date = default)
     {
         var command = "SELECT DiscountPlanNum FROM discountplansub WHERE PatNum = " + SOut.Long(patNum) + " ";
@@ -198,15 +156,9 @@ public class DiscountPlanSubs
         return Db.GetLong(command);
     }
 
-    /// <summary>
-    ///     Returns true if the patient passed in is subscribed to a discount plan (includes plans that are out of date).
-    ///     Otherwise false.
-    /// </summary>
     public static bool HasDiscountPlan(long patNum)
     {
         var command = "SELECT COUNT(*) FROM discountplansub WHERE PatNum=" + SOut.Long(patNum);
         return Db.GetLong(command) > 0;
     }
-
-    #endregion Methods - Misc
 }

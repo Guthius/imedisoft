@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class HL7DefCrud
 {
@@ -167,7 +169,7 @@ public class HL7DefCrud
             + SOut.Bool(hL7Def.HasLongDCodes) + ","
             + SOut.Bool(hL7Def.IsProcApptEnforced) + ")";
         if (hL7Def.Note == null) hL7Def.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(hL7Def.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(hL7Def.Note));
         {
             hL7Def.HL7DefNum = Db.NonQ(command, true, "HL7DefNum", "hL7Def", paramNote);
         }
@@ -216,7 +218,7 @@ public class HL7DefCrud
             + SOut.Bool(hL7Def.HasLongDCodes) + ","
             + SOut.Bool(hL7Def.IsProcApptEnforced) + ")";
         if (hL7Def.Note == null) hL7Def.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(hL7Def.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(hL7Def.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -257,7 +259,7 @@ public class HL7DefCrud
                       + "IsProcApptEnforced   =  " + SOut.Bool(hL7Def.IsProcApptEnforced) + " "
                       + "WHERE HL7DefNum = " + SOut.Long(hL7Def.HL7DefNum);
         if (hL7Def.Note == null) hL7Def.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(hL7Def.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(hL7Def.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -434,7 +436,7 @@ public class HL7DefCrud
 
         if (command == "") return false;
         if (hL7Def.Note == null) hL7Def.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(hL7Def.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(hL7Def.Note));
         command = "UPDATE hl7def SET " + command
                                        + " WHERE HL7DefNum = " + SOut.Long(hL7Def.HL7DefNum);
         Db.NonQ(command, paramNote);

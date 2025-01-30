@@ -3,27 +3,24 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ProcCodeNotes
 {
-    
     public static List<ProcCodeNote> GetList(long codeNum)
     {
         var command = "SELECT * FROM proccodenote WHERE CodeNum=" + SOut.Long(codeNum);
         return ProcCodeNoteCrud.SelectMany(command);
     }
 
-    
-    public static long Insert(ProcCodeNote note)
+    public static void Insert(ProcCodeNote note)
     {
-        return ProcCodeNoteCrud.Insert(note);
+        ProcCodeNoteCrud.Insert(note);
     }
 
-    
     public static void Update(ProcCodeNote note)
     {
         ProcCodeNoteCrud.Update(note);
@@ -35,10 +32,6 @@ public class ProcCodeNotes
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Gets the note for the given provider, if one exists.  Otherwise, gets the proccode.defaultnote.
-    ///     Currently procStatus only supports TP or C statuses.
-    /// </summary>
     public static string GetNote(long provNum, long codeNum, ProcStat procStatus, bool isGroupNote = false)
     {
         var listProcCodeNotes = GetDeepCopy();
@@ -59,15 +52,12 @@ public class ProcCodeNotes
         return ProcedureCodes.GetProcCode(codeNum).DefaultNote;
     }
 
-    ///<summary>Gets the time pattern for the given provider, if one exists.  Otherwise, gets the proccode.ProcTime.</summary>
     public static string GetTimePattern(long provNum, long codeNum)
     {
         var procCodeNote = GetFirstOrDefault(x => x.ProvNum == provNum && x.CodeNum == codeNum);
         return procCodeNote == null ? ProcedureCodes.GetProcCode(codeNum).ProcTime : procCodeNote.ProcTime;
     }
-
-    #region CachePattern
-
+    
     private class ProcCodeNoteCache : CacheListAbs<ProcCodeNote>
     {
         protected override List<ProcCodeNote> GetCacheFromDb()
@@ -96,45 +86,26 @@ public class ProcCodeNotes
             ProcCodeNotes.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ProcCodeNoteCache _procCodeNoteCache = new();
+    
+    private static readonly ProcCodeNoteCache Cache = new();
 
     public static List<ProcCodeNote> GetDeepCopy(bool isShort = false)
     {
-        return _procCodeNoteCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static ProcCodeNote GetFirstOrDefault(Func<ProcCodeNote, bool> match, bool isShort = false)
     {
-        return _procCodeNoteCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
-    {
-        return GetTableFromCache(true);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _procCodeNoteCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _procCodeNoteCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _procCodeNoteCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ContactCrud
 {
@@ -46,7 +48,7 @@ public class ContactCrud
             + SOut.Long(contact.Category) + ","
             + DbHelper.ParamChar + "paramNotes)";
         if (contact.Notes == null) contact.Notes = "";
-        var paramNotes = new OdSqlParameter("paramNotes", OdDbType.Text, SOut.StringParam(contact.Notes));
+        var paramNotes = new OdSqlParameter("paramNotes", SOut.StringParam(contact.Notes));
         {
             contact.ContactNum = Db.NonQ(command, true, "ContactNum", "contact", paramNotes);
         }
@@ -63,7 +65,7 @@ public class ContactCrud
                       + "Notes     =  " + DbHelper.ParamChar + "paramNotes "
                       + "WHERE ContactNum = " + SOut.Long(contact.ContactNum);
         if (contact.Notes == null) contact.Notes = "";
-        var paramNotes = new OdSqlParameter("paramNotes", OdDbType.Text, SOut.StringParam(contact.Notes));
+        var paramNotes = new OdSqlParameter("paramNotes", SOut.StringParam(contact.Notes));
         Db.NonQ(command, paramNotes);
     }
 }

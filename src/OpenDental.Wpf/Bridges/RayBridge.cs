@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 
@@ -19,12 +20,12 @@ namespace OpenDental.Bridges {
 		public static void SendData(Program programCur,Patient pat) {
 			//Check if there is a selected patient.
 			if(pat==null) {
-				MessageBox.Show(Lang.g("RayBridge","Please select a patient first."));
+				MessageBox.Show("Please select a patient first.");
 				return;
 			}
 			string path=Programs.GetProgramPath(programCur);
 			if(!/* ODEnvironment.IsCloudServer */ false && !File.Exists(path)) {
-				MessageBox.Show($"{path} {Lang.g("RayBridge","could not be found.")}");
+				MessageBox.Show($"{path} could not be found.");
 				return;
 			}
 			string strFilePath=ProgramProperties.GetPropVal(programCur.ProgramNum,"Xml output file path");
@@ -81,7 +82,7 @@ namespace OpenDental.Bridges {
 				return;
 			}
 			catch(Exception ex) {
-				MessageBox.Show(Lang.g("RayBridge","Error launching program:")+"\r\n"+MiscUtils.GetExceptionText(ex));
+				MessageBox.Show("Error launching program:\r\n"+MiscUtils.GetExceptionText(ex));
 			}
 		}
 	}

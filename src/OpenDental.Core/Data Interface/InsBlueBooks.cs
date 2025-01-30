@@ -4,33 +4,20 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class InsBlueBooks
 {
-    #region Misc Methods
-
-    /// <summary>
-    ///     Returns null if the passed in array is null, otherwise returns the array with any zeros and duplicates
-    ///     removed.
-    /// </summary>
     private static long[] FilterArrayPrimaryKeysHelper(long[] primaryKeyArray)
     {
         if (primaryKeyArray == null) return null;
         return primaryKeyArray.Where(x => x != 0).Distinct().ToArray();
     }
 
-    #endregion Misc Methods
-
-    #region Get Methods
-
-    /// <summary>
-    ///     Gets all insbluebooks that have an AllowedOverride that isn't -1 for the carrier group. Limits by ProcDate and
-    ///     claimType.
-    /// </summary>
     public static List<InsBlueBook> GetAllForCarrierGroupLimitByDateAndClaimType(long carrierGroupName, DateTime dateLimit, string claimType, List<long> listProcCodeNums)
     {
         if (listProcCodeNums.IsNullOrEmpty()) return new List<InsBlueBook>();
@@ -50,10 +37,6 @@ public class InsBlueBooks
         return InsBlueBookCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all insbluebooks that have an AllowedOverride that isn't -1 for the carrier. Limits by ProcDate and
-    ///     claimType.
-    /// </summary>
     public static List<InsBlueBook> GetAllForCarrierLimitByDateAndClaimType(long carrierNum, DateTime dateLimit, string claimType, List<long> listProcCodeNums)
     {
         if (listProcCodeNums.IsNullOrEmpty()) return new List<InsBlueBook>();
@@ -71,16 +54,6 @@ public class InsBlueBooks
         return InsBlueBookCrud.SelectMany(command);
     }
 
-    #endregion Get Methods
-
-    #region Modification Methods
-
-    /// <summary>
-    ///     Deletes, Inserts, and Updates insbluebook entries as needed. insbluebook entries will only be inserted,
-    ///     updated, or avoid deletion if one or more received or supplemental claimprocs for a procedure on a primary or
-    ///     secondary claim of a category percentage plan can be found. To make a valid insbluebook, the sum of InsPayAmt for
-    ///     these claimprocs must be zero or greater but cannot exceed the total proc fee of the procedure.
-    /// </summary>
     public static void SynchForClaimNums(params long[] claimNumArray)
     {
         claimNumArray = FilterArrayPrimaryKeysHelper(claimNumArray);
@@ -129,7 +102,6 @@ public class InsBlueBooks
         InsBlueBookCrud.Sync(listInsBlueBooksNew, listInsBlueBooksOld);
     }
 
-    ///<summary>Deletes any insbluebook entries from the db that have any of the given ClaimNums.</summary>
     public static void DeleteByClaimNums(params long[] claimNumArray)
     {
         claimNumArray = FilterArrayPrimaryKeysHelper(claimNumArray);
@@ -139,7 +111,6 @@ public class InsBlueBooks
         Db.NonQ(command);
     }
 
-    ///<summary>Deletes any insbluebook entries from the db that have any of the given PlanNums.</summary>
     public static void DeleteByPlanNums(params long[] planNumArray)
     {
         planNumArray = FilterArrayPrimaryKeysHelper(planNumArray);
@@ -149,10 +120,6 @@ public class InsBlueBooks
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Used to update the GroupNum and CarrierNum for insbluebook entries when these fields have changed for the
-    ///     insplan.
-    /// </summary>
     public static void UpdateByInsPlan(InsPlan insPlan)
     {
         var command = $@"UPDATE insbluebook
@@ -160,40 +127,8 @@ public class InsBlueBooks
 				WHERE insbluebook.PlanNum={SOut.Long(insPlan.PlanNum)}";
         Db.NonQ(command);
     }
-
-    #endregion Modification Methods
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-    #region Get Methods
-    
-    public static List<InsBlueBook> Refresh(long patNum){
-
-        string command="SELECT * FROM insbluebook WHERE PatNum = "+POut.Long(patNum);
-        return Crud.InsBlueBookCrud.SelectMany(command);
-    }
-    #endregion Get Methods
-    #region Modification Methods
-    
-    public static long Insert(InsBlueBook insBlueBook){
-
-        return Crud.InsBlueBookCrud.Insert(insBlueBook);
-    }
-    
-    public static void Update(InsBlueBook insBlueBook){
-
-        Crud.InsBlueBookCrud.Update(insBlueBook);
-    }
-    
-    public static void Delete(long insBlueBookNum) {
-
-        Crud.InsBlueBookCrud.Delete(insBlueBookNum);
-    }
-    #endregion Modification Methods
-    */
 }
 
-///<summary>Helper class that stores all data needed to make estimates with the blue book feature.</summary>
 [Serializable]
 public class BlueBookEstimateData
 {
@@ -469,9 +404,7 @@ public class BlueBookEstimateData
         if (canSetBlueBookUsed) WasBlueBookUsed = false;
         return insBlueBookLog;
     }
-
-    #region AllowedFeeMethod
-
+    
     /// <summary>
     ///     Returns the average, median, or most recent AllowedOverride from the list of InsBlueBooks passed in.
     ///     MostRecent must find a value at least twice to return it, otherwise -1 is returned.
@@ -560,6 +493,4 @@ public class BlueBookEstimateData
 
         return insBlueBookMostRecent.AllowedOverride;
     }
-
-    #endregion AllowedFeeMethod
 }

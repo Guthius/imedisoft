@@ -1,4 +1,4 @@
-namespace OpenDental {
+namespace OpenDental.Forms {
 	partial class FormCodeGroupEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -46,7 +46,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 99;
 			this.butSave.Text = "Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textGroupName
 			// 
@@ -119,7 +119,7 @@ namespace OpenDental {
 			this.butProcCodesAdd.Size = new System.Drawing.Size(75, 24);
 			this.butProcCodesAdd.TabIndex = 4;
 			this.butProcCodesAdd.Text = "&Add";
-			this.butProcCodesAdd.Click += new System.EventHandler(this.butProcCodesAdd_Click);
+			this.butProcCodesAdd.Click += new System.EventHandler(this.ButtonProcedureCodesAdd_Click);
 			// 
 			// labelCodeListDesc
 			// 

@@ -2,7 +2,7 @@ using System;
 using System.Windows.Controls;
 
 namespace WpfControls.UI{
-	//---------------This file is generated automatically from the IconOrganizer project.  Do not edit manually.
+	
 
 	public class IconSelector{
 		public static void DrawVectors(DrawSvg drawSvg,EnumIcons enumIcons,double scale){

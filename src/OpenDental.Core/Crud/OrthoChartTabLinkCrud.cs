@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class OrthoChartTabLinkCrud
 {
-    public static OrthoChartTabLink SelectOne(long orthoChartTabLinkNum)
-    {
-        var command = "SELECT * FROM orthocharttablink "
-                      + "WHERE OrthoChartTabLinkNum = " + SOut.Long(orthoChartTabLinkNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static OrthoChartTabLink SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<OrthoChartTabLink> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -65,12 +47,7 @@ public class OrthoChartTabLinkCrud
         return table;
     }
 
-    public static long Insert(OrthoChartTabLink orthoChartTabLink)
-    {
-        return Insert(orthoChartTabLink, false);
-    }
-
-    public static long Insert(OrthoChartTabLink orthoChartTabLink, bool useExistingPK)
+    public static void Insert(OrthoChartTabLink orthoChartTabLink)
     {
         var command = "INSERT INTO orthocharttablink (";
 
@@ -84,42 +61,6 @@ public class OrthoChartTabLinkCrud
         {
             orthoChartTabLink.OrthoChartTabLinkNum = Db.NonQ(command, true, "OrthoChartTabLinkNum", "orthoChartTabLink");
         }
-        return orthoChartTabLink.OrthoChartTabLinkNum;
-    }
-
-    public static long InsertNoCache(OrthoChartTabLink orthoChartTabLink)
-    {
-        return InsertNoCache(orthoChartTabLink, false);
-    }
-
-    public static long InsertNoCache(OrthoChartTabLink orthoChartTabLink, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO orthocharttablink (";
-        if (isRandomKeys || useExistingPK) command += "OrthoChartTabLinkNum,";
-        command += "ItemOrder,OrthoChartTabNum,DisplayFieldNum,ColumnWidthOverride) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(orthoChartTabLink.OrthoChartTabLinkNum) + ",";
-        command +=
-            SOut.Int(orthoChartTabLink.ItemOrder) + ","
-                                                  + SOut.Long(orthoChartTabLink.OrthoChartTabNum) + ","
-                                                  + SOut.Long(orthoChartTabLink.DisplayFieldNum) + ","
-                                                  + SOut.Int(orthoChartTabLink.ColumnWidthOverride) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            orthoChartTabLink.OrthoChartTabLinkNum = Db.NonQ(command, true, "OrthoChartTabLinkNum", "orthoChartTabLink");
-        return orthoChartTabLink.OrthoChartTabLinkNum;
-    }
-
-    public static void Update(OrthoChartTabLink orthoChartTabLink)
-    {
-        var command = "UPDATE orthocharttablink SET "
-                      + "ItemOrder           =  " + SOut.Int(orthoChartTabLink.ItemOrder) + ", "
-                      + "OrthoChartTabNum    =  " + SOut.Long(orthoChartTabLink.OrthoChartTabNum) + ", "
-                      + "DisplayFieldNum     =  " + SOut.Long(orthoChartTabLink.DisplayFieldNum) + ", "
-                      + "ColumnWidthOverride =  " + SOut.Int(orthoChartTabLink.ColumnWidthOverride) + " "
-                      + "WHERE OrthoChartTabLinkNum = " + SOut.Long(orthoChartTabLink.OrthoChartTabLinkNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(OrthoChartTabLink orthoChartTabLink, OrthoChartTabLink oldOrthoChartTabLink)
@@ -156,22 +97,6 @@ public class OrthoChartTabLinkCrud
         return true;
     }
 
-    public static bool UpdateComparison(OrthoChartTabLink orthoChartTabLink, OrthoChartTabLink oldOrthoChartTabLink)
-    {
-        if (orthoChartTabLink.ItemOrder != oldOrthoChartTabLink.ItemOrder) return true;
-        if (orthoChartTabLink.OrthoChartTabNum != oldOrthoChartTabLink.OrthoChartTabNum) return true;
-        if (orthoChartTabLink.DisplayFieldNum != oldOrthoChartTabLink.DisplayFieldNum) return true;
-        if (orthoChartTabLink.ColumnWidthOverride != oldOrthoChartTabLink.ColumnWidthOverride) return true;
-        return false;
-    }
-
-    public static void Delete(long orthoChartTabLinkNum)
-    {
-        var command = "DELETE FROM orthocharttablink "
-                      + "WHERE OrthoChartTabLinkNum = " + SOut.Long(orthoChartTabLinkNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listOrthoChartTabLinkNums)
     {
         if (listOrthoChartTabLinkNums == null || listOrthoChartTabLinkNums.Count == 0) return;
@@ -180,7 +105,7 @@ public class OrthoChartTabLinkCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<OrthoChartTabLink> listNew, List<OrthoChartTabLink> listDB)
+    public static void Sync(List<OrthoChartTabLink> listNew, List<OrthoChartTabLink> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<OrthoChartTabLink>();
@@ -249,7 +174,6 @@ public class OrthoChartTabLinkCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.OrthoChartTabLinkNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

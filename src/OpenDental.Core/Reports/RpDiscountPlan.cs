@@ -19,7 +19,7 @@ namespace OpenDentBusiness {
 				" INNER JOIN patient ON patient.PatNum=discountplansub.PatNum"+
 				" WHERE discountplan.Description LIKE '%"+SOut.String(description)+"%'"+
 				" ORDER BY discountplan.Description,patient.LName,patient.FName,patient.MiddleI";
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
+			return ReportsComplex.GetTable(query);
 		}
 	}
 }

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AutoNoteCrud
 {
@@ -54,7 +56,7 @@ public class AutoNoteCrud
             + DbHelper.ParamChar + "paramMainText,"
             + SOut.Long(autoNote.Category) + ")";
         if (autoNote.MainText == null) autoNote.MainText = "";
-        var paramMainText = new OdSqlParameter("paramMainText", OdDbType.Text, SOut.StringParam(autoNote.MainText));
+        var paramMainText = new OdSqlParameter("paramMainText", SOut.StringParam(autoNote.MainText));
         {
             autoNote.AutoNoteNum = Db.NonQ(command, true, "AutoNoteNum", "autoNote", paramMainText);
         }
@@ -120,7 +122,7 @@ public class AutoNoteCrud
                       + "Category    =  " + SOut.Long(autoNote.Category) + " "
                       + "WHERE AutoNoteNum = " + SOut.Long(autoNote.AutoNoteNum);
         if (autoNote.MainText == null) autoNote.MainText = "";
-        var paramMainText = new OdSqlParameter("paramMainText", OdDbType.Text, SOut.StringParam(autoNote.MainText));
+        var paramMainText = new OdSqlParameter("paramMainText", SOut.StringParam(autoNote.MainText));
         Db.NonQ(command, paramMainText);
     }
 }

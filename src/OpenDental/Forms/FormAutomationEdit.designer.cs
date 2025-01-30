@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAutomationEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -65,7 +60,7 @@ namespace OpenDental {
 			butDelete.Size = new System.Drawing.Size(75, 24);
 			butDelete.TabIndex = 16;
 			butDelete.Text = "&Delete";
-			butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// label1
 			// 
@@ -149,7 +144,7 @@ namespace OpenDental {
 			this.comboTrigger.Name = "comboTrigger";
 			this.comboTrigger.Size = new System.Drawing.Size(183, 21);
 			this.comboTrigger.TabIndex = 27;
-			this.comboTrigger.SelectedIndexChanged += new System.EventHandler(this.comboTrigger_SelectedIndexChanged);
+			this.comboTrigger.SelectedIndexChanged += new System.EventHandler(this.ComboBoxTrigger_SelectedIndexChanged);
 			// 
 			// comboAction
 			// 
@@ -157,7 +152,7 @@ namespace OpenDental {
 			this.comboAction.Name = "comboAction";
 			this.comboAction.Size = new System.Drawing.Size(183, 21);
 			this.comboAction.TabIndex = 28;
-			this.comboAction.SelectedIndexChanged += new System.EventHandler(this.comboAction_SelectedIndexChanged);
+			this.comboAction.SelectedIndexChanged += new System.EventHandler(this.ComboBoxAction_SelectedIndexChanged);
 			// 
 			// comboActionObject
 			// 
@@ -175,7 +170,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(65, 24);
 			this.butAdd.TabIndex = 35;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// gridMain
 			// 
@@ -186,7 +181,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 34;
 			this.gridMain.Title = "Conditions";
 			this.gridMain.TranslationName = "TableConditions";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butProcCode
 			// 
@@ -196,7 +191,7 @@ namespace OpenDental {
 			this.butProcCode.Size = new System.Drawing.Size(23, 24);
 			this.butProcCode.TabIndex = 32;
 			this.butProcCode.Text = "...";
-			this.butProcCode.Click += new System.EventHandler(this.butProcCode_Click);
+			this.butProcCode.Click += new System.EventHandler(this.ButtonProcCode_Click);
 			// 
 			// butSave
 			// 
@@ -206,7 +201,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 4;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// FormAutomationEdit
 			// 

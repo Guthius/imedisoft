@@ -29,10 +29,10 @@ namespace OpenDental {
 			long plansClosed=PayPlans.AutoClose(checkOldPaymentPlans.Checked==true,checkInsPaymentPlans.Checked==true);
 			string msgText;
 			if(plansClosed>0) {
-				msgText=Lans.g(this,"Success.")+"  "+plansClosed+" "+Lans.g(this,"plan(s) closed.");
+				msgText=Lans.g("Success.")+"  "+plansClosed+" "+Lans.g("plan(s) closed.");
 			}
 			else {
-				msgText=Lans.g(this,"There were no plans to close.");
+				msgText=Lans.g("There were no plans to close.");
 			}
 			MsgBox.Show(msgText);
 			IsDialogOK=true;

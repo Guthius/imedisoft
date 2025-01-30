@@ -5,7 +5,8 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -15,12 +16,12 @@ public class Reactivations
     {
         ReactivationCrud.Insert(reactivation);
     }
-    
+
     public static void Delete(long reactivationNum)
     {
         ReactivationCrud.Delete(reactivationNum);
     }
-    
+
     public static Reactivation GetOne(long reactivationNum)
     {
         return ReactivationCrud.SelectOne(reactivationNum);
@@ -53,9 +54,7 @@ public class Reactivations
         return SIn.DateTime(DataCore.GetScalar(cmd));
     }
 
-    ///<summary>Gets the list of patients that need to be on the reactivation list based on the passed in filters.</summary>
-    public static DataTable GetReactivationList(DateTime dateSince, DateTime dateStop, bool groupFamilies, bool showDoNotContact, bool isInactiveIncluded
-        , long provNum, long clinicNum, long siteNum, long billingType, ReactivationListSort sortBy, RecallListShowNumberReminders showReactivations)
+    public static DataTable GetReactivationList(DateTime dateSince, DateTime dateStop, bool groupFamilies, bool showDoNotContact, bool isInactiveIncluded, long provNum, long clinicNum, long siteNum, long billingType, ReactivationListSort sortBy, RecallListShowNumberReminders showReactivations)
     {
         //Get information we will need to do the query
         var listReactCommLogTypeDefNums = Defs.GetDefsForCategory(DefCat.CommLogTypes, true)
@@ -99,7 +98,7 @@ public class Reactivations
 					FROM patient pat
 					INNER JOIN procedurelog proc ON pat.PatNum=proc.PatNum AND proc.ProcStatus={SOut.Int((int) ProcStat.C)}
 					INNER JOIN procedurecode ON procedurecode.CodeNum=proc.CodeNum AND procedurecode.ProcCode NOT IN ('D9986','D9987')
-					LEFT JOIN appointment appt ON pat.PatNum=appt.PatNum AND appt.AptDateTime >= {DbHelper.Curdate()} 
+					LEFT JOIN appointment appt ON pat.PatNum=appt.PatNum AND appt.AptDateTime >= {"CURDATE()"} 
 					LEFT JOIN (
 						SELECT
 							commlog.PatNum,
@@ -170,10 +169,6 @@ public class Reactivations
         return dtReturn;
     }
 
-    /// <summary>
-    ///     Follows the format of the Recall addrTable, used in the RecallList to duplicate functionality for
-    ///     mailing/emailing patients.
-    /// </summary>
     public static DataTable GetAddrTable(List<Patient> listPats, List<Patient> listGuars, bool groupFamilies, ReactivationListSort sortBy)
     {
         var table = Recalls.GetAddrTableStructure();
@@ -227,7 +222,7 @@ public class Reactivations
 
         return table;
     }
-    
+
     public static void Update(Reactivation reactivation)
     {
         ReactivationCrud.Update(reactivation);
@@ -235,23 +230,15 @@ public class Reactivations
 
     public static void UpdateStatus(long reactivationNum, long statusDefNum)
     {
-        var cmd = "UPDATE reactivation SET ReactivationStatus=" + (statusDefNum) + " WHERE ReactivationNum=" + (reactivationNum);
+        var cmd = "UPDATE reactivation SET ReactivationStatus=" + statusDefNum + " WHERE ReactivationNum=" + reactivationNum;
         Db.NonQ(cmd);
     }
 }
 
-
 public enum ReactivationListSort
 {
-    
     LastContacted,
-
-    
     BillingType,
-
-    
     Alphabetical,
-
-    
     LastSeen
 }

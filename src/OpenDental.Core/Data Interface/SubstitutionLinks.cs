@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
-
 
 public class SubstitutionLinks
 {
@@ -12,7 +12,7 @@ public class SubstitutionLinks
     {
         return GetAllForPlans(listInsPlans.Select(x => x.PlanNum).ToArray());
     }
-    
+
     public static List<SubstitutionLink> GetAllForPlans(params long[] planNumArray)
     {
         if (planNumArray.Length == 0) return new List<SubstitutionLink>();
@@ -21,9 +21,9 @@ public class SubstitutionLinks
         return SubstitutionLinkCrud.SelectMany(command);
     }
 
-    public static bool Sync(List<SubstitutionLink> listSubstitutionLinksNew, List<SubstitutionLink> listSubstitutionLinksOld)
+    public static void Sync(List<SubstitutionLink> listSubstitutionLinksNew, List<SubstitutionLink> listSubstitutionLinksOld)
     {
-        return SubstitutionLinkCrud.Sync(listSubstitutionLinksNew, listSubstitutionLinksOld);
+        SubstitutionLinkCrud.Sync(listSubstitutionLinksNew, listSubstitutionLinksOld);
     }
 
     public static List<SubstitutionLink> FilterSubLinksByCodeNum(long codeNum, List<SubstitutionLink> listSubstitutionLinks)
@@ -70,7 +70,7 @@ public class SubstitutionLinks
 
         return false;
     }
-    
+
     public static void CopyLinksToNewPlan(long planNumNew, long planNumOld)
     {
         //Get a list of the sub links of the old insplan. After the foreach loop below, this list will no longer contain the sub links for the old insplan.
@@ -80,7 +80,7 @@ public class SubstitutionLinks
             listSubstitutionLinksOfOldPlan[i].PlanNum = planNumNew;
         InsertMany(listSubstitutionLinksOfOldPlan);
     }
-    
+
     public static void InsertMany(List<SubstitutionLink> listSubstitutionLinks)
     {
         SubstitutionLinkCrud.InsertMany(listSubstitutionLinks);

@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	///<summary>This is a generic document editor, not a bridge to a specific software.</summary>

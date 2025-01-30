@@ -22,7 +22,7 @@ namespace OpenDentBusiness {
 					query+="AND patient.BillingType IN ("+string.Join(",",listBillingDefNums.Select(x => SOut.Long(x)))+") ";
 				}
 				query+="ORDER BY patient.LName,patient.FName,AdjAmt DESC";
-			DataTable table=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
+			DataTable table=ReportsComplex.GetTable(query);
 			return table;
 		}	
 	}

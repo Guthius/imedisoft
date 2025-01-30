@@ -13,6 +13,8 @@ using WpfControls.UI;
 using OpenDental.Drawing;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 	

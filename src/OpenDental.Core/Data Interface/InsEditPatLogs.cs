@@ -3,16 +3,14 @@ using System.Linq;
 using System.Reflection;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class InsEditPatLogs
 {
-    #region Get Methods
-
-    
     public static List<InsEditPatLog> GetLogsForPatPlan(long patPlanNum, long insSubNum)
     {
         var listWhereOrs = new List<string>();
@@ -69,22 +67,12 @@ public class InsEditPatLogs
         InsEditPatLogCrud.InsertMany(listLogs);
     }
 
-    #endregion Get Methods
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Insert log entries.
-    ///     Pass in null for ItemOld if the item was just inserted. Pass in null for ItemCur if the item was just deleted.
-    ///     Both itemCur and itemOld cannot be null.
-    /// </summary>
     public static void MakeLogEntry<T>(T itemCur, T itemOld, InsEditPatLogType insEditPatLogType)
     {
         var listInsEditPatLogsToInsert = CreateLogs(itemCur, itemOld, insEditPatLogType);
         InsertMany(listInsEditPatLogsToInsert);
     }
 
-    ///<summary>Creates log entries.</summary>
     private static List<InsEditPatLog> CreateLogs<T>(T itemCur, T itemOld, InsEditPatLogType insEditPatLogType)
     {
         var listInsEditPatLogsToInsert = new List<InsEditPatLog>();
@@ -218,7 +206,6 @@ public class InsEditPatLogs
         return listInsEditPatLogsToInsert;
     }
 
-    ///<summary>Returns true if the column passed should be logged.</summary>
     private static bool IsValidLogColumn<T>(T priKeyItem, string colName, InsEditPatLogType insEditPatLogType)
     {
         if (priKeyItem is ClaimProc)
@@ -251,6 +238,4 @@ public class InsEditPatLogs
 
         return false;
     }
-
-    #endregion Misc Methods
 }

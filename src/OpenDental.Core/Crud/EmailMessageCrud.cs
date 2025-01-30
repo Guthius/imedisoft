@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EmailMessageCrud
 {
@@ -141,24 +143,24 @@ public class EmailMessageCrud
                                            + SOut.Long(emailMessage.AptNum) + ","
                                            + SOut.Long(emailMessage.UserNum) + ","
                                            + SOut.Int((int) emailMessage.HtmlType) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            //SecDateTEdit can only be set by MySQL
                                            + "'" + SOut.String(emailMessage.MsgType.ToString()) + "',"
                                            + "'" + SOut.String(emailMessage.FailReason) + "')";
         if (emailMessage.ToAddress == null) emailMessage.ToAddress = "";
-        var paramToAddress = new OdSqlParameter("paramToAddress", OdDbType.Text, SOut.StringParam(emailMessage.ToAddress));
+        var paramToAddress = new OdSqlParameter("paramToAddress", SOut.StringParam(emailMessage.ToAddress));
         if (emailMessage.FromAddress == null) emailMessage.FromAddress = "";
-        var paramFromAddress = new OdSqlParameter("paramFromAddress", OdDbType.Text, SOut.StringParam(emailMessage.FromAddress));
+        var paramFromAddress = new OdSqlParameter("paramFromAddress", SOut.StringParam(emailMessage.FromAddress));
         if (emailMessage.Subject == null) emailMessage.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailMessage.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailMessage.Subject));
         if (emailMessage.BodyText == null) emailMessage.BodyText = "";
-        var paramBodyText = new OdSqlParameter("paramBodyText", OdDbType.Text, SOut.StringParam(emailMessage.BodyText));
+        var paramBodyText = new OdSqlParameter("paramBodyText", SOut.StringParam(emailMessage.BodyText));
         if (emailMessage.RawEmailIn == null) emailMessage.RawEmailIn = "";
-        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", OdDbType.Text, SOut.StringParam(emailMessage.RawEmailIn));
+        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", SOut.StringParam(emailMessage.RawEmailIn));
         if (emailMessage.CcAddress == null) emailMessage.CcAddress = "";
-        var paramCcAddress = new OdSqlParameter("paramCcAddress", OdDbType.Text, SOut.StringParam(emailMessage.CcAddress));
+        var paramCcAddress = new OdSqlParameter("paramCcAddress", SOut.StringParam(emailMessage.CcAddress));
         if (emailMessage.BccAddress == null) emailMessage.BccAddress = "";
-        var paramBccAddress = new OdSqlParameter("paramBccAddress", OdDbType.Text, SOut.StringParam(emailMessage.BccAddress));
+        var paramBccAddress = new OdSqlParameter("paramBccAddress", SOut.StringParam(emailMessage.BccAddress));
         {
             emailMessage.EmailMessageNum = Db.NonQ(command, true, "EmailMessageNum", "emailMessage", paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
         }
@@ -195,24 +197,24 @@ public class EmailMessageCrud
                                            + SOut.Long(emailMessage.AptNum) + ","
                                            + SOut.Long(emailMessage.UserNum) + ","
                                            + SOut.Int((int) emailMessage.HtmlType) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            //SecDateTEdit can only be set by MySQL
                                            + "'" + SOut.String(emailMessage.MsgType.ToString()) + "',"
                                            + "'" + SOut.String(emailMessage.FailReason) + "')";
         if (emailMessage.ToAddress == null) emailMessage.ToAddress = "";
-        var paramToAddress = new OdSqlParameter("paramToAddress", OdDbType.Text, SOut.StringParam(emailMessage.ToAddress));
+        var paramToAddress = new OdSqlParameter("paramToAddress", SOut.StringParam(emailMessage.ToAddress));
         if (emailMessage.FromAddress == null) emailMessage.FromAddress = "";
-        var paramFromAddress = new OdSqlParameter("paramFromAddress", OdDbType.Text, SOut.StringParam(emailMessage.FromAddress));
+        var paramFromAddress = new OdSqlParameter("paramFromAddress", SOut.StringParam(emailMessage.FromAddress));
         if (emailMessage.Subject == null) emailMessage.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailMessage.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailMessage.Subject));
         if (emailMessage.BodyText == null) emailMessage.BodyText = "";
-        var paramBodyText = new OdSqlParameter("paramBodyText", OdDbType.Text, SOut.StringParam(emailMessage.BodyText));
+        var paramBodyText = new OdSqlParameter("paramBodyText", SOut.StringParam(emailMessage.BodyText));
         if (emailMessage.RawEmailIn == null) emailMessage.RawEmailIn = "";
-        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", OdDbType.Text, SOut.StringParam(emailMessage.RawEmailIn));
+        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", SOut.StringParam(emailMessage.RawEmailIn));
         if (emailMessage.CcAddress == null) emailMessage.CcAddress = "";
-        var paramCcAddress = new OdSqlParameter("paramCcAddress", OdDbType.Text, SOut.StringParam(emailMessage.CcAddress));
+        var paramCcAddress = new OdSqlParameter("paramCcAddress", SOut.StringParam(emailMessage.CcAddress));
         if (emailMessage.BccAddress == null) emailMessage.BccAddress = "";
-        var paramBccAddress = new OdSqlParameter("paramBccAddress", OdDbType.Text, SOut.StringParam(emailMessage.BccAddress));
+        var paramBccAddress = new OdSqlParameter("paramBccAddress", SOut.StringParam(emailMessage.BccAddress));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
         else
@@ -246,19 +248,19 @@ public class EmailMessageCrud
                       + "FailReason      = '" + SOut.String(emailMessage.FailReason) + "' "
                       + "WHERE EmailMessageNum = " + SOut.Long(emailMessage.EmailMessageNum);
         if (emailMessage.ToAddress == null) emailMessage.ToAddress = "";
-        var paramToAddress = new OdSqlParameter("paramToAddress", OdDbType.Text, SOut.StringParam(emailMessage.ToAddress));
+        var paramToAddress = new OdSqlParameter("paramToAddress", SOut.StringParam(emailMessage.ToAddress));
         if (emailMessage.FromAddress == null) emailMessage.FromAddress = "";
-        var paramFromAddress = new OdSqlParameter("paramFromAddress", OdDbType.Text, SOut.StringParam(emailMessage.FromAddress));
+        var paramFromAddress = new OdSqlParameter("paramFromAddress", SOut.StringParam(emailMessage.FromAddress));
         if (emailMessage.Subject == null) emailMessage.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailMessage.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailMessage.Subject));
         if (emailMessage.BodyText == null) emailMessage.BodyText = "";
-        var paramBodyText = new OdSqlParameter("paramBodyText", OdDbType.Text, SOut.StringParam(emailMessage.BodyText));
+        var paramBodyText = new OdSqlParameter("paramBodyText", SOut.StringParam(emailMessage.BodyText));
         if (emailMessage.RawEmailIn == null) emailMessage.RawEmailIn = "";
-        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", OdDbType.Text, SOut.StringParam(emailMessage.RawEmailIn));
+        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", SOut.StringParam(emailMessage.RawEmailIn));
         if (emailMessage.CcAddress == null) emailMessage.CcAddress = "";
-        var paramCcAddress = new OdSqlParameter("paramCcAddress", OdDbType.Text, SOut.StringParam(emailMessage.CcAddress));
+        var paramCcAddress = new OdSqlParameter("paramCcAddress", SOut.StringParam(emailMessage.CcAddress));
         if (emailMessage.BccAddress == null) emailMessage.BccAddress = "";
-        var paramBccAddress = new OdSqlParameter("paramBccAddress", OdDbType.Text, SOut.StringParam(emailMessage.BccAddress));
+        var paramBccAddress = new OdSqlParameter("paramBccAddress", SOut.StringParam(emailMessage.BccAddress));
         Db.NonQ(command, paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
     }
 
@@ -383,19 +385,19 @@ public class EmailMessageCrud
 
         if (command == "") return false;
         if (emailMessage.ToAddress == null) emailMessage.ToAddress = "";
-        var paramToAddress = new OdSqlParameter("paramToAddress", OdDbType.Text, SOut.StringParam(emailMessage.ToAddress));
+        var paramToAddress = new OdSqlParameter("paramToAddress", SOut.StringParam(emailMessage.ToAddress));
         if (emailMessage.FromAddress == null) emailMessage.FromAddress = "";
-        var paramFromAddress = new OdSqlParameter("paramFromAddress", OdDbType.Text, SOut.StringParam(emailMessage.FromAddress));
+        var paramFromAddress = new OdSqlParameter("paramFromAddress", SOut.StringParam(emailMessage.FromAddress));
         if (emailMessage.Subject == null) emailMessage.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(emailMessage.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailMessage.Subject));
         if (emailMessage.BodyText == null) emailMessage.BodyText = "";
-        var paramBodyText = new OdSqlParameter("paramBodyText", OdDbType.Text, SOut.StringParam(emailMessage.BodyText));
+        var paramBodyText = new OdSqlParameter("paramBodyText", SOut.StringParam(emailMessage.BodyText));
         if (emailMessage.RawEmailIn == null) emailMessage.RawEmailIn = "";
-        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", OdDbType.Text, SOut.StringParam(emailMessage.RawEmailIn));
+        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", SOut.StringParam(emailMessage.RawEmailIn));
         if (emailMessage.CcAddress == null) emailMessage.CcAddress = "";
-        var paramCcAddress = new OdSqlParameter("paramCcAddress", OdDbType.Text, SOut.StringParam(emailMessage.CcAddress));
+        var paramCcAddress = new OdSqlParameter("paramCcAddress", SOut.StringParam(emailMessage.CcAddress));
         if (emailMessage.BccAddress == null) emailMessage.BccAddress = "";
-        var paramBccAddress = new OdSqlParameter("paramBccAddress", OdDbType.Text, SOut.StringParam(emailMessage.BccAddress));
+        var paramBccAddress = new OdSqlParameter("paramBccAddress", SOut.StringParam(emailMessage.BccAddress));
         command = "UPDATE emailmessage SET " + command
                                              + " WHERE EmailMessageNum = " + SOut.Long(emailMessage.EmailMessageNum);
         Db.NonQ(command, paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);

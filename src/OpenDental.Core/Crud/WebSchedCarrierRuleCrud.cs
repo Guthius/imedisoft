@@ -1,33 +1,15 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class WebSchedCarrierRuleCrud
 {
-    public static WebSchedCarrierRule SelectOne(long webSchedCarrierRuleNum)
-    {
-        var command = "SELECT * FROM webschedcarrierrule "
-                      + "WHERE WebSchedCarrierRuleNum = " + SOut.Long(webSchedCarrierRuleNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static WebSchedCarrierRule SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<WebSchedCarrierRule> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -51,46 +33,6 @@ public class WebSchedCarrierRuleCrud
         }
 
         return retVal;
-    }
-
-    public static DataTable ListToTable(List<WebSchedCarrierRule> listWebSchedCarrierRules, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "WebSchedCarrierRule";
-        var table = new DataTable(tableName);
-        table.Columns.Add("WebSchedCarrierRuleNum");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("CarrierName");
-        table.Columns.Add("DisplayName");
-        table.Columns.Add("Message");
-        table.Columns.Add("Rule");
-        foreach (var webSchedCarrierRule in listWebSchedCarrierRules)
-            table.Rows.Add(SOut.Long(webSchedCarrierRule.WebSchedCarrierRuleNum), SOut.Long(webSchedCarrierRule.ClinicNum), webSchedCarrierRule.CarrierName, webSchedCarrierRule.DisplayName, webSchedCarrierRule.Message, SOut.Int((int) webSchedCarrierRule.Rule));
-        return table;
-    }
-
-    public static long Insert(WebSchedCarrierRule webSchedCarrierRule)
-    {
-        return Insert(webSchedCarrierRule, false);
-    }
-
-    public static long Insert(WebSchedCarrierRule webSchedCarrierRule, bool useExistingPK)
-    {
-        var command = "INSERT INTO webschedcarrierrule (";
-
-        command += "ClinicNum,CarrierName,DisplayName,Message,Rule) VALUES(";
-
-        command +=
-            SOut.Long(webSchedCarrierRule.ClinicNum) + ","
-                                                     + "'" + SOut.String(webSchedCarrierRule.CarrierName) + "',"
-                                                     + "'" + SOut.String(webSchedCarrierRule.DisplayName) + "',"
-                                                     + DbHelper.ParamChar + "paramMessage,"
-                                                     + SOut.Int((int) webSchedCarrierRule.Rule) + ")";
-        if (webSchedCarrierRule.Message == null) webSchedCarrierRule.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(webSchedCarrierRule.Message));
-        {
-            webSchedCarrierRule.WebSchedCarrierRuleNum = Db.NonQ(command, true, "WebSchedCarrierRuleNum", "webSchedCarrierRule", paramMessage);
-        }
-        return webSchedCarrierRule.WebSchedCarrierRuleNum;
     }
 
     public static void InsertMany(List<WebSchedCarrierRule> listWebSchedCarrierRules)
@@ -153,33 +95,6 @@ public class WebSchedCarrierRuleCrud
         }
     }
 
-    public static long InsertNoCache(WebSchedCarrierRule webSchedCarrierRule)
-    {
-        return InsertNoCache(webSchedCarrierRule, false);
-    }
-
-    public static long InsertNoCache(WebSchedCarrierRule webSchedCarrierRule, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO webschedcarrierrule (";
-        if (isRandomKeys || useExistingPK) command += "WebSchedCarrierRuleNum,";
-        command += "ClinicNum,CarrierName,DisplayName,Message,Rule) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(webSchedCarrierRule.WebSchedCarrierRuleNum) + ",";
-        command +=
-            SOut.Long(webSchedCarrierRule.ClinicNum) + ","
-                                                     + "'" + SOut.String(webSchedCarrierRule.CarrierName) + "',"
-                                                     + "'" + SOut.String(webSchedCarrierRule.DisplayName) + "',"
-                                                     + DbHelper.ParamChar + "paramMessage,"
-                                                     + SOut.Int((int) webSchedCarrierRule.Rule) + ")";
-        if (webSchedCarrierRule.Message == null) webSchedCarrierRule.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(webSchedCarrierRule.Message));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramMessage);
-        else
-            webSchedCarrierRule.WebSchedCarrierRuleNum = Db.NonQ(command, true, "WebSchedCarrierRuleNum", "webSchedCarrierRule", paramMessage);
-        return webSchedCarrierRule.WebSchedCarrierRuleNum;
-    }
-
     public static void Update(WebSchedCarrierRule webSchedCarrierRule)
     {
         var command = "UPDATE webschedcarrierrule SET "
@@ -190,67 +105,8 @@ public class WebSchedCarrierRuleCrud
                       + "Rule                  =  " + SOut.Int((int) webSchedCarrierRule.Rule) + " "
                       + "WHERE WebSchedCarrierRuleNum = " + SOut.Long(webSchedCarrierRule.WebSchedCarrierRuleNum);
         if (webSchedCarrierRule.Message == null) webSchedCarrierRule.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(webSchedCarrierRule.Message));
+        var paramMessage = new OdSqlParameter("paramMessage", SOut.StringParam(webSchedCarrierRule.Message));
         Db.NonQ(command, paramMessage);
-    }
-
-    public static bool Update(WebSchedCarrierRule webSchedCarrierRule, WebSchedCarrierRule oldWebSchedCarrierRule)
-    {
-        var command = "";
-        if (webSchedCarrierRule.ClinicNum != oldWebSchedCarrierRule.ClinicNum)
-        {
-            if (command != "") command += ",";
-            command += "ClinicNum = " + SOut.Long(webSchedCarrierRule.ClinicNum) + "";
-        }
-
-        if (webSchedCarrierRule.CarrierName != oldWebSchedCarrierRule.CarrierName)
-        {
-            if (command != "") command += ",";
-            command += "CarrierName = '" + SOut.String(webSchedCarrierRule.CarrierName) + "'";
-        }
-
-        if (webSchedCarrierRule.DisplayName != oldWebSchedCarrierRule.DisplayName)
-        {
-            if (command != "") command += ",";
-            command += "DisplayName = '" + SOut.String(webSchedCarrierRule.DisplayName) + "'";
-        }
-
-        if (webSchedCarrierRule.Message != oldWebSchedCarrierRule.Message)
-        {
-            if (command != "") command += ",";
-            command += "Message = " + DbHelper.ParamChar + "paramMessage";
-        }
-
-        if (webSchedCarrierRule.Rule != oldWebSchedCarrierRule.Rule)
-        {
-            if (command != "") command += ",";
-            command += "Rule = " + SOut.Int((int) webSchedCarrierRule.Rule) + "";
-        }
-
-        if (command == "") return false;
-        if (webSchedCarrierRule.Message == null) webSchedCarrierRule.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(webSchedCarrierRule.Message));
-        command = "UPDATE webschedcarrierrule SET " + command
-                                                    + " WHERE WebSchedCarrierRuleNum = " + SOut.Long(webSchedCarrierRule.WebSchedCarrierRuleNum);
-        Db.NonQ(command, paramMessage);
-        return true;
-    }
-
-    public static bool UpdateComparison(WebSchedCarrierRule webSchedCarrierRule, WebSchedCarrierRule oldWebSchedCarrierRule)
-    {
-        if (webSchedCarrierRule.ClinicNum != oldWebSchedCarrierRule.ClinicNum) return true;
-        if (webSchedCarrierRule.CarrierName != oldWebSchedCarrierRule.CarrierName) return true;
-        if (webSchedCarrierRule.DisplayName != oldWebSchedCarrierRule.DisplayName) return true;
-        if (webSchedCarrierRule.Message != oldWebSchedCarrierRule.Message) return true;
-        if (webSchedCarrierRule.Rule != oldWebSchedCarrierRule.Rule) return true;
-        return false;
-    }
-
-    public static void Delete(long webSchedCarrierRuleNum)
-    {
-        var command = "DELETE FROM webschedcarrierrule "
-                      + "WHERE WebSchedCarrierRuleNum = " + SOut.Long(webSchedCarrierRuleNum);
-        Db.NonQ(command);
     }
 
     public static void DeleteMany(List<long> listWebSchedCarrierRuleNums)

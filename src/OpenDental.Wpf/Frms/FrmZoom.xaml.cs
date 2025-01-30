@@ -196,7 +196,7 @@ namespace OpenDental {
 				return;
 			}
 			else if(zoom<60){//Anything less than this seems to have overlapping control issues, and < 10 can cause out of memory errors.
-				string msg=Lans.g(this,"Zoom number should be greater than or equal to 60. Maybe you meant")
+				string msg=Lans.g("Zoom number should be greater than or equal to 60. Maybe you meant")
 					+" "+(100+zoom).ToString()+".";//untranslated
 				MsgBox.Show(msg);
 				return;
@@ -214,15 +214,15 @@ namespace OpenDental {
 				return;
 			}
 			else if(zoom<80){
-				string msg=Lans.g(this,"You have chosen a zoom level that will make things smaller. Maybe you meant")
+				string msg=Lans.g("You have chosen a zoom level that will make things smaller. Maybe you meant")
 					+" 1"+zoom.ToString()+". "//untranslated
-					+Lans.g(this,"Continue anyway?");
+					+Lans.g("Continue anyway?");
 				if(!MsgBox.Show(MsgBoxButtons.OKCancel,msg)){
 					return;
 				}
 			}
 			if(zoom<100){
-				string msg=Lans.g(this,"Zoom levels below 100 are not recommended. Some text could be slightly cut off. Continue anyway?");
+				string msg=Lans.g("Zoom levels below 100 are not recommended. Some text could be slightly cut off. Continue anyway?");
 				if(!MsgBox.Show(MsgBoxButtons.OKCancel,msg)){
 					return;
 				}

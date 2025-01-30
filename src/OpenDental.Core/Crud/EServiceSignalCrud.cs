@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EServiceSignalCrud
 {
@@ -94,9 +96,9 @@ public class EServiceSignalCrud
                                                  + DbHelper.ParamChar + "paramTag,"
                                                  + SOut.Bool(eServiceSignal.IsProcessed) + ")";
         if (eServiceSignal.Description == null) eServiceSignal.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(eServiceSignal.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(eServiceSignal.Description));
         if (eServiceSignal.Tag == null) eServiceSignal.Tag = "";
-        var paramTag = new OdSqlParameter("paramTag", OdDbType.Text, SOut.StringParam(eServiceSignal.Tag));
+        var paramTag = new OdSqlParameter("paramTag", SOut.StringParam(eServiceSignal.Tag));
         {
             eServiceSignal.EServiceSignalNum = Db.NonQ(command, true, "EServiceSignalNum", "eServiceSignal", paramDescription, paramTag);
         }
@@ -125,9 +127,9 @@ public class EServiceSignalCrud
                                                  + DbHelper.ParamChar + "paramTag,"
                                                  + SOut.Bool(eServiceSignal.IsProcessed) + ")";
         if (eServiceSignal.Description == null) eServiceSignal.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(eServiceSignal.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(eServiceSignal.Description));
         if (eServiceSignal.Tag == null) eServiceSignal.Tag = "";
-        var paramTag = new OdSqlParameter("paramTag", OdDbType.Text, SOut.StringParam(eServiceSignal.Tag));
+        var paramTag = new OdSqlParameter("paramTag", SOut.StringParam(eServiceSignal.Tag));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramDescription, paramTag);
         else
@@ -148,9 +150,9 @@ public class EServiceSignalCrud
                       + "IsProcessed      =  " + SOut.Bool(eServiceSignal.IsProcessed) + " "
                       + "WHERE EServiceSignalNum = " + SOut.Long(eServiceSignal.EServiceSignalNum);
         if (eServiceSignal.Description == null) eServiceSignal.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(eServiceSignal.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(eServiceSignal.Description));
         if (eServiceSignal.Tag == null) eServiceSignal.Tag = "";
-        var paramTag = new OdSqlParameter("paramTag", OdDbType.Text, SOut.StringParam(eServiceSignal.Tag));
+        var paramTag = new OdSqlParameter("paramTag", SOut.StringParam(eServiceSignal.Tag));
         Db.NonQ(command, paramDescription, paramTag);
     }
 
@@ -207,9 +209,9 @@ public class EServiceSignalCrud
 
         if (command == "") return false;
         if (eServiceSignal.Description == null) eServiceSignal.Description = "";
-        var paramDescription = new OdSqlParameter("paramDescription", OdDbType.Text, SOut.StringParam(eServiceSignal.Description));
+        var paramDescription = new OdSqlParameter("paramDescription", SOut.StringParam(eServiceSignal.Description));
         if (eServiceSignal.Tag == null) eServiceSignal.Tag = "";
-        var paramTag = new OdSqlParameter("paramTag", OdDbType.Text, SOut.StringParam(eServiceSignal.Tag));
+        var paramTag = new OdSqlParameter("paramTag", SOut.StringParam(eServiceSignal.Tag));
         command = "UPDATE eservicesignal SET " + command
                                                + " WHERE EServiceSignalNum = " + SOut.Long(eServiceSignal.EServiceSignalNum);
         Db.NonQ(command, paramDescription, paramTag);

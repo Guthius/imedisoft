@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormeConfimationExclusionDays {
 		/// <summary>
 		/// Required designer variable.
@@ -46,7 +46,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// checkUseHQ
 			// 
@@ -55,7 +55,7 @@ namespace OpenDental{
 			this.checkUseHQ.Size = new System.Drawing.Size(125, 24);
 			this.checkUseHQ.TabIndex = 4;
 			this.checkUseHQ.Text = "Use Default Settings";
-			this.checkUseHQ.CheckedChanged += new System.EventHandler(this.checkUseHQ_CheckedChanged);
+			this.checkUseHQ.CheckedChanged += new System.EventHandler(this.CheckBoxUseHQ_CheckedChanged);
 			// 
 			// comboBoxClinicPicker
 			// 
@@ -112,7 +112,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 10;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butAdd
 			// 
@@ -123,7 +123,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 11;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// labelUseDefaultMessage
 			// 
@@ -143,7 +143,7 @@ namespace OpenDental{
 			this.checkShowPastDates.Size = new System.Drawing.Size(138, 24);
 			this.checkShowPastDates.TabIndex = 13;
 			this.checkShowPastDates.Text = "Show Past Dates";
-			this.checkShowPastDates.CheckedChanged += new System.EventHandler(this.checkShowPastDates_CheckedChanged);
+			this.checkShowPastDates.CheckedChanged += new System.EventHandler(this.CheckBoxShowPastDates_CheckedChanged);
 			// 
 			// label1
 			// 

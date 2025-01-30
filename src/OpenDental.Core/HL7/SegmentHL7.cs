@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>A 'row' in the message.  Composed of fields</summary>

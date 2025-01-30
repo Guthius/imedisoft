@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ZipCodeCrud
 {
@@ -44,7 +46,7 @@ public class ZipCodeCrud
         return table;
     }
 
-    public static long Insert(ZipCode zipCode)
+    public static void Insert(ZipCode zipCode)
     {
         var command = "INSERT INTO zipcode (";
 
@@ -58,7 +60,6 @@ public class ZipCodeCrud
         {
             zipCode.ZipCodeNum = Db.NonQ(command, true, "ZipCodeNum", "zipCode");
         }
-        return zipCode.ZipCodeNum;
     }
 
     public static void Update(ZipCode zipCode)

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormApptViews {
 		/// <summary>
 		/// Required designer variable.
@@ -66,7 +61,7 @@ namespace OpenDental {
 			this.listViews.Name = "listViews";
 			this.listViews.Size = new System.Drawing.Size(183, 329);
 			this.listViews.TabIndex = 2;
-			this.listViews.DoubleClick += new System.EventHandler(this.listViews_DoubleClick);
+			this.listViews.DoubleClick += new System.EventHandler(this.ListViews_DoubleClick);
 			// 
 			// butDown
 			// 
@@ -77,7 +72,7 @@ namespace OpenDental {
 			this.butDown.Size = new System.Drawing.Size(89, 24);
 			this.butDown.TabIndex = 38;
 			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -88,7 +83,7 @@ namespace OpenDental {
 			this.butUp.Size = new System.Drawing.Size(89, 24);
 			this.butUp.TabIndex = 39;
 			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butAdd
 			// 
@@ -99,7 +94,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(89, 24);
 			this.butAdd.TabIndex = 36;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// groupBox1
 			// 
@@ -152,7 +147,7 @@ namespace OpenDental {
 			this.butProcColors.Size = new System.Drawing.Size(82, 24);
 			this.butProcColors.TabIndex = 41;
 			this.butProcColors.Text = "Proc Colors";
-			this.butProcColors.Click += new System.EventHandler(this.butProcColors_Click);
+			this.butProcColors.Click += new System.EventHandler(this.ButtonProcColors_Click);
 			// 
 			// comboClinic
 			// 
@@ -162,7 +157,7 @@ namespace OpenDental {
 			this.comboClinic.Name = "comboClinic";
 			this.comboClinic.Size = new System.Drawing.Size(185, 21);
 			this.comboClinic.TabIndex = 135;
-			this.comboClinic.SelectionChangeCommitted += new System.EventHandler(this.comboClinic_SelectionChangeCommitted);
+			this.comboClinic.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxClinic_SelectionChangeCommitted);
 			// 
 			// butCopyView
 			// 
@@ -172,7 +167,7 @@ namespace OpenDental {
 			this.butCopyView.Size = new System.Drawing.Size(89, 24);
 			this.butCopyView.TabIndex = 136;
 			this.butCopyView.Text = "&Copy View";
-			this.butCopyView.Click += new System.EventHandler(this.butCopyView_Click);
+			this.butCopyView.Click += new System.EventHandler(this.ButtonCopyView_Click);
 			// 
 			// FormApptViews
 			// 

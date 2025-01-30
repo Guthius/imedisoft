@@ -8,14 +8,13 @@ using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Carriers
 {
-    ///<summary>Used to get a list of carriers to display in the FormCarriers window.</summary>
     public static DataTable GetBigList(bool isCanadian, bool showHidden, string carrierName, string carrierPhone, string carrierElectId)
     {
         DataTable tableRaw;
@@ -108,16 +107,11 @@ public class Carriers
         return table;
     }
 
-    ///<summary>Surround with try/catch.</summary>
     public static void Update(Carrier carrier, Carrier carrierOld)
     {
         Update(carrier, carrierOld, Security.CurUser.UserNum);
     }
 
-    /// <summary>
-    ///     Surround with try/catch.
-    ///     No need to pass in usernum, it is set before the remoting role and passed in for logging.
-    /// </summary>
     public static void Update(Carrier carrier, Carrier carrierOld, long userNum)
     {
         string command;
@@ -148,7 +142,6 @@ public class Carriers
         InsEditLogs.MakeLogEntry(carrier, carrierOld, InsEditLogType.Carrier, userNum);
     }
 
-    ///<summary>Surround with try/catch if possibly adding a Canadian carrier.</summary>
     public static void Insert(Carrier carrier, Carrier carrierOld = null)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -169,10 +162,6 @@ public class Carriers
             InsEditLogs.MakeLogEntry(carrier, null, InsEditLogType.Carrier, carrier.SecUserNumEntry);
     }
 
-    /// <summary>
-    ///     Surround with try/catch.  If there are any dependencies, then this will throw an exception.
-    ///     This is currently only called from FormCarrierEdit.
-    /// </summary>
     public static void Delete(Carrier carrier)
     {
         //look for dependencies in insplan table.
@@ -217,7 +206,6 @@ public class Carriers
         InsEditLogs.MakeLogEntry(null, carrier, InsEditLogType.Carrier, Security.CurUser.UserNum);
     }
 
-    ///<summary>Returns a list of insplans that are dependent on the Cur carrier. Used to display in carrier edit.</summary>
     public static List<string> DependentPlans(Carrier carrier)
     {
         var command = "SELECT CONCAT(CONCAT(LName,', '),FName) FROM patient,insplan,inssub"
@@ -231,10 +219,6 @@ public class Carriers
         return listStrings;
     }
 
-    /// <summary>
-    ///     Gets the name of a carrier based on the carrierNum.
-    ///     This also refreshes the list if necessary, so it will work even if the list has not been refreshed recently.
-    /// </summary>
     public static string GetName(long carrierNum)
     {
         var carrierName = "";
@@ -245,17 +229,12 @@ public class Carriers
         return carrierName;
     }
 
-    ///<summary>Gets a single carrier from the database. Returns null if not found.</summary>
     public static Carrier GetCarrierDB(long carrierNum)
     {
         var command = "SELECT * FROM carrier WHERE CarrierNum=" + SOut.Long(carrierNum);
         return CarrierCrud.SelectOne(command);
     }
 
-    /// <summary>
-    ///     Gets the specified carrier from Cache.
-    ///     This also refreshes the list if necessary, so it will work even if the list has not been refreshed recently.
-    /// </summary>
     public static Carrier GetCarrier(long carrierNum)
     {
         var carrier = new Carrier {CarrierName = ""};
@@ -296,13 +275,6 @@ public class Carriers
         return $"{colVal} initialized with value '{carrierVal}'\r\n";
     }
 
-    /// <summary>
-    ///     Throws exception when in CA if carrier is not found. Primarily used when user clicks OK from the InsPlan window.
-    ///     Gets a carrierNum from the database based on the other supplied carrier
-    ///     data.  Sets the CarrierNum accordingly. If there is no matching carrier, then a new carrier is created.  The end
-    ///     result is a valid carrierNum
-    ///     to use.
-    /// </summary>
     public static Carrier GetIdentical(Carrier carrier, Carrier carrierOld = null)
     {
         if (carrier.CarrierName == "") return new Carrier(); //should probably be null instead
@@ -354,10 +326,6 @@ public class Carriers
         return carrierRetVal;
     }
 
-    /// <summary>
-    ///     Returns true if all fields for one carrier match all fields for another carrier.
-    ///     Returns false if one of the carriers is null or any of the fields don't match.
-    /// </summary>
     public static bool Compare(Carrier carrierOne, Carrier carrierTwo)
     {
         if (carrierOne == null || carrierTwo == null) return false;
@@ -374,27 +342,16 @@ public class Carriers
         return true;
     }
 
-    /// <summary>
-    ///     Returns an arraylist of Carriers with names similar to the supplied string.  Used in dropdown list from
-    ///     carrier field for faster entry.  There is a small chance that the list will not be completely refreshed when this
-    ///     is run, but it won't really matter if one carrier doesn't show in dropdown.
-    /// </summary>
     public static List<Carrier> GetSimilarNames(string carrierName)
     {
         return GetWhere(x => x.CarrierName.ToUpper().IndexOf(carrierName.ToUpper()) == 0, true);
     }
 
-    ///<summary>Excludes hidden Carriers. Not case sensitive. Returns a list of Carriers with the passed in name.</summary>
     public static List<Carrier> GetExactNames(string carrierName)
     {
         return GetWhere(x => x.CarrierName.ToUpper().Equals(carrierName.ToUpper()), true);
     }
 
-    /// <summary>
-    ///     Surround with try/catch. Combines all the given carriers into one.
-    ///     The carrier that will be used as the basis of the combination is specified in the pickedCarrier argument.
-    ///     Updates insplan and etrans, then deletes all the other carriers.
-    /// </summary>
     public static void Combine(List<long> listCarrierNums, long pickedCarrierNum)
     {
         if (listCarrierNums == null || listCarrierNums.Count <= 1) return; //Nothing to do.
@@ -442,13 +399,11 @@ public class Carriers
         for (var i = 0; i < listCarriersToCombine.Count; i++) InsEditLogs.MakeLogEntry(null, listCarriersToCombine[i], InsEditLogType.Carrier, Security.CurUser.UserNum);
     }
 
-    ///<summary>Used in the FormCarrierCombine window.</summary>
     public static List<Carrier> GetCarriers(List<long> listCarrierNums)
     {
         return GetWhere(x => listCarrierNums.Contains(x.CarrierNum));
     }
 
-    ///<summary>If listInsPlans is empty, returns an empty list. Gets all carriers for InsPlans.</summary>
     public static List<Carrier> GetForInsPlans(List<InsPlan> listInsPlans)
     {
         if (listInsPlans.Count == 0) return new List<Carrier>();
@@ -456,10 +411,6 @@ public class Carriers
         return GetCarriers(listCarrierNumsForClaims);
     }
 
-    /// <summary>
-    ///     Queries the database for all carriers that are flagged as IsCDA that have at least one etrans request message
-    ///     present.
-    /// </summary>
     public static List<Carrier> GetCdaCarriersInUse()
     {
         //Use reflection to get all the values from the EtransType enumeration where the field is flagged as a request type via the EtransTypeAttr.
@@ -484,26 +435,17 @@ public class Carriers
         return CarrierCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Used in FormInsPlan to check whether another carrier is already using this id.
-    ///     That way, it won't tell the user that this might be an invalid id.
-    /// </summary>
     public static bool ElectIdInUse(string electID)
     {
         if (string.IsNullOrEmpty(electID)) return true;
-        return _carrierCache.GetFirstOrDefault(x => x.ElectID == electID) != null;
+        return Cache.GetFirstOrDefault(x => x.ElectID == electID) != null;
     }
 
-    /// <summary>
-    ///     Used from insplan window when requesting benefits.  Gets carrier based on electID.  Returns empty list if no
-    ///     match found.
-    /// </summary>
     public static List<Carrier> GetAllByElectId(string electID)
     {
         return GetWhere(x => x.ElectID == electID);
     }
 
-    ///<summary>Returns a list of all distinct carrier names, does not include blank names, sorts by name.</summary>
     public static List<string> GetAllDistinctCarrierNames()
     {
         var command = "SELECT DISTINCT CarrierName FROM carrier WHERE CarrierName!='' ORDER BY CarrierName ASC";
@@ -511,11 +453,6 @@ public class Carriers
         return listCarrierNames;
     }
 
-    /// <summary>
-    ///     If carrierName is blank (empty string) this will throw an ApplicationException.  If a carrier is not found with the
-    ///     exact name,
-    ///     including capitalization, a new carrier is created, inserted in the database, and returned.
-    /// </summary>
     public static Carrier GetByNameAndPhone(string carrierName, string phone, bool updateCacheIfNew = false)
     {
         if (string.IsNullOrEmpty(carrierName)) throw new ApplicationException("Carrier cannot be blank");
@@ -535,23 +472,17 @@ public class Carriers
 
         return carrier;
     }
-    
-    ///<summary>The carrierName is case insensitive.</summary>
+
     public static List<Carrier> GetByNameAndTin(string carrierName, string tin)
     {
         return GetWhere(x => x.CarrierName.Trim().ToLower() == carrierName.Trim().ToLower() && x.TIN == tin);
     }
 
-    ///<summary>Will return null if carrier does not exist with that name.</summary>
     public static Carrier GetCarrierByName(string carrierName)
     {
         return GetFirstOrDefault(x => x.CarrierName == carrierName);
     }
 
-    /// <summary>
-    ///     Returns the list of carriers associated with the given claim. Currently only used by the EDS attachment bridge
-    ///     to fill in data required by the EDS API.
-    /// </summary>
     public static List<Carrier> GetForClaim(Claim claim)
     {
         var command = "SELECT c.* " +
@@ -565,17 +496,12 @@ public class Carriers
 
     public static bool IsMedicaid(Carrier carrier)
     {
-        var electId = ElectIDs.GetID(carrier.ElectID);
+        var electId = ElectIDs.GetId(carrier.ElectID);
         if (electId != null && electId.IsMedicaid) //Emdeon Medical requires loop 2420E when the claim is sent to DMERC (Medicaid) carriers.
             return true;
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if the carrier is set to block users from entering ortho payments on claims created by the Auto
-    ///     Ortho Tool. Otherwise, returns false if the carrier allows entering payments on claims created by the Auto Ortho
-    ///     Tool.
-    /// </summary>
     public static bool DoConsolidateOrthoPayments(InsPlan insPlan)
     {
         if (insPlan == null) return false; //Invalid params, return false.
@@ -583,9 +509,7 @@ public class Carriers
         if (carrier.OrthoInsPayConsolidate == EnumOrthoInsPayConsolidate.Global) return PrefC.GetBool(PrefName.OrthoInsPayConsolidated);
         return carrier.OrthoInsPayConsolidate == EnumOrthoInsPayConsolidate.ForceConsolidateOn;
     }
-
-    #region Cache Pattern
-
+    
     private class CarrierCache : CacheDictAbs<Carrier, long, Carrier>
     {
         protected override List<Carrier> GetCacheFromDb()
@@ -634,56 +558,41 @@ public class Carriers
             return carrier.Copy();
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly CarrierCache _carrierCache = new();
+    
+    private static readonly CarrierCache Cache = new();
 
     public static bool GetContainsKey(long key, bool isShort = false)
     {
-        return _carrierCache.GetContainsKey(key, isShort);
+        return Cache.GetContainsKey(key, isShort);
     }
 
     public static Carrier GetOne(long codeNum)
     {
-        return _carrierCache.GetOne(codeNum);
+        return Cache.GetOne(codeNum);
     }
 
     public static Carrier GetFirstOrDefault(Func<Carrier, bool> match, bool isShort = false)
     {
-        return _carrierCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
     public static List<Carrier> GetWhere(Func<Carrier, bool> match, bool isShort = false)
     {
-        return _carrierCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _carrierCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _carrierCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
-    ///<summary>Clears the cache.</summary>
     public static void ClearCache()
     {
-        _carrierCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
 }

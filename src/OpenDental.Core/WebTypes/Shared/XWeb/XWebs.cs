@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 
 namespace OpenDentBusiness.WebTypes.Shared.XWeb;
@@ -606,7 +607,7 @@ public class XWebs
             {
                 //Insert Payment, PaySplit, and set FK.
                 response.PaymentNum = Payments.InsertFromXWeb(
-                    _patNum, _provNum, _clinicNum,
+                    _patNum, _clinicNum,
                     (InsertPositivePayment ? _amount : -_amount),
                     response.GetFormattedNote(InsertPositivePayment), "", _ccSource, response.LogGuid); //todo: create a formatted receipt to show the web user after the payment has been accepted
             }
@@ -696,7 +697,7 @@ public class XWebs
             base.PostProcessOutput(response);
             //Insert Payment, PaySplit, and set FK.
             response.PaymentNum = Payments.InsertFromXWeb(
-                _patNum, _provNum, _clinicNum,
+                _patNum, _clinicNum,
                 (_insertPositivePayment ? response.Amount : -response.Amount),
                 response.GetFormattedNote(_insertPositivePayment), "", CreditCardSource.XWeb);
         }

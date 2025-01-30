@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness.HL7 {
@@ -103,7 +104,7 @@ namespace OpenDentBusiness.HL7 {
 				if(isVerboseLogging) {
 					EventLog.WriteEntry("OpenDentHL7","Inserted patient: "+pat.FName+" "+pat.LName,EventLogEntryType.Information);
 				}
-				pat.PatNum=Patients.Insert(pat,!isStandalone);//use existing PK if not standalone, standalone will have PatNum=0, so set PatNum here
+				pat.PatNum=Patients.Insert(pat);//use existing PK if not standalone, standalone will have PatNum=0, so set PatNum here
 				SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,pat.PatNum,"Created from HL7 for eCW.",LogSources.HL7);
 				if(hasNoRaceInStandalone) {
 					Patient patientRaceTemp=pat.Copy();//Make a deep copy so that we do not accidentally override something.

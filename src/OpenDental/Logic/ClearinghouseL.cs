@@ -1,39 +1,24 @@
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental
+namespace OpenDental.Logic;
+
+public class ClearinghouseL
 {
-    
-    public class ClearinghouseL
+    public static Clearinghouse GetClearinghouseHq(long clearinghouseNumHq, bool suppressError = false)
     {
-        ///<summary>Returns the clearinghouse specified by the given num.  Will only return an HQ-level clearinghouse.
-        ///Do not attempt to pass in a clinic-level clearinghouseNum.</summary>
-        public static Clearinghouse GetClearinghouseHq(long clearinghouseNumHq)
+        var clearinghouse = Clearinghouses.GetClearinghouse(clearinghouseNumHq);
+
+        if (clearinghouse == null && !suppressError)
         {
-            return GetClearinghouseHq(clearinghouseNumHq, false);
+            MsgBox.Show("Clearinghouses", "Error. Could not locate Clearinghouse.");
         }
 
-        ///<summary>Returns the clearinghouse specified by the given num.  Will only return an HQ-level clearinghouse.
-        ///Do not attempt to pass in a clinic-level clearinghouseNum.  Can return null if no match found.</summary>
-        public static Clearinghouse GetClearinghouseHq(long clearinghouseNumHq, bool suppressError)
-        {
-            Clearinghouse clearinghouse = Clearinghouses.GetClearinghouse(clearinghouseNumHq);
-            if (clearinghouse == null && !suppressError)
-            {
-                MsgBox.Show("Clearinghouses", "Error. Could not locate Clearinghouse.");
-            }
+        return clearinghouse;
+    }
 
-            return clearinghouse;
-        }
-
-        
-        public static string GetDescript(long clearinghouseNum)
-        {
-            if (clearinghouseNum == 0)
-            {
-                return "";
-            }
-
-            return GetClearinghouseHq(clearinghouseNum).Description;
-        }
+    public static string GetDescript(long clearinghouseNum)
+    {
+        return clearinghouseNum == 0 ? "" : GetClearinghouseHq(clearinghouseNum).Description;
     }
 }

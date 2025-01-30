@@ -4,7 +4,8 @@ using System.Data;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
@@ -104,52 +105,25 @@ public class AllergyDefs
 
     public static string GetSnomedAllergyDesc(SnomedAllergy snowmedAllergy)
     {
-        string result;
-        switch (snowmedAllergy)
+        return snowmedAllergy switch
         {
-            //TODO: hide snomed code from foreign users
-            case SnomedAllergy.AdverseReactions:
-                result = "420134006 - Propensity to adverse reactions (disorder)";
-                break;
-            case SnomedAllergy.AdverseReactionsToDrug:
-                result = "419511003 - Propensity to adverse reactions to drug (disorder)";
-                break;
-            case SnomedAllergy.AdverseReactionsToFood:
-                result = "418471000 - Propensity to adverse reactions to food (disorder)";
-                break;
-            case SnomedAllergy.AdverseReactionsToSubstance:
-                result = "419199007 - Propensity to adverse reactions to substance (disorder)";
-                break;
-            case SnomedAllergy.AllergyToSubstance:
-                result = "418038007 - Allergy to substance (disorder)";
-                break;
-            case SnomedAllergy.DrugAllergy:
-                result = "416098002 - Drug allergy (disorder)";
-                break;
-            case SnomedAllergy.DrugIntolerance:
-                result = "59037007 - Drug intolerance (disorder)";
-                break;
-            case SnomedAllergy.FoodAllergy:
-                result = "235719002 - Food allergy (disorder)";
-                break;
-            case SnomedAllergy.FoodIntolerance:
-                result = "420134006 - Food intolerance (disorder)";
-                break;
-            case SnomedAllergy.None:
-                result = "";
-                break;
-            default:
-                result = "Error";
-                break;
-        }
-
-        return result;
+            SnomedAllergy.AdverseReactions => "420134006 - Propensity to adverse reactions (disorder)",
+            SnomedAllergy.AdverseReactionsToDrug => "419511003 - Propensity to adverse reactions to drug (disorder)",
+            SnomedAllergy.AdverseReactionsToFood => "418471000 - Propensity to adverse reactions to food (disorder)",
+            SnomedAllergy.AdverseReactionsToSubstance => "419199007 - Propensity to adverse reactions to substance (disorder)",
+            SnomedAllergy.AllergyToSubstance => "418038007 - Allergy to substance (disorder)",
+            SnomedAllergy.DrugAllergy => "416098002 - Drug allergy (disorder)",
+            SnomedAllergy.DrugIntolerance => "59037007 - Drug intolerance (disorder)",
+            SnomedAllergy.FoodAllergy => "235719002 - Food allergy (disorder)",
+            SnomedAllergy.FoodIntolerance => "420134006 - Food intolerance (disorder)",
+            SnomedAllergy.None => "",
+            _ => "Error"
+        };
     }
 
     public static string GetDescription(long allergyDefNum)
     {
-        if (allergyDefNum == 0) return "";
-        return AllergyDefCrud.SelectOne(allergyDefNum).Description;
+        return allergyDefNum == 0 ? "" : AllergyDefCrud.SelectOne(allergyDefNum).Description;
     }
 
     public static AllergyDef GetAllergyDefFromMedication(long medicationNum)
@@ -191,33 +165,6 @@ public class AllergyDefs
                   + " WHERE AllergyDefNum = "
                   + SOut.Long(allergyDefNumCombine);
         Db.NonQ(command);
-        //ehrtrigger table
-        command = "SELECT * FROM ehrtrigger WHERE LENGTH(AllergyDefNumList) > 0";
-        var listEhrTriggers = EhrTriggerCrud.SelectMany(command);
-        for (var i = 0; i < listEhrTriggers.Count; i++)
-        {
-            //AllergyDefNumList has each item wrapped in single spaced, resulting in the entire field having a leading and trailing space
-            //as well as two spaces between each item.
-            var listAllergyDefNums
-                = listEhrTriggers[i].AllergyDefNumList.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries)
-                    .ToList();
-            if (!listAllergyDefNums.Any(x => x == allergyDefNumCombine.ToString())) //Kickout if defnum is not found in the list
-                continue;
-            //Replace allergy defnum
-            var allergyDefNumList = "";
-            for (var j = 0; j < listAllergyDefNums.Count; j++)
-            {
-                if (listAllergyDefNums[j] == allergyDefNumCombine.ToString()) listAllergyDefNums[j] = allergyDefNumKeep.ToString();
-                allergyDefNumList += " " + listAllergyDefNums[j] + " "; //Add surrounding whitespace back
-            }
-
-            command = "Update ehrtrigger SET AllergyDefNumList = "
-                      + "'" + SOut.String(allergyDefNumList) + "'"
-                      + " WHERE EhrTriggerNum = "
-                      + SOut.Long(listEhrTriggers[i].EhrTriggerNum);
-            Db.NonQ(command);
-        }
-
         //Delete allergydef
         command = "Delete FROM allergydef WHERE AllergyDefNum ="
                   + SOut.Long(allergyDefNumCombine);

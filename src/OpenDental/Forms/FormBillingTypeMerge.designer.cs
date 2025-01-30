@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormBillingTypeMerge {
 		/// <summary>
 		/// Required designer variable.
@@ -54,7 +54,7 @@ namespace OpenDental{
 			this.butMerge.Size = new System.Drawing.Size(75, 24);
 			this.butMerge.TabIndex = 2;
 			this.butMerge.Text = "Merge";
-			this.butMerge.Click += new System.EventHandler(this.butMerge_Click);
+			this.butMerge.Click += new System.EventHandler(this.ButtonMerge_Click);
 			// 
 			// groupBoxInto
 			// 
@@ -115,7 +115,7 @@ namespace OpenDental{
 			this.butChangeInto.TabIndex = 3;
 			this.butChangeInto.Text = "Change";
 			this.butChangeInto.UseVisualStyleBackColor = true;
-			this.butChangeInto.Click += new System.EventHandler(this.butChangeInto_Click);
+			this.butChangeInto.Click += new System.EventHandler(this.ButtonChangeInto_Click);
 			// 
 			// textDefNumInto
 			// 
@@ -193,7 +193,7 @@ namespace OpenDental{
 			this.butChangeFrom.TabIndex = 3;
 			this.butChangeFrom.Text = "Change";
 			this.butChangeFrom.UseVisualStyleBackColor = true;
-			this.butChangeFrom.Click += new System.EventHandler(this.butChangeFrom_Click);
+			this.butChangeFrom.Click += new System.EventHandler(this.ButtonChangeFrom_Click);
 			// 
 			// textDefNumFrom
 			// 

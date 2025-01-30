@@ -11,231 +11,232 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class UserControlMainWindowMisc:UserControl {
+namespace OpenDental;
 
-		#region Fields - Private
-		private List<string> _listTrackLastClinicBys;
-		#endregion Fields - Private
+public partial class UserControlMainWindowMisc:UserControl {
 
-		#region Fields - Public
-		public bool Changed;
-		public List<PrefValSync> ListPrefValSyncs;
-		#endregion Fields - Public
+	#region Fields - Private
+	private List<string> _listTrackLastClinicBys;
+	#endregion Fields - Private
 
-		#region Constructors
-		public UserControlMainWindowMisc() {
-			InitializeComponent();
-			Font=LayoutManagerForms.FontInitial;
+	#region Fields - Public
+	public bool Changed;
+	public List<PrefValSync> ListPrefValSyncs;
+	#endregion Fields - Public
+
+	#region Constructors
+	public UserControlMainWindowMisc() {
+		InitializeComponent();
+		Font=new("Microsoft Sans Serif", 8.25f);
+	}
+	#endregion Constructors
+
+	#region Events
+	public event EventHandler SyncChanged;
+	#endregion Events
+
+	#region Methods - Event Handlers
+	private void butLanguages_Click(object sender,EventArgs e) {
+		using var formLanguagesUsed=new FormLanguagesUsed();
+		formLanguagesUsed.ShowDialog();
+		if(formLanguagesUsed.DialogResult==DialogResult.OK){
+			DataValid.SetInvalid(InvalidType.Prefs);
 		}
-		#endregion Constructors
+	}
 
-		#region Events
-		public event EventHandler SyncChanged;
-		#endregion Events
-
-		#region Methods - Event Handlers
-		private void butLanguages_Click(object sender,EventArgs e) {
-			using FormLanguagesUsed formLanguagesUsed=new FormLanguagesUsed();
-			formLanguagesUsed.ShowDialog();
-			if(formLanguagesUsed.DialogResult==DialogResult.OK){
-				DataValid.SetInvalid(InvalidType.Prefs);
-			}
+	private void butPickLanguageAndRegion_Click(object sender,EventArgs e) {
+		using var formLanguageAndRegion=new FormLanguageAndRegion();//FormLanguageAndRegion saves pref to DB.
+		formLanguageAndRegion.ShowDialog();
+		if(PrefC.GetString(PrefName.LanguageAndRegion)!="") {
+			textLanguageAndRegion.Text=PrefC.GetLanguageAndRegion().DisplayName;
 		}
-
-		private void butPickLanguageAndRegion_Click(object sender,EventArgs e) {
-			using FormLanguageAndRegion formLanguageAndRegion=new FormLanguageAndRegion();//FormLanguageAndRegion saves pref to DB.
-			formLanguageAndRegion.ShowDialog();
-			if(PrefC.GetString(PrefName.LanguageAndRegion)!="") {
-				textLanguageAndRegion.Text=PrefC.GetLanguageAndRegion().DisplayName;
-			}
-			else {
-				textLanguageAndRegion.Text=Lan.g(this,"None");
-			}
+		else {
+			textLanguageAndRegion.Text=Lan.g(this,"None");
 		}
+	}
 
-		private void butDecimal_Click(object sender,EventArgs e) {
-			FrmDecimalSettings frmDecimalSettings=new FrmDecimalSettings();
-			frmDecimalSettings.ShowDialog();
+	private void butDecimal_Click(object sender,EventArgs e) {
+		var frmDecimalSettings=new FrmDecimalSettings();
+		frmDecimalSettings.ShowDialog();
+	}
+
+	private void butClearCode_Click(object sender,EventArgs e) {
+		textSyncCode.Text="";
+	}
+	#endregion Methods - Event Handlers
+
+	#region Methods - Event Handlers Sync
+	private void textSignalInactiveMinutes_Validating(object sender,CancelEventArgs e) {
+		var prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.SignalInactiveMinutes);
+		if(!textSignalInactiveMinutes.IsValid()) {
+			var errorMsg="Disable signal interval must be a valid number or blank.\r\n";
+			MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
+			return;
 		}
+		prefValSync.PrefVal=SOut.Int(textSignalInactiveMinutes.Value);
+		SyncChanged?.Invoke(this,new EventArgs());
+	}
 
-		private void butClearCode_Click(object sender,EventArgs e) {
-			textSyncCode.Text="";
+	private void textProcessSigsIntervalInSecs_Validating(object sender,CancelEventArgs e) {
+		var prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ProcessSigsIntervalInSecs);
+		if(!textProcessSigsIntervalInSecs.IsValid()) {
+			var errorMsg="Signal interval must be a valid number or blank.\r\n";
+			MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
+			return;
 		}
-		#endregion Methods - Event Handlers
+		prefValSync.PrefVal=SOut.Int(textProcessSigsIntervalInSecs.Value);
+		SyncChanged?.Invoke(this,new EventArgs());
+	}
+	#endregion Methods - Event Handlers Sync
 
-		#region Methods - Event Handlers Sync
-		private void textSignalInactiveMinutes_Validating(object sender,CancelEventArgs e) {
-			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.SignalInactiveMinutes);
-			if(!textSignalInactiveMinutes.IsValid()) {
-				string errorMsg="Disable signal interval must be a valid number or blank.\r\n";
-				MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
-				return;
-			}
-			prefValSync.PrefVal=SOut.Int(textSignalInactiveMinutes.Value);
-			SyncChanged?.Invoke(this,new EventArgs());
+	#region Methods - Private
+	#endregion Methods - Private
+
+	#region Methods - Public
+	public void FillMainWindowMisc() {
+		//if(PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)==0){
+		//	textProcessSigsIntervalInSecs.Text="";
+		//}
+		//else{
+		//	textProcessSigsIntervalInSecs.Text=PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs).ToString();
+		//}
+		//if(PrefC.GetLong(PrefName.SignalInactiveMinutes)==0) {
+		//	textSignalInactiveMinutes.Text="";
+		//}
+		//else {
+		//	textSignalInactiveMinutes.Text=PrefC.GetLong(PrefName.SignalInactiveMinutes).ToString();
+		//}
+		if(PrefC.GetLong(PrefName.AlertCheckFrequencySeconds)==0) {
+			textAlertInterval.Text="";
 		}
-
-		private void textProcessSigsIntervalInSecs_Validating(object sender,CancelEventArgs e) {
-			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ProcessSigsIntervalInSecs);
-			if(!textProcessSigsIntervalInSecs.IsValid()) {
-				string errorMsg="Signal interval must be a valid number or blank.\r\n";
-				MsgBox.Show(this,"Please fix the following errors:\r\n"+errorMsg);
-				return;
-			}
-			prefValSync.PrefVal=SOut.Int(textProcessSigsIntervalInSecs.Value);
-			SyncChanged?.Invoke(this,new EventArgs());
+		else {
+			textAlertInterval.Text=PrefC.GetString(PrefName.AlertCheckFrequencySeconds);
 		}
-		#endregion Methods - Event Handlers Sync
-
-		#region Methods - Private
-		#endregion Methods - Private
-
-		#region Methods - Public
-		public void FillMainWindowMisc() {
-			//if(PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)==0){
-			//	textProcessSigsIntervalInSecs.Text="";
-			//}
-			//else{
-			//	textProcessSigsIntervalInSecs.Text=PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs).ToString();
-			//}
-			//if(PrefC.GetLong(PrefName.SignalInactiveMinutes)==0) {
-			//	textSignalInactiveMinutes.Text="";
-			//}
-			//else {
-			//	textSignalInactiveMinutes.Text=PrefC.GetLong(PrefName.SignalInactiveMinutes).ToString();
-			//}
-			if(PrefC.GetLong(PrefName.AlertCheckFrequencySeconds)==0) {
-				textAlertInterval.Text="";
-			}
-			else {
-				textAlertInterval.Text=PrefC.GetString(PrefName.AlertCheckFrequencySeconds);
-			}
-			if(PrefC.GetLong(PrefName.AlertInactiveMinutes)==0) {
-				textInactiveAlert.Text="";
-			}
-			else {
-				textInactiveAlert.Text=PrefC.GetString(PrefName.AlertInactiveMinutes);
-			}
-			if(PrefC.GetString(PrefName.LanguageAndRegion)!="") {
-				textLanguageAndRegion.Text=PrefC.GetLanguageAndRegion().DisplayName;
-			}
-			else {
-				textLanguageAndRegion.Text=Lan.g(this,"None");
-			}
-			checkImeCompositionCompatibility.Checked=PrefC.GetBool(PrefName.ImeCompositionCompatibility);
-			textSyncCode.Text=PrefC.GetString(PrefName.CentralManagerSyncCode);
-			textNumDecimals.Text=CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits.ToString();
-			textWebServiceServerName.Text=PrefC.GetString(PrefName.WebServiceServerName);
-			textAlertCloudSessions.Text=PrefC.GetString(PrefName.CloudAlertWithinLimit);
-			_listTrackLastClinicBys=new List<string> { "None","Workstation","User" };//must be in english because these values are stored in DB.
-			for(int i=0;i<_listTrackLastClinicBys.Count;i++) {
-				comboTrackClinic.Items.Add(Lan.g(this,_listTrackLastClinicBys[i]));//translation is for display only.
-			}
-			comboTrackClinic.SelectedIndex=_listTrackLastClinicBys.FindIndex(x => x==PrefC.GetString(PrefName.ClinicTrackLast));
-			if(comboTrackClinic.SelectedIndex==-1) {
-				comboTrackClinic.SelectedIndex=0;
-			}
-			if(!true) {
-				labelTrackClinic.Visible=false;
-				comboTrackClinic.Visible=false;
-			}
-			checkSubmitExceptions.Checked=PrefC.GetBool(PrefName.SendUnhandledExceptionsToHQ);
-			textAuditEntries.Text=PrefC.GetString(PrefName.AuditTrailEntriesDisplayed);
-			//if(PrefC.GetString(PrefName.ReportingServerCompName)=="" && PrefC.GetString(PrefName.ReportingServerURI)=="") {
-			//	checkAuditTrailUseReportingServer.Visible=false;
-			//}
-			checkAuditTrailUseReportingServer.Checked=PrefC.GetBool(PrefName.AuditTrailUseReportingServer);
-			checkBackupIndexesDisabled.Checked=PrefC.GetBool(PrefName.BackupIndexesDisabled);
+		if(PrefC.GetLong(PrefName.AlertInactiveMinutes)==0) {
+			textInactiveAlert.Text="";
 		}
+		else {
+			textInactiveAlert.Text=PrefC.GetString(PrefName.AlertInactiveMinutes);
+		}
+		if(PrefC.GetString(PrefName.LanguageAndRegion)!="") {
+			textLanguageAndRegion.Text=PrefC.GetLanguageAndRegion().DisplayName;
+		}
+		else {
+			textLanguageAndRegion.Text=Lan.g(this,"None");
+		}
+		checkImeCompositionCompatibility.Checked=PrefC.GetBool(PrefName.ImeCompositionCompatibility);
+		textSyncCode.Text=PrefC.GetString(PrefName.CentralManagerSyncCode);
+		textNumDecimals.Text=CultureInfo.CurrentCulture.NumberFormat.CurrencyDecimalDigits.ToString();
+		textWebServiceServerName.Text=PrefC.GetString(PrefName.WebServiceServerName);
+		textAlertCloudSessions.Text=PrefC.GetString(PrefName.CloudAlertWithinLimit);
+		_listTrackLastClinicBys= ["None", "Workstation", "User"];//must be in english because these values are stored in DB.
+		for(var i=0;i<_listTrackLastClinicBys.Count;i++) {
+			comboTrackClinic.Items.Add(Lan.g(this,_listTrackLastClinicBys[i]));//translation is for display only.
+		}
+		comboTrackClinic.SelectedIndex=_listTrackLastClinicBys.FindIndex(x => x==PrefC.GetString(PrefName.ClinicTrackLast));
+		if(comboTrackClinic.SelectedIndex==-1) {
+			comboTrackClinic.SelectedIndex=0;
+		}
+		if(!true) {
+			labelTrackClinic.Visible=false;
+			comboTrackClinic.Visible=false;
+		}
+		checkSubmitExceptions.Checked=PrefC.GetBool(PrefName.SendUnhandledExceptionsToHQ);
+		textAuditEntries.Text=PrefC.GetString(PrefName.AuditTrailEntriesDisplayed);
+		//if(PrefC.GetString(PrefName.ReportingServerCompName)=="" && PrefC.GetString(PrefName.ReportingServerURI)=="") {
+		//	checkAuditTrailUseReportingServer.Visible=false;
+		//}
+		checkAuditTrailUseReportingServer.Checked=PrefC.GetBool(PrefName.AuditTrailUseReportingServer);
+		checkBackupIndexesDisabled.Checked=PrefC.GetBool(PrefName.BackupIndexesDisabled);
+	}
 
-		public bool SaveMainWindowMisc() {
-			if(!textProcessSigsIntervalInSecs.IsValid() || !textSignalInactiveMinutes.IsValid() || !textAlertInterval.IsValid() || !textInactiveAlert.IsValid() || !textAlertCloudSessions.IsValid() || !textAuditEntries.IsValid()) {
-				ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+	public bool SaveMainWindowMisc() {
+		if(!textProcessSigsIntervalInSecs.IsValid() || !textSignalInactiveMinutes.IsValid() || !textAlertInterval.IsValid() || !textInactiveAlert.IsValid() || !textAlertCloudSessions.IsValid() || !textAuditEntries.IsValid()) {
+			ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
+			return false;
+		}
+		if(string.IsNullOrWhiteSpace(textProcessSigsIntervalInSecs.Text) && PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)!=0) {
+			var proceed=MsgBox.Show(MsgBoxButtons.YesNo,"Disabling the process signal interval prevents the use of kiosks.\r\n"
+			                                            +"This should not be done if there are multiple workstations in the office.\r\n"
+			                                            +"Proceed?");
+			if (!proceed) {
+				textProcessSigsIntervalInSecs.Text=PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs).ToString();
 				return false;
 			}
-			if(string.IsNullOrWhiteSpace(textProcessSigsIntervalInSecs.Text) && PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)!=0) {
-				bool proceed=MsgBox.Show(MsgBoxButtons.YesNo,"Disabling the process signal interval prevents the use of kiosks.\r\n"
-					+"This should not be done if there are multiple workstations in the office.\r\n"
-					+"Proceed?");
-				if (!proceed) {
-					textProcessSigsIntervalInSecs.Text=PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs).ToString();
-					return false;
-				}
-			}
-			if(SIn.Long(textProcessSigsIntervalInSecs.Text)>=(5+(SIn.Long(textSignalInactiveMinutes.Text)*60)) && SIn.Long(textSignalInactiveMinutes.Text)!=0) {//Signal Refresh time is less than or equal to 5 seconds plus the number of seconds in textSigInterval
-				string question=Lans.g(this,"The inactive signal time is less than or equal to the signal refresh time.")+"\r\n"
-					+Lans.g(this,"This could inadvertently cause signals to not correctly refresh.  Continue?");
-				if(ODMessageBox.Show(question,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
-					return false;
-				}
-			}
-			if(comboTrackClinic.SelectedIndex<0) {
-				comboTrackClinic.SelectedIndex=0;
-			}
-			bool hasChanged=false;
-			//if(textProcessSigsIntervalInSecs.Text==""){
-			//	hasChanged |=Prefs.UpdateLong(PrefName.ProcessSigsIntervalInSecs,0);
-			//}
-			//else{
-			//	hasChanged |=Prefs.UpdateLong(PrefName.ProcessSigsIntervalInSecs,PIn.Long(textProcessSigsIntervalInSecs.Text));
-			//}
-			//if(textSignalInactiveMinutes.Text=="") {
-			//	hasChanged |=Prefs.UpdateLong(PrefName.SignalInactiveMinutes,0);
-			//}
-			//else {
-			//	hasChanged |=Prefs.UpdateLong(PrefName.SignalInactiveMinutes,PIn.Long(textSignalInactiveMinutes.Text));
-			//}
-			if(textAlertInterval.Text=="") {
-				hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,0);
-			}
-			else {
-				hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,SIn.Long(textAlertInterval.Text));
-			}
-			if(textInactiveAlert.Text=="") {
-				hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,0);
-			}
-			else {
-				hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,SIn.Long(textInactiveAlert.Text));
-			}
-			hasChanged |=Prefs.UpdateBool(PrefName.ImeCompositionCompatibility,checkImeCompositionCompatibility.Checked);
-			hasChanged |=Prefs.UpdateString(PrefName.CentralManagerSyncCode,textSyncCode.Text);
-			hasChanged |=Prefs.UpdateString(PrefName.WebServiceServerName,textWebServiceServerName.Text);
-			hasChanged |=Prefs.UpdateLong(PrefName.CloudAlertWithinLimit,SIn.Long(textAlertCloudSessions.Text));
-			hasChanged |=Prefs.UpdateString(PrefName.ClinicTrackLast,_listTrackLastClinicBys[comboTrackClinic.SelectedIndex]);
-			hasChanged |=Prefs.UpdateBool(PrefName.SendUnhandledExceptionsToHQ,checkSubmitExceptions.Checked);
-			hasChanged |=Prefs.UpdateString(PrefName.AuditTrailEntriesDisplayed,textAuditEntries.Text);
-			hasChanged |=Prefs.UpdateBool(PrefName.BackupIndexesDisabled,checkBackupIndexesDisabled.Checked);
-			if(checkAuditTrailUseReportingServer.Visible) {
-				hasChanged |=Prefs.UpdateBool(PrefName.AuditTrailUseReportingServer,checkAuditTrailUseReportingServer.Checked);
-			}
-			if(hasChanged){
-				//ComputerPrefs may not need to be invalidated here, since task computer settings moved to FormTaskSetup.  Leaving here for now just in case.
-				DataValid.SetInvalid(InvalidType.Prefs, InvalidType.Computers);
-				ComputerPrefs.Update(ComputerPrefs.LocalComputer);
-			}
-			return true;
 		}
+		if(SIn.Long(textProcessSigsIntervalInSecs.Text)>=(5+(SIn.Long(textSignalInactiveMinutes.Text)*60)) && SIn.Long(textSignalInactiveMinutes.Text)!=0) {//Signal Refresh time is less than or equal to 5 seconds plus the number of seconds in textSigInterval
+			var question=Lans.g("The inactive signal time is less than or equal to the signal refresh time.")+"\r\n"
+			                                                                                                 +Lans.g("This could inadvertently cause signals to not correctly refresh.  Continue?");
+			if(ODMessageBox.Show(question,"",MessageBoxButtons.YesNo)!=DialogResult.Yes) {
+				return false;
+			}
+		}
+		if(comboTrackClinic.SelectedIndex<0) {
+			comboTrackClinic.SelectedIndex=0;
+		}
+		var hasChanged=false;
+		//if(textProcessSigsIntervalInSecs.Text==""){
+		//	hasChanged |=Prefs.UpdateLong(PrefName.ProcessSigsIntervalInSecs,0);
+		//}
+		//else{
+		//	hasChanged |=Prefs.UpdateLong(PrefName.ProcessSigsIntervalInSecs,PIn.Long(textProcessSigsIntervalInSecs.Text));
+		//}
+		//if(textSignalInactiveMinutes.Text=="") {
+		//	hasChanged |=Prefs.UpdateLong(PrefName.SignalInactiveMinutes,0);
+		//}
+		//else {
+		//	hasChanged |=Prefs.UpdateLong(PrefName.SignalInactiveMinutes,PIn.Long(textSignalInactiveMinutes.Text));
+		//}
+		if(textAlertInterval.Text=="") {
+			hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,0);
+		}
+		else {
+			hasChanged|=Prefs.UpdateLong(PrefName.AlertCheckFrequencySeconds,SIn.Long(textAlertInterval.Text));
+		}
+		if(textInactiveAlert.Text=="") {
+			hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,0);
+		}
+		else {
+			hasChanged|=Prefs.UpdateLong(PrefName.AlertInactiveMinutes,SIn.Long(textInactiveAlert.Text));
+		}
+		hasChanged |=Prefs.UpdateBool(PrefName.ImeCompositionCompatibility,checkImeCompositionCompatibility.Checked);
+		hasChanged |=Prefs.UpdateString(PrefName.CentralManagerSyncCode,textSyncCode.Text);
+		hasChanged |=Prefs.UpdateString(PrefName.WebServiceServerName,textWebServiceServerName.Text);
+		hasChanged |=Prefs.UpdateLong(PrefName.CloudAlertWithinLimit,SIn.Long(textAlertCloudSessions.Text));
+		hasChanged |=Prefs.UpdateString(PrefName.ClinicTrackLast,_listTrackLastClinicBys[comboTrackClinic.SelectedIndex]);
+		hasChanged |=Prefs.UpdateBool(PrefName.SendUnhandledExceptionsToHQ,checkSubmitExceptions.Checked);
+		hasChanged |=Prefs.UpdateString(PrefName.AuditTrailEntriesDisplayed,textAuditEntries.Text);
+		hasChanged |=Prefs.UpdateBool(PrefName.BackupIndexesDisabled,checkBackupIndexesDisabled.Checked);
+		if(checkAuditTrailUseReportingServer.Visible) {
+			hasChanged |=Prefs.UpdateBool(PrefName.AuditTrailUseReportingServer,checkAuditTrailUseReportingServer.Checked);
+		}
+		if(hasChanged){
+			//ComputerPrefs may not need to be invalidated here, since task computer settings moved to FormTaskSetup.  Leaving here for now just in case.
+			DataValid.SetInvalid(InvalidType.Prefs, InvalidType.Computers);
+			ComputerPrefs.Update(ComputerPrefs.LocalComputer);
+		}
+		return true;
+	}
 
-		public void FillSynced(){
-			//This will revert invalid Values back to the PrefVal if other prefs are updated before invalid Values are fixed
-			PrefValSync prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.SignalInactiveMinutes);
-			textSignalInactiveMinutes.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
-			prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ProcessSigsIntervalInSecs);
-			textProcessSigsIntervalInSecs.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
-			PrefValSync prefValSyncCompName=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ReportingServerCompName);
-			PrefValSync prefValSyncURI=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ReportingServerURI);
-			if(prefValSyncCompName.PrefVal=="" && prefValSyncURI.PrefVal=="") {
-				checkAuditTrailUseReportingServer.Visible=false;
-			}
-			else{
-				checkAuditTrailUseReportingServer.Visible=true;
-			}
+	public void FillSynced(){
+		//This will revert invalid Values back to the PrefVal if other prefs are updated before invalid Values are fixed
+		var prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.SignalInactiveMinutes);
+		textSignalInactiveMinutes.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
+		prefValSync=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ProcessSigsIntervalInSecs);
+		textProcessSigsIntervalInSecs.Value=SIn.Int(prefValSync.PrefVal);//0 shows as empty
+		var prefValSyncCompName=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ReportingServerCompName);
+		var prefValSyncURI=ListPrefValSyncs.Find(x=>x.PrefName_==PrefName.ReportingServerURI);
+		if(prefValSyncCompName.PrefVal=="" && prefValSyncURI.PrefVal=="") {
+			checkAuditTrailUseReportingServer.Visible=false;
 		}
-		#endregion Methods - Public
+		else{
+			checkAuditTrailUseReportingServer.Visible=true;
+		}
+	}
+	#endregion Methods - Public
 
 		
-	}
 }

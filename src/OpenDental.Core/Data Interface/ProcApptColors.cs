@@ -1,41 +1,28 @@
 using System.Collections.Generic;
 using System.Data;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class ProcApptColors
 {
-    
-    public static long Insert(ProcApptColor procApptColor)
+    public static void Insert(ProcApptColor procApptColor)
     {
-        return ProcApptColorCrud.Insert(procApptColor);
+        ProcApptColorCrud.Insert(procApptColor);
     }
 
-    
     public static void Update(ProcApptColor procApptColor)
     {
         ProcApptColorCrud.Update(procApptColor);
     }
 
-    
     public static void Delete(long procApptColorNum)
     {
-        var command = "DELETE FROM procapptcolor WHERE ProcApptColorNum = " + SOut.Long(procApptColorNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM procapptcolor WHERE ProcApptColorNum = " + procApptColorNum);
     }
 
-    /*
-    ///<summary>Gets one ProcApptColor from the db.</summary>
-    public static ProcApptColor GetOne(long procApptColorNum){
-
-        return Crud.ProcApptColorCrud.SelectOne(procApptColorNum);
-    }*/
-
-    ///<summary>Supply code such as D####.  Returns null if no match</summary>
     public static ProcApptColor GetMatch(string procCode)
     {
         var code1 = "";
@@ -62,8 +49,6 @@ public class ProcApptColors
 
         return null;
     }
-
-    #region CachePattern
 
     private class ProcApptColorCache : CacheListAbs<ProcApptColor>
     {
@@ -94,39 +79,25 @@ public class ProcApptColors
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ProcApptColorCache _procApptColorCache = new();
+    private static readonly ProcApptColorCache Cache = new();
 
     public static List<ProcApptColor> GetDeepCopy(bool isShort = false)
     {
-        return _procApptColorCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _procApptColorCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _procApptColorCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _procApptColorCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

@@ -5,15 +5,14 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class AsapComms
 {
-    ///<summary>The mode by which these AsapComms will be sent out.</summary>
     public enum SendMode
     {
         TextAndEmail,
@@ -22,22 +21,16 @@ public class AsapComms
         PreferredContact
     }
 
-    ///<summary>Do not send a text to a patient if it is less than this many minutes before the start of time slot.</summary>
     public const int TextMinMinutesBefore = 30;
 
-    #region Get Methods
-
-    /// <summary>Gets a list of all AsapComms matching the passed in parameters.</summary>
-    /// <param name="listSQLWheres">To get all AsapComms, don't include this parameter.</param>
-    private static List<AsapComm> GetMany(List<SQLWhere> listSQLWheres = null)
+    private static List<AsapComm> GetMany(List<SQLWhere> listSqlWheres = null)
     {
         var command = "SELECT * FROM asapcomm ";
-        if (listSQLWheres != null && listSQLWheres.Count > 0) command += "WHERE " + string.Join(" AND ", listSQLWheres);
+        if (listSqlWheres != null && listSqlWheres.Count > 0) command += "WHERE " + string.Join(" AND ", listSqlWheres);
 
         return AsapCommCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of all AsapComms for the given patients.</summary>
     public static List<AsapComm> GetForPats(List<long> listPatNums)
     {
         var listSQLWheres = new List<SQLWhere>();
@@ -46,11 +39,6 @@ public class AsapComms
         return GetMany(listSQLWheres);
     }
 
-    /// <summary>
-    ///     Gets a list of AsapComms (along with a few more fields) for use in the Web Sched History window. To view for all
-    ///     patients or clinics,
-    ///     pass in null for those parameters.
-    /// </summary>
     public static List<AsapCommHist> GetHist(DateTime dateFrom, DateTime dateTo, List<long> listPatNums = null, List<long> listClinicNums = null)
     {
         var command = @"
@@ -85,29 +73,17 @@ public class AsapComms
             listAsapCommHists[i].DateTimeSlotStart = SIn.Date(table.Rows[i]["SchedDate"].ToString()).Add(SIn.TimeSpan(table.Rows[i]["StartTime"].ToString()));
             listAsapCommHists[i].DateTimeSlotEnd = SIn.Date(table.Rows[i]["SchedDate"].ToString()).Add(SIn.TimeSpan(table.Rows[i]["StopTime"].ToString()));
             listAsapCommHists[i].EmailMessageText = SIn.String(table.Rows[i]["EmailMessageText"].ToString());
-            listAsapCommHists[i].SMSMessageText = SIn.String(table.Rows[i]["SMSMessageText"].ToString());
+            listAsapCommHists[i].SmsMessageText = SIn.String(table.Rows[i]["SMSMessageText"].ToString());
         }
 
         return listAsapCommHists;
     }
 
-    #endregion
-
-    #region Insert
-
-    
-    public static long Insert(AsapComm asapComm)
-    {
-        return AsapCommCrud.Insert(asapComm);
-    }
-
-    
     public static void InsertMany(List<AsapComm> listAsapComms)
     {
         AsapCommCrud.InsertMany(listAsapComms);
     }
 
-    ///<summary>Inserts these AsapComms into the database. Also creates a block on the schedule recording this communication.</summary>
     public static void InsertForSending(List<AsapComm> listAsapComms, DateTime dateTSlotStart, DateTime dateTSlotEnd, long opNum)
     {
         var countTextsToBeSent = listAsapComms.Count(x => x.SmsSendStatus != AutoCommStatus.DoNotSend);
@@ -131,13 +107,7 @@ public class AsapComms
         InsertMany(listAsapComms);
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Replaces the template with the passed in arguments.</summary>
-    public static string ReplacesTemplateTags(string template, long clinicNum = -1, DateTime dateTime = new(), string nameF = null,
-        string asapUrl = null, bool isHtmlEmail = false)
+    public static string ReplacesTemplateTags(string template, long clinicNum = -1, DateTime dateTime = new(), string nameF = null, string asapUrl = null, bool isHtmlEmail = false)
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.Append(template);
@@ -161,9 +131,7 @@ public class AsapComms
         return stringBuilder.ToString();
     }
 
-    ///<summary>Creates a list of AsapComms for sending.</summary>
-    public static AsapListSender CreateSendList(List<Appointment> listAppointments, List<Recall> listRecalls, List<PatComm> listPatComms, SendMode sendMode,
-        string templateText, string templateEmail, string emailSubject, DateTime dateTSlotStart, DateTime dateTStartSend, long clinicNum, bool isRawHtml)
+    public static AsapListSender CreateSendList(List<Appointment> listAppointments, List<Recall> listRecalls, List<PatComm> listPatComms, SendMode sendMode, string templateText, string templateEmail, string emailSubject, DateTime dateTSlotStart, DateTime dateTStartSend, long clinicNum, bool isRawHtml)
     {
         var asapListSender = new AsapListSender(sendMode, listPatComms, clinicNum, dateTSlotStart, dateTStartSend);
         //Order matters here. We will send messages to appointments that are unscheduled first, then scheduled appointments, then recalls. This is
@@ -283,11 +251,6 @@ public class AsapComms
         return asapListSender;
     }
 
-    #endregion
-
-    #region Helper classes
-
-    [Serializable]
     public class AsapCommHist
     {
         public AsapComm AsapComm;
@@ -295,49 +258,25 @@ public class AsapComms
         public DateTime DateTimeSlotStart;
         public string EmailMessageText;
         public string PatientName;
-        public string SMSMessageText;
+        public string SmsMessageText;
     }
 
-
-    ///<summary>Helper class used to create a list of AsapComms to send.</summary>
     public class AsapListSender
     {
-        private const string _lanThis = "FormWebSchedASAPSend";
+        private const string LanThis = "FormWebSchedASAPSend";
+        
         private readonly DateTime _dateTimeSlotStart;
-
-        ///<summary>Key: PatNum, Value: All AsapComms for the patient.</summary>
         private readonly List<AsapComm> _listAsapComms;
-
         private readonly List<PatComm> _listPatComms;
-
-        ///<summary>A breakdown of who is and isn't receiving what.</summary>
         private readonly List<PatientDetail> _listPatientDetails;
-
         private readonly int _maxTextsPerDay;
-
         private readonly SendMode _sendMode;
-
-        /// <summary>
-        ///     The date time all texts need to be sent by. Based on PrefName.AutomaticCommunicationTimeEnd. May be today or
-        ///     tomorrow.
-        /// </summary>
+        
         public DateTime DateTimeTextSendEnd;
+        public readonly bool IsOutsideSendWindow;
+        public readonly List<AsapComm> ListAsapComms;
 
-        ///<summary>True if it is currently outside the automatic send window.</summary>
-        public bool IsOutsideSendWindow;
-
-        ///<summary>The AsapComms to be sent.</summary>
-        public List<AsapComm> ListAsapComms;
-
-        /// <summary>Initialize the sender helper for the given PatComms and appointments.</summary>
-        /// <param name="clinicNum">The clinic that is doing the sending.</param>
-        /// <param name="dateTimeSlotStart">The date time of the time slot for which this list is being sent.</param>
-        /// <param name="dateTimeStartSend">
-        ///     The date time when the list should be sent out. This time will be adjusted if
-        ///     necessary.
-        /// </param>
-        internal AsapListSender(SendMode sendMode, List<PatComm> listPatComms, long clinicNum, DateTime dateTimeSlotStart,
-            DateTime dateTimeStartSend)
+        internal AsapListSender(SendMode sendMode, List<PatComm> listPatComms, long clinicNum, DateTime dateTimeSlotStart, DateTime dateTimeStartSend)
         {
             _sendMode = sendMode;
             //listPatComms is one per appointment, but this could include multiple per PatNum.
@@ -374,19 +313,10 @@ public class AsapComms
             ListAsapComms = new List<AsapComm>();
         }
 
-        ///<summary>The number of texts that are going to be sent.</summary>
         public int CountTextsToSend { get; internal set; }
-
-        ///<summary>The number of emails that are going to be sent.</summary>
         public int CountEmailsToSend { get; internal set; }
-
-        ///<summary>The time when texts will start to be sent.</summary>
         public DateTime DateTimeStartSendText { get; }
-
-        ///<summary>The time when the emails will be sent.</summary>
         public DateTime DateTimeSendEmail { get; }
-
-        ///<summary>The number of minutes that will elapse between texts being sent out.</summary>
         public int MinutesBetweenTexts { get; private set; }
 
         public List<PatientDetail> GetListPatientDetails()
@@ -394,7 +324,6 @@ public class AsapComms
             return _listPatientDetails;
         }
 
-        ///<summary>Sets the number of minutes between texts.</summary>
         private void SetMinutesBetweenTexts(DateTime dateTimeSlotStart)
         {
             var hoursUntilSlotStart = (int) (dateTimeSlotStart - DateTimeStartSendText).TotalHours;
@@ -408,10 +337,6 @@ public class AsapComms
                 MinutesBetweenTexts = 8;
         }
 
-        /// <summary>
-        ///     Returns true if the patient should be sent a text. If false, the reason why the patient can't receive a text is
-        ///     added to the details dictionary.
-        /// </summary>
         internal bool ShouldSendText(long patNum, long fkey, AsapCommFKeyType fkeyType)
         {
             var patComm = _listPatComms.Find(x => x.PatNum == patNum);
@@ -434,7 +359,7 @@ public class AsapComms
                 if (listAsapCommsPat.Any(x => x.FKey == fkey && x.FKeyType == fkeyType && x.ResponseStatus == AsapRSVPStatus.DeclinedStopComm))
                 {
                     var text_type = fkeyType == AsapCommFKeyType.Recall ? "recall" : "appointment";
-                    patientDetail.AppendNote(Lans.g(_lanThis, "Not sending text because this patient has requested to not be texted or emailed about this "
+                    patientDetail.AppendNote(Lans.g(LanThis, "Not sending text because this patient has requested to not be texted or emailed about this "
                                                               + text_type + "."));
                     return false;
                 }
@@ -443,8 +368,8 @@ public class AsapComms
                                                                  || (x.SmsSendStatus == AutoCommStatus.SendSuccessful && x.DateTimeSmsSent.Date == DateTimeStartSendText.Date));
                 if (countTextsSent >= _maxTextsPerDay)
                 {
-                    patientDetail.AppendNote(Lans.g(_lanThis, "Not sending text because this patient has received") + " " + _maxTextsPerDay + " "
-                                             + Lans.g(_lanThis, "texts today."));
+                    patientDetail.AppendNote(Lans.g(LanThis, "Not sending text because this patient has received") + " " + _maxTextsPerDay + " "
+                                             + Lans.g(LanThis, "texts today."));
                     return false;
                 }
             }
@@ -453,14 +378,14 @@ public class AsapComms
             var isAfterSlot = GetNextTextSendTime() > _dateTimeSlotStart;
             if (isWithin30Minutes)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, "Not sending text because the text would be sent less than") + " " + TextMinMinutesBefore + " "
-                                         + Lans.g(_lanThis, "minutes before the time slot."));
+                patientDetail.AppendNote(Lans.g(LanThis, "Not sending text because the text would be sent less than") + " " + TextMinMinutesBefore + " "
+                                         + Lans.g(LanThis, "minutes before the time slot."));
                 return false;
             }
 
             if (isAfterSlot)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, "Not sending text because the text would be sent after the time slot."));
+                patientDetail.AppendNote(Lans.g(LanThis, "Not sending text because the text would be sent after the time slot."));
                 return false;
             }
 
@@ -468,13 +393,13 @@ public class AsapComms
 
             if (_sendMode == SendMode.PreferredContact && patComm.PreferContactMethod != ContactMethod.TextMessage)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, "Not sending text because this patient's preferred contact method is not text message."));
+                patientDetail.AppendNote(Lans.g(LanThis, "Not sending text because this patient's preferred contact method is not text message."));
                 return false;
             }
 
             if (!patComm.IsSmsAnOption)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, patComm.GetReasonCantText(CommOptOutType.WebSchedASAP)));
+                patientDetail.AppendNote(Lans.g(LanThis, patComm.GetReasonCantText(CommOptOutType.WebSchedASAP)));
                 return false;
             }
 
@@ -482,10 +407,6 @@ public class AsapComms
             return true;
         }
 
-        /// <summary>
-        ///     Returns true if the patient should be sent an email. If false, the reason why the patient can't receive an email is
-        ///     added to the details dictionary.
-        /// </summary>
         internal bool ShouldSendEmail(long patNum, long fkey, AsapCommFKeyType fkeyType)
         {
             var patComm = _listPatComms.Find(x => x.PatNum == patNum);
@@ -507,7 +428,7 @@ public class AsapComms
                 if (listAsapCommsPat.Any(x => x.FKey == fkey && x.FKeyType == fkeyType && x.ResponseStatus == AsapRSVPStatus.DeclinedStopComm))
                 {
                     var email_type = fkeyType == AsapCommFKeyType.Recall ? "recall" : "appointment";
-                    patientDetail.AppendNote(Lans.g(_lanThis, "Not sending email because this patient has requested to not be texted or emailed about this "
+                    patientDetail.AppendNote(Lans.g(LanThis, "Not sending email because this patient has requested to not be texted or emailed about this "
                                                               + email_type + "."));
                     return false;
                 }
@@ -516,14 +437,14 @@ public class AsapComms
             var isAfterSlot = DateTimeSendEmail > _dateTimeSlotStart;
             if (isWithin30Minutes)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, "Not sending email because the email would be sent less than") + " " + TextMinMinutesBefore + " "
-                                         + Lans.g(_lanThis, "minutes before the time slot."));
+                patientDetail.AppendNote(Lans.g(LanThis, "Not sending email because the email would be sent less than") + " " + TextMinMinutesBefore + " "
+                                         + Lans.g(LanThis, "minutes before the time slot."));
                 return false;
             }
 
             if (isAfterSlot)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, "Not sending email because the email would be sent after the time slot."));
+                patientDetail.AppendNote(Lans.g(LanThis, "Not sending email because the email would be sent after the time slot."));
                 return false;
             }
 
@@ -531,13 +452,13 @@ public class AsapComms
 
             if (_sendMode == SendMode.PreferredContact && patComm.PreferContactMethod != ContactMethod.Email)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, "Not sending email because this patient's preferred contact method is not email."));
+                patientDetail.AppendNote(Lans.g(LanThis, "Not sending email because this patient's preferred contact method is not email."));
                 return false;
             }
 
             if (!patComm.IsEmailAnOption)
             {
-                patientDetail.AppendNote(Lans.g(_lanThis, patComm.GetReasonCantEmail(CommOptOutType.WebSchedASAP)));
+                patientDetail.AppendNote(Lans.g(LanThis, patComm.GetReasonCantEmail(CommOptOutType.WebSchedASAP)));
                 return false;
             }
 
@@ -545,7 +466,6 @@ public class AsapComms
             return true;
         }
 
-        ///<summary>Returns the time when the next text should be sent out.</summary>
         internal DateTime GetNextTextSendTime()
         {
             var dateTimeSend = DateTimeStartSendText.AddMinutes(MinutesBetweenTexts * CountTextsToSend);
@@ -554,7 +474,6 @@ public class AsapComms
             return dateTimeSend;
         }
 
-        ///<summary>Copies the notes from the ListPatientDetails to the actual list of actual AsapComms.</summary>
         internal void CopyNotes()
         {
             for (var i = 0; i < ListAsapComms.Count(); i++)
@@ -566,13 +485,12 @@ public class AsapComms
             }
         }
 
-        ///<summary>An object used to hold details about specific patients.</summary>
         public class PatientDetail
         {
             public bool IsSendingEmail;
             public bool IsSendingText;
             public string Note = "";
-            public string PatName;
+            public readonly string PatName;
             public long PatNum;
 
             public PatientDetail()
@@ -597,73 +515,4 @@ public class AsapComms
             }
         }
     }
-
-    ///<summary>This class is used to check if appointments can fit in a given time slot.</summary>
-    public class ApptAvailabilityChecker
-    {
-        ///<summary>Appointments that have been previously gotten from the database.</summary>
-        private readonly List<Appointment> _listAppointments;
-
-        ///<summary>The list of appointment dates and operatories that have been gotten from the database.</summary>
-        private readonly List<DateTOpNum> _listDateTOpNums;
-
-        public ApptAvailabilityChecker()
-        {
-            _listAppointments = new List<Appointment>();
-            _listDateTOpNums = new List<DateTOpNum>();
-        }
-
-        /// <summary>This constructor will store the appointments for the passed in dates and operatories.</summary>
-        /// <param name="listDateOps">DateTime is the AptDate, long is the OperatoryNum.</param>
-        public ApptAvailabilityChecker(List<DateTOpNum> listDateTOpNums)
-        {
-            _listDateTOpNums = listDateTOpNums;
-            _listAppointments = Appointments.GetApptsForDatesOps(listDateTOpNums);
-        }
-
-        ///<summary>Returns true if the recall will fit in the time slot and there are no other appointments in the slot.</summary>
-        public bool IsApptSlotAvailable(Recall recall, long opNum, DateTime dateTimeSlotStart, DateTime dateTimeSlotEnd)
-        {
-            var minutes = RecallTypes.GetTimePattern(recall.RecallTypeNum).Length * PrefC.GetInt(PrefName.AppointmentTimeIncrement);
-            return IsApptSlotAvailable(minutes, opNum, dateTimeSlotStart, dateTimeSlotEnd);
-        }
-
-        ///<summary>Returns true if the appointment will fit in the time slot and there are no other appointments in the slot.</summary>
-        public bool IsApptSlotAvailable(Appointment appointment, long opNum, DateTime dateTimeSlotStart, DateTime dateTimeSlotEnd)
-        {
-            return IsApptSlotAvailable(appointment.Length, opNum, dateTimeSlotStart, dateTimeSlotEnd);
-        }
-
-        /// <summary>
-        ///     Returns true if the time length requested will fit in the time slot and there are no other appointments in the
-        ///     slot.
-        /// </summary>
-        public bool IsApptSlotAvailable(int minutes, long opNum, DateTime dateTimeSlotStart, DateTime dateTimeSlotEnd)
-        {
-            if (!_listDateTOpNums.Any(x => x.DateTAppt == dateTimeSlotStart.Date && x.OpNum == opNum))
-            {
-                var dateTOpNum = new DateTOpNum();
-                dateTOpNum.DateTAppt = dateTimeSlotStart;
-                dateTOpNum.OpNum = opNum;
-                var listDateTOpNums = new List<DateTOpNum> {dateTOpNum};
-                _listAppointments.AddRange(Appointments.GetApptsForDatesOps(listDateTOpNums));
-                _listDateTOpNums.Add(dateTOpNum);
-            }
-
-            var dateTimeSlotEndNew = ODMathLib.Min(dateTimeSlotStart.AddMinutes(minutes), dateTimeSlotEnd);
-            if (_listAppointments.FindAll(x => x.Op == opNum)
-                .Any(x => MiscUtils.DoSlotsOverlap(x.AptDateTime, x.AptDateTime.AddMinutes(x.Length), dateTimeSlotStart, dateTimeSlotEndNew)))
-                return false;
-
-            return true;
-        }
-    }
-
-    public class DateTOpNum
-    {
-        public DateTime DateTAppt;
-        public long OpNum;
-    }
-
-    #endregion
 }

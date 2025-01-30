@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcedureCrud
 {
@@ -292,7 +294,7 @@ public class ProcedureCrud
                                         + "'" + SOut.String(procedure.Prosthesis) + "',"
                                         + SOut.Date(procedure.DateOriginalProsth) + ","
                                         + "'" + SOut.String(procedure.ClaimNote) + "',"
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + SOut.Long(procedure.ClinicNum) + ","
                                         + "'" + SOut.String(procedure.MedicalCode) + "',"
                                         + "'" + SOut.String(procedure.DiagnosticCode) + "',"
@@ -335,7 +337,7 @@ public class ProcedureCrud
                                         + SOut.Byte(procedure.IcdVersion) + ","
                                         + SOut.Bool(procedure.IsCpoe) + ","
                                         + SOut.Long(procedure.SecUserNumEntry) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + SOut.Date(procedure.DateComplete) + ","
                                         + SOut.Long(procedure.OrderingReferralNum) + ","
                                         + SOut.Double(procedure.TaxAmt) + ","
@@ -415,7 +417,7 @@ public class ProcedureCrud
             sbRow.Append(",");
             sbRow.Append("'" + SOut.String(procedure.ClaimNote) + "'");
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.Long(procedure.ClinicNum));
             sbRow.Append(",");
@@ -500,7 +502,7 @@ public class ProcedureCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(procedure.SecUserNumEntry));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             sbRow.Append(SOut.Date(procedure.DateComplete));
             sbRow.Append(",");
@@ -558,7 +560,7 @@ public class ProcedureCrud
                                         + "'" + SOut.String(procedure.Prosthesis) + "',"
                                         + SOut.Date(procedure.DateOriginalProsth) + ","
                                         + "'" + SOut.String(procedure.ClaimNote) + "',"
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + SOut.Long(procedure.ClinicNum) + ","
                                         + "'" + SOut.String(procedure.MedicalCode) + "',"
                                         + "'" + SOut.String(procedure.DiagnosticCode) + "',"
@@ -601,7 +603,7 @@ public class ProcedureCrud
                                         + SOut.Byte(procedure.IcdVersion) + ","
                                         + SOut.Bool(procedure.IsCpoe) + ","
                                         + SOut.Long(procedure.SecUserNumEntry) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + SOut.Date(procedure.DateComplete) + ","
                                         + SOut.Long(procedure.OrderingReferralNum) + ","
                                         + SOut.Double(procedure.TaxAmt) + ","

@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EmailAddressCrud
 {
@@ -112,7 +114,7 @@ public class EmailAddressCrud
             + "'" + SOut.String(emailAddress.QueryString) + "',"
             + SOut.Int((int) emailAddress.AuthenticationType) + ")";
         if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
-        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", OdDbType.Text, SOut.StringParam(emailAddress.RefreshToken));
+        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
         {
             emailAddress.EmailAddressNum = Db.NonQ(command, true, "EmailAddressNum", "emailAddress", paramRefreshToken);
         }
@@ -147,7 +149,7 @@ public class EmailAddressCrud
             + "'" + SOut.String(emailAddress.QueryString) + "',"
             + SOut.Int((int) emailAddress.AuthenticationType) + ")";
         if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
-        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", OdDbType.Text, SOut.StringParam(emailAddress.RefreshToken));
+        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramRefreshToken);
         else
@@ -174,7 +176,7 @@ public class EmailAddressCrud
                       + "AuthenticationType=  " + SOut.Int((int) emailAddress.AuthenticationType) + " "
                       + "WHERE EmailAddressNum = " + SOut.Long(emailAddress.EmailAddressNum);
         if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
-        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", OdDbType.Text, SOut.StringParam(emailAddress.RefreshToken));
+        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
         Db.NonQ(command, paramRefreshToken);
     }
 
@@ -267,7 +269,7 @@ public class EmailAddressCrud
 
         if (command == "") return false;
         if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
-        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", OdDbType.Text, SOut.StringParam(emailAddress.RefreshToken));
+        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
         command = "UPDATE emailaddress SET " + command
                                              + " WHERE EmailAddressNum = " + SOut.Long(emailAddress.EmailAddressNum);
         Db.NonQ(command, paramRefreshToken);

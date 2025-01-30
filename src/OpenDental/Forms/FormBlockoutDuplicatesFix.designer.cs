@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormBlockoutDuplicatesFix {
 		/// <summary>
 		/// Required designer variable.
@@ -75,7 +75,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "Clear";
-			this.butOK.Click += new System.EventHandler(this.butClear_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonClear_Click);
 			// 
 			// FormBlockoutDuplicatesFix
 			// 

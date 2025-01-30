@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TaskListCrud
 {
@@ -96,7 +98,7 @@ public class TaskListCrud
             + SOut.Int((int) taskList.DateType) + ","
             + SOut.Long(taskList.FromNum) + ","
             + SOut.Int((int) taskList.ObjectType) + ","
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.Int((int) taskList.GlobalTaskFilterType) + ","
             + SOut.Int((int) taskList.TaskListStatus) + ")";
         {
@@ -125,7 +127,7 @@ public class TaskListCrud
             + SOut.Int((int) taskList.DateType) + ","
             + SOut.Long(taskList.FromNum) + ","
             + SOut.Int((int) taskList.ObjectType) + ","
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.Int((int) taskList.GlobalTaskFilterType) + ","
             + SOut.Int((int) taskList.TaskListStatus) + ")";
         if (useExistingPK || isRandomKeys)

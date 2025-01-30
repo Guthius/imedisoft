@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class SigMessageCrud
 {
@@ -96,7 +98,7 @@ public class SigMessageCrud
             + SOut.Byte(sigMessage.SynchIcon) + ","
             + "'" + SOut.String(sigMessage.FromUser) + "',"
             + "'" + SOut.String(sigMessage.ToUser) + "',"
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.DateTime(sigMessage.AckDateTime) + ","
             + "'" + SOut.String(sigMessage.SigText) + "',"
             + SOut.Long(sigMessage.SigElementDefNumUser) + ","
@@ -126,7 +128,7 @@ public class SigMessageCrud
             + SOut.Byte(sigMessage.SynchIcon) + ","
             + "'" + SOut.String(sigMessage.FromUser) + "',"
             + "'" + SOut.String(sigMessage.ToUser) + "',"
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.DateTime(sigMessage.AckDateTime) + ","
             + "'" + SOut.String(sigMessage.SigText) + "',"
             + SOut.Long(sigMessage.SigElementDefNumUser) + ","

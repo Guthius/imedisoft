@@ -16,7 +16,9 @@ using System.Transactions;
 using System.Windows.Media.Imaging;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Claim = Imedisoft.Core.Entities.Claim;
 
 namespace OpenDentBusiness.Eclaims {
 	public class CanadianOutput {
@@ -154,7 +156,7 @@ namespace OpenDentBusiness.Eclaims {
 					}
 					strb.Append(Canadian.TidyAN(attachmentType,3));
 					//F46 Attachment Length 7 N
-					byte[] attachmentBytes=FileAtoZ.ReadAllBytes(listFileInfoAttachments[i].FullName);
+					byte[] attachmentBytes=File.ReadAllBytes(listFileInfoAttachments[i].FullName);
 					string attachmentBase64=Convert.ToBase64String(attachmentBytes);
 					totalBytes+=attachmentBase64.Length;
 					strb.Append(Canadian.TidyN(attachmentBase64.Length,7));
@@ -742,7 +744,7 @@ namespace OpenDentBusiness.Eclaims {
 		public static List<FileInfo> GetInfoForAttachments(List<ClaimAttach> listAttachments) {
 			List<FileInfo> listFileInfos=new List<FileInfo>();
 			for(int i=0;i<listAttachments.Count;i++) {
-				string attachmentPath=FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),listAttachments[i].ActualFileName);
+				string attachmentPath=Path.Combine(EmailAttaches.GetAttachPath(),listAttachments[i].ActualFileName);
 				//Mimics WebFormL.LoadImagesToSheetDef()
 				if(!File.Exists(attachmentPath))
 				{

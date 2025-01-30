@@ -41,7 +41,7 @@ namespace OpenDentBusiness {
 			}
 			query+=whereType;
 			query+="ORDER BY adjustment.AdjDate";
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(query));
+			return ReportsComplex.GetTable(query);
 		}	
 	}
 

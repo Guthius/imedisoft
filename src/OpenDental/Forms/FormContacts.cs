@@ -1,91 +1,106 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Windows.Forms;
-using OpenDentBusiness;
-using OpenDental.UI;
 using System.Collections.Generic;
+using System.Windows.Forms;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
+using OpenDental.UI;
+using OpenDentBusiness;
 
-namespace OpenDental{
-	/// <summary>
-	/// Summary description for FormBasicTemplate.
-	/// </summary>
-	public partial class FormContacts : FormODBase {
-		private List<Contact> _listContacts;
-		private List<Def> _listDefsContactCategories;
+namespace OpenDental.Forms;
 
-		
-		public FormContacts()
-		{
-			//
-			// Required for Windows Form Designer support
-			//
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormContacts : FormODBase
+{
+    private List<Contact> _contacts;
+    private List<Def> _contactCategoryDefs;
 
-		private void FormContacts_Load(object sender, System.EventArgs e) {
-			_listDefsContactCategories=Defs.GetDefsForCategory(DefCat.ContactCategories,true);
-			for(int i=0;i<_listDefsContactCategories.Count;i++){
-				listCategory.Items.Add(_listDefsContactCategories[i].ItemName);
-			}
-			if(listCategory.Items.Count>0) {
-				listCategory.SelectedIndex=0;
-			}
-		}
+    public FormContacts()
+    {
+        InitializeComponent();
+    }
 
-		private void listCategory_SelectedIndexChanged(object sender, System.EventArgs e) {
-			FillGrid();
-		}
+    private void FormContacts_Load(object sender, EventArgs e)
+    {
+        _contactCategoryDefs = Defs.GetDefsForCategory(DefCat.ContactCategories, true);
 
-		private void FillGrid(){
-			if(listCategory.SelectedIndex==-1) {
-				return;//This will happen when resizing due to LayoutManager
-			}
-			_listContacts=Contacts.Refresh(_listDefsContactCategories[listCategory.SelectedIndex].DefNum);
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableContacts","Last Name"),100));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableContacts","First Name"),100));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableContacts","Wk Phone"),90));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableContacts","Fax"),90));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableContacts","Note"),250));
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			for(int i=0;i<_listContacts.Count;i++){
-				row=new GridRow();
-				row.Cells.Add(_listContacts[i].LName);
-				row.Cells.Add(_listContacts[i].FName);
-				row.Cells.Add(_listContacts[i].WkPhone);
-				row.Cells.Add(_listContacts[i].Fax);
-				row.Cells.Add(_listContacts[i].Notes);
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-		}
+        foreach (var def in _contactCategoryDefs)
+        {
+            listCategory.Items.Add(def.ItemName);
+        }
 
-		private void gridMain_CellDoubleClick(object sender,UI.ODGridClickEventArgs e) {
-			using FormContactEdit formContactEdit=new FormContactEdit();
-			formContactEdit.ContactCur=_listContacts[e.Row];
-			formContactEdit.ShowDialog();
-			if(formContactEdit.DialogResult==DialogResult.OK) {
-				FillGrid();
-			}
-		}
+        if (listCategory.Items.Count > 0)
+        {
+            listCategory.SelectedIndex = 0;
+        }
+    }
 
-		private void butAdd_Click(object sender, System.EventArgs e) {
-			Contact contact=new Contact();
-			contact.Category=_listDefsContactCategories[listCategory.SelectedIndex].DefNum;
-			using FormContactEdit formContactEdit=new FormContactEdit();
-			formContactEdit.ContactCur=contact;
-			formContactEdit.IsNew=true;
-			formContactEdit.ShowDialog();
-			if(formContactEdit.DialogResult==DialogResult.OK) {
-				FillGrid();
-			}
-		}
+    private void listCategory_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	}
+    private void FillGrid()
+    {
+        if (listCategory.SelectedIndex == -1)
+        {
+            return;
+        }
+
+        _contacts = Contacts.Refresh(_contactCategoryDefs[listCategory.SelectedIndex].DefNum);
+
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Last Name", 100));
+        gridMain.Columns.Add(new GridColumn("First Name", 100));
+        gridMain.Columns.Add(new GridColumn("Wk Phone", 90));
+        gridMain.Columns.Add(new GridColumn("Fax", 90));
+        gridMain.Columns.Add(new GridColumn("Note", 250));
+
+        gridMain.ListGridRows.Clear();
+
+        foreach (var contact in _contacts)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(contact.LName);
+            gridRow.Cells.Add(contact.FName);
+            gridRow.Cells.Add(contact.WkPhone);
+            gridRow.Cells.Add(contact.Fax);
+            gridRow.Cells.Add(contact.Notes);
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        using var formContactEdit = new FormContactEdit();
+
+        formContactEdit.ContactCur = _contacts[e.Row];
+
+        if (formContactEdit.ShowDialog() == DialogResult.OK)
+        {
+            FillGrid();
+        }
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        var contact = new Contact
+        {
+            Category = _contactCategoryDefs[listCategory.SelectedIndex].DefNum
+        };
+
+        using var formContactEdit = new FormContactEdit();
+
+        formContactEdit.ContactCur = contact;
+        formContactEdit.IsNew = true;
+
+        if (formContactEdit.ShowDialog() == DialogResult.OK)
+        {
+            FillGrid();
+        }
+    }
 }

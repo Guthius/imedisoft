@@ -59,7 +59,7 @@ namespace OpenDentBusiness {
 			}
 			query+=@"HAVING ROUND($sumfee,3) < ROUND($PaidAndWriteoff,3)
 					 ORDER BY patient.LName,patient.FName,procedurelog.ProcDate";
-			return ReportsComplex.RunFuncOnReportServer(() => DataCore.GetTable(query));
+			return DataCore.GetTable(query);
 		}
 	}
 }

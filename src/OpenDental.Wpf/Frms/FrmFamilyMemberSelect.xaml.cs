@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental {
 /*
@@ -76,7 +77,7 @@ End of Checklist================================================================
 		private void FrmFamilyMemberSelect_Load(object sender, System.EventArgs e) {
 			Lang.F(this);
 			for(int i=0;i<_family.ListPats.Length;i++){
-				string patientStatus=" ("+Lang.g("enumPatientStatus",_family.ListPats[i].PatStatus.GetDescription())+")";
+				string patientStatus=" ("+_family.ListPats[i].PatStatus.GetDescription()+")";
 				listPats.Items.Add(_family.ListPats[i].GetNameFL()+(_isPatientStatusVisible ? patientStatus : ""),_family.ListPats[i]);
 			}
 		}

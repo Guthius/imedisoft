@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormCommPrefPicker {
 		/// <summary>
 		/// Required designer variable.
@@ -37,7 +37,7 @@
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "OK";
 			this.butOK.UseVisualStyleBackColor = true;
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -51,7 +51,7 @@
 			this.gridMain.Title = "Comm Pref";
 			this.gridMain.TranslationName = "FormMedicationPicker";
 			this.gridMain.WrapText = false;
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// FormCommPrefPicker
 			// 

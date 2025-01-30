@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Etrans835s
 {
-    #region Methods - Get
-
-    
     public static List<Etrans835> GetByEtransNums(params long[] longArrayEtransNums)
     {
         if (longArrayEtransNums.Length == 0) return new List<Etrans835>();
@@ -20,13 +17,7 @@ public class Etrans835s
         return Etrans835Crud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     All parameters are optional and will be excluded from the query if not set.
-    ///     Strings are considered not set if blank, dates are considered not set if equal to DateTime.MinVal, decimals are not
-    ///     set if negative.
-    /// </summary>
-    public static List<Etrans835> GetFiltered(DateTime dateFrom, DateTime dateTo, string carrierName, string checkTraceNum, decimal insPaidMin, decimal insPaidMax,
-        string controlId, List<X835AutoProcessed> listX835AutoProcesseds = null, bool doIncludeAcknowledged = true, params X835Status[] x835StatusArray)
+    public static List<Etrans835> GetFiltered(DateTime dateFrom, DateTime dateTo, string carrierName, string checkTraceNum, decimal insPaidMin, decimal insPaidMax, string controlId, List<X835AutoProcessed> listX835AutoProcesseds = null, bool doIncludeAcknowledged = true, params X835Status[] x835StatusArray)
     {
         var command = "SELECT * FROM etrans835 "
                       + "INNER JOIN etrans on etrans.EtransNum=etrans835.EtransNum ";
@@ -41,22 +32,16 @@ public class Etrans835s
         if (!listX835AutoProcesseds.IsNullOrEmpty()) listJoinClauses.Add("etrans835.AutoProcessed IN (" + string.Join(",", listX835AutoProcesseds.Select(x => (int) x)) + ")");
         if (listJoinClauses.Count > 0) command += " AND " + string.Join(" AND ", listJoinClauses);
         var listWhereClauses = new List<string>();
-        if (dateFrom != DateTime.MinValue) listWhereClauses.Add(DbHelper.DtimeToDate("etrans.DateTimeTrans") + " >= " + SOut.Date(dateFrom));
-        if (dateTo != DateTime.MinValue) listWhereClauses.Add(DbHelper.DtimeToDate("etrans.DateTimeTrans") + " <= " + SOut.Date(dateTo));
+        if (dateFrom != DateTime.MinValue) listWhereClauses.Add("DATE(etrans.DateTimeTrans) >= " + SOut.Date(dateFrom));
+        if (dateTo != DateTime.MinValue) listWhereClauses.Add("DATE(etrans.DateTimeTrans) <= " + SOut.Date(dateTo));
         if (listWhereClauses.Count > 0) command += " WHERE " + string.Join(" AND ", listWhereClauses);
         return Etrans835Crud.SelectMany(command);
     }
 
-    #endregion Methods - Get
-
-    #region Methods - Modify
-
-    
-    public static long Insert(Etrans835 etrans835)
+    public static void Insert(Etrans835 etrans835)
     {
-        return Etrans835Crud.Insert(etrans835);
+        Etrans835Crud.Insert(etrans835);
     }
-
     
     public static void Update(Etrans835 etrans835, Etrans835 etrans835Old)
     {
@@ -82,6 +67,4 @@ public class Etrans835s
         else
             Update(etrans835, etrans835Old);
     }
-
-    #endregion Methods - Modify
 }

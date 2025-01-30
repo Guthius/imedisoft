@@ -6,6 +6,8 @@ using System.Data;
 using System.Reflection;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class TrojanQueries {
@@ -105,7 +107,7 @@ namespace OpenDentBusiness {
 
 		public static InsPlan GetPlanWithTrojanID(string trojanID){
 			string command="SELECT * FROM insplan WHERE TrojanID = '"+SOut.String(trojanID)+"'";
-			return Crud.InsPlanCrud.SelectOne(command);
+			return InsPlanCrud.SelectOne(command);
 		}
 
 		///<summary>This returns the number of plans affected.</summary>

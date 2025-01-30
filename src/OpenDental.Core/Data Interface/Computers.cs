@@ -4,66 +4,13 @@ using System.Data;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Computers
 {
-    public static void EnsureComputerInDB(string clientComputerName, string hostComputerName)
-    {
-        var command = "SELECT COUNT(*) FROM computer WHERE CompName ='" + SOut.String(clientComputerName) + "'";
-        var count = Db.GetLong(command);
-        if (count != 0) return;
-        var computer = new Computer();
-        computer.CompName = clientComputerName;
-        var computerNum = Insert(computer);
-        //Never copy the printer rows for Thinfinity or AppStream
-        if (/* ODEnvironment.IsCloudServer */ false) return;
-        if (clientComputerName.ToLower() != hostComputerName.ToLower())
-            CopyPrinterRowsForComputer(computerNum, hostComputerName); //This computer is an RDP remote client. Copy the host computer's printer settings for the new computer.
-        else if (PrefC.GetBool(PrefName.EasyHidePrinters)) Printers.PutForSit(PrintSituation.Default, clientComputerName, "", true);
-    }
-
-    /// <summary>
-    ///     Called when a new computer is added and OD is running on a remote application server.
-    ///     This copies any printer settings associated with the application server's computer and applies them to the new
-    ///     computer.
-    ///     21.3 introduces per-client-computer printer settings for RDP app servers and this prevents printer settings from
-    ///     being reset for client computers when updating to 21.3.
-    /// </summary>
-    public static void CopyPrinterRowsForComputer(long computerNum, string hostComputerName)
-    {
-        //computerName is the client computer of a remote connection.
-        var command = $"SELECT ComputerNum FROM computer WHERE CompName='{SOut.String(hostComputerName)}'";
-        var computerNumHost = Db.GetLong(command);
-        if (computerNumHost == 0) return; //Could not find the host computer in the database, no printer settings to copy.
-        //Copy the host computer's printer settings for the client computer.
-        command = "INSERT INTO printer (ComputerNum,PrintSit,PrinterName,DisplayPrompt) " +
-                  $"SELECT {SOut.Long(computerNum)},PrintSit,PrinterName,DisplayPrompt FROM printer WHERE ComputerNum={SOut.Long(computerNumHost)}";
-        Db.NonQ(command);
-    }
-
-    ///<summary>ONLY use this if compname is not already present</summary>
-    public static long Insert(Computer computer)
-    {
-        return ComputerCrud.Insert(computer);
-    }
-
-    /*
-    
-    public static void Update(){
-        string command= "UPDATE computer SET "
-            +"compname = '"    +POut.PString(CompName)+"' "
-            //+"printername = '" +POut.PString(PrinterName)+"' "
-            +"WHERE ComputerNum = '"+POut.PInt(ComputerNum)+"'";
-        //MessageBox.Show(string command);
-        DataConnection dcon=new DataConnection();
-        Db.NonQ(command);
-    }*/
-
-    
     public static void Delete(Computer computer)
     {
         //Delete any accociated printer settings from the printer table
@@ -73,39 +20,29 @@ public class Computers
         Db.NonQ(command);
     }
 
-    ///<summary>Only called from Printers.GetForSit</summary>
     public static Computer GetCur()
     {
         return GetFirstOrDefault(x => x.CompName.ToUpper() == ODEnvironment.MachineName.ToUpper());
     }
 
-    ///<summary>Returns all computers with an active heart beat.  A heart beat less than 4 minutes old is considered active.</summary>
-    public static List<Computer> GetRunningComputers()
-    {
-        //heartbeat is every three minutes.  We'll allow four to be generous.
-        var command = "SELECT * FROM computer WHERE LastHeartBeat > SUBTIME(NOW(),'00:04:00')";
-        return ComputerCrud.SelectMany(command);
-    }
-
-    /// <summary>When starting up, in an attempt to be fast, it will not add a new computer to the list.</summary>
     public static void UpdateHeartBeat(string computerName, bool isStartup)
     {
         string command;
         if (isStartup)
         {
-            command = "UPDATE computer SET LastHeartBeat=" + DbHelper.Now() + " WHERE CompName = '" + SOut.String(computerName) + "'";
+            command = "UPDATE computer SET LastHeartBeat=" + "NOW()" + " WHERE CompName = '" + SOut.String(computerName) + "'";
             Db.NonQ(command);
             return;
         }
 
-        if (_computerCache.ListIsNull() || !_computerCache.GetExists(x => x.CompName == computerName))
+        if (Cache.ListIsNull() || !Cache.GetExists(x => x.CompName == computerName))
             //RefreshCache if computer name doesn't exist in cache. Happens in cloud when a new computer connects to the db and is assigned the "UNKNOWN" name that is later updated
             //when the ODCloudClient sets the ODEnvironment.MachineName property.   RefreshCache will insert the new computer row with CompName=ODEnvironment.MachineName.
             RefreshCache(); //adds new computer to list
-        command = "SELECT LastHeartBeat<" + DbHelper.DateAddMinute(DbHelper.Now(), "-3") + " FROM computer WHERE CompName='" + SOut.String(computerName) + "'";
+        command = "SELECT LastHeartBeat<ADDDATE(NOW(), INTERVAL -3 MINUTE) FROM computer WHERE CompName='" + SOut.String(computerName) + "'";
         if (!SIn.Bool(DataCore.GetScalar(command))) //no need to update if LastHeartBeat is already within the last 3 mins
             return; //remote app servers with multiple connections would fight over the lock on a single row to update the heartbeat unnecessarily
-        command = "UPDATE computer SET LastHeartBeat=" + DbHelper.Now() + " WHERE CompName = '" + SOut.String(computerName) + "'";
+        command = "UPDATE computer SET LastHeartBeat=NOW() WHERE CompName = '" + SOut.String(computerName) + "'";
         Db.NonQ(command);
     }
 
@@ -122,12 +59,6 @@ public class Computers
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Returns a list of strings in a specific order.
-    ///     The strings are as follows; socket (service name), version_comment (service comment), hostname (server name), MySQL
-    ///     version,
-    ///     and database name. Oracle is not supported and will throw an exception to have the customer call us to add support.
-    /// </summary>
     public static List<string> GetServiceInfo()
     {
         var listStringsServiceInfo = new List<string>();
@@ -177,9 +108,7 @@ public class Computers
             listStringsServiceInfo.Add(dbName);
         return listStringsServiceInfo;
     }
-
-    #region CachePattern
-
+    
     private class ComputerCache : CacheListAbs<Computer>
     {
         protected override List<Computer> GetCacheFromDb()
@@ -208,45 +137,31 @@ public class Computers
             Computers.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ComputerCache _computerCache = new();
+    
+    private static readonly ComputerCache Cache = new();
 
     public static List<Computer> GetDeepCopy(bool isShort = false)
     {
-        return _computerCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static Computer GetFirstOrDefault(Func<Computer, bool> match, bool isShort = false)
     {
-        return _computerCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _computerCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _computerCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _computerCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

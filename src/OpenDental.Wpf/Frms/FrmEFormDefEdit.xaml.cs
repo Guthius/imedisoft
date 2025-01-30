@@ -9,6 +9,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using OpenDentBusiness;
 using WpfControls.UI;

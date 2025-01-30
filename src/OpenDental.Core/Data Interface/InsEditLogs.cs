@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class InsEditLogs
 {
-    ///<summary>Gets logs from the passed in datetime and before.</summary>
     public static List<InsEditLog> GetLogsForPlan(long planNum, long carrierNum, long employerNum)
     {
         var listCarrierNums = GetAssociatedCarrierNums(planNum);
@@ -72,12 +72,6 @@ public class InsEditLogs
                 : x.FieldName != "PlanNum").ToList();
     }
 
-    /// <summary>
-    ///     Gets all logs with the passed-in FKey of the specified LogType.
-    ///     Only returns logs that occurred before the passed-in log.
-    ///     Called from GetChangedLogs and, between the two methods, recursively retrieves logs linked to the logs that are
-    ///     returned from this method.
-    /// </summary>
     private static List<InsEditLog> GetLinkedLogs(long FKey, InsEditLogType insEditLogType, InsEditLog insEditLog, List<InsEditLog> listInsEditLogs)
     {
         var command = "SELECT * FROM inseditlog "
@@ -90,12 +84,6 @@ public class InsEditLogs
         return listInsEditLogsLinked;
     }
 
-    /// <summary>
-    ///     Looks for logs that show that the insplan or carrier changed and retrieves the previous insplan/carrier's
-    ///     information.
-    ///     Called from GetLinkedLogs and, between the two methods, recursively retrieves logs linked to the logs that are
-    ///     returned from this method.
-    /// </summary>
     private static List<InsEditLog> GetChangedLogs(List<InsEditLog> listInsEditLogs)
     {
         var listInsEditLogsPlanChanged = listInsEditLogs.FindAll(x =>
@@ -117,10 +105,6 @@ public class InsEditLogs
         return listInsEditLogs;
     }
 
-    /// <summary>
-    ///     Gets a list of carrierNums that can all be linked to the passed in carrierNum via Insurance Edit Log entries for
-    ///     carrierNum changes.
-    /// </summary>
     public static List<long> GetAssociatedCarrierNums(long insPlanNum)
     {
         //Get carrierNums associated to this insPlanNum, using carrierNum as a starting point.
@@ -143,12 +127,6 @@ public class InsEditLogs
         return listCarrierNums.Distinct().ToList();
     }
 
-    /// <summary>
-    ///     Automatic log entry. Fills in table and column names based on items passed in.
-    ///     Compares whole table excluding CrudColumnSpecialTypes of DateEntry, DateTEntry, ExcludeFromUpdate, and TimeStamp.
-    ///     Pass in null for ItemOld if the item was just inserted. Pass in null for ItemCur if the item was just deleted.
-    ///     Both itemCur and itemOld cannot be null.
-    /// </summary>
     public static void MakeLogEntry<T>(T itemCur, T itemOld, InsEditLogType insEditLogType, long userNumCur)
     {
         var priKeyItem = itemCur;
@@ -251,17 +229,11 @@ public class InsEditLogs
         InsEditLogCrud.InsertMany(listInsEditLogs);
     }
 
-    public static long Insert(InsEditLog insEditLog)
+    public static void Insert(InsEditLog insEditLog)
     {
-        return InsEditLogCrud.Insert(insEditLog);
+        InsEditLogCrud.Insert(insEditLog);
     }
 
-    /// <summary>
-    ///     Manual log entry. Creates a new InsEditLog based on information passed in. PKey should be 0 unless LogType =
-    ///     Benefit.
-    ///     Use the automatic MakeLogEntry overload if possible. This only be used when manual UPDATE/INSERT/DELETE queries are
-    ///     run on the logged tables.
-    /// </summary>
     public static InsEditLog MakeLogEntry(string fieldName, long userNum, string oldVal, string newVal, InsEditLogType insEditLogType, long fKey, long pKey, string descript, bool doInsert = true)
     {
         var insEditLog = new InsEditLog();

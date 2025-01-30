@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class QuickPasteNoteCrud
 {
@@ -82,7 +84,7 @@ public class QuickPasteNoteCrud
                                                        + DbHelper.ParamChar + "paramNote,"
                                                        + "'" + SOut.String(quickPasteNote.Abbreviation) + "')";
         if (quickPasteNote.Note == null) quickPasteNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(quickPasteNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(quickPasteNote.Note));
         {
             quickPasteNote.QuickPasteNoteNum = Db.NonQ(command, true, "QuickPasteNoteNum", "quickPasteNote", paramNote);
         }
@@ -107,7 +109,7 @@ public class QuickPasteNoteCrud
                                                        + DbHelper.ParamChar + "paramNote,"
                                                        + "'" + SOut.String(quickPasteNote.Abbreviation) + "')";
         if (quickPasteNote.Note == null) quickPasteNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(quickPasteNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(quickPasteNote.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -124,7 +126,7 @@ public class QuickPasteNoteCrud
                       + "Abbreviation     = '" + SOut.String(quickPasteNote.Abbreviation) + "' "
                       + "WHERE QuickPasteNoteNum = " + SOut.Long(quickPasteNote.QuickPasteNoteNum);
         if (quickPasteNote.Note == null) quickPasteNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(quickPasteNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(quickPasteNote.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -157,7 +159,7 @@ public class QuickPasteNoteCrud
 
         if (command == "") return false;
         if (quickPasteNote.Note == null) quickPasteNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(quickPasteNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(quickPasteNote.Note));
         command = "UPDATE quickpastenote SET " + command
                                                + " WHERE QuickPasteNoteNum = " + SOut.Long(quickPasteNote.QuickPasteNoteNum);
         Db.NonQ(command, paramNote);

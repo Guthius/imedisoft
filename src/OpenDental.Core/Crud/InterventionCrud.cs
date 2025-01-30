@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InterventionCrud
 {
@@ -94,7 +96,7 @@ public class InterventionCrud
                                            + SOut.Int((int) intervention.CodeSet) + ","
                                            + SOut.Bool(intervention.IsPatDeclined) + ")";
         if (intervention.Note == null) intervention.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(intervention.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(intervention.Note));
         {
             intervention.InterventionNum = Db.NonQ(command, true, "InterventionNum", "intervention", paramNote);
         }
@@ -123,7 +125,7 @@ public class InterventionCrud
                                            + SOut.Int((int) intervention.CodeSet) + ","
                                            + SOut.Bool(intervention.IsPatDeclined) + ")";
         if (intervention.Note == null) intervention.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(intervention.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(intervention.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -144,7 +146,7 @@ public class InterventionCrud
                       + "IsPatDeclined  =  " + SOut.Bool(intervention.IsPatDeclined) + " "
                       + "WHERE InterventionNum = " + SOut.Long(intervention.InterventionNum);
         if (intervention.Note == null) intervention.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(intervention.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(intervention.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -201,7 +203,7 @@ public class InterventionCrud
 
         if (command == "") return false;
         if (intervention.Note == null) intervention.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(intervention.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(intervention.Note));
         command = "UPDATE intervention SET " + command
                                              + " WHERE InterventionNum = " + SOut.Long(intervention.InterventionNum);
         Db.NonQ(command, paramNote);

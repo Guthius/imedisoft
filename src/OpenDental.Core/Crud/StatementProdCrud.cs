@@ -1,35 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class StatementProdCrud
 {
-    public static StatementProd SelectOne(long statementProdNum)
-    {
-        var command = "SELECT * FROM statementprod "
-                      + "WHERE StatementProdNum = " + SOut.Long(statementProdNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-
-        return list[0];
-    }
-
-    public static StatementProd SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-
-        return list[0];
-    }
-
     public static List<StatementProd> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -55,29 +34,7 @@ public class StatementProdCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<StatementProd> listStatementProds, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "StatementProd";
-
-        var table = new DataTable(tableName);
-        table.Columns.Add("StatementProdNum");
-        table.Columns.Add("StatementNum");
-        table.Columns.Add("DocNum");
-        table.Columns.Add("FKey");
-        table.Columns.Add("ProdType");
-        table.Columns.Add("LateChargeAdjNum");
-        foreach (var statementProd in listStatementProds)
-            table.Rows.Add(SOut.Long(statementProd.StatementProdNum), SOut.Long(statementProd.StatementNum), SOut.Long(statementProd.DocNum), SOut.Long(statementProd.FKey), SOut.Int((int) statementProd.ProdType), SOut.Long(statementProd.LateChargeAdjNum));
-
-        return table;
-    }
-
-    public static long Insert(StatementProd statementProd)
-    {
-        return Insert(statementProd, false);
-    }
-
-    public static long Insert(StatementProd statementProd, bool useExistingPK)
+    public static void Insert(StatementProd statementProd)
     {
         var command = "INSERT INTO statementprod (";
 
@@ -89,112 +46,6 @@ public class StatementProdCrud
                                                   + SOut.Int((int) statementProd.ProdType) + ","
                                                   + SOut.Long(statementProd.LateChargeAdjNum) + ")";
         statementProd.StatementProdNum = Db.NonQ(command, true, "StatementProdNum", "statementProd");
-
-        return statementProd.StatementProdNum;
-    }
-
-    public static void InsertMany(List<StatementProd> listStatementProds)
-    {
-        InsertMany(listStatementProds, false);
-    }
-
-    public static void InsertMany(List<StatementProd> listStatementProds, bool useExistingPK)
-    {
-        StringBuilder sbCommands = null;
-        var index = 0;
-        var countRows = 0;
-        while (index < listStatementProds.Count)
-        {
-            var statementProd = listStatementProds[index];
-            var sbRow = new StringBuilder("(");
-            var hasComma = false;
-            if (sbCommands == null)
-            {
-                sbCommands = new StringBuilder();
-                sbCommands.Append("INSERT INTO statementprod (");
-                if (useExistingPK) sbCommands.Append("StatementProdNum,");
-
-                sbCommands.Append("StatementNum,DocNum,FKey,ProdType,LateChargeAdjNum) VALUES ");
-                countRows = 0;
-            }
-            else
-            {
-                hasComma = true;
-            }
-
-            if (useExistingPK)
-            {
-                sbRow.Append(SOut.Long(statementProd.StatementProdNum));
-                sbRow.Append(",");
-            }
-
-            sbRow.Append(SOut.Long(statementProd.StatementNum));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(statementProd.DocNum));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(statementProd.FKey));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) statementProd.ProdType));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(statementProd.LateChargeAdjNum));
-            sbRow.Append(")");
-            if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
-            {
-                Db.NonQ(sbCommands.ToString());
-                sbCommands = null;
-            }
-            else
-            {
-                if (hasComma) sbCommands.Append(",");
-
-                sbCommands.Append(sbRow);
-                countRows++;
-                if (index == listStatementProds.Count - 1) Db.NonQ(sbCommands.ToString());
-
-                index++;
-            }
-        }
-    }
-
-    public static long InsertNoCache(StatementProd statementProd)
-    {
-        return InsertNoCache(statementProd, false);
-    }
-
-    public static long InsertNoCache(StatementProd statementProd, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO statementprod (";
-
-        if (isRandomKeys || useExistingPK) command += "StatementProdNum,";
-
-        command += "StatementNum,DocNum,FKey,ProdType,LateChargeAdjNum) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(statementProd.StatementProdNum) + ",";
-
-        command +=
-            SOut.Long(statementProd.StatementNum) + ","
-                                                  + SOut.Long(statementProd.DocNum) + ","
-                                                  + SOut.Long(statementProd.FKey) + ","
-                                                  + SOut.Int((int) statementProd.ProdType) + ","
-                                                  + SOut.Long(statementProd.LateChargeAdjNum) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            statementProd.StatementProdNum = Db.NonQ(command, true, "StatementProdNum", "statementProd");
-
-        return statementProd.StatementProdNum;
-    }
-
-    public static void Update(StatementProd statementProd)
-    {
-        var command = "UPDATE statementprod SET "
-                      + "StatementNum    =  " + SOut.Long(statementProd.StatementNum) + ", "
-                      + "DocNum          =  " + SOut.Long(statementProd.DocNum) + ", "
-                      + "FKey            =  " + SOut.Long(statementProd.FKey) + ", "
-                      + "ProdType        =  " + SOut.Int((int) statementProd.ProdType) + ", "
-                      + "LateChargeAdjNum=  " + SOut.Long(statementProd.LateChargeAdjNum) + " "
-                      + "WHERE StatementProdNum = " + SOut.Long(statementProd.StatementProdNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(StatementProd statementProd, StatementProd oldStatementProd)
@@ -243,28 +94,6 @@ public class StatementProdCrud
         return true;
     }
 
-    public static bool UpdateComparison(StatementProd statementProd, StatementProd oldStatementProd)
-    {
-        if (statementProd.StatementNum != oldStatementProd.StatementNum) return true;
-
-        if (statementProd.DocNum != oldStatementProd.DocNum) return true;
-
-        if (statementProd.FKey != oldStatementProd.FKey) return true;
-
-        if (statementProd.ProdType != oldStatementProd.ProdType) return true;
-
-        if (statementProd.LateChargeAdjNum != oldStatementProd.LateChargeAdjNum) return true;
-
-        return false;
-    }
-
-    public static void Delete(long statementProdNum)
-    {
-        var command = "DELETE FROM statementprod "
-                      + "WHERE StatementProdNum = " + SOut.Long(statementProdNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listStatementProdNums)
     {
         if (listStatementProdNums == null || listStatementProdNums.Count == 0) return;
@@ -274,7 +103,7 @@ public class StatementProdCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<StatementProd> listNew, List<StatementProd> listDB)
+    public static void Sync(List<StatementProd> listNew, List<StatementProd> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<StatementProd>();
@@ -346,8 +175,6 @@ public class StatementProdCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.StatementProdNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

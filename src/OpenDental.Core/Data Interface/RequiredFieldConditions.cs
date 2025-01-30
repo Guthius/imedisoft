@@ -5,29 +5,22 @@ using System.Globalization;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class RequiredFieldConditions
 {
-    ///<summary>Gets the requiredfieldconditions for one required field.</summary>
     public static List<RequiredFieldCondition> GetForRequiredField(long requiredFieldNum)
     {
         return GetWhere(x => x.RequiredFieldNum == requiredFieldNum);
     }
 
-    
-    public static long Insert(RequiredFieldCondition requiredFieldCondition)
+    public static void Insert(RequiredFieldCondition requiredFieldCondition)
     {
-        return RequiredFieldConditionCrud.Insert(requiredFieldCondition);
-    }
-
-    
-    public static void Update(RequiredFieldCondition requiredFieldCondition)
-    {
-        RequiredFieldConditionCrud.Update(requiredFieldCondition);
+        RequiredFieldConditionCrud.Insert(requiredFieldCondition);
     }
 
     public static void DeleteAll(List<long> listRequiredFieldConditionNums)
@@ -37,7 +30,6 @@ public class RequiredFieldConditions
         Db.NonQ(command);
     }
 
-    ///<summary>Returns true if the conditions for StudentStatus are true.</summary>
     public static bool CheckStudentStatusConditions(int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions, bool isNonStudent, bool isFullTimeStudent, bool isPartTimeStudent)
     {
         if (CultureInfo.CurrentCulture.Name.EndsWith("CA")) //Canadian. en-CA or fr-CA
@@ -60,19 +52,13 @@ public class RequiredFieldConditions
         return true;
     }
 
-    /// <summary>
-    ///     Checks to see if the Medicaid ID is the proper number of digits for the Medicaid State. If medicaid id is the
-    ///     proper number of digits, returns empty string.
-    ///     If medicaid id is NOT the proper number of digits, returns the proper number of digits as a string.
-    /// </summary>
     public static string CheckMedicaidIDLength(string medicaidState, string medicaidID)
     {
-        var reqLength = StateAbbrs.GetMedicaidIDLength(medicaidState);
+        var reqLength = StateAbbrs.GetMedicaidIdLength(medicaidState);
         if (reqLength == 0 || reqLength == medicaidID.Length) return "";
         return reqLength.ToString();
     }
 
-    ///<summary>Returns true if the conditions for MedicaidID/MedicaidState are true.</summary>
     public static bool CheckMedicaidConditions(string val, int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions)
     {
         if (PrefC.GetBool(PrefName.EasyHideMedicaid)) return true;
@@ -83,11 +69,6 @@ public class RequiredFieldConditions
         return false;
     }
 
-    /// <summary>
-    ///     Returns true if the operator is Equals and the value is in the list of conditions or if the operator is NotEquals
-    ///     and the value is
-    ///     not in the list of conditions.
-    /// </summary>
     public static bool ConditionComparerHelper(string val, int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions)
     {
         var requiredFieldCondition = listRequiredFieldConditions[condCurIndex]; //Variable for convenience
@@ -103,7 +84,6 @@ public class RequiredFieldConditions
         }
     }
 
-    ///<summary>Returns true if the conditions for this date condition are true. Handles pref checks as well.</summary>
     public static bool CheckDateConditions(string dateStr, int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions)
     {
         var requiredFieldCondition = listRequiredFieldConditions[condCurIndex]; //Variable for convenience
@@ -121,13 +101,11 @@ public class RequiredFieldConditions
         return listAreCondsMet.Contains(true);
     }
 
-    ///<summary>Evaluates two dates using the provided operator.</summary>
     public static bool CondOpComparer(DateTime dateTime1, ConditionOperator conditionOperator, DateTime dateTime2)
     {
         return CondOpComparer(DateTime.Compare(dateTime1, dateTime2), conditionOperator, 0);
     }
 
-    ///<summary>Evaluates two integers using the provided operator.</summary>
     public static bool CondOpComparer(int value1, ConditionOperator conditionOperator, int value2)
     {
         switch (conditionOperator)
@@ -148,8 +126,6 @@ public class RequiredFieldConditions
 
         return false;
     }
-
-    #region CachePattern
 
     private class RequiredFieldConditionCache : CacheListAbs<RequiredFieldCondition>
     {
@@ -180,60 +156,25 @@ public class RequiredFieldConditions
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly RequiredFieldConditionCache _requiredFieldConditionCache = new();
+    private static readonly RequiredFieldConditionCache Cache = new();
 
     public static List<RequiredFieldCondition> GetWhere(Predicate<RequiredFieldCondition> match, bool isShort = false)
     {
-        return _requiredFieldConditionCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _requiredFieldConditionCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _requiredFieldConditionCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _requiredFieldConditionCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
-
-    /*
-    
-    public static void Delete(long requiredFieldConditionNum) {
-
-        Crud.RequiredFieldConditionCrud.Delete(requiredFieldConditionNum);
-    }
-
-    
-    public static List<RequiredFieldCondition> Refresh(long patNum){
-
-        string command="SELECT * FROM requiredfieldcondition WHERE PatNum = "+POut.Long(patNum);
-        return Crud.RequiredFieldConditionCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one RequiredFieldCondition from the db.</summary>
-    public static RequiredFieldCondition GetOne(long requiredFieldConditionNum){
-
-        return Crud.RequiredFieldConditionCrud.SelectOne(requiredFieldConditionNum);
-    }
-    */
 }

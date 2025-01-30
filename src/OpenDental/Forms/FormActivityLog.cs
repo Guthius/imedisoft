@@ -1,149 +1,172 @@
 ﻿using System;
-using System.Data;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Windows.Forms;
-using OpenDental.UI;
-using OpenDentBusiness;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using OpenDental.UI;
+using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormActivityLog:FormODBase {
-		private List<string> _listActionDescriptions;
-		private List<EServiceLog> _listEServiceLogs=new List<EServiceLog>();
+namespace OpenDental.Forms;
 
-		public FormActivityLog() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormActivityLog : FormODBase
+{
+    private List<string> _actionDescriptions;
+    private List<EServiceLog> _eServiceLogs = [];
 
-		//EServiceLogs that are uploaded a year ago or more will be deleted and not displayed here. We may want to add a note to customers of this somewhere in this form.
-		private void FormActivityLog_Load(object sender,System.EventArgs e) {
-			comboBoxClinicMulti.IsAllSelected=true;
-			DateTime dateFirstDayOfTheMonth=new DateTime(DateTime.Today.Year,DateTime.Today.Month,1);
-			datePicker.SetDateTimeFrom(dateFirstDayOfTheMonth);
-			datePicker.SetDateTimeTo(dateFirstDayOfTheMonth.AddMonths(1));
-			checkDistinctLogGuid.Checked=false;
-			//"All" first, then alphabetical
-			List<eServiceType> listEserviceTypes=Enum.GetValues(typeof(eServiceType)).Cast<eServiceType>()
-				.OrderByDescending(x => x==eServiceType.Unknown).ThenBy(x => x.GetDescription(useShortVersionIfAvailable:true)).ToList();
-			for(int i=0;i<listEserviceTypes.Count;i++) {
-				comboBoxTypes.Items.Add(listEserviceTypes[i].GetDescription(useShortVersionIfAvailable:true), listEserviceTypes[i]);
-			}
-			List<eServiceAction> listEserviceActions=EServiceLogs.GetEServiceActions(eServiceType.Unknown); //Unknown will return all
-			_listActionDescriptions=new List<string>();
-			for(int i=0;i<listEserviceActions.Count;i++) {
-				_listActionDescriptions.Add(listEserviceActions[i].GetDescription());
-			}
-			_listActionDescriptions.Sort();
-			_listActionDescriptions.Insert(0,"All");
-			comboBoxActions.Items.AddList<string>(_listActionDescriptions,x => x);
-			comboBoxTypes.SelectedIndex=0;
-			comboBoxActions.SelectedIndex=0;
-			comboBoxClinicMulti.ClinicNumSelected=Clinics.ClinicNum;
-		}
+    public FormActivityLog()
+    {
+        InitializeComponent();
+    }
 
-		private void FillGrid() {
-			List<EServiceLog> listEServiceLogs=_listEServiceLogs;
-			if(textPatNum.Text!="" && SIn.Long(textPatNum.Text)>-1) {
-				listEServiceLogs=listEServiceLogs.Where(x => x.PatNum.ToString()==textPatNum.Text).ToList();
-			}
-			if(comboBoxTypes.SelectedIndex!=-1 && comboBoxTypes.GetSelected<eServiceType>()!=eServiceType.Unknown) {
-				listEServiceLogs=listEServiceLogs.Where(x => x.EServiceType==comboBoxTypes.GetSelected<eServiceType>()).ToList();
-			}
-			if(comboBoxActions.SelectedIndex!=-1 && _listActionDescriptions[comboBoxActions.SelectedIndex]!="All") {
-				listEServiceLogs=listEServiceLogs.Where(x => x.EServiceAction.GetDescription()==comboBoxActions.GetSelected<string>()).ToList();
-			}
-			if(textLogGuid.Text!="") {
-				listEServiceLogs=listEServiceLogs.Where(x => x.LogGuid.Contains(textLogGuid.Text)).ToList();
-			}
-			if(checkDistinctLogGuid.Checked) {
-				listEServiceLogs=listEServiceLogs.GroupBy(x => x.LogGuid).Select(x => x.OrderByDescending(y => y.LogDateTime).ThenByDescending(y => y.EServiceLogNum).First()).ToList();
-			}
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col;
-			col=new GridColumn(Lan.g(this,"eService Type"),150);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g(this,"eService Action"),250);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g(this,"FKeyType"),100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g(this,"FKey"),50);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g(this,"Log DateTime"),100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g(this,"PatNum"),50);
-			gridMain.Columns.Add(col);
-			if(true) {
-				col=new GridColumn(Lan.g(this,"Clinic Abbr"),100);
-				gridMain.Columns.Add(col);
-			}
-			col=new GridColumn(Lan.g(this,"Log GUID"),100);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g(this,"Note"),100);
-			gridMain.Columns.Add(col);
-			//Rows
-			gridMain.ListGridRows.Clear();
-			for(int i = 0;i<listEServiceLogs.Count;i++) {
-				GridRow row=new GridRow();
-				row.Cells.Add(listEServiceLogs[i].EServiceType.GetDescription());
-				row.Cells.Add(listEServiceLogs[i].EServiceAction.GetDescription());
-				row.Cells.Add(listEServiceLogs[i].KeyType.ToString());
-				row.Cells.Add(listEServiceLogs[i].FKey.ToString());
-				row.Cells.Add(listEServiceLogs[i].LogDateTime.ToString());
-				row.Cells.Add(listEServiceLogs[i].PatNum.ToString());
-				if(true) {
-					if(listEServiceLogs[i].ClinicNum==0) {
-						row.Cells.Add("HQ");
-					}
-					else {
-						row.Cells.Add(Clinics.GetClinic(listEServiceLogs[i].ClinicNum).Abbr);
-					}
-				}
-				row.Cells.Add(listEServiceLogs[i].LogGuid.ToString());
-				gridMain.ListGridRows.Add(row);
-				row.Cells.Add(listEServiceLogs[i].Note.ToString());
-			}
-			gridMain.EndUpdate();
-			labelRows.Text=$"Row Count: {listEServiceLogs.Count}";
-			gridMain.ScrollToEnd();
-		}
+    private void FormActivityLog_Load(object sender, EventArgs e)
+    {
+        comboBoxClinicMulti.IsAllSelected = true;
 
-		private void butRefresh_Click(object sender,EventArgs e) {
-			_listEServiceLogs=OpenDentBusiness.EServiceLogs.GetEServiceLog(comboBoxClinicMulti.ClinicNumSelected,datePicker.GetDateTimeFrom(),datePicker.GetDateTimeTo());
-			FillGrid();
-		}
-		
-		private void comboBoxActions_SelectionChangeCommitted(object sender,EventArgs e) {
-			FillGrid();
-		}
-		
-		private void comboBoxTypes_SelectionChangeCommitted(object sender,EventArgs e) {
-			comboBoxActions.Items.Clear();
-			_listActionDescriptions=new List<string>();
-			eServiceType eServiceTypeSelected=comboBoxTypes.GetSelected<eServiceType>();
-			List<eServiceAction> listEserviceActions=EServiceLogs.GetEServiceActions(eServiceTypeSelected);
-			for(int i=0;i<listEserviceActions.Count;i++) {
-				_listActionDescriptions.Add(listEserviceActions[i].GetDescription());
-			}
-			_listActionDescriptions.Sort();
-			_listActionDescriptions.Insert(0,"All");
-			comboBoxActions.Items.AddList<string>(_listActionDescriptions,x => x);
-			comboBoxActions.SelectedIndex=0;
-			FillGrid();
-		}
+        var firstDayOfTheMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
-		private void textbox_TextChanged(object sender,EventArgs e) {
-			FillGrid();
-		}
+        datePicker.SetDateTimeFrom(firstDayOfTheMonth);
+        datePicker.SetDateTimeTo(firstDayOfTheMonth.AddMonths(1));
 
-		private void checkDistinctLogGuid_CheckedChanged(object sender,EventArgs e) {
-			FillGrid();
-		}
+        checkDistinctLogGuid.Checked = false;
 
-	}
+        _actionDescriptions = [];
+
+        var eserviceTypes = Enum.GetValues(typeof(eServiceType)).Cast<eServiceType>().OrderByDescending(x => x == eServiceType.Unknown).ThenBy(x => x.GetDescription(useShortVersionIfAvailable: true)).ToList();
+        foreach (var eServiceType in eserviceTypes)
+        {
+            comboBoxTypes.Items.Add(eServiceType.GetDescription(useShortVersionIfAvailable: true), eServiceType);
+        }
+
+        comboBoxTypes.SelectedIndex = 0;
+
+        var eServiceActions = EServiceLogs.GetEServiceActions(eServiceType.Unknown);
+        foreach (var eServiceAction in eServiceActions)
+        {
+            _actionDescriptions.Add(eServiceAction.GetDescription());
+        }
+
+        _actionDescriptions.Sort();
+        _actionDescriptions.Insert(0, "All");
+
+        comboBoxActions.Items.AddList(_actionDescriptions, x => x);
+        comboBoxActions.SelectedIndex = 0;
+
+        comboBoxClinicMulti.ClinicNumSelected = Clinics.ClinicNum;
+    }
+
+    private void FillGrid()
+    {
+        var eServiceLogs = _eServiceLogs;
+
+        if (textPatNum.Text != "" && SIn.Long(textPatNum.Text) > -1)
+        {
+            eServiceLogs = eServiceLogs.Where(x => x.PatNum.ToString() == textPatNum.Text).ToList();
+        }
+
+        if (comboBoxTypes.SelectedIndex != -1 && comboBoxTypes.GetSelected<eServiceType>() != eServiceType.Unknown)
+        {
+            eServiceLogs = eServiceLogs.Where(x => x.EServiceType == comboBoxTypes.GetSelected<eServiceType>()).ToList();
+        }
+
+        if (comboBoxActions.SelectedIndex != -1 && _actionDescriptions[comboBoxActions.SelectedIndex] != "All")
+        {
+            eServiceLogs = eServiceLogs.Where(x => x.EServiceAction.GetDescription() == comboBoxActions.GetSelected<string>()).ToList();
+        }
+
+        if (textLogGuid.Text != "")
+        {
+            eServiceLogs = eServiceLogs.Where(x => x.LogGuid.Contains(textLogGuid.Text)).ToList();
+        }
+
+        if (checkDistinctLogGuid.Checked)
+        {
+            eServiceLogs = eServiceLogs.GroupBy(x => x.LogGuid).Select(x => x.OrderByDescending(y => y.LogDateTime).ThenByDescending(y => y.EServiceLogNum).First()).ToList();
+        }
+
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("eService Type", 150));
+        gridMain.Columns.Add(new GridColumn("eService Action", 250));
+        gridMain.Columns.Add(new GridColumn("FKeyType", 100));
+        gridMain.Columns.Add(new GridColumn("FKey", 50));
+        gridMain.Columns.Add(new GridColumn("Log DateTime", 100));
+        gridMain.Columns.Add(new GridColumn("PatNum", 50));
+        gridMain.Columns.Add(new GridColumn("Clinic Abbr", 100));
+        gridMain.Columns.Add(new GridColumn("Log GUID", 100));
+        gridMain.Columns.Add(new GridColumn("Note", 100));
+
+        gridMain.ListGridRows.Clear();
+
+        foreach (var eServiceLog in eServiceLogs)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(eServiceLog.EServiceType.GetDescription());
+            gridRow.Cells.Add(eServiceLog.EServiceAction.GetDescription());
+            gridRow.Cells.Add(eServiceLog.KeyType.ToString());
+            gridRow.Cells.Add(eServiceLog.FKey.ToString());
+            gridRow.Cells.Add(eServiceLog.LogDateTime.ToString(CultureInfo.InvariantCulture));
+            gridRow.Cells.Add(eServiceLog.PatNum.ToString());
+            gridRow.Cells.Add(eServiceLog.ClinicNum == 0 ? "HQ" : Clinics.GetClinic(eServiceLog.ClinicNum).Abbr);
+            gridRow.Cells.Add(eServiceLog.LogGuid);
+            gridRow.Cells.Add(eServiceLog.Note);
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+
+        labelRows.Text = $"Row Count: {eServiceLogs.Count}";
+
+        gridMain.ScrollToEnd();
+    }
+
+    private void ButtonRefresh_Click(object sender, EventArgs e)
+    {
+        _eServiceLogs = EServiceLogs.GetEServiceLog(comboBoxClinicMulti.ClinicNumSelected, datePicker.GetDateTimeFrom(), datePicker.GetDateTimeTo());
+
+        FillGrid();
+    }
+
+    private void ComboBoxActions_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void ComboBoxTypes_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        comboBoxActions.Items.Clear();
+
+        _actionDescriptions = [];
+
+        var eServiceTypeSelected = comboBoxTypes.GetSelected<eServiceType>();
+        var eServiceActions = EServiceLogs.GetEServiceActions(eServiceTypeSelected);
+
+        foreach (var eServiceAction in eServiceActions)
+        {
+            _actionDescriptions.Add(eServiceAction.GetDescription());
+        }
+
+        _actionDescriptions.Sort();
+        _actionDescriptions.Insert(0, "All");
+
+        comboBoxActions.Items.AddList(_actionDescriptions, x => x);
+        comboBoxActions.SelectedIndex = 0;
+
+        FillGrid();
+    }
+
+    private void Textbox_TextChanged(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void CheckBoxDistinctLogGuid_CheckedChanged(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 }

@@ -1,141 +1,124 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormConfirmationSetup:FormODBase {
-		private List<Def> _listDefsApptConfirmed;
+namespace OpenDental.Forms;
 
-		public FormConfirmationSetup() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormConfirmationSetup : FormODBase
+{
+    private List<Def> _apptConfirmedDefs;
 
+    public FormConfirmationSetup()
+    {
+        InitializeComponent();
+    }
 
-		public void FormConfirmationSetup_Load(object sender,System.EventArgs e) {
-			FillTabManualConfirmation();
-		}
+    public void FormConfirmationSetup_Load(object sender, EventArgs e)
+    {
+        FillTabManualConfirmation();
+    }
 
-		//===============================================================================================
-		#region Confirmations
+    private void FillTabManualConfirmation()
+    {
+        _apptConfirmedDefs = Defs.GetDefsForCategory(DefCat.ApptConfirmed, isShort: false);
 
-		///<summary>Called on load to initially load confirmation with values from the database.  Calls FillGrid at the end.</summary>
-		private void FillTabManualConfirmation() {
-			_listDefsApptConfirmed=Defs.GetDefsForCategory(DefCat.ApptConfirmed,isShort:false);
-			comboStatusEmailedConfirm.Items.AddDefs(_listDefsApptConfirmed);
-			comboStatusEmailedConfirm.SetSelectedDefNum(PrefC.GetLong(PrefName.ConfirmStatusEmailed));
-			comboStatusTextMessagedConfirm.Items.AddDefs(_listDefsApptConfirmed);
-			comboStatusTextMessagedConfirm.SetSelectedDefNum(PrefC.GetLong(PrefName.ConfirmStatusTextMessaged));
-			checkGroupFamilies.Checked=PrefC.GetBool(PrefName.ConfirmGroupByFamily);
-			FillGrid();
-		}
+        comboStatusEmailedConfirm.Items.AddDefs(_apptConfirmedDefs);
+        comboStatusEmailedConfirm.SetSelectedDefNum(PrefC.GetLong(PrefName.ConfirmStatusEmailed));
 
-		private void FillGrid() {
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col;
-			col=new GridColumn(Lan.g("TableConfirmMsgs","Mode"),61);
-			gridMain.Columns.Add(col);
-			col=new GridColumn("",300);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableConfirmMsgs","Message"),500);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			#region Confirmation
-			//Confirmation---------------------------------------------------------------------------------------------
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"Postcard"));
-			row.Cells.Add(Lan.g(this,"Confirmation message. Available variables: [NameF], [date], [time]."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmPostcardMessage));
-			row.Tag=PrefName.ConfirmPostcardMessage;
-			gridMain.ListGridRows.Add(row);
-			//
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"Postcard"));
-			row.Cells.Add(Lan.g(this,"For multiple patients in one family. Available variables: [FamilyApptList]."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmPostcardFamMessage));
-			row.Tag=PrefName.ConfirmPostcardFamMessage;
-			gridMain.ListGridRows.Add(row);
-			//
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"E-mail"));
-			row.Cells.Add(Lan.g(this,"Confirmation subject line."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmEmailSubject));
-			row.Tag=PrefName.ConfirmEmailSubject;
-			gridMain.ListGridRows.Add(row);
-			//
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"E-mail"));
-			row.Cells.Add(Lan.g(this,"Confirmation message. Available variables: [NameF], [date], [time]."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmEmailMessage));
-			row.Tag=PrefName.ConfirmEmailMessage;
-			gridMain.ListGridRows.Add(row);
-			//
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"E-Mail"));
-			row.Cells.Add(Lan.g(this,"For multiple patients in one family. Available variables: [FamilyApptList]."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmEmailFamMessage));
-			row.Tag=PrefName.ConfirmEmailFamMessage;
-			gridMain.ListGridRows.Add(row);
-			#endregion
-			#region Text Messaging
-			//Text Messaging----------------------------------------------------------------------------------------------
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"Text"));
-			row.Cells.Add(Lan.g(this,"Confirmation message. Available variables: [NameF], [date], [time]."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmTextMessage));
-			row.Tag=PrefName.ConfirmTextMessage;
-			gridMain.ListGridRows.Add(row);
-			//
-			row=new GridRow();
-			row.Cells.Add(Lan.g(this,"Text"));
-			row.Cells.Add(Lan.g(this,"For multiple patients in one family. Available variables: [FamilyApptList]."));
-			row.Cells.Add(PrefC.GetString(PrefName.ConfirmTextFamMessage));
-			row.Tag=PrefName.ConfirmTextFamMessage;
-			gridMain.ListGridRows.Add(row);
-			#endregion
-			gridMain.EndUpdate();
-		}
+        comboStatusTextMessagedConfirm.Items.AddDefs(_apptConfirmedDefs);
+        comboStatusTextMessagedConfirm.SetSelectedDefNum(PrefC.GetLong(PrefName.ConfirmStatusTextMessaged));
 
-		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			PrefName prefName=(PrefName)gridMain.ListGridRows[e.Row].Tag;
-			FrmRecallMessageEdit frmRecallMessageEdit=new FrmRecallMessageEdit(prefName);
-			frmRecallMessageEdit.MessageVal=PrefC.GetString(prefName);
-			frmRecallMessageEdit.ShowDialog();
-			if(!frmRecallMessageEdit.IsDialogOK) {
-				return;
-			}
-			Prefs.UpdateString(prefName,frmRecallMessageEdit.MessageVal);
-			//Prefs.RefreshCache();//above line handles it.
-			FillGrid();
-		}
+        checkGroupFamilies.Checked = PrefC.GetBool(PrefName.ConfirmGroupByFamily);
 
-		#endregion Confirmations
-		//===============================================================================================
+        FillGrid();
+    }
 
+    private static GridRow MakeRow(PrefName prefName, string mode, string description)
+    {
+        var gridRow = new GridRow();
 
-		private void butSetup_Click(object sender,EventArgs e) {
-			using FormEServicesAutoMsging formEServicesAutoMsging=new FormEServicesAutoMsging();
-			formEServicesAutoMsging.ShowDialog();
-		}
+        gridRow.Cells.Add(mode);
+        gridRow.Cells.Add(description);
+        gridRow.Cells.Add(PrefC.GetString(prefName));
+        gridRow.Tag = prefName;
 
-		private void butSave_Click(object sender,System.EventArgs e) {
-			Prefs.UpdateLong(PrefName.ConfirmStatusEmailed,comboStatusEmailedConfirm.GetSelectedDefNum());
-			Prefs.UpdateLong(PrefName.ConfirmStatusTextMessaged,comboStatusTextMessagedConfirm.GetSelectedDefNum());
-			Prefs.UpdateBool(PrefName.ConfirmGroupByFamily,checkGroupFamilies.Checked);
-			//If we want to take the time to check every Update and see if something changed 
-			//then we could move this to a FormClosing event later.
-			DataValid.SetInvalid(InvalidType.Prefs);
-			DialogResult=DialogResult.OK;
-		}
+        return gridRow;
+    }
 
-	}
+    private void FillGrid()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Mode", 61));
+        gridMain.Columns.Add(new GridColumn("", 300));
+        gridMain.Columns.Add(new GridColumn("Message", 500));
+
+        gridMain.ListGridRows.Clear();
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmPostcardMessage,
+            "Postcard", "Confirmation message. Available variables: [NameF], [date], [time]."));
+
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmPostcardFamMessage,
+            "Postcard", "For multiple patients in one family. Available variables: [FamilyApptList]."));
+
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmEmailSubject,
+            "E-mail", "Confirmation subject line."));
+
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmEmailMessage,
+            "E-mail", "Confirmation message. Available variables: [NameF], [date], [time]."));
+
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmEmailFamMessage,
+            "E-mail", "For multiple patients in one family. Available variables: [FamilyApptList]."));
+
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmTextMessage,
+            "Text", "Confirmation message. Available variables: [NameF], [date], [time]."));
+
+        gridMain.ListGridRows.Add(MakeRow(PrefName.ConfirmTextFamMessage,
+            "Text", "For multiple patients in one family. Available variables: [FamilyApptList]."));
+
+        gridMain.EndUpdate();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var prefName = (PrefName) gridMain.ListGridRows[e.Row].Tag;
+
+        var frmRecallMessageEdit = new FrmRecallMessageEdit(prefName)
+        {
+            MessageVal = PrefC.GetString(prefName)
+        };
+
+        frmRecallMessageEdit.ShowDialog();
+
+        if (!frmRecallMessageEdit.IsDialogOK)
+        {
+            return;
+        }
+
+        Prefs.UpdateString(prefName, frmRecallMessageEdit.MessageVal);
+
+        FillGrid();
+    }
+
+    private void ButtonSetup_Click(object sender, EventArgs e)
+    {
+        using var formEServicesAutoMsging = new FormEServicesAutoMsging();
+
+        formEServicesAutoMsging.ShowDialog();
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        Prefs.UpdateLong(PrefName.ConfirmStatusEmailed, comboStatusEmailedConfirm.GetSelectedDefNum());
+        Prefs.UpdateLong(PrefName.ConfirmStatusTextMessaged, comboStatusTextMessagedConfirm.GetSelectedDefNum());
+        Prefs.UpdateBool(PrefName.ConfirmGroupByFamily, checkGroupFamilies.Checked);
+
+        DataValid.SetInvalid(InvalidType.Prefs);
+
+        DialogResult = DialogResult.OK;
+    }
 }

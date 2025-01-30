@@ -1,484 +1,603 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using DataConnectionBase;
-using OpenDentBusiness;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
+using OpenDental.Logic;
 using OpenDental.UI;
+using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormCertifications:FormODBase {
+namespace OpenDental.Forms;
 
-		private bool _isHeadingPrinted;
-		///<summary>List of all certs, includes hidden.</summary>
-		private List<Cert> _listCerts;
-		///<summary>All non-hidden definitions related to DefCat.CertCategories.</summary>
-		private List<Def> _listDefs;
-		private List<Employee> _listEmployees;	
-		private int _pageNum;
-		
-		public FormCertifications() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormCertifications : FormODBase
+{
+    private bool _isHeadingPrinted;
+    private List<Cert> _certs;
+    private List<Def> _certificationCategoryDefs;
+    private List<Employee> _employees;
+    private int _pageNumber;
 
-		private void FormCertifications_Load(object sender, EventArgs e){
-			//listBoxCategories needs to include All as first item.  It's multiselect, so in that case, you would just ignore any other selections.
-			_listEmployees=Employees.GetDeepCopy();
-			Employee employee=_listEmployees.Find(x => x.FName==" Escalate As Needed");
-			_listEmployees.Remove(employee);
-			List<Employee> listEmployees=_listEmployees.FindAll(x => x.IsHidden==false);
-			listBoxEmployee.Items.AddList(listEmployees,x => (x.FName+" "+x.LName));
-			comboSupervisor.Items.Add("Any",new Employee());
-			List<Employee> listEmployeeSupers=new List<Employee>();
-			for(int i=0;i<_listEmployees.Count;i++){
-				if(_listEmployees[i].ReportsTo==0){
-					continue;
-				}
-				if(listEmployeeSupers.Any(x=>x.EmployeeNum==_listEmployees[i].ReportsTo)){
-					continue;
-				}
-				Employee supervisor = Employees.GetEmp(_listEmployees[i].ReportsTo);
-				if(supervisor != null) {
-					listEmployeeSupers.Add(supervisor);
-				}
-			}
-			listEmployeeSupers=listEmployeeSupers.OrderBy(x => x.FName).ToList();
-			comboSupervisor.Items.AddList(listEmployeeSupers,x => x.FName);
-			comboSupervisor.SetSelected(0);
-			_listDefs=Defs.GetDefsForCategory(DefCat.CertificationCategories,true);
-			listBoxCategories.Items.Add("All");
-			listBoxCategories.Items.AddList(_listDefs,x => x.ItemName);
-			listBoxCategories2.Items.Add("All");
-			listBoxCategories2.Items.AddList(_listDefs,x => x.ItemName);
-			listBoxCategories.SetSelected(0);
-			listBoxCategories2.SetSelected(0);
-			_listCerts=Certs.GetAll(true);
-			List<Cert> listCerts=GetCertsForCategories();
-			//Make sure that the cert itself is not hidden nor is the category it is associated with hidden
-			listBoxCertification.Items.AddList(listCerts,x => x.Description);
-			labelCertification.Visible=false;
-			listBoxCertification.Visible=false;
-			labelCategories2.Visible=false;
-			listBoxCategories2.Visible=false;
-			checkSortDateCertComplete.Visible=false;
-			LayoutManager.MoveLocation(labelCategories2,new Point(labelEmployee.Location.X,labelEmployee.Location.Y));
-			LayoutManager.MoveLocation(listBoxCategories2,new Point(listBoxEmployee.Location.X,listBoxEmployee.Location.Y));
-			LayoutManager.MoveLocation(labelCertification,new Point(labelCategories.Location.X,labelCategories.Location.Y));
-			LayoutManager.MoveLocation(listBoxCertification,new Point(listBoxCategories.Location.X,listBoxCategories.Location.Y));
-			LayoutManager.MoveLocation(checkSortDateCertComplete,new Point(checkIncomplete.Location.X,checkIncomplete.Location.Y));
-			FillGrid();
-		}
+    public FormCertifications()
+    {
+        InitializeComponent();
+    }
 
-		private void FillGrid() {
-			if(radioCategory.Checked) {//Based on groupBoxOrderBy
-				if(checkSortDate.Checked && !checkIncomplete.Checked) {
-					FillGridByCategoryCertCompletionDate();//Sorted by Cert Completion Date, then by Cert item order for incomplete Certs
-				}
-				else {
-					FillGridByCategoryItemOrder();//Sorted by Category item order, then by Cert item order
-				}
-			}
-			else{
-				FillGridByCertComplete();
-			}
-		}
+    private void FormCertifications_Load(object sender, EventArgs e)
+    {
+        _employees = Employees.GetDeepCopy();
 
-		private void FillGridByCategoryCertCompletionDate() {
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn(Lan.g("FormCertifications","Category"),80);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Certification"),175);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Wiki Page"),175);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Date"),65);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Note"),207);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			string lastCategoryName="";
-			List<CertEmployee> listCertEmployees=new List<CertEmployee>();
-			if(listBoxEmployee.SelectedIndex>-1) {//Check when loading and no employee selected
-				listCertEmployees=CertEmployees.GetAllForEmployee(listBoxEmployee.GetSelected<Employee>().EmployeeNum)
-					.OrderBy(x => x.DateCompleted).ToList();
-			}
-			Func<Cert,DateTime> funcSort=delegate(Cert x) {
-				if(listCertEmployees.Find(y => y.CertNum==x.CertNum)==null) {
-					return DateTime.MinValue;
-				}
-				else {
-					return listCertEmployees.Find(y => y.CertNum==x.CertNum).DateCompleted;
-				}
-			};
-			List<Cert> listCertsByDateCompleted=_listCerts.FindAll(x => !x.IsHidden && _listDefs.Any(y => y.DefNum==x.CertCategoryNum))
-				.OrderByDescending(funcSort)
-				.ThenBy(x => _listDefs.Find(y => y.DefNum==x.CertCategoryNum).ItemOrder)
-				.ThenBy(x => x.ItemOrder).ToList();
-			for(int i=0;i<listCertsByDateCompleted.Count;i++) {
-				CertEmployee certEmployee=listCertEmployees.Find(x=>x.CertNum==listCertsByDateCompleted[i].CertNum);
-				Def def=_listDefs.Find(x => x.DefNum==listCertsByDateCompleted[i].CertCategoryNum);
-				if(listBoxCategories.SelectedIndices.Contains(0)) {
-					//"All" is selected, so no filter.
-				}
-				else{
-					if(!listBoxCategories.GetListSelected<Def>().Contains(def)) {
-						continue;
-					}
-				}
-				row=new GridRow();
-				string categoryName=_listDefs.FirstOrDefault(x => x.DefNum==listCertsByDateCompleted[i].CertCategoryNum).ItemName;
-				if(lastCategoryName==categoryName) {
-					row.Cells.Add("");
-				}
-				else {
-					row.Cells.Add(categoryName);
-					lastCategoryName=categoryName;
-				}
-				row.Cells.Add(listCertsByDateCompleted[i].Description);
-				row.Cells.Add(listCertsByDateCompleted[i].WikiPageLink);
-				if(certEmployee==null) {
-					row.Cells.Add("");
-					row.Cells.Add("");
-				}
-				else {
-					row.Cells.Add(certEmployee.DateCompleted.ToShortDateString());
-					row.Cells.Add(certEmployee.Note);
-				}
-				row.Tag=listCertsByDateCompleted[i];//for double click
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-		}
+        var employee = _employees.Find(x => x.FName == " Escalate As Needed");
 
-		private void FillGridByCategoryItemOrder() { 
-			//No more than one employee can ever be selected.
-			//2 loops: first by def, then by cert.ItemOrder. 
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn(Lan.g("FormCertifications","Category"),80);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Certification"),175);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Wiki Page"),175);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Date"),65);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Note"),207);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			GridRow row;
-			string lastCategoryName="";
-			List<CertEmployee> listCertEmployees=new List<CertEmployee>();
-			if(listBoxEmployee.SelectedIndex>-1) {//Check when loading and no employee selected
-				listCertEmployees=CertEmployees.GetAllForEmployee(listBoxEmployee.GetSelected<Employee>().EmployeeNum)
-					.OrderBy(x => x.DateCompleted).ToList();
-			}
-			for(int i=0;i<_listDefs.Count;i++) { 
-				List<Cert> listCertsForCategory=_listCerts.FindAll(x => x.CertCategoryNum==_listDefs[i].DefNum && !x.IsHidden)
-					.OrderBy(x => x.ItemOrder).ToList();
-				for(int j=0;j<listCertsForCategory.Count;j++) {
-					CertEmployee certEmployeeCur=listCertEmployees.Find(x=>x.CertNum==listCertsForCategory[j].CertNum);
-					if(checkIncomplete.Checked && certEmployeeCur!=null) {//Only show incomplete Certs if checked
-						continue;
-					}
-					if(listBoxCategories.SelectedIndices.Contains(0)) {
-						//"All" is selected, so no filter.
-					}
-					else{
-						if(!listBoxCategories.GetListSelected<Def>().Contains(_listDefs[i])) {
-							continue;
-						}
-					}
-					row=new GridRow();	
-					string categoryName=_listDefs[i].ItemName;
-					if(lastCategoryName==categoryName) {
-						row.Cells.Add("");
-					}
-					else {
-						row.Cells.Add(categoryName);
-						lastCategoryName=categoryName;
-					}
-					row.Cells.Add(listCertsForCategory[j].Description);
-					row.Cells.Add(listCertsForCategory[j].WikiPageLink);
-					if(certEmployeeCur==null) {
-						row.Cells.Add("");
-						row.Cells.Add("");
-					}
-					else {
-						row.Cells.Add(certEmployeeCur.DateCompleted.ToShortDateString());
-						row.Cells.Add(certEmployeeCur.Note);
-					}
-					row.Tag=listCertsForCategory[j];//for double click
-					gridMain.ListGridRows.Add(row);
-				}
-			}
-			gridMain.EndUpdate();
-		}
+        _employees.Remove(employee);
 
-		private void FillGridByCertComplete() {
-			//Ordered by cert.ItemOrder, then by employee.FName
-			//Since we can only select 1 cert, there is only one loop, ordered by emp name.
-			//Only shows completed
-			gridMain.BeginUpdate();
-			gridMain.Columns.Clear();
-			GridColumn col=new GridColumn(Lan.g("FormCertifications","Certification"),175);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Wiki Page"),175);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Employee"),120);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Date"),65);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("FormCertifications","Note"),167);
-			gridMain.Columns.Add(col);
-			gridMain.ListGridRows.Clear();
-			string lastCertName="";
-			Cert certSelected=listBoxCertification.GetSelected<Cert>();
-			if(certSelected==null) {
-				gridMain.EndUpdate();
-			}
-			else {
-				List<CertEmployee> listCertEmployees=CertEmployees.GetAllForCert(certSelected.CertNum);
-				if(checkSortDateCertComplete.Checked) {
-					listCertEmployees=listCertEmployees.OrderByDescending(x => x.DateCompleted).ToList();
-				}
-				else {
-					listCertEmployees=listCertEmployees.OrderBy(x => _listEmployees.Find(y => y.EmployeeNum==x.EmployeeNum).FName).ToList();
-				}
-				for(int i=0;i<listCertEmployees.Count;i++) {
-					Employee employeeCur=_listEmployees.Find(x => x.EmployeeNum==listCertEmployees[i].EmployeeNum);
-					GridRow row=new GridRow();
-					if(certSelected.IsHidden){
-						continue;
-					}
-					if(employeeCur.IsHidden) {
-						continue;
-					}
-					if(lastCertName==certSelected.Description) {
-						row.Cells.Add("");
-						row.Cells.Add("");
-					}
-					else {
-						row.Cells.Add(certSelected.Description);
-						row.Cells.Add(certSelected.WikiPageLink);
-						lastCertName=certSelected.Description;
-					}
-					row.Cells.Add(employeeCur.FName+" "+employeeCur.LName);
-					row.Cells.Add(listCertEmployees[i].DateCompleted.ToShortDateString());
-					row.Cells.Add(listCertEmployees[i].Note);
-					gridMain.ListGridRows.Add(row);
-				}
-				gridMain.EndUpdate();
-			}
-		}
+        var employees = _employees.FindAll(x => x.IsHidden == false);
 
-		///<summary>Returns a list of certs that correspond to the selected CertCategories.</summary>
-		private List<Cert> GetCertsForCategories() {
-			List<Def> listDefsSelected;
-			if(listBoxCategories2.SelectedIndices.Contains(0)) {//If "All" is not selected then filter the list of defs.
-				listDefsSelected=new List<Def>(_listDefs);
-			}
-			else {//User selected specific defs.
-				listDefsSelected=listBoxCategories2.GetListSelected<Def>();
-			}
-			List<Cert> listCertsFiltered=_listCerts.FindAll(x => !x.IsHidden && listDefsSelected.Any(y => y.DefNum==x.CertCategoryNum))
-				.OrderBy(x => listDefsSelected.Find(y => y.DefNum==x.CertCategoryNum).ItemOrder)
-				.ThenBy(x => x.ItemOrder).ToList();
-			return listCertsFiltered;
-		}
+        listBoxEmployee.Items.AddList(employees, x => x.FName + " " + x.LName);
 
-		private void comboSupervisor_SelectionChangeCommitted(object sender,EventArgs e) {
-			if(comboSupervisor.SelectedIndex==0) {//If "Any" selected then reset
-				listBoxEmployee.Items.Clear();
-				List <Employee> listEmployees=_listEmployees.FindAll(x => x.IsHidden==false);
-				listBoxEmployee.Items.AddList(listEmployees,x => (x.FName+" "+x.LName));
-				FillGrid();
-				return;
-			}
-			Employee employeeSuper=comboSupervisor.GetSelected<Employee>();
-			if(employeeSuper==null) {//If clicking too fast this can happen
-				return;
-			}
-			listBoxEmployee.Items.Clear();
-			for(int i=0;i<_listEmployees.Count;i++) {
-				if(_listEmployees[i].ReportsTo!=employeeSuper.EmployeeNum) {
-					continue;
-				}
-				if(_listEmployees[i].IsHidden) {
-					continue;
-				}
-				listBoxEmployee.Items.Add(_listEmployees[i].FName+" "+_listEmployees[i].LName,_listEmployees[i]);
-			}
-		}
+        comboSupervisor.Items.Add("Any", new Employee());
 
-		private void butSetup_Click(object sender,EventArgs e) {
-			if(!Security.IsAuthorized(EnumPermType.CertificationSetup)) {
-				return;
-			}
-			using FormCertificationSetup formCertificationSetup=new FormCertificationSetup();
-			formCertificationSetup.ShowDialog();
-			//Certs and CertLinkCategories need DB refresh, listBoxCert only needs a reorder
-			_listCerts=Certs.GetAll(true);
-			listBoxCategories2_SelectionChangeCommitted(this,e);
-			FillGrid();
-		}
+        var employeeSupers = new List<Employee>();
+        foreach (var emp in _employees)
+        {
+            if (emp.ReportsTo == 0)
+            {
+                continue;
+            }
 
-		private void textEmpSearch_KeyUp(object sender,KeyEventArgs e) {
-			comboSupervisor.SetSelected(0);
-			string empNameSearch=SIn.String(textEmpSearch.Text).ToLower();
-			List<Employee> listEmployeesFiltered=_listEmployees.FindAll(x => x.FName.ToLower().StartsWith(empNameSearch));
-			listBoxEmployee.Items.Clear();
-			listEmployeesFiltered=listEmployeesFiltered.FindAll(x => x.IsHidden==false);
-			listBoxEmployee.Items.AddList(listEmployeesFiltered,x => (x.FName+" "+x.LName));
-			if(listBoxEmployee.Items.Count==1) {
-				listBoxEmployee.SelectedIndex=0;
-				listBoxEmployee_SelectionChangeCommitted(this,e);
-			}
-		}
+            if (employeeSupers.Any(x => x.EmployeeNum == emp.ReportsTo))
+            {
+                continue;
+            }
 
-		private void radioCategory_Click(object sender,EventArgs e) {
-			labelEmpSearch.Visible=true;
-			textEmpSearch.Visible=true;
-			labelCertification.Visible=false;
-			listBoxCertification.Visible=false;
-			labelCategories2.Visible=false;
-			listBoxCategories2.Visible=false;
-			labelCategories.Visible=true;
-			listBoxCategories.Visible=true;
-			labelEmployee.Visible=true;
-			listBoxEmployee.Visible=true;
-			labelReportsTo.Visible=true;
-			comboSupervisor.Visible=true;
-			checkIncomplete.Visible=true;
-			checkSortDate.Visible=true;
-			checkSortDateCertComplete.Visible=false;
-			FillGrid();
-		}
+            var supervisor = Employees.GetEmp(emp.ReportsTo);
+            if (supervisor != null)
+            {
+                employeeSupers.Add(supervisor);
+            }
+        }
 
-		private void radioCertification_Click(object sender,EventArgs e) {
-			labelEmpSearch.Visible=false;
-			textEmpSearch.Visible=false;
-			labelCertification.Visible=true;
-			listBoxCertification.Visible=true;
-			labelCategories2.Visible=true;
-			listBoxCategories2.Visible=true;
-			labelCategories.Visible=false;
-			listBoxCategories.Visible=false;
-			labelEmployee.Visible=false;
-			listBoxEmployee.Visible=false;
-			labelReportsTo.Visible=false;
-			comboSupervisor.Visible=false;
-			checkIncomplete.Visible=false;
-			checkSortDate.Visible=false;
-			checkSortDateCertComplete.Visible=true;
-			FillGrid();
-		}
+        employeeSupers = employeeSupers.OrderBy(x => x.FName).ToList();
 
-		private void listBoxEmployee_SelectionChangeCommitted(object sender,EventArgs e) {
-			FillGrid();
-		}
+        comboSupervisor.Items.AddList(employeeSupers, x => x.FName);
+        comboSupervisor.SetSelected(0);
 
-		private void listBoxCategories_SelectionChangeCommitted(object sender,EventArgs e) {
-			FillGrid();
-		}
+        _certificationCategoryDefs = Defs.GetDefsForCategory(DefCat.CertificationCategories, true);
 
-		private void listBoxCategories2_SelectionChangeCommitted(object sender,EventArgs e) {
-			List<Cert> listCertsFiltered=GetCertsForCategories();
-			listBoxCertification.Items.Clear();
-			listBoxCertification.Items.AddList(listCertsFiltered,x => x.Description);
-			if(listBoxCertification.Items.Count>0) {
-				listBoxCertification.SelectedIndex=0;
-			}
-			FillGrid();
-		}
+        listBoxCategories.Items.Add("All");
+        listBoxCategories.Items.AddList(_certificationCategoryDefs, x => x.ItemName);
+        listBoxCategories.SetSelected(0);
 
-		private void listBoxCertification_SelectionChangeCommitted(object sender,EventArgs e) {
-			FillGrid();
-		}
+        listBoxCategories2.Items.Add("All");
+        listBoxCategories2.Items.AddList(_certificationCategoryDefs, x => x.ItemName);
+        listBoxCategories2.SetSelected(0);
 
-		private void checkIncomplete_Click(object sender,EventArgs e) {
-			FillGrid();
-		}
+        _certs = Certs.GetAll(true);
 
-		private void checkSortDate_Click(object sender,EventArgs e) {
-			FillGrid();
-		}
+        var certs = GetCertsForCategories();
 
-		private void checkSortDateCertComplete_Click(object sender,EventArgs e) {
-			FillGrid();
-		}
+        listBoxCertification.Items.AddList(certs, x => x.Description);
 
-		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-			if(radioCertification.Checked) {
-				return;
-			}
-			if(!Security.IsAuthorized(EnumPermType.CertificationEmployee)) {
-				return;
-			}
-			if(listBoxEmployee.SelectedIndex==-1) {
-				MsgBox.Show(this,"Please select an Employee first.");
-				return;
-			}
-			Cert cert=Certs.GetOne(((Cert)gridMain.ListGridRows[e.Row].Tag).CertNum);
-			CertEmployee certEmployee=CertEmployees.GetOne(cert.CertNum,listBoxEmployee.GetSelected<Employee>().EmployeeNum);
-			using FormCertEmployee formCertEmployee=new FormCertEmployee();
-			formCertEmployee.Employee=listBoxEmployee.GetSelected<Employee>();
-			formCertEmployee.Cert=cert;
-			if(certEmployee==null) {//Is new so create a new instance
-				formCertEmployee.CertEmployee=new CertEmployee();
-				formCertEmployee.CertEmployee.IsNew=true;	
-			}
-			else {//If found we are editing
-				formCertEmployee.CertEmployee=certEmployee;	
-			}
-			formCertEmployee.ShowDialog();
-			if(formCertEmployee.DialogResult!=DialogResult.OK) {
-				return;
-			}
-			FillGrid();
-		}
+        labelCertification.Visible = false;
+        labelCertification.Location = new Point(labelCategories.Location.X, labelCategories.Location.Y);
 
-		private void butPrint_Click(object sender,EventArgs e) {
-			_pageNum=0;
-			_isHeadingPrinted=false;
-			PrinterL.TryPrintOrDebugRpPreview(pd_PrintPage,Lan.g(this,"Certifications printed"));
-		}
+        listBoxCertification.Visible = false;
+        listBoxCertification.Location = new Point(listBoxCategories.Location.X, listBoxCategories.Location.Y);
 
-		private void pd_PrintPage(object sender,PrintPageEventArgs e) {
-			Rectangle rectangleBounds=e.MarginBounds;
-			Graphics g=e.Graphics;//alias
-			string headingText;
-			Font fontHeading=new Font("Arial",13,FontStyle.Bold);
-			int yPosition=rectangleBounds.Top;
-			int centerPosition=rectangleBounds.X+rectangleBounds.Width/2;
-			int gridPrintPosition=0;
-			if(_isHeadingPrinted) {
-				//Heading has been printed, so do not create one.
-			}
-			else{
-				headingText=Lan.g(this,"Certifications Completed");
-				g.DrawString(headingText,fontHeading,Brushes.Black,centerPosition-g.MeasureString(headingText,fontHeading).Width/2,yPosition);
-				yPosition+=25;
-				_isHeadingPrinted=true;
-				gridPrintPosition=yPosition;
-			}
-			yPosition=gridMain.PrintPage(g,_pageNum,rectangleBounds,gridPrintPosition);
-			_pageNum++;
-			if(yPosition==-1) {
-				e.HasMorePages=true;
-			}
-			else {
-				e.HasMorePages=false;
-			}
-		}
+        labelCategories2.Visible = false;
+        labelCategories2.Location = new Point(labelEmployee.Location.X, labelEmployee.Location.Y);
 
-	}
+        listBoxCategories2.Visible = false;
+        listBoxCategories2.Location = new Point(listBoxEmployee.Location.X, listBoxEmployee.Location.Y);
+
+        checkSortDateCertComplete.Visible = false;
+        checkSortDateCertComplete.Location = new Point(checkIncomplete.Location.X, checkIncomplete.Location.Y);
+
+        FillGrid();
+    }
+
+    private void FillGrid()
+    {
+        if (radioCategory.Checked)
+        {
+            if (checkSortDate.Checked && !checkIncomplete.Checked)
+            {
+                FillGridByCategoryCertCompletionDate();
+            }
+            else
+            {
+                FillGridByCategoryItemOrder();
+            }
+        }
+        else
+        {
+            FillGridByCertComplete();
+        }
+    }
+
+    private void FillGridByCategoryCertCompletionDate()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Category", 80));
+        gridMain.Columns.Add(new GridColumn("Certification", 175));
+        gridMain.Columns.Add(new GridColumn("Wiki Page", 175));
+        gridMain.Columns.Add(new GridColumn("Date", 65));
+        gridMain.Columns.Add(new GridColumn("Note", 207));
+
+        gridMain.ListGridRows.Clear();
+
+        var lastCategoryName = "";
+        var certEmployees = new List<CertEmployee>();
+
+        if (listBoxEmployee.SelectedIndex > -1)
+        {
+            certEmployees = CertEmployees.GetAllForEmployee(listBoxEmployee.GetSelected<Employee>().EmployeeNum).OrderBy(x => x.DateCompleted).ToList();
+        }
+
+        var certsByDateCompleted = _certs
+            .FindAll(x => !x.IsHidden && _certificationCategoryDefs.Any(y => y.DefNum == x.CertCategoryNum))
+            .OrderByDescending(SortCert)
+            .ThenBy(x => _certificationCategoryDefs.Find(y => y.DefNum == x.CertCategoryNum).ItemOrder)
+            .ThenBy(x => x.ItemOrder).ToList();
+
+        foreach (var cert in certsByDateCompleted)
+        {
+            var certEmployee = certEmployees.Find(x => x.CertNum == cert.CertNum);
+            var def = _certificationCategoryDefs.Find(x => x.DefNum == cert.CertCategoryNum);
+
+            if (!listBoxCategories.SelectedIndices.Contains(0))
+            {
+                if (!listBoxCategories.GetListSelected<Def>().Contains(def))
+                {
+                    continue;
+                }
+            }
+
+            var gridRow = new GridRow();
+
+            var categoryName = _certificationCategoryDefs.FirstOrDefault(x => x.DefNum == cert.CertCategoryNum)?.ItemName;
+            if (lastCategoryName == categoryName)
+            {
+                gridRow.Cells.Add("");
+            }
+            else
+            {
+                gridRow.Cells.Add(categoryName);
+
+                lastCategoryName = categoryName;
+            }
+
+            gridRow.Cells.Add(cert.Description);
+            gridRow.Cells.Add(cert.WikiPageLink);
+
+            if (certEmployee is null)
+            {
+                gridRow.Cells.Add("");
+                gridRow.Cells.Add("");
+            }
+            else
+            {
+                gridRow.Cells.Add(certEmployee.DateCompleted.ToShortDateString());
+                gridRow.Cells.Add(certEmployee.Note);
+            }
+
+            gridRow.Tag = cert;
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+
+        return;
+
+        DateTime SortCert(Cert x)
+        {
+            return certEmployees.Find(y => y.CertNum == x.CertNum) == null ? DateTime.MinValue : certEmployees.Find(y => y.CertNum == x.CertNum).DateCompleted;
+        }
+    }
+
+    private void FillGridByCategoryItemOrder()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Category", 80));
+        gridMain.Columns.Add(new GridColumn("Certification", 175));
+        gridMain.Columns.Add(new GridColumn("Wiki Page", 175));
+        gridMain.Columns.Add(new GridColumn("Date", 65));
+        gridMain.Columns.Add(new GridColumn("Note", 207));
+
+        gridMain.ListGridRows.Clear();
+
+        var lastCategoryName = "";
+
+        var certEmployees = new List<CertEmployee>();
+        if (listBoxEmployee.SelectedIndex > -1)
+        {
+            certEmployees = CertEmployees
+                .GetAllForEmployee(listBoxEmployee.GetSelected<Employee>().EmployeeNum)
+                .OrderBy(x => x.DateCompleted)
+                .ToList();
+        }
+
+        foreach (var def in _certificationCategoryDefs)
+        {
+            var certsForCategory = _certs
+                .FindAll(x => x.CertCategoryNum == def.DefNum && !x.IsHidden)
+                .OrderBy(x => x.ItemOrder)
+                .ToList();
+
+            foreach (var cert in certsForCategory)
+            {
+                var certEmployeeCur = certEmployees.Find(x => x.CertNum == cert.CertNum);
+                if (checkIncomplete.Checked && certEmployeeCur != null)
+                {
+                    continue;
+                }
+
+                if (!listBoxCategories.SelectedIndices.Contains(0))
+                {
+                    if (!listBoxCategories.GetListSelected<Def>().Contains(def))
+                    {
+                        continue;
+                    }
+                }
+
+                var gridRow = new GridRow();
+
+                var categoryName = def.ItemName;
+                if (lastCategoryName == categoryName)
+                {
+                    gridRow.Cells.Add("");
+                }
+                else
+                {
+                    gridRow.Cells.Add(categoryName);
+
+                    lastCategoryName = categoryName;
+                }
+
+                gridRow.Cells.Add(cert.Description);
+                gridRow.Cells.Add(cert.WikiPageLink);
+                if (certEmployeeCur == null)
+                {
+                    gridRow.Cells.Add("");
+                    gridRow.Cells.Add("");
+                }
+                else
+                {
+                    gridRow.Cells.Add(certEmployeeCur.DateCompleted.ToShortDateString());
+                    gridRow.Cells.Add(certEmployeeCur.Note);
+                }
+
+                gridRow.Tag = cert;
+
+                gridMain.ListGridRows.Add(gridRow);
+            }
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void FillGridByCertComplete()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn(Lan.g("FormCertifications", "Certification"), 175));
+        gridMain.Columns.Add(new GridColumn(Lan.g("FormCertifications", "Wiki Page"), 175));
+        gridMain.Columns.Add(new GridColumn(Lan.g("FormCertifications", "Employee"), 120));
+        gridMain.Columns.Add(new GridColumn(Lan.g("FormCertifications", "Date"), 65));
+        gridMain.Columns.Add(new GridColumn(Lan.g("FormCertifications", "Note"), 167));
+
+        gridMain.ListGridRows.Clear();
+
+        var lastCertName = "";
+        var certSelected = listBoxCertification.GetSelected<Cert>();
+        if (certSelected == null)
+        {
+        }
+        else
+        {
+            var certEmployees = CertEmployees.GetAllForCert(certSelected.CertNum);
+
+            certEmployees = checkSortDateCertComplete.Checked
+                ? certEmployees
+                    .OrderByDescending(x => x.DateCompleted).ToList()
+                : certEmployees
+                    .OrderBy(x => _employees.Find(y => y.EmployeeNum == x.EmployeeNum).FName)
+                    .ToList();
+
+            foreach (var certEmployee in certEmployees)
+            {
+                var employee = _employees.Find(x => x.EmployeeNum == certEmployee.EmployeeNum);
+
+                var gridRow = new GridRow();
+
+                if (certSelected.IsHidden)
+                {
+                    continue;
+                }
+
+                if (employee.IsHidden)
+                {
+                    continue;
+                }
+
+                if (lastCertName == certSelected.Description)
+                {
+                    gridRow.Cells.Add("");
+                    gridRow.Cells.Add("");
+                }
+                else
+                {
+                    gridRow.Cells.Add(certSelected.Description);
+                    gridRow.Cells.Add(certSelected.WikiPageLink);
+
+                    lastCertName = certSelected.Description;
+                }
+
+                gridRow.Cells.Add(employee.FName + " " + employee.LName);
+                gridRow.Cells.Add(certEmployee.DateCompleted.ToShortDateString());
+                gridRow.Cells.Add(certEmployee.Note);
+
+                gridMain.ListGridRows.Add(gridRow);
+            }
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private List<Cert> GetCertsForCategories()
+    {
+        var selectedDefs = listBoxCategories2.SelectedIndices.Contains(0) ? [.._certificationCategoryDefs] : listBoxCategories2.GetListSelected<Def>();
+
+        return _certs
+            .FindAll(x => !x.IsHidden && selectedDefs.Any(y => y.DefNum == x.CertCategoryNum))
+            .OrderBy(x => selectedDefs.Find(y => y.DefNum == x.CertCategoryNum).ItemOrder)
+            .ThenBy(x => x.ItemOrder)
+            .ToList();
+    }
+
+    private void ComboBoxSupervisor_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        if (comboSupervisor.SelectedIndex == 0)
+        {
+            listBoxEmployee.Items.Clear();
+
+            var employees = _employees.FindAll(x => x.IsHidden == false);
+
+            listBoxEmployee.Items.AddList(employees, x => x.FName + " " + x.LName);
+
+            FillGrid();
+
+            return;
+        }
+
+        var selectedEmployee = comboSupervisor.GetSelected<Employee>();
+        if (selectedEmployee is null)
+        {
+            return;
+        }
+
+        listBoxEmployee.Items.Clear();
+
+        foreach (var employee in _employees)
+        {
+            if (employee.ReportsTo != selectedEmployee.EmployeeNum)
+            {
+                continue;
+            }
+
+            if (employee.IsHidden)
+            {
+                continue;
+            }
+
+            listBoxEmployee.Items.Add(employee.FName + " " + employee.LName, employee);
+        }
+    }
+
+    private void ButtonSetup_Click(object sender, EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.CertificationSetup))
+        {
+            return;
+        }
+
+        using var formCertificationSetup = new FormCertificationSetup();
+
+        formCertificationSetup.ShowDialog();
+
+        _certs = Certs.GetAll(true);
+
+        ListBoxCategories2_SelectionChangeCommitted(this, e);
+
+        FillGrid();
+    }
+
+    private void TextBoxEmployeeSearch_KeyUp(object sender, KeyEventArgs e)
+    {
+        comboSupervisor.SetSelected(0);
+
+        var empNameSearch = SIn.String(textEmpSearch.Text).ToLower();
+
+        var filteredEmployees = _employees
+            .Where(x => x.FName.ToLower().StartsWith(empNameSearch))
+            .Where(x => x.IsHidden == false)
+            .ToList();
+
+        listBoxEmployee.Items.Clear();
+        listBoxEmployee.Items.AddList(filteredEmployees, x => x.FName + " " + x.LName);
+
+        if (listBoxEmployee.Items.Count != 1)
+        {
+            return;
+        }
+
+        listBoxEmployee.SelectedIndex = 0;
+        ListBoxEmployee_SelectionChangeCommitted(this, e);
+    }
+
+    private void RadioButtonCategory_Click(object sender, EventArgs e)
+    {
+        labelEmpSearch.Visible = true;
+        textEmpSearch.Visible = true;
+        labelCertification.Visible = false;
+        listBoxCertification.Visible = false;
+        labelCategories2.Visible = false;
+        listBoxCategories2.Visible = false;
+        labelCategories.Visible = true;
+        listBoxCategories.Visible = true;
+        labelEmployee.Visible = true;
+        listBoxEmployee.Visible = true;
+        labelReportsTo.Visible = true;
+        comboSupervisor.Visible = true;
+        checkIncomplete.Visible = true;
+        checkSortDate.Visible = true;
+        checkSortDateCertComplete.Visible = false;
+
+        FillGrid();
+    }
+
+    private void RadioButtonCertification_Click(object sender, EventArgs e)
+    {
+        labelEmpSearch.Visible = false;
+        textEmpSearch.Visible = false;
+        labelCertification.Visible = true;
+        listBoxCertification.Visible = true;
+        labelCategories2.Visible = true;
+        listBoxCategories2.Visible = true;
+        labelCategories.Visible = false;
+        listBoxCategories.Visible = false;
+        labelEmployee.Visible = false;
+        listBoxEmployee.Visible = false;
+        labelReportsTo.Visible = false;
+        comboSupervisor.Visible = false;
+        checkIncomplete.Visible = false;
+        checkSortDate.Visible = false;
+        checkSortDateCertComplete.Visible = true;
+
+        FillGrid();
+    }
+
+    private void ListBoxEmployee_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void ListBoxCategories_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void ListBoxCategories2_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        var filteredCerts = GetCertsForCategories();
+
+        listBoxCertification.Items.Clear();
+        listBoxCertification.Items.AddList(filteredCerts, x => x.Description);
+
+        if (listBoxCertification.Items.Count > 0)
+        {
+            listBoxCertification.SelectedIndex = 0;
+        }
+
+        FillGrid();
+    }
+
+    private void ListBoxCertification_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void CheckBoxIncomplete_Click(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void CheckBoxSortDate_Click(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void CheckBoxSortDateCertComplete_Click(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        if (radioCertification.Checked)
+        {
+            return;
+        }
+
+        if (!Security.IsAuthorized(EnumPermType.CertificationEmployee))
+        {
+            return;
+        }
+
+        if (listBoxEmployee.SelectedIndex == -1)
+        {
+            ShowError("Please select an Employee first.");
+            return;
+        }
+
+        var employee = listBoxEmployee.GetSelected<Employee>();
+
+        var cert = Certs.GetOne(((Cert) gridMain.ListGridRows[e.Row].Tag).CertNum);
+        var certEmployee = CertEmployees.GetOne(cert.CertNum, employee.EmployeeNum);
+
+        certEmployee ??= new CertEmployee
+        {
+            IsNew = true
+        };
+
+        using var formCertEmployee = new FormCertEmployee(employee, cert, certEmployee);
+
+        if (formCertEmployee.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void ButtonPrint_Click(object sender, EventArgs e)
+    {
+        _pageNumber = 0;
+        _isHeadingPrinted = false;
+
+        PrinterL.TryPrintOrDebugRpPreview(PrintPage, "Certifications printed");
+    }
+
+    private void PrintPage(object sender, PrintPageEventArgs e)
+    {
+        var fontHeading = new Font("Arial", 13, FontStyle.Bold);
+
+        var y = e.MarginBounds.Top;
+        var cx = e.MarginBounds.X + e.MarginBounds.Width / 2;
+
+        if (!_isHeadingPrinted)
+        {
+            const string header = "Certifications Completed";
+
+            e.Graphics.DrawString(header, fontHeading, Brushes.Black, cx - e.Graphics.MeasureString(header, fontHeading).Width / 2, y);
+            y += 25;
+
+            _isHeadingPrinted = true;
+        }
+
+        y = gridMain.PrintPage(e.Graphics, _pageNumber, e.MarginBounds, y);
+
+        _pageNumber++;
+
+        e.HasMorePages = y == -1;
+    }
 }

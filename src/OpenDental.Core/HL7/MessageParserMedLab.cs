@@ -6,6 +6,8 @@ using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.HL7 {
 	///<summary>This is the engine that will parse our incoming HL7 messages for MedLab interfaces.</summary>
@@ -948,7 +950,7 @@ namespace OpenDentBusiness.HL7 {
 			else {//Using AtoZ folder (or Cloud)--------------------------------------------------------------------
 				string embeddedFile="";
 				try {
-					string embeddedFilePath=ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"MedLabEmbeddedFiles");
+					string embeddedFilePath=ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"MedLabEmbeddedFiles");
 					if(true && !Directory.Exists(embeddedFilePath)) {
 						Directory.CreateDirectory(embeddedFilePath);
 					}

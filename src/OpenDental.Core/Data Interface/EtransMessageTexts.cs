@@ -2,20 +2,18 @@ using System.Collections.Generic;
 using System.Text;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class EtransMessageTexts
 {
-    
-    public static long Insert(EtransMessageText etransMessageText)
+    public static void Insert(EtransMessageText etransMessageText)
     {
-        return EtransMessageTextCrud.Insert(etransMessageText);
+        EtransMessageTextCrud.Insert(etransMessageText);
     }
 
-    ///<summary>If the message text is X12, then it always normalizes it to include carriage returns for better readability.</summary>
     public static string GetMessageText(long etransMessageTextNum)
     {
         if (etransMessageTextNum == 0) return "";
@@ -24,10 +22,6 @@ public class EtransMessageTexts
         return TidyMessageTextX12(msgText);
     }
 
-    /// <summary>
-    ///     This function is used to enhance readabilty of the X12 message when displayed.
-    ///     This function is specifically for X12 messages and not for other formats (ex not for Canadian).
-    /// </summary>
     private static string TidyMessageTextX12(string msgText)
     {
         if (!X12object.IsX12(msgText)) return msgText;
@@ -41,10 +35,6 @@ public class EtransMessageTexts
         return stringBuilder.ToString();
     }
 
-    /// <summary>
-    ///     Returns dictionary such that the key is an etransMessageTextNum and the value is the MessageText.
-    ///     If the message text is X12, then it always normalizes it to include carriage returns for better readability.
-    /// </summary>
     public static Dictionary<long, string> GetMessageTexts(List<long> listEtransMessageTextNums, bool isFormattingNeededX12 = true)
     {
         var retVal = new Dictionary<long, string>();
@@ -62,10 +52,6 @@ public class EtransMessageTexts
         return retVal;
     }
 
-    /// <summary>
-    ///     Returns any EtransMessageText where the MessageText is identical to the given messageText.
-    ///     Otherwise if none returns null.
-    /// </summary>
     public static EtransMessageText GetMostRecentForType(EtransType etransType)
     {
         var command = "SELECT etransmessagetext.* FROM etransmessagetext "
@@ -76,21 +62,6 @@ public class EtransMessageTexts
         return EtransMessageTextCrud.SelectOne(command);
     }
 
-    /*
-    
-    public static void Update(EtransMessageText EtransMessageText) {
-
-        string command= "UPDATE EtransMessageText SET "
-            +"ClearingHouseNum = '"   +POut.PInt   (EtransMessageText.ClearingHouseNum)+"', "
-            +"Etype= '"               +POut.PInt   ((int)EtransMessageText.Etype)+"', "
-            +"Note= '"                +POut.PString(EtransMessageText.Note)+"', "
-            +"EtransMessageTextMessageTextNum= '"+POut.PInt   (EtransMessageText.EtransMessageTextMessageTextNum)+"' "
-            +"WHERE EtransMessageTextNum = "+POut.PInt(EtransMessageText.EtransMessageTextNum);
-        Db.NonQ(command);
-    }
-*/
-
-    
     public static void Delete(long etransMessageTextNum, long etransNum = 0)
     {
         if (etransMessageTextNum == 0) return;

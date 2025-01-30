@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormAutoNoteExport {
 		/// <summary>
 		/// Required designer variable.
@@ -49,7 +49,7 @@
 			this.treeNotes.SelectedImageIndex = 1;
 			this.treeNotes.Size = new System.Drawing.Size(263, 636);
 			this.treeNotes.TabIndex = 0;
-			this.treeNotes.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.node_AfterCheck);
+			this.treeNotes.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.Node_AfterCheck);
 			// 
 			// imageListTree
 			// 
@@ -74,7 +74,7 @@
 			this.checkCollapse.Size = new System.Drawing.Size(100, 20);
 			this.checkCollapse.TabIndex = 3;
 			this.checkCollapse.Text = "Collapse All";
-			this.checkCollapse.CheckedChanged += new System.EventHandler(this.checkCollapse_CheckedChanged);
+			this.checkCollapse.CheckedChanged += new System.EventHandler(this.CheckBoxCollapse_CheckedChanged);
 			// 
 			// butExport
 			// 
@@ -85,7 +85,7 @@
 			this.butExport.TabIndex = 2;
 			this.butExport.Text = "Export Selected";
 			this.butExport.UseVisualStyleBackColor = true;
-			this.butExport.Click += new System.EventHandler(this.butExport_Click);
+			this.butExport.Click += new System.EventHandler(this.ButtonExport_Click);
 			// 
 			// butClear
 			// 
@@ -96,7 +96,7 @@
 			this.butClear.TabIndex = 6;
 			this.butClear.Text = "Clear Selection";
 			this.butClear.UseVisualStyleBackColor = true;
-			this.butClear.Click += new System.EventHandler(this.butClear_Click);
+			this.butClear.Click += new System.EventHandler(this.ButtonClear_Click);
 			// 
 			// butSelectAll
 			// 
@@ -107,7 +107,7 @@
 			this.butSelectAll.TabIndex = 7;
 			this.butSelectAll.Text = "Select All";
 			this.butSelectAll.UseVisualStyleBackColor = true;
-			this.butSelectAll.Click += new System.EventHandler(this.butSelectAll_Click);
+			this.butSelectAll.Click += new System.EventHandler(this.ButtonSelectAll_Click);
 			// 
 			// FormAutoNoteExport
 			// 

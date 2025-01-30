@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using CodeBase;
 using System.Linq;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness{
 	public class SheetsInternal {

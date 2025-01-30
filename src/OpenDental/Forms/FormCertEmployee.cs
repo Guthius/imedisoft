@@ -1,77 +1,98 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental {
-	public partial class FormCertEmployee:FormODBase {
-		public CertEmployee CertEmployee;
-		public Cert Cert;
-		public Employee Employee;
+namespace OpenDental.Forms;
 
-		public FormCertEmployee() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormCertEmployee : FormODBase
+{
+    private readonly Employee _employee;
+    private readonly Cert _cert;
+    private readonly CertEmployee _certEmployee;
 
-		private void FormCertEmployee_Load(object sender, EventArgs e){
-			//Employee(read only),Cert description(read only), categories(read only), date, note, user
-			Employee=Employees.GetEmp(Employee.EmployeeNum);
-			textEmployee.Text=Employee.FName+" "+Employee.LName;
-			textCertification.Text=Cert.Description;
-			textCertCategories.Text=Defs.GetDef(DefCat.CertificationCategories,Cert.CertCategoryNum).ItemName;
-			if(CertEmployee.IsNew) {
-				return;
-			}
-			textDateCompleted.Text=CertEmployee.DateCompleted.ToShortDateString();
-			textNote.Text=CertEmployee.Note;
-		}
+    public FormCertEmployee(Employee employee, Cert cert, CertEmployee certEmployee)
+    {
+        _employee = employee;
+        _cert = cert;
+        _certEmployee = certEmployee;
 
-		private void butToday_Click(object sender,EventArgs e) {
-			textDateCompleted.Text=DateTime.Today.ToShortDateString();
-			this.ActiveControl=textNote;
-		}
+        InitializeComponent();
+    }
 
-		private void butDelete_Click(object sender,EventArgs e) {
-			if(CertEmployee.IsNew) {
-				DialogResult=DialogResult.Cancel;
-				return;
-			}		
-			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Delete Certification Completion?")) {
-				return;
-			}
-			CertEmployees.Delete(CertEmployee.CertEmployeeNum);
-			DialogResult=DialogResult.OK;
-		}
+    private void FormCertEmployee_Load(object sender, EventArgs e)
+    {
+        textEmployee.Text = _employee.FName + " " + _employee.LName;
+        textCertification.Text = _cert.Description;
+        textCertCategories.Text = Defs.GetDef(DefCat.CertificationCategories, _cert.CertCategoryNum).ItemName;
 
-		private void butSave_Click(object sender,EventArgs e) {
-			if(!textDateCompleted.IsValid() || textDateCompleted.Text=="") {
-				MsgBox.Show(this,"Please enter a valid date.");
-				return;
-			}
-			if(SIn.Date(textDateCompleted.Text)>DateTime.Today) {
-				MsgBox.Show(this,"Date can not be greater than today.");
-				return;
-			}
-			CertEmployee.DateCompleted=SIn.Date(textDateCompleted.Text);
-			CertEmployee.Note=SIn.String(textNote.Text);
-			CertEmployee.UserNum=Security.CurUser.UserNum;
-			if(CertEmployee.IsNew) {
-				CertEmployee.CertNum=Cert.CertNum;
-				CertEmployee.EmployeeNum=Employee.EmployeeNum;				
-				CertEmployees.Insert(CertEmployee);				
-			}
-			else {
-				CertEmployees.Update(CertEmployee);
-			}
-			DialogResult=DialogResult.OK;
-		}
+        if (_certEmployee.IsNew)
+        {
+            return;
+        }
 
-	}
+        textDateCompleted.Text = _certEmployee.DateCompleted.ToShortDateString();
+        textNote.Text = _certEmployee.Note;
+    }
+
+    private void ButtonToday_Click(object sender, EventArgs e)
+    {
+        textDateCompleted.Text = DateTime.Today.ToShortDateString();
+
+        ActiveControl = textNote;
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (_certEmployee.IsNew)
+        {
+            DialogResult = DialogResult.Cancel;
+
+            return;
+        }
+
+        if (!ConfirmOk("Delete Certification Completion?"))
+        {
+            return;
+        }
+
+        CertEmployees.Delete(_certEmployee.CertEmployeeNum);
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (!DateTime.TryParse(textDateCompleted.Text, out var dateCompleted))
+        {
+            ShowError("Please enter a valid date.");
+            return;
+        }
+
+        if (dateCompleted > DateTime.Today)
+        {
+            ShowError("Date can not be greater than today.");
+            return;
+        }
+
+        _certEmployee.DateCompleted = dateCompleted;
+        _certEmployee.Note = SIn.String(textNote.Text);
+        _certEmployee.UserNum = Security.CurUser.UserNum;
+
+        if (_certEmployee.IsNew)
+        {
+            _certEmployee.CertNum = _cert.CertNum;
+            _certEmployee.EmployeeNum = _employee.EmployeeNum;
+
+            CertEmployees.Insert(_certEmployee);
+        }
+        else
+        {
+            CertEmployees.Update(_certEmployee);
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

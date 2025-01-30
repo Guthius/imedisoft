@@ -1,38 +1,26 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using CDT;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Misc;
 
 namespace OpenDentBusiness;
 
-
 public class PaySplits
 {
-    #region Insert
-
-    
-    public static long Insert(PaySplit split)
+    public static void Insert(PaySplit split)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         split.SecUserNumEntry = Security.CurUser.UserNum;
         split.SecurityHash = HashFields(split);
-        return PaySplitCrud.Insert(split);
+        PaySplitCrud.Insert(split);
     }
 
-    #endregion
-
-    #region Get Methods
-
-    /// <summary>
-    ///     Returns all paySplits for the given patNum, organized by DatePay.  WARNING! Also includes related paysplits
-    ///     that aren't actually attached to patient.  Includes any split where payment is for this patient.
-    /// </summary>
     public static PaySplit[] Refresh(long patNum)
     {
         /*This query was too slow
@@ -52,10 +40,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command).ToArray();
     }
 
-    /// <summary>
-    ///     Returns all paySplits for the given patNum, organized by DatePay.  WARNING! Also includes related paysplits
-    ///     that aren't actually attached to patient.  Includes any split where payment is for this patient.
-    /// </summary>
     public static List<PaySplit> GetPatientData(long patNum)
     {
         /*This query was too slow
@@ -75,7 +59,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a list of paysplits that have AdjNum of any of the passed in adjustments.</summary>
     public static List<PaySplit> GetForAdjustments(List<long> listAdjustNums)
     {
         if (listAdjustNums == null || listAdjustNums.Count == 0) return new List<PaySplit>();
@@ -84,10 +67,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns all payment splits associated with the payment plan charges provided. Ignores payment splits with
-    ///     PayPlanChargeNum of 0.
-    /// </summary>
     public static List<PaySplit> GetForPayPlanCharges(List<long> listPayPlanChargeNums)
     {
         if (listPayPlanChargeNums.IsNullOrEmpty()) return new List<PaySplit>();
@@ -96,7 +75,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    ///<summary>Used from payment window to get all paysplits for the payment.</summary>
     public static List<PaySplit> GetForPayment(long payNum)
     {
         var command =
@@ -105,20 +83,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Used by the ODApi, acquires a list of PaySplits from the DB based on a payNum and/or patNum.
-    ///     Returns null if nothing is found.
-    /// </summary>
-    public static List<PaySplit> GetPaySplitsForApi(long payNum, long patNum, int limit, int offset)
-    {
-        var command = "SELECT * FROM paysplit WHERE SecDateTEdit>=" + SOut.DateTime(DateTime.MinValue) + " ";
-        if (payNum != 0) command += "AND PayNum=" + SOut.Long(payNum) + " ";
-        if (patNum != 0) command += "AND PatNum=" + SOut.Long(patNum) + " ";
-        command += "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return PaySplitCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets the splits for all the payments passed in.</summary>
     public static List<PaySplit> GetForPayments(List<long> listPayNums)
     {
         if (listPayNums.IsNullOrEmpty()) return new List<PaySplit>();
@@ -137,7 +101,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    ///<summary>Inserts all paysplits with the provided payNum. All paysplits should be for the same payment. </summary>
     public static void InsertMany(long payNum, List<PaySplit> listSplits)
     {
         foreach (var split in listSplits)
@@ -163,22 +126,6 @@ public class PaySplits
         PaySplitCrud.InsertMany(listSplits);
     }
 
-    ///<summary>Gets one paysplit using the specified SplitNum.</summary>
-    public static PaySplit GetOne(long splitNum)
-    {
-        var command = "SELECT * FROM paysplit WHERE SplitNum=" + SOut.Long(splitNum);
-        return PaySplitCrud.SelectOne(command);
-    }
-
-    ///<summary>Used from FormPayment to return the total payments for a procedure without requiring a supplied list.</summary>
-    public static string GetTotForProc(long procNum)
-    {
-        var command = "SELECT SUM(paysplit.SplitAmt) FROM paysplit "
-                      + "WHERE paysplit.ProcNum=" + SOut.Long(procNum);
-        return DataCore.GetScalar(command);
-    }
-
-    ///<summary>Returns all paySplits for the given procNum. Must supply a list of all paysplits for the patient.</summary>
     public static List<PaySplit> GetForProc(long procNum, PaySplit[] List)
     {
         var listPaySplits = new List<PaySplit>();
@@ -189,16 +136,11 @@ public class PaySplits
         return listPaySplits;
     }
 
-    ///<summary>Used from FormAdjust to display and calculate payments for procs attached to adjustments.</summary>
     public static double GetTotForProc(Procedure procCur)
     {
         return GetForProcs(ListTools.FromSingle(procCur.ProcNum)).Sum(x => x.SplitAmt);
     }
-
-    /// <summary>
-    ///     Used from FormPaySplitEdit.  Returns total payments for a procedure for all paysplits other than the supplied
-    ///     excluded paysplit.
-    /// </summary>
+    
     public static double GetTotForProc(long procNum, PaySplit[] List, PaySplit paySplitToExclude, out int countSplitsAttached)
     {
         double retVal = 0;
@@ -216,43 +158,6 @@ public class PaySplits
         return retVal;
     }
 
-    /// <summary>
-    ///     Used once in ContrAccount.  WARNING!  The returned list of 'paysplits' are not real paysplits.  They are
-    ///     actually grouped by patient and date.  Only the DateEntry, SplitAmt, PatNum, and ProcNum(one of many) are filled.
-    ///     Must supply a list which would include all paysplits for this payment.
-    /// </summary>
-    public static ArrayList GetGroupedForPayment(long payNum, PaySplit[] List)
-    {
-        var retVal = new ArrayList();
-        int matchI;
-        for (var i = 0; i < List.Length; i++)
-            if (List[i].PayNum == payNum)
-            {
-                //find a 'paysplit' with matching DateEntry and patnum
-                matchI = -1;
-                for (var j = 0; j < retVal.Count; j++)
-                    if (((PaySplit) retVal[j]).DateEntry == List[i].DateEntry && ((PaySplit) retVal[j]).PatNum == List[i].PatNum)
-                    {
-                        matchI = j;
-                        break;
-                    }
-
-                if (matchI == -1)
-                {
-                    retVal.Add(new PaySplit());
-                    matchI = retVal.Count - 1;
-                    ((PaySplit) retVal[matchI]).DateEntry = List[i].DateEntry;
-                    ((PaySplit) retVal[matchI]).PatNum = List[i].PatNum;
-                }
-
-                if (((PaySplit) retVal[matchI]).ProcNum == 0 && List[i].ProcNum != 0) ((PaySplit) retVal[matchI]).ProcNum = List[i].ProcNum;
-                ((PaySplit) retVal[matchI]).SplitAmt += List[i].SplitAmt;
-            }
-
-        return retVal;
-    }
-
-    ///<summary>Used in Payment window to get all paysplits for a single patient without using a supplied list.</summary>
     public static List<PaySplit> GetForPats(List<long> listPatNums)
     {
         var command = "SELECT * FROM paysplit "
@@ -260,26 +165,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Used once in ContrAccount to just get the splits for a single patient.  The supplied list also contains splits
-    ///     that are not necessarily for this one patient.
-    /// </summary>
-    public static PaySplit[] GetForPatient(long patNum, PaySplit[] List)
-    {
-        var retVal = new ArrayList();
-        for (var i = 0; i < List.Length; i++)
-            if (List[i].PatNum == patNum)
-                retVal.Add(List[i]);
-
-        var retList = new PaySplit[retVal.Count];
-        retVal.CopyTo(retList);
-        return retList;
-    }
-
-    /// <summary>
-    ///     For a given PayPlan, returns a table of PaySplits with additional payment information.
-    ///     The additional information from the payment table will be columns titled "CheckNum", "PayAmt", and "PayType"
-    /// </summary>
     public static DataTable GetForPayPlan(long payPlanNum)
     {
         var command = "SELECT paysplit.*,payment.CheckNum,payment.PayAmt,payment.PayType "
@@ -291,7 +176,6 @@ public class PaySplits
         return tableSplits;
     }
 
-    ///<summary>For a given PayPlan, returns a list of PaySplits associated to that PayPlan.</summary>
     public static List<PaySplit> GetForPayPlans(List<long> listPayPlanNums)
     {
         if (listPayPlanNums.Count == 0) return new List<PaySplit>();
@@ -304,34 +188,11 @@ public class PaySplits
         return listSplits;
     }
 
-    /// <summary>
-    ///     Gets paysplits from a provided datatable.  This was originally part of GetForPayPlan but can't be because it's
-    ///     passed through the Middle Tier.
-    /// </summary>
     public static List<PaySplit> GetFromBundled(DataTable dataTable)
     {
         return PaySplitCrud.TableToList(dataTable);
     }
 
-    ///<summary>Used once in ContrAccount.  Usually returns 0 unless there is a payplan for this payment and patient.</summary>
-    public static long GetPayPlanNum(long payNum, long patNum, PaySplit[] List)
-    {
-        for (var i = 0; i < List.Length; i++)
-            if (List[i].PayNum == payNum && List[i].PatNum == patNum && List[i].PayPlanNum != 0)
-                return List[i].PayPlanNum;
-
-        return 0;
-    }
-
-    /// <summary>
-    ///     Returns every unearned PaySplit associated to the patients passed in, including TP prepayments.
-    ///     This method can include some PaySplits that aren't directly associated to the patients passed in.
-    ///     These PaySplits will be splits that are indirectly associated to the patients passed in via the payment.
-    ///     E.g. a PatNum passed in is the PatNum on a payment but the payment has no PaySplits associated to the PatNum on the
-    ///     payment.
-    ///     These are payments made to another family / patient in the database. The Account module needs to know about these
-    ///     splits.
-    /// </summary>
     public static List<PaySplit> GetUnearnedForAccount(List<long> listPatNums)
     {
         var command = "SELECT * FROM paysplit WHERE PatNum IN (" + string.Join(",", listPatNums) + ") "
@@ -346,10 +207,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns unearned PaySplits associated to the patients that contribute to the unearned bucket.
-    ///     Hidden unearned types are ignored as well as any unearned PaySplit attached to a procedure (TP prepayments).
-    /// </summary>
     public static List<PaySplit> GetUnearnedForPats(List<long> listPatNums)
     {
         var listHiddenUnearnedTypes = GetHiddenUnearnedDefNums();
@@ -364,13 +221,11 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    /// <summary>Gets a list of all unearned types that are marked as hidden on account.</summary>
     public static List<long> GetHiddenUnearnedDefNums()
     {
         return Defs.GetHiddenUnearnedDefs().Select(x => x.DefNum).ToList();
     }
 
-    ///<summary>Returns the total amount of unearned for the patients. Provide a payNumExcluded to ignore a specific payment.</summary>
     public static decimal GetTotalAmountOfUnearnedForPats(List<long> listPatNums, long payNumExcluded = 0)
     {
         var listUnearnedSplits = GetUnearnedForPats(listPatNums);
@@ -379,20 +234,12 @@ public class PaySplits
         //At this point we know that the list of unearned splits contains all splits (negative and positive) that make up the unearned bucket.
         return (decimal) listUnearnedSplits.Sum(x => x.SplitAmt);
     }
-
-    /// <summary>
-    ///     Takes a procNum and returns a list of all paysplits associated to the procedure. Returns an empty list if
-    ///     there are none.
-    /// </summary>
+    
     public static List<PaySplit> GetPaySplitsFromProc(long procNum, bool onlyUnearned = false)
     {
         return GetPaySplitsFromProcs(new List<long> {procNum}, onlyUnearned);
     }
 
-    /// <summary>
-    ///     Takes a list of procNums and returns a list of all paysplits associated to the procedures. Returns an empty
-    ///     list if there are none.
-    /// </summary>
     public static List<PaySplit> GetPaySplitsFromProcs(List<long> listProcNums, bool onlyUnearned = false)
     {
         if (listProcNums == null || listProcNums.Count < 1) return new List<PaySplit>();
@@ -402,11 +249,6 @@ public class PaySplits
         return PaySplitCrud.SelectMany(command);
     }
 
-    #endregion
-
-    #region Update
-
-    
     public static void Update(PaySplit split)
     {
         if (IsPaySplitHashValid(split)) //Only rehash splits that are already valid
@@ -414,33 +256,16 @@ public class PaySplits
         PaySplitCrud.Update(split);
     }
 
-    
-    public static void Update(PaySplit paySplit, PaySplit oldPaySplit)
-    {
-        if (IsPaySplitHashValid(oldPaySplit)) //Only rehash splits that are already valid
-            paySplit.SecurityHash = HashFields(paySplit);
-        PaySplitCrud.Update(paySplit, oldPaySplit);
-    }
-
-    /// <summary>
-    ///     Takes a procedure and updates the provnum of each of the paysplits attached.
-    ///     Does nothing if there are no paysplits attached to the passed-in procedure.
-    /// </summary>
     public static void UpdateAttachedPaySplits(Procedure proc)
     {
         Db.NonQ($@"UPDATE paysplit SET ProvNum = {SOut.Long(proc.ProvNum)} WHERE ProcNum = {SOut.Long(proc.ProcNum)}");
     }
 
-    ///<summary>Unlinks all paysplits that are currently linked to the passed-in adjustment. (Sets paysplit.AdjNum to 0)</summary>
     public static void UnlinkForAdjust(Adjustment adj)
     {
         Db.NonQ($@"UPDATE paysplit SET AdjNum = 0 WHERE AdjNum = {SOut.Long(adj.AdjNum)}");
     }
 
-    /// <summary>
-    ///     Updates the provnum of all paysplits for a supplied adjustment.  Supply a list of splits to use that instead
-    ///     of querying the database.
-    /// </summary>
     public static void UpdateProvForAdjust(Adjustment adj, List<PaySplit> listSplits = null)
     {
         if (listSplits != null && listSplits.Count == 0) return;
@@ -452,10 +277,6 @@ public class PaySplits
 					WHERE SplitNum IN({string.Join(",", listSplits.Select(x => SOut.Long(x.SplitNum)))})");
     }
 
-    /// <summary>
-    ///     Goes to the db to grab current paysplits for the passed in paynum to insert, update, or delete db rows to
-    ///     match listNew.. Hashes new paySplits and existing valid splits.
-    /// </summary>
     public static bool Sync(List<PaySplit> listNew, long payNum)
     {
         var isHashNeeded = true;
@@ -474,18 +295,6 @@ public class PaySplits
         return PaySplitCrud.Sync(listNew, listOld, Security.CurUser.UserNum);
     }
 
-    #endregion
-
-    #region Delete
-
-    ///<summary>Deletes the paysplit.</summary>
-    public static void Delete(PaySplit split)
-    {
-        var command = "DELETE from paysplit WHERE SplitNum = " + SOut.Long(split.SplitNum);
-        Db.NonQ(command);
-    }
-
-    ///<summary>Deletes the paysplits by the SplitNums passed in.</summary>
     public static void DeleteMany(params long[] arraySplitNums)
     {
         if (arraySplitNums.IsNullOrEmpty()) return;
@@ -494,19 +303,6 @@ public class PaySplits
         Db.NonQ(command);
     }
 
-    ///<summary>Used from payment window AutoSplit button to delete paysplits when clicking AutoSplit more than once.</summary>
-    public static void DeleteForPayment(long payNum)
-    {
-        var command = "DELETE FROM paysplit"
-                      + " WHERE PayNum=" + SOut.Long(payNum);
-        Db.NonQ(command);
-    }
-
-    #endregion
-
-    #region Misc Methods
-
-    ///<summary>Returns true if a paysplit is attached to the associated procnum. Returns false otherwise.</summary>
     public static bool IsPaySplitAttached(long procNum)
     {
         var command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + SOut.Long(procNum);
@@ -520,10 +316,6 @@ public class PaySplits
                + $"'{Payments.GetPaymentTypeDesc(payment ?? Payments.GetPayment(paySplit.PayNum))}'";
     }
 
-    /// <summary>
-    ///     Returns the salted hash for the paysplit. Will return an empty string if the calling program is unable to use
-    ///     CDT.dll.
-    /// </summary>
     public static string HashFields(PaySplit split)
     {
         var unhashedText = split.PatNum + split.SplitAmt.ToString("F2") + split.DatePay.ToString("yyyy-MM-dd");
@@ -537,10 +329,6 @@ public class PaySplits
         }
     }
 
-    /// <summary>
-    ///     Validates the hash string in paysplit.SecurityHash. Returns true if it matches the expected hash, otherwise
-    ///     false.
-    /// </summary>
     public static bool IsPaySplitHashValid(PaySplit paySplit)
     {
         if (paySplit == null) return true;
@@ -550,6 +338,4 @@ public class PaySplits
         if (paySplit.SecurityHash == HashFields(paySplit)) return true;
         return false;
     }
-
-    #endregion
 }

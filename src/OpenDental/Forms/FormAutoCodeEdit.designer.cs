@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormAutoCodeEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -54,7 +47,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 19;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textDescript
 			// 
@@ -101,7 +94,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(88, 26);
 			this.butDelete.TabIndex = 29;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butAdd
 			// 
@@ -113,7 +106,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(84, 26);
 			this.butAdd.TabIndex = 28;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// checkLessIntrusive
 			// 
@@ -133,7 +126,7 @@ namespace OpenDental {
 			this.gridMain.Name = "gridMain";
 			this.gridMain.Size = new System.Drawing.Size(719, 378);
 			this.gridMain.TabIndex = 31;
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// FormAutoCodeEdit
 			// 

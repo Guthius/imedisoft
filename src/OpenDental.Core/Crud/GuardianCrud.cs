@@ -1,32 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class GuardianCrud
 {
-    public static Guardian SelectOne(long guardianNum)
-    {
-        var command = "SELECT * FROM guardian "
-                      + "WHERE GuardianNum = " + SOut.Long(guardianNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static Guardian SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<Guardian> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -51,26 +33,7 @@ public class GuardianCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<Guardian> listGuardians, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "Guardian";
-        var table = new DataTable(tableName);
-        table.Columns.Add("GuardianNum");
-        table.Columns.Add("PatNumChild");
-        table.Columns.Add("PatNumGuardian");
-        table.Columns.Add("Relationship");
-        table.Columns.Add("IsGuardian");
-        foreach (var guardian in listGuardians)
-            table.Rows.Add(SOut.Long(guardian.GuardianNum), SOut.Long(guardian.PatNumChild), SOut.Long(guardian.PatNumGuardian), SOut.Int((int) guardian.Relationship), SOut.Bool(guardian.IsGuardian));
-        return table;
-    }
-
-    public static long Insert(Guardian guardian)
-    {
-        return Insert(guardian, false);
-    }
-
-    public static long Insert(Guardian guardian, bool useExistingPK)
+    public static void Insert(Guardian guardian)
     {
         var command = "INSERT INTO guardian (";
 
@@ -84,31 +47,6 @@ public class GuardianCrud
         {
             guardian.GuardianNum = Db.NonQ(command, true, "GuardianNum", "guardian");
         }
-        return guardian.GuardianNum;
-    }
-
-    public static long InsertNoCache(Guardian guardian)
-    {
-        return InsertNoCache(guardian, false);
-    }
-
-    public static long InsertNoCache(Guardian guardian, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO guardian (";
-        if (isRandomKeys || useExistingPK) command += "GuardianNum,";
-        command += "PatNumChild,PatNumGuardian,Relationship,IsGuardian) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(guardian.GuardianNum) + ",";
-        command +=
-            SOut.Long(guardian.PatNumChild) + ","
-                                            + SOut.Long(guardian.PatNumGuardian) + ","
-                                            + SOut.Int((int) guardian.Relationship) + ","
-                                            + SOut.Bool(guardian.IsGuardian) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            guardian.GuardianNum = Db.NonQ(command, true, "GuardianNum", "guardian");
-        return guardian.GuardianNum;
     }
 
     public static void Update(Guardian guardian)
@@ -156,15 +94,6 @@ public class GuardianCrud
         return true;
     }
 
-    public static bool UpdateComparison(Guardian guardian, Guardian oldGuardian)
-    {
-        if (guardian.PatNumChild != oldGuardian.PatNumChild) return true;
-        if (guardian.PatNumGuardian != oldGuardian.PatNumGuardian) return true;
-        if (guardian.Relationship != oldGuardian.Relationship) return true;
-        if (guardian.IsGuardian != oldGuardian.IsGuardian) return true;
-        return false;
-    }
-
     public static void Delete(long guardianNum)
     {
         var command = "DELETE FROM guardian "
@@ -180,7 +109,7 @@ public class GuardianCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<Guardian> listNew, List<Guardian> listDB)
+    public static void Sync(List<Guardian> listNew, List<Guardian> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<Guardian>();
@@ -249,7 +178,6 @@ public class GuardianCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.GuardianNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

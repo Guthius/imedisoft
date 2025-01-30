@@ -35,11 +35,6 @@
 			this.menuItemLimited = new System.Windows.Forms.MenuItem();
 			this.menuItemLimitedCustom = new System.Windows.Forms.MenuItem();
 			this.menuItemStatementMore = new System.Windows.Forms.MenuItem();
-			this.contextMenuRepeat = new System.Windows.Forms.ContextMenu();
-			this.menuItemRepeatStand = new System.Windows.Forms.MenuItem();
-			this.menuItemRepeatEmail = new System.Windows.Forms.MenuItem();
-			this.menuItemRepeatCanada = new System.Windows.Forms.MenuItem();
-			this.menuItemRepeatSignupPortal = new System.Windows.Forms.MenuItem();
 			this.panelAging = new System.Windows.Forms.Panel();
 			this.labelDisRem = new System.Windows.Forms.Label();
 			this.labelInsRem = new System.Windows.Forms.Label();
@@ -330,38 +325,6 @@
 			this.menuItemStatementMore.Index = 6;
 			this.menuItemStatementMore.Text = "More Options";
 			this.menuItemStatementMore.Click += new System.EventHandler(this.menuItemStatementMore_Click);
-			// 
-			// contextMenuRepeat
-			// 
-			this.contextMenuRepeat.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.menuItemRepeatStand,
-            this.menuItemRepeatEmail,
-            this.menuItemRepeatCanada,
-            this.menuItemRepeatSignupPortal});
-			// 
-			// menuItemRepeatStand
-			// 
-			this.menuItemRepeatStand.Index = 0;
-			this.menuItemRepeatStand.Text = "Standard Monthly";
-			this.menuItemRepeatStand.Click += new System.EventHandler(this.MenuItemRepeatStand_Click);
-			// 
-			// menuItemRepeatEmail
-			// 
-			this.menuItemRepeatEmail.Index = 1;
-			this.menuItemRepeatEmail.Text = "Email Monthly";
-			this.menuItemRepeatEmail.Click += new System.EventHandler(this.MenuItemRepeatEmail_Click);
-			// 
-			// menuItemRepeatCanada
-			// 
-			this.menuItemRepeatCanada.Index = 2;
-			this.menuItemRepeatCanada.Text = "Canada Monthly";
-			this.menuItemRepeatCanada.Click += new System.EventHandler(this.menuItemRepeatCanada_Click);
-			// 
-			// menuItemRepeatSignupPortal
-			// 
-			this.menuItemRepeatSignupPortal.Index = 3;
-			this.menuItemRepeatSignupPortal.Text = "Signup Portal";
-			this.menuItemRepeatSignupPortal.Click += new System.EventHandler(this.menuItemRepeatSignupPortal_Click);
 			// 
 			// panelAging
 			// 
@@ -1899,7 +1862,6 @@
 		private System.Windows.Forms.ContextMenu contextMenuPayment;
 		private System.Windows.Forms.ContextMenu contextMenuPayPlan;
 		private System.Windows.Forms.ContextMenu contextMenuQuickProcs;
-		private System.Windows.Forms.ContextMenu contextMenuRepeat;
 		private System.Windows.Forms.ContextMenu contextMenuStatement;
 		private OpenDental.UI.GroupBox groupBox1;
 		private OpenDental.UI.GroupBox groupBox2;
@@ -1959,10 +1921,6 @@
 		private System.Windows.Forms.MenuItem menuItemLimited;
 		private System.Windows.Forms.MenuItem menuItemLimitedCustom;
 		private System.Windows.Forms.MenuItem menuItemReceipt;
-		private System.Windows.Forms.MenuItem menuItemRepeatCanada;
-		private System.Windows.Forms.MenuItem menuItemRepeatEmail;
-		private System.Windows.Forms.MenuItem menuItemRepeatSignupPortal;
-		private System.Windows.Forms.MenuItem menuItemRepeatStand;
 		private System.Windows.Forms.MenuItem menuItemSalesTax;
 		private System.Windows.Forms.MenuItem menuItemSendPaymentToDevice;
 		private System.Windows.Forms.MenuItem menuItemSendMsgToPay;

@@ -9,9 +9,10 @@ using CDT;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using OpenDentBusiness.Crud;
 using OpenDentBusiness.FileIO;
 using OpenDentBusiness.PayConnectService;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
@@ -19,27 +20,13 @@ using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeEx
 
 namespace OpenDentBusiness;
 
-
 public class RecurringCharges
 {
-    ///<summary>Gets one RecurringCharge from the db.</summary>
     public static RecurringCharge GetOne(long recurringChargeNum)
     {
         return RecurringChargeCrud.SelectOne(recurringChargeNum);
     }
 
-    /// <summary>
-    ///     Gets a list of all RecurringCharges matching the passed in parameters. To get all RecurringCharges, pass in no
-    ///     parameters.
-    /// </summary>
-    public static List<RecurringCharge> GetMany(params SQLWhere[] whereClause)
-    {
-        var listWheres = new List<SQLWhere>();
-        foreach (var where in whereClause) listWheres.Add(where);
-        return GetMany(listWheres);
-    }
-
-    ///<summary>Gets a list of all RecurringCharges matching the passed in parameters.</summary>
     public static List<RecurringCharge> GetMany(List<SQLWhere> listWheres)
     {
         var command = "SELECT * FROM recurringcharge ";
@@ -47,32 +34,27 @@ public class RecurringCharges
         return RecurringChargeCrud.SelectMany(command);
     }
 
-    /// <summary>Returns true if the payment passed in has recurring charges, otherwise false.</summary>
     public static bool HasRecurringChargesForPayment(long payNum)
     {
         var command = "SELECT COUNT(*) FROM recurringcharge WHERE PayNum=" + SOut.Long(payNum);
         return Db.GetCount(command) != "0";
     }
 
-    
-    public static long Insert(RecurringCharge recurringCharge)
+    public static void Insert(RecurringCharge recurringCharge)
     {
-        return RecurringChargeCrud.Insert(recurringCharge);
+        RecurringChargeCrud.Insert(recurringCharge);
     }
 
-    
     public static void Update(RecurringCharge recurringCharge)
     {
         RecurringChargeCrud.Update(recurringCharge);
     }
 
-    
     public static void Delete(long recurringChargeNum)
     {
         RecurringChargeCrud.Delete(recurringChargeNum);
     }
 
-    
     public static void DeleteMany(List<RecurringCharge> listRecurringCharges)
     {
         if (listRecurringCharges.Count == 0) return;
@@ -82,17 +64,11 @@ public class RecurringCharges
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     This method returns true ONLY if RecurringChargesAllowedWhenNoPatBal AND CanChargeWhenNoBal are true.
-    ///     In all other instances, it returns false. This is used as a control switch for functionality around the
-    ///     RecurringChargesAllowedWhenNoPatBal Preference.
-    /// </summary>
     public static bool CanChargeWhenNoBal(bool isCreditCardCanChargeWhenNoBal)
     {
         return PrefC.GetBool(PrefName.RecurringChargesAllowedWhenNoPatBal) && isCreditCardCanChargeWhenNoBal;
     }
 
-    /// <summary>Returns the next day that the customer will be charged on, or DateTime.Min value if no date is found. </summary>
     public static DateTime CalculateNextChargeDate(string chargeFrequency, DateTime dateStart, DateTime dateStop)
     {
         //Days of Month
@@ -166,36 +142,8 @@ public class RecurringCharges
         if (dateTimeNextCharge > dateStop) return DateTime.MinValue;
         return dateTimeNextCharge;
     }
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-    #region Get Methods
-    
-    public static List<RecurringCharge> Refresh(long patNum){
-
-        string command="SELECT * FROM recurringcharge WHERE PatNum = "+POut.Long(patNum);
-        return Crud.RecurringChargeCrud.SelectMany(command);
-    }
-
-
-    #endregion
-    #region Modification Methods
-        #region Insert
-        #endregion
-        #region Update
-        #endregion
-        #region Delete
-        #endregion
-    #endregion
-    #region Misc Methods
-
-
-
-    #endregion
-    */
 }
 
-///<summary>A data object that holds information for one recurring charge.</summary>
 public class RecurringChargeData
 {
     public string Address = "";
@@ -208,7 +156,6 @@ public class RecurringChargeData
     public CreditCardSource CCSource = CreditCardSource.None;
     public DateTime DateStart;
     public long Guarantor;
-    public DateTime LatestPayment;
     public string PatName = "";
     public string PayConnectToken = "";
     public DateTime PayConnectTokenExp;
@@ -225,85 +172,30 @@ public class RecurringChargeData
     public string ZipPat = "";
 }
 
-///<summary>A class that can be used to process recurring charges.</summary>
-public class RecurringChargerator
+public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
 {
-    ///<summary>For translating.</summary>
     private const string _lanThis = "FormCreditRecurringCharges";
-
-    /// <summary>
-    ///     A dictionary for balances of recurring charges that is not heavily modified by potentially failed credit card
-    ///     charges.
-    ///     This does not incorperate payPlanDue.
-    /// </summary>
     private readonly Dictionary<long, decimal> _dictFamBalNoPPlan = new();
-
-    /// <summary>
-    ///     True if running recurring charges manually from the recurring charge list. False if running automated recurring
-    ///     charges through
-    ///     OpenDentalService.
-    /// </summary>
-    private readonly bool _isManual;
-
-    ///<summary>Interface used to log events.</summary>
-    private readonly Logger.IWriteLine _log;
-
-    /// <summary>
-    ///     When shutting down, this is the maximum amount of time that we will wait for a single card to finish
-    ///     processing.
-    /// </summary>
     private readonly TimeSpan _shutdownWaitTimeout = TimeSpan.FromSeconds(10);
-
-    /// <summary>
-    ///     If true, the remaining charges should not be processed. The current card that is being processed will be finished
-    ///     before shutting
-    ///     down.
-    /// </summary>
     private bool _doShutdown;
 
-    ///<summary>A DateTime that can be used to give all charges processed a uniform time.</summary>
-    protected DateTime _nowDateTime;
-
-    ///<summary>The program being used to process payments.</summary>
+    protected DateTime _nowDateTime = MiscData.GetNowDateTime();
     protected Program _progCur;
 
-    ///<summary>True if the Chargerator is currently running cards.</summary>
     public bool IsCharging;
-
-    ///<summary>This action gets called after each card is done being processed.</summary>
     public Action SingleCardFinished;
 
-    public RecurringChargerator(Logger.IWriteLine log, bool isManual)
-    {
-        _log = log;
-        _nowDateTime = MiscData.GetNowDateTime();
-        _isManual = isManual;
-    }
-
-    ///<summary>The current batch of recurring charges that are ready to be processed.</summary>
     public List<RecurringChargeData> ListRecurringChargeData { get; private set; }
-
-    ///<summary>The number of successful transactions.</summary>
     public int Success { get; private set; }
-
-    ///<summary>The number of failed transactions.</summary>
     public int Failed { get; private set; }
-
-    ///<summary>The number of cards updated by XCharge's Decline Minimizer.</summary>
     public int Updated { get; private set; }
 
-    /// <summary>Helper for EdgeExpress.CleanString()</summary>
-    private string CleanString(string str)
+    private static string CleanString(string str)
     {
         return EdgeExpress.CleanString(str);
     }
 
-    /// <summary>
-    ///     Fills the ListRecurringChargeData with recurring charges from the db. Gets recurring charges for all clinics for
-    ///     which the user has
-    ///     permission to access.
-    /// </summary>
-    public List<RecurringChargeData> FillCharges(List<ClinicDto> listUserClinics)
+    public void FillCharges(List<ClinicDto> listUserClinics)
     {
         DeleteNotYetCharged();
         var listClinicNums = new List<long>();
@@ -314,7 +206,7 @@ public class RecurringChargerator
             ListRecurringChargeData = new List<RecurringChargeData>();
         else
             ListRecurringChargeData = CreditCards.GetRecurringChargeList(listClinicNums, _nowDateTime);
-        _log.WriteLine("ListRecurringChargeData.Count: " + ListRecurringChargeData.Count, LogLevel.Verbose);
+        log.WriteLine("ListRecurringChargeData.Count: " + ListRecurringChargeData.Count, LogLevel.Verbose);
         var dictFamBals = new Dictionary<long, decimal>(); //Keeps track of the family balance for each patient
         //Calculate the repeat charge amount and the amount to be charged for each credit card
         for (var i = ListRecurringChargeData.Count - 1; i > -1; i--)
@@ -383,8 +275,8 @@ public class RecurringChargerator
                 chargeAmt = Math.Min(chargeAmt, rptChargeAmt);
             if (chargeAmt <= 0)
             {
-                _log.WriteLine("Removing from ListRecurringChargeData. PatNum: " + chargeCur.RecurringCharge.PatNum + "  FamBal: " + famBalTotal
-                               + "  PayPlanDue: " + payPlanDue + "  RepeatChargeAmt: " + rptChargeAmt, LogLevel.Verbose);
+                log.WriteLine("Removing from ListRecurringChargeData. PatNum: " + chargeCur.RecurringCharge.PatNum + "  FamBal: " + famBalTotal
+                              + "  PayPlanDue: " + payPlanDue + "  RepeatChargeAmt: " + rptChargeAmt, LogLevel.Verbose);
                 ListRecurringChargeData.RemoveAt(i);
                 continue;
             }
@@ -394,14 +286,8 @@ public class RecurringChargerator
             _dictFamBalNoPPlan[guarNum] = (decimal) chargeCur.RecurringCharge.FamBal;
             dictFamBals[guarNum] -= chargeAmt; //Decrease so the sum of repeating charges on all cards is not greater than the family balance
         }
-
-        return ListRecurringChargeData;
     }
 
-    /// <summary>
-    ///     Processes charges for the enabled program. The object is used while a payment is processed.
-    ///     When the program is signalled to shutdown, it will wait until an in-progress payment finishes before shutting down.
-    /// </summary>
     public void SendCharges(List<RecurringChargeData> listRecurringChargeData, bool forceDuplicates)
     {
         var listRecurringChargesNoBackPayments = PaymentsWithinLockDate(listRecurringChargeData);
@@ -438,21 +324,21 @@ public class RecurringChargerator
                 if (useEdgeExpress)
                 {
                     _progCur = Programs.GetCur(ProgramName.EdgeExpress);
-                    var doForceDuplicatesThisCharge = forceDuplicates || (!_isManual && SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(
+                    var doForceDuplicatesThisCharge = forceDuplicates || (!isManual && SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(
                         _progCur.ProgramNum, EdgeExpressProps.ForceRecurringCharge, chargeData.RecurringCharge.ClinicNum)));
                     SendEdgeExpress(chargeData, doForceDuplicatesThisCharge, strBuilderResultFileXCharge, listCreditCardSourcesOpenEdge);
                 }
                 else if (useXCharge)
                 {
                     _progCur = Programs.GetCur(ProgramName.Xcharge);
-                    var doForceDuplicatesThisCharge = forceDuplicates || (!_isManual && SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(
+                    var doForceDuplicatesThisCharge = forceDuplicates || (!isManual && SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(
                         _progCur.ProgramNum, ProgramProperties.PropertyDescs.XCharge.XChargeForceRecurringCharge, chargeData.RecurringCharge.ClinicNum)));
                     SendXCharge(chargeData, doForceDuplicatesThisCharge, strBuilderResultFileXCharge, listClinicNumsBadCredentialsXCharge, false);
                 }
                 else if (usePayConnect)
                 {
                     _progCur = Programs.GetCur(ProgramName.PayConnect);
-                    var doForceDuplicatesThisCharge = forceDuplicates || (!_isManual && SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(
+                    var doForceDuplicatesThisCharge = forceDuplicates || (!isManual && SIn.Bool(ProgramProperties.GetPropValForClinicOrDefault(
                         _progCur.ProgramNum, PayConnect.ProgramProperties.PayConnectForceRecurringCharge, chargeData.RecurringCharge.ClinicNum)));
                     SendPayConnect(chargeData, doForceDuplicatesThisCharge, strBuilderResultFilePayConnect);
                 }
@@ -492,9 +378,7 @@ public class RecurringChargerator
         }
     }
 
-    ///<summary>Writes the results to appropriate files.</summary>
-    private void WriteResultsToFiles(StringBuilder strBuilderResultFileXCharge, StringBuilder strBuilderResultFilePayConnect,
-        StringBuilder strBuilderResultFilePaySimple)
+    private static void WriteResultsToFiles(StringBuilder strBuilderResultFileXCharge, StringBuilder strBuilderResultFilePayConnect, StringBuilder strBuilderResultFilePaySimple)
     {
         if (strBuilderResultFileXCharge.Length > 0)
             try
@@ -508,12 +392,12 @@ public class RecurringChargerator
 
         if (strBuilderResultFilePayConnect.Length > 0)
         {
-            var payConnectResultDir = FileAtoZ.CombinePaths(ImageStore.GetPreferredAtoZpath(), "PayConnect");
-            var payConnectResultFile = FileAtoZ.CombinePaths(payConnectResultDir, "RecurringChargeResult.txt");
+            var payConnectResultDir = Path.Combine(ImageStore.GetDataFolder(), "PayConnect");
+            var payConnectResultFile = Path.Combine(payConnectResultDir, "RecurringChargeResult.txt");
             try
             {
-                if (true && !Directory.Exists(payConnectResultDir)) Directory.CreateDirectory(payConnectResultDir);
-                FileAtoZ.WriteAllText(payConnectResultFile, strBuilderResultFilePayConnect.ToString());
+                if (!Directory.Exists(payConnectResultDir)) Directory.CreateDirectory(payConnectResultDir);
+                File.WriteAllText(payConnectResultFile, strBuilderResultFilePayConnect.ToString());
             }
             catch (Exception ex)
             {
@@ -522,12 +406,12 @@ public class RecurringChargerator
 
         if (strBuilderResultFilePaySimple.Length > 0)
         {
-            var paySimpleResultDir = FileAtoZ.CombinePaths(ImageStore.GetPreferredAtoZpath(), "PaySimple");
-            var paySimpleResultFile = FileAtoZ.CombinePaths(paySimpleResultDir, "RecurringChargeResult.txt");
+            var paySimpleResultDir = Path.Combine(ImageStore.GetDataFolder(), "PaySimple");
+            var paySimpleResultFile = Path.Combine(paySimpleResultDir, "RecurringChargeResult.txt");
             try
             {
                 if (true && !Directory.Exists(paySimpleResultDir)) Directory.CreateDirectory(paySimpleResultDir);
-                FileAtoZ.WriteAllText(paySimpleResultFile, strBuilderResultFilePaySimple.ToString());
+                File.WriteAllText(paySimpleResultFile, strBuilderResultFilePaySimple.ToString());
             }
             catch (Exception ex)
             {
@@ -535,9 +419,7 @@ public class RecurringChargerator
         }
     }
 
-    ///<summary>Charges the credit card passed in using XCharge.</summary>
-    public void SendXCharge(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile,
-        List<long> listClinicNumsBadCredentials, bool doAlwaysUseDTG)
+    public void SendXCharge(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile, List<long> listClinicNumsBadCredentials, bool doAlwaysUseDTG)
     {
         strBuilderResultFile.AppendLine("Recurring charge results for " + DateTime.Now.ToShortDateString() + " ran at " + DateTime.Now.ToShortTimeString());
         strBuilderResultFile.AppendLine();
@@ -562,7 +444,7 @@ public class RecurringChargerator
         long xWebResponseNum = 0;
         StringBuilder receipt;
         CreditCardSource ccSource;
-        if (_isManual && !doAlwaysUseDTG)
+        if (isManual && !doAlwaysUseDTG)
         {
             wasChargeAttempted = ProcessCardXChargeClientProgram(chargeData, forceDuplicates, strBuilderResultFile, listClinicNumsBadCredentials,
                 out strBuilderResultText, out amount, out receipt);
@@ -570,7 +452,7 @@ public class RecurringChargerator
         }
         else
         {
-            wasChargeAttempted = ProcessCardXWebDTG(chargeData, forceDuplicates, strBuilderResultFile, out strBuilderResultText,
+            wasChargeAttempted = ProcessCardXWebDTG(chargeData, forceDuplicates, out strBuilderResultText,
                 out amount, out receipt, out xWebResponseNum);
             ccSource = CreditCardSource.XWeb;
         }
@@ -599,7 +481,7 @@ public class RecurringChargerator
         }
 
         var payNote = "Made from automated recurring charge";
-        if (_isManual) payNote = "Made from manually ran recurring charge";
+        if (isManual) payNote = "Made from manually ran recurring charge";
         var response = EdgeExpress.CNP.ProcessPaymentDirect(
             chargeData.RecurringCharge.PatNum,
             Lans.g(_lanThis, payNote),
@@ -621,7 +503,7 @@ public class RecurringChargerator
         else
         {
             MarkDeclined(chargeData, Lans.g(_lanThis, "Response from EdgeExpress:") + " " + response.XWebResponseCode, LogLevel.Information);
-            response.PayNote += "\r\n" + Lans.g(this, "Response from EdgeExpress:") + " " + response.XWebResponseCode;
+            response.PayNote += "\r\n" + Lans.g("Response from EdgeExpress:") + " " + response.XWebResponseCode;
             amount = 0; //If the charge was declined, insert a payment with $0 amount instead of what was supposed to be charged.
         }
 
@@ -629,14 +511,12 @@ public class RecurringChargerator
         CreatePayment(patCur, chargeData, strBuilderResultText.ToString(), amount, "", CreditCardSource.EdgeExpressCNP, response.XWebResponseNum);
     }
 
-    ///<summary>Charges the card using the XCharge client executable. Returns true if the charge was successfully attempted.</summary>
-    private bool ProcessCardXChargeClientProgram(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile,
-        List<long> listClinicNumsBadCredentials, out StringBuilder strBuilderResultText, out double amount, out StringBuilder receipt)
+    private bool ProcessCardXChargeClientProgram(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile, List<long> listClinicNumsBadCredentials, out StringBuilder strBuilderResultText, out double amount, out StringBuilder receipt)
     {
         strBuilderResultText = new StringBuilder();
         amount = 0;
         receipt = new StringBuilder();
-        if (/* ODEnvironment.IsCloudServer */ false)
+        if ( /* ODEnvironment.IsCloudServer */ false)
         {
             MarkFailed(chargeData, Lans.g(_lanThis, "XCharge is not available while using Open Dental Cloud."));
             return false;
@@ -832,9 +712,7 @@ public class RecurringChargerator
         return true;
     }
 
-    ///<summary>Charges the card using the XWeb Direct to Gateway API. Returns true if the charge was successfully attempted.</summary>
-    private bool ProcessCardXWebDTG(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile,
-        out StringBuilder strBuilderResultText, out double amount, out StringBuilder receipt, out long xWebResponseNum)
+    private bool ProcessCardXWebDTG(RecurringChargeData chargeData, bool forceDuplicates, out StringBuilder strBuilderResultText, out double amount, out StringBuilder receipt, out long xWebResponseNum)
     {
         receipt = new StringBuilder(); //Automated payments won't have receipts
         strBuilderResultText = new StringBuilder();
@@ -851,7 +729,7 @@ public class RecurringChargerator
             else
             {
                 MarkDeclined(chargeData, Lans.g(_lanThis, "Response from XWeb:") + " " + response.XWebResponseCode, LogLevel.Information);
-                response.PayNote += "\r\n" + Lans.g(this, "Response from XWeb:") + " " + response.XWebResponseCode;
+                response.PayNote += "\r\n" + Lans.g("Response from XWeb:") + " " + response.XWebResponseCode;
             }
 
             strBuilderResultText.Append(response.GetFormattedNote(true));
@@ -873,7 +751,6 @@ public class RecurringChargerator
         }
     }
 
-    ///<summary>Charges the credit cards passed in using PayConnect.</summary>
     public void SendPayConnect(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile)
     {
         var program = Programs.GetCur(ProgramName.PayConnect);
@@ -883,10 +760,6 @@ public class RecurringChargerator
         else if (payconnectVersion == "2") SendPayConnectV2(chargeData, strBuilderResultFile);
     }
 
-    /// <summary>
-    ///     Charges the card using version 1 of PayConnect. This method is equivalent to the SendPayConnect() method in
-    ///     prior versions of Open Dental.
-    /// </summary>
     private void SendPayConnectV1(RecurringChargeData chargeData, bool forceDuplicates, StringBuilder strBuilderResultFile)
     {
         var dictClinicNumDesc = new Dictionary<long, string>();
@@ -986,10 +859,6 @@ public class RecurringChargerator
         strBuilderResultFile.AppendLine(strBuilderResultText.ToString());
     }
 
-    /// <summary>
-    ///     A modified version of the origian SendPayConnect() method that works with a response from the PayConnect API
-    ///     v2. This API does not have an option for forcing duplicates.
-    /// </summary>
     private void SendPayConnectV2(RecurringChargeData chargeData, StringBuilder strBuilderResultFile)
     {
         var dictClinicNumDesc = new Dictionary<long, string>();
@@ -1100,7 +969,6 @@ public class RecurringChargerator
         strBuilderResultFile.AppendLine(strBuilderResultText.ToString());
     }
 
-    ///<summary>Charges the credit cards passed in using PaySimple.</summary>
     public void SendPaySimple(RecurringChargeData chargeData, StringBuilder strBuilderResultFile)
     {
         var dictClinicNumDesc = new Dictionary<long, string>();
@@ -1188,16 +1056,14 @@ public class RecurringChargerator
         }
     }
 
-    ///<summary>For PaySimple only. Adds the error message to the StringBuilder.</summary>
-    private void AddErrorToStrb(StringBuilder strb, string errorMsg, string clinicDesc)
+    private static void AddErrorToStrb(StringBuilder strb, string errorMsg, string clinicDesc)
     {
         strb.AppendLine(Lans.g(_lanThis, "Transaction Type") + ": " + PaySimple.TransType.SALE);
         if (!string.IsNullOrWhiteSpace(clinicDesc)) strb.AppendLine("CLINIC=" + clinicDesc);
         strb.AppendLine(Lans.g(_lanThis, "Error") + ": " + errorMsg);
     }
 
-    ///<summary>Updates the credit card's masked number and expiration.</summary>
-    private void UpdateCreditCardPayConnect(CreditCard ccCur, transResponse payConnectResponse)
+    private static void UpdateCreditCardPayConnect(CreditCard ccCur, transResponse payConnectResponse)
     {
         if (ccCur == null || payConnectResponse == null || payConnectResponse.PaymentToken == null || payConnectResponse.PaymentToken.Expiration == null) return;
         var payConnectExp = payConnectResponse.PaymentToken.Expiration;
@@ -1215,11 +1081,6 @@ public class RecurringChargerator
         }
     }
 
-    /// <summary>
-    ///     Call to mark a recurring charge as declined in the specific scenario when the transaction has reached the
-    ///     processor gateway and the processor has responded with something other than success (per Nathan in task #3119214
-    ///     job #24498).
-    /// </summary>
     private void MarkDeclined(RecurringChargeData chargeData, string errorMsg, LogLevel logLevel = LogLevel.Error)
     {
         if (chargeData.RecurringCharge.ChargeStatus == RecurringChargeStatus.NotYetCharged
@@ -1228,10 +1089,6 @@ public class RecurringChargerator
         MarkFailed(chargeData, errorMsg, logLevel);
     }
 
-    /// <summary>
-    ///     Call to mark a recurring charge as a generic failure when there was a setup issue in OD, if the processor
-    ///     gateway is unreachable, or similar.
-    /// </summary>
     private void MarkFailed(RecurringChargeData chargeData, string errorMsg, LogLevel logLevel = LogLevel.Error)
     {
         if (chargeData.RecurringCharge.ChargeStatus == RecurringChargeStatus.NotYetCharged)
@@ -1241,10 +1098,9 @@ public class RecurringChargerator
         }
 
         chargeData.RecurringCharge.ErrorMsg = StringTools.AppendLine(chargeData.RecurringCharge.ErrorMsg, errorMsg);
-        _log.WriteLine(errorMsg + (errorMsg[errorMsg.Length - 1] == '\n' ? "" : "\r\n") + "  " + Lans.g(_lanThis, "Patient:") + " " + chargeData.PatName, logLevel);
+        log.WriteLine(errorMsg + (errorMsg[errorMsg.Length - 1] == '\n' ? "" : "\r\n") + "  " + Lans.g(_lanThis, "Patient:") + " " + chargeData.PatName, logLevel);
     }
 
-    ///<summary>Sets the fields that are keeping count of the number of successes and failures.</summary>
     private void ClearStats()
     {
         Success = 0;
@@ -1252,7 +1108,6 @@ public class RecurringChargerator
         Updated = 0;
     }
 
-    ///<summary>For each RecurringChargeData, inserts a RecurringCharge.</summary>
     private void InsertRecurringCharges(List<RecurringChargeData> listChargeData)
     {
         foreach (var chargeCur in listChargeData)
@@ -1262,10 +1117,6 @@ public class RecurringChargerator
         }
     }
 
-    /// <summary>
-    ///     Tests the recurring charges with newly calculated pay dates.  If there's a date violation, a warning shows and
-    ///     false is returned.
-    /// </summary>
     public List<RecurringChargeData> PaymentsWithinLockDate(List<RecurringChargeData> listChargeData)
     {
         var warnings = new List<string>();
@@ -1293,16 +1144,11 @@ public class RecurringChargerator
 
         if (warnings.Count > 0)
             //Show the warning message.  This allows the user the ability to unhighlight rows or go change the date limitation.
-            _log.WriteLine(string.Join("\r\n", warnings), LogLevel.Error);
+            log.WriteLine(string.Join("\r\n", warnings), LogLevel.Error);
         return listRecurringCharges;
     }
 
-    /// <summary>
-    ///     Inserts a payment and paysplits for the recurring charge data, call after processing a payment through
-    ///     merchant services.
-    /// </summary>
-    protected void CreatePayment(Patient patCur, RecurringChargeData recCharge, string note, double amount, string receipt, CreditCardSource ccSource,
-        long xWebResponseNum = 0, double merchantFee = 0)
+    protected void CreatePayment(Patient patCur, RecurringChargeData recCharge, string note, double amount, string receipt, CreditCardSource ccSource, long xWebResponseNum = 0, double merchantFee = 0)
     {
         var paymentCur = new Payment();
         paymentCur.DateEntry = _nowDateTime.Date;
@@ -1375,7 +1221,7 @@ public class RecurringChargerator
         Ledgers.ComputeAging(patCur.Guarantor, _nowDateTime.Date);
     }
 
-    private List<PaySplit> GetLinkedSplitsForChargeData(Patient patCur, RecurringChargeData recCharge, Payment paymentCur)
+    private static List<PaySplit> GetLinkedSplitsForChargeData(Patient patCur, RecurringChargeData recCharge, Payment paymentCur)
     {
         var paymentAmtOrig = paymentCur.PayAmt;
         List<AccountEntry> listAccountEntryPayPlans = null;
@@ -1473,7 +1319,7 @@ public class RecurringChargerator
         return listPaySplits;
     }
 
-    private PaySplit CreateUnearnedSplitForPayment(Payment paymentCur, double splitAmt, long payPlanNum = 0)
+    private static PaySplit CreateUnearnedSplitForPayment(Payment paymentCur, double splitAmt, long payPlanNum = 0)
     {
         var split = new PaySplit
         {
@@ -1489,21 +1335,12 @@ public class RecurringChargerator
         return split;
     }
 
-    /// <summary>
-    ///     Returns a valid DateTime for the payment's PayDate.  Contains logic if payment should be for the previous or
-    ///     the current month.
-    /// </summary>
     private DateTime GetPayDate(RecurringChargeData recCharge)
     {
         if (PrefC.GetBool(PrefName.RecurringChargesUseTransDate)) return _nowDateTime;
         return recCharge.RecurringChargeDate;
     }
 
-    /// <summary>
-    ///     Stops the recurring charges that are being processed. The current card will be allowed to finish processing. This
-    ///     method can
-    ///     block until the current card is finished.
-    /// </summary>
     public void StopCharges(bool doWaitForCardToFinish = false)
     {
         _doShutdown = true;
@@ -1514,17 +1351,12 @@ public class RecurringChargerator
             Thread.Sleep(1);
     }
 
-    /// <summary>
-    ///     Deletes any recurring charges that have not been processed yet. This should be called when it is clear that the
-    ///     cards in this
-    ///     list are not going to be processed.
-    /// </summary>
     public void DeleteNotYetCharged()
     {
         if (ListRecurringChargeData == null) return;
         var listToDelete = ListRecurringChargeData.Select(x => x.RecurringCharge)
             .Where(x => x.ChargeStatus == RecurringChargeStatus.NotYetCharged && x.RecurringChargeNum > 0).ToList();
-        _log.WriteLine("Deleting " + listToDelete.Count + " pending charges.", LogLevel.Verbose);
+        log.WriteLine("Deleting " + listToDelete.Count + " pending charges.", LogLevel.Verbose);
         RecurringCharges.DeleteMany(listToDelete);
     }
 }

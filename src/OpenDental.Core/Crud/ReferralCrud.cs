@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ReferralCrud
 {
@@ -151,7 +153,7 @@ public class ReferralCrud
             + "'" + SOut.String(referral.BusinessName) + "',"
             + "'" + SOut.String(referral.DisplayNote) + "')";
         if (referral.Note == null) referral.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(referral.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(referral.Note));
         {
             referral.ReferralNum = Db.NonQ(command, true, "ReferralNum", "referral", paramNote);
         }
@@ -199,7 +201,7 @@ public class ReferralCrud
             + "'" + SOut.String(referral.BusinessName) + "',"
             + "'" + SOut.String(referral.DisplayNote) + "')";
         if (referral.Note == null) referral.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(referral.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(referral.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -239,7 +241,7 @@ public class ReferralCrud
                       + "DisplayNote    = '" + SOut.String(referral.DisplayNote) + "' "
                       + "WHERE ReferralNum = " + SOut.Long(referral.ReferralNum);
         if (referral.Note == null) referral.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(referral.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(referral.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -405,7 +407,7 @@ public class ReferralCrud
 
         if (command == "") return false;
         if (referral.Note == null) referral.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(referral.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(referral.Note));
         command = "UPDATE referral SET " + command
                                          + " WHERE ReferralNum = " + SOut.Long(referral.ReferralNum);
         Db.NonQ(command, paramNote);

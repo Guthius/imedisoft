@@ -20,6 +20,7 @@ using System.Xml.Serialization;
 using System.Xml.XPath;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using Tamir.SharpSsh.jsch;
 

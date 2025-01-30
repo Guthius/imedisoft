@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PromotionCrud
 {
@@ -78,7 +80,7 @@ public class PromotionCrud
 
         command +=
             "'" + SOut.String(promotion.PromotionName) + "',"
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.Long(promotion.ClinicNum) + ","
             + SOut.Int((int) promotion.TypePromotion) + ")";
         {
@@ -101,7 +103,7 @@ public class PromotionCrud
         if (isRandomKeys || useExistingPK) command += SOut.Long(promotion.PromotionNum) + ",";
         command +=
             "'" + SOut.String(promotion.PromotionName) + "',"
-            + DbHelper.Now() + ","
+            + "NOW()" + ","
             + SOut.Long(promotion.ClinicNum) + ","
             + SOut.Int((int) promotion.TypePromotion) + ")";
         if (useExistingPK || isRandomKeys)

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDental.Bridges{
@@ -17,7 +18,7 @@ namespace OpenDental.Bridges{
 		}
 
 		///<summary>Launches the program using a combination of command line characters and the patient.Cur data. 
-		///Arguments: ClioSoft.exe “-Id;FirstName;LastName;DateOfBirth;SocialSecurityNumber;”
+		///Arguments: ClioSoft.exe ï¿½-Id;FirstName;LastName;DateOfBirth;SocialSecurityNumber;ï¿½
 		///Only Id, FirstName and LastName are required.
 		///Example 1: ClioSoft.exe "-100;Jim;Jones;01/02/2000;123-456-789;"
 		///Example 2: ClioSoft.exe "-200;Jane;Smith;;;"</summary>

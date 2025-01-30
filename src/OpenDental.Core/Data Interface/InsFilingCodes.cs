@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
-
 
 public class InsFilingCodes
 {
@@ -16,7 +16,6 @@ public class InsFilingCodes
         return insFilingCode == null ? "CI" : insFilingCode.EclaimCode;
     }
 
-    ///<summary>Gets the InsFilingCode for the specified eclaimCode, or creates one if the eclaimCodes does not exist.</summary>
     public static InsFilingCode GetOrInsertForEclaimCode(string descript, string eclaimCode)
     {
         var itemOrderMax = 0;
@@ -41,29 +40,24 @@ public class InsFilingCodes
         var command = "SELECT * FROM insfilingcode ORDER BY ItemOrder";
         return InsFilingCodeCrud.SelectMany(command);
     }
-
     
     public static long Insert(InsFilingCode insFilingCode)
     {
         return InsFilingCodeCrud.Insert(insFilingCode);
     }
 
-    
     public static void Update(InsFilingCode insFilingCode)
     {
         InsFilingCodeCrud.Update(insFilingCode);
     }
 
-    ///<summary>Surround with try/catch</summary>
     public static void Delete(long insFilingCodeNum)
     {
         var command = "SELECT COUNT(*) FROM insplan WHERE FilingCode=" + SOut.Long(insFilingCodeNum);
         if (DataCore.GetScalar(command) != "0") throw new ApplicationException(Lans.g("InsFilingCode", "Already in use by insplans."));
         InsFilingCodeCrud.Delete(insFilingCodeNum);
     }
-
-    #region CachePattern
-
+    
     private class InsFilingCodeCache : CacheListAbs<InsFilingCode>
     {
         protected override List<InsFilingCode> GetCacheFromDb()
@@ -93,49 +87,35 @@ public class InsFilingCodes
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly InsFilingCodeCache _insFilingCodeCache = new();
+    private static readonly InsFilingCodeCache Cache = new();
 
     public static List<InsFilingCode> GetDeepCopy(bool isShort = false)
     {
-        return _insFilingCodeCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static InsFilingCode GetFirstOrDefault(Func<InsFilingCode, bool> match, bool isShort = false)
     {
-        return _insFilingCodeCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
     public static InsFilingCode GetOne(long insFilingCodeNum)
     {
-        return _insFilingCodeCache.GetFirstOrDefault(x => x.InsFilingCodeNum == insFilingCodeNum);
+        return Cache.GetFirstOrDefault(x => x.InsFilingCodeNum == insFilingCodeNum);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _insFilingCodeCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _insFilingCodeCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _insFilingCodeCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

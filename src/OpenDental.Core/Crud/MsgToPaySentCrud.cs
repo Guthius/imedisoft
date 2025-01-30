@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MsgToPaySentCrud
 {
@@ -121,18 +123,18 @@ public class MsgToPaySentCrud
                                            + DbHelper.ParamChar + "paramSubject,"
                                            + DbHelper.ParamChar + "paramMessage,"
                                            + SOut.Int((int) msgToPaySent.EmailType) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            + SOut.DateTime(msgToPaySent.DateTimeSent) + ","
                                            + DbHelper.ParamChar + "paramResponseDescript,"
                                            + SOut.Long(msgToPaySent.ApptReminderRuleNum) + ","
                                            + "'" + SOut.String(msgToPaySent.ShortGUID) + "',"
                                            + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + ")";
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(msgToPaySent.Subject));
         if (msgToPaySent.Message == null) msgToPaySent.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(msgToPaySent.Message));
+        var paramMessage = new OdSqlParameter("paramMessage", SOut.StringParam(msgToPaySent.Message));
         if (msgToPaySent.ResponseDescript == null) msgToPaySent.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(msgToPaySent.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(msgToPaySent.ResponseDescript));
         {
             msgToPaySent.MsgToPaySentNum = Db.NonQ(command, true, "MsgToPaySentNum", "msgToPaySent", paramSubject, paramMessage, paramResponseDescript);
         }
@@ -165,18 +167,18 @@ public class MsgToPaySentCrud
                                            + DbHelper.ParamChar + "paramSubject,"
                                            + DbHelper.ParamChar + "paramMessage,"
                                            + SOut.Int((int) msgToPaySent.EmailType) + ","
-                                           + DbHelper.Now() + ","
+                                           + "NOW()" + ","
                                            + SOut.DateTime(msgToPaySent.DateTimeSent) + ","
                                            + DbHelper.ParamChar + "paramResponseDescript,"
                                            + SOut.Long(msgToPaySent.ApptReminderRuleNum) + ","
                                            + "'" + SOut.String(msgToPaySent.ShortGUID) + "',"
                                            + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + ")";
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(msgToPaySent.Subject));
         if (msgToPaySent.Message == null) msgToPaySent.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(msgToPaySent.Message));
+        var paramMessage = new OdSqlParameter("paramMessage", SOut.StringParam(msgToPaySent.Message));
         if (msgToPaySent.ResponseDescript == null) msgToPaySent.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(msgToPaySent.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(msgToPaySent.ResponseDescript));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramSubject, paramMessage, paramResponseDescript);
         else
@@ -208,11 +210,11 @@ public class MsgToPaySentCrud
                       + "DateTimeSendFailed =  " + SOut.DateTime(msgToPaySent.DateTimeSendFailed) + " "
                       + "WHERE MsgToPaySentNum = " + SOut.Long(msgToPaySent.MsgToPaySentNum);
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(msgToPaySent.Subject));
         if (msgToPaySent.Message == null) msgToPaySent.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(msgToPaySent.Message));
+        var paramMessage = new OdSqlParameter("paramMessage", SOut.StringParam(msgToPaySent.Message));
         if (msgToPaySent.ResponseDescript == null) msgToPaySent.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(msgToPaySent.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(msgToPaySent.ResponseDescript));
         Db.NonQ(command, paramSubject, paramMessage, paramResponseDescript);
     }
 
@@ -330,11 +332,11 @@ public class MsgToPaySentCrud
 
         if (command == "") return false;
         if (msgToPaySent.Subject == null) msgToPaySent.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", OdDbType.Text, SOut.StringParam(msgToPaySent.Subject));
+        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(msgToPaySent.Subject));
         if (msgToPaySent.Message == null) msgToPaySent.Message = "";
-        var paramMessage = new OdSqlParameter("paramMessage", OdDbType.Text, SOut.StringParam(msgToPaySent.Message));
+        var paramMessage = new OdSqlParameter("paramMessage", SOut.StringParam(msgToPaySent.Message));
         if (msgToPaySent.ResponseDescript == null) msgToPaySent.ResponseDescript = "";
-        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", OdDbType.Text, SOut.StringParam(msgToPaySent.ResponseDescript));
+        var paramResponseDescript = new OdSqlParameter("paramResponseDescript", SOut.StringParam(msgToPaySent.ResponseDescript));
         command = "UPDATE msgtopaysent SET " + command
                                              + " WHERE MsgToPaySentNum = " + SOut.Long(msgToPaySent.MsgToPaySentNum);
         Db.NonQ(command, paramSubject, paramMessage, paramResponseDescript);

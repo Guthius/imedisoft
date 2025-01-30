@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -79,7 +80,7 @@ namespace OpenDental {
 						ListSheetDefs.Add(listSheetDefsMed[i]);
 					}
 				}
-				labelSheetType.Text=Lans.g(this,"Patient Forms and Medical Histories");//Change name?
+				labelSheetType.Text=Lans.g("Patient Forms and Medical Histories");//Change name?
 				if(!IsWebForm && PrefC.GetBool(PrefName.PatientFormsShowConsent)) {//only if they want to see consent forms with patient forms.
 					if(listSheetDefsCon.Count==0) {//use internal consent forms
 						ListSheetDefs.Add(SheetsInternal.GetSheetDef(SheetInternalType.Consent));
@@ -89,7 +90,7 @@ namespace OpenDental {
 							ListSheetDefs.Add(listSheetDefsCon[i]);
 						}
 					}
-					labelSheetType.Text=Lans.g(this,"Patient, Consent, and Medical History Forms");
+					labelSheetType.Text=Lans.g("Patient, Consent, and Medical History Forms");
 				}
 			}
 			else {

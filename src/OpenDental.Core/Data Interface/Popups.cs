@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public class Popups
 {
-    ///<summary>Gets all active popups that should be displayed for a single patient.</summary>
     public static List<Popup> GetForPatient(Patient pat)
     {
         if (pat == null || pat.PatNum == 0) return [];
@@ -31,10 +31,6 @@ public class Popups
         return PopupCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets current and disabled popups for a single family.  If patient is part of a superfamily, it will get all
-    ///     popups for the entire superfamily.
-    /// </summary>
     public static List<Popup> GetForFamily(Patient pat)
     {
         var command = "SELECT * FROM popup "
@@ -49,10 +45,6 @@ public class Popups
         return PopupCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets the most recent deleted and disabled popups for a single family.  If patient is part of a superfamily, it
-    ///     will get all popups for the entire superfamily.
-    /// </summary>
     public static List<Popup> GetDeletedForFamily(Patient pat)
     {
         var command = "SELECT * FROM popup "
@@ -66,7 +58,6 @@ public class Popups
         return PopupCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all archived popups for a single popup.</summary>
     public static List<Popup> GetArchivesForPopup(long popupNum)
     {
         var command = "SELECT * FROM popup"
@@ -75,7 +66,6 @@ public class Popups
         return PopupCrud.SelectMany(command);
     }
 
-    ///<summary>Gets the most recent date and time that the popup was last edited.  Returns min value if no archive was found.</summary>
     public static DateTime GetLastEditDateTimeForPopup(long popupNum)
     {
         var command = "SELECT DateTimeEntry FROM popup"
@@ -87,10 +77,6 @@ public class Popups
         return SIn.DateTime(rawTable.Rows[0]["DateTimeEntry"].ToString());
     }
 
-    /// <summary>
-    ///     Copies all family level popups when a family member leaves a family. Copies from other family members to
-    ///     patient, and from patient to guarantor.
-    /// </summary>
     public static void CopyForMovingFamilyMember(Patient pat)
     {
         //Get a list of all popups for the family
@@ -127,11 +113,6 @@ public class Popups
         }
     }
 
-    /// <summary>
-    ///     When a patient leaves a superfamily, this copies the superfamily level popups to be in both places. Takes pat
-    ///     leaving, and new superfamily. If newSuperFamily is 0, superfamily popups will not be copied from the old
-    ///     superfamily.
-    /// </summary>
     public static void CopyForMovingSuperFamily(Patient pat, long newSuperFamily)
     {
         //Get a list of all popups for the super family
@@ -184,10 +165,6 @@ public class Popups
         }
     }
 
-    /// <summary>
-    ///     Moves all family and superfamily level popups for a patient being deleted so that those popups stay in the
-    ///     family/superfamily.
-    /// </summary>
     public static void MoveForDeletePat(Patient pat)
     {
         var command = "UPDATE popup ";
@@ -203,10 +180,6 @@ public class Popups
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Popup dates are not normally changed.  This only occurs when creating exact copies of popups and their
-    ///     archives when moving a patient from a family or superfamily.
-    /// </summary>
     private static void EditPopupDate(DateTime oldDate, long newPk)
     {
         var commandUpdate = "UPDATE popup "
@@ -215,7 +188,6 @@ public class Popups
         Db.NonQ(commandUpdate);
     }
 
-    /// <summary>Brings all superfamily level popups for a superfamily being disbanded to the family level.</summary>
     public static void RemoveForDisbandingSuperFamily(Patient pat)
     {
         var command = "UPDATE popup "
@@ -226,24 +198,13 @@ public class Popups
         Db.NonQ(command);
     }
 
-    
     public static long Insert(Popup popup)
     {
         return PopupCrud.Insert(popup);
     }
 
-    ///<summary>Create an archive of the pop up before updating.</summary>
     public static void Update(Popup popup)
     {
         PopupCrud.Update(popup);
-    }
-
-    /// <summary>
-    ///     Only called when moving popups for a patient that is leaving a superfamily but not going to another
-    ///     superfamily.
-    /// </summary>
-    public static void DeleteObject(Popup popup)
-    {
-        PopupCrud.Delete(popup.PopupNum);
     }
 }

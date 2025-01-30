@@ -22,6 +22,8 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -2710,7 +2712,7 @@ namespace OpenDentBusiness.Eclaims {
 			xconnectProvider.addresses=listXConnectAddresses.ToArray();
 			List<XConnectProviderCredentials> listXConnectProviderCredentials=new List<XConnectProviderCredentials>();
 			listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="XX",value=provider.NationalProvID });
-			ElectID electID=ElectIDs.GetID(electId);
+			ElectID electID=ElectIDs.GetId(electId);
 			if(!provider.MedicaidID.IsNullOrEmpty()) {//TODO: Is MedProv Num for medicaid?
 				if(electID!=null && electID.IsMedicaid) {
 					listXConnectProviderCredentials.Add(new XConnectProviderCredentials { type="1D",value=provider.MedicaidID });

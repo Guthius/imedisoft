@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness.Eclaims;
@@ -2302,7 +2304,7 @@ namespace OpenDentBusiness
 		private static void WriteProv_REFG2orLU(StreamWriter sw,Provider prov,string payorID) {
 			string segmentType="G2";
 			string provID="";
-			ElectID electID=ElectIDs.GetID(payorID);
+			ElectID electID=ElectIDs.GetId(payorID);
 			if(electID!=null && electID.IsMedicaid) {
 				provID=prov.MedicaidID;
 			}
@@ -2924,7 +2926,7 @@ namespace OpenDentBusiness
 				//}
 			}
 			X12Validate.Carrier(carrier,strb);
-			ElectID electID=ElectIDs.GetID(carrier.ElectID);
+			ElectID electID=ElectIDs.GetId(carrier.ElectID);
 			if(electID!=null && electID.IsMedicaid && billProv.MedicaidID=="") {
 				Comma(strb);
 				strb.Append("BillProv Medicaid ID");

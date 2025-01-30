@@ -5,15 +5,14 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class SheetDefs
 {
-    ///<Summary>Gets one SheetDef from the cache.  Also includes the fields and parameters for the sheetdef.</Summary>
     public static SheetDef GetSheetDef(long sheetDefNum, bool hasExceptions = true)
     {
         var sheetDef = GetFirstOrDefault(x => x.SheetDefNum == sheetDefNum);
@@ -21,20 +20,7 @@ public class SheetDefs
         return sheetDef;
     }
 
-    ///<summary>Updates the SheetDef only.  Does not included attached fields.</summary>
-    public static long Update(SheetDef sheetDef)
-    {
-        SheetDefCrud.Update(sheetDef);
-        return sheetDef.SheetDefNum;
-    }
-
-    /// <summary>Includes all attached fields.  Intelligently inserts, updates, or deletes old fields.</summary>
-    /// <param name="isOldSheetDuplicate">
-    ///     True if the sheetDef being created is a copy of a custom sheet that has a DateTCreated of 0001-01-01.
-    ///     DateTCreated determines whether or not text fields will be shifted up 5 pixels when PDF is created from sheet to
-    ///     fix bug job B16020.
-    /// </param>
-    public static long InsertOrUpdate(SheetDef sheetDef, bool isOldSheetDuplicate = false)
+    public static void InsertOrUpdate(SheetDef sheetDef, bool isOldSheetDuplicate = false)
     {
         if (sheetDef.IsNew)
         {
@@ -48,10 +34,8 @@ public class SheetDefs
 
         for (var i = 0; i < sheetDef.SheetFieldDefs.Count; i++) sheetDef.SheetFieldDefs[i].SheetDefNum = sheetDef.SheetDefNum;
         SheetFieldDefs.Sync(sheetDef.SheetFieldDefs, sheetDef.SheetDefNum);
-        return sheetDef.SheetDefNum;
     }
 
-    
     public static void DeleteObject(long sheetDefNum)
     {
         //validate that not already in use by a refferral.
@@ -129,11 +113,6 @@ public class SheetDefs
         SheetDefCrud.Delete(sheetDefNum);
     }
 
-    /// <summary>
-    ///     Sheetdefs and sheetfielddefs are archived separately.
-    ///     So when we need to use a sheetdef, we must run this method to pull all the associated fields from the archive.
-    ///     Then it will be ready for printing, copying, etc.
-    /// </summary>
     public static void GetFieldsAndParameters(SheetDef sheetdef)
     {
         //images first
@@ -145,13 +124,11 @@ public class SheetDefs
         sheetdef.Parameters = SheetParameter.GetForType(sheetdef.SheetType);
     }
 
-    ///<summary>Gets all custom sheetdefs(without fields or parameters) for a particular type.</summary>
     public static List<SheetDef> GetCustomForType(SheetTypeEnum sheetType)
     {
         return GetWhere(x => x.SheetType == sheetType);
     }
 
-    ///<summary>Gets the description from the cache.</summary>
     public static string GetDescription(long sheetDefNum)
     {
         var sheetDef = GetFirstOrDefault(x => x.SheetDefNum == sheetDefNum);
@@ -167,10 +144,6 @@ public class SheetDefs
         return sheetDefRetVal;
     }
 
-    /// <summary>
-    ///     Passing in a clinicNum of 0 will use the base default sheet def.  Otherwise returns the clinic specific
-    ///     default sheetdef.
-    /// </summary>
     public static SheetDef GetSheetsDefault(SheetTypeEnum sheetType, long clinicNum = 0)
     {
         var clinicPref = ClinicPrefs.GetPref(Prefs.GetSheetDefPref(sheetType), clinicNum);
@@ -191,24 +164,6 @@ public class SheetDefs
         return sheetDefDefault;
     }
 
-    /// <summary>
-    ///     Gets a list of sheetdefs from the DB. Used by the API. If modifying this method, please contact someone from
-    ///     the API team.
-    /// </summary>
-    public static List<SheetDef> GetSheetDefsForApi(int intLimit, int intOffset)
-    {
-        var command = "SELECT * FROM sheetdef ";
-        command += "ORDER BY SheetDefNum "
-                   + "LIMIT " + SOut.Int(intOffset) + ", " + SOut.Int(intLimit);
-        return SheetDefCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Sets the FieldName for each SheetFieldDef in sheetDef.SheetFieldDefs to the Def.DefNum defined as the Patient Image
-    ///     definition.
-    ///     Defaults to the first definition in the Image category if Patient Image is not defined.
-    ///     This is necessary because the resource for the internal sheet likely does not contain a valid Def primary key.
-    /// </summary>
     public static void SetPatImageFieldNames(SheetDef sheetDef)
     {
         //We need to figure out which Image Category should be used for any PatImage SheetFieldDefs.
@@ -289,9 +244,6 @@ public class SheetDefs
         return listSheetFieldTypes;
     }
 
-    #region Misc Methods
-
-    ///<summary>Returns true if this sheet def is allowed to bypass the global lock date.</summary>
     public static bool CanBypassLockDate(long sheetDefNum)
     {
         var sheetDef = GetFirstOrDefault(x => x.SheetDefNum == sheetDefNum);
@@ -299,10 +251,6 @@ public class SheetDefs
         return sheetDef.BypassGlobalLock == BypassLockStatus.BypassAlways;
     }
 
-    /// <summary>
-    ///     Returns true if any StaticText fields on the sheet def contain any of the StaticTextFields passed in.
-    ///     Otherwise false.
-    /// </summary>
     public static bool ContainsStaticFields(SheetDef sheetDef, params EnumStaticTextField[] staticTextFieldArray)
     {
         if (sheetDef.SheetFieldDefs.IsNullOrEmpty() || staticTextFieldArray.IsNullOrEmpty()) return false;
@@ -316,7 +264,6 @@ public class SheetDefs
         return false;
     }
 
-    ///<summary>Returns true if any Grids on the sheet def contain any of the specific Grids passed in. Otherwise false.</summary>
     public static bool ContainsGrids(SheetDef sheetDef, params string[] gridNameArray)
     {
         if (sheetDef.SheetFieldDefs.IsNullOrEmpty() || gridNameArray.IsNullOrEmpty()) return false;
@@ -330,14 +277,12 @@ public class SheetDefs
         return false;
     }
 
-    ///<summary>SheetType must either by PatientForm of MedicalHistory.</summary>
     public static bool IsWebFormAllowed(SheetTypeEnum sheetType)
     {
         if (sheetType.In(SheetTypeEnum.PatientForm, SheetTypeEnum.MedicalHistory)) return true;
         return false;
     }
 
-    ///<summary>SheetType must either by PatientForm of MedicalHistory.</summary>
     public static bool IsMobileAllowed(SheetTypeEnum sheetType)
     {
         if (IsWebFormAllowed(sheetType)) return true;
@@ -346,31 +291,20 @@ public class SheetDefs
         return false;
     }
 
-    ///<summary>Determines if a sheetDef is of a SheetTypeEnum that describes a Dashboard.</summary>
     public static bool IsDashboardType(SheetDef sheetDef)
     {
         return IsDashboardType(sheetDef.SheetType);
     }
 
-    ///<summary>Determines if a SheetTypeEnum is a Dashboard.</summary>
     public static bool IsDashboardType(SheetTypeEnum sheetType)
     {
         if (sheetType.In(SheetTypeEnum.PatientDashboard, SheetTypeEnum.PatientDashboardWidget)) return true;
         return false;
     }
 
-    #endregion
-
-    #region CachePattern
-
     private class SheetDefCache : CacheListAbs<SheetDef>
     {
-	    /// <summary>
-	    ///     Ordered by Description and then SheetDefNum to be a deterministic sorting.  This matches the sorting in
-	    ///     GetInternalOrCustom().
-	    ///     So the order in the grid matches the order when choosing a sheetdef for use.
-	    /// </summary>
-	    protected override List<SheetDef> GetCacheFromDb()
+        protected override List<SheetDef> GetCacheFromDb()
         {
             var command = "SELECT * FROM sheetdef ORDER BY Description,SheetDefNum";
             return SheetDefCrud.SelectMany(command);
@@ -397,49 +331,35 @@ public class SheetDefs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly SheetDefCache _sheetDefCache = new();
+    private static readonly SheetDefCache Cache = new();
 
     public static List<SheetDef> GetDeepCopy(bool isShort = false)
     {
-        return _sheetDefCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     public static List<SheetDef> GetWhere(Predicate<SheetDef> match, bool isShort = false)
     {
-        return _sheetDefCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
     public static SheetDef GetFirstOrDefault(Func<SheetDef, bool> match, bool isShort = false)
     {
-        return _sheetDefCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _sheetDefCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _sheetDefCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _sheetDefCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

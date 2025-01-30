@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MedicationPatCrud
 {
@@ -103,7 +105,7 @@ public class MedicationPatCrud
                                             + "'" + SOut.String(medicationPat.ErxGuid) + "',"
                                             + SOut.Bool(medicationPat.IsCpoe) + ")";
         if (medicationPat.PatNote == null) medicationPat.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(medicationPat.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(medicationPat.PatNote));
         {
             medicationPat.MedicationPatNum = Db.NonQ(command, true, "MedicationPatNum", "medicationPat", paramPatNote);
         }
@@ -135,7 +137,7 @@ public class MedicationPatCrud
                                             + "'" + SOut.String(medicationPat.ErxGuid) + "',"
                                             + SOut.Bool(medicationPat.IsCpoe) + ")";
         if (medicationPat.PatNote == null) medicationPat.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(medicationPat.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(medicationPat.PatNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramPatNote);
         else
@@ -159,7 +161,7 @@ public class MedicationPatCrud
                       + "IsCpoe          =  " + SOut.Bool(medicationPat.IsCpoe) + " "
                       + "WHERE MedicationPatNum = " + SOut.Long(medicationPat.MedicationPatNum);
         if (medicationPat.PatNote == null) medicationPat.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(medicationPat.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(medicationPat.PatNote));
         Db.NonQ(command, paramPatNote);
     }
 
@@ -229,7 +231,7 @@ public class MedicationPatCrud
 
         if (command == "") return false;
         if (medicationPat.PatNote == null) medicationPat.PatNote = "";
-        var paramPatNote = new OdSqlParameter("paramPatNote", OdDbType.Text, SOut.StringParam(medicationPat.PatNote));
+        var paramPatNote = new OdSqlParameter("paramPatNote", SOut.StringParam(medicationPat.PatNote));
         command = "UPDATE medicationpat SET " + command
                                               + " WHERE MedicationPatNum = " + SOut.Long(medicationPat.MedicationPatNum);
         Db.NonQ(command, paramPatNote);

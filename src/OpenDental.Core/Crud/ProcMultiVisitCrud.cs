@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcMultiVisitCrud
 {
@@ -87,7 +89,7 @@ public class ProcMultiVisitCrud
                                                              + SOut.Long(procMultiVisit.ProcNum) + ","
                                                              + SOut.Int((int) procMultiVisit.ProcStatus) + ","
                                                              + SOut.Bool(procMultiVisit.IsInProcess) + ","
-                                                             + DbHelper.Now() + ","
+                                                             + "NOW()" + ","
                                                              //SecDateTEdit can only be set by MySQL
                                                              + SOut.Long(procMultiVisit.PatNum) + ")";
         {
@@ -113,7 +115,7 @@ public class ProcMultiVisitCrud
                                                              + SOut.Long(procMultiVisit.ProcNum) + ","
                                                              + SOut.Int((int) procMultiVisit.ProcStatus) + ","
                                                              + SOut.Bool(procMultiVisit.IsInProcess) + ","
-                                                             + DbHelper.Now() + ","
+                                                             + "NOW()" + ","
                                                              //SecDateTEdit can only be set by MySQL
                                                              + SOut.Long(procMultiVisit.PatNum) + ")";
         if (useExistingPK || isRandomKeys)

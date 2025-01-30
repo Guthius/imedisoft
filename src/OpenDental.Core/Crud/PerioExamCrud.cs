@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class PerioExamCrud
 {
@@ -82,10 +84,10 @@ public class PerioExamCrud
             SOut.Long(perioExam.PatNum) + ","
                                         + SOut.Date(perioExam.ExamDate) + ","
                                         + SOut.Long(perioExam.ProvNum) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + DbHelper.ParamChar + "paramNote)";
         if (perioExam.Note == null) perioExam.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(perioExam.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(perioExam.Note));
         {
             perioExam.PerioExamNum = Db.NonQ(command, true, "PerioExamNum", "perioExam", paramNote);
         }
@@ -108,10 +110,10 @@ public class PerioExamCrud
             SOut.Long(perioExam.PatNum) + ","
                                         + SOut.Date(perioExam.ExamDate) + ","
                                         + SOut.Long(perioExam.ProvNum) + ","
-                                        + DbHelper.Now() + ","
+                                        + "NOW()" + ","
                                         + DbHelper.ParamChar + "paramNote)";
         if (perioExam.Note == null) perioExam.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(perioExam.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(perioExam.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -129,7 +131,7 @@ public class PerioExamCrud
                       + "Note            =  " + DbHelper.ParamChar + "paramNote "
                       + "WHERE PerioExamNum = " + SOut.Long(perioExam.PerioExamNum);
         if (perioExam.Note == null) perioExam.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(perioExam.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(perioExam.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -168,7 +170,7 @@ public class PerioExamCrud
 
         if (command == "") return false;
         if (perioExam.Note == null) perioExam.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(perioExam.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(perioExam.Note));
         command = "UPDATE perioexam SET " + command
                                           + " WHERE PerioExamNum = " + SOut.Long(perioExam.PerioExamNum);
         Db.NonQ(command, paramNote);

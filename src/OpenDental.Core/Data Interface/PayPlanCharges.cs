@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class PayPlanCharges
 {
-    #region Get Methods
-
-    
     public static List<PayPlanCharge> GetForDownPayment(PayPlanTerms terms, Family family, List<PayPlanLink> listPayPlanLinks, PayPlan payplan)
     {
         //Create a temporary variable to keep track of the original PeriodPayment.
@@ -39,7 +36,6 @@ public class PayPlanCharges
         return listDownPayments;
     }
 
-    ///<summary>Gets all payplancharges for a specific payment plan.</summary>
     public static List<PayPlanCharge> GetForPayPlan(long payPlanNum)
     {
         var command =
@@ -49,18 +45,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    ///<summary>Gets all payplancharges for a specific payment plan for the API.</summary>
-    public static List<PayPlanCharge> GetPayPlanChargesForApi(int limit, int offset, long payPlanNum)
-    {
-        var command =
-            "SELECT * FROM payplancharge "
-            + "WHERE PayPlanNum=" + SOut.Long(payPlanNum) + " "
-            + "ORDER BY PayPlanChargeNum "
-            + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return PayPlanChargeCrud.SelectMany(command);
-    }
-
-    ///<summary>Returns a list of payplancharges associated to the passed in payplannums.  Will return a blank list if none.</summary>
     public static List<PayPlanCharge> GetForPayPlans(List<long> listPayPlanNums)
     {
         if (listPayPlanNums == null || listPayPlanNums.Count < 1) return new List<PayPlanCharge>();
@@ -72,38 +56,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all payplan charges for the payplans passed in where the specified patient is the Guarantor.  Based on today's
-    ///     date.
-    ///     Will return both credits and debits.  Does not return insurance payment plan charges.
-    /// </summary>
-    public static List<PayPlanCharge> GetDueForPayPlan(PayPlan payPlan, long patNum)
-    {
-        return GetDueForPayPlans(new List<PayPlan> {payPlan}, patNum);
-    }
-
-    /// <summary>
-    ///     Gets all payplan charges for the payplans passed in where the specified patient is the Guarantor.  Based on today's
-    ///     date.
-    ///     Will return both credits and debits.  Does not return insurance payment plan charges.
-    /// </summary>
-    public static List<PayPlanCharge> GetDueForPayPlans(List<PayPlan> listPayPlans, long patNum)
-    {
-        if (listPayPlans.Count < 1) return new List<PayPlanCharge>();
-        var command = "SELECT payplancharge.* FROM payplan "
-                      + "INNER JOIN payplancharge ON payplancharge.PayPlanNum = payplan.PayPlanNum "
-                      + "AND payplancharge.ChargeDate <= " + DbHelper.Curdate() + " "
-                      + "WHERE payplan.Guarantor=" + SOut.Long(patNum) + " "
-                      + "AND payplan.PayPlanNum IN(" + string.Join(", ", listPayPlans.Select(x => x.PayPlanNum).ToList()) + ") "
-                      + "AND payplan.PlanNum = 0 "; //do not return insurance payment plan charges.
-        return PayPlanChargeCrud.SelectMany(command);
-    }
-
-    /// <summary>
-    ///     Gets all payplan charges for the payplans passed in where the any of the patients in the list are the Guarantor or
-    ///     the patient on the
-    ///     payment plan.  Will return both credits and debits.  Does not return insurance payment plan charges.
-    /// </summary>
     public static List<PayPlanCharge> GetForPayPlans(List<long> listPayPlans, List<long> listPatNums)
     {
         if (listPayPlans.IsNullOrEmpty() || listPatNums.IsNullOrEmpty()) return new List<PayPlanCharge>();
@@ -116,13 +68,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    
-    public static List<PayPlanCharge> GetChargesForPayPlanChargeType(long payPlanNum, PayPlanChargeType chargeType)
-    {
-        return GetChargesForPayPlanChargeType(new List<long> {payPlanNum}, chargeType);
-    }
-
-    
     public static List<PayPlanCharge> GetChargesForPayPlanChargeType(List<long> listPayPlanNums, PayPlanChargeType chargeType)
     {
         if (listPayPlanNums.IsNullOrEmpty()) return new List<PayPlanCharge>();
@@ -133,20 +78,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all charges of the credit type that don't have a procnum of 0 and belong to any of the pats in
-    ///     listPatNums
-    /// </summary>
-    public static List<PayPlanCharge> GetAllProcCreditsForPats(List<long> listPatNums)
-    {
-        if (listPatNums.Count == 0) return new List<PayPlanCharge>();
-
-        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ChargeType={SOut.Int((int) PayPlanChargeType.Credit)} " +
-                      $"AND payplancharge.ProcNum!=0 AND payplancharge.PatNum IN ({string.Join(",", listPatNums)})";
-        return PayPlanChargeCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets all credit charges for procedures that belong to any of the payplans in listPayPlanNums</summary>
     public static List<PayPlanCharge> GetAllProcCreditsForPayPlans(List<long> listPayPlanNums)
     {
         if (listPayPlanNums.Count == 0) return new List<PayPlanCharge>();
@@ -156,10 +87,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Takes a procNum and returns a list of all payment plan charges associated to the procedure.
-    ///     Returns an empty list if there are none.
-    /// </summary>
     public static List<PayPlanCharge> GetFromProc(long procNum)
     {
         var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum={SOut.Long(procNum)} OR (payplancharge.LinkType=" +
@@ -167,7 +94,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of all payment plan charges of type Credit associated to the procedures for patient payment plans.</summary>
     public static List<PayPlanCharge> GetPatientPayPlanCreditsForProcs(List<long> listProcNums)
     {
         if (listProcNums.Count == 0) return new List<PayPlanCharge>();
@@ -177,7 +103,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    
     public static PayPlanCharge GetOne(long payPlanChargeNum)
     {
         var command =
@@ -196,7 +121,6 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of charges for the passed in fkey and link type (i.e. adjustment, procedure...)</summary>
     public static List<PayPlanCharge> GetForLinkTypeAndFKeys(PayPlanLinkType linkType, params long[] arrayFKeys)
     {
         if (arrayFKeys.IsNullOrEmpty()) return new List<PayPlanCharge>();
@@ -215,17 +139,11 @@ public class PayPlanCharges
         return PayPlanChargeCrud.SelectMany(command);
     }
 
-    #endregion
-
-    #region Insert
-
-    
     public static long Insert(PayPlanCharge charge)
     {
         return PayPlanChargeCrud.Insert(charge);
     }
 
-    
     public static void InsertMany(List<PayPlanCharge> listPayPlanCharges)
     {
         if (listPayPlanCharges.IsNullOrEmpty()) return;
@@ -233,17 +151,6 @@ public class PayPlanCharges
         PayPlanChargeCrud.InsertMany(listPayPlanCharges);
     }
 
-    #endregion
-
-    #region Update
-
-    /// <summary>
-    ///     Takes a procNum and updates all of the dates of the payment plan charge credits associated to it.
-    ///     If a completed procedure is passed in, it will update all of the payment plan charges associated to it to the
-    ///     ProcDate.
-    ///     If a non-complete procedure is passed in, it will update the charges associated to MaxValue.
-    ///     Does nothing if there are no charges attached to the passed-in procedure.
-    /// </summary>
     public static void UpdateAttachedPayPlanCharges(Procedure proc)
     {
         #region PayPlanCharge.ChargeDate
@@ -276,11 +183,6 @@ public class PayPlanCharges
         #endregion
     }
 
-    /// <summary>
-    ///     Takes an insurance payplan and updates all payplancharge credits associated to it to match the completed
-    ///     amount on the payplan. Every insurance payplan should only have 1 PayPlanCharge of type Credit. The payplan passed
-    ///     in should have the correct CompletedAmt.
-    /// </summary>
     public static void UpdateInsPlanPayPlanCharges(PayPlan payplan)
     {
         if (payplan == null || payplan.PayPlanNum == 0 || payplan.InsSubNum == 0) return;
@@ -290,33 +192,22 @@ public class PayPlanCharges
         Db.NonQ(command);
     }
 
-    
     public static void Update(PayPlanCharge charge)
     {
         PayPlanChargeCrud.Update(charge);
     }
 
-    
     public static void Update(PayPlanCharge payPlanCharge, PayPlanCharge payPlanChargeOld)
     {
         PayPlanChargeCrud.Update(payPlanCharge, payPlanChargeOld);
     }
 
-    ///<summary>Inserts, updates, or deletes database rows to match supplied list.  Must always pass in payPlanNum.</summary>
     public static void Sync(List<PayPlanCharge> listPayPlanCharges, long payPlanNum)
     {
         var listDB = GetForPayPlan(payPlanNum);
         PayPlanChargeCrud.Sync(listPayPlanCharges, listDB);
     }
 
-    #endregion
-
-    #region Delete
-
-    /// <summary>
-    ///     Will delete all PayPlanCharges associated to the passed-in procNum from the database.  Does nothing if the
-    ///     procNum = 0.
-    /// </summary>
     public static void DeleteForProc(long procNum)
     {
         if (procNum == 0) return;
@@ -326,11 +217,6 @@ public class PayPlanCharges
         PayPlans.UpdateTreatmentCompletedAmt(listPayPlans);
     }
 
-    /// <summary>
-    ///     Returns a list of payment plan charges that are not safe to delete (either they are credits, or are charges
-    ///     with payments attached). If doDelete is true, all debits passed in will be deleted if they are safe to be deleted.
-    ///     Calling methods should use the list of charges returned to know which ones were not deleted.
-    /// </summary>
     public static List<PayPlanCharge> DeleteDebitsWithoutPayments(List<PayPlanCharge> listCharges, bool doDelete = true)
     {
         var listPayPlanChargesNotDeleted = new List<PayPlanCharge>();
@@ -356,7 +242,6 @@ public class PayPlanCharges
         return listCharges.FindAll(x => listPayPlanChargeNumsPreserve.Contains(x.PayPlanChargeNum));
     }
 
-    
     public static void Delete(PayPlanCharge charge)
     {
         var command = "DELETE from payplancharge WHERE PayPlanChargeNum = '"
@@ -371,6 +256,4 @@ public class PayPlanCharges
         var command = $"DELETE from payplancharge WHERE PayPlanChargeNum IN ({string.Join(",", listCharges.Select(x => SOut.Long(x)))})";
         Db.NonQ(command);
     }
-
-    #endregion
 }

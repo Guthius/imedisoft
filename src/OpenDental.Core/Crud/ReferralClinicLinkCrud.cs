@@ -1,33 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ReferralClinicLinkCrud
 {
-    public static ReferralClinicLink SelectOne(long referralClinicLinkNum)
-    {
-        var command = "SELECT * FROM referralcliniclink "
-                      + "WHERE ReferralClinicLinkNum = " + SOut.Long(referralClinicLinkNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ReferralClinicLink SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ReferralClinicLink> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -48,38 +29,6 @@ public class ReferralClinicLinkCrud
         }
 
         return retVal;
-    }
-
-    public static DataTable ListToTable(List<ReferralClinicLink> listReferralClinicLinks, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "ReferralClinicLink";
-        var table = new DataTable(tableName);
-        table.Columns.Add("ReferralClinicLinkNum");
-        table.Columns.Add("ReferralNum");
-        table.Columns.Add("ClinicNum");
-        foreach (var referralClinicLink in listReferralClinicLinks)
-            table.Rows.Add(SOut.Long(referralClinicLink.ReferralClinicLinkNum), SOut.Long(referralClinicLink.ReferralNum), SOut.Long(referralClinicLink.ClinicNum));
-        return table;
-    }
-
-    public static long Insert(ReferralClinicLink referralClinicLink)
-    {
-        return Insert(referralClinicLink, false);
-    }
-
-    public static long Insert(ReferralClinicLink referralClinicLink, bool useExistingPK)
-    {
-        var command = "INSERT INTO referralcliniclink (";
-
-        command += "ReferralNum,ClinicNum) VALUES(";
-
-        command +=
-            SOut.Long(referralClinicLink.ReferralNum) + ","
-                                                      + SOut.Long(referralClinicLink.ClinicNum) + ")";
-        {
-            referralClinicLink.ReferralClinicLinkNum = Db.NonQ(command, true, "ReferralClinicLinkNum", "referralClinicLink");
-        }
-        return referralClinicLink.ReferralClinicLinkNum;
     }
 
     public static void InsertMany(List<ReferralClinicLink> listReferralClinicLinks)
@@ -134,80 +83,5 @@ public class ReferralClinicLinkCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(ReferralClinicLink referralClinicLink)
-    {
-        return InsertNoCache(referralClinicLink, false);
-    }
-
-    public static long InsertNoCache(ReferralClinicLink referralClinicLink, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO referralcliniclink (";
-        if (isRandomKeys || useExistingPK) command += "ReferralClinicLinkNum,";
-        command += "ReferralNum,ClinicNum) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(referralClinicLink.ReferralClinicLinkNum) + ",";
-        command +=
-            SOut.Long(referralClinicLink.ReferralNum) + ","
-                                                      + SOut.Long(referralClinicLink.ClinicNum) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            referralClinicLink.ReferralClinicLinkNum = Db.NonQ(command, true, "ReferralClinicLinkNum", "referralClinicLink");
-        return referralClinicLink.ReferralClinicLinkNum;
-    }
-
-    public static void Update(ReferralClinicLink referralClinicLink)
-    {
-        var command = "UPDATE referralcliniclink SET "
-                      + "ReferralNum          =  " + SOut.Long(referralClinicLink.ReferralNum) + ", "
-                      + "ClinicNum            =  " + SOut.Long(referralClinicLink.ClinicNum) + " "
-                      + "WHERE ReferralClinicLinkNum = " + SOut.Long(referralClinicLink.ReferralClinicLinkNum);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(ReferralClinicLink referralClinicLink, ReferralClinicLink oldReferralClinicLink)
-    {
-        var command = "";
-        if (referralClinicLink.ReferralNum != oldReferralClinicLink.ReferralNum)
-        {
-            if (command != "") command += ",";
-            command += "ReferralNum = " + SOut.Long(referralClinicLink.ReferralNum) + "";
-        }
-
-        if (referralClinicLink.ClinicNum != oldReferralClinicLink.ClinicNum)
-        {
-            if (command != "") command += ",";
-            command += "ClinicNum = " + SOut.Long(referralClinicLink.ClinicNum) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE referralcliniclink SET " + command
-                                                   + " WHERE ReferralClinicLinkNum = " + SOut.Long(referralClinicLink.ReferralClinicLinkNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(ReferralClinicLink referralClinicLink, ReferralClinicLink oldReferralClinicLink)
-    {
-        if (referralClinicLink.ReferralNum != oldReferralClinicLink.ReferralNum) return true;
-        if (referralClinicLink.ClinicNum != oldReferralClinicLink.ClinicNum) return true;
-        return false;
-    }
-
-    public static void Delete(long referralClinicLinkNum)
-    {
-        var command = "DELETE FROM referralcliniclink "
-                      + "WHERE ReferralClinicLinkNum = " + SOut.Long(referralClinicLinkNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listReferralClinicLinkNums)
-    {
-        if (listReferralClinicLinkNums == null || listReferralClinicLinkNums.Count == 0) return;
-        var command = "DELETE FROM referralcliniclink "
-                      + "WHERE ReferralClinicLinkNum IN(" + string.Join(",", listReferralClinicLinkNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormCanadaPaymentReconciliation {
 		/// <summary>
 		/// Required designer variable.
@@ -70,7 +70,7 @@ namespace OpenDental{
 			this.listBillingProvider.Name = "listBillingProvider";
 			this.listBillingProvider.Size = new System.Drawing.Size(275, 43);
 			this.listBillingProvider.TabIndex = 110;
-			this.listBillingProvider.Click += new System.EventHandler(this.listBillingProvider_Click);
+			this.listBillingProvider.Click += new System.EventHandler(this.ListBoxBillingProvider_Click);
 			// 
 			// label3
 			// 
@@ -87,7 +87,7 @@ namespace OpenDental{
 			this.listTreatingProvider.Name = "listTreatingProvider";
 			this.listTreatingProvider.Size = new System.Drawing.Size(276, 43);
 			this.listTreatingProvider.TabIndex = 112;
-			this.listTreatingProvider.Click += new System.EventHandler(this.listTreatingProvider_Click);
+			this.listTreatingProvider.Click += new System.EventHandler(this.ListBoxTreatingProvider_Click);
 			// 
 			// label4
 			// 
@@ -113,7 +113,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textBillingOfficeNumber
 			// 

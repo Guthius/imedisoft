@@ -11,6 +11,7 @@ using NDde;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges{
 	/// <summary></summary>

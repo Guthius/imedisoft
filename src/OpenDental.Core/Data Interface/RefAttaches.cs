@@ -1,26 +1,18 @@
 using System;
 using System.Collections.Generic;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class RefAttaches
 {
-    #region Insert
-
-    
-    public static long Insert(RefAttach attach)
+    public static void Insert(RefAttach attach)
     {
-        return RefAttachCrud.Insert(attach);
+        RefAttachCrud.Insert(attach);
     }
 
-    #endregion
-
-    #region Delete
-
-    
     public static void Delete(RefAttach attach)
     {
         var command = "UPDATE refattach SET ItemOrder=ItemOrder-1 WHERE PatNum=" + SOut.Long(attach.PatNum)
@@ -31,47 +23,22 @@ public class RefAttaches
         Db.NonQ(command);
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    
     public static bool IsReferralAttached(long referralNum)
     {
         var command = "SELECT COUNT(*) FROM refattach WHERE ReferralNum = '" + SOut.Long(referralNum) + "'";
         return Db.GetCount(command) != "0";
     }
 
-    #endregion
-
-    #region Get Methods
-
-    ///<summary>For one patient</summary>
     public static List<RefAttach> Refresh(long patNum)
     {
         return RefreshFiltered(patNum, true, 0);
     }
 
-    
     public static List<RefAttach> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM refattach "
-                      + "WHERE PatNum = " + SOut.Long(patNum) + " "
-                      + "ORDER BY ItemOrder";
-        return RefAttachCrud.SelectMany(command);
+        return RefAttachCrud.SelectMany("SELECT * FROM refattach WHERE PatNum = " + patNum + " ORDER BY ItemOrder");
     }
 
-    ///<summary>Gets all RefAttaches and orders them by RefAttachNum.</summary>
-    public static List<RefAttach> GetRefAttachesForApi(int limit, int offset, long patNum)
-    {
-        var command = "SELECT * FROM refattach ";
-        if (patNum > 0) command += "WHERE PatNum=" + SOut.Long(patNum) + " ";
-        command += "ORDER BY RefAttachNum "
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return RefAttachCrud.SelectMany(command);
-    }
-
-    ///<summary>For the ReferralsPatient window.  showAll is only used for the referred procs view.</summary>
     public static List<RefAttach> RefreshFiltered(long patNum, bool showAll, long procNum)
     {
         //Inner join with referral table on ReferralNum to ignore invalid RefAttaches.  DBM removes these invalid rows anyway.
@@ -87,7 +54,6 @@ public class RefAttaches
         return RefAttachCrud.SelectMany(command);
     }
 
-    ///<summary>For FormReferralProckTrack.</summary>
     public static List<RefAttach> RefreshForReferralProcTrack(DateTime dateFrom, DateTime dateTo, bool complete)
     {
         //Inner join with referral table on ReferralNum to ignore invalid RefAttaches.  DBM removes these invalid rows anyway.
@@ -101,10 +67,6 @@ public class RefAttaches
         return RefAttachCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns a list of patient names that are attached to this referral. Used to display in the referral edit
-    ///     window.
-    /// </summary>
     public static List<string> GetPats(long refNum, ReferralType refType)
     {
         var command = "SELECT CONCAT(CONCAT(patient.LName,', '),patient.FName) "
@@ -119,10 +81,6 @@ public class RefAttaches
         return listStrings;
     }
 
-    /// <summary>
-    ///     Gets the referral number for this patient.  If multiple, it returns the first one.  If none, it returns 0.
-    ///     Does not consider referred To.
-    /// </summary>
     public static long GetReferralNum(long patNum)
     {
         var command = "SELECT ReferralNum "
@@ -134,52 +92,31 @@ public class RefAttaches
         return SIn.Long(DataCore.GetScalar(command));
     }
 
-    ///<summary>Gets all RefAttaches for the patients in the list of PatNums.  Returns an empty list if no matches.</summary>
     public static List<RefAttach> GetRefAttaches(List<long> listPatNums)
     {
         if (listPatNums.Count == 0) return new List<RefAttach>();
-        //MySQL can handle duplicate values within the IN criteria more efficiently than removing them in a loop.
-        var uniqueNums = new List<long>();
         var command = "SELECT * FROM refattach "
                       + "WHERE refattach.PatNum IN (" + string.Join(",", listPatNums) + ")";
         return RefAttachCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all the possible RefAttaches, for the patient, that are in the denominator of the summary of care
-    ///     measure.
-    /// </summary>
     public static List<RefAttach> GetRefAttachesForSummaryOfCareForPat(long patNum)
     {
-        var command = "SELECT * FROM refattach "
-                      + "WHERE PatNum = " + SOut.Long(patNum) + " "
-                      + "AND RefType=" + SOut.Int((int) ReferralType.RefTo) + " "
-                      + "AND IsTransitionOfCare=1 AND ProvNum!=0 "
-                      + "ORDER BY ItemOrder";
-        return RefAttachCrud.SelectMany(command);
+        return RefAttachCrud.SelectMany(
+            "SELECT * FROM refattach " +
+            "WHERE PatNum = " + patNum + " " +
+            "AND RefType=" + (int) ReferralType.RefTo + " " +
+            "AND IsTransitionOfCare=1 AND ProvNum!=0 " +
+            "ORDER BY ItemOrder");
     }
 
-    ///<summary>Gets one RefAttach from the database using the primary key. Returns null if not found.</summary>
-    public static RefAttach GetOne(long refAttachNum)
-    {
-        return RefAttachCrud.SelectOne(refAttachNum);
-    }
-
-    #endregion
-
-    #region Update
-
-    
     public static void Update(RefAttach attach)
     {
         RefAttachCrud.Update(attach);
     }
 
-    
     public static void Update(RefAttach attach, RefAttach attachOld)
     {
         RefAttachCrud.Update(attach, attachOld);
     }
-
-    #endregion
 }

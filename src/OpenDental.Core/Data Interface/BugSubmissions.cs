@@ -6,14 +6,13 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness;
 
 public class BugSubmissions
 {
-    public static IBugSubmissions MockBugSubmissions { get; set; }
-
     public static string GetDiagnostics(long patNum = -1)
     {
         var submissionInfo = new BugSubmission(new Exception(), patNum: patNum).Info;
@@ -80,15 +79,7 @@ public class BugSubmissions
     public static void SubmitException(Exception ex, out string displayMsg, string threadName = "", long patNumCur = -1, string moduleName = "")
     {
         displayMsg = null;
-        if (MockBugSubmissions != null)
-        {
-            MockBugSubmissions.SubmitException(ex, threadName, patNumCur, moduleName);
-            return;
-        }
-
-        //Default SendUnhandledExceptionsToHQ to true if the preference cache is null or the preference was not found.
-        //There might not be a database connection yet, therefore the preference cache could be null.
-        //HQ needs to know more information regarding unhandled exceptions prior to setting a database connection (.NET issue, release issue, etc).
+        
         if (!PrefC.GetBoolSilent(PrefName.SendUnhandledExceptionsToHQ, true)) return;
 
         var bugSubmission = new BugSubmission(ex, threadName, patNumCur, moduleName);
@@ -97,45 +88,32 @@ public class BugSubmissions
         string practicePhone = null;
         string programVersion = null;
         var webServiceHqURL = "";
-        if (bugSubmission.RegKey == "7E57-1NPR-0DUC-710N")
-        {
-            registrationKey = bugSubmission.RegKey;
-            practiceTitle = "Unknown";
-            practicePhone = "Unknown";
-            programVersion = bugSubmission.Info.OpenDentBusinessVersion;
-            webServiceHqURL = "https://www.patientviewer.com:49997/OpenDentalWebServiceHQ/WebServiceMainHQ.asmx";
-        }
 
         ParseBugSubmissionResult(
             WebServiceMainHQProxy.GetWebServiceMainHQInstance(webServiceHqURL).SubmitUnhandledException(
                 PayloadHelper.CreatePayload(
                     PayloadHelper.CreatePayloadContent(bugSubmission, "bugSubmission"), eServiceCode.BugSubmission, registrationKey, practiceTitle, practicePhone, programVersion
                 )
-            )
-            , out displayMsg
+            ), out displayMsg
         );
     }
 
-    public static BugSubmissionResult ParseBugSubmissionResult(string result, out string displayMsg)
+    public static void ParseBugSubmissionResult(string result, out string displayMsg)
     {
         displayMsg = null;
         var xmlDocument = new XmlDocument();
         xmlDocument.LoadXml(result);
-        if (xmlDocument.SelectSingleNode("//Error") != null) return BugSubmissionResult.Failed;
+        if (xmlDocument.SelectSingleNode("//Error") != null) return;
 
         //A BugSubmission.Response object will get returned.
         var xmlNodeResponse = xmlDocument.SelectSingleNode("//SubmissionResult");
         if (xmlNodeResponse != null)
         {
-            BugSubmissionResult bugSubmissionResult;
-            if (Enum.TryParse(xmlNodeResponse.InnerText, out bugSubmissionResult))
+            if (Enum.TryParse(xmlNodeResponse.InnerText, out BugSubmissionResult _))
             {
                 displayMsg = xmlDocument.SelectSingleNode("//DisplayString")?.InnerText;
-                return bugSubmissionResult;
             }
         }
-
-        return BugSubmissionResult.None; //Just in case;
     }
 
     public static bool TryMatchPertinentFixedVersion(Version currentVersion, List<Version> listVersionsFixed, out Version versionPertinentFixed)
@@ -172,37 +150,4 @@ public class BugSubmissions
     }
 }
 
-public enum BugSubmissionResult
-{
-    
-    None,
-
-    ///<summary>Submitter is not on support or there was an exception in the web method</summary>
-    Failed,
-
-    ///<summary>Submitter must be on the most recent stable or any beta version.</summary>
-    UpdateRequired,
-
-    ///<summary>Submitter sucessfully inserted a bugSubmission at HQ</summary>
-    SuccessHashFound,
-
-    ///<summary>Submitter sucessfully inserted a bugSubmission at HQ and a hash row was also inserted.</summary>
-    SuccessHashNeeded,
-
-    /// <summary>
-    ///     Submitter sucessfully inserted a bugSubmission at HQ and it was matched to a bug that is NOT currently flagged
-    ///     as fixed.
-    /// </summary>
-    SuccessMatched,
-
-    /// <summary>
-    ///     Submitter sucessfully inserted a bugSubmission at HQ and it was matched to a bug that is currently flagged as
-    ///     fixed.
-    /// </summary>
-    SuccessMatchedFixed
-}
-
-public interface IBugSubmissions
-{
-    BugSubmissionResult SubmitException(Exception ex, string threadName = "", long patNumCur = -1, string moduleName = "");
-}
+public enum BugSubmissionResult;

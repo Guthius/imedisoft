@@ -12,6 +12,8 @@ using System.Xml;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
@@ -71,7 +73,7 @@ namespace OpenDental.Bridges {
 			//Account summary-----------------------------------------------------------------------
 			writer.WriteStartElement("AccountSummary");
 			if(PrefC.GetLong(PrefName.StatementsCalcDueDate)==-1){
-				writer.WriteElementString("DueDate",Lang.g("FormRpStatement","Upon Receipt"));
+				writer.WriteElementString("DueDate","Upon Receipt");
 			}
 			else{
 				DateTime dueDate=DateTime.Today.AddDays(PrefC.GetLong(PrefName.StatementsCalcDueDate));

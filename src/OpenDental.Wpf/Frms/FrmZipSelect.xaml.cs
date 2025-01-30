@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -58,7 +60,7 @@ namespace OpenDental {
 			for(int i=0;i<_listZipCodes.Count;i++){ 
 				itemText=(_listZipCodes[i]).City+" "+(_listZipCodes[i]).State;
 				if((_listZipCodes[i]).IsFrequent){
-					itemText+=Lans.g(this," (freq)");
+					itemText+=Lans.g(" (freq)");
 				}
 				listMatches.Items.Add(itemText);
 			}
@@ -93,7 +95,7 @@ namespace OpenDental {
 			}
 			_isChanged=true;
 			ZipCodes.RefreshCache();
-			ZipCodes.GetALMatches(frmZipCodeEdit.ZipCodeCur.ZipCodeDigits);
+			ZipCodes.GetAlMatches(frmZipCodeEdit.ZipCodeCur.ZipCodeDigits);
 			FillList();
 		}
 
@@ -110,7 +112,7 @@ namespace OpenDental {
 			}
 			_isChanged=true;
 			ZipCodes.RefreshCache();
-			ZipCodes.GetALMatches(frmZipCodeEdit.ZipCodeCur.ZipCodeDigits);
+			ZipCodes.GetAlMatches(frmZipCodeEdit.ZipCodeCur.ZipCodeDigits);
 			FillList();
 		}
 

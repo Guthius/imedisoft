@@ -1,12 +1,11 @@
-namespace OpenDental.ReportingComplex
+namespace OpenDental.ReportingComplex;
+
+public enum FieldValueType
 {
-    public enum FieldValueType
-    {
-        Date = 0,
-        String = 1,
-        Boolean = 2,
-        Integer = 3,
-        Number = 4,
-        Age = 7
-    }
+    Date = 0,
+    String = 1,
+    Boolean = 2,
+    Integer = 3,
+    Number = 4,
+    Age = 7
 }

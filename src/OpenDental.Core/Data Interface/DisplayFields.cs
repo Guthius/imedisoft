@@ -3,43 +3,34 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
 public class DisplayFields
 {
-    
-    public static long Insert(DisplayField displayField)
+    public static void Insert(DisplayField displayField)
     {
-        return DisplayFieldCrud.Insert(displayField);
+        DisplayFieldCrud.Insert(displayField);
     }
-
     
     public static void Update(DisplayField displayField)
     {
         DisplayFieldCrud.Update(displayField);
     }
-
     
     public static void Delete(long displayFieldNum)
     {
-        var command = "DELETE FROM displayfield WHERE DisplayFieldNum = " + SOut.Long(displayFieldNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM displayfield WHERE DisplayFieldNum = " + displayFieldNum);
     }
-
     
     public static void DeleteForChartView(long chartViewNum)
     {
-        var command = "DELETE FROM displayfield WHERE ChartViewNum = " + SOut.Long(chartViewNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM displayfield WHERE ChartViewNum = " + chartViewNum);
     }
 
-    /// <summary>
-    ///     Returns true if a display field with the provided InternalName is set to show in the provided
-    ///     DisplayFieldCategory.
-    /// </summary>
     public static bool IsInUse(DisplayFieldCategory displayFieldCategory, string internalName)
     {
         if (string.IsNullOrEmpty(internalName)) return false;
@@ -49,11 +40,6 @@ public class DisplayFields
         return isVisibleCategory;
     }
 
-    /// <Summary>
-    ///     Returns an ordered list for just one category.  Do not use with None, or it will malfunction.  These are
-    ///     display fields that the user has entered, which are stored in the db, and then are pulled into the cache.
-    ///     Categories with no display fields will return the default list.
-    /// </Summary>
     public static List<DisplayField> GetForCategory(DisplayFieldCategory displayFieldCategory)
     {
         var listDisplayFields = GetWhere(x => x.Category == displayFieldCategory);
@@ -64,7 +50,6 @@ public class DisplayFields
         return listDisplayFields;
     }
 
-    ///<Summary>Returns an ordered list for just one chart view</Summary>
     public static List<DisplayField> GetForChartView(long chartViewNum)
     {
         var listDisplayFields = GetWhere(x => x.ChartViewNum == chartViewNum && x.Category == DisplayFieldCategory.None);
@@ -1258,7 +1243,6 @@ public class DisplayFields
         }
     }
 
-    ///<summary>This class can be used to have a strongly-typed reference to display field internal names.</summary>
     public class InternalNames
     {
         public class ChartView
@@ -1281,13 +1265,6 @@ public class DisplayFields
             public const string DateTP = "Date TP";
             public const string EndTime = "End Time";
             public const string Quadrant = "Quadrant";
-            public const string ScheduleBy = "Schedule By";
-            public const string StopClock = "Stop Clock";
-            public const string DPC = "DPC";
-            public const string EffectiveComm = "Effective Comm";
-            public const string OnCall = "On Call";
-            public const string Stat2 = "Stat 2";
-            public const string DPCpost = "DPCpost";
             public const string Length = "Length";
             public const string Abbr = "Abbr";
             public const string Locked = "Locked";
@@ -1327,8 +1304,6 @@ public class DisplayFields
         }
     }
 
-    #region CachePattern
-
     private class DisplayFieldCache : CacheListAbs<DisplayField>
     {
         protected override List<DisplayField> GetCacheFromDb()
@@ -1357,40 +1332,26 @@ public class DisplayFields
             DisplayFields.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly DisplayFieldCache _displayFieldCache = new();
+    
+    private static readonly DisplayFieldCache Cache = new();
 
     private static List<DisplayField> GetWhere(Predicate<DisplayField> match, bool isShort = false)
     {
-        return _displayFieldCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _displayFieldCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _displayFieldCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _displayFieldCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

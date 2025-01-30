@@ -32,7 +32,7 @@ namespace OpenDentBusiness {
 				+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
 				+"AND insplan.PlanType = 'c' "
 				+"AND procedurelog.ProcStatus = "+SOut.Int((int)ProcStat.C);
-			return ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(queryString));
+			return ReportsComplex.GetTable(queryString);
 		}	
 	}
 

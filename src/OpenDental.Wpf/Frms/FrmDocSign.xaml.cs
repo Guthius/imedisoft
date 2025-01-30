@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -44,7 +45,7 @@ namespace OpenDental {
 		public void FrmDocSign_Load(object sender, EventArgs e){
 			_formFrame.Location=new System.Drawing.Point(PointLLStart.X,PointLLStart.Y-_formFrame.Height+4);
 			Lang.F(this);
-			_patFolderName=ImageStore.GetPatientFolder(_patient,ImageStore.GetPreferredAtoZpath());
+			_patFolderName=ImageStore.GetPatientFolder(_patient,ImageStore.GetDataFolder());
 			_isStartingUp=true;
 			textNote.Text=_document.Note;
 			signatureBoxWrapper.SignatureMode=UI.SignatureBoxWrapper.SigMode.Document;
@@ -84,16 +85,16 @@ namespace OpenDental {
 			EnumPermType permissionForLog=EnumPermType.None;
 			if(!hadSignatureDocumentOld && hasSignatureDocument) {
 				permissionForLog = EnumPermType.ImageSignatureCreate;
-				stringBuilderLogText.AppendLine(Lans.g(this,"Document signed."));
+				stringBuilderLogText.AppendLine(Lans.g("Document signed."));
 			}
 			else if(hadSignatureDocumentOld && !hasSignatureDocument) {
 				permissionForLog = EnumPermType.SignedImageEdit;
-				stringBuilderLogText.AppendLine(Lans.g(this,"Signature removed."));
+				stringBuilderLogText.AppendLine(Lans.g("Signature removed."));
 			}
 			else if(hadSignatureDocumentOld && hasSignatureDocument) {
 				permissionForLog = EnumPermType.SignedImageEdit;
 				if(_documentOld.Signature!=_document.Signature) {
-					stringBuilderLogText.AppendLine(Lans.g(this,"Existing signature changed."));
+					stringBuilderLogText.AppendLine(Lans.g("Existing signature changed."));
 				}
 			}
 			else {
@@ -104,16 +105,16 @@ namespace OpenDental {
 			bool hadNoteDocumentOld=!_documentOld.Note.IsNullOrEmpty();
 			bool hasNoteDocument=!_document.Note.IsNullOrEmpty();
 			if(!hadNoteDocumentOld && hasNoteDocument) {
-				stringBuilderLogText.AppendLine(Lans.g(this,"Note added."));
+				stringBuilderLogText.AppendLine(Lans.g("Note added."));
 			}
 			else if(hadNoteDocumentOld && !hasNoteDocument) {
 				stringBuilderLogText
-					.AppendLine(Lans.g(this,"Note removed:"))
+					.AppendLine(Lans.g("Note removed:"))
 					.AppendLine(_documentOld.Note);
 			}
 			else if(hadNoteDocumentOld && hasNoteDocument && _documentOld.Note!=_document.Note) {
 				stringBuilderLogText
-					.AppendLine(Lans.g(this,"Previous note:"))
+					.AppendLine(Lans.g("Previous note:"))
 					.AppendLine(_documentOld.Note);
 			}
 			if(stringBuilderLogText.Length > 0) {

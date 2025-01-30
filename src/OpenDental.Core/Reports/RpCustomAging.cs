@@ -8,6 +8,7 @@ using CodeBase;
 using System.ComponentModel;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
 namespace OpenDentBusiness {
@@ -353,9 +354,8 @@ namespace OpenDentBusiness {
 				command+=@"
 					AND ps.PayPlanNum = 0 ";
 			}
-			List<long> listHiddenUnearnedDefNums=ReportsComplex.RunFuncOnReportServer(() => 
-				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).Where(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList()
-			);
+			List<long> listHiddenUnearnedDefNums=
+				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).Where(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			if(listHiddenUnearnedDefNums.Count > 0) {
 				command+="AND ps.UnearnedType NOT IN ("+string.Join(",",listHiddenUnearnedDefNums)+") ";
 			}

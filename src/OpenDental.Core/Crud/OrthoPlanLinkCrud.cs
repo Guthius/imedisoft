@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class OrthoPlanLinkCrud
 {
@@ -85,7 +87,7 @@ public class OrthoPlanLinkCrud
                                                   + SOut.Int((int) orthoPlanLink.LinkType) + ","
                                                   + SOut.Long(orthoPlanLink.FKey) + ","
                                                   + SOut.Bool(orthoPlanLink.IsActive) + ","
-                                                  + DbHelper.Now() + ","
+                                                  + "NOW()" + ","
                                                   + SOut.Long(orthoPlanLink.SecUserNumEntry) + ")";
         {
             orthoPlanLink.OrthoPlanLinkNum = Db.NonQ(command, true, "OrthoPlanLinkNum", "orthoPlanLink");
@@ -110,7 +112,7 @@ public class OrthoPlanLinkCrud
                                                   + SOut.Int((int) orthoPlanLink.LinkType) + ","
                                                   + SOut.Long(orthoPlanLink.FKey) + ","
                                                   + SOut.Bool(orthoPlanLink.IsActive) + ","
-                                                  + DbHelper.Now() + ","
+                                                  + "NOW()" + ","
                                                   + SOut.Long(orthoPlanLink.SecUserNumEntry) + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);

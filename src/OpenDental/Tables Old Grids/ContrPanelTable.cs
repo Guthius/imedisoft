@@ -6,43 +6,42 @@ See header in FormOpenDental.cs for complete text.  Redistributions must retain 
 using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace OpenDental
+namespace OpenDental;
+
+public class ContrPanelTable : UserControl
 {
-    public class ContrPanelTable : UserControl
+    private Container components = null;
+
+
+    public ContrPanelTable()
     {
-        private Container components = null;
-
-
-        public ContrPanelTable()
-        {
-            InitializeComponent();
-        }
-
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (components != null)
-                {
-                    components.Dispose();
-                }
-            }
-
-            base.Dispose(disposing);
-        }
-
-        #region Component Designer generated code
-
-        private void InitializeComponent()
-        {
-            // 
-            // ContrPanelTable
-            // 
-            this.BackColor = System.Drawing.SystemColors.Window;
-            this.Name = "ContrPanelTable";
-        }
-
-        #endregion
+        InitializeComponent();
     }
+
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (components != null)
+            {
+                components.Dispose();
+            }
+        }
+
+        base.Dispose(disposing);
+    }
+
+    #region Component Designer generated code
+
+    private void InitializeComponent()
+    {
+        // 
+        // ContrPanelTable
+        // 
+        this.BackColor = System.Drawing.SystemColors.Window;
+        this.Name = "ContrPanelTable";
+    }
+
+    #endregion
 }

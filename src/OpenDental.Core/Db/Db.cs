@@ -41,7 +41,7 @@ public class Db
 
     internal static long NonQ(string command, bool getInsertId, params OdSqlParameter[] parameters)
     {
-        return NonQ(command, getInsertId, "", "", parameters);
+        return DataCore.NonQ(command, getInsertId, parameters);
     }
 
     internal static long NonQ(string command, params OdSqlParameter[] parameters)

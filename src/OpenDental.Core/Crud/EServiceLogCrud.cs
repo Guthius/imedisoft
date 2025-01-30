@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EServiceLogCrud
 {
@@ -92,7 +94,7 @@ public class EServiceLogCrud
             SOut.Int((int) eServiceLog.KeyType) + ","
                                                 + SOut.Int((int) eServiceLog.EServiceType) + ","
                                                 + SOut.Int((int) eServiceLog.EServiceAction) + ","
-                                                + DbHelper.Now() + ","
+                                                + "NOW()" + ","
                                                 + SOut.Long(eServiceLog.PatNum) + ","
                                                 + SOut.Long(eServiceLog.ClinicNum) + ","
                                                 + "'" + SOut.String(eServiceLog.LogGuid) + "',"
@@ -121,7 +123,7 @@ public class EServiceLogCrud
             SOut.Int((int) eServiceLog.KeyType) + ","
                                                 + SOut.Int((int) eServiceLog.EServiceType) + ","
                                                 + SOut.Int((int) eServiceLog.EServiceAction) + ","
-                                                + DbHelper.Now() + ","
+                                                + "NOW()" + ","
                                                 + SOut.Long(eServiceLog.PatNum) + ","
                                                 + SOut.Long(eServiceLog.ClinicNum) + ","
                                                 + "'" + SOut.String(eServiceLog.LogGuid) + "',"

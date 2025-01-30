@@ -3,6 +3,7 @@ using System.Linq;
 using System.Management;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Microsoft.VisualBasic.Devices;
 
 namespace OpenDentBusiness;
@@ -58,7 +59,7 @@ public class MiscData
         var table = DataCore.GetTable(command);
         return SIn.String(table.Rows[0][0].ToString());
     }
-    
+
     public static string GetMySqlVersion(bool getRawVersion = false)
     {
         var command = "SELECT @@version";
@@ -105,8 +106,9 @@ public class MiscData
                 return;
             }
         }
-        catch (Exception ex)
+        catch
         {
+            // ignored
         }
 
         //The SHOW command is used because it was able to run with a user that had no permissions whatsoever.

@@ -62,7 +62,6 @@ namespace SparksToothChart {
 
 		///<summary>Specify the hardware mode to create the tooth chart with. Set hardwareMode=true to try for hardware accelerated graphics, and set hardwareMode=false to try and get software graphics.</summary>
 		public ToothChartOpenGL(bool hardwareMode,int preferredPixelFormatNum) {
-			usehardware=hardwareMode;
 			InitializeComponent();
 			this.TaoSetupContext += new System.EventHandler(ToothChart_TaoSetupContext);
 			this.TaoRenderScene += new System.EventHandler(ToothChart_TaoRenderScene);

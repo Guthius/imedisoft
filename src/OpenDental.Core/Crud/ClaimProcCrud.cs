@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClaimProcCrud
 {
@@ -184,7 +186,7 @@ public class ClaimProcCrud
                                          + SOut.Long(claimProc.PayPlanNum) + ","
                                          + SOut.Long(claimProc.ClaimPaymentTracking) + ","
                                          + SOut.Long(claimProc.SecUserNumEntry) + ","
-                                         + DbHelper.Now() + ","
+                                         + "NOW()" + ","
                                          //SecDateTEdit can only be set by MySQL
                                          + SOut.Date(claimProc.DateSuppReceived) + ","
                                          + SOut.Date(claimProc.DateInsFinalized) + ","

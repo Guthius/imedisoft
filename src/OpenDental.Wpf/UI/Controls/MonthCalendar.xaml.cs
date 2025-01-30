@@ -258,7 +258,7 @@ But to look good, don't go below 142 x 115.
 				}
 			}
 			//Footer======================================================================================================
-			textToday.Text=OpenDental.Lang.g("Calendar","Today:")+" "+DateTime.Today.ToShortDateString();
+			textToday.Text="Today: "+DateTime.Today.ToShortDateString();
 		}
 
 		///<summary>Recursive. Each pass finds the immediate parent, and it keeps going until it reaches a grid.</summary>

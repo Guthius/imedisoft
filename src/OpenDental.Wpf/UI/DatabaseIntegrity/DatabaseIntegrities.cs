@@ -8,6 +8,7 @@ using System.Xml;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDental
@@ -19,7 +20,7 @@ namespace OpenDental
         private static List<DatabaseIntegrity> _listDatabaseIntegrities;
 
         ///<summary>List used to keep track of which patients and modules have been selected in a session. Will contain, at most, one element per patient.</summary>
-        private static List<PatientModule> _listPatientModules = new List<PatientModule>() { };
+        private static List<PatientModule> _listPatientModules = [];
 
         ///<summary>Can return null. Will return for a specific class type. If none, then Default. Can return null if couldn't connect to HQ, load the DatabaseIntegritiesWhiteList preference, or find a matching integrity type and HQ intentionally didn't send a DefaultClass type.</summary>
         public static DatabaseIntegrity GetOneClass(EnumWarningIntegrityType warningIntegrityType)
@@ -31,15 +32,6 @@ namespace OpenDental
 
             if (_listDatabaseIntegrities.Count == 0)
             {
-                if (/* ODBuild.IsDebug() */ false)
-                {
-                    DatabaseIntegrity databaseIntegrity2 = new DatabaseIntegrity();
-                    databaseIntegrity2.WarningIntegrityType = warningIntegrityType;
-                    databaseIntegrity2.Message = "This is an example message to show";
-                    databaseIntegrity2.Behavior = EnumIntegrityBehavior.Triangle;
-                    _listDatabaseIntegrities.Add(databaseIntegrity2);
-                }
-                else
                 {
                     RefreshCacheFromPref();
                 }

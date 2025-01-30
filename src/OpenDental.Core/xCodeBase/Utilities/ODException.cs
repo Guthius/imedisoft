@@ -97,7 +97,7 @@ public class ODException : ApplicationException
         }
         catch (Exception ex)
         {
-            Logger.WriteLine(MiscUtils.GetExceptionText(ex), subDirectory);
+            Logger.WriteLine(MiscUtils.GetExceptionText(ex));
         }
     }
 

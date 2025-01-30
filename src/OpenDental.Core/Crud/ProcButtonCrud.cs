@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcButtonCrud
 {
@@ -85,7 +87,7 @@ public class ProcButtonCrud
             + DbHelper.ParamChar + "paramButtonImage,"
             + SOut.Bool(procButton.IsMultiVisit) + ")";
         if (procButton.ButtonImage == null) procButton.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(procButton.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(procButton.ButtonImage));
         {
             procButton.ProcButtonNum = Db.NonQ(command, true, "ProcButtonNum", "procButton", paramButtonImage);
         }
@@ -111,7 +113,7 @@ public class ProcButtonCrud
             + DbHelper.ParamChar + "paramButtonImage,"
             + SOut.Bool(procButton.IsMultiVisit) + ")";
         if (procButton.ButtonImage == null) procButton.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(procButton.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(procButton.ButtonImage));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramButtonImage);
         else
@@ -129,7 +131,7 @@ public class ProcButtonCrud
                       + "IsMultiVisit =  " + SOut.Bool(procButton.IsMultiVisit) + " "
                       + "WHERE ProcButtonNum = " + SOut.Long(procButton.ProcButtonNum);
         if (procButton.ButtonImage == null) procButton.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(procButton.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(procButton.ButtonImage));
         Db.NonQ(command, paramButtonImage);
     }
 
@@ -168,7 +170,7 @@ public class ProcButtonCrud
 
         if (command == "") return false;
         if (procButton.ButtonImage == null) procButton.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", OdDbType.Text, SOut.StringParam(procButton.ButtonImage));
+        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(procButton.ButtonImage));
         command = "UPDATE procbutton SET " + command
                                            + " WHERE ProcButtonNum = " + SOut.Long(procButton.ProcButtonNum);
         Db.NonQ(command, paramButtonImage);

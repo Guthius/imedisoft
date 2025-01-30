@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InsVerifyCrud
 {
@@ -96,11 +98,11 @@ public class InsVerifyCrud
                                                   + SOut.Long(insVerify.DefNum) + ","
                                                   + SOut.Date(insVerify.DateLastAssigned) + ","
                                                   + DbHelper.ParamChar + "paramNote,"
-                                                  + DbHelper.Now() + ","
+                                                  + "NOW()" + ","
                                                   + SOut.Double(insVerify.HoursAvailableForVerification) + ")";
         //SecDateTEdit can only be set by MySQL
         if (insVerify.Note == null) insVerify.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerify.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerify.Note));
         {
             insVerify.InsVerifyNum = Db.NonQ(command, true, "InsVerifyNum", "insVerify", paramNote);
         }
@@ -127,11 +129,11 @@ public class InsVerifyCrud
                                                   + SOut.Long(insVerify.DefNum) + ","
                                                   + SOut.Date(insVerify.DateLastAssigned) + ","
                                                   + DbHelper.ParamChar + "paramNote,"
-                                                  + DbHelper.Now() + ","
+                                                  + "NOW()" + ","
                                                   + SOut.Double(insVerify.HoursAvailableForVerification) + ")";
         //SecDateTEdit can only be set by MySQL
         if (insVerify.Note == null) insVerify.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerify.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerify.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -154,7 +156,7 @@ public class InsVerifyCrud
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE InsVerifyNum = " + SOut.Long(insVerify.InsVerifyNum);
         if (insVerify.Note == null) insVerify.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerify.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerify.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -213,7 +215,7 @@ public class InsVerifyCrud
         //SecDateTEdit can only be set by MySQL
         if (command == "") return false;
         if (insVerify.Note == null) insVerify.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(insVerify.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(insVerify.Note));
         command = "UPDATE insverify SET " + command
                                           + " WHERE InsVerifyNum = " + SOut.Long(insVerify.InsVerifyNum);
         Db.NonQ(command, paramNote);

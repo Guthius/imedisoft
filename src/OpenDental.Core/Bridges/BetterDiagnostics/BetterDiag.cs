@@ -9,6 +9,8 @@ using System.Threading;
 using System.Collections.Generic;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.BetterDiag;
 
 namespace OpenDentBusiness.Bridges{

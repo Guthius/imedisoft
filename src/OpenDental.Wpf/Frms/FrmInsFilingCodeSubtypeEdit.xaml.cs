@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -53,7 +55,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			if(this.textDescription.Text==""){
-				MessageBox.Show(Lans.g(this,"Please enter a description."));
+				MessageBox.Show(Lans.g("Please enter a description."));
 				return;
 			}
 			InsFilingCodeSubtypeCur.Descript=textDescription.Text;

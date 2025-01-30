@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -25,7 +26,7 @@ namespace OpenDentBusiness {
 				whereProv+=") ";
 			}
 			var whereClin="";
-			var hasClinicsEnabled=ReportsComplex.RunFuncOnReportServer(() => true);
+			const bool hasClinicsEnabled = true;
 			if(hasClinicsEnabled) {//Using clinics
 				whereClin+=" AND COALESCE(payplancharge.ClinicNum,dppprincipal.ClinicNum,0) IN(";//Use payplancharge for patient plan, dppprincipal for DPP.
 				for(var i=0;i<listClinicNums.Count;i++) {
@@ -64,9 +65,7 @@ namespace OpenDentBusiness {
 			tableTotals.Columns.Add("famBal");
 			DataRow row;
 			var datesql="CURDATE()";//This is used to find out how much people owe currently and has nothing to do with the selected range
-			var listHiddenUnearnedDefNums=ReportsComplex.RunFuncOnReportServer(() => 
-				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList()
-			);
+			var listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			var command="SELECT COALESCE(guar.FName,pat.FName) FName,COALESCE(guar.LName,pat.LName) LName,COALESCE(guar.MiddleI,pat.MiddleI) MiddleI," 
 			            +"PlanNum,COALESCE(guar.Preferred,pat.Preferred) Preferred,PlanNum,COALESCE((SELECT SUM(Principal+Interest) FROM payplancharge " 
 			            +"WHERE payplancharge.PayPlanNum=payplan.PayPlanNum AND payplancharge.ChargeType="
@@ -178,15 +177,9 @@ namespace OpenDentBusiness {
 			if(hasClinicsEnabled) {
 				command+="ORDER BY ClinicNum,LName,FName";
 			}
-			else {
-				command+="ORDER BY LName,FName";
-			}
-			var raw=ReportsComplex.RunFuncOnReportServer(() => ReportsComplex.GetTable(command));
-			var listProvs=ReportsComplex.RunFuncOnReportServer(() => Providers.GetAll());
-			var listClinics = new List<ClinicDto>();
-            if(hasClinicsEnabled) {
-				listClinics=ReportsComplex.RunFuncOnReportServer(() => Clinics.GetClinicsNoCache());
-			}
+			var raw=ReportsComplex.GetTable(command);
+			var listProvs=Providers.GetAll();
+			var listClinics = Clinics.GetClinicsNoCache();
 			//DateTime payplanDate;
 			Patient pat;
 			double princ;
@@ -239,7 +232,7 @@ namespace OpenDentBusiness {
 				if(showFamilyBalance) {
 					// this could be done better, by getting a list of guarantors outside of the loop and pulling the family balance value from a list
 					// we can implement something like this if a customer experiences slowness from this.
-					var famCur=ReportsComplex.RunFuncOnReportServer(() => Patients.GetFamily(SIn.Long(raw.Rows[i]["PatNum"].ToString())));
+					var famCur=Patients.GetFamily(SIn.Long(raw.Rows[i]["PatNum"].ToString()));
 					//Prevents UE when attempting to assign from an empty list. This is only possible if the user selects Insurance PayPlans only while
 					//also checking the "Show Family Balance" checkbox - meaning a PayPlan exists but has not patient.
          if(famCur.ListPats.Length>0) {

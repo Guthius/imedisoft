@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormAdjustSelect {
 		/// <summary>
 		/// Required designer variable.
@@ -49,7 +49,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// groupBoxBreakdown
 			// 
@@ -183,8 +183,8 @@ namespace OpenDental{
 			this.gridAdjusts.TabIndex = 5;
 			this.gridAdjusts.Title = "Unattached Adjustments";
 			this.gridAdjusts.TranslationName = "TableAdjustSelect";
-			this.gridAdjusts.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAdjusts_CellDoubleClick);
-			this.gridAdjusts.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAdjusts_CellClick);
+			this.gridAdjusts.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridAdjusts_CellDoubleClick);
+			this.gridAdjusts.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridAdjusts_CellClick);
 			// 
 			// label1
 			// 

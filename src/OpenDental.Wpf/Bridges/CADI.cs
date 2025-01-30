@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
+using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {
 	/// <summary>CADI uses their own OLE format for passing data to CADI. 

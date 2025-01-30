@@ -1,40 +1,39 @@
 ﻿using System.Windows.Forms;
 using CodeBase;
 
-namespace OpenDental.Graph.Dashboard
+namespace OpenDental.Graph.Dashboard;
+
+public partial class FormDashboardNamePrompt : Form
 {
-    public partial class FormDashboardNamePrompt : Form
+    public delegate bool ValidateTabNameArgs(string tabName);
+
+    private readonly ValidateTabNameArgs _validateTabNameArgs;
+
+    public string TabName => textBoxTabName.Text;
+
+    public FormDashboardNamePrompt(string tabName, ValidateTabNameArgs validateTabNameArgs)
     {
-        public delegate bool ValidateTabNameArgs(string tabName);
+        InitializeComponent();
+        textBoxTabName.Text = tabName;
+        _validateTabNameArgs = validateTabNameArgs;
+    }
 
-        private readonly ValidateTabNameArgs _validateTabNameArgs;
-
-        public string TabName => textBoxTabName.Text;
-
-        public FormDashboardNamePrompt(string tabName, ValidateTabNameArgs validateTabNameArgs)
+    private void FormDashboardNamePrompt_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (DialogResult != DialogResult.OK)
         {
-            InitializeComponent();
-            textBoxTabName.Text = tabName;
-            _validateTabNameArgs = validateTabNameArgs;
+            return;
         }
 
-        private void FormDashboardNamePrompt_FormClosing(object sender, FormClosingEventArgs e)
+        if (string.IsNullOrEmpty(TabName))
         {
-            if (DialogResult != DialogResult.OK)
-            {
-                return;
-            }
+            ODMessageBox.Show("Tab Name is empty.");
+            e.Cancel = true;
+        }
 
-            if (string.IsNullOrEmpty(TabName))
-            {
-                ODMessageBox.Show("Tab Name is empty.");
-                e.Cancel = true;
-            }
-
-            if (!_validateTabNameArgs(TabName))
-            {
-                e.Cancel = true;
-            }
+        if (!_validateTabNameArgs(TabName))
+        {
+            e.Cancel = true;
         }
     }
 }

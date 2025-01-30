@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EFormFieldCrud
 {
@@ -145,9 +147,9 @@ public class EFormFieldCrud
                                            + SOut.Int(eFormField.WidthLabel) + ","
                                            + SOut.Int(eFormField.SpaceToRight) + ")";
         if (eFormField.ValueLabel == null) eFormField.ValueLabel = "";
-        var paramValueLabel = new OdSqlParameter("paramValueLabel", OdDbType.Text, SOut.StringParam(eFormField.ValueLabel));
+        var paramValueLabel = new OdSqlParameter("paramValueLabel", SOut.StringParam(eFormField.ValueLabel));
         if (eFormField.ValueString == null) eFormField.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(eFormField.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(eFormField.ValueString));
         {
             eFormField.EFormFieldNum = Db.NonQ(command, true, "EFormFieldNum", "eFormField", paramValueLabel, paramValueString);
         }
@@ -193,9 +195,9 @@ public class EFormFieldCrud
                                            + SOut.Int(eFormField.WidthLabel) + ","
                                            + SOut.Int(eFormField.SpaceToRight) + ")";
         if (eFormField.ValueLabel == null) eFormField.ValueLabel = "";
-        var paramValueLabel = new OdSqlParameter("paramValueLabel", OdDbType.Text, SOut.StringParam(eFormField.ValueLabel));
+        var paramValueLabel = new OdSqlParameter("paramValueLabel", SOut.StringParam(eFormField.ValueLabel));
         if (eFormField.ValueString == null) eFormField.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(eFormField.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(eFormField.ValueString));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramValueLabel, paramValueString);
         else
@@ -233,9 +235,9 @@ public class EFormFieldCrud
                       + "SpaceToRight     =  " + SOut.Int(eFormField.SpaceToRight) + " "
                       + "WHERE EFormFieldNum = " + SOut.Long(eFormField.EFormFieldNum);
         if (eFormField.ValueLabel == null) eFormField.ValueLabel = "";
-        var paramValueLabel = new OdSqlParameter("paramValueLabel", OdDbType.Text, SOut.StringParam(eFormField.ValueLabel));
+        var paramValueLabel = new OdSqlParameter("paramValueLabel", SOut.StringParam(eFormField.ValueLabel));
         if (eFormField.ValueString == null) eFormField.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(eFormField.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(eFormField.ValueString));
         Db.NonQ(command, paramValueLabel, paramValueString);
     }
 
@@ -394,9 +396,9 @@ public class EFormFieldCrud
 
         if (command == "") return false;
         if (eFormField.ValueLabel == null) eFormField.ValueLabel = "";
-        var paramValueLabel = new OdSqlParameter("paramValueLabel", OdDbType.Text, SOut.StringParam(eFormField.ValueLabel));
+        var paramValueLabel = new OdSqlParameter("paramValueLabel", SOut.StringParam(eFormField.ValueLabel));
         if (eFormField.ValueString == null) eFormField.ValueString = "";
-        var paramValueString = new OdSqlParameter("paramValueString", OdDbType.Text, SOut.StringParam(eFormField.ValueString));
+        var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(eFormField.ValueString));
         command = "UPDATE eformfield SET " + command
                                            + " WHERE EFormFieldNum = " + SOut.Long(eFormField.EFormFieldNum);
         Db.NonQ(command, paramValueLabel, paramValueString);

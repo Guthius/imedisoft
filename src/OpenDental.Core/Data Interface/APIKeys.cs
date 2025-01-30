@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
 public static class APIKeys
 {
     private static List<ApiKeyVisibleInfo> _apiKeyVisibleInfos;
-    
+
     public static void SaveListApiKeys(List<APIKey> apiKeys)
     {
         Db.NonQ("DELETE FROM apikey");
-        
+
         foreach (var apiKey in apiKeys)
         {
             Insert(apiKey);
@@ -25,7 +26,7 @@ public static class APIKeys
     {
         APIKeyCrud.Insert(apiKey);
     }
-    
+
     public static List<ApiKeyVisibleInfo> GetListApiKeyVisibleInfos(bool forceRefresh = false)
     {
         if (_apiKeyVisibleInfos != null && !forceRefresh)
@@ -37,13 +38,13 @@ public static class APIKeys
 
         var stringBuilder = new StringBuilder();
         var officeData = PayloadHelper.CreatePayload(stringBuilder.ToString(), eServiceCode.FHIR);
-        
+
         var result = WebServiceMainHQProxy.GetWebServiceMainHQInstance().GetFHIRAPIKeysForOffice(officeData);
 
         var xmlDocument = new XmlDocument();
-        
+
         xmlDocument.LoadXml(result);
-        
+
         var xPathNavigator = xmlDocument.CreateNavigator();
 
         var xPathNavigatorNode = xPathNavigator.SelectSingleNode("//Error");
@@ -64,11 +65,11 @@ public static class APIKeys
             apiKeyVisibleInfo.CustomerKey = xPathNavigatorNode.SelectSingleNode("APIKeyValue").Value;
             apiKeyVisibleInfo.FHIRAPIKeyNum = SIn.Long(xPathNavigatorNode.SelectSingleNode("FHIRAPIKeyNum").Value);
             apiKeyVisibleInfo.DateDisabled = DateTime.Parse(xPathNavigatorNode.SelectSingleNode("DateDisabled").Value);
-            
+
             if (!Enum.TryParse(xPathNavigatorNode.SelectSingleNode("KeyStatus").Value, out apiKeyVisibleInfo.FHIRKeyStatusCur))
             {
-                apiKeyVisibleInfo.FHIRKeyStatusCur = Enum.TryParse(xPathNavigatorNode.SelectSingleNode("KeyStatus").Value, out APIKeyStatus status) 
-                    ? FHIRUtils.ToFHIRKeyStatus(status) 
+                apiKeyVisibleInfo.FHIRKeyStatusCur = Enum.TryParse(xPathNavigatorNode.SelectSingleNode("KeyStatus").Value, out APIKeyStatus status)
+                    ? FHIRUtils.ToFHIRKeyStatus(status)
                     : FHIRKeyStatus.DisabledByHQ;
             }
 
@@ -76,12 +77,12 @@ public static class APIKeys
             apiKeyVisibleInfo.DeveloperEmail = xPathNavigatorNode.SelectSingleNode("DeveloperEmail").Value;
             apiKeyVisibleInfo.DeveloperPhone = xPathNavigatorNode.SelectSingleNode("DeveloperPhone").Value;
             apiKeyVisibleInfo.FHIRDeveloperNum = SIn.Long(xPathNavigatorNode.SelectSingleNode("FHIRDeveloperNum").Value);
-            
+
             var xPathNavigatorNodePerms = xPathNavigatorNode.SelectSingleNode("ListAPIPermissions");
             if (xPathNavigatorNodePerms == null || !xPathNavigatorNodePerms.MoveToFirstChild())
             {
                 _apiKeyVisibleInfos.Add(apiKeyVisibleInfo);
-                
+
                 continue;
             }
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims{
 	///<summary>Summary description for Renaissance.</summary>

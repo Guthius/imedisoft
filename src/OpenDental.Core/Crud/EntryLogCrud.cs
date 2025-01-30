@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class EntryLogCrud
 {
@@ -84,7 +86,7 @@ public class EntryLogCrud
                                         + SOut.Int((int) entryLog.FKeyType) + ","
                                         + SOut.Long(entryLog.FKey) + ","
                                         + SOut.Int((int) entryLog.LogSource) + ","
-                                        + DbHelper.Now() + ")";
+                                        + "NOW()" + ")";
         {
             entryLog.EntryLogNum = Db.NonQ(command, true, "EntryLogNum", "entryLog");
         }
@@ -133,7 +135,7 @@ public class EntryLogCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Int((int) entryLog.LogSource));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(")");
             if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
             {
@@ -168,7 +170,7 @@ public class EntryLogCrud
                                         + SOut.Int((int) entryLog.FKeyType) + ","
                                         + SOut.Long(entryLog.FKey) + ","
                                         + SOut.Int((int) entryLog.LogSource) + ","
-                                        + DbHelper.Now() + ")";
+                                        + "NOW()" + ")";
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command);
         else

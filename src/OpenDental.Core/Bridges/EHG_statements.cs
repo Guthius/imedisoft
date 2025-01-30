@@ -13,6 +13,8 @@ using System.Xml;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 
@@ -374,7 +376,7 @@ namespace OpenDentBusiness.Bridges {
 			}
 			string strHistoryFile="";
 			if(PrefC.GetBool(PrefName.BillingElectSaveHistory)) {
-				string strHistoryDir=CodeBase.ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),"EHG_History");
+				string strHistoryDir=CodeBase.ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"EHG_History");
 				if(!Directory.Exists(strHistoryDir)) {
 					Directory.CreateDirectory(strHistoryDir);
 				}

@@ -1,6 +1,7 @@
 ﻿using System;
 using CodeBase;
 using DentalXChange.Dps.Pos;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using OpenDentBusiness.PayConnectService;
 

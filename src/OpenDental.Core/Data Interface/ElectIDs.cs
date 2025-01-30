@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Dentalxchange2016;
 using OpenDentBusiness.Eclaims;
 
@@ -11,147 +12,122 @@ namespace OpenDentBusiness;
 
 public class ElectIDs
 {
-    public static long Insert(ElectID electID)
+    public static void Insert(ElectID electId)
     {
-        return ElectIDCrud.Insert(electID);
+        ElectIDCrud.Insert(electId);
     }
 
-    public static void Update(ElectID electID)
+    public static void Update(ElectID electId)
     {
-        ElectIDCrud.Update(electID);
+        ElectIDCrud.Update(electId);
     }
 
-    public static bool Update(ElectID electIDNew, ElectID electIDOld)
+    public static bool Update(ElectID electIdNew, ElectID electIdOld)
     {
-        return ElectIDCrud.Update(electIDNew, electIDOld);
+        return ElectIDCrud.Update(electIdNew, electIdOld);
     }
 
-    ///<summary>Takes a list of PayorIDs from DxC's getPayerListService API method. Inserts/updates new or existing electids.</summary>
-    public static void UpsertFromDentalXChange(List<supportedTransPayer> listSupportedTransPayers)
+    public static void UpsertFromDentalXChange(List<supportedTransPayer> supportedTransPayers)
     {
         var hasChanged = false;
-        for (var i = 0; i < listSupportedTransPayers.Count; i++)
+
+        foreach (var supportedTransPayer in supportedTransPayers)
         {
-            var supportedTransPayer = listSupportedTransPayers[i];
-            var electID = GetFirstOrDefault(x => x.PayorID == supportedTransPayer.PayerIDCode && x.CarrierName == supportedTransPayer.Name && x.CommBridge == EclaimsCommBridge.ClaimConnect);
-            if (electID is null)
+            var payer = supportedTransPayer;
+
+            var electId = GetFirstOrDefault(x => x.PayorID == payer.PayerIDCode && x.CarrierName == payer.Name && x.CommBridge == EclaimsCommBridge.ClaimConnect);
+            if (electId is null)
             {
-                electID = new ElectID();
-                electID.CarrierName = supportedTransPayer.Name;
-                electID.PayorID = supportedTransPayer.PayerIDCode;
-                electID.CommBridge = EclaimsCommBridge.ClaimConnect;
-                electID.Attributes = string.Join(",", ClaimConnect.GetAttributes(supportedTransPayer).Select(x => (int) x));
-                Insert(electID);
+                electId = new ElectID
+                {
+                    CarrierName = supportedTransPayer.Name,
+                    PayorID = supportedTransPayer.PayerIDCode,
+                    CommBridge = EclaimsCommBridge.ClaimConnect,
+                    Attributes = string.Join(",", ClaimConnect.GetAttributes(supportedTransPayer).Select(x => (int) x))
+                };
+
+                Insert(electId);
+
                 hasChanged = true;
+
                 continue;
             }
 
-            var electIDOld = electID.Copy();
-            electID.Attributes = string.Join(",", ClaimConnect.GetAttributes(supportedTransPayer).Select(x => (int) x));
-            hasChanged |= Update(electID, electIDOld);
+            var electIdOld = electId.Copy();
+
+            electId.Attributes = string.Join(",", ClaimConnect.GetAttributes(supportedTransPayer).Select(x => (int) x));
+
+            hasChanged |= Update(electId, electIdOld);
         }
 
         if (hasChanged) Signalods.SetInvalid(InvalidType.ElectIDs);
     }
 
-    ///<summary>Takes a list of PayorIDs from EDS's List_Payers API method. Inserts/updates new or existing electids.</summary>
-    public static void UpsertFromEDS(List<IdNameAttributes> listIdNameAttributess)
+    public static void UpsertFromEds(List<IdNameAttributes> listIdNameAttributess)
     {
         var hasChanged = false;
-        for (var i = 0; i < listIdNameAttributess.Count; i++)
+
+        foreach (var idNameAttributes in listIdNameAttributess)
         {
-            var idNameAttributes = listIdNameAttributess[i];
-            var payorID = idNameAttributes.ID;
+            var payorId = idNameAttributes.ID;
             var name = idNameAttributes.Name;
             var attributes = idNameAttributes.Attributes;
-            if (payorID == "NULL") //EDS may send over an empty electronic id with "NULL" as the payer id.
-                continue;
-            var electID = GetFirstOrDefault(x => x.PayorID == payorID && x.CarrierName == name && x.CommBridge == EclaimsCommBridge.EDS);
-            if (electID is null)
+
+            if (payorId == "NULL")
             {
-                electID = new ElectID();
-                electID.PayorID = payorID;
-                electID.CarrierName = name;
-                electID.CommBridge = EclaimsCommBridge.EDS;
-                electID.Attributes = attributes;
-                Insert(electID);
-                hasChanged = true;
                 continue;
             }
 
-            var electIDOld = electID.Copy();
-            electID.CarrierName = name;
-            electID.PayorID = payorID;
-            electID.Attributes = attributes;
-            hasChanged |= Update(electID, electIDOld);
+            var electId = GetFirstOrDefault(x => x.PayorID == payorId && x.CarrierName == name && x.CommBridge == EclaimsCommBridge.EDS);
+            if (electId is null)
+            {
+                electId = new ElectID
+                {
+                    PayorID = payorId,
+                    CarrierName = name,
+                    CommBridge = EclaimsCommBridge.EDS,
+                    Attributes = attributes
+                };
+
+                Insert(electId);
+
+                hasChanged = true;
+
+                continue;
+            }
+
+            var electIdOld = electId.Copy();
+
+            electId.CarrierName = name;
+            electId.PayorID = payorId;
+            electId.Attributes = attributes;
+
+            hasChanged |= Update(electId, electIdOld);
         }
 
         if (hasChanged) Signalods.SetInvalid(InvalidType.ElectIDs);
     }
 
-    
-    public static List<ProviderSupplementalID> GetRequiredIdents(string payorID)
+    public static ElectID GetId(string payorId)
     {
-        var electID = GetID(payorID);
-        if (electID == null) return new List<ProviderSupplementalID>();
-        if (electID.ProviderTypes == "") return new List<ProviderSupplementalID>();
-        var listProvTypes = electID.ProviderTypes.Split(',').ToList();
-        if (listProvTypes.Count == 0) return new List<ProviderSupplementalID>();
-        var listProviderSupplementalIDsRet = new List<ProviderSupplementalID>();
-        for (var i = 0; i < listProvTypes.Count; i++) listProviderSupplementalIDsRet[i] = (ProviderSupplementalID) Convert.ToInt32(listProvTypes[i]);
-        /*
-        if(electID=="SB601"){//BCBS of GA
-            retVal=new ProviderSupplementalID[2];
-            retVal[0]=ProviderSupplementalID.BlueShield;
-            retVal[1]=ProviderSupplementalID.SiteNumber;
-        }*/
-        return listProviderSupplementalIDsRet;
+        return GetFirstOrDefault(x => x.PayorID == payorId);
     }
 
-    /// <summary>
-    ///     Gets ONE ElectID that uses the supplied payorID. Even if there are multiple payors using that ID.  So use this
-    ///     carefully.
-    /// </summary>
-    public static ElectID GetID(string payorID)
+    public static List<ElectID> GetIDs(string payorId)
     {
-        return GetFirstOrDefault(x => x.PayorID == payorID);
+        return GetWhere(x => x.PayorID == payorId);
     }
 
-    /// <summary>
-    ///     Gets an arrayList of ElectID objects based on a supplied payorID. If no matches found, then returns array of 0
-    ///     length. Used to display payors in FormInsPlan and also to get required idents.  This means that all payors with the
-    ///     same ID should have the same required idents and notes.
-    /// </summary>
-    public static List<ElectID> GetIDs(string payorID)
+    public static List<string> GetDescripts(string payorId)
     {
-        return GetWhere(x => x.PayorID == payorID);
+        return payorId == "" ? [] : GetIDs(payorId).Select(x => x.CarrierName).ToList();
     }
 
-    /// <summary>
-    ///     Gets the names of the payors to display based on the payorID.  Since carriers sometimes share payorIDs, there
-    ///     will often be multiple payor names returned.
-    /// </summary>
-    public static List<string> GetDescripts(string payorID)
-    {
-        if (payorID == "") return new List<string>();
-        return GetIDs(payorID).Select(x => x.CarrierName).ToList();
-    }
-
-    public static bool IsMedicaid(string payorID)
-    {
-        var electID = GetID(payorID);
-        if (electID == null) return false;
-        return electID.IsMedicaid;
-    }
-
-    #region CachePattern
-
-    private class ElectIDCache : CacheListAbs<ElectID>
+    private class ElectIdCache : CacheListAbs<ElectID>
     {
         protected override List<ElectID> GetCacheFromDb()
         {
-            var command = "SELECT * from electid ORDER BY CarrierName";
-            return ElectIDCrud.SelectMany(command);
+            return ElectIDCrud.SelectMany("SELECT * from electid ORDER BY CarrierName");
         }
 
         protected override List<ElectID> TableToList(DataTable dataTable)
@@ -175,51 +151,37 @@ public class ElectIDs
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly ElectIDCache _electIDCache = new();
+    private static readonly ElectIdCache Cache = new();
 
     public static List<ElectID> GetDeepCopy(bool isShort = false)
     {
-        return _electIDCache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(isShort);
     }
 
     private static ElectID GetFirstOrDefault(Func<ElectID, bool> match, bool isShort = false)
     {
-        return _electIDCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
     public static List<ElectID> GetWhere(Predicate<ElectID> match, bool isShort = false)
     {
-        return _electIDCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _electIDCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _electIDCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _electIDCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }
 
 [Serializable]

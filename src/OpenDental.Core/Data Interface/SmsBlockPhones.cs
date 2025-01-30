@@ -1,24 +1,17 @@
 using System.Collections.Generic;
 using System.Data;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class SmsBlockPhones
 {
-    #region Insert
-
-    
-    public static long Insert(SmsBlockPhone smsBlockPhone)
+    public static void Insert(SmsBlockPhone smsBlockPhone)
     {
-        return SmsBlockPhoneCrud.Insert(smsBlockPhone);
+        SmsBlockPhoneCrud.Insert(smsBlockPhone);
     }
-
-    #endregion
-
-    #region Cache Pattern
 
     private class SmsBlockPhoneCache : CacheListAbs<SmsBlockPhone>
     {
@@ -48,71 +41,16 @@ public class SmsBlockPhones
             SmsBlockPhones.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly SmsBlockPhoneCache _smsBlockPhoneCache = new();
-
-    public static List<SmsBlockPhone> GetDeepCopy(bool isShort = false)
-    {
-        return _smsBlockPhoneCache.GetDeepCopy(isShort);
-    }
-
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _smsBlockPhoneCache.FillCacheFromTable(table);
-    }
-
-    /// <summary>Returns the cache in the form of a DataTable. Always refreshes the ClientWeb's cache.</summary>
-    /// <param name="doRefreshCache">If true, will refresh the cache if RemotingRole is ClientDirect or ServerWeb.</param>
+    
+    private static readonly SmsBlockPhoneCache Cache = new();
+    
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _smsBlockPhoneCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _smsBlockPhoneCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion Cache Pattern
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-    #region Get Methods
-    
-    public static List<SmsBlockPhone> Refresh(long patNum){
-
-        string command="SELECT * FROM smsblockphone WHERE PatNum = "+POut.Long(patNum);
-        return Crud.SmsBlockPhoneCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one SmsBlockPhone from the db.</summary>
-    public static SmsBlockPhone GetOne(long smsBlockPhoneNum){
-
-        return Crud.SmsBlockPhoneCrud.SelectOne(smsBlockPhoneNum);
-    }
-    #endregion
-    #region Modification Methods
-        #region Update
-    
-    public static void Update(SmsBlockPhone smsBlockPhone){
-
-        Crud.SmsBlockPhoneCrud.Update(smsBlockPhone);
-    }
-        #endregion
-        #region Delete
-    
-    public static void Delete(long smsBlockPhoneNum) {
-
-        Crud.SmsBlockPhoneCrud.Delete(smsBlockPhoneNum);
-    }
-        #endregion
-    #endregion
-    #region Misc Methods
-
-
-
-    #endregion
-    */
 }

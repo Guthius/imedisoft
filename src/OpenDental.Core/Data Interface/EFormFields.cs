@@ -10,105 +10,102 @@ using System.Windows.Markup;
 using System.Xml;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class EFormFields
 {
-    
     public static List<EFormField> GetForForm(long eFormNum)
     {
-        var command = "SELECT * FROM eformfield WHERE EFormNum = " + SOut.Long(eFormNum) + " ORDER BY ItemOrder";
-        return EFormFieldCrud.SelectMany(command);
+        return EFormFieldCrud.SelectMany("SELECT * FROM eformfield WHERE EFormNum = " + eFormNum + " ORDER BY ItemOrder");
     }
-
     
-    public static long Insert(EFormField eFormField)
+    public static void Insert(EFormField eFormField)
     {
-        return EFormFieldCrud.Insert(eFormField);
+        EFormFieldCrud.Insert(eFormField);
     }
 
-    
     public static void DeleteForForm(long eFormNum)
     {
-        var command = "DELETE FROM eformfield WHERE EFormNum = " + SOut.Long(eFormNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM eformfield WHERE EFormNum = " + eFormNum);
     }
 
     public static EFormField FromDef(EFormFieldDef eFormFieldDef, long patNum = 0)
     {
-        var eFormField = new EFormField();
-        eFormField.PatNum = patNum;
-        eFormField.FieldType = eFormFieldDef.FieldType;
-        eFormField.DbLink = eFormFieldDef.DbLink;
-        eFormField.ValueLabel = eFormFieldDef.ValueLabel;
-        //eFormField.ValueString //set as part of fill
-        eFormField.ItemOrder = eFormFieldDef.ItemOrder;
-        eFormField.PickListVis = eFormFieldDef.PickListVis;
-        eFormField.PickListDb = eFormFieldDef.PickListDb;
-        eFormField.IsHorizStacking = eFormFieldDef.IsHorizStacking;
-        eFormField.IsTextWrap = eFormFieldDef.IsTextWrap;
-        eFormField.Width = eFormFieldDef.Width;
-        eFormField.FontScale = eFormFieldDef.FontScale;
-        eFormField.IsRequired = eFormFieldDef.IsRequired;
-        eFormField.ConditionalParent = eFormFieldDef.ConditionalParent;
-        eFormField.ConditionalValue = eFormFieldDef.ConditionalValue;
-        eFormField.LabelAlign = eFormFieldDef.LabelAlign;
-        eFormField.SpaceBelow = eFormFieldDef.SpaceBelow;
-        eFormField.ReportableName = eFormFieldDef.ReportableName;
-        eFormField.IsLocked = eFormFieldDef.IsLocked;
-        eFormField.Border = eFormFieldDef.Border;
-        eFormField.IsWidthPercentage = eFormFieldDef.IsWidthPercentage;
-        eFormField.MinWidth = eFormFieldDef.MinWidth;
-        eFormField.WidthLabel = eFormFieldDef.WidthLabel;
-        eFormField.SpaceToRight = eFormFieldDef.SpaceToRight;
-        //not a db field, but critical:
-        eFormField.EFormFieldDefNum = eFormFieldDef.EFormFieldDefNum;
-        return eFormField;
+        return new EFormField
+        {
+            PatNum = patNum,
+            FieldType = eFormFieldDef.FieldType,
+            DbLink = eFormFieldDef.DbLink,
+            ValueLabel = eFormFieldDef.ValueLabel,
+            ItemOrder = eFormFieldDef.ItemOrder,
+            PickListVis = eFormFieldDef.PickListVis,
+            PickListDb = eFormFieldDef.PickListDb,
+            IsHorizStacking = eFormFieldDef.IsHorizStacking,
+            IsTextWrap = eFormFieldDef.IsTextWrap,
+            Width = eFormFieldDef.Width,
+            FontScale = eFormFieldDef.FontScale,
+            IsRequired = eFormFieldDef.IsRequired,
+            ConditionalParent = eFormFieldDef.ConditionalParent,
+            ConditionalValue = eFormFieldDef.ConditionalValue,
+            LabelAlign = eFormFieldDef.LabelAlign,
+            SpaceBelow = eFormFieldDef.SpaceBelow,
+            ReportableName = eFormFieldDef.ReportableName,
+            IsLocked = eFormFieldDef.IsLocked,
+            Border = eFormFieldDef.Border,
+            IsWidthPercentage = eFormFieldDef.IsWidthPercentage,
+            MinWidth = eFormFieldDef.MinWidth,
+            WidthLabel = eFormFieldDef.WidthLabel,
+            SpaceToRight = eFormFieldDef.SpaceToRight,
+            EFormFieldDefNum = eFormFieldDef.EFormFieldDefNum
+        };
     }
 
     public static EFormFieldDef ToDef(EFormField eFormField)
     {
-        var eFormFieldDef = new EFormFieldDef();
-        eFormFieldDef.FieldType = eFormField.FieldType;
-        eFormFieldDef.DbLink = eFormField.DbLink;
-        eFormFieldDef.ValueLabel = eFormField.ValueLabel;
-        //eFormField.ValueString //set as part of fill
-        eFormFieldDef.ItemOrder = eFormField.ItemOrder;
-        eFormFieldDef.PickListVis = eFormField.PickListVis;
-        eFormFieldDef.PickListDb = eFormField.PickListDb;
-        eFormFieldDef.IsHorizStacking = eFormField.IsHorizStacking;
-        eFormFieldDef.IsTextWrap = eFormField.IsTextWrap;
-        eFormFieldDef.Width = eFormField.Width;
-        eFormFieldDef.FontScale = eFormField.FontScale;
-        eFormFieldDef.IsRequired = eFormField.IsRequired;
-        eFormFieldDef.ConditionalParent = eFormField.ConditionalParent;
-        eFormFieldDef.ConditionalValue = eFormField.ConditionalValue;
-        eFormFieldDef.LabelAlign = eFormField.LabelAlign;
-        eFormFieldDef.SpaceBelow = eFormField.SpaceBelow;
-        eFormFieldDef.ReportableName = eFormField.ReportableName;
-        eFormFieldDef.IsLocked = eFormField.IsLocked;
-        eFormFieldDef.Border = eFormField.Border;
-        eFormFieldDef.IsWidthPercentage = eFormField.IsWidthPercentage;
-        eFormFieldDef.MinWidth = eFormField.MinWidth;
-        eFormFieldDef.WidthLabel = eFormField.WidthLabel;
-        eFormFieldDef.SpaceToRight = eFormField.SpaceToRight;
-        eFormFieldDef.EFormFieldDefNum = eFormField.EFormFieldDefNum; //this is the special non-db field
-        return eFormFieldDef;
+        return new EFormFieldDef
+        {
+            FieldType = eFormField.FieldType,
+            DbLink = eFormField.DbLink,
+            ValueLabel = eFormField.ValueLabel,
+            ItemOrder = eFormField.ItemOrder,
+            PickListVis = eFormField.PickListVis,
+            PickListDb = eFormField.PickListDb,
+            IsHorizStacking = eFormField.IsHorizStacking,
+            IsTextWrap = eFormField.IsTextWrap,
+            Width = eFormField.Width,
+            FontScale = eFormField.FontScale,
+            IsRequired = eFormField.IsRequired,
+            ConditionalParent = eFormField.ConditionalParent,
+            ConditionalValue = eFormField.ConditionalValue,
+            LabelAlign = eFormField.LabelAlign,
+            SpaceBelow = eFormField.SpaceBelow,
+            ReportableName = eFormField.ReportableName,
+            IsLocked = eFormField.IsLocked,
+            Border = eFormField.Border,
+            IsWidthPercentage = eFormField.IsWidthPercentage,
+            MinWidth = eFormField.MinWidth,
+            WidthLabel = eFormField.WidthLabel,
+            SpaceToRight = eFormField.SpaceToRight,
+            EFormFieldDefNum = eFormField.EFormFieldDefNum
+        };
     }
 
     public static List<EFormField> FromListDefs(List<EFormFieldDef> listEFormFieldDefs, long patNum = 0)
     {
-        var listEFormFields = new List<EFormField>();
-        for (var i = 0; i < listEFormFieldDefs.Count; i++)
+        var eFormFields = new List<EFormField>();
+        
+        foreach (var eFormFieldDef in listEFormFieldDefs)
         {
-            var eFormField = FromDef(listEFormFieldDefs[i], patNum);
-            listEFormFields.Add(eFormField);
+            var eFormField = FromDef(eFormFieldDef, patNum);
+            
+            eFormFields.Add(eFormField);
         }
 
-        return listEFormFields;
+        return eFormFields;
     }
 
     public static FlowDocument DeserializeFlowDocument(string xmlString)
@@ -124,20 +121,26 @@ public class EFormFields
 
     public static string SerializeFlowDocument(FlowDocument flowDocument)
     {
-        //a few properties are set because it's coming from a richTextBox.
-        //They need to be reset to match out pattern further down when we strip them out.
         var thicknessOriginal = flowDocument.PagePadding;
+        
         flowDocument.PagePadding = new Thickness(0);
-        flowDocument.AllowDrop = true; //
+        flowDocument.AllowDrop = true;
+        
         var memoryStream = new MemoryStream();
-        var xmlWriterSettings = new XmlWriterSettings();
-        xmlWriterSettings.Encoding = Encoding.UTF8;
-        xmlWriterSettings.CloseOutput = false; //for xmlWriter.Close(); to not close the stream
-        xmlWriterSettings.OmitXmlDeclaration = true;
-        xmlWriterSettings.NewLineHandling = NewLineHandling.None; //new lines inside of runs are translated as a space, messing up the text
+        
+        var xmlWriterSettings = new XmlWriterSettings
+        {
+            Encoding = Encoding.UTF8,
+            CloseOutput = false,
+            OmitXmlDeclaration = true,
+            NewLineHandling = NewLineHandling.None
+        };
+        
         using var xmlWriter = XmlWriter.Create(memoryStream, xmlWriterSettings);
+        
         XamlWriter.Save(flowDocument, xmlWriter);
         xmlWriter.Close();
+        
         var xamlString = Encoding.UTF8.GetString(memoryStream.ToArray());
         memoryStream.Dispose();
         var pattern = @"<FlowDocument"
@@ -151,17 +154,10 @@ public class EFormFields
         var retVal = streamReader.ReadToEnd();
         memoryStream.Dispose();
         flowDocument.PagePadding = thicknessOriginal;
-        //This prevents the existing flowDocument in the richTextBox on the screen from shifting slightly.
-        //We might also want to take a look at this number when loading up a flowDocument into the UI.
+        
         return retVal;
     }
 
-    /// <summary>
-    ///     Returns the current value of the parent from the PickListVis. This works in most cases, including when no
-    ///     DbLink. But sometimes a user will have a DbLink and will leave the PickListVis value as an empty string. In those
-    ///     cases, we use the value from the PickListDb instead. If no match can be made, it's usually because user mistyped
-    ///     and we return an empty string.
-    /// </summary>
     public static string GetValParent(EFormField eFormField)
     {
         if (eFormField.FieldType != EnumEFormFieldType.RadioButtons) //This only works with radiobutton fields.
@@ -196,10 +192,6 @@ public class EFormFields
         return "";
     }
 
-    /// <summary>
-    ///     If isLastInHorizStack then this field can have "space below" set. It could be last in h-stack, or it could be
-    ///     all by itself.
-    /// </summary>
     public static bool IsLastInHorizStack(EFormField eFormField, List<EFormField> listEFormFields)
     {
         var idx = listEFormFields.IndexOf(eFormField);
@@ -213,7 +205,6 @@ public class EFormFields
         return false;
     }
 
-    
     public static bool IsPreviousStackable(EFormField eFormField, List<EFormField> listEFormFields)
     {
         var idx = listEFormFields.IndexOf(eFormField);
@@ -221,10 +212,6 @@ public class EFormFields
         return false;
     }
 
-    /// <summary>
-    ///     Guaranteed to never be -1. Could be list.Count, indicating that it's supposed to go after the last item in the
-    ///     list.
-    /// </summary>
     public static int GetLastIdxThisPage(List<EFormField> listEFormFields, int page)
     {
         var pageCur = 1;
@@ -240,13 +227,6 @@ public class EFormFields
         return listEFormFields.Count; //even though it's impossible to get to this point.
     }
 
-    /// <summary>
-    ///     Returns all sibings in a horizontal stack. Only includes the field passed in if includeSelf is true. If not in
-    ///     a h-stack, then it returns empty list. Even if the current field is not stacking, it can be part of a stack group
-    ///     if the next field is set as stacking. Because this is used from the editor and the user can check or uncheck the
-    ///     stacking box, we must ignore eFormField.IsHorizStacking and instead pass in the current stacking state from the
-    ///     checkbox as isThisFieldHStacking.
-    /// </summary>
     public static List<EFormField> GetSiblingsInStack(EFormField eFormField, List<EFormField> listEFormFields, bool isThisFieldHStacking, bool includeSelf = false)
     {
         var listEFormFieldsRet = new List<EFormField>();
@@ -282,7 +262,6 @@ public class EFormFields
         return listEFormFieldsRet;
     }
 
-    ///<summary>spaceToRightEachField refers to the EForm or EFormDef default.</summary>
     public static double CalcFieldWidth(EFormField eFormField, List<EFormField> listEFormFields, double widthAvail, double spaceToRightEachField)
     {
         double marginLeftOfPage = 5;
@@ -576,7 +555,6 @@ public class EFormFields
         for (var i = 0; i < listEFormFieldsNew.Count; i++) isChanged |= EFormFieldCrud.UpdateComparison(listEFormFieldsNew[i], listEFormFieldsOld[i]);
         return isChanged;
     }
-
     
     public static List<EFormField> GetDeepCopy(List<EFormField> listEFormFields)
     {
@@ -612,36 +590,4 @@ public class EFormFields
             return EFormField_.ValueLabel;
         }
     }
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-
-    
-    public static List<EFormField> Refresh(long patNum){
-
-        string command="SELECT * FROM eformfield WHERE PatNum = "+POut.Long(patNum);
-        return Crud.EFormFieldCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one EFormField from the db.</summary>
-    public static EFormField GetOne(long eFormFieldNum){
-
-        return Crud.EFormFieldCrud.SelectOne(eFormFieldNum);
-    }
-
-
-
-    
-    public static void Update(EFormField eFormField){
-
-        Crud.EFormFieldCrud.Update(eFormField);
-    }
-
-    
-    public static void Delete(long eFormFieldNum) {
-
-        Crud.EFormFieldCrud.Delete(eFormFieldNum);
-    }
-
-    */
 }

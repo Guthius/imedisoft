@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Xml;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -142,7 +143,7 @@ namespace OpenDental {
 			if(xmlNode is null) {
 				xmlNode=xmlDocument.SelectSingleNode("//Error");
 				if(!(xmlNode is null)) {
-					MessageBox.Show(Lang.g("ShortCodes","An error occurred: ")+xmlNode.InnerText);
+					MessageBox.Show("An error occurred: "+xmlNode.InnerText);
 				}
 				return false;
 			}
@@ -151,7 +152,7 @@ namespace OpenDental {
 			System.Xml.Serialization.XmlSerializer xmlSerializerListSmsToMobile=new System.Xml.Serialization.XmlSerializer(typeof(List<SmsToMobile>));
 			listSmsToMobiles=(List<SmsToMobile>)xmlSerializerListSmsToMobile.Deserialize(xmlReader);
 			if(listSmsToMobiles==null) { //List should always be there even if it's empty.
-				MessageBox.Show(Lang.g("ShortCodes","An error occurred: ")+xmlNode.InnerText);
+				MessageBox.Show("An error occurred: "+xmlNode.InnerText);
 				return false;
 			}
 			//Should only be 0 or 1.

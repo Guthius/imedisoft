@@ -1,96 +1,129 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 
-namespace OpenDental {
-	public partial class FormCanadaPaymentReconciliation:FormODBase {
+namespace OpenDental.Forms;
 
-		private List<Carrier> _listCarriers=new List<Carrier>();
-		private List<Provider> _listProviders;
+public partial class FormCanadaPaymentReconciliation : FormODBase
+{
+    private List<Carrier> _carriers = [];
+    private List<Provider> _providers;
 
-		public FormCanadaPaymentReconciliation() {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+    public FormCanadaPaymentReconciliation()
+    {
+        InitializeComponent();
+    }
 
-		private void FormCanadaPaymentReconciliation_Load(object sender,EventArgs e) {
-			_listCarriers=Carriers.GetWhere(x => x.CDAnetVersion!="02" &&//This transaction does not exist in version 02.
-				(x.CanadianSupportedTypes & CanSupTransTypes.RequestForPaymentReconciliation_06)==CanSupTransTypes.RequestForPaymentReconciliation_06);
-			for(int i = 0;i<_listCarriers.Count;++i) {
-				listCarriers.Items.Add(_listCarriers[i].CarrierName);
-			}
-			long defaultProvNum=PrefC.GetLong(PrefName.PracticeDefaultProv);
-			_listProviders=Providers.GetDeepCopy(true);
-			for(int i=0;i<_listProviders.Count;i++) {
-				if(_listProviders[i].IsCDAnet) {
-					listBillingProvider.Items.Add(_listProviders[i].Abbr);
-					listTreatingProvider.Items.Add(_listProviders[i].Abbr);
-					if(_listProviders[i].ProvNum==defaultProvNum) {
-						listBillingProvider.SelectedIndex=i;
-						textBillingOfficeNumber.Text=_listProviders[i].CanadianOfficeNum;
-						listTreatingProvider.SelectedIndex=i;
-						textTreatingOfficeNumber.Text=_listProviders[i].CanadianOfficeNum;
-					}
-				}
-			}
-			textDateReconciliation.Text=DateTime.Today.ToShortDateString();
-		}
+    private void FormCanadaPaymentReconciliation_Load(object sender, EventArgs e)
+    {
+        _carriers = Carriers.GetWhere(x => x.CDAnetVersion != "02" && (x.CanadianSupportedTypes & CanSupTransTypes.RequestForPaymentReconciliation_06) == CanSupTransTypes.RequestForPaymentReconciliation_06);
 
-		private void listBillingProvider_Click(object sender,EventArgs e) {
-			textBillingOfficeNumber.Text=_listProviders[listBillingProvider.SelectedIndex].CanadianOfficeNum;
-		}
+        foreach (var carrier in _carriers)
+        {
+            listCarriers.Items.Add(carrier.CarrierName);
+        }
 
-		private void listTreatingProvider_Click(object sender,EventArgs e) {
-			textTreatingOfficeNumber.Text=_listProviders[listTreatingProvider.SelectedIndex].CanadianOfficeNum;
-		}
+        var defaultProvNum = PrefC.GetLong(PrefName.PracticeDefaultProv);
 
-		private void butSave_Click(object sender,EventArgs e) {
-			if(listCarriers.SelectedIndex<0) {
-				MsgBox.Show(this,"You must first choose a carrier.");
-				return;
-			}
-			if(listBillingProvider.SelectedIndex<0) {
-				MsgBox.Show(this,"You must first choose a billing provider.");
-				return;
-			}
-			if(listTreatingProvider.SelectedIndex<0) {
-				MsgBox.Show(this,"You must first choose a treating provider.");
-				return;
-			}
-			DateTime reconciliationDate;
-			try {
-				reconciliationDate=DateTime.Parse(textDateReconciliation.Text).Date;
-			}
-			catch {
-				MsgBox.Show(this,"Reconciliation date invalid.");
-				return;
-			}
-			Cursor=Cursors.WaitCursor;
-			try {
-				Carrier carrier=_listCarriers[listCarriers.SelectedIndex];
-				Clearinghouse clearinghouseHq=Canadian.GetCanadianClearinghouseHq(carrier);
-				Clearinghouse clearinghouseClin=Clearinghouses.OverrideFields(clearinghouseHq,Clinics.ClinicNum); 
-				CanadianOutput.GetPaymentReconciliations(clearinghouseClin,carrier,_listProviders[listTreatingProvider.SelectedIndex],
-					_listProviders[listBillingProvider.SelectedIndex],reconciliationDate,Clinics.ClinicNum,false,FormCCDPrint.PrintCCD);
-				Cursor=Cursors.Default;
-				MsgBox.Show(this,"Done.");
-			}
-			catch(Exception ex) {
-				Cursor=Cursors.Default;
-				ODMessageBox.Show(Lan.g(this,"Request failed: ")+ex.Message);
-			}
-			DialogResult=DialogResult.OK;
-		}
+        _providers = Providers.GetDeepCopy(true);
 
-	}
+        for (var i = 0; i < _providers.Count; i++)
+        {
+            if (!_providers[i].IsCDAnet)
+            {
+                continue;
+            }
+
+            listBillingProvider.Items.Add(_providers[i].Abbr);
+            listTreatingProvider.Items.Add(_providers[i].Abbr);
+
+            if (_providers[i].ProvNum != defaultProvNum)
+            {
+                continue;
+            }
+
+            listBillingProvider.SelectedIndex = i;
+            textBillingOfficeNumber.Text = _providers[i].CanadianOfficeNum;
+
+            listTreatingProvider.SelectedIndex = i;
+            textTreatingOfficeNumber.Text = _providers[i].CanadianOfficeNum;
+        }
+
+        textDateReconciliation.Text = DateTime.Today.ToShortDateString();
+    }
+
+    private void ListBoxBillingProvider_Click(object sender, EventArgs e)
+    {
+        textBillingOfficeNumber.Text = _providers[listBillingProvider.SelectedIndex].CanadianOfficeNum;
+    }
+
+    private void ListBoxTreatingProvider_Click(object sender, EventArgs e)
+    {
+        textTreatingOfficeNumber.Text = _providers[listTreatingProvider.SelectedIndex].CanadianOfficeNum;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (listCarriers.SelectedIndex < 0)
+        {
+            ShowError("You must first choose a carrier.");
+            return;
+        }
+
+        if (listBillingProvider.SelectedIndex < 0)
+        {
+            ShowError("You must first choose a billing provider.");
+            return;
+        }
+
+        if (listTreatingProvider.SelectedIndex < 0)
+        {
+            ShowError("You must first choose a treating provider.");
+            return;
+        }
+
+        DateTime reconciliationDate;
+        try
+        {
+            reconciliationDate = DateTime.Parse(textDateReconciliation.Text).Date;
+        }
+        catch
+        {
+            ShowError("Reconciliation date invalid.");
+            return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+
+        try
+        {
+            var carrier = _carriers[listCarriers.SelectedIndex];
+            var clearinghouseHq = Canadian.GetCanadianClearinghouseHq(carrier);
+            var clearinghouseClin = Clearinghouses.OverrideFields(clearinghouseHq, Clinics.ClinicNum);
+
+            CanadianOutput.GetPaymentReconciliations(
+                clearinghouseClin, carrier,
+                _providers[listTreatingProvider.SelectedIndex],
+                _providers[listBillingProvider.SelectedIndex],
+                reconciliationDate, Clinics.ClinicNum, false,
+                FormCCDPrint.PrintCCD);
+
+            Cursor = Cursors.Default;
+
+            ShowInfo("Done.");
+        }
+        catch (Exception ex)
+        {
+            Cursor = Cursors.Default;
+
+            ShowError("Request failed: " + ex.Message);
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

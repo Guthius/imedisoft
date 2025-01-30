@@ -5,10 +5,12 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class MountCrud
 {
@@ -110,7 +112,7 @@ public class MountCrud
                                     + SOut.Bool(mount.FlipOnAcquire) + ","
                                     + SOut.Bool(mount.AdjModeAfterSeries) + ")";
         if (mount.Note == null) mount.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(mount.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(mount.Note));
         {
             mount.MountNum = Db.NonQ(command, true, "MountNum", "mount", paramNote);
         }
@@ -144,7 +146,7 @@ public class MountCrud
                                     + SOut.Bool(mount.FlipOnAcquire) + ","
                                     + SOut.Bool(mount.AdjModeAfterSeries) + ")";
         if (mount.Note == null) mount.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(mount.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(mount.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -170,7 +172,7 @@ public class MountCrud
                       + "AdjModeAfterSeries=  " + SOut.Bool(mount.AdjModeAfterSeries) + " "
                       + "WHERE MountNum = " + SOut.Long(mount.MountNum);
         if (mount.Note == null) mount.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(mount.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(mount.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -257,7 +259,7 @@ public class MountCrud
 
         if (command == "") return false;
         if (mount.Note == null) mount.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(mount.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(mount.Note));
         command = "UPDATE mount SET " + command
                                       + " WHERE MountNum = " + SOut.Long(mount.MountNum);
         Db.NonQ(command, paramNote);

@@ -12,6 +12,8 @@ using System.Windows.Media.Imaging;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
@@ -1775,7 +1777,7 @@ namespace OpenDental {
 			if(textCity.Text!="" || textState.Text!=""){
 				return;
 			}
-			List<ZipCode> listZipCodes=ZipCodes.GetALMatches(textZip.Text);
+			List<ZipCode> listZipCodes=ZipCodes.GetAlMatches(textZip.Text);
 			if(listZipCodes.Count==0){
 				//No match found. Must enter info for new zipcode
 				ZipCode zipCode=new ZipCode();
@@ -2923,9 +2925,8 @@ namespace OpenDental {
 						patient.BillingType=_listDefsBillingType[comboBillType5.SelectedIndex].DefNum;
 						break;
 				}
-				long patNum=Patients.Insert(patient,false);
-				EhrPatients.Refresh(patNum);
-				ImageStore.GetPatientFolder(patient,ImageStore.GetPreferredAtoZpath());
+				long patNum=Patients.Insert(patient);
+				ImageStore.GetPatientFolder(patient,ImageStore.GetDataFolder());
 				SecurityLogs.MakeLogEntry(EnumPermType.PatientCreate,patient.PatNum,"Created from Add Family window.");
 				//if this is the first family member it is the guarantor, so set pat.Guarantor=pat.PatNum and update
 				//if this is not the first family member, the guarantor has been inserted and pat.Guarantor will already be set before inserting

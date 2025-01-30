@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcCodeNoteCrud
 {
@@ -85,7 +87,7 @@ public class ProcCodeNoteCrud
                                             + "'" + SOut.String(procCodeNote.ProcTime) + "',"
                                             + SOut.Int((int) procCodeNote.ProcStatus) + ")";
         if (procCodeNote.Note == null) procCodeNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(procCodeNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(procCodeNote.Note));
         {
             procCodeNote.ProcCodeNoteNum = Db.NonQ(command, true, "ProcCodeNoteNum", "procCodeNote", paramNote);
         }
@@ -111,7 +113,7 @@ public class ProcCodeNoteCrud
                                             + "'" + SOut.String(procCodeNote.ProcTime) + "',"
                                             + SOut.Int((int) procCodeNote.ProcStatus) + ")";
         if (procCodeNote.Note == null) procCodeNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(procCodeNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(procCodeNote.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -129,7 +131,7 @@ public class ProcCodeNoteCrud
                       + "ProcStatus     =  " + SOut.Int((int) procCodeNote.ProcStatus) + " "
                       + "WHERE ProcCodeNoteNum = " + SOut.Long(procCodeNote.ProcCodeNoteNum);
         if (procCodeNote.Note == null) procCodeNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(procCodeNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(procCodeNote.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -168,7 +170,7 @@ public class ProcCodeNoteCrud
 
         if (command == "") return false;
         if (procCodeNote.Note == null) procCodeNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(procCodeNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(procCodeNote.Note));
         command = "UPDATE proccodenote SET " + command
                                              + " WHERE ProcCodeNoteNum = " + SOut.Long(procCodeNote.ProcCodeNoteNum);
         Db.NonQ(command, paramNote);

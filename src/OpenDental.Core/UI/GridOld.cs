@@ -17,6 +17,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using PdfSharp.Drawing;
 using OpenDental.Thinfinity;
@@ -1190,7 +1191,7 @@ namespace OpenDental.UI {
 						g.DrawString(gridRow.Note,font,brush,rectangleNote,_stringFormat);
 					}
 					else {
-						g.DrawString(gridRow.Note.Substring(0, TEXT_LENGTH_LIMIT)+"\r\n"+Lans.g(this,"...more..."),font,brush,rectangleNote,_stringFormat);
+						g.DrawString(gridRow.Note.Substring(0, TEXT_LENGTH_LIMIT)+"\r\n"+Lans.g("...more..."),font,brush,rectangleNote,_stringFormat);
 					}
 				}
 			}
@@ -3350,14 +3351,14 @@ namespace OpenDental.UI {
 				}
 			}
 			catch {
-				MessageBox.Show(Lans.g(this,"File in use by another program.  Close and try again."));
+				MessageBox.Show(Lans.g("File in use by another program.  Close and try again."));
 				return;
 			}
 			if(false) {
 				ThinfinityUtils.ExportForDownload(selectedFilePath);
 			}
 			else {
-				MessageBox.Show(Lans.g(this,"File created successfully"));
+				MessageBox.Show(Lans.g("File created successfully"));
 			}
 		}
 
@@ -4055,7 +4056,7 @@ namespace OpenDental.UI {
 				if(widthNote>0 && ListGridRows[i].Note!="") {
 					string strToMeasure=ListGridRows[i].Note;
 					if(strToMeasure.Length>TEXT_LENGTH_LIMIT){
-						strToMeasure=strToMeasure.Substring(0,TEXT_LENGTH_LIMIT)+"\r\n"+Lans.g(this,"...more...");
+						strToMeasure=strToMeasure.Substring(0,TEXT_LENGTH_LIMIT)+"\r\n"+Lans.g("...more...");
 					}
 					float heightNote=g.MeasureString(strToMeasure,fontNormal,widthNote,_stringFormat).Height;//Notes cannot be bold.  Always normal font.
 					heightNote=ScaleMS(heightNote);

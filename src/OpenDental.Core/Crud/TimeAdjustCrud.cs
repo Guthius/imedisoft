@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class TimeAdjustCrud
 {
@@ -103,7 +105,7 @@ public class TimeAdjustCrud
                                               + SOut.Bool(timeAdjust.IsUnpaidProtectedLeave) + ","
                                               + SOut.Long(timeAdjust.SecuUserNumEntry) + ")";
         if (timeAdjust.Note == null) timeAdjust.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(timeAdjust.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(timeAdjust.Note));
         {
             timeAdjust.TimeAdjustNum = Db.NonQ(command, true, "TimeAdjustNum", "timeAdjust", paramNote);
         }
@@ -135,7 +137,7 @@ public class TimeAdjustCrud
                                               + SOut.Bool(timeAdjust.IsUnpaidProtectedLeave) + ","
                                               + SOut.Long(timeAdjust.SecuUserNumEntry) + ")";
         if (timeAdjust.Note == null) timeAdjust.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(timeAdjust.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(timeAdjust.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -159,7 +161,7 @@ public class TimeAdjustCrud
                       + "SecuUserNumEntry      =  " + SOut.Long(timeAdjust.SecuUserNumEntry) + " "
                       + "WHERE TimeAdjustNum = " + SOut.Long(timeAdjust.TimeAdjustNum);
         if (timeAdjust.Note == null) timeAdjust.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(timeAdjust.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(timeAdjust.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -234,7 +236,7 @@ public class TimeAdjustCrud
 
         if (command == "") return false;
         if (timeAdjust.Note == null) timeAdjust.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(timeAdjust.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(timeAdjust.Note));
         command = "UPDATE timeadjust SET " + command
                                            + " WHERE TimeAdjustNum = " + SOut.Long(timeAdjust.TimeAdjustNum);
         Db.NonQ(command, paramNote);

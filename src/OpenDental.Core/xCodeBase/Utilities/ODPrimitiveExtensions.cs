@@ -19,33 +19,29 @@ public static class ODPrimitiveExtensions
 
     public static bool IsNullOrEmpty<T>(this List<T> list)
     {
-        //jordan Approved. 
         return list == null || !list.Any();
     }
 
     public static bool IsNullOrEmpty(this Array array)
     {
-        //jordan Approved. 
         return array == null || array.Length == 0;
     }
 
     public static bool IsNullOrEmpty(this string str)
     {
-        //jordan Approved.
         return string.IsNullOrEmpty(str);
     }
 
     public static string GetDescription(this Enum value, bool useShortVersionIfAvailable = false)
     {
-        //jordan Approved.
-        Type type = value.GetType();
-        string name = Enum.GetName(type, value);
+        var type = value.GetType();
+        var name = Enum.GetName(type, value);
         if (name == null)
         {
             return value.ToString();
         }
 
-        FieldInfo fieldInfo = type.GetField(name);
+        var fieldInfo = type.GetField(name);
         if (fieldInfo == null)
         {
             return value.ToString();
@@ -53,14 +49,14 @@ public static class ODPrimitiveExtensions
 
         if (useShortVersionIfAvailable)
         {
-            ShortDescriptionAttribute attrShort = (ShortDescriptionAttribute) Attribute.GetCustomAttribute(fieldInfo, typeof(ShortDescriptionAttribute));
+            var attrShort = (ShortDescriptionAttribute) Attribute.GetCustomAttribute(fieldInfo, typeof(ShortDescriptionAttribute));
             if (attrShort != null)
             {
                 return attrShort.ShortDesc;
             }
         }
 
-        DescriptionAttribute attr = (DescriptionAttribute) Attribute.GetCustomAttribute(fieldInfo, typeof(DescriptionAttribute));
+        var attr = (DescriptionAttribute) Attribute.GetCustomAttribute(fieldInfo, typeof(DescriptionAttribute));
         if (attr == null)
         {
             return value.ToString();
@@ -80,8 +76,8 @@ public class DateTools
 {
     public static DateTime AddWeekDays(DateTime dateT, int numberOfDays)
     {
-        int numberOfDaysToAdd = 0;
-        for (int i = 0; i < numberOfDays; i++)
+        var numberOfDaysToAdd = 0;
+        for (var i = 0; i < numberOfDays; i++)
         {
             numberOfDaysToAdd++;
             if (dateT.AddDays(numberOfDaysToAdd).DayOfWeek == DayOfWeek.Saturday
@@ -95,11 +91,6 @@ public class DateTools
         return dateT;
     }
 
-    public static DateTime ToBeginningOfMinute(DateTime dateT)
-    {
-        return new DateTime(dateT.Year, dateT.Month, dateT.Day, dateT.Hour, dateT.Minute, 0, dateT.Kind);
-    }
-
     public static DateTime ToBeginningOfMonth(DateTime dateT)
     {
         return new DateTime(dateT.Year, dateT.Month, 1, 0, 0, 0, dateT.Kind);
@@ -108,11 +99,6 @@ public class DateTools
     public static DateTime ToEndOfMonth(DateTime dateT)
     {
         return new DateTime(dateT.Year, dateT.Month, DateTime.DaysInMonth(dateT.Year, dateT.Month), 23, 59, 59, dateT.Kind);
-    }
-
-    public static DateTime ToEndOfMinute(DateTime dateT)
-    {
-        return new DateTime(dateT.Year, dateT.Month, dateT.Day, dateT.Hour, dateT.Minute, 59, dateT.Kind).AddMilliseconds(999);
     }
 
     public static string ToStringDH(TimeSpan ts)
@@ -220,7 +206,7 @@ public class StringTools
 
     public static void RegReplace(StringBuilder stringBuilder, string pattern, string replacement, RegexOptions regexOptions = RegexOptions.IgnoreCase)
     {
-        string newVal = Regex.Replace(stringBuilder.ToString(), pattern, replacement, regexOptions);
+        var newVal = Regex.Replace(stringBuilder.ToString(), pattern, replacement, regexOptions);
         stringBuilder.Clear();
         stringBuilder.Append(newVal);
     }
@@ -324,20 +310,20 @@ public class EnumTools
 {
     public static T GetAttributeOrDefault<T>(Enum value) where T : Attribute, new()
     {
-        Type type = value.GetType();
-        string name = Enum.GetName(type, value);
+        var type = value.GetType();
+        var name = Enum.GetName(type, value);
         if (name == null)
         {
             return new T();
         }
 
-        FieldInfo field = type.GetField(name);
+        var field = type.GetField(name);
         if (field == null)
         {
             return new T();
         }
 
-        T attr = Attribute.GetCustomAttribute(field, typeof(T)) as T;
+        var attr = Attribute.GetCustomAttribute(field, typeof(T)) as T;
         if (attr == null)
         {
             return new T();
@@ -348,7 +334,7 @@ public class EnumTools
 
     public static bool HasAnyFlag(Enum value, params Enum[] flags)
     {
-        long valLong = Convert.ToInt64(value);
+        var valLong = Convert.ToInt64(value);
         if (valLong == 0)
         {
             return flags.Contains(value);
@@ -359,10 +345,10 @@ public class EnumTools
 
     public static T AddFlag<T>(Enum value, params T[] flags)
     {
-        long valLong = Convert.ToInt64(value);
-        foreach (T flagToAdd in flags)
+        var valLong = Convert.ToInt64(value);
+        foreach (var flagToAdd in flags)
         {
-            valLong = valLong | Convert.ToInt64(flagToAdd);
+            valLong |= Convert.ToInt64(flagToAdd);
         }
 
         return (T) Enum.ToObject(typeof(T), valLong);
@@ -370,10 +356,10 @@ public class EnumTools
 
     public static T RemoveFlag<T>(Enum value, params T[] flags)
     {
-        long valLong = Convert.ToInt64(value);
-        foreach (T flagToRemove in flags)
+        var valLong = Convert.ToInt64(value);
+        foreach (var flagToRemove in flags)
         {
-            valLong = valLong & ~Convert.ToInt64(flagToRemove);
+            valLong &= ~Convert.ToInt64(flagToRemove);
         }
 
         return (T) Enum.ToObject(typeof(T), valLong);
@@ -395,7 +381,7 @@ public class EnumTools
 
     public static IEnumerable<T> GetFlags<T>(T value) where T : Enum
     {
-        foreach (T flag in Enum.GetValues(value.GetType()).Cast<T>().Where(x => Convert.ToInt64(x) != 0))
+        foreach (var flag in Enum.GetValues(value.GetType()).Cast<T>().Where(x => Convert.ToInt64(x) != 0))
         {
             if (value.HasFlag(flag))
             {
@@ -406,13 +392,13 @@ public class EnumTools
 
     public static List<T> ConvertListOfIntsToListOfEnums<T>(string input, bool doThrow = false) where T : Enum
     {
-        List<T> listOutput =
+        var listOutput =
             //Comma-delim list of int values.
             input.Split([","], StringSplitOptions.RemoveEmptyEntries)
                 //Only take strings which are convertible to int.
                 .Where(x =>
                 {
-                    if (!int.TryParse(x, out int asInt))
+                    if (!int.TryParse(x, out var asInt))
                     {
                         if (doThrow)
                         {
@@ -466,20 +452,20 @@ public class GenericTools
             return null;
         }
 
-        BindingFlags binding = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-        targetType = targetType ?? sourceObject.GetType();
+        var binding = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+        targetType ??= sourceObject.GetType();
         object targetObject;
-        ArgumentException ex = new ArgumentException($"Failed to copy {targetType.FullName}");
+        var ex = new ArgumentException($"Failed to copy {targetType.FullName}");
         if (sourceObject is string sourceAsString)
         {
-            char[] targetString = new char[sourceAsString.Length];
+            var targetString = new char[sourceAsString.Length];
             sourceAsString.CopyTo(0, targetString, 0, sourceAsString.Length);
             targetObject = new string(targetString);
         }
         else if (sourceObject is Array sourceAsArray)
         {
-            Array array = Array.CreateInstance(targetType.GetElementType(), sourceAsArray.Length);
-            for (int i = 0; i < sourceAsArray.Length; i++)
+            var array = Array.CreateInstance(targetType.GetElementType(), sourceAsArray.Length);
+            for (var i = 0; i < sourceAsArray.Length; i++)
             {
                 array.SetValue(DeepClone(sourceAsArray.GetValue(i)), i);
             }
@@ -493,7 +479,7 @@ public class GenericTools
                 throw ex; //Should we just skip these?
             }
 
-            IList list = (IList) Activator.CreateInstance(
+            var list = (IList) Activator.CreateInstance(
                 targetType.IsGenericTypeDefinition ? targetType.MakeGenericType(targetType.GenericTypeArguments) : targetType
             );
             foreach (var item in sourceAsIList)
@@ -510,7 +496,7 @@ public class GenericTools
                 throw ex; //Should we just skip these?
             }
 
-            IDictionary dict = (IDictionary) Activator.CreateInstance(
+            var dict = (IDictionary) Activator.CreateInstance(
                 targetType.IsGenericTypeDefinition ? targetType.MakeGenericType(targetType.GenericTypeArguments) : targetType
             );
             foreach (DictionaryEntry entry in sourceAsIDict)
@@ -524,11 +510,11 @@ public class GenericTools
         {
             // Create an empty object and ignore its constructor.
             targetObject = FormatterServices.GetUninitializedObject(targetType);
-            Type sourceType = sourceObject.GetType();
+            var sourceType = sourceObject.GetType();
 
             #region Copy Properties
 
-            foreach (PropertyInfo property in sourceType.GetProperties(binding).Where(x => x.CanWrite && x.CanRead))
+            foreach (var property in sourceType.GetProperties(binding).Where(x => x.CanWrite && x.CanRead))
             {
                 var value = property.GetValue(sourceObject, null);
                 if (!property.PropertyType.IsPrimitive)
@@ -543,7 +529,7 @@ public class GenericTools
 
             #region Copy Fields
 
-            foreach (FieldInfo field in sourceType.GetFields(binding))
+            foreach (var field in sourceType.GetFields(binding))
             {
                 //Only writable fields
                 var value = field.GetValue(sourceObject);
@@ -589,7 +575,7 @@ public class ListTools
         else
         {
             //Use the custom comparison func.
-            ODEqualityComparer<TSource> compare = new ODEqualityComparer<TSource>(funcCompare);
+            var compare = new ODEqualityComparer<TSource>(funcCompare);
             if (first.Except(second, compare).Union(second.Except(first, compare)).Count() != 0)
             {
                 throw new Exception("Items do not match");
@@ -602,7 +588,7 @@ public class ListTools
             return;
         }
 
-        for (int i = 0; i < first.Count(); i++)
+        for (var i = 0; i < first.Count(); i++)
         {
             if (funcCompare == null)
             {

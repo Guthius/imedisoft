@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ProcNoteCrud
 {
@@ -85,15 +87,15 @@ public class ProcNoteCrud
         command +=
             SOut.Long(procNote.PatNum) + ","
                                        + SOut.Long(procNote.ProcNum) + ","
-                                       + DbHelper.Now() + ","
+                                       + "NOW()" + ","
                                        + SOut.Long(procNote.UserNum) + ","
                                        + DbHelper.ParamChar + "paramNote,"
                                        + SOut.Bool(procNote.SigIsTopaz) + ","
                                        + DbHelper.ParamChar + "paramSignature)";
         if (procNote.Note == null) procNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(procNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(procNote.Note));
         if (procNote.Signature == null) procNote.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(procNote.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(procNote.Signature));
         {
             procNote.ProcNoteNum = Db.NonQ(command, true, "ProcNoteNum", "procNote", paramNote, paramSignature);
         }
@@ -115,15 +117,15 @@ public class ProcNoteCrud
         command +=
             SOut.Long(procNote.PatNum) + ","
                                        + SOut.Long(procNote.ProcNum) + ","
-                                       + DbHelper.Now() + ","
+                                       + "NOW()" + ","
                                        + SOut.Long(procNote.UserNum) + ","
                                        + DbHelper.ParamChar + "paramNote,"
                                        + SOut.Bool(procNote.SigIsTopaz) + ","
                                        + DbHelper.ParamChar + "paramSignature)";
         if (procNote.Note == null) procNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(procNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(procNote.Note));
         if (procNote.Signature == null) procNote.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(procNote.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(procNote.Signature));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote, paramSignature);
         else
@@ -143,9 +145,9 @@ public class ProcNoteCrud
                       + "Signature    =  " + DbHelper.ParamChar + "paramSignature "
                       + "WHERE ProcNoteNum = " + SOut.Long(procNote.ProcNoteNum);
         if (procNote.Note == null) procNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(procNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(procNote.Note));
         if (procNote.Signature == null) procNote.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(procNote.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(procNote.Signature));
         Db.NonQ(command, paramNote, paramSignature);
     }
 
@@ -191,9 +193,9 @@ public class ProcNoteCrud
 
         if (command == "") return false;
         if (procNote.Note == null) procNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringNote(procNote.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(procNote.Note));
         if (procNote.Signature == null) procNote.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", OdDbType.Text, SOut.StringParam(procNote.Signature));
+        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(procNote.Signature));
         command = "UPDATE procnote SET " + command
                                          + " WHERE ProcNoteNum = " + SOut.Long(procNote.ProcNoteNum);
         Db.NonQ(command, paramNote, paramSignature);

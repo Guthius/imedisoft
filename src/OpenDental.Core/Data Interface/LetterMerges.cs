@@ -3,26 +3,23 @@ using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class LetterMerges
 {
-    ///<summary>Inserts this lettermerge into database.</summary>
-    public static long Insert(LetterMerge letterMerge)
+    public static void Insert(LetterMerge letterMerge)
     {
-        return LetterMergeCrud.Insert(letterMerge);
+        LetterMergeCrud.Insert(letterMerge);
     }
 
-    
     public static void Update(LetterMerge letterMerge)
     {
         LetterMergeCrud.Update(letterMerge);
     }
 
-    
     public static void Delete(LetterMerge letterMerge)
     {
         var command = "DELETE FROM lettermerge "
@@ -30,14 +27,11 @@ public class LetterMerges
         Db.NonQ(command);
     }
 
-    ///<summary>Supply the index of the cat within Defs.Short.</summary>
     public static List<LetterMerge> GetListForCat(int catIndex)
     {
         var defNum = Defs.GetDefsForCategory(DefCat.LetterMergeCats, true)[catIndex].DefNum;
         return GetWhere(x => x.Category == defNum);
     }
-
-    #region CachePattern
 
     private class LetterMergeCache : CacheListAbs<LetterMerge>
     {
@@ -69,39 +63,25 @@ public class LetterMerges
         }
     }
 
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly LetterMergeCache _letterMergeCache = new();
+    private static readonly LetterMergeCache Cache = new();
 
     public static List<LetterMerge> GetWhere(Predicate<LetterMerge> match, bool isShort = false)
     {
-        return _letterMergeCache.GetWhere(match, isShort);
+        return Cache.GetWhere(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _letterMergeCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _letterMergeCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _letterMergeCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

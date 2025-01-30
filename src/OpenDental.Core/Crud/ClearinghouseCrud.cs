@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ClearinghouseCrud
 {
@@ -142,9 +144,9 @@ public class ClearinghouseCrud
             + SOut.Bool(clearinghouse.IsAttachmentSendAllowed) + ","
             + "'" + SOut.String(clearinghouse.LocationID) + "')";
         if (clearinghouse.ExportPath == null) clearinghouse.ExportPath = "";
-        var paramExportPath = new OdSqlParameter("paramExportPath", OdDbType.Text, SOut.StringParam(clearinghouse.ExportPath));
+        var paramExportPath = new OdSqlParameter("paramExportPath", SOut.StringParam(clearinghouse.ExportPath));
         if (clearinghouse.Payors == null) clearinghouse.Payors = "";
-        var paramPayors = new OdSqlParameter("paramPayors", OdDbType.Text, SOut.StringParam(clearinghouse.Payors));
+        var paramPayors = new OdSqlParameter("paramPayors", SOut.StringParam(clearinghouse.Payors));
         {
             clearinghouse.ClearinghouseNum = Db.NonQ(command, true, "ClearinghouseNum", "clearinghouse", paramExportPath, paramPayors);
         }
@@ -186,9 +188,9 @@ public class ClearinghouseCrud
                       + "LocationID             = '" + SOut.String(clearinghouse.LocationID) + "' "
                       + "WHERE ClearinghouseNum = " + SOut.Long(clearinghouse.ClearinghouseNum);
         if (clearinghouse.ExportPath == null) clearinghouse.ExportPath = "";
-        var paramExportPath = new OdSqlParameter("paramExportPath", OdDbType.Text, SOut.StringParam(clearinghouse.ExportPath));
+        var paramExportPath = new OdSqlParameter("paramExportPath", SOut.StringParam(clearinghouse.ExportPath));
         if (clearinghouse.Payors == null) clearinghouse.Payors = "";
-        var paramPayors = new OdSqlParameter("paramPayors", OdDbType.Text, SOut.StringParam(clearinghouse.Payors));
+        var paramPayors = new OdSqlParameter("paramPayors", SOut.StringParam(clearinghouse.Payors));
         Db.NonQ(command, paramExportPath, paramPayors);
     }
 
@@ -372,9 +374,9 @@ public class ClearinghouseCrud
 
         if (command == "") return false;
         if (clearinghouse.ExportPath == null) clearinghouse.ExportPath = "";
-        var paramExportPath = new OdSqlParameter("paramExportPath", OdDbType.Text, SOut.StringParam(clearinghouse.ExportPath));
+        var paramExportPath = new OdSqlParameter("paramExportPath", SOut.StringParam(clearinghouse.ExportPath));
         if (clearinghouse.Payors == null) clearinghouse.Payors = "";
-        var paramPayors = new OdSqlParameter("paramPayors", OdDbType.Text, SOut.StringParam(clearinghouse.Payors));
+        var paramPayors = new OdSqlParameter("paramPayors", SOut.StringParam(clearinghouse.Payors));
         command = "UPDATE clearinghouse SET " + command
                                               + " WHERE ClearinghouseNum = " + SOut.Long(clearinghouse.ClearinghouseNum);
         Db.NonQ(command, paramExportPath, paramPayors);

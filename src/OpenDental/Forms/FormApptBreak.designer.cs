@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormApptBreak {
 		/// <summary>
 		/// Required designer variable.
@@ -76,7 +76,7 @@ namespace OpenDental{
 			this.butUnsched.TabIndex = 4;
 			this.butUnsched.Text = "Send to Unscheduled List";
 			this.butUnsched.UseVisualStyleBackColor = true;
-			this.butUnsched.Click += new System.EventHandler(this.butUnsched_Click);
+			this.butUnsched.Click += new System.EventHandler(this.ButtonUnsched_Click);
 			// 
 			// butPinboard
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental{
 			this.butPinboard.TabIndex = 5;
 			this.butPinboard.Text = "Copy to Pinboard";
 			this.butPinboard.UseVisualStyleBackColor = true;
-			this.butPinboard.Click += new System.EventHandler(this.butPinboard_Click);
+			this.butPinboard.Click += new System.EventHandler(this.ButtonPinboard_Click);
 			// 
 			// butApptBook
 			// 
@@ -96,7 +96,7 @@ namespace OpenDental{
 			this.butApptBook.TabIndex = 6;
 			this.butApptBook.Text = "Leave in Appt Module";
 			this.butApptBook.UseVisualStyleBackColor = true;
-			this.butApptBook.Click += new System.EventHandler(this.butApptBook_Click);
+			this.butApptBook.Click += new System.EventHandler(this.ButtonApptBook_Click);
 			// 
 			// FormApptBreak
 			// 

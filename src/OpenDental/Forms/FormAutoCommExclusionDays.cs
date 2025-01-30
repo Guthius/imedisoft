@@ -1,165 +1,208 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using DataConnectionBase;
-using OpenDentBusiness;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 
-namespace OpenDental {
-	public partial class FormeConfimationExclusionDays : FormODBase {
+namespace OpenDental.Forms;
 
-		private long _clinicNum;
-		private List<AutoCommExcludeDate> _listExcludeDates = new List<AutoCommExcludeDate>();
-		private AutoCommExcludeDate.AutoCommExcludeDays _excludeDays;
-		private ClinicPrefHelper _clinicPrefHelper = new ClinicPrefHelper(PrefName.EConfirmExcludeDays,PrefName.EConfirmExcludeDaysUseHQ);
-		/// <summary>TRUE: Using HQ (Clinic 0) exclusion days, don't make exclusion changes for this clinic. FALSE: clinic has their own exclusion days</summary>
-		private bool _useHQSettings;
+public partial class FormeConfimationExclusionDays : FormODBase
+{
+    private readonly ClinicPrefHelper _clinicPrefHelper = new(PrefName.EConfirmExcludeDays, PrefName.EConfirmExcludeDaysUseHQ);
+    private long _clinicNum;
+    private List<AutoCommExcludeDate> _excludeDates = [];
+    private AutoCommExcludeDate.AutoCommExcludeDays _excludeDays;
+    private bool _useHqSettings;
 
-		public FormeConfimationExclusionDays(long clinicNum) {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-			_clinicNum=clinicNum;
-		}
+    public FormeConfimationExclusionDays(long clinicNum)
+    {
+        InitializeComponent();
 
-		private void FormAutoCommExclusionDays_Load(object sender,EventArgs e) {
-			comboBoxClinicPicker.ClinicNumSelected = _clinicNum;
-			Reload();
-		}
+        _clinicNum = clinicNum;
+    }
 
-		private void Reload() {
-			if(checkShowPastDates.Checked) {
-				_listExcludeDates=AutoCommExcludeDates.Refresh(_clinicNum);
-			}
-			else {
-				_listExcludeDates=AutoCommExcludeDates.GetFutureForClinic(_clinicNum);
-			}
-			string val = _clinicPrefHelper.GetStringVal(PrefName.EConfirmExcludeDays, _clinicNum);
-			if(val == AutoCommExcludeDate.AutoCommExcludeDays.None.ToString()) {
-				_excludeDays = 0;
-			}
-			else {
-				_excludeDays = (AutoCommExcludeDate.AutoCommExcludeDays)byte.Parse(_clinicPrefHelper.GetStringVal(PrefName.EConfirmExcludeDays, _clinicNum));
-			}
-			if(_clinicNum>0) {
-				_useHQSettings=_clinicPrefHelper.GetBoolVal(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum);
-				checkUseHQ.Checked=_useHQSettings;
-				checkUseHQ.Visible=true;
-			}
-			else {
-				checkUseHQ.Checked=false;
-				checkUseHQ.Visible=false;
-			}
-			listBoxExclusionDates.Items.Clear();
-			listBoxExclusionDates.Items.AddList(_listExcludeDates,x => x.DateExclude.ToShortDateString());
-			listBoxExclusionDays.Items.Clear();
-			listBoxExclusionDays.Items.AddEnums<AutoCommExcludeDate.AutoCommExcludeDays>();
-			listBoxExclusionDays.Items.RemoveAt(0); //remove "none" from list, implied by having nothing selected.
-			foreach(AutoCommExcludeDate.AutoCommExcludeDays day in Enum.GetValues(typeof(AutoCommExcludeDate.AutoCommExcludeDays))){
-				if(day != AutoCommExcludeDate.AutoCommExcludeDays.None && _excludeDays.HasFlag(day)) {
-					listBoxExclusionDays.SetSelectedEnum(day);
-				}
-			}
-		}
+    private void FormAutoCommExclusionDays_Load(object sender, EventArgs e)
+    {
+        comboBoxClinicPicker.ClinicNumSelected = _clinicNum;
 
-		private void ComboBoxClinicPicker_SelectionChangeCommitted(object sender,EventArgs e) {
-			if(!ExcludeDaysSelectionOK()) {
-				comboBoxClinicPicker.ClinicNumSelected = _clinicNum;
-				return;
-			}
-			Save();
-			_clinicNum=comboBoxClinicPicker.ClinicNumSelected;
-			Reload();
-		}
+        Reload();
+    }
 
-		private void checkShowPastDates_CheckedChanged(object sender,EventArgs e) {
-			Reload();
-		}
+    private void Reload()
+    {
+        _excludeDates = checkShowPastDates.Checked ? AutoCommExcludeDates.Refresh(_clinicNum) : AutoCommExcludeDates.GetFutureForClinic(_clinicNum);
 
-		private void checkUseHQ_CheckedChanged(object sender,EventArgs e) {
-			if(checkUseHQ.Checked && _clinicNum > 0) {
-				listBoxExclusionDates.Enabled=false;
-				listBoxExclusionDays.Enabled=false;
-				butAdd.Enabled=false;
-				butDelete.Enabled=false;
-				labelExclusionDays.Enabled=false;
-				labelExclusionDates.Enabled=false;
-				labelUseDefaultMessage.Visible=true;
-			}
-			else {
-				listBoxExclusionDates.Enabled=true;
-				listBoxExclusionDays.Enabled=true;
-				butAdd.Enabled=true;
-				butDelete.Enabled=true;
-				labelExclusionDays.Enabled=true;
-				labelExclusionDates.Enabled=true;
-				labelUseDefaultMessage.Visible=false;
-			}
-		}
+        var val = _clinicPrefHelper.GetStringVal(PrefName.EConfirmExcludeDays, _clinicNum);
+        if (val == AutoCommExcludeDate.AutoCommExcludeDays.None.ToString())
+        {
+            _excludeDays = 0;
+        }
+        else
+        {
+            _excludeDays = (AutoCommExcludeDate.AutoCommExcludeDays) byte.Parse(_clinicPrefHelper.GetStringVal(PrefName.EConfirmExcludeDays, _clinicNum));
+        }
 
-		private void Save() {
-			AutoCommExcludeDate.AutoCommExcludeDays excludeDays = AutoCommExcludeDate.AutoCommExcludeDays.None;
-			listBoxExclusionDays.GetListSelected<AutoCommExcludeDate.AutoCommExcludeDays>().ForEach(day => excludeDays |= day);
-			if(checkUseHQ.Checked && _clinicNum>0) {//clinic set to use HQ defaults
-				_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum,SOut.Bool(true));
-			}
-			else if(_clinicNum>0) {//clinic using clinic specific settings
-				_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ,_clinicNum,SOut.Bool(false));
-			}
-			//always save exclusion days. When using HQ defaults, list box is disabled, unable to make changed that will save when set to use HQ defaults
-			_clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDays,_clinicNum, ((int)(byte)excludeDays).ToString());
-		}
+        if (_clinicNum > 0)
+        {
+            _useHqSettings = _clinicPrefHelper.GetBoolVal(PrefName.EConfirmExcludeDaysUseHQ, _clinicNum);
+            checkUseHQ.Checked = _useHqSettings;
+            checkUseHQ.Visible = true;
+        }
+        else
+        {
+            checkUseHQ.Checked = false;
+            checkUseHQ.Visible = false;
+        }
 
-		private bool ExcludeDaysSelectionOK() {
-			if(listBoxExclusionDays.SelectedIndices.Count() == 7) {
-				MsgBox.Show(this,"Cannot block all days of the week. To block eConfirmations entirely, disable the eConfirmation rule.");
-				return false;
-			}
-			return true;
-		}
+        listBoxExclusionDates.Items.Clear();
+        listBoxExclusionDates.Items.AddList(_excludeDates, x => x.DateExclude.ToShortDateString());
 
-		private void butAdd_Click(object sender,EventArgs e) {
-			Save();
-			using FormCalendar formDatePicker = new FormCalendar();
-			formDatePicker.DateSelected=DateTime.Now;
-			formDatePicker.MinDate=DateTime.Now;
-			formDatePicker.ShowDialog();
-			if(formDatePicker.DialogResult != DialogResult.OK) {
-				return;
-			}
-			AutoCommExcludeDate autoCommExcludeDate = new AutoCommExcludeDate();
-			autoCommExcludeDate.DateExclude=formDatePicker.DateSelected;
-			autoCommExcludeDate.ClinicNum=_clinicNum;
-			if(_listExcludeDates.Any(x => x.DateExclude == autoCommExcludeDate.DateExclude && x.ClinicNum == autoCommExcludeDate.ClinicNum)) {
-				return;
-			}
-			AutoCommExcludeDates.Insert(autoCommExcludeDate);
-			Reload();
-		}
+        listBoxExclusionDays.Items.Clear();
+        listBoxExclusionDays.Items.AddEnums<AutoCommExcludeDate.AutoCommExcludeDays>();
+        listBoxExclusionDays.Items.RemoveAt(0);
 
-		private void butDelete_Click(object sender,EventArgs e) {
-			Save();
-			AutoCommExcludeDate dateSelected = listBoxExclusionDates.GetSelected<AutoCommExcludeDate>();
-			if(dateSelected==null) {
-				MsgBox.Show(this,"Please selete a date to delete.");
-				return;
-			}
-			AutoCommExcludeDates.Delete(dateSelected.AutoCommExcludeDateNum);
-			Reload();
-		}
+        foreach (AutoCommExcludeDate.AutoCommExcludeDays day in Enum.GetValues(typeof(AutoCommExcludeDate.AutoCommExcludeDays)))
+        {
+            if (day != AutoCommExcludeDate.AutoCommExcludeDays.None && _excludeDays.HasFlag(day))
+            {
+                listBoxExclusionDays.SetSelectedEnum(day);
+            }
+        }
+    }
 
-		private void butSave_Click(object sender,EventArgs e) {
-			if(!ExcludeDaysSelectionOK()) {
-				return;
-			}
-			Save();
-			_clinicPrefHelper.SyncAllPrefs();
-			DialogResult=DialogResult.OK;
-		}
+    private void ComboBoxClinicPicker_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+        if (!ExcludeDaysSelectionOk())
+        {
+            comboBoxClinicPicker.ClinicNumSelected = _clinicNum;
+            return;
+        }
 
-	}
+        Save();
+
+        _clinicNum = comboBoxClinicPicker.ClinicNumSelected;
+
+        Reload();
+    }
+
+    private void CheckBoxShowPastDates_CheckedChanged(object sender, EventArgs e)
+    {
+        Reload();
+    }
+
+    private void CheckBoxUseHQ_CheckedChanged(object sender, EventArgs e)
+    {
+        if (checkUseHQ.Checked && _clinicNum > 0)
+        {
+            listBoxExclusionDates.Enabled = false;
+            listBoxExclusionDays.Enabled = false;
+            butAdd.Enabled = false;
+            butDelete.Enabled = false;
+            labelExclusionDays.Enabled = false;
+            labelExclusionDates.Enabled = false;
+            labelUseDefaultMessage.Visible = true;
+        }
+        else
+        {
+            listBoxExclusionDates.Enabled = true;
+            listBoxExclusionDays.Enabled = true;
+            butAdd.Enabled = true;
+            butDelete.Enabled = true;
+            labelExclusionDays.Enabled = true;
+            labelExclusionDates.Enabled = true;
+            labelUseDefaultMessage.Visible = false;
+        }
+    }
+
+    private void Save()
+    {
+        var excludeDays = AutoCommExcludeDate.AutoCommExcludeDays.None;
+
+        listBoxExclusionDays.GetListSelected<AutoCommExcludeDate.AutoCommExcludeDays>().ForEach(day => excludeDays |= day);
+
+        if (checkUseHQ.Checked && _clinicNum > 0)
+        {
+            _clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ, _clinicNum, SOut.Bool(true));
+        }
+        else if (_clinicNum > 0)
+        {
+            _clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDaysUseHQ, _clinicNum, SOut.Bool(false));
+        }
+
+        _clinicPrefHelper.ValChangedByUser(PrefName.EConfirmExcludeDays, _clinicNum, ((int) (byte) excludeDays).ToString());
+    }
+
+    private bool ExcludeDaysSelectionOk()
+    {
+        if (listBoxExclusionDays.SelectedIndices.Count != 7)
+        {
+            return true;
+        }
+
+        ShowError("Cannot block all days of the week. To block eConfirmations entirely, disable the eConfirmation rule.");
+
+        return false;
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        Save();
+
+        using var formDatePicker = new FormCalendar();
+
+        formDatePicker.DateSelected = DateTime.Now;
+        formDatePicker.MinDate = DateTime.Now;
+
+        if (formDatePicker.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        var autoCommExcludeDate = new AutoCommExcludeDate
+        {
+            DateExclude = formDatePicker.DateSelected,
+            ClinicNum = _clinicNum
+        };
+
+        if (_excludeDates.Any(x => x.DateExclude == autoCommExcludeDate.DateExclude && x.ClinicNum == autoCommExcludeDate.ClinicNum))
+        {
+            return;
+        }
+
+        AutoCommExcludeDates.Insert(autoCommExcludeDate);
+
+        Reload();
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        Save();
+
+        var selectedDate = listBoxExclusionDates.GetSelected<AutoCommExcludeDate>();
+        if (selectedDate is null)
+        {
+            ShowError("Please selete a date to delete.");
+            return;
+        }
+
+        AutoCommExcludeDates.Delete(selectedDate.AutoCommExcludeDateNum);
+
+        Reload();
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (!ExcludeDaysSelectionOk())
+        {
+            return;
+        }
+
+        Save();
+
+        _clinicPrefHelper.SyncAllPrefs();
+
+        DialogResult = DialogResult.OK;
+    }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace OpenDentBusiness;
 
@@ -6,19 +7,18 @@ namespace OpenDentBusiness;
 public class CrudTableAttribute : Attribute
 {
     public string TableName { get; set; } = "";
-    public bool IsDeleteForbidden { get; set; } = false;
-    public bool IsMissingInGeneral { get; set; } = false;
-    public bool IsSynchable { get; set; } = false;
-    public bool IsSynchableBatchWriteMethods { get; set; } = false;
+    public bool IsDeleteForbidden { get; set; }
+    public bool IsMissingInGeneral { get; set; }
+    public bool IsSynchable { get; set; }
+    public bool IsSynchableBatchWriteMethods { get; set; }
     public CrudAuditPerm AuditPerms { get; set; } = CrudAuditPerm.None;
-    public bool IsSecurityStamped { get; set; } = false;
-    public bool HasBatchWriteMethods { get; set; } = false;
+    public bool IsSecurityStamped { get; set; }
+    public bool HasBatchWriteMethods { get; set; }
     public string CrudLocationOverride { get; set; }
     public string NamespaceOverride { get; set; }
     public bool CrudExcludePrefC { get; set; }
-    public bool IsTableHist { get; set; } = false;
     public bool IsLargeTable { get; set; }
-    public bool UsesDataReader { get; set; } = false;
+    public bool UsesDataReader { get; set; }
 
     public static CrudAuditPerm GetCrudAuditPermForClass(Type typeClass)
     {
@@ -28,45 +28,11 @@ public class CrudTableAttribute : Attribute
             return CrudAuditPerm.None;
         }
 
-        foreach (var t in attributes)
-        {
-            if (t.GetType() != typeof(CrudTableAttribute))
-            {
-                continue;
-            }
-
-            if (((CrudTableAttribute) t).AuditPerms != CrudAuditPerm.None)
-            {
-                return ((CrudTableAttribute) t).AuditPerms;
-            }
-        }
-
-        return CrudAuditPerm.None;
-    }
-
-    public static string GetTableName(Type typeClass)
-    {
-        var attributes = typeClass.GetCustomAttributes(typeof(CrudTableAttribute), true);
-        if (attributes.Length == 0)
-        {
-            return typeClass.Name.ToLower();
-        }
-
-        for (var i = 0; i < attributes.Length; i++)
-        {
-            if (attributes[i].GetType() != typeof(CrudTableAttribute))
-            {
-                continue;
-            }
-
-            if (((CrudTableAttribute) attributes[i]).TableName != "")
-            {
-                return ((CrudTableAttribute) attributes[i]).TableName;
-            }
-        }
-
-        //couldn't find any override.
-        return typeClass.Name.ToLower();
+        return attributes
+            .OfType<CrudTableAttribute>()
+            .Where(attribute => attribute.AuditPerms != CrudAuditPerm.None)
+            .Select(attribute => attribute.AuditPerms)
+            .FirstOrDefault();
     }
 }
 

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAccountingSetup {
 		/// <summary>
 		/// Required designer variable.
@@ -95,7 +90,7 @@ namespace OpenDental {
 			this.butRemove.Size = new System.Drawing.Size(75, 24);
 			this.butRemove.TabIndex = 2;
 			this.butRemove.Text = "Remove";
-			this.butRemove.Click += new System.EventHandler(this.butRemove_Click);
+			this.butRemove.Click += new System.EventHandler(this.ButtonRemove_Click);
 			// 
 			// butChange
 			// 
@@ -104,7 +99,7 @@ namespace OpenDental {
 			this.butChange.Size = new System.Drawing.Size(75, 24);
 			this.butChange.TabIndex = 3;
 			this.butChange.Text = "Change";
-			this.butChange.Click += new System.EventHandler(this.butChange_Click);
+			this.butChange.Click += new System.EventHandler(this.ButtonChange_Click);
 			// 
 			// label3
 			// 
@@ -139,7 +134,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 1;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// groupAutomaticPayment
 			// 
@@ -163,7 +158,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 1;
 			this.gridMain.Title = "Auto Payment Entries";
 			this.gridMain.TranslationName = "TableAccountingAutoPay";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butChangeCash
 			// 
@@ -172,7 +167,7 @@ namespace OpenDental {
 			this.butChangeCash.Size = new System.Drawing.Size(75, 24);
 			this.butChangeCash.TabIndex = 2;
 			this.butChangeCash.Text = "Change";
-			this.butChangeCash.Click += new System.EventHandler(this.butChangeCash_Click);
+			this.butChangeCash.Click += new System.EventHandler(this.ButtonChangeCash_Click);
 			// 
 			// label4
 			// 
@@ -206,7 +201,7 @@ namespace OpenDental {
 			this.butAddPay.Size = new System.Drawing.Size(75, 24);
 			this.butAddPay.TabIndex = 0;
 			this.butAddPay.Text = "Add";
-			this.butAddPay.Click += new System.EventHandler(this.butAddPay_Click);
+			this.butAddPay.Click += new System.EventHandler(this.ButtonAddPay_Click);
 			// 
 			// butOK
 			// 
@@ -216,7 +211,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 2;
 			this.butOK.Text = "&Save";
-			this.butOK.Click += new System.EventHandler(this.butSave_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// FormAccountingSetup
 			// 

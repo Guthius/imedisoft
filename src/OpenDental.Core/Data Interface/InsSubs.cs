@@ -3,22 +3,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class InsSubs
 {
-	/// <summary>
-	///     It's fastest if you supply a sub list that contains the sub, but it also works just fine if it can't initally
-	///     locate the sub in the list.  You can supply an empty list.  If still not found, returns a new InsSub. The reason
-	///     for the new InsSub is because it is common to immediately get an insplan using inssub.InsSubNum.  And, of course,
-	///     that would fail if inssub was null.
-	/// </summary>
-	public static InsSub GetSub(long insSubNum, List<InsSub> listInsSubs)
+    public static InsSub GetSub(long insSubNum, List<InsSub> listInsSubs)
     {
         if (insSubNum == 0) return new InsSub();
         if (listInsSubs == null) listInsSubs = new List<InsSub>();
@@ -30,14 +23,11 @@ public class InsSubs
         return insSub;
     }
 
-    ///<summary>Gets one InsSub from the db.</summary>
     public static InsSub GetOne(long insSubNum)
     {
         return InsSubCrud.SelectOne(insSubNum);
     }
 
-
-    ///<summary>Gets a list of InsSubs from the db.</summary>
     public static List<InsSub> GetMany(List<long> listInsSubNums)
     {
         if (listInsSubNums == null || listInsSubNums.Count < 1) return new List<InsSub>();
@@ -45,18 +35,6 @@ public class InsSubs
         return InsSubCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a list of InsSubs based on the list of insfilingcode.InsFilingCodeNums passed in.</summary>
-    public static List<InsSub> GetManyByInsFilingCodes(List<long> listInsFilingCodeNums)
-    {
-        if (listInsFilingCodeNums.IsNullOrEmpty()) return new List<InsSub>();
-
-        var command = $@"SELECT * FROM inssub
-				INNER JOIN insplan ON insplan.PlanNum=inssub.PlanNum
-				WHERE insplan.FilingCode IN ({string.Join(",", listInsFilingCodeNums)})";
-        return InsSubCrud.SelectMany(command);
-    }
-
-    
     public static List<InsSub> GetPatientData(List<Patient> listPatients)
     {
         var family = new Family();
@@ -64,10 +42,6 @@ public class InsSubs
         return RefreshForFam(family);
     }
 
-    /// <summary>
-    ///     Gets new List for the specified family.  The only insSubs it misses are for claims with no current coverage.
-    ///     These are handled as needed.
-    /// </summary>
     public static List<InsSub> RefreshForFam(Family family)
     {
         //The command is written in a nested fashion in order to be compatible with both MySQL and Oracle.
@@ -95,7 +69,6 @@ public class InsSubs
         return InsSubCrud.SelectMany(command);
     }
 
-    ///<summary>Gets a list of InsSubs where the subscribers are in the passed-in list of patnums.</summary>
     public static List<InsSub> GetListInsSubs(List<long> listPatNums)
     {
         if (listPatNums.Count == 0) return new List<InsSub>();
@@ -104,50 +77,11 @@ public class InsSubs
         return InsSubCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all of the families and their corresponding InsSubs for all families passed in (saves calling RefreshForFam()
-    ///     one by one).
-    ///     Returns a dictionary of key: family and all of their corresponding value: InsSubs
-    /// </summary>
-    public static Dictionary<Family, List<InsSub>> GetDictInsSubsForFams(List<Family> listFamilies)
-    {
-        var dictFamilyInsSubs = new Dictionary<Family, List<InsSub>>();
-        if (listFamilies == null || listFamilies.Count < 1) return dictFamilyInsSubs;
-        var listPatNums = listFamilies.SelectMany(x => x.ListPats).Select(x => x.PatNum).ToList();
-        if (listPatNums == null || listPatNums.Count < 1) return dictFamilyInsSubs;
-        //The command is written ina nested fashion in order to be compatible with both MySQL and Oracle.
-        var command = "SELECT D.*,C.OnBehalfOf "
-                      + "FROM inssub D,((SELECT A.InsSubNum,A.Subscriber AS OnBehalfOf "
-                      + "FROM inssub A "
-                      + "WHERE A.Subscriber IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")"
-                      //in union, distinct is implied
-                      + ") UNION (SELECT B.InsSubNum,P.PatNum AS OnBehalfOf "
-                      + "FROM inssub B,patplan P "
-                      + "WHERE B.InsSubNum=P.InsSubNum AND P.PatNum IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + "))"
-                      + ") C "
-                      + "WHERE D.InsSubNum=C.InsSubNum "
-                      + "ORDER BY " + DbHelper.UnionOrderBy("DateEffective");
-        var table = DataCore.GetTable(command);
-        for (var i = 0; i < listFamilies.Count; i++)
-        {
-            var listPatNumsFam = listFamilies[i].ListPats.Select(x => x.PatNum).ToList();
-            var listInsSubs = new List<InsSub>();
-            var listDataRows = table.Select().Where(x => listPatNumsFam.Exists(y => y == SIn.Long(x["OnBehalfOf"].ToString()))).ToList();
-            var tableFamilyInsSubs = table.Clone();
-            for (var j = 0; j < listDataRows.Count; j++) tableFamilyInsSubs.ImportRow(listDataRows[j]);
-            dictFamilyInsSubs[listFamilies[i]] = InsSubCrud.TableToList(tableFamilyInsSubs);
-        }
-
-        return dictFamilyInsSubs;
-    }
-
-    
     public static long Insert(InsSub insSub)
     {
         return Insert(insSub, false);
     }
 
-    
     public static long Insert(InsSub insSub, bool useExistingPK)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -157,13 +91,11 @@ public class InsSubs
         return insSub.InsSubNum;
     }
 
-    
     public static void Update(InsSub insSub)
     {
         InsSubCrud.Update(insSub);
     }
 
-    ///<summary>Throws exception if dependencies.  Also deletes PatPlans tied to the InsSub.</summary>
     public static void Delete(long insSubNum)
     {
         try
@@ -188,15 +120,6 @@ public class InsSubs
         InsSubCrud.Delete(insSubNum);
     }
 
-    ///<summary>Returns true if any PatPlans exist for this InsSub.</summary>
-    public static bool ExistPatPlans(long insSubNum)
-    {
-        var command = "SELECT COUNT(PatPlanNum) FROM patplan WHERE InsSubNum = " + SOut.Long(insSubNum);
-        var patPlansExist = Db.GetCount(command) != "0";
-        return patPlansExist;
-    }
-
-    /// <summary>Will throw an exception if this InsSub is being used anywhere. Set strict true to test against every check.</summary>
     public static void ValidateNoKeys(long insSubNum, bool isStrict)
     {
         var command = "SELECT 1 FROM claim WHERE InsSubNum=" + SOut.Long(insSubNum) + " OR InsSubNum2=" + SOut.Long(insSubNum) + " " + DbHelper.LimitAnd(1);
@@ -213,26 +136,6 @@ public class InsSubs
         if (!string.IsNullOrEmpty(DataCore.GetScalar(command))) throw new ApplicationException(Lans.g("FormInsPlan", "Subscriber has existing insurance linked payment plans and so the subscriber cannot be deleted."));
     }
 
-    /* jsalmon (11/15/2013) Depricated because inssubs should not be blindly deleted.
-    ///<summary>A quick delete that is only used when cancelling out of a new edit window.</summary>
-    public static void Delete(long insSubNum) {
-
-        Crud.InsSubCrud.Delete(insSubNum);
-    }
-     */
-
-    ///<summary>Gets a list of InsSubs directly from the database. Used in ODApi.</summary>
-    public static List<InsSub> GetInsSubsForApi(int limit, int offset, long planNum, long patNum, DateTime secDateTEdit)
-    {
-        var command = "SELECT * FROM inssub WHERE SecDateTEdit >= " + SOut.DateTime(secDateTEdit) + " ";
-        if (patNum > 0) command += "AND Subscriber=" + SOut.Long(patNum) + " ";
-        if (planNum > 0) command += "AND PlanNum=" + SOut.Long(planNum) + " ";
-        command += "ORDER BY inssubnum " //Ensure order for limit and offset.
-                   + "LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return InsSubCrud.SelectMany(command);
-    }
-
-    ///<summary>Used in FormInsSelectSubscr to get a list of insplans for one subscriber directly from the database.</summary>
     public static List<InsSub> GetListForSubscriber(long subscriber)
     {
         var command = "SELECT * FROM inssub WHERE Subscriber=" + SOut.Long(subscriber);
@@ -245,10 +148,6 @@ public class InsSubs
         return InsSubCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Only used once.  Gets a count of subscribers from the database that have the specified plan. Used to display
-    ///     in the insplan window.  The returned count never includes the inssub that we're viewing.
-    /// </summary>
     public static int GetSubscriberCountForPlan(long planNum, bool isExcludedSub)
     {
         var command = "SELECT COUNT(inssub.InsSubNum) "
@@ -259,11 +158,6 @@ public class InsSubs
         return retVal;
     }
 
-    /// <summary>
-    ///     Only used when there are more than 10,000 subscribers.  Gets a list of subscriber names from the database that
-    ///     have the specified plan. Used to display in the insplan window.  The returned list never includes the inssub that
-    ///     we're viewing.
-    /// </summary>
     public static List<string> GetSubscribersForPlan(long planNum, long insSubNumExclude)
     {
         var command = "SELECT CONCAT(CONCAT(LName,', '),FName) "
@@ -277,11 +171,6 @@ public class InsSubs
         return listSubscriberNames;
     }
 
-    /// <summary>
-    ///     Called from FormInsPlan when user wants to view a benefit note for other subscribers on a plan.  Should never
-    ///     include the current subscriber that the user is editing.  This function will get one note from the database, not
-    ///     including blank notes.  If no note can be found, then it returns empty string.
-    /// </summary>
     public static string GetBenefitNotes(long planNum, long insSubNumExclude)
     {
         var command = "SELECT BenefitNotes FROM inssub WHERE BenefitNotes != '' AND PlanNum=" + SOut.Long(planNum) + " AND InsSubNum !=" + SOut.Long(insSubNumExclude) + " " + DbHelper.LimitAnd(1);
@@ -290,19 +179,12 @@ public class InsSubs
         return SIn.String(table.Rows[0][0].ToString());
     }
 
-    ///<summary>Sets all subs to the value passed in. Returns the number of subs affected.</summary>
     public static long SetAllSubsAssignBen(bool isAssignBen)
     {
         var command = "UPDATE inssub SET AssignBen=" + SOut.Bool(isAssignBen) + " WHERE AssignBen!=" + SOut.Bool(isAssignBen);
         return Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     This will assign all PlanNums to new value when Create New Plan If Needed is selected and there are multiple
-    ///     subscribers to a plan and an inssub object has been updated to point at a new PlanNum.  The PlanNum values need to
-    ///     be reflected in the claim, claimproc, payplan, and etrans tables, since those all both store inssub.InsSubNum and
-    ///     insplan.PlanNum.
-    /// </summary>
     public static void SynchPlanNumsForNewPlan(InsSub insSub)
     {
         //insbluebook.PlanNum (insbluebook.GroupNum and insbluebook.CarrierNum will be updated in FormInsPlan as needed)
@@ -333,7 +215,6 @@ public class InsSubs
         Db.NonQ(command);
     }
 
-    ///<summary>Returns the number of subscribers moved.</summary>
     public static long MoveSubscribers(long insPlanNumFrom, long insPlanNumTo)
     {
         var listInsSubsFrom = GetListForPlanNum(insPlanNumFrom);
@@ -435,7 +316,6 @@ public class InsSubs
         return insSubMovedCount;
     }
 
-    ///<summary>This will replace the currently attached InsPlan with an "UNKNOWN CARRIER" InsPlan.</summary>
     public static void AssignBlankPlanToInsSub(InsSub insSub)
     {
         //Will get the plan if it exists, or create a new one and insert if it does not.
@@ -457,14 +337,6 @@ public class InsSubs
         Update(insSub);
     }
 
-    /// <summary>
-    ///     Returns true if the inssub has valid fkey references and no changes were needed.
-    ///     Returns false if changes were needed. doFixIfInvalid dictates if changes were actually made, separate from the
-    ///     return value.
-    ///     If doFixIfInvalid is true, we attempt to delete an inssub with an invalid PlanNum.
-    ///     If unable to delete, we set the PlanNum to a new insplan associated to a carrier with the CarrierName of "UNKNOWN
-    ///     CARRIER" (this matches DBM logic)
-    /// </summary>
     public static bool ValidatePlanNum(long insSubNum, bool doFixIfInvalid = true, List<InsSub> listInsSubs = null, List<InsPlan> listInsPlans = null)
     {
         var insSub = GetSub(insSubNum, listInsSubs);
@@ -495,10 +367,6 @@ public class InsSubs
         return false;
     }
 
-    /// <summary>
-    ///     Validates the inssub of each inssubnum passed in.  Will delete the inssub/create and attach a blank plan if
-    ///     needed.
-    /// </summary>
     public static bool ValidatePlanNumForList(List<long> listInsSubNums, bool doFixIfInvalid = true)
     {
         var isValid = true;
@@ -509,10 +377,6 @@ public class InsSubs
         return isValid;
     }
 
-    /// <summary>
-    ///     Replace the tag "[SubscriberID]" with the insurance subcriber id (found on InsSub) for the patient. If there
-    ///     isn't one, replaces the [SubscriberID] tag with empty string and returns the message.
-    /// </summary>
     public static string ReplaceInsSub(string message, InsSub insSub, bool isHtmlEmail = false)
     {
         var stringBuilder = new StringBuilder(message);
@@ -525,26 +389,4 @@ public class InsSubs
         ReplaceTags.ReplaceOneTag(stringBuilder, "[SubscriberID]", insSub.SubscriberID, isHtmlEmail);
         return stringBuilder.ToString();
     }
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching insSubNum as FKey and are related to InsSub.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the InsSub table type.
-    /// </summary>
-    public static void ClearFkey(long insSubNum)
-    {
-        InsSubCrud.ClearFkey(insSubNum);
-    }
-
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching insSubNums as FKey and are related to InsSub.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the InsSub table type.
-    /// </summary>
-    public static void ClearFkey(List<long> listInsSubNums)
-    {
-        InsSubCrud.ClearFkey(listInsSubNums);
-    }
-
-    #endregion
 }

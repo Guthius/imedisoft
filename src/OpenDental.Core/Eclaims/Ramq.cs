@@ -12,6 +12,8 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Ionic.Zip;
 
 namespace OpenDentBusiness.Eclaims;

@@ -1,81 +1,98 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
-using OpenDentBusiness;
+using Imedisoft.Core.Entities;
+using TabPage = OpenDental.UI.TabPage;
 
-namespace OpenDental {
-	public partial class FormApptReminderRuleAggEdit:FormODBase {
-		public ApptReminderRule ApptReminderRuleCur;
-		public List<ApptReminderRule> ListApptReminderRulesNonDefault;
-		///<summary>Langauge of the tab that was selected in the parent form. Used for picking the tab index of this form. </summary>
-		private string _selectedLanguageLoading;
+namespace OpenDental.Forms;
 
-		public FormApptReminderRuleAggEdit(ApptReminderRule apptReminderRule,List<ApptReminderRule> listApptReminderRules,string selectedLanguageLoading) {
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-			//This needs to remain a shallow copy because FormEServicesECR is expecting shallow copy changes only. Making a new instance would break that.
-			ApptReminderRuleCur=apptReminderRule;
-			ListApptReminderRulesNonDefault=listApptReminderRules;
-			_selectedLanguageLoading=selectedLanguageLoading;
-		}
+public partial class FormApptReminderRuleAggEdit : FormODBase
+{
+    private readonly ApptReminderRule _apptReminderRule;
+    private readonly List<ApptReminderRule> _apptReminderRulesNonDefault;
+    private readonly string _selectedLanguageLoading;
 
-		private void FormApptReminderRuleEdit_Load(object sender,EventArgs e) {
-			UserControlReminderAgg userControlReminderAgg=new UserControlReminderAgg(ApptReminderRuleCur);
-			userControlReminderAgg.Dock=DockStyle.Fill;
-			if(ListApptReminderRulesNonDefault.Count==0) {
-				tabControl1.Visible=false;
-				panelMain.Visible=true;
-				LayoutManager.AddUnscaled(userControlReminderAgg,panelMain);
-			}
-			else {
-				LayoutManager.AddUnscaled(userControlReminderAgg,tabPageDefault);
-			}
-			for(int i=0;i<ListApptReminderRulesNonDefault.Count;i++) {
-				UI.TabPage tabPageLanguage=new UI.TabPage();
-				CultureInfo cultureInfo=MiscUtils.GetCultureFromThreeLetter(ListApptReminderRulesNonDefault[i].Language);
-				if(cultureInfo==null) {
-					tabPageLanguage.Text=ListApptReminderRulesNonDefault[i].Language;
-				}
-				else {
-					tabPageLanguage.Text=cultureInfo.DisplayName;
-				}
-				LayoutManager.Add(tabPageLanguage,tabControl1);
-				UserControlReminderAgg userControlReminderAggLang=new UserControlReminderAgg(ListApptReminderRulesNonDefault[i]);
-				//languageAggControl.Anchor=defaultAggControl.Anchor;
-				userControlReminderAggLang.Dock=DockStyle.Fill;
-				LayoutManager.AddUnscaled(userControlReminderAggLang,tabPageLanguage);
-				if(ListApptReminderRulesNonDefault[i].Language==_selectedLanguageLoading) {
-					tabControl1.SelectedTab=tabPageLanguage;
-				}
-			}
-			LayoutManager.LayoutFormBoundsAndFonts(this);
-		}
+    public FormApptReminderRuleAggEdit(ApptReminderRule apptReminderRule, List<ApptReminderRule> apptReminderRules, string selectedLanguageLoading)
+    {
+        _apptReminderRule = apptReminderRule;
+        _apptReminderRulesNonDefault = apptReminderRules;
+        _selectedLanguageLoading = selectedLanguageLoading;
 
-		private void butSave_Click(object sender,EventArgs e) {
-			if(ListApptReminderRulesNonDefault.Count==0) {
-				List<string> listErrors=UIHelper.GetAllControls(this).OfType<UserControlReminderAgg>().First().ValidateTemplates();
-				if(listErrors.Count!=0) {
-					ODMessageBox.Show(Lan.g(this,"You must fix the following errors before continuing.")+"\r\n\r\n-"+string.Join("\r\n-",listErrors));
-					return;
-				}
-				UIHelper.GetAllControls(this).OfType<UserControlReminderAgg>().First().SaveControlTemplates();
-			}
-			else {
-				for(int i=0;i<tabControl1.TabPages.Count;i++) {
-					UserControlReminderAgg userControlReminderAgg=(UserControlReminderAgg)tabControl1.TabPages[i].Controls[0];
-					List<string> listErrors=userControlReminderAgg.ValidateTemplates();
-					if(listErrors.Count!=0) {
-						ODMessageBox.Show(Lan.g(this,"You must fix the following errors before continuing.")+"\r\n\r\n-"+string.Join("\r\n-",listErrors));
-						return;
-					}
-					userControlReminderAgg.SaveControlTemplates();
-				}
-			}
-			DialogResult=DialogResult.OK;
-		}
-	}
+        InitializeComponent();
+    }
+
+    private void FormApptReminderRuleEdit_Load(object sender, EventArgs e)
+    {
+        var userControlReminderAgg = new UserControlReminderAgg(_apptReminderRule);
+
+        userControlReminderAgg.Dock = DockStyle.Fill;
+
+        if (_apptReminderRulesNonDefault.Count == 0)
+        {
+            tabControl1.Visible = false;
+            panelMain.Visible = true;
+
+            userControlReminderAgg.Controls.Add(panelMain);
+        }
+        else
+        {
+            userControlReminderAgg.Controls.Add(tabPageDefault);
+        }
+
+        foreach (var apptReminderRule in _apptReminderRulesNonDefault)
+        {
+            var tabPageLanguage = new TabPage();
+
+            var cultureInfo = MiscUtils.GetCultureFromThreeLetter(apptReminderRule.Language);
+
+            tabPageLanguage.Text = cultureInfo == null ? apptReminderRule.Language : cultureInfo.DisplayName;
+
+            tabControl1.TabPages.Add(tabPageLanguage);
+
+            var userControlReminderAggLang = new UserControlReminderAgg(apptReminderRule);
+
+            userControlReminderAggLang.Dock = DockStyle.Fill;
+            userControlReminderAggLang.Controls.Add(tabPageLanguage);
+
+            if (apptReminderRule.Language == _selectedLanguageLoading)
+            {
+                tabControl1.SelectedTab = tabPageLanguage;
+            }
+        }
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (_apptReminderRulesNonDefault.Count == 0)
+        {
+            var errors = UIHelper.GetAllControls(this).OfType<UserControlReminderAgg>().First().ValidateTemplates();
+            if (errors.Count != 0)
+            {
+                ShowError("You must fix the following errors before continuing.\r\n\r\n-" + string.Join("\r\n-", errors));
+                return;
+            }
+
+            UIHelper.GetAllControls(this).OfType<UserControlReminderAgg>().First().SaveControlTemplates();
+        }
+        else
+        {
+            foreach (var tabPage in tabControl1.TabPages)
+            {
+                var userControlReminderAgg = (UserControlReminderAgg) tabPage.Controls[0];
+
+                var errors = userControlReminderAgg.ValidateTemplates();
+                if (errors.Count != 0)
+                {
+                    ShowError("You must fix the following errors before continuing.\r\n\r\n-" + string.Join("\r\n-", errors));
+                    return;
+                }
+
+                userControlReminderAgg.SaveControlTemplates();
+            }
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

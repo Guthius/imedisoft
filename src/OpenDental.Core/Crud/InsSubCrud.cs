@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class InsSubCrud
 {
@@ -103,12 +105,12 @@ public class InsSubCrud
                                       + DbHelper.ParamChar + "paramBenefitNotes,"
                                       + DbHelper.ParamChar + "paramSubscNote,"
                                       + SOut.Long(insSub.SecUserNumEntry) + ","
-                                      + DbHelper.Now() + ")";
+                                      + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (insSub.BenefitNotes == null) insSub.BenefitNotes = "";
-        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", OdDbType.Text, SOut.StringParam(insSub.BenefitNotes));
+        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", SOut.StringParam(insSub.BenefitNotes));
         if (insSub.SubscNote == null) insSub.SubscNote = "";
-        var paramSubscNote = new OdSqlParameter("paramSubscNote", OdDbType.Text, SOut.StringParam(insSub.SubscNote));
+        var paramSubscNote = new OdSqlParameter("paramSubscNote", SOut.StringParam(insSub.SubscNote));
         {
             insSub.InsSubNum = Db.NonQ(command, true, "InsSubNum", "insSub", paramBenefitNotes, paramSubscNote);
         }
@@ -138,12 +140,12 @@ public class InsSubCrud
                                       + DbHelper.ParamChar + "paramBenefitNotes,"
                                       + DbHelper.ParamChar + "paramSubscNote,"
                                       + SOut.Long(insSub.SecUserNumEntry) + ","
-                                      + DbHelper.Now() + ")";
+                                      + "NOW()" + ")";
         //SecDateTEdit can only be set by MySQL
         if (insSub.BenefitNotes == null) insSub.BenefitNotes = "";
-        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", OdDbType.Text, SOut.StringParam(insSub.BenefitNotes));
+        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", SOut.StringParam(insSub.BenefitNotes));
         if (insSub.SubscNote == null) insSub.SubscNote = "";
-        var paramSubscNote = new OdSqlParameter("paramSubscNote", OdDbType.Text, SOut.StringParam(insSub.SubscNote));
+        var paramSubscNote = new OdSqlParameter("paramSubscNote", SOut.StringParam(insSub.SubscNote));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramBenefitNotes, paramSubscNote);
         else
@@ -168,9 +170,9 @@ public class InsSubCrud
                       //SecDateTEdit can only be set by MySQL
                       + "WHERE InsSubNum = " + SOut.Long(insSub.InsSubNum);
         if (insSub.BenefitNotes == null) insSub.BenefitNotes = "";
-        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", OdDbType.Text, SOut.StringParam(insSub.BenefitNotes));
+        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", SOut.StringParam(insSub.BenefitNotes));
         if (insSub.SubscNote == null) insSub.SubscNote = "";
-        var paramSubscNote = new OdSqlParameter("paramSubscNote", OdDbType.Text, SOut.StringParam(insSub.SubscNote));
+        var paramSubscNote = new OdSqlParameter("paramSubscNote", SOut.StringParam(insSub.SubscNote));
         Db.NonQ(command, paramBenefitNotes, paramSubscNote);
     }
 
@@ -236,9 +238,9 @@ public class InsSubCrud
         //SecDateTEdit can only be set by MySQL
         if (command == "") return false;
         if (insSub.BenefitNotes == null) insSub.BenefitNotes = "";
-        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", OdDbType.Text, SOut.StringParam(insSub.BenefitNotes));
+        var paramBenefitNotes = new OdSqlParameter("paramBenefitNotes", SOut.StringParam(insSub.BenefitNotes));
         if (insSub.SubscNote == null) insSub.SubscNote = "";
-        var paramSubscNote = new OdSqlParameter("paramSubscNote", OdDbType.Text, SOut.StringParam(insSub.SubscNote));
+        var paramSubscNote = new OdSqlParameter("paramSubscNote", SOut.StringParam(insSub.SubscNote));
         command = "UPDATE inssub SET " + command
                                        + " WHERE InsSubNum = " + SOut.Long(insSub.InsSubNum);
         Db.NonQ(command, paramBenefitNotes, paramSubscNote);

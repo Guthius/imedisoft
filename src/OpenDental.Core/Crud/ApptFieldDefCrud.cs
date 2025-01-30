@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ApptFieldDefCrud
 {
@@ -57,7 +59,7 @@ public class ApptFieldDefCrud
             + DbHelper.ParamChar + "paramPickList,"
             + SOut.Int(apptFieldDef.ItemOrder) + ")";
         if (apptFieldDef.PickList == null) apptFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(apptFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(apptFieldDef.PickList));
         {
             apptFieldDef.ApptFieldDefNum = Db.NonQ(command, true, "ApptFieldDefNum", "apptFieldDef", paramPickList);
         }
@@ -73,7 +75,7 @@ public class ApptFieldDefCrud
                       + "ItemOrder      =  " + SOut.Int(apptFieldDef.ItemOrder) + " "
                       + "WHERE ApptFieldDefNum = " + SOut.Long(apptFieldDef.ApptFieldDefNum);
         if (apptFieldDef.PickList == null) apptFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(apptFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(apptFieldDef.PickList));
         Db.NonQ(command, paramPickList);
     }
 
@@ -106,7 +108,7 @@ public class ApptFieldDefCrud
 
         if (command == "") return false;
         if (apptFieldDef.PickList == null) apptFieldDef.PickList = "";
-        var paramPickList = new OdSqlParameter("paramPickList", OdDbType.Text, SOut.StringParam(apptFieldDef.PickList));
+        var paramPickList = new OdSqlParameter("paramPickList", SOut.StringParam(apptFieldDef.PickList));
         command = "UPDATE apptfielddef SET " + command
                                              + " WHERE ApptFieldDefNum = " + SOut.Long(apptFieldDef.ApptFieldDefNum);
         Db.NonQ(command, paramPickList);

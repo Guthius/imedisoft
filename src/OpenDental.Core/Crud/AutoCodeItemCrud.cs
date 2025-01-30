@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Data;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class AutoCodeItemCrud
 {
@@ -42,7 +44,7 @@ public class AutoCodeItemCrud
         return table;
     }
 
-    public static long Insert(AutoCodeItem autoCodeItem)
+    public static void Insert(AutoCodeItem autoCodeItem)
     {
         var command = "INSERT INTO autocodeitem (";
 
@@ -55,7 +57,6 @@ public class AutoCodeItemCrud
         {
             autoCodeItem.AutoCodeItemNum = Db.NonQ(command, true, "AutoCodeItemNum", "autoCodeItem");
         }
-        return autoCodeItem.AutoCodeItemNum;
     }
 
     public static void Update(AutoCodeItem autoCodeItem)

@@ -5,19 +5,18 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.Crud;
 
 namespace OpenDentBusiness;
 
-
 public class Schedules
 {
-    private static bool _hasSet_group_concat_max_len;
+    private static bool _hasSetGroupConcatMaxLen;
 
-    ///<summary>Used in the Schedules edit window to get a filtered list of schedule items in preparation for paste or repeat.</summary>
-    public static List<Schedule> RefreshPeriod(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmpNums, bool includePNotes,
-        bool includeCNotes, long clinicNum)
+    public static List<Schedule> RefreshPeriod(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmpNums, bool includePNotes, bool includeCNotes, long clinicNum)
     {
         if (listProvNums.Count == 0 && listEmpNums.Count == 0 && !includeCNotes && !includePNotes) return new List<Schedule>();
         var listOrClauses = new List<string>();
@@ -35,7 +34,6 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    
     public static List<Schedule> RefreshPeriodBlockouts(DateTime dateStart, DateTime dateEnd, List<long> listOpNums)
     {
         if (listOpNums.Count == 0) return new List<Schedule>();
@@ -47,7 +45,6 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    
     public static List<Schedule> RefreshDayEdit(DateTime dateSched)
     {
         var command = "SELECT schedule.* "
@@ -57,10 +54,6 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    /// <summary>
-    ///     Gets a list of Schedule items for one date filtered by providers and employees.  Also option to include
-    ///     practice and clinic holidays and practice notes.
-    /// </summary>
     public static List<Schedule> RefreshDayEditForPracticeProvsEmps(DateTime dateSched, List<long> listProvNums, List<long> listEmployeeNums, long clinicNum)
     {
         var listOrClauses = new List<string>();
@@ -81,23 +74,6 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    public static List<Schedule> RefreshPeriodForEmps(DateTime dateStart, DateTime dateEnd, List<long> listEmployeeNums)
-    {
-        if (listEmployeeNums.IsNullOrEmpty()) return new List<Schedule>();
-
-        var command = "SELECT schedule.* "
-                      + "FROM schedule "
-                      + "WHERE SchedType=" + SOut.Int((int) ScheduleType.Employee) + " "
-                      + "AND EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + ") "
-                      + "AND SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "
-                      + "ORDER BY SchedDate";
-        return RefreshAndFill(command);
-    }
-
-    /// <summary>
-    ///     Returns a list of schedules with at least one conflict using the given provider and clinics.  Returns empty
-    ///     list if no conflicts found.
-    /// </summary>
     public static List<Schedule> GetClinicOverlapsForProv(DateTime dateFrom, DateTime dateTo, long provNum, List<long> listClinicNums)
     {
         var tableSchedsForProvider = GetPeriodSchedsForProvsAndClinics(dateFrom, dateTo, new List<long> {provNum}, listClinicNums);
@@ -138,10 +114,6 @@ public class Schedules
         return listSchedulesConflict;
     }
 
-    /// <summary>
-    ///     Returns a table of schedules with their clinic (gotten from operatory if a link exists) for the providers
-    ///     specified, for the date range specified, and for the clinics specified.
-    /// </summary>
     public static DataTable GetPeriodSchedsForProvsAndClinics(DateTime dateFrom, DateTime dateTo, List<long> listProvNums, List<long> listClinicNums)
     {
         var whereClinic = "";
@@ -160,16 +132,6 @@ public class Schedules
         return DataCore.GetTable(command);
     }
 
-    public static List<Schedule> GetByScheduleNum(List<long> listScheduleNums)
-    {
-        if (listScheduleNums.Count == 0) return new List<Schedule>();
-        var command = "SELECT schedule.* "
-                      + "FROM schedule "
-                      + "WHERE ScheduleNum IN(" + string.Join(",", listScheduleNums.Select(x => SOut.Long(x))) + ") ";
-        return RefreshAndFill(command);
-    }
-
-    
     public static List<Schedule> GetTwoYearPeriod(DateTime dateStart)
     {
         var command = "SELECT schedule.* "
@@ -179,9 +141,7 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    
-    public static List<Schedule> GetSchedulesForAppointmentSearch(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums,
-        List<long> listOpNums, List<long> listProvNums, List<long> listBlockoutTypes, bool isForMakeRecall = false)
+    public static List<Schedule> GetSchedulesForAppointmentSearch(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, List<long> listOpNums, List<long> listProvNums, List<long> listBlockoutTypes, bool isForMakeRecall = false)
     {
         if (!listProvNums.Contains(0)) listProvNums.Add(0); //add 0 so blockouts can be returned.
         var listBlockoutTypeDefNums = new List<long>();
@@ -208,25 +168,6 @@ public class Schedules
         return GetSchedulesHelper(dateStart, dateEnd, listClinicNums, listOpNums, listProvNums, listBlockoutTypeDefNums, listSchedTypes, isForMakeRecall: isForMakeRecall);
     }
 
-    ///<summary>Used in the check database integrity tool.  Does NOT fill the list of operatories per schedule.</summary>
-    public static Schedule[] RefreshAll()
-    {
-        var command = "SELECT * FROM schedule";
-        return RefreshAndFill(command, true).ToArray();
-    }
-
-    public static List<Schedule> GetChangedSince(DateTime changedSince)
-    {
-        var command = "SELECT * schedule WHERE DateTStamp>" + SOut.DateTime(changedSince) + " AND SchedType=" + SOut.Int((int) ScheduleType.Provider);
-        return RefreshAndFill(command);
-    }
-
-    /// <summary>
-    ///     This is only allowed because it's PRIVATE.  Retrieves all schedules from the db using command, then retrieves
-    ///     all scheduleops for the schedules and fills the schedule.Ops list with OperatoryNums for the schedule.  Does NOT
-    ///     use GROUP_CONCAT since there is a max length for GROUP_CONCAT and data may be incorrect or truncated, especially
-    ///     with random primary keys.
-    /// </summary>
     private static List<Schedule> RefreshAndFill(string command, bool skipSchedOps = false)
     {
         //Not a typical refreshandfill, as it contains a query.
@@ -256,7 +197,6 @@ public class Schedules
         return listSchedules;
     }
 
-    ///<summary>Update a schedule.  Insert an invalid schedule signalod.</summary>
     public static void Update(Schedule schedule)
     {
         Validate(schedule);
@@ -273,10 +213,6 @@ public class Schedules
         }
     }
 
-    /// <summary>
-    ///     Similar to Crud.ScheduleCrud.Update except this also handles ScheduleOps.  Insert an invalid schedule signalod
-    ///     when hasSignal=true.
-    /// </summary>
     public static void Update(Schedule scheduleNew, Schedule scheduleOld, bool validate, bool hasSignal = true)
     {
         if (validate) Validate(scheduleNew);
@@ -299,23 +235,11 @@ public class Schedules
         }
     }
 
-    /// <summary>
-    ///     Set validate to true to throw an exception if start and stop times need to be validated.  If validate is set
-    ///     to false, then the calling code is responsible for the validation.  Also inserts necessary scheduleop enteries.
-    ///     Insert an invalid schedule signalod when hasSignal=true.
-    /// </summary>
-    public static long Insert(Schedule schedule, bool validate, bool hasSignal = true)
+    public static void Insert(Schedule schedule, bool validate, bool hasSignal = true)
     {
         Insert(validate, hasSignal, new List<Schedule> {schedule});
-        return schedule.ScheduleNum;
     }
 
-    /// <summary>
-    ///     Set validate to true to throw an exception if start and stop times need to be validated.
-    ///     If validate is set to false, then the calling code is responsible for the validation.  Also inserts necessary
-    ///     scheduleop enteries.
-    ///     Inserts an invalid schedule signalod for each schedule passed in when hasSignal=true.
-    /// </summary>
     public static void Insert(bool validate, bool hasSignal, List<Schedule> listSchedules = null)
     {
         if (validate)
@@ -338,7 +262,6 @@ public class Schedules
         ScheduleOpCrud.InsertMany(listScheduleOps);
     }
 
-    
     private static void Validate(Schedule schedule)
     {
         if (schedule.StopTime > TimeSpan.FromDays(1)) //if pasting to late afternoon, the stop time might be calculated as early the next morning.
@@ -347,22 +270,12 @@ public class Schedules
         if (schedule.StartTime + TimeSpan.FromMinutes(5) > schedule.StopTime && schedule.Status == SchedStatus.Open) throw new Exception(Lans.g("Schedule", "Stop time cannot be the same as the start time."));
     }
 
-    /// <summary>
-    ///     Goes to the db to look for overlaps if listSchedulesPossiblyOverlapping is null. Implemented for blockouts,
-    ///     but should work for other types, too. If listSchedulesPossiblyOverlapping is set, will not go to the database.
-    /// </summary>
     public static bool Overlaps(Schedule schedule, List<Schedule> listSchedulesPossiblyOverlapping = null)
     {
         List<Schedule> listSchedulesOverlap;
         return Overlaps(schedule, out listSchedulesOverlap, listSchedulesPossiblyOverlapping);
     }
 
-    /// <summary>
-    ///     Goes to the db to look for overlaps if listSchedulesPossiblyOverlapping is null. Implemented for blockouts,
-    ///     but should work for other types, too. If listSchedulesPossiblyOverlapping is set, will not go to the database and
-    ///     use the list to find
-    ///     overlapping schedules.
-    /// </summary>
     public static bool Overlaps(Schedule schedule, out List<Schedule> listSchedulesOverlap, List<Schedule> listSchedulesPossiblyOverlapping = null)
     {
         if (listSchedulesPossiblyOverlapping == null) listSchedulesPossiblyOverlapping = GetDayList(schedule.SchedDate);
@@ -382,7 +295,6 @@ public class Schedules
         return isBlocking;
     }
 
-    ///<summary>Delete an invalid schedule.  Insert an invalid schedule signalod when hasSignal=true.</summary>
     public static void Delete(Schedule schedule, bool hasSignal = false)
     {
         var command = "DELETE from schedule WHERE schedulenum='" + SOut.Long(schedule.ScheduleNum) + "'";
@@ -392,7 +304,6 @@ public class Schedules
         if (hasSignal) Signalods.SetInvalidSched(schedule);
     }
 
-    ///<summary>Delete the schedules and their associated scheduleops.  Inserts an invalid schedule signalod.</summary>
     public static void DeleteMany(List<long> listScheduleNums)
     {
         if (listScheduleNums.Count == 0) return;
@@ -407,16 +318,9 @@ public class Schedules
         Signalods.SetInvalidSched(listSchedulesDelete.ToArray());
     }
 
-    ///<summary>Supply a list of all Schedules for one day. Then, this filters out for one type.</summary>
     public static List<Schedule> GetListForType(List<Schedule> listSchedules, ScheduleType scheduleType, long provNum)
     {
         return listSchedules.FindAll(x => x.SchedType == scheduleType && x.ProvNum == provNum);
-    }
-
-    ///<summary>Supply a list of Schedule . Then, this filters out for an employee.</summary>
-    public static List<Schedule> GetForEmployee(List<Schedule> listSchedules, long employeeNum)
-    {
-        return listSchedules.FindAll(x => x.SchedType == ScheduleType.Employee && x.EmployeeNum == employeeNum);
     }
 
     public static List<Schedule> GetSchedsForOp(Operatory operatory, List<DateTime> listDatesAppt)
@@ -430,20 +334,12 @@ public class Schedules
         return listSchedules;
     }
 
-    /// <summary>
-    ///     Returns schedules with SchedType.Provider for a specific op.  This overload is for when the listSchedules
-    ///     includes multiple days.
-    /// </summary>
     public static List<Schedule> GetProvSchedsForOp(List<Schedule> listSchedules, DayOfWeek dayOfWeek, Operatory operatory)
     {
         var listSchedulesPeriod = listSchedules.FindAll(x => x.SchedDate.DayOfWeek == dayOfWeek).Select(x => x.Copy()).ToList();
         return GetProvSchedsForOp(listSchedulesPeriod, operatory);
     }
 
-    /// <summary>
-    ///     Returns schedules with SchedType.Provider for a specific op.  This overload is for when the listForPeriod
-    ///     includes only one day.
-    /// </summary>
     public static List<Schedule> GetProvSchedsForOp(List<Schedule> listSchedulesPeriod, Operatory operatory)
     {
         var listSchedules = new List<Schedule>();
@@ -481,14 +377,7 @@ public class Schedules
         return listSchedules;
     }
 
-    /// <summary>If no provider is found for spot then the operatory provider is returned.</summary>
-    /// <param name="preferredProvNum">
-    ///     If there are multiple provider schedules that match this time and preferredProvNum is not zero, then
-    ///     preferredProvNum if it is in listSchedulesPeriod. If it is not in the list, the first provider that matches will be
-    ///     returned.
-    /// </param>
-    public static long GetAssignedProvNumForSpot(List<Schedule> listSchedulesPeriod, Operatory operatory, bool isSecondary, DateTime dateTime,
-        long preferredProvNum = 0)
+    public static long GetAssignedProvNumForSpot(List<Schedule> listSchedulesPeriod, Operatory operatory, bool isSecondary, DateTime dateTime, long preferredProvNum = 0)
     {
         //first, look for a sched assigned specifically to that spot
         long matchingNonPreferredProvNum = 0;
@@ -522,22 +411,7 @@ public class Schedules
         //return 0;//none
     }
 
-    ///<summary>Comma delimits multiple schedules and creates a nice clean sting for screen legibility</summary>
-    public static string GetCommaDelimStringForScheds(List<Schedule> listSchedules)
-    {
-        var retVal = "";
-        for (var i = 0; i < listSchedules.Count; i++)
-        {
-            if (i > 0) retVal += ",";
-            retVal += listSchedules[i].StartTime.ToShortTimeString() + "-" + listSchedules[i].StopTime.ToShortTimeString();
-        }
-
-        return retVal;
-    }
-
-    
-    public static Dictionary<long, double> GetHoursSchedForProvsInRange(List<long> listProvNums, List<long> listOpNums,
-        DateTime dateStart, DateTime dateEnd)
+    public static Dictionary<long, double> GetHoursSchedForProvsInRange(List<long> listProvNums, List<long> listOpNums, DateTime dateStart, DateTime dateEnd)
     {
         var command = "SELECT * FROM schedule ";
         if (listOpNums != null && listOpNums.Count != 0) command += "INNER JOIN scheduleop ON scheduleop.ScheduleNum=schedule.ScheduleNum AND OperatoryNum IN(" + string.Join(",", listOpNums) + ") ";
@@ -563,11 +437,6 @@ public class Schedules
         return retVal;
     }
 
-    /// <summary>
-    ///     Returns a list of schedules for all of the providers passed in.The method considers overlapping  and gaps in the
-    ///     schedules passed in.
-    ///     I.e. a provider that is scheduled on one day from 8-12, 9-3, and 4-5 will return schedules of 8-3 and 4-5
-    /// </summary>
     public static List<Schedule> GetProvSchedsForProductionGoals(Dictionary<long, List<Schedule>> dictionaryProvScheds)
     {
         var listSchedules = new List<Schedule>();
@@ -600,12 +469,6 @@ public class Schedules
         return listSchedules;
     }
 
-    /// <summary>
-    ///     Gets a calculated StopTime based on all schedules that are passed in.  This is to ensure that we don't get
-    ///     duplicate schedule times.
-    ///     Ex.  Sched1: 8am-3pm, Sched2: 1pm-5pm.  This will return 5pm because the actual schedule runs 8am-5pm even though
-    ///     its split out into multiple schedule rows.
-    /// </summary>
     private static DateTime GetEndTimeForProvSchedStartTime(Schedule schedule, List<Schedule> listSchedulesForProv)
     {
         var listSchedulesOrdered = listSchedulesForProv.FindAll(x => x.SchedDate == schedule.SchedDate)
@@ -624,7 +487,6 @@ public class Schedules
         return new DateTime(timeSpan.Ticks);
     }
 
-    ///<summary>Clears all blockouts for day.</summary>
     public static void ClearBlockoutsForDay(DateTime date)
     {
         //Get ScheduleNums that are to be deleted so we can delete scheduleops
@@ -681,7 +543,6 @@ public class Schedules
         Signalods.SetInvalidSchedForOps(listSchedulesSetInvalid);
     }
 
-    ///<summary>Will only check for orphaned blockouts for those schedulenums passed in. Inserts an invalid schedule signalod.</summary>
     private static void DeleteOrphanedBlockouts(List<long> listScheduleNums)
     {
         if (listScheduleNums.Count == 0) return; //nothing to delete
@@ -694,10 +555,6 @@ public class Schedules
         Db.NonQ(command);
     }
 
-    /// <summary>
-    ///     Similar to GetDayList but uses Crud pattern and classes.  No need to call RefreshAndFill since this is only
-    ///     used for the ScheduleNums
-    /// </summary>
     private static List<Schedule> GetForDate(DateTime dateClear)
     {
         var command = "SELECT * FROM schedule Where SchedDate=" + SOut.Date(dateClear);
@@ -716,23 +573,12 @@ public class Schedules
         return result != "0";
     }
 
-    /// <summary>
-    ///     Gets all schedules for the given date and schedule type. Can optionally skip including ops in the schedule objects.
-    ///     If a list of
-    ///     op nums are passed in, only schedules in these operatories will be gotten.
-    /// </summary>
     public static List<Schedule> GetAllForDateAndType(DateTime date, ScheduleType scheduleType, bool skipSchedOps = false, List<long> listOpNums = null)
     {
         return GetAllForDateRangeAndType(date, date, scheduleType, skipSchedOps, listOpNums);
     }
 
-    /// <summary>
-    ///     Gets all schedules for the given date and schedule type. Can optionally skip including ops in the schedule objects.
-    ///     If a list of
-    ///     op nums are passed in, only schedules in these operatories will be gotten.
-    /// </summary>
-    public static List<Schedule> GetAllForDateRangeAndType(DateTime dateSelectedStart, DateTime dateSelectedEnd, ScheduleType scheduleType
-        , bool skipSchedOps = false, List<long> listOpNums = null)
+    public static List<Schedule> GetAllForDateRangeAndType(DateTime dateSelectedStart, DateTime dateSelectedEnd, ScheduleType scheduleType, bool skipSchedOps = false, List<long> listOpNums = null)
     {
         var command = "SELECT schedule.* FROM schedule ";
         if (!listOpNums.IsNullOrEmpty())
@@ -744,7 +590,6 @@ public class Schedules
         return RefreshAndFill(command, skipSchedOps);
     }
 
-    ///<summary>Gets all scheduled holidays for the given date range based on the ClinicNum.</summary>
     public static List<Schedule> GetAllHolidaysForDateRange(DateTime dateSelectedStart, DateTime dateSelectedEnd, List<long> listClinicNums)
     {
         var command = "SELECT schedule.* FROM schedule "
@@ -754,7 +599,6 @@ public class Schedules
         return ScheduleCrud.SelectMany(command);
     }
 
-    ///<summary>Used by API.</summary>
     public static List<Schedule> GetForProv(DateTime dateSelectedStart, DateTime dateSelectedEnd, long provNum)
     {
         var command = "SELECT * FROM schedule "
@@ -764,9 +608,7 @@ public class Schedules
         return ScheduleCrud.SelectMany(command);
     }
 
-    ///<summary>Returns a 7 column data table in a calendar layout so all you have to do is draw it on the screen.</summary>
-    public static DataTable GetPeriod(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmployeeNums, bool includePNotes,
-        bool includeCNotes, long clinicNum, bool showClinicSchedule, bool includeEmpNotes)
+    public static DataTable GetPeriod(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmployeeNums, bool includePNotes, bool includeCNotes, long clinicNum, bool showClinicSchedule, bool includeEmpNotes)
     {
         var table = new DataTable();
         table.Columns.Add("sun");
@@ -966,13 +808,7 @@ public class Schedules
         return table;
     }
 
-    /// <summary>
-    ///     Gets all schedules and blockouts that meet the Web Sched requirements.  Set isRecall to false to get New Pat Appt
-    ///     ops.
-    ///     Setting clinicNum to 0 will only consider unassigned operatories.
-    /// </summary>
-    public static List<Schedule> GetSchedulesAndBlockoutsForWebSched(List<long> listProvNums, DateTime dateStart, DateTime dateEnd, bool isRecall
-        , long clinicNum, Logger.IWriteLine log = null, List<Schedule> listSchedulesBlockouts = null, bool isNewPat = false)
+    public static List<Schedule> GetSchedulesAndBlockoutsForWebSched(List<long> listProvNums, DateTime dateStart, DateTime dateEnd, bool isRecall, long clinicNum, Logger.IWriteLine log = null, List<Schedule> listSchedulesBlockouts = null, bool isNewPat = false)
     {
         var listProvNumsWithZero = new List<long>();
         if (listProvNums != null) listProvNumsWithZero = listProvNums.Distinct().ToList();
@@ -1025,12 +861,7 @@ public class Schedules
         return GetSchedulesHelper(dateStart, dateEnd, listClinicNums, listOperatoryNums, listProvNumsWithZero, listBlockoutTypeDefNums, listSchedTypes, log);
     }
 
-    /// <summary>
-    ///     Gets a list of schedules for different methods.  Explicitly specify blockout types that need to be considered.
-    ///     Must be public for unit test.
-    /// </summary>
-    public static List<Schedule> GetSchedulesHelper(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, List<long> listOpNums
-        , List<long> listProvNums, List<long> listDefNumsBlockout, List<int> listSchedTypes, Logger.IWriteLine log = null, bool isForMakeRecall = false)
+    public static List<Schedule> GetSchedulesHelper(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, List<long> listOpNums, List<long> listProvNums, List<long> listDefNumsBlockout, List<int> listSchedTypes, Logger.IWriteLine log = null, bool isForMakeRecall = false)
     {
         //It is very important not to format these filters using DbHelper.DtimeToDate(). This would remove the index but yield the exact same results. 
         //It is already a Date column (no time) so no need to truncate the filter.
@@ -1141,11 +972,6 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    /// <summary>
-    ///     Returns the 0-based row where endDate will fall in a calendar grid.  It is not necessary to have a function to
-    ///     retrieve the column,
-    ///     because that is simply (int)myDate.DayOfWeek
-    /// </summary>
     public static int GetRowCal(DateTime dateStart, DateTime dateEnd)
     {
         var timeSpan = dateEnd - dateStart;
@@ -1156,11 +982,6 @@ public class Schedules
         return (int) Math.Ceiling((dayInterval + 1) / 7d);
     }
 
-    /// <summary>
-    ///     When click on a calendar grid, this is used to calculate the date clicked on.  StartDate is the first date in the
-    ///     Calendar, which does
-    ///     not have to be Sun.
-    /// </summary>
     public static DateTime GetDateCal(DateTime dateStart, int row, int col)
     {
         DateTime dateFirstRow; //the first date of row 0. Typically a few days before startDate. Always a Sun.
@@ -1177,25 +998,13 @@ public class Schedules
         return retVal.Date;
     }
 
-    /// <summary>
-    ///     Surround with try/catch.  Uses Sync to update the database with the changes made to listScheds from the stale
-    ///     listSchedsOld.
-    /// </summary>
     public static void SetForDay(List<Schedule> listSchedules, List<Schedule> listSchedulesOld)
     {
         if (listSchedules.Any(x => x.StartTime > x.StopTime)) throw new Exception(Lans.g("Schedule", "Stop time must be later than start time."));
         Sync(listSchedules, listSchedulesOld);
     }
 
-    /// <summary>
-    ///     Inserts, updates, or deletes the passed in listNew against the stale listOld.  Returns true if db changes were
-    ///     made.
-    ///     This does not call the normal crud.Sync due to the special cases of DeletedObject and ScheduleOps.
-    ///     This sends less data across middle teir for update logic, which is why remoting role occurs after we have filtered
-    ///     both lists.
-    ///     Inserts an invalid schedule signal for the date of the first item in listNew (this is only called by SetForDay).
-    /// </summary>
-    public static bool Sync(List<Schedule> listSchedulesNew, List<Schedule> listSchedulesOld)
+    public static void Sync(List<Schedule> listSchedulesNew, List<Schedule> listSchedulesOld)
     {
         //No call to DB yet, remoting role to be checked later.
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
@@ -1265,7 +1074,7 @@ public class Schedules
             //There is nothing to do with this schedule?
         }
 
-        if (listSchedulesIns.Count == 0 && listSchedulesUpdNew.Count == 0 && listSchedulesUpdDB.Count == 0 && listSchedulesDel.Count == 0) return false; //No need to go through remoting role check and following code because it will do nothing
+        if (listSchedulesIns.Count == 0 && listSchedulesUpdNew.Count == 0 && listSchedulesUpdDB.Count == 0 && listSchedulesDel.Count == 0) return;
         //This sync logic was split up from the typical sync logic in order to restrict payload sizes that are sent over middle tier.
         //If this method starts having issues in the future we will need to serialize the lists into DataTables to further save size.
         var isSuccess = SyncToDbHelper(listSchedulesIns, listSchedulesUpdNew, listSchedulesUpdDB, listSchedulesDel);
@@ -1273,15 +1082,9 @@ public class Schedules
             //We supress signal insertion in SyncToDbHelper since we know that this method is only called by SetForDay, we can use the date from the first
             //sched in either the new or old list (since either, but not both, can be empty at this point) and insert a generalized signal for that date.
             Signalods.SetInvalidSched(listSchedulesNew.Concat(listSchedulesOld).First().SchedDate);
-        return isSuccess;
     }
 
-    /// <summary>
-    ///     Inserts, updates, or deletes database rows sepcified in the supplied lists.  Returns true if db changes were made.
-    ///     This was split from the list building logic to limit the payload that needed to be sent over middle tier.
-    /// </summary>
-    public static bool SyncToDbHelper(List<Schedule> listSchedulesIns, List<Schedule> listSchedulesUpdNew, List<Schedule> listSchedulesUpdDB
-        , List<Schedule> listSchedulesDel)
+    public static bool SyncToDbHelper(List<Schedule> listSchedulesIns, List<Schedule> listSchedulesUpdNew, List<Schedule> listSchedulesUpdDB, List<Schedule> listSchedulesDel)
     {
         //Commit changes to DB 
         //to foreach loops
@@ -1295,18 +1098,12 @@ public class Schedules
         return false;
     }
 
-    /// <summary>
-    ///     Clears all schedule entries for the given date range and the given providers, employees, and practice.
-    ///     Insert an invalid schedule signalod.
-    /// </summary>
     public static void Clear(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmployeeNums, bool includePNotes, bool includeCNotes, bool excludeHolidays, long clinicNum)
     {
         DeleteMany(GetSchedulesToDelete(dateStart, dateEnd, listProvNums, listEmployeeNums, includePNotes, includeCNotes, clinicNum, excludeHolidays).Select(x => x.ScheduleNum).ToList());
     }
 
-    ///<summary>Returns all Schedules that match the passed in arguments.</summary>
-    public static List<Schedule> GetSchedulesToDelete(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmployeeNums,
-        bool includePNotes, bool includeCNotes, long clinicNum, bool excludeHolidays = false)
+    public static List<Schedule> GetSchedulesToDelete(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmployeeNums, bool includePNotes, bool includeCNotes, long clinicNum, bool excludeHolidays = false)
     {
         if (listProvNums.Count == 0 && listEmployeeNums.Count == 0 && !includeCNotes && !includePNotes) return new List<Schedule>();
 
@@ -1324,7 +1121,6 @@ public class Schedules
         return ScheduleCrud.SelectMany(command);
     }
 
-    ///<summary>Clears all Blockout schedule entries for the given date ranges and the given ops.</summary>
     public static void ClearBlockouts(DateTime dateStart, DateTime dateEnd, List<long> listOpNums, bool includeWeekend)
     {
         var command = $@"SELECT schedule.ScheduleNum,scheduleop.ScheduleOpNum,schedule.SchedDate,scheduleop.OperatoryNum
@@ -1359,12 +1155,12 @@ public class Schedules
     public static int GetDuplicateBlockoutCount()
     {
         string command;
-        if (!_hasSet_group_concat_max_len)
+        if (!_hasSetGroupConcatMaxLen)
         {
             var maxAllowedPacket = MiscData.GetMaxAllowedPacket();
             command = "SET SESSION group_concat_max_len = " + SOut.Int(maxAllowedPacket);
             Db.NonQ(command);
-            _hasSet_group_concat_max_len = true;
+            _hasSetGroupConcatMaxLen = true;
         }
 
         //The following query returns rows of comma separated ScheduleOpNum strings for duplicate blockouts.
@@ -1428,16 +1224,15 @@ public class Schedules
         #endregion Alternative Query
     }
 
-    ///<summary>Clear duplicate schedule entries.  Insert an invalid schedule signalod.</summary>
     public static void ClearDuplicates()
     {
         string command;
-        if (!_hasSet_group_concat_max_len)
+        if (!_hasSetGroupConcatMaxLen)
         {
             var maxAllowedPacket = MiscData.GetMaxAllowedPacket();
             command = "SET SESSION group_concat_max_len = " + SOut.Int(maxAllowedPacket);
             Db.NonQ(command);
-            _hasSet_group_concat_max_len = true;
+            _hasSetGroupConcatMaxLen = true;
         }
 
         //Explanation of this query can be found above in GetDuplicateBlockoutCount()
@@ -1477,10 +1272,6 @@ public class Schedules
         Signalods.SetInvalidSched(listSchedulesDelete.ToArray());
     }
 
-    /// <summary>
-    ///     Set clinicNum to 0 to return 'unassigned' clinics.  Otherwise, filters the data set on the clinic num passed in.
-    ///     Added to the DataSet in Appointments.RefreshPeriod.
-    /// </summary>
     public static DataTable GetPeriodEmployeeSchedTable(DateTime dateStart, DateTime dateEnd, long clinicNum)
     {
         var table = new DataTable("EmpSched");
@@ -1535,10 +1326,6 @@ public class Schedules
         return table;
     }
 
-    /// <summary>
-    ///     Set clinicNum to 0 to return 'unassigned' clinics.  Otherwise, filters the data set on the clinic num passed in.
-    ///     Added to the DataSet in Appointments.RefreshPeriod.
-    /// </summary>
     public static DataTable GetPeriodProviderSchedTable(DateTime dateStart, DateTime dateEnd, long clinicNum)
     {
         var table = new DataTable("ProvSched");
@@ -1582,9 +1369,6 @@ public class Schedules
         return table;
     }
 
-    /// <summary></summary>
-    /// <param name="doRunQueryOnNoOps">Set to false if an empty DataTable should be returned when listOpNums is null or empty.</param>
-    /// <returns></returns>
     public static DataTable GetPeriodSchedule(DateTime dateStart, DateTime dateEnd, List<long> listOpNums = null, bool doRunQueryOnNoOps = true)
     {
         var table = new DataTable("Schedule");
@@ -1612,12 +1396,12 @@ public class Schedules
         //Group_concat_max_len is constrained by max_allowed_packet, so set group_concat_max_len to the global value of max_allowed_packet.
         //If that's not big enough, they will have problems in other places before here.
         string command;
-        if (!_hasSet_group_concat_max_len)
+        if (!_hasSetGroupConcatMaxLen)
         {
             var maxAllowedPacket = MiscData.GetMaxAllowedPacket();
             command = "SET SESSION group_concat_max_len = " + SOut.Int(maxAllowedPacket);
             Db.NonQ(command);
-            _hasSet_group_concat_max_len = true;
+            _hasSetGroupConcatMaxLen = true;
         }
 
         //Go get every schedule for the date range passed in.
@@ -1659,70 +1443,6 @@ public class Schedules
         return table;
     }
 
-    ///<summary>Gets schedule info that's filtered to match the criteria of any passed in arguments.</summary>
-    public static DataTable GetPeriodScheduleForApi(DateTime dateStart, DateTime dateEnd, long schedType, long blockoutDefNum, long provNum, long employeeNum,
-        long scheduleNum, int limit, int offset, List<long> listOpNums = null, string dateFormatString = "yyyy-MM-dd")
-    {
-        var tableReturn = new DataTable("Schedule");
-        tableReturn.Columns.Add("ScheduleNum");
-        tableReturn.Columns.Add("SchedDate");
-        tableReturn.Columns.Add("StartTime");
-        tableReturn.Columns.Add("StopTime");
-        tableReturn.Columns.Add("SchedType");
-        tableReturn.Columns.Add("ProvNum");
-        tableReturn.Columns.Add("BlockoutType");
-        tableReturn.Columns.Add("blockoutType");
-        tableReturn.Columns.Add("Note");
-        tableReturn.Columns.Add("operatories");
-        tableReturn.Columns.Add("EmployeeNum");
-        //Go get every schedule for the date range passed in.
-        //Left join on the scheduleop table as to get the necessary information needed to fill the custom "ops" column (above).
-        var command = "SELECT schedule.ScheduleNum,SchedDate,StartTime,StopTime,SchedType,ProvNum,BlockoutType,Note,"
-                      + "Status,EmployeeNum,schedule.ClinicNum,scheduleop.OperatoryNum "
-                      + "FROM schedule "
-                      + "LEFT JOIN scheduleop ON schedule.ScheduleNum=scheduleop.ScheduleNum ";
-        if (scheduleNum > 0)
-            command += "WHERE schedule.ScheduleNum=" + SOut.Long(scheduleNum) + " "; //Getting one
-        else
-            command += "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "; //Getting many
-        if (schedType > -1) //0 is included when looking for a change in schedType, since it's an Enum that starts at 0.
-            command += "AND SchedType=" + SOut.Long(schedType) + " ";
-        if (blockoutDefNum > 0) command += "AND BlockoutType=" + SOut.Long(blockoutDefNum) + " ";
-        if (provNum > 0) command += "AND ProvNum=" + SOut.Long(provNum) + " ";
-        if (employeeNum > 0) command += "AND EmployeeNum=" + SOut.Long(employeeNum) + " ";
-        if (listOpNums != null && listOpNums.Count > 0) command += "AND (scheduleop.OperatoryNum IN (" + string.Join(",", listOpNums.Select(x => SOut.Long(x))) + ") OR scheduleop.OperatoryNum IS NULL) ";
-        command += "ORDER BY StartTime";
-        var tableRaw = DataCore.GetTable(command);
-        var listRowsRaw = tableRaw.Rows.OfType<DataRow>().ToList(); //Each row that exists in the raw table returned by the query. Some rows may share the same ScheduleNum.
-        var listRowsDistinct = listRowsRaw.DistinctBy(x => x["ScheduleNum"]).ToList(); //In the table we return, we don't want duplicate ScheduleNum results.
-        for (var i = offset; i < listRowsDistinct.Count; i++)
-        {
-            if (i >= offset + limit) //Paging.
-                break;
-            var rowCur = listRowsDistinct[i];
-            var listRowsSameScheduleNum = listRowsRaw.FindAll(x => x["ScheduleNum"].ToString() == rowCur["ScheduleNum"].ToString()); //Get each row with the current's ScheduleNum.
-            var listOps = new List<string>(); //List of OperatoryNum strings.
-            for (var j = 0; j < listRowsSameScheduleNum.Count; j++) //If a schedule entry is in multiple operatories, scheduleop will have 1 row for each operatory a ScheduleNum is in.
-                listOps.Add(listRowsSameScheduleNum[j]["OperatoryNum"].ToString()); //Grab the OperatoryNum from each row with the same ScheduleNum and add to listOps.
-            var row = tableReturn.NewRow();
-            row["ScheduleNum"] = rowCur["ScheduleNum"].ToString();
-            row["SchedDate"] = SIn.Date(rowCur["SchedDate"].ToString()).ToString(dateFormatString);
-            row["StartTime"] = rowCur["StartTime"].ToString();
-            row["StopTime"] = rowCur["StopTime"].ToString();
-            row["SchedType"] = Enum.GetName(typeof(ScheduleType), SIn.Long(rowCur["SchedType"].ToString()));
-            row["ProvNum"] = rowCur["ProvNum"].ToString();
-            row["BlockoutType"] = rowCur["BlockoutType"].ToString();
-            row["blockoutType"] = Defs.GetName(DefCat.BlockoutTypes, SIn.Long(rowCur["BlockoutType"].ToString()));
-            row["Note"] = rowCur["Note"].ToString();
-            row["operatories"] = string.Join(",", listOps);
-            row["EmployeeNum"] = rowCur["EmployeeNum"].ToString();
-            tableReturn.Rows.Add(row);
-        }
-
-        return tableReturn;
-    }
-
-    ///<summary>True if this blockout is not marked 'Do not schedule'.</summary>
     public static bool CanScheduleInBlockout(long blockoutType, List<Def> listDefs = null)
     {
         var defBlockoutType = Defs.GetDef(DefCat.BlockoutTypes, blockoutType, listDefs);
@@ -1730,12 +1450,7 @@ public class Schedules
         return true;
     }
 
-    /// <summary>
-    ///     Using the provided DefLinkNum, gets associated blockouts and returns the schedules for those blockouts within
-    ///     a date range.
-    /// </summary>
-    public static List<Schedule> GetRestrictedToBlockoutsByReason(long defNumReason, DateTime dateStart, DateTime dateStop,
-        List<long> listOpNums, List<DefLink> listDefLinksBlockouts = null)
+    public static List<Schedule> GetRestrictedToBlockoutsByReason(long defNumReason, DateTime dateStart, DateTime dateStop, List<long> listOpNums, List<DefLink> listDefLinksBlockouts = null)
     {
         if (listOpNums == null || listOpNums.Count < 1) return new List<Schedule>();
         if (listDefLinksBlockouts == null) listDefLinksBlockouts = DefLinks.GetDefLinksByType(DefLinkType.BlockoutType, defNumReason);
@@ -1752,12 +1467,7 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    /// <summary>
-    ///     Using the provided RecallTypeNum, gets associated blockouts and returns the schedules for those blockouts
-    ///     within a date range.
-    /// </summary>
-    public static List<Schedule> GetRestrictedToBlockoutsByRecallType(long recallTypeNum, DateTime dateStart, DateTime dateStop,
-        List<long> listOpNums, List<DefLink> listDefLinksBlockouts = null)
+    public static List<Schedule> GetRestrictedToBlockoutsByRecallType(long recallTypeNum, DateTime dateStart, DateTime dateStop, List<long> listOpNums, List<DefLink> listDefLinksBlockouts = null)
     {
         if (listOpNums == null || listOpNums.Count < 1) return new List<Schedule>();
         if (listDefLinksBlockouts == null) listDefLinksBlockouts = DefLinks.GetListByFKey(recallTypeNum, DefLinkType.RecallType);
@@ -1773,17 +1483,6 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    #region Get Methods
-
-    public static List<Schedule> GetSchedListForDateRange(long employeeNum, DateTime dateStart, DateTime dateEnd)
-    {
-        var command = "SELECT * FROM schedule where schedule.EmployeeNum=" + employeeNum
-                                                                           + " AND schedule.SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd)
-                                                                           + " ORDER BY schedule.SchedDate ASC";
-        return RefreshAndFill(command, true);
-    }
-
-    ///<summary>Gets a list of Schedule items for one date, ordered by start time.</summary>
     public static List<Schedule> GetDayList(DateTime date)
     {
         var command = "SELECT * FROM schedule "
@@ -1792,16 +1491,7 @@ public class Schedules
         return RefreshAndFill(command);
     }
 
-    /// <summary>
-    ///     Returns a distinct list of ProvNums that have a provider schedule that overlaps with the schedule passed in.
-    ///     Every provider schedule passed in should be for the same day as schedCur.SchedDate otherwise false positive
-    ///     overlaps might be returned.
-    ///     Collisions will be detected for every single ProvNum within listProvNums (mimics schedCur being for each provider
-    ///     provided indicated).
-    ///     Returns an empty list if no collisions were detected or if invalid parameters were passed in.
-    /// </summary>
-    public static List<long> GetOverlappingSchedProvNums(List<long> listProvNums, Schedule schedule, List<Schedule> listSchedulesProvOnly
-        , List<long> listSelectedOpNums)
+    public static List<long> GetOverlappingSchedProvNums(List<long> listProvNums, Schedule schedule, List<Schedule> listSchedulesProvOnly, List<long> listSelectedOpNums)
     {
         var listProvsOverlap = new List<long>();
         if (listProvNums == null || schedule == null || listSchedulesProvOnly == null || listSelectedOpNums == null) return listProvsOverlap;
@@ -1832,27 +1522,7 @@ public class Schedules
         return listProvsOverlap.Distinct().ToList();
     }
 
-    /// <summary>
-    ///     Returns a list of ProvNums that have overlapping provider schedule conflicts with the current schedule in the
-    ///     database.
-    ///     Set dateStart and dateEnd to the same date to use the "daily" pasting logic.
-    ///     Setting dateStart and dateEnd to different dates will drastically change the logic of this method putting it into
-    ///     weekly mode.
-    ///     Daily mode will treat all schedules passed in as if they are on the same day.
-    ///     Weekly mode will turn the list of schedules passed in into several lists that are grouped by the day of the week
-    ///     they fall on.
-    ///     This means that weekly mode will assume listSchedules cannot contain schedules that span more than one full week.
-    /// </summary>
-    /// <param name="listSchedules">Any schedules that need to be checked for overlapping.</param>
-    /// <param name="dateStart">Starting date of the overlapping detection.</param>
-    /// <param name="dateEnd">Ending date of the overlapping detection.</param>
-    /// <param name="listIgnoreProvNums">Ignores all schedules from the database for the corresponding providers.</param>
-    /// <returns>
-    ///     Returns a distinct list of ProvNums that have a provider schedule that overlaps with the schedules passed in;
-    ///     Otherwise, empty list if no collisions were detected or if invalid parameters were passed in.
-    /// </returns>
-    public static List<long> GetOverlappingSchedProvNumsForRange(List<Schedule> listSchedules, DateTime dateStart, DateTime dateEnd
-        , List<long> listIgnoreProvNums = null)
+    public static List<long> GetOverlappingSchedProvNumsForRange(List<Schedule> listSchedules, DateTime dateStart, DateTime dateEnd, List<long> listIgnoreProvNums = null)
     {
         var listProvsOverlap = new List<long>();
         if (listSchedules == null || listSchedules.Count < 1) return listProvsOverlap; //Nothing to check overlapping against.  Return empty list.
@@ -1907,34 +1577,7 @@ public class Schedules
         return listProvsOverlap.Distinct().ToList();
     }
 
-    #endregion
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Copies the blockouts for the passed in appointment view and date range starting at the passed in "selected" range
-    ///     and repeating
-    ///     a certain number of times. The "selected" range will either be 1 day (for repeating a single day) or will be 4 or 6
-    ///     days for copying weeks
-    ///     depending on whether weekends are included.  This also creates securitylog entry with the action performed.
-    /// </summary>
-    /// <param name="apptViewNum">The appointment view that contains the ops whose blockouts will be copied.</param>
-    /// <param name="isWeek">Indicates whether the range being copied is a single day or is a week.</param>
-    /// <param name="includeWeekend">
-    ///     Indicates whether weekends (Saturday and Sunday) will be included when copying blockout
-    ///     schedules.
-    /// </param>
-    /// <param name="doReplace">If set to true, it will overwrite all blockouts that exits in the given time frame.</param>
-    /// <param name="dateCopyStart">The start date of the selected range to be copied.</param>
-    /// <param name="dateCopyEnd">
-    ///     The end date of the selected range to be copied. Will be the same as dateCopyStart for
-    ///     copying a single day.
-    /// </param>
-    /// <param name="dateSelectedStart">The start date of the selected range that will be copied to.</param>
-    /// <param name="dateSelectedEnd">The end date of the selected range that will be copied to.</param>
-    /// <param name="numRepeat">The number of times the given blockout range will be copied.</param>
-    public static string CopyBlockouts(long apptViewNum, bool isWeek, bool includeWeekend, bool doReplace, DateTime dateCopyStart,
-        DateTime dateCopyEnd, DateTime dateSelectedStart, DateTime dateSelectedEnd, int numRepeat)
+    public static string CopyBlockouts(long apptViewNum, bool isWeek, bool includeWeekend, bool doReplace, DateTime dateCopyStart, DateTime dateCopyEnd, DateTime dateSelectedStart, DateTime dateSelectedEnd, int numRepeat)
     {
         //etter to do this locally as it may take some time and we do not want Middle Tier to timeout.
         //It is allowed to paste back over the same day or week.
@@ -2026,15 +1669,6 @@ public class Schedules
         return "";
     }
 
-    /// <summary>
-    ///     Creates a securitylog that is constructed with definitions, operatories, dates, translation, etc. already done.
-    ///     If several blockouts are cleared, specify the dateTime for the blockouts cleared and BlockoutAction.Clear.
-    ///     If several blockouts are cleared for a specific operatory, specify the dateTime, operatory, and
-    ///     BlockoutAction.Clear
-    ///     If several blockouts are cleared for specific operatory and clinic, specify the dateTime, operatory, clinic, and
-    ///     BlockoutAction.Clear
-    ///     Otherwise, supply blockout and action taken.
-    /// </summary>
     public static void BlockoutLogHelper(BlockoutAction blockoutAction, Schedule scheduleBlockout = null, DateTime dateTime = new(), long opNum = 0, long clinicNum = -1)
     {
         var logText = "";
@@ -2101,6 +1735,4 @@ public class Schedules
 
         SecurityLogs.MakeLogEntry(EnumPermType.Blockouts, 0, logText);
     }
-
-    #endregion
 }

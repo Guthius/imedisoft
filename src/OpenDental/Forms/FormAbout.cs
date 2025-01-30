@@ -1,64 +1,59 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Windows.Forms;
-using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-//using mshtml;
 
-namespace OpenDental{
-	///<summary>Form can be found at Help Tab->About</summary>
-	public partial class FormAbout : FormODBase{
+namespace OpenDental.Forms;
 
-		
-		public FormAbout(){
-			InitializeComponent();
-			InitializeLayoutManager();
-			Lan.F(this);
-		}
+public partial class FormAbout : FormODBase
+{
+    public FormAbout()
+    {
+        InitializeComponent();
+    }
 
-		private void FormAbout_Load(object sender, System.EventArgs e) {
-			string softwareName=PrefC.GetString(PrefName.SoftwareName);
-			if(Programs.GetCur(ProgramName.BencoPracticeManagement).Enabled) {
-				pictureOpenDental.Image=Properties.Resources.bencoLogo;
-			}
-			if(softwareName!="Open Dental Software" && !Programs.GetCur(ProgramName.BencoPracticeManagement).Enabled) {
-				pictureOpenDental.Visible=false;
-			}
-			labelVersion.Text=Lan.g(this,"Version:")+" "+Application.ProductVersion;
-			UpdateHistory updateHistory=UpdateHistories.GetForVersion(Application.ProductVersion);
-			if(updateHistory!=null) {
-				labelVersion.Text+="  "+Lan.g(this,"Since:")+" "+updateHistory.DateTimeUpdated.ToShortDateString();
-			}
-			//keeps the trailing year up to date
-			labelCopyright.Text=softwareName+" "+Lan.g(this,"Copyright 2003-")+DateTime.Now.ToString("yyyy")+", Jordan Sparks, D.M.D.";
-			labelMySQLCopyright.Text=Lan.g(this,"MySQL - Copyright 1995-")+DateTime.Now.ToString("yyyy")+Lan.g(this,", www.mysql.com");
-			labelMariaDBCopyright.Text=Lan.g(this,"MariaDB - Copyright 2009-")+DateTime.Now.ToString("yyyy")+Lan.g(this,", www.mariadb.com");
-			//Database Server----------------------------------------------------------		
-			List<string> listServiceInfo=Computers.GetServiceInfo();
-			labelName.Text+=listServiceInfo[2].ToString();//MiscData.GetODServer();//server name
-			labelService.Text+=listServiceInfo[0].ToString();//service name
-			labelMySqlVersion.Text+=listServiceInfo[3].ToString();//service version
-			labelServComment.Text+=listServiceInfo[1].ToString();//service comment
-			labelMachineName.Text+=Environment.MachineName.ToUpper();//current client or remote application machine name
-			labelDatabase.Text+=listServiceInfo[4].ToString();//database name
-		}
+    private void FormAbout_Load(object sender, EventArgs e)
+    {
+        var softwareName = PrefC.GetString(PrefName.SoftwareName);
 
-		private void butDiagnostics_Click(object sender,EventArgs e) {
-			string diagnostics = BugSubmissions.GetDiagnostics(FormOpenDental.PatNumCur);
-			using MsgBoxCopyPaste msgBoxCopyPaste=new MsgBoxCopyPaste(diagnostics);
-			msgBoxCopyPaste.Text=Lans.g(this,"Diagnostics");
-			msgBoxCopyPaste.ShowDialog();
-		}
+        labelVersion.Text = "Version: " + Application.ProductVersion;
 
-		private void butLicense_Click(object sender,EventArgs e) {
-			using FormLicense formLicense=new FormLicense();
-			formLicense.ShowDialog();
-		}
+        var updateHistory = UpdateHistories.GetForVersion(Application.ProductVersion);
+        if (updateHistory != null)
+        {
+            labelVersion.Text += "  Since: " + updateHistory.DateTimeUpdated.ToShortDateString();
+        }
 
-	}
+        labelCopyright.Text = softwareName + " " + "Copyright 2003-" + DateTime.Now.ToString("yyyy") + ", Jordan Sparks, D.M.D.";
+        labelMySQLCopyright.Text = "MySQL - Copyright 1995-" + DateTime.Now.ToString("yyyy") + ", www.mysql.com";
+        labelMariaDBCopyright.Text = "MariaDB - Copyright 2009-" + DateTime.Now.ToString("yyyy") + ", www.mariadb.com";
+
+        var serviceInfo = Computers.GetServiceInfo();
+
+        labelName.Text += serviceInfo[2];
+        labelService.Text += serviceInfo[0];
+        labelMySqlVersion.Text += serviceInfo[3];
+        labelServComment.Text += serviceInfo[1];
+        labelMachineName.Text += Environment.MachineName.ToUpper();
+        labelDatabase.Text += serviceInfo[4];
+    }
+
+    private void ButtonDiagnostics_Click(object sender, EventArgs e)
+    {
+        var diagnostics = BugSubmissions.GetDiagnostics(FormOpenDental.PatNumCur);
+
+        using var msgBoxCopyPaste = new MsgBoxCopyPaste(diagnostics);
+
+        msgBoxCopyPaste.Text = "Diagnostics";
+        msgBoxCopyPaste.ShowDialog();
+    }
+
+    private void ButtonLicense_Click(object sender, EventArgs e)
+    {
+        using var formLicense = new FormLicense();
+
+        formLicense.ShowDialog();
+    }
 }

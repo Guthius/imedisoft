@@ -1,0 +1,306 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using OpenDentBusiness;
+
+namespace Imedisoft.Core.Entities;
+
+///<summary>Any row in this table will show up in the main menu of Open Dental to get the attention of the user.
+///The user will be able to click on the alert and take an action.  The actions available to the user are also determined in this row.</summary>
+[Serializable]
+[CrudTable(IsSynchable = true)]
+public class AlertItem : TableBase
+{
+    ///<summary>Primary key.</summary>
+    [CrudColumn(IsPriKey = true)]
+    public long AlertItemNum;
+
+    ///<summary>FK to clinic.ClinicNum. Can be 0 or -1. -1 indicates show the alert in all clinics.</summary>
+    public long ClinicNum;
+
+    ///<summary>What is displayed in the menu item.</summary>
+    public string Description;
+
+    ///<summary>Enum:AlertType Identifies what type of alert this row is.</summary>
+    public AlertType Type;
+
+    ///<summary>Enum:SeverityType The severity will help determine what color this alert should be in the main menu.</summary>
+    public SeverityType Severity;
+
+    ///<summary>Enum:ActionType Bitwise flag that represents what actions are available for this alert.</summary>
+    public ActionType Actions;
+
+    ///<summary>Enum:FormType The form to open when the user clicks "Open Form".</summary>
+    public FormType FormToOpen;
+
+    ///<summary>A FK to a table associated with the AlertType.  0 indicates not in use.</summary>
+    public long FKey;
+
+    ///<summary>Like description, but more specific. When set use ActionType.ShowItemValue to show this variable within a MsgBoxCopyPaste window.</summary>
+    public string ItemValue;
+
+    ///<summary>FK to Userod.UserNum.  Will only be shown to that specific user.  0 is all users.</summary>
+    public long UserNum;
+
+    ///<summary>Date this row was added to the database. Not editable by the user</summary>
+    [CrudColumn(SpecialType = CrudSpecialColType.DateTEntry)]
+    public DateTime SecDateTEntry;
+
+    ///<summary>Helper dictionary for sorting the ActionType enum in a particular way for display purposes.</summary>
+    private static Dictionary<ActionType, int> _dictActionTypeOrder = new Dictionary<ActionType, int>
+    {
+        {ActionType.OpenForm, 1},
+        {ActionType.ShowItemValue, 2},
+        {ActionType.MarkAsRead, 3},
+        {ActionType.Delete, 4},
+        {ActionType.None, 5},
+    };
+
+
+    public AlertItem Copy()
+    {
+        return (AlertItem) MemberwiseClone();
+    }
+
+    public override bool Equals(object obj)
+    {
+        AlertItem alert = obj as AlertItem;
+        if (alert == null)
+        {
+            return false;
+        }
+
+        return AlertItemNum == alert.AlertItemNum
+               && ClinicNum == alert.ClinicNum
+               && Description == alert.Description
+               && Type == alert.Type
+               && Severity == alert.Severity
+               && Actions == alert.Actions;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    ///<summary>Comparer used to order the ActionType for display purposes.</summary>
+    public static int CompareActionType(ActionType x, ActionType y)
+    {
+        return _dictActionTypeOrder[x].CompareTo(_dictActionTypeOrder[y]);
+    }
+}
+
+///<summary>Enum representing different alert types. Any additional entries to this enum will need to be linked to the AlertCategory table. Do so with by calling the helper method in ConvertDatabases8. There will be one link to this type's specific category and one link to AlertCategory with InternalName 'OdAllTypes'.</summary>
+public enum AlertType
+{
+    ///<summary>0 - Generic. Informational, has no action associated with it</summary>
+    Generic = 0,
+
+    ///<summary>1 - Opens the Online Payments Window when clicked</summary>
+    [Description("Online Payments Pending")]
+    OnlinePaymentsPending = 1,
+
+    ///<summary>3 - Opens the Radiology Order List window when clicked.</summary>
+    [Description("Radiology Orders")]
+    RadiologyProcedures = 3,
+
+    ///<summary>4 - A patient has clicked "Request Callback" on an e-Confirmation.</summary>
+    [Description("Patient Requests Callback")]
+    CallbackRequested = 4,
+
+    ///<summary>5 - Alerts related to the Web Sched New Pat eService.</summary>
+    [Description("Web Sched New Patient")]
+    WebSchedNewPat = 5,
+
+    ///<summary>6 - Alerts related to Web Sched New Patient Appointments.</summary>
+    [Description("Web Sched New Patient Appointment Created")]
+    WebSchedNewPatApptCreated = 6,
+
+    ///<summary>7 - A number is not able to receive text messages.</summary>
+    [Description("Number Barred From Texting")]
+    NumberBarredFromTexting = 7,
+
+    ///<summary>8 - The number of MySQL connections to the server has exceeded half the allowed number of connections.</summary>
+    [Description("MySQL Maximum Connection Issues")]
+    MaxConnectionsMonitor = 8,
+
+    ///<summary>9 - Alerts related to new ASAP appointments via web sched.</summary>
+    [Description("Web Sched ASAP Appointment Created")]
+    WebSchedASAPApptCreated = 9,
+
+    ///<summary>11 - Multiple computers are running eConnector services. There should only ever be one.</summary>
+    [Description("Multiple eConnectors")]
+    MultipleEConnectors = 11,
+
+    ///<summary>12 - The eConnector is in a critical state and not currently turned on. There should only ever be one.</summary>
+    [Description("eConnection Down")]
+    EConnectorDown = 12,
+
+    ///<summary>13 - The eConnector has an error that is not critical but is worth looking into. There should only ever be one.</summary>
+    [Description("eConnection Error")]
+    EConnectorError = 13,
+
+    ///<summary>14 - Alerts related to DoseSpot provider registration.</summary>
+    [Description("DoseSpot Provider Registered")]
+    DoseSpotProviderRegistered = 14,
+
+    ///<summary>15 - Alerts related to DoseSpot clinic registration.</summary>
+    [Description("DoseSpot Clinic Registered")]
+    DoseSpotClinicRegistered = 15,
+
+    ///<summary>16 - An appointment has been created via Web Sched Recall.</summary>
+    [Description("Web Sched Recall Appointment Created")]
+    WebSchedRecallApptCreated = 16,
+
+    ///<summary>17 - Alerts related to turning clinics on or off for eServices.</summary>
+    [Description("Clinic Feature Changed")]
+    ClinicsChanged = 17,
+
+    ///<summary>18 - Alerts related to turning clinics on or off for eServices. Internal, not displayed to the customer.
+    ///Will be processed by the eConnector and then deleted.</summary>
+    [Description("Clinic Feature Changed (internal)")]
+    ClinicsChangedInternal = 18,
+
+    ///<summary>20 - OpenDentalService is down.</summary>
+    [Description("OpenDentalService Down")]
+    OpenDentalServiceDown = 20,
+
+    ///<summary>21 - Triggered when a new WebMail is received from the patient portal.</summary>
+    [Description("New WebMail")]
+    WebMailReceived = 21,
+
+    ///<summary>22 - Triggered when the consecutive count of failed emails for clinic reaches greater than the value set in 
+    ///EmailAlertMaxConsecutiveFails preference.</summary>
+    [Description("eConnector Email Send Failures")]
+    EconnectorEmailTooManySendFails = 22,
+
+    ///<summary>26 - Alert the user that there are patients who have texted to indicate they have arrived for their appointment.</summary>
+    [Description("Patient Arrival")]
+    PatientArrival = 26,
+
+    ///<summary>28 - An appointment has been created via Web Sched Exising Pat</summary>
+    [Description("Web Sched Existing Pat Appointment Created")]
+    WebSchedExistingPatApptCreated = 28,
+
+    ///<summary>29 - Alert the user when they're approaching their Cloud Session Limit (determined by CloudAlertWithinLimit pref)</summary>
+    [Description("Cloud Sessions Limit")]
+    CloudAlertWithinLimit = 29,
+
+    ///<summary>30 - Alert that web forms are ready to be retrieved.</summary>
+    [Description("Web Forms Ready to Retrieve")]
+    WebFormsReady = 30,
+
+    ///<summary>34 - Alert that no recalls have sent in a period of time.</summary>
+    [Description("Web Sched Recalls Not Sending")]
+    WebSchedRecallsNotSending = 34,
+
+    ///<summary>37 - Alert that is created when an eClipboard/ODM/ODT device tries to get a tooth chart image, but their eConn server is missing 
+    ///a specific redistributable that allows the creation of the image.</summary>
+    [Description("Couldn't generate a tooth chart or perio chart image in the mobile app")]
+    EConnectorRedistributableMissing = 37,
+
+    ///<summary>39 - Alert that is created when a procedure or group note's signature is cleared by another user editing that note.</summary>
+    [Description("Procedure or Group Note's Signature Cleared")]
+    SignatureCleared = 39,
+
+    ///<summary>40 - Alert that is created when an error occurs while uploading an image to Pearl or processing Pearl results.</summary>
+    [Description("Pearl AI Imaging Error")]
+    Pearl = 40,
+}
+
+///<summary>Represents the urgency of the alert.  Also determines the color for the menu item in the main menu.</summary>
+public enum SeverityType
+{
+    ///<summary>0 - White</summary>
+    Normal,
+
+    ///<summary>1 - Yellow</summary>
+    Low,
+
+    ///<summary>2 - Orange</summary>
+    Medium,
+
+    ///<summary>3 - Red</summary>
+    High
+}
+
+[Flags]
+public enum ActionType
+{
+    None = 0,
+    MarkAsRead = 1,
+    OpenForm = 2,
+    Delete = 4,
+    ShowItemValue = 8
+}
+
+///<summary>Add this.</summary>
+public enum FormType
+{
+    ///<summary>0 - No form.</summary>
+    None,
+
+    ///<summary>1 - FormEServicesWebSchedRecall.</summary>
+    [Description("eServices Web Sched Recall")]
+    FormEServicesWebSchedRecall,
+
+    ///<summary>2 - FormOnlinePayments.</summary>
+    [Description("Online Payments")]
+    FormOnlinePayments,
+
+    ///<summary>3 - FormRadOrderList.</summary>
+    [Description("Radiology Orders")]
+    FormRadOrderList,
+
+    ///<summary>4 - FormEServicesSetup.</summary>
+    [Description("eServices Signup Portal")]
+    FormEServicesSignupPortal,
+
+    ///<summary>5 - FormEServicesSetup. FKey will be the AptNum of the appointment to open.</summary>
+    [Description("Appointment")]
+    FormApptEdit,
+
+    ///<summary>6 - FormEServicesSetup Web Sched New Pat.</summary>
+    [Description("eServices Web Sched New Pat")]
+    FormEServicesWebSchedNewPat,
+
+    ///<summary>7 - FormWebSchedAppts.</summary>
+    [Description("Web Sched Appointments")]
+    FormWebSchedAppts,
+
+    ///<summary>8 - FormPatientEdit. FKey will be PatNum.</summary>
+    [Description("Edit Patient Information")]
+    FormPatientEdit,
+
+    ///<summary>9 - FormEServicesSetup eConnector Service.</summary>
+    [Description("eServices eConnector Service")]
+    FormEServicesEConnector,
+
+    ///<summary>10 - FormDoseSpotAssignUserId.</summary>
+    [Description("DoseSpot Assign User ID")]
+    FormDoseSpotAssignUserId,
+
+    ///<summary>11 - FormDoseSpotAssignClinicId.</summary>
+    [Description("DoseSpot Assign Clinic ID")]
+    FormDoseSpotAssignClinicId,
+
+    ///<summary>12 - FormWebMailMessageEdit</summary>
+    [Description("WebMail Inbox")]
+    FormEmailInbox,
+
+    ///<summary>13 - FormEmailAddresses</summary>
+    [Description("Email Addresses Setup")]
+    FormEmailAddresses,
+
+    ///<summary>16 - FormWebForms</summary>
+    [Description("Web Forms")]
+    FormWebForms,
+
+    ///<summary>17 - FormModuleSetup</summary>
+    [Description("Module Preferences")]
+    FormModuleSetup,
+
+    ///<summary>18 - FormEServicesAutoMsging</summary>
+    [Description("eServices Auto Messaging")]
+    FormEServicesAutoMsging,
+}

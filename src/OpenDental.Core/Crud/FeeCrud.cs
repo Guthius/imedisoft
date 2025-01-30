@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class FeeCrud
 {
@@ -103,7 +105,7 @@ public class FeeCrud
                                     + SOut.Long(fee.ClinicNum) + ","
                                     + SOut.Long(fee.ProvNum) + ","
                                     + SOut.Long(fee.SecUserNumEntry) + ","
-                                    + DbHelper.Now() + ","
+                                    + "NOW()" + ","
                                     //SecDateTEdit can only be set by MySQL
                                     + SOut.Date(fee.DateEffective) + ")";
         {
@@ -164,7 +166,7 @@ public class FeeCrud
             sbRow.Append(",");
             sbRow.Append(SOut.Long(fee.SecUserNumEntry));
             sbRow.Append(",");
-            sbRow.Append(DbHelper.Now());
+            sbRow.Append("NOW()");
             sbRow.Append(",");
             //SecDateTEdit can only be set by MySQL
             sbRow.Append(SOut.Date(fee.DateEffective));
@@ -207,7 +209,7 @@ public class FeeCrud
                                     + SOut.Long(fee.ClinicNum) + ","
                                     + SOut.Long(fee.ProvNum) + ","
                                     + SOut.Long(fee.SecUserNumEntry) + ","
-                                    + DbHelper.Now() + ","
+                                    + "NOW()" + ","
                                     //SecDateTEdit can only be set by MySQL
                                     + SOut.Date(fee.DateEffective) + ")";
         if (useExistingPK || isRandomKeys)

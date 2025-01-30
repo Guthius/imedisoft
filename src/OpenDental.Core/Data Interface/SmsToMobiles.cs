@@ -8,86 +8,26 @@ using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness.Remoting;
 
 namespace OpenDentBusiness;
 
-
 public class SmsToMobiles
 {
-	/// <summary>
-	///     The amount that is charged per outgoing text. The actual charge may be higher if the message contains multiple
-	///     pages.
-	/// </summary>
-	public const double CHARGE_PER_MSG = 0.04;
-
-    #region Insert
+    public const double ChargePerMsg = 0.04;
 
     public static void InsertMany(List<SmsToMobile> listSmsToMobiles)
     {
         SmsToMobileCrud.InsertMany(listSmsToMobiles);
     }
 
-    #endregion
-
-    
-    public static void Update(SmsToMobile smsToMobile)
-    {
-        SmsToMobileCrud.Update(smsToMobile);
-    }
-
-    ///<summary>Gets one SmsToMobile from the db.</summary>
-    public static SmsToMobile GetMessageByGuid(string guid)
-    {
-        var command = "SELECT * FROM smstomobile WHERE GuidMessage='" + guid + "'";
-        return SmsToMobileCrud.SelectOne(command);
-    }
-
-    public static List<SmsToMobile> GetMessagesByGuid(List<string> listGuids)
-    {
-        if (listGuids.IsNullOrEmpty()) return new List<SmsToMobile>();
-        var command = $"SELECT * FROM smstomobile WHERE GuidMessage in ({string.Join(",", listGuids.Select(x => "'" + SOut.String(x) + "'"))})";
-        return SmsToMobileCrud.SelectMany(command);
-    }
-
-    public static List<SmsToMobile> GetMessagesByPk(List<long> listSmsToMobileNums)
-    {
-        if (listSmsToMobileNums.IsNullOrEmpty()) return new List<SmsToMobile>();
-        var command = $"SELECT * FROM smstomobile WHERE SmsToMobileNum IN ({string.Join(",", listSmsToMobileNums.Select(x => SOut.Long(x)))})";
-        return SmsToMobileCrud.SelectMany(command);
-    }
-
-    
-    public static long Insert(SmsToMobile smsToMobile)
-    {
-        return SmsToMobileCrud.Insert(smsToMobile);
-    }
-
-    /// <summary>
-    ///     Gets all SmsToMobile entries that have been inserted or updated since dateStart, which should be in server
-    ///     time.
-    /// </summary>
-    public static List<SmsToMobile> GetAllChangedSince(DateTime dateStart)
-    {
-        var command = "SELECT * from smstomobile WHERE SecDateTEdit >= " + SOut.DateTime(dateStart);
-        return SmsToMobileCrud.SelectMany(command);
-    }
-
-    /// <summary>Gets all SMS messages for the specified filters.</summary>
-    /// <param name="dateStart">If dateStart is 01/01/0001, then no start date will be used.</param>
-    /// <param name="dateEnd">If dateEnd is 01/01/0001, then no end date will be used.</param>
-    /// <param name="listClinicNums">Will filter by clinic only if not empty and patNum is -1.</param>
-    /// <param name="patNum">
-    ///     If patNum is not -1, then only the messages for the specified patient will be returned, otherwise messages for all
-    ///     patients will be returned.
-    /// </param>
-    /// <param name="phoneNumber">The phone number to search by. Should be just the digits, no formatting.</param>
     public static List<SmsToMobile> GetMessages(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, long patNum = -1, string phoneNumber = "")
     {
         var listCommandFilters = new List<string>();
-        if (dateStart > DateTime.MinValue) listCommandFilters.Add(DbHelper.DtimeToDate("DateTimeSent") + ">=" + SOut.Date(dateStart));
-        if (dateEnd > DateTime.MinValue) listCommandFilters.Add(DbHelper.DtimeToDate("DateTimeSent") + "<=" + SOut.Date(dateEnd));
+        if (dateStart > DateTime.MinValue) listCommandFilters.Add("DATE(DateTimeSent)>=" + SOut.Date(dateStart));
+        if (dateEnd > DateTime.MinValue) listCommandFilters.Add("DATE(DateTimeSent)<=" + SOut.Date(dateEnd));
         if (patNum == -1)
         {
             //Only limit clinic if not searching for a particular PatNum.
@@ -104,10 +44,6 @@ public class SmsToMobiles
         return SmsToMobileCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Convert a phone number to international format and remove all punctuation. Validates input number format.
-    ///     Throws exceptions.
-    /// </summary>
     public static string ConvertPhoneToInternational(string phoneRaw, string countryCodeLocalMachine, string countryCodeSmsPhone)
     {
         if (string.IsNullOrWhiteSpace(phoneRaw)) throw new Exception("Input phone number must be set");
@@ -121,19 +57,16 @@ public class SmsToMobiles
         return phoneRetVal;
     }
 
-    ///<summary>A 5 or 6 digit phone nubmer is likely a Short Code phone number.</summary>
     private static bool IsShortCodeFormat(string phoneRaw)
     {
         var length = phoneRaw.Length;
         return length == 5 || length == 6;
     }
 
-    ///<summary>Surround with Try/Catch.  Sent as time sensitive message. Returns an instance of the new SmsToMobile row.</summary>
-    public static SmsToMobile SendSmsSingle(long patNum, string wirelessPhone, string message, long clinicNum, SmsMessageSource smsMessageSource,
-        bool makeCommLog = true, Userod userod = null, bool canCheckBal = true)
+    public static SmsToMobile SendSmsSingle(long patNum, string wirelessPhone, string message, long clinicNum, SmsMessageSource smsMessageSource, bool makeCommLog = true, Userod userod = null, bool canCheckBal = true)
     {
         var balance = SmsPhones.GetClinicBalance(clinicNum);
-        if (balance - CHARGE_PER_MSG < 0 && canCheckBal) //ODException.ErrorCode 1 will be processed specially by caller.
+        if (balance - ChargePerMsg < 0 && canCheckBal) //ODException.ErrorCode 1 will be processed specially by caller.
             throw new ODException("To send this message first increase spending limit for integrated texting from eServices Setup.", 1);
         var countryCodeLocal = CultureInfo.CurrentCulture.Name.Substring(CultureInfo.CurrentCulture.Name.Length - 2); //Example "en-US"="US"
         var countryCodePhone = SmsPhones.GetFirstOrDefault(x => x.ClinicNum == clinicNum)?.CountryCode ?? "";
@@ -153,7 +86,6 @@ public class SmsToMobiles
         return smsToMobile;
     }
 
-    ///<summary>Surround with try/catch. Returns true if all messages succeded, throws exception if it failed.</summary>
     public static List<SmsToMobile> SendSmsMany(List<SmsToMobile> listSmsToMobilesMessages, bool makeCommLog = true, Userod userod = null, bool canCheckBal = true)
     {
         if (listSmsToMobilesMessages == null || listSmsToMobilesMessages.Count == 0) return new List<SmsToMobile>();
@@ -163,7 +95,7 @@ public class SmsToMobiles
             for (var i = 0; i < listClinicNums.Count; i++)
             {
                 var balance = SmsPhones.GetClinicBalance(listClinicNums[i]);
-                if (balance - CHARGE_PER_MSG * listSmsToMobilesMessages.Count(x => x.ClinicNum == listClinicNums[i]) < 0)
+                if (balance - ChargePerMsg * listSmsToMobilesMessages.Count(x => x.ClinicNum == listClinicNums[i]) < 0)
                     //ODException.ErrorCode 1 will be processed specially by caller.
                     throw new ODException("To send these messages first increase spending limit for integrated texting from eServices Setup.", 1);
             }
@@ -174,7 +106,6 @@ public class SmsToMobiles
         return listSmsToMobilesMessages;
     }
 
-    ///<summary>Inserts the SmsToMobile to the database and creates a commlog if necessary.</summary>
     private static void HandleSentSms(List<SmsToMobile> listSmsToMobiles, bool makeCommLog, Userod userod)
     {
         for (var i = 0; i < listSmsToMobiles.Count; i++)
@@ -199,17 +130,11 @@ public class SmsToMobiles
         InsertMany(listSmsToMobiles);
     }
 
-    
     public static void Update(SmsToMobile smsToMobile, SmsToMobile smsToMobileOld)
     {
         SmsToMobileCrud.Update(smsToMobile, smsToMobileOld);
     }
 
-    /// <summary>
-    ///     Surround with try/catch. Returns list of SmsToMobiles that were sent, (some may have failed), throws exception if
-    ///     no messages sent.
-    ///     All Integrated Texting should use this method, CallFire texting does not use this method.
-    /// </summary>
     public static List<SmsToMobile> SendSms(List<SmsToMobile> listSmsToMobileMessages)
     {
         if (listSmsToMobileMessages == null || listSmsToMobileMessages.Count == 0) throw new Exception("No messages to send.");

@@ -1,25 +1,24 @@
 ﻿using System;
 using OpenDental.Graph.Base;
 
-namespace OpenDental.Graph.Concrete
+namespace OpenDental.Graph.Concrete;
+
+public partial class HqMessagesRealTimeOptionsCtrl : BaseGraphOptionsCtrl
 {
-    public partial class HqMessagesRealTimeOptionsCtrl : BaseGraphOptionsCtrl
+    public HqMessagesRealTimeOptionsCtrl()
     {
-        public HqMessagesRealTimeOptionsCtrl()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        public override int GetPanelHeight()
-        {
-            return Height;
-        }
+    public override int GetPanelHeight()
+    {
+        return Height;
+    }
 
-        public override bool HasGroupOptions => false;
+    public override bool HasGroupOptions => false;
 
-        private void OnBrokenApptGraphOptionsChanged(object sender, EventArgs e)
-        {
-            OnBaseInputsChanged(sender);
-        }
+    private void OnBrokenApptGraphOptionsChanged(object sender, EventArgs e)
+    {
+        OnBaseInputsChanged(sender);
     }
 }

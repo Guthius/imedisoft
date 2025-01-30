@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using OpenDental.Main_Modules;
 
 namespace OpenDental{
 	partial class FormOpenDental{
@@ -26,7 +27,7 @@ namespace OpenDental{
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormOpenDental));
 			this.timerTimeIndic = new System.Windows.Forms.Timer(this.components);
 			this.menuItem14 = new System.Windows.Forms.MenuItem();
-			this.timerSignals = new System.Windows.Forms.Timer(this.components);
+			this._timerSignals = new System.Windows.Forms.Timer(this.components);
 			this.panelSplitter = new System.Windows.Forms.Panel();
 			this.menuSplitter = new System.Windows.Forms.ContextMenu();
 			this.menuItemDockBottom = new System.Windows.Forms.MenuItem();

@@ -12,6 +12,8 @@ using System.Xml;
 using System.Xml.XPath;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
 

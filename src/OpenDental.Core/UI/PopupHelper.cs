@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -25,26 +26,6 @@ namespace OpenDentBusiness.UI {
 			List<MenuItem> listMenuItemsLinks=new List<MenuItem>();
 			List<string> listStringMatches=new List<string>();
 			List<long> listNumMatches=new List<long>();
-			bool doWikiLogic=false;//Default the Wiki logic to false
-			try {
-				//NOTE: if this preference is changed while the program is open there MAY be some lingering wiki links in the context menu. 
-				//It is not worth it to force users to log off and back on again, or to run the link removal code below EVERY time, even if the pref is disabled.
-				doWikiLogic=PrefC.GetBool(PrefName.WikiDetectLinks);//if this fails then we do not have a pref table or a wiki, so don't bother going with this part.
-			}
-			catch(Exception ex) {
-			}
-			if(doWikiLogic) {
-				listStringMatches=Regex.Matches(contextMenuItemText,@"\[\[.+?]]")
-					.OfType<Match>()
-					.Select(m => m.Groups[0].Value.Trim('[').Trim(']'))
-					.Distinct()
-					.ToList();
-				for(int i=0;i<listStringMatches.Count;i++) {
-					string pageName=listStringMatches[i]; //To avoid lazy eval
-					EventHandler eventHandler=(s,eArg) => { OpenWikiPage(pageName); };
-					listMenuItemsLinks.Add(new MenuItem("Wiki - "+listStringMatches[i],eventHandler));
-				}
-			}
 			listStringMatches=GetURLsFromText(contextMenuItemText);
 			for(int i=0;i<listStringMatches.Count;i++) {
 				string title=listStringMatches[i];
@@ -149,12 +130,6 @@ namespace OpenDentBusiness.UI {
 		#endregion Methods - Public
 
 		#region Methods - Private
-		private static void OpenWikiPage(string pageTitle) {
-			if(WikiPages.NavPageDelegate!=null) {
-				WikiPages.NavPageDelegate.Invoke(pageTitle);
-			}
-		}
-
 		private static void OpenPatNum(long patNum) {
 			Patient pat=Patients.GetPat(patNum);
 			if(pat==null) {

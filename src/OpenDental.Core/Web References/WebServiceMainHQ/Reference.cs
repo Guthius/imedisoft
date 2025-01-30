@@ -154,23 +154,15 @@ namespace OpenDentBusiness.WebServiceMainHQ {
         private System.Threading.SendOrPostCallback GetGoogleAuthorizationUrlLoopbackIpAddressFlowOperationCompleted;
         
         private System.Threading.SendOrPostCallback GetGoogleAccessTokenOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback GetCareCreditOAuthTokenOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback GetCareCreditWebTokenOperationCompleted;
-        
+
         private System.Threading.SendOrPostCallback GetAdvertisingPostcardsAccountsOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback GetCareCreditBatchTimesOperationCompleted;
-        
+
         private System.Threading.SendOrPostCallback ManageAdvertisingPostcardsAccountOperationCompleted;
         
         private System.Threading.SendOrPostCallback GetPostcardManiaSSOOperationCompleted;
         
         private System.Threading.SendOrPostCallback UploadPostcardManiaPatientListOperationCompleted;
-        
-        private System.Threading.SendOrPostCallback LogCareCreditTransactionOperationCompleted;
-        
+
         private System.Threading.SendOrPostCallback ValidateVersionOperationCompleted;
         
         private System.Threading.SendOrPostCallback ConfirmationRequestSendOperationCompleted;
@@ -449,19 +441,10 @@ namespace OpenDentBusiness.WebServiceMainHQ {
         
         /// <remarks/>
         public event GetGoogleAccessTokenCompletedEventHandler GetGoogleAccessTokenCompleted;
-        
-        /// <remarks/>
-        public event GetCareCreditOAuthTokenCompletedEventHandler GetCareCreditOAuthTokenCompleted;
-        
-        /// <remarks/>
-        public event GetCareCreditWebTokenCompletedEventHandler GetCareCreditWebTokenCompleted;
-        
+
         /// <remarks/>
         public event GetAdvertisingPostcardsAccountsCompletedEventHandler GetAdvertisingPostcardsAccountsCompleted;
-        
-        /// <remarks/>
-        public event GetCareCreditBatchTimesCompletedEventHandler GetCareCreditBatchTimesCompleted;
-        
+
         /// <remarks/>
         public event ManageAdvertisingPostcardsAccountCompletedEventHandler ManageAdvertisingPostcardsAccountCompleted;
         
@@ -470,10 +453,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
         
         /// <remarks/>
         public event UploadPostcardManiaPatientListCompletedEventHandler UploadPostcardManiaPatientListCompleted;
-        
-        /// <remarks/>
-        public event LogCareCreditTransactionCompletedEventHandler LogCareCreditTransactionCompleted;
-        
+
         /// <remarks/>
         public event ValidateVersionCompletedEventHandler ValidateVersionCompleted;
         
@@ -2392,65 +2372,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
                 this.GetGoogleAccessTokenCompleted(this, new GetGoogleAccessTokenCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
             }
         }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/GetCareCreditOAuthToken", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public string GetCareCreditOAuthToken(string officeData) {
-            object[] results = this.Invoke("GetCareCreditOAuthToken", new object[] {
-                        officeData});
-            return ((string)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void GetCareCreditOAuthTokenAsync(string officeData) {
-            this.GetCareCreditOAuthTokenAsync(officeData, null);
-        }
-        
-        /// <remarks/>
-        public void GetCareCreditOAuthTokenAsync(string officeData, object userState) {
-            if ((this.GetCareCreditOAuthTokenOperationCompleted == null)) {
-                this.GetCareCreditOAuthTokenOperationCompleted = new System.Threading.SendOrPostCallback(this.OnGetCareCreditOAuthTokenOperationCompleted);
-            }
-            this.InvokeAsync("GetCareCreditOAuthToken", new object[] {
-                        officeData}, this.GetCareCreditOAuthTokenOperationCompleted, userState);
-        }
-        
-        private void OnGetCareCreditOAuthTokenOperationCompleted(object arg) {
-            if ((this.GetCareCreditOAuthTokenCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.GetCareCreditOAuthTokenCompleted(this, new GetCareCreditOAuthTokenCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/GetCareCreditWebToken", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public string GetCareCreditWebToken(string officeData) {
-            object[] results = this.Invoke("GetCareCreditWebToken", new object[] {
-                        officeData});
-            return ((string)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void GetCareCreditWebTokenAsync(string officeData) {
-            this.GetCareCreditWebTokenAsync(officeData, null);
-        }
-        
-        /// <remarks/>
-        public void GetCareCreditWebTokenAsync(string officeData, object userState) {
-            if ((this.GetCareCreditWebTokenOperationCompleted == null)) {
-                this.GetCareCreditWebTokenOperationCompleted = new System.Threading.SendOrPostCallback(this.OnGetCareCreditWebTokenOperationCompleted);
-            }
-            this.InvokeAsync("GetCareCreditWebToken", new object[] {
-                        officeData}, this.GetCareCreditWebTokenOperationCompleted, userState);
-        }
-        
-        private void OnGetCareCreditWebTokenOperationCompleted(object arg) {
-            if ((this.GetCareCreditWebTokenCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.GetCareCreditWebTokenCompleted(this, new GetCareCreditWebTokenCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
+
         /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/GetAdvertisingPostcardsAccounts" +
             "", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
@@ -2480,36 +2402,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
                 this.GetAdvertisingPostcardsAccountsCompleted(this, new GetAdvertisingPostcardsAccountsCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
             }
         }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/GetCareCreditBatchTimes", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public string GetCareCreditBatchTimes(string officeData) {
-            object[] results = this.Invoke("GetCareCreditBatchTimes", new object[] {
-                        officeData});
-            return ((string)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void GetCareCreditBatchTimesAsync(string officeData) {
-            this.GetCareCreditBatchTimesAsync(officeData, null);
-        }
-        
-        /// <remarks/>
-        public void GetCareCreditBatchTimesAsync(string officeData, object userState) {
-            if ((this.GetCareCreditBatchTimesOperationCompleted == null)) {
-                this.GetCareCreditBatchTimesOperationCompleted = new System.Threading.SendOrPostCallback(this.OnGetCareCreditBatchTimesOperationCompleted);
-            }
-            this.InvokeAsync("GetCareCreditBatchTimes", new object[] {
-                        officeData}, this.GetCareCreditBatchTimesOperationCompleted, userState);
-        }
-        
-        private void OnGetCareCreditBatchTimesOperationCompleted(object arg) {
-            if ((this.GetCareCreditBatchTimesCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.GetCareCreditBatchTimesCompleted(this, new GetCareCreditBatchTimesCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
+
         /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/ManageAdvertisingPostcardsAccou" +
             "nt", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
@@ -2597,36 +2490,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
                 this.UploadPostcardManiaPatientListCompleted(this, new UploadPostcardManiaPatientListCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
             }
         }
-        
-        /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/LogCareCreditTransaction", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public string LogCareCreditTransaction(string officeData) {
-            object[] results = this.Invoke("LogCareCreditTransaction", new object[] {
-                        officeData});
-            return ((string)(results[0]));
-        }
-        
-        /// <remarks/>
-        public void LogCareCreditTransactionAsync(string officeData) {
-            this.LogCareCreditTransactionAsync(officeData, null);
-        }
-        
-        /// <remarks/>
-        public void LogCareCreditTransactionAsync(string officeData, object userState) {
-            if ((this.LogCareCreditTransactionOperationCompleted == null)) {
-                this.LogCareCreditTransactionOperationCompleted = new System.Threading.SendOrPostCallback(this.OnLogCareCreditTransactionOperationCompleted);
-            }
-            this.InvokeAsync("LogCareCreditTransaction", new object[] {
-                        officeData}, this.LogCareCreditTransactionOperationCompleted, userState);
-        }
-        
-        private void OnLogCareCreditTransactionOperationCompleted(object arg) {
-            if ((this.LogCareCreditTransactionCompleted != null)) {
-                System.Web.Services.Protocols.InvokeCompletedEventArgs invokeArgs = ((System.Web.Services.Protocols.InvokeCompletedEventArgs)(arg));
-                this.LogCareCreditTransactionCompleted(this, new LogCareCreditTransactionCompletedEventArgs(invokeArgs.Results, invokeArgs.Error, invokeArgs.Cancelled, invokeArgs.UserState));
-            }
-        }
-        
+
         /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("https://www.opendental.com/OpenDentalWebServiceHQ/ValidateVersion", RequestNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", ResponseNamespace="https://www.opendental.com/OpenDentalWebServiceHQ/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
         public string ValidateVersion(string officeData) {
@@ -5045,59 +4909,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
             }
         }
     }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void GetCareCreditOAuthTokenCompletedEventHandler(object sender, GetCareCreditOAuthTokenCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class GetCareCreditOAuthTokenCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal GetCareCreditOAuthTokenCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public string Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((string)(this.results[0]));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void GetCareCreditWebTokenCompletedEventHandler(object sender, GetCareCreditWebTokenCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class GetCareCreditWebTokenCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal GetCareCreditWebTokenCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public string Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((string)(this.results[0]));
-            }
-        }
-    }
-    
+
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
     public delegate void GetAdvertisingPostcardsAccountsCompletedEventHandler(object sender, GetAdvertisingPostcardsAccountsCompletedEventArgs e);
@@ -5123,33 +4935,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
             }
         }
     }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void GetCareCreditBatchTimesCompletedEventHandler(object sender, GetCareCreditBatchTimesCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class GetCareCreditBatchTimesCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal GetCareCreditBatchTimesCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public string Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((string)(this.results[0]));
-            }
-        }
-    }
-    
+
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
     public delegate void ManageAdvertisingPostcardsAccountCompletedEventHandler(object sender, ManageAdvertisingPostcardsAccountCompletedEventArgs e);
@@ -5227,33 +5013,7 @@ namespace OpenDentBusiness.WebServiceMainHQ {
             }
         }
     }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    public delegate void LogCareCreditTransactionCompletedEventHandler(object sender, LogCareCreditTransactionCompletedEventArgs e);
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class LogCareCreditTransactionCompletedEventArgs : System.ComponentModel.AsyncCompletedEventArgs {
-        
-        private object[] results;
-        
-        internal LogCareCreditTransactionCompletedEventArgs(object[] results, System.Exception exception, bool cancelled, object userState) : 
-                base(exception, cancelled, userState) {
-            this.results = results;
-        }
-        
-        /// <remarks/>
-        public string Result {
-            get {
-                this.RaiseExceptionIfNecessary();
-                return ((string)(this.results[0]));
-            }
-        }
-    }
-    
+
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Web.Services", "4.8.9032.0")]
     public delegate void ValidateVersionCompletedEventHandler(object sender, ValidateVersionCompletedEventArgs e);

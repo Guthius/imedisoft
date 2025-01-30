@@ -9,7 +9,10 @@ using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 using System.Windows.Media.Media3D;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
+using PerioMeasure = Imedisoft.Core.Entities.PerioMeasure;
+using PerioSequenceType = Imedisoft.Core.Entities.PerioSequenceType;
 
 namespace OpenDentBusiness.SheetFramework{
 	public class ToothChartHelper{
@@ -152,7 +155,7 @@ namespace OpenDentBusiness.SheetFramework{
 		}
 
 		public static Image GetToothChartImageProcess(List<Def> ListDefs,List<Procedure> ListProceduresFiltered,List<ToothInitial> ToothInitialList,OpenDentBusiness.ToothNumberingNomenclature ToothNumberingNomenclature,
-			List<OpenDentBusiness.PerioMeasure> ListPerioMeasures, Dictionary<PrefName,Color> DictPrefToColor,List<Def> ListDefsPerio,List<Procedure> ListProcsForPerio,List<ProcedureCode> ListProcedureCodesForPerio,
+			List<PerioMeasure> ListPerioMeasures, Dictionary<PrefName,Color> DictPrefToColor,List<Def> ListDefsPerio,List<Procedure> ListProcsForPerio,List<ProcedureCode> ListProcedureCodesForPerio,
 			List<ProcedureCode> ListProcedureCodesForProcs,bool IsInPatientDashboard,bool IsForWinForms,bool IsForPerio,int Width,int Height,bool IsSmaller,bool IsForChartModule){
 			int colorBackgroundIndex=14;
 			int colorTextIndex=15;
@@ -262,10 +265,10 @@ namespace OpenDentBusiness.SheetFramework{
 				toothChart.ColorSuppuration=ListDefsPerio[(int)DefCatMiscColors.PerioSuppuration].ItemColor;
 				toothChart.ColorBleeding=ListDefsPerio[(int)DefCatMiscColors.PerioBleeding].ItemColor;
 				for (int i=0;i<ListPerioMeasures.Count;i++) {
-					if(ListPerioMeasures[i].SequenceType==OpenDentBusiness.PerioSequenceType.SkipTooth) {
+					if(ListPerioMeasures[i].SequenceType==PerioSequenceType.SkipTooth) {
 						toothChart.SetMissing(ListPerioMeasures[i].IntTooth.ToString());
 					} 
-					else if(ListPerioMeasures[i].SequenceType==OpenDentBusiness.PerioSequenceType.Mobility) {
+					else if(ListPerioMeasures[i].SequenceType==PerioSequenceType.Mobility) {
 						int mob=ListPerioMeasures[i].ToothValue;
 						Color color=Color.Black;
 						if(mob>=PrefC.GetInt(PrefName.PerioRedMob)) {
@@ -562,7 +565,7 @@ namespace OpenDentBusiness.SheetFramework{
 		public List<Procedure> ListProceduresFiltered=new List<Procedure>();
 		public List<ToothInitial> ToothInitialList=new List<ToothInitial>();
 		public OpenDentBusiness.ToothNumberingNomenclature ToothNumberingNomenclature;
-		public List<OpenDentBusiness.PerioMeasure> ListPerioMeasures=new List<OpenDentBusiness.PerioMeasure>();
+		public List<PerioMeasure> ListPerioMeasures=new List<PerioMeasure>();
 		public Dictionary<PrefName,Color> DictPrefToColor=new Dictionary<PrefName,Color>();
 		public List<Def> ListDefsPerio=new List<Def>();
 		public List<Procedure> ListProcsForPerio=new List<Procedure>();

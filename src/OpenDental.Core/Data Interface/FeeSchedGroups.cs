@@ -2,79 +2,50 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class FeeSchedGroups
 {
-    #region Insert
-
-    
-    public static long Insert(FeeSchedGroup feeSchedGroup)
+    public static void Insert(FeeSchedGroup feeSchedGroup)
     {
-        return FeeSchedGroupCrud.Insert(feeSchedGroup);
+        FeeSchedGroupCrud.Insert(feeSchedGroup);
     }
 
-    #endregion
-
-    #region Update
-
-    
     public static void Update(FeeSchedGroup feeSchedGroup)
     {
         FeeSchedGroupCrud.Update(feeSchedGroup);
     }
 
-    #endregion
-
-    #region Delete
-
-    
     public static void Delete(long feeSchedGroupNum)
     {
         FeeSchedGroupCrud.Delete(feeSchedGroupNum);
     }
 
-    #endregion
-
-    #region Get Methods
-
-    /// <summary>There will be at most one result for a FeeSched/Clinic combination.  Can return NULL.</summary>
     public static FeeSchedGroup GetOneForFeeSchedAndClinic(long feeSchedNum, long clinicNum)
     {
-        //ClinicNums are stored as a comma delimited list requiring a LIKE condition.
-        var command = "SELECT * FROM feeschedgroup"
-                      + " WHERE FeeSchedNum=" + SOut.Long(feeSchedNum)
-                      + " AND FIND_IN_SET('" + SOut.Long(clinicNum) + "',ClinicNums)"; //example ClinicNums='23,67,34'. Any match returns >0, which evaluates to true.
-        return FeeSchedGroupCrud.SelectOne(command);
+        return FeeSchedGroupCrud.SelectOne("SELECT * FROM feeschedgroup WHERE FeeSchedNum=" + feeSchedNum + " AND FIND_IN_SET('" + clinicNum + "', ClinicNums)");
     }
 
-    ///<summary>Returns a list of every single FeeSchedGroup in the database.</summary>
     public static List<FeeSchedGroup> GetAll()
     {
-        var command = "SELECT * FROM feeschedgroup";
-        return FeeSchedGroupCrud.SelectMany(command);
+        return FeeSchedGroupCrud.SelectMany("SELECT * FROM feeschedgroup");
     }
 
-    ///<summary>Returns a list of all FeeSchedGroups for a given FeeSched.  A feeSchedNum of 0 will return all feeschedgroups.</summary>
     public static List<FeeSchedGroup> GetAllForFeeSched(long feeSchedNum)
     {
         var command = "SELECT * FROM feeschedgroup";
-        if (feeSchedNum > 0) command += " WHERE FeeSchedNum=" + SOut.Long(feeSchedNum);
+        
+        if (feeSchedNum > 0)
+        {
+            command += " WHERE FeeSchedNum=" + feeSchedNum;
+        }
+        
         return FeeSchedGroupCrud.SelectMany(command);
     }
 
-    #endregion
-
-    #region Fee Operations
-
-    /// <summary>
-    ///     Takes a list of fees that have been inserted/updated and copies those changes to the rest of the clinics in the
-    ///     feeschedgroup.
-    ///     listFeesOld only sent in from SyncGroupFees.
-    /// </summary>
     public static void UpsertGroupFees(List<Fee> listFees, List<Fee> listFeesOld = null)
     {
         if (listFees.IsNullOrEmpty()) return;
@@ -118,7 +89,6 @@ public class FeeSchedGroups
         }
     }
 
-    ///<summary>Takes a list of FeeSchedNums and returns a List of FeeSchedGroups.</summary>
     public static List<FeeSchedGroup> GetListFeeSchedGroups(List<long> listFeeSchedNums)
     {
         if (listFeeSchedNums.IsNullOrEmpty()) return new List<FeeSchedGroup>();
@@ -127,13 +97,11 @@ public class FeeSchedGroups
         return FeeSchedGroupCrud.SelectMany(command);
     }
 
-    ///<summary>Takes a list of fees to be deleted and deletes them from rest of the clinics in the feeschedgroup.</summary>
     public static void DeleteGroupFees(List<long> listFeeNums)
     {
         DeleteGroupFees(Fees.GetManyByFeeNum(listFeeNums));
     }
 
-    ///<summary>Takes a list of fees to be deleted and deletes the fees for the other clinics in the feeschedgroup.</summary>
     public static void DeleteGroupFees(List<Fee> listFees)
     {
         if (listFees.IsNullOrEmpty()) return;
@@ -162,13 +130,6 @@ public class FeeSchedGroups
         Fees.DeleteMany(listFeeNumsToDelete.Distinct().ToList(), false);
     }
 
-    /// <summary>
-    ///     Only used by Fees.SynchList, this is basically a copy of the CRUD generated sync method with slight tweaks to work
-    ///     with FeeSchedGroups.
-    ///     Only calls the group helper methods that only modify the other fees in the group, the fess in listFeesNew and
-    ///     listFeesOld will be left to the
-    ///     fees.cs sync method to handle.
-    /// </summary>
     public static void SyncGroupFees(List<Fee> listFeesNew, List<Fee> listFeesDb)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
@@ -217,47 +178,12 @@ public class FeeSchedGroups
         DeleteGroupFees(listFeesDel);
     }
 
-    /// <summary>
-    ///     Only called from the fee sync when updating feeschedgroups, therefore does not check feeschedgroups here and is a
-    ///     private method so
-    ///     it can't be called from outside this class.  Private is intentional!
-    /// </summary>
     public static void UpdateFeeAmounts(List<long> listFeeNumsToUpdate, double newAmount)
     {
         if (listFeeNumsToUpdate.IsNullOrEmpty()) return;
 
         var command = "UPDATE fee SET Amount=" + SOut.Double(newAmount)
-                                               + " WHERE fee.FeeNum IN(" + string.Join(",", listFeeNumsToUpdate.Select(x => SOut.Long(x))) + ")";
+                                               + " WHERE fee.FeeNum IN(" + string.Join(",", listFeeNumsToUpdate.Select(x => x)) + ")";
         Db.NonQ(command);
     }
-
-    #endregion Fee Operations
-
-    /*
-    Only pull out the methods below as you need them.  Otherwise, leave them commented out.
-    #region Get Methods
-    
-    public static List<FeeSchedGroup> Refresh(long patNum){
-
-        string command="SELECT * FROM feeschedgroup WHERE PatNum = "+POut.Long(patNum);
-        return Crud.FeeSchedGroupCrud.SelectMany(command);
-    }
-
-    ///<summary>Gets one FeeSchedGroup from the db.</summary>
-    public static FeeSchedGroup GetOne(long feeSchedGroupNum){
-
-        return Crud.FeeSchedGroupCrud.SelectOne(feeSchedGroupNum);
-    }
-    #endregion Get Methods
-    #region Modification Methods
-
-    
-    public static void Update(FeeSchedGroup feeSchedGroup){
-
-        Crud.FeeSchedGroupCrud.Update(feeSchedGroup);
-    }
-
-    #endregion Modification Methods
-
-    */
 }

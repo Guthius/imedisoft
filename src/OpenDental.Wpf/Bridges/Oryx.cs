@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Net;
 using CodeBase;
+using Imedisoft.Core.Data;
+using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using OpenDentBusiness;
 

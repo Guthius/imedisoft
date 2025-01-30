@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using CodeBase;
+using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
 namespace OpenDentBusiness.Eclaims {

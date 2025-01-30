@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormAccounting {
 		/// <summary>
 		/// Required designer variable.
@@ -67,7 +59,7 @@ namespace OpenDental {
 			this.checkInactive.Size = new System.Drawing.Size(150, 17);
 			this.checkInactive.TabIndex = 2;
 			this.checkInactive.Text = "Include Inactive Accounts";
-			this.checkInactive.Click += new System.EventHandler(this.checkInactive_Click);
+			this.checkInactive.Click += new System.EventHandler(this.CheckBoxInactive_Click);
 			// 
 			// labelDate
 			// 
@@ -86,7 +78,7 @@ namespace OpenDental {
 			this.butToday.TabIndex = 10;
 			this.butToday.Text = "Today";
 			this.butToday.UseVisualStyleBackColor = true;
-			this.butToday.Click += new System.EventHandler(this.butToday_Click);
+			this.butToday.Click += new System.EventHandler(this.ButtonToday_Click);
 			// 
 			// butRefresh
 			// 
@@ -96,7 +88,7 @@ namespace OpenDental {
 			this.butRefresh.TabIndex = 9;
 			this.butRefresh.Text = "Refresh";
 			this.butRefresh.UseVisualStyleBackColor = true;
-			this.butRefresh.Click += new System.EventHandler(this.butRefresh_Click);
+			this.butRefresh.Click += new System.EventHandler(this.ButtonRefresh_Click);
 			// 
 			// textDate
 			// 
@@ -116,7 +108,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 1;
 			this.gridMain.Title = "Chart of Accounts";
 			this.gridMain.TranslationName = "TableChartOfAccounts";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// ToolBarMain
 			// 

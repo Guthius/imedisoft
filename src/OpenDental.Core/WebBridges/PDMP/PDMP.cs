@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using System.Xml;
 using OpenDentBusiness.UI;
 using System.Windows;
+using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
 namespace OpenDentBusiness {

@@ -1,20 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-
 public class Fees
 {
-    #region Update
-
-    ///<summary>Only set doCheckFeeSchedGroups to false from FeeSchedGroups.</summary>
     public static void Update(Fee fee, Fee feeOld = null, bool doCheckFeeSchedGroups = true)
     {
         //Check if this fee is associated to a FeeSchedGroup and update the rest of the group as needed.
@@ -24,61 +20,19 @@ public class Fees
         else
             FeeCrud.Update(fee);
     }
-
-    #endregion Update
-
-    #region Get Methods
-
-    ///<summary>Gets the list of fees by clinic num from the db.</summary>
+    
     public static List<Fee> GetByClinicNum(long clinicNum)
     {
         var command = "SELECT * FROM fee WHERE ClinicNum = " + SOut.Long(clinicNum);
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets the list of fees by feeschednums and clinicnums from the db.  Returns an empty list if listFeeSchedNums is
-    ///     null or empty.
-    ///     Throws an application exception if listClinicNums is null or empty.  Always provide at least one ClinicNum.
-    ///     We throw instead of returning an empty list which would make it look like there are no fees for the fee schedules
-    ///     passed in.
-    ///     If this method returns an empty list it is because no valied fee schedules were given or the database truly doesn't
-    ///     have any fees.
-    /// </summary>
-    public static List<FeeLim> GetByFeeSchedNumsClinicNums(List<long> listFeeSchedNums, List<long> listClinicNums)
-    {
-        if (listFeeSchedNums == null || listFeeSchedNums.Count == 0) return new List<FeeLim>(); //This won't hurt the FeeCache because there will be no corresponding fee schedules to "blank out".
-        if (listClinicNums == null || listClinicNums.Count == 0)
-            //Returning an empty list here would be detrimental to the FeeCache.
-            throw new ApplicationException("Invalid listClinicNums passed into GetByFeeSchedNumsClinicNums()");
-        var command = "SELECT FeeNum,Amount,FeeSched,CodeNum,ClinicNum,ProvNum,SecDateTEdit FROM fee "
-                      + "WHERE FeeSched IN (" + string.Join(",", listFeeSchedNums.Select(x => SOut.Long(x))) + ") "
-                      + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ")";
-        var listFeeLimsRet = DataCore.GetTable(command).AsEnumerable()
-            .Select(x => new FeeLim
-            {
-                FeeNum = SIn.Long(x["FeeNum"].ToString()),
-                Amount = SIn.Double(x["Amount"].ToString()),
-                FeeSched = SIn.Long(x["FeeSched"].ToString()),
-                CodeNum = SIn.Long(x["CodeNum"].ToString()),
-                ClinicNum = SIn.Long(x["ClinicNum"].ToString()),
-                ProvNum = SIn.Long(x["ProvNum"].ToString()),
-                SecDateTEdit = SIn.DateTime(x["SecDateTEdit"].ToString())
-            }).ToList();
-        return listFeeLimsRet;
-    }
-
-    ///<summary>Counts the number of fees in the db for this fee sched, including all clinic/prov/date effective overrides.</summary>
     public static int GetCountByFeeSchedNum(long feeSchedNum)
     {
         var command = "SELECT COUNT(*) FROM fee WHERE FeeSched =" + SOut.Long(feeSchedNum);
         return SIn.Int(Db.GetCount(command));
     }
 
-    /// <summary>
-    ///     Searches for the given codeNum and feeSchedNum and finds the most appropriate match for the
-    ///     clinicNum/provNum/effective date.  If listFees is null, it will go to db. Default dateEffective is DateTime.Today.
-    /// </summary>
     public static Fee GetFee(long codeNum, long feeSchedNum, long clinicNum, long provNum, List<Fee> listFees = null, DateTime dateEffective = new())
     {
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
@@ -87,12 +41,6 @@ public class Fees
         return GetFeeFromDb(codeNum, feeSchedNum, clinicNum, provNum, dateEffective: dateEffective);
     }
 
-    /// <summary>
-    ///     Searches the db for a fee with the exact codeNum, feeSchedNum, clinicNum, and provNum provided.  Returns null
-    ///     if no exact match found. The goal of this method is to have a way to check the database for "duplicate" fees before
-    ///     adding more fees to the db. Set exactMatchForApi to true to exactly match all passed in parameters. dateEffective
-    ///     should always be set.
-    /// </summary>
     public static Fee GetFeeFromDb(long codeNum, long feeSchedNum, long clinicNum = 0, long provNum = 0, bool exactMatchForApi = false, DateTime dateEffective = new())
     {
         if (FeeScheds.IsGlobal(feeSchedNum) && !exactMatchForApi)
@@ -152,20 +100,6 @@ public class Fees
         //Using the UNION keeps it down to one query.
     }
 
-    /// <summary>
-    ///     Same logic as above, in Fees.GetFeeFromDb().
-    ///     Typical to pass in a list of fees for just one or a few feescheds so that the search goes quickly.
-    ///     When exactMatchForApi is true, this will return either the fee that matches the parameters exactly, or null if no
-    ///     such fee exists.
-    ///     When exactMatchForApi is false, and the fee schedule is global, we ignore the clinicNum and provNum and return the
-    ///     HQ fee that matches the given codeNum and feeSchedNum.
-    ///     When exactMatchForApi is false, and the fee schedule is not global, and no exact match exists we attempt to return
-    ///     the closest matching fee in this order:
-    ///     1 - The fee with the same codeNum, feeSchedNum, and providerNum, with a clinicNum of 0
-    ///     2 - The fee with the same codeNum, feeSchedNum, and clinicNum, with a providerNum of 0
-    ///     3 - The fee with the same codeNum, feeSchedNum, and both a clinicNum and providerNum of 0
-    ///     If no partial match can be found, return null.
-    /// </summary>
     private static Fee GetFeeFromList(List<Fee> listFees, long codeNum, long feeSched = 0, long clinicNum = 0, long provNum = 0, bool exactMatchForApi = false, DateTime dateEffective = new())
     {
         if (FeeScheds.IsGlobal(feeSched) && !exactMatchForApi)
@@ -207,7 +141,6 @@ public class Fees
         return fee;
     }
 
-    ///<summary>Used by FeeSchedGroups. Does not use DateEffective in order to get all the fees regardless of effective date.</summary>
     public static List<Fee> GetAllFeesForClinics(long codeNum, long feeSchedNum, long provNum, List<long> listClinicNums)
     {
         var command = "SELECT fee.* FROM fee "
@@ -218,25 +151,12 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets fees for up to three feesched/clinic/prov/date effective combos. If filtering with a ClinicNum and/or
-    ///     ProvNum, it only includes fees that match that clinicNum/provnum or have zero. Will also try to get the most recent
-    ///     effective date if not the minimum value.  This reduces the result set if there are clinic/provider/date effective
-    ///     overrides. This could easily scale to many thousands of clinics and providers.
-    /// </summary>
     public static List<Fee> GetListForScheds(long feeSched1, long clinicNum1 = 0, long provNum1 = 0, long feeSched2 = 0, long clinicNum2 = 0, long provNum2 = 0, long feeSched3 = 0, long clinicNum3 = 0, long provNum3 = 0, DateTime dateEffective = new())
     {
         return GetListForSchedsAndClinics(feeSched1, new List<long> {clinicNum1}, provNum1, feeSched2, new List<long> {clinicNum2}, provNum2, feeSched3, new List<long> {clinicNum3}, provNum3, dateEffective);
     }
 
-    /// <summary>
-    ///     Gets fees for up to three feesched/clinic/prov/dateEffective combos. If filtering with a ClinicNum and/or
-    ///     ProvNum, it only includes fees that match that clinicNum/provnum or have zero. Will also get the most recent
-    ///     effective date based on the passed in dateEffective or DateTime.Today by default.  This reduces the result set if
-    ///     there are clinic and provider overrides. This could easily scale to many thousands of clinics and providers.
-    /// </summary>
-    public static List<Fee> GetListForSchedsAndClinics(long feeSched1, List<long> listClinics1 = null, long provNum1 = 0, long feeSched2 = 0, List<long> listClinics2 = null,
-        long provNum2 = 0, long feeSched3 = 0, List<long> listClinics3 = null, long provNum3 = 0, DateTime dateEffective = new())
+    public static List<Fee> GetListForSchedsAndClinics(long feeSched1, List<long> listClinics1 = null, long provNum1 = 0, long feeSched2 = 0, List<long> listClinics2 = null, long provNum2 = 0, long feeSched3 = 0, List<long> listClinics3 = null, long provNum3 = 0, DateTime dateEffective = new())
     {
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
         var listClinicNums = new List<long> {0};
@@ -279,19 +199,7 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets all possible fees associated with the various objects passed in.  Gets fees from db based on code and fee
-    ///     schedule combos.  Includes all provider overrides.  Includes default/no clinic as well as any specified clinic
-    ///     overrides. Although the list always includes extra fees from scheds that we don't need, it's still a very small
-    ///     list.  That list is then used repeatedly by other code in loops to find the actual individual fee amounts. Filters
-    ///     the fees to the most recent effective date based on the DateEffective passed in.
-    /// </summary>
-    public static List<Fee> GetListFromObjects(List<ProcedureCode> listProcedureCodes, List<string> listMedicalCodes, List<long> listProvNumsTreat, long patPriProv,
-        long patSecProv, long patFeeSched, List<InsPlan> listInsPlans, List<long> listClinicNums, List<Appointment> listAppointments,
-        List<SubstitutionLink> listSubstitutionLinks, long discountPlanNum, DateTime dateEffective = new()
-        //listCodeNums,listProvNumsTreat,listProcCodesProvNumDefault,patPriProv,patSecProv,patFeeSched,listInsPlans,listClinicNums
-        //List<long> listProcCodesProvNumDefault
-    )
+    public static List<Fee> GetListFromObjects(List<ProcedureCode> listProcedureCodes, List<string> listMedicalCodes, List<long> listProvNumsTreat, long patPriProv, long patSecProv, long patFeeSched, List<InsPlan> listInsPlans, List<long> listClinicNums, List<Appointment> listAppointments, List<SubstitutionLink> listSubstitutionLinks, long discountPlanNum, DateTime dateEffective = new())
     {
         //listMedicalCodes: it already automatically gets the medical codes from procCodes.  This is just for procs. If no procs yet, it will be null.
         //listMedicalCodes can be done by: listProcedures.Select(x=>x.MedicalCode).ToList();  //this is just the strings
@@ -423,10 +331,6 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets fees that exactly match criteria. Default dateEffective check is DateTime.Today. Exact refers to
-    ///     everything except the date.
-    /// </summary>
     public static List<Fee> GetListExact(long feeSched, long clinicNum, long provNum, DateTime dateEffective = new())
     {
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
@@ -440,10 +344,6 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Overload gets fees that exactly match criteria with a clinic list. Default dateEffective check is
-    ///     DateTime.Today. Exact refers to everything except the date.
-    /// </summary>
     public static List<Fee> GetListExact(long feeSched, List<long> listClinicNums, long provNum, DateTime dateEffective = new())
     {
         if (listClinicNums.IsNullOrEmpty()) return new List<Fee>();
@@ -459,18 +359,12 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Pass in new list and original list.  This will synch everything with Db.  Leave doCheckFeeSchedGroups set to true
-    ///     unless calling from
-    ///     FeeSchedGroups.
-    /// </summary>
     public static bool SynchList(List<Fee> listFeesNew, List<Fee> listFeesDb, bool doCheckFeeSchedGroups = true)
     {
         if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.SyncGroupFees(listFeesNew, listFeesDb);
         return FeeCrud.Sync(listFeesNew, listFeesDb, Security.CurUser.UserNum);
     }
 
-    ///<summary>Gets from Db.  Returns all fees associated to the procedure code passed in.</summary>
     public static List<Fee> GetFeesForCode(long codeNum, List<long> listClinicNums = null)
     {
         var command = "SELECT * FROM fee WHERE CodeNum=" + SOut.Long(codeNum) + " ";
@@ -480,7 +374,6 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    ///<summary>Gets fees from Db, not including any prov or clinic overrides.</summary>
     public static List<Fee> GetFeesForCodeNoOverrides(long codeNum)
     {
         var command = "SELECT * FROM fee WHERE CodeNum=" + SOut.Long(codeNum) + " "
@@ -488,10 +381,6 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Returns an amount if a fee has been entered.  Prefers local clinic fees over HQ fees.  Otherwise returns -1.
-    ///     Not usually used directly.  If you don't pass in a list of Fees, it will go directly to the Db.
-    /// </summary>
     public static double GetAmount(long codeNum, long feeSched, long clinicNum, long provNum, List<Fee> listFees = null, DateTime dateEffective = new())
     {
         if (FeeScheds.GetIsHidden(feeSched)) return -1; //you cannot obtain fees for hidden fee schedules
@@ -500,32 +389,11 @@ public class Fees
         return fee.Amount;
     }
 
-    /// <summary>
-    ///     Almost the same as GetAmount.  But never returns -1;  Returns an amount if a fee has been entered.
-    ///     Prefers local clinic fees over HQ fees. Returns 0 if code can't be found.
-    ///     If you don't pass in a list of fees, it will go directly to the database.
-    /// </summary>
     public static double GetAmount0(long codeNum, long feeSched, long clinicNum = 0, long provNum = 0, List<Fee> listFees = null, DateTime dateEffective = new())
     {
         var amountRet = GetAmount(codeNum, feeSched, clinicNum, provNum, listFees, dateEffective);
         if (amountRet == -1) return 0;
         return amountRet;
-    }
-
-    ///<summary>Gets the UCR fee for the provided procedure.</summary>
-    public static double GetFeeUCR(Procedure procedure)
-    {
-        var provNum = procedure.ProvNum;
-        if (provNum == 0) //if no prov set, then use practice default.
-            provNum = PrefC.GetLong(PrefName.PracticeDefaultProv);
-        var providerFirst = Providers.GetFirst(); //Used in order to preserve old behavior...  If this fails, then old code would have failed.
-        var provider = Providers.GetFirstOrDefault(x => x.ProvNum == provNum) ?? providerFirst;
-        //get the fee based on code and prov fee sched
-        var ppoFee = GetAmount0(procedure.CodeNum, provider.FeeSched, procedure.ClinicNum, provNum);
-        var ucrFee = procedure.ProcFee;
-        if (ucrFee > ppoFee) return procedure.Quantity * ucrFee;
-
-        return procedure.Quantity * ppoFee;
     }
 
     public static List<Fee> GetManyByFeeNum(List<long> listFeeNums)
@@ -534,35 +402,6 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    ///<summary>Gets one Fee object from the database using the primary key. Returns null if not found.</summary>
-    public static Fee GetOneByFeeNum(long feeNum)
-    {
-        return FeeCrud.SelectOne(feeNum);
-    }
-
-    /// <summary>
-    ///     Gets a list of Fees to show the user what is in the Fee table. This method is going to ignore DateEffective to
-    ///     be able to retrieve duplicate fees. Will only filter the list if there are values passed in. Returns an empty list
-    ///     if none were found.
-    /// </summary>
-    public static List<Fee> GetFeesForApi(int limit, int offset, long feeSched, long codeNum, long clinicNum, long provNum)
-    {
-        var command = "SELECT * from fee"
-                      + " WHERE SecDateTEdit>=" + SOut.DateTime(DateTime.MinValue);
-        if (feeSched > 0) command += " AND FeeSched=" + SOut.Long(feeSched);
-        if (codeNum > 0) command += " AND CodeNum=" + SOut.Long(codeNum);
-        if (clinicNum > -1) command += " AND ClinicNum=" + SOut.Long(clinicNum);
-        if (provNum > -1) command += " AND ProvNum=" + SOut.Long(provNum);
-        command += " ORDER BY FeeNum"
-                   + " LIMIT " + SOut.Int(offset) + ", " + SOut.Int(limit);
-        return FeeCrud.SelectMany(command);
-    }
-
-    #endregion Get Methods
-
-    #region Insert
-
-    ///<summary>Set doCheckFeeSchedGroups to false when calling this method from FeeSchedGroups to prevent infinitely looping.</summary>
     public static long Insert(Fee fee, bool doCheckFeeSchedGroups = true)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -571,7 +410,6 @@ public class Fees
         return FeeCrud.Insert(fee);
     }
 
-    /// <summary>Bulk Insert.  Only set doCheckFeeSchedGroups to false from FeeSchedGroups.</summary>
     public static void InsertMany(List<Fee> listFees, bool doCheckFeeSchedGroups = true)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -579,12 +417,7 @@ public class Fees
         if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.UpsertGroupFees(listFees);
         FeeCrud.InsertMany(listFees);
     }
-
-    #endregion Insert
-
-    #region Delete
-
-    ///<summary>Only set doCheckFeeSchedGroups to false from FeeSchedGroups.</summary>
+    
     public static void Delete(Fee fee, bool doCheckFeeSchedGroups = true)
     {
         //Even though we do not run a query in this method, there is a lot of back and forth and we should get to the server early to ensure less chattiness.
@@ -596,7 +429,6 @@ public class Fees
 
         Delete(fee.FeeNum);
     }
-
     
     public static void Delete(long feeNum)
     {
@@ -605,7 +437,6 @@ public class Fees
         Db.NonQ(command);
     }
 
-    ///<summary>Only set doCheckFeeSchedGroups to false from FeeSchedGroups.</summary>
     public static void DeleteMany(List<long> listFeeNums, bool doCheckFeeSchedGroups = true)
     {
         if (listFeeNums.Count == 0) return;
@@ -616,19 +447,6 @@ public class Fees
         Db.NonQ(command);
     }
 
-    ///<summary>Deletes all fees for the supplied FeeSched that aren't for the HQ clinic.</summary>
-    public static void DeleteNonHQFeesForSched(long feeSched)
-    {
-        var command = "SELECT FeeNum FROM fee WHERE FeeSched=" + SOut.Long(feeSched) + " AND ClinicNum!=0";
-        var listFeeNums = Db.GetListLong(command);
-        DeleteMany(listFeeNums);
-    }
-
-    /// <summary>
-    ///     Deletes all fees with the exact specified FeeSchedule, ClinicNum, and ProvNum combination. If a DateEffective
-    ///     is passed in, then it will only delete the fees less than the effective date along with the passed in filters. To
-    ///     include future fees, pass in DateTime.MinValue.
-    /// </summary>
     public static void DeleteFees(long feeSched, long clinicNum, long provNum, DateTime dateEffective = new())
     {
         var command = "DELETE FROM fee WHERE "
@@ -636,19 +454,8 @@ public class Fees
         if (dateEffective != DateTime.MinValue) command += " AND DateEffective<=" + SOut.Date(dateEffective);
         Db.NonQ(command);
     }
-
-    #endregion Delete
-
-    #region Misc Methods
-
-    /// <summary>
-    ///     Increases the fees passed in by percent.  Round should be the number of decimal places, either 0,1,or 2.
-    ///     This method will not manipulate listFees passed in, although there is no particular reason for this choice.
-    ///     Simply increases every fee passed in by the percent specified and returns the results.
-    ///     The following parameters are ignored: feeSchedNum, clinicNum, and provNum.
-    ///     If dateEffective was passed in, then it will update each new fee to that Date. Otherwise set to today.
-    /// </summary>
-    public static List<Fee> IncreaseNew(long feeSchedNum, int percent, int round, List<Fee> listFees, long clinicNum, long provNum, DateTime dateEffective = new())
+    
+    public static List<Fee> IncreaseNew(int percent, int round, List<Fee> listFees, DateTime dateEffective = new())
     {
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
         var listFeesRetVal = new List<Fee>();
@@ -673,30 +480,17 @@ public class Fees
 
         return listFeesRetVal;
     }
-
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching feeNum as FKey and are related to Fee.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Fee table type.
-    /// </summary>
+    
     public static void ClearFkey(long feeNum)
     {
         FeeCrud.ClearFkey(feeNum);
     }
 
-    /// <summary>
-    ///     Zeros securitylog FKey column for rows that are using the matching feeNums as FKey and are related to Fee.
-    ///     Permtypes are generated from the AuditPerms property of the CrudTableAttribute within the Fee table type.
-    /// </summary>
     public static void ClearFkey(List<long> listFeeNums)
     {
         FeeCrud.ClearFkey(listFeeNums);
     }
 
-    /// <summary>
-    ///     Returns true if the feeAmtNewStr is an amount that does not match fee, either because fee is null and feeAmtNewStr
-    ///     is not, or because
-    ///     fee not null and the feeAmtNewStr is an equal amount, including a blank entry.
-    /// </summary>
     public static bool IsFeeAmtEqual(Fee fee, string feeAmtNewStr)
     {
         //There is no fee in the database and the user didn't set a new fee value so there is no change.
@@ -706,7 +500,6 @@ public class Fees
         return false;
     }
 
-    ///<summary>Returns true if any fees have DateEffective set.</summary>
     public static bool IsUsingEffectiveDate()
     {
         //Need this anymore?
@@ -716,7 +509,6 @@ public class Fees
         return false;
     }
 
-    ///<summary>Returns true if there is already a fee with the passed in DateEffective to prevent duplicates.</summary>
     public static bool CheckForDuplicate(Fee fee, DateTime dateEffective)
     {
         var command = "SELECT COUNT(*) FROM fee WHERE FeeNum!=" + SOut.Long(fee.FeeNum) + " AND FeeSched=" + SOut.Long(fee.FeeSched) + " AND CodeNum=" + SOut.Long(fee.CodeNum)
@@ -724,6 +516,4 @@ public class Fees
         if (Db.GetLong(command) > 0) return true;
         return false;
     }
-
-    #endregion Misc Methods
 }

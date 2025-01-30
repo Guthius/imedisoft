@@ -5,23 +5,13 @@ using System.Drawing.Printing;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using OpenDentBusiness.Crud;
+using Imedisoft.Core.Crud;
+using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-/// <summary>
-///     Handles all the business logic for printers.  Used heavily by the UI.  Every single function that makes
-///     changes to the database must be completely autonomous and do ALL validation itself.
-/// </summary>
 public class Printers
 {
-    ///<summary>Gets the cached list of printers.</summary>
-    public static List<Printer> GetListPrinters()
-    {
-        return _PrinterCache.GetDeepCopy();
-    }
-
-    ///<summary>Gets directly from database</summary>
     public static Printer GetOnePrinter(PrintSituation sit, long compNum)
     {
         var command = "SELECT * FROM printer WHERE "
@@ -29,19 +19,16 @@ public class Printers
                       + "AND ComputerNum ='" + SOut.Long(compNum) + "'";
         return PrinterCrud.SelectOne(command);
     }
-
     
-    private static long Insert(Printer cur)
+    private static void Insert(Printer cur)
     {
-        return PrinterCrud.Insert(cur);
+        PrinterCrud.Insert(cur);
     }
-
     
     private static void Update(Printer cur)
     {
         PrinterCrud.Update(cur);
     }
-
     
     private static void Delete(Printer cur)
     {
@@ -59,10 +46,6 @@ public class Printers
         return false;
     }
 
-    /// <summary>
-    ///     Gets the set printer whether or not it is valid.  Returns null if the current computer OR printer cannot be
-    ///     found.
-    /// </summary>
     public static Printer GetForSit(PrintSituation sit)
     {
         var compCur = Computers.GetCur();
@@ -70,10 +53,6 @@ public class Printers
         return GetFirstOrDefault(x => x.ComputerNum == compCur.ComputerNum && x.PrintSit == sit);
     }
 
-    /// <summary>
-    ///     Either does an insert or an update to the database if need to create a Printer object.  Or it also deletes a
-    ///     printer object if needed.
-    /// </summary>
     public static void PutForSit(PrintSituation sit, string computerName, string printerName, bool displayPrompt, bool isVirtual = false, string fileExtension = "")
     {
         //Computer[] compList=Computers.Refresh();
@@ -112,10 +91,6 @@ public class Printers
         }
     }
 
-    /// <summary>
-    ///     Called from FormPrinterSetup if user selects the easy option.  Since the other options will be hidden, we have
-    ///     to clear them.  User should be sternly warned before this happens.
-    /// </summary>
     public static void ClearAll()
     {
         //first, delete all entries
@@ -135,9 +110,7 @@ public class Printers
             Insert(cur);
         }
     }
-
-    #region CachePattern
-
+    
     private class PrinterCache : CacheListAbs<Printer>
     {
         protected override List<Printer> GetCacheFromDb()
@@ -166,40 +139,26 @@ public class Printers
             Printers.GetTableFromCache(false);
         }
     }
-
-    ///<summary>The object that accesses the cache in a thread-safe manner.</summary>
-    private static readonly PrinterCache _PrinterCache = new();
+    
+    private static readonly PrinterCache Cache = new();
 
     public static Printer GetFirstOrDefault(Func<Printer, bool> match, bool isShort = false)
     {
-        return _PrinterCache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    /// <summary>
-    ///     Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's
-    ///     cache.
-    /// </summary>
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return GetTableFromCache(true);
+        GetTableFromCache(true);
     }
 
-    ///<summary>Fills the local cache with the passed in DataTable.</summary>
-    public static void FillCacheFromTable(DataTable table)
-    {
-        _PrinterCache.FillCacheFromTable(table);
-    }
-
-    ///<summary>Always refreshes the ClientWeb's cache.</summary>
     public static DataTable GetTableFromCache(bool doRefreshCache)
     {
-        return _PrinterCache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()
     {
-        _PrinterCache.ClearCache();
+        Cache.ClearCache();
     }
-
-    #endregion
 }

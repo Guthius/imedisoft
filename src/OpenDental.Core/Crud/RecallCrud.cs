@@ -5,10 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 #endregion
 
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class RecallCrud
 {
@@ -116,7 +118,7 @@ public class RecallCrud
                                      + SOut.Int((int) recall.Priority) + ","
                                      + "'" + SOut.String(recall.TimePatternOverride) + "')";
         if (recall.Note == null) recall.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(recall.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(recall.Note));
         {
             recall.RecallNum = Db.NonQ(command, true, "RecallNum", "recall", paramNote);
         }
@@ -231,7 +233,7 @@ public class RecallCrud
                                      + SOut.Int((int) recall.Priority) + ","
                                      + "'" + SOut.String(recall.TimePatternOverride) + "')";
         if (recall.Note == null) recall.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(recall.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(recall.Note));
         if (useExistingPK || isRandomKeys)
             Db.NonQ(command, paramNote);
         else
@@ -259,7 +261,7 @@ public class RecallCrud
                       + "TimePatternOverride= '" + SOut.String(recall.TimePatternOverride) + "' "
                       + "WHERE RecallNum = " + SOut.Long(recall.RecallNum);
         if (recall.Note == null) recall.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(recall.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(recall.Note));
         Db.NonQ(command, paramNote);
     }
 
@@ -353,7 +355,7 @@ public class RecallCrud
 
         if (command == "") return false;
         if (recall.Note == null) recall.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", OdDbType.Text, SOut.StringParam(recall.Note));
+        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(recall.Note));
         command = "UPDATE recall SET " + command
                                        + " WHERE RecallNum = " + SOut.Long(recall.RecallNum);
         Db.NonQ(command, paramNote);

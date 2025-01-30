@@ -1,32 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class ERoutingActionDefCrud
 {
-    public static ERoutingActionDef SelectOne(long eRoutingActionDefNum)
-    {
-        var command = "SELECT * FROM eroutingactiondef "
-                      + "WHERE ERoutingActionDefNum = " + SOut.Long(eRoutingActionDefNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ERoutingActionDef SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ERoutingActionDef> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -73,12 +54,7 @@ public class ERoutingActionDefCrud
         return table;
     }
 
-    public static long Insert(ERoutingActionDef eRoutingActionDef)
-    {
-        return Insert(eRoutingActionDef, false);
-    }
-
-    public static long Insert(ERoutingActionDef eRoutingActionDef, bool useExistingPK)
+    public static void Insert(ERoutingActionDef eRoutingActionDef)
     {
         var command = "INSERT INTO eroutingactiondef (";
 
@@ -88,7 +64,7 @@ public class ERoutingActionDefCrud
             SOut.Long(eRoutingActionDef.ERoutingDefNum) + ","
                                                         + SOut.Int((int) eRoutingActionDef.ERoutingActionType) + ","
                                                         + SOut.Int(eRoutingActionDef.ItemOrder) + ","
-                                                        + DbHelper.Now() + ","
+                                                        + "NOW()" + ","
                                                         + SOut.DateTime(eRoutingActionDef.DateTLastModified) + ","
                                                         + SOut.Long(eRoutingActionDef.ForeignKey) + ","
                                                         + SOut.Int((int) eRoutingActionDef.ForeignKeyType) + ","
@@ -96,35 +72,6 @@ public class ERoutingActionDefCrud
         {
             eRoutingActionDef.ERoutingActionDefNum = Db.NonQ(command, true, "ERoutingActionDefNum", "eRoutingActionDef");
         }
-        return eRoutingActionDef.ERoutingActionDefNum;
-    }
-
-    public static long InsertNoCache(ERoutingActionDef eRoutingActionDef)
-    {
-        return InsertNoCache(eRoutingActionDef, false);
-    }
-
-    public static long InsertNoCache(ERoutingActionDef eRoutingActionDef, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO eroutingactiondef (";
-        if (isRandomKeys || useExistingPK) command += "ERoutingActionDefNum,";
-        command += "ERoutingDefNum,ERoutingActionType,ItemOrder,SecDateTEntry,DateTLastModified,ForeignKey,ForeignKeyType,LabelOverride) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(eRoutingActionDef.ERoutingActionDefNum) + ",";
-        command +=
-            SOut.Long(eRoutingActionDef.ERoutingDefNum) + ","
-                                                        + SOut.Int((int) eRoutingActionDef.ERoutingActionType) + ","
-                                                        + SOut.Int(eRoutingActionDef.ItemOrder) + ","
-                                                        + DbHelper.Now() + ","
-                                                        + SOut.DateTime(eRoutingActionDef.DateTLastModified) + ","
-                                                        + SOut.Long(eRoutingActionDef.ForeignKey) + ","
-                                                        + SOut.Int((int) eRoutingActionDef.ForeignKeyType) + ","
-                                                        + "'" + SOut.String(eRoutingActionDef.LabelOverride) + "')";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            eRoutingActionDef.ERoutingActionDefNum = Db.NonQ(command, true, "ERoutingActionDefNum", "eRoutingActionDef");
-        return eRoutingActionDef.ERoutingActionDefNum;
     }
 
     public static void Update(ERoutingActionDef eRoutingActionDef)
@@ -142,84 +89,10 @@ public class ERoutingActionDefCrud
         Db.NonQ(command);
     }
 
-    public static bool Update(ERoutingActionDef eRoutingActionDef, ERoutingActionDef oldERoutingActionDef)
-    {
-        var command = "";
-        if (eRoutingActionDef.ERoutingDefNum != oldERoutingActionDef.ERoutingDefNum)
-        {
-            if (command != "") command += ",";
-            command += "ERoutingDefNum = " + SOut.Long(eRoutingActionDef.ERoutingDefNum) + "";
-        }
-
-        if (eRoutingActionDef.ERoutingActionType != oldERoutingActionDef.ERoutingActionType)
-        {
-            if (command != "") command += ",";
-            command += "ERoutingActionType = " + SOut.Int((int) eRoutingActionDef.ERoutingActionType) + "";
-        }
-
-        if (eRoutingActionDef.ItemOrder != oldERoutingActionDef.ItemOrder)
-        {
-            if (command != "") command += ",";
-            command += "ItemOrder = " + SOut.Int(eRoutingActionDef.ItemOrder) + "";
-        }
-
-        //SecDateTEntry not allowed to change
-        if (eRoutingActionDef.DateTLastModified != oldERoutingActionDef.DateTLastModified)
-        {
-            if (command != "") command += ",";
-            command += "DateTLastModified = " + SOut.DateTime(eRoutingActionDef.DateTLastModified) + "";
-        }
-
-        if (eRoutingActionDef.ForeignKey != oldERoutingActionDef.ForeignKey)
-        {
-            if (command != "") command += ",";
-            command += "ForeignKey = " + SOut.Long(eRoutingActionDef.ForeignKey) + "";
-        }
-
-        if (eRoutingActionDef.ForeignKeyType != oldERoutingActionDef.ForeignKeyType)
-        {
-            if (command != "") command += ",";
-            command += "ForeignKeyType = " + SOut.Int((int) eRoutingActionDef.ForeignKeyType) + "";
-        }
-
-        if (eRoutingActionDef.LabelOverride != oldERoutingActionDef.LabelOverride)
-        {
-            if (command != "") command += ",";
-            command += "LabelOverride = '" + SOut.String(eRoutingActionDef.LabelOverride) + "'";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE eroutingactiondef SET " + command
-                                                  + " WHERE ERoutingActionDefNum = " + SOut.Long(eRoutingActionDef.ERoutingActionDefNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(ERoutingActionDef eRoutingActionDef, ERoutingActionDef oldERoutingActionDef)
-    {
-        if (eRoutingActionDef.ERoutingDefNum != oldERoutingActionDef.ERoutingDefNum) return true;
-        if (eRoutingActionDef.ERoutingActionType != oldERoutingActionDef.ERoutingActionType) return true;
-        if (eRoutingActionDef.ItemOrder != oldERoutingActionDef.ItemOrder) return true;
-        //SecDateTEntry not allowed to change
-        if (eRoutingActionDef.DateTLastModified != oldERoutingActionDef.DateTLastModified) return true;
-        if (eRoutingActionDef.ForeignKey != oldERoutingActionDef.ForeignKey) return true;
-        if (eRoutingActionDef.ForeignKeyType != oldERoutingActionDef.ForeignKeyType) return true;
-        if (eRoutingActionDef.LabelOverride != oldERoutingActionDef.LabelOverride) return true;
-        return false;
-    }
-
     public static void Delete(long eRoutingActionDefNum)
     {
         var command = "DELETE FROM eroutingactiondef "
                       + "WHERE ERoutingActionDefNum = " + SOut.Long(eRoutingActionDefNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listERoutingActionDefNums)
-    {
-        if (listERoutingActionDefNums == null || listERoutingActionDefNums.Count == 0) return;
-        var command = "DELETE FROM eroutingactiondef "
-                      + "WHERE ERoutingActionDefNum IN(" + string.Join(",", listERoutingActionDefNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

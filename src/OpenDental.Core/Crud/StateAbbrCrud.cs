@@ -1,32 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
-#endregion
-
-namespace OpenDentBusiness.Crud;
+namespace Imedisoft.Core.Crud;
 
 public class StateAbbrCrud
 {
-    public static StateAbbr SelectOne(long stateAbbrNum)
-    {
-        var command = "SELECT * FROM stateabbr "
-                      + "WHERE StateAbbrNum = " + SOut.Long(stateAbbrNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static StateAbbr SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<StateAbbr> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -63,12 +44,7 @@ public class StateAbbrCrud
         return table;
     }
 
-    public static long Insert(StateAbbr stateAbbr)
-    {
-        return Insert(stateAbbr, false);
-    }
-
-    public static long Insert(StateAbbr stateAbbr, bool useExistingPK)
+    public static void Insert(StateAbbr stateAbbr)
     {
         var command = "INSERT INTO stateabbr (";
 
@@ -81,30 +57,6 @@ public class StateAbbrCrud
         {
             stateAbbr.StateAbbrNum = Db.NonQ(command, true, "StateAbbrNum", "stateAbbr");
         }
-        return stateAbbr.StateAbbrNum;
-    }
-
-    public static long InsertNoCache(StateAbbr stateAbbr)
-    {
-        return InsertNoCache(stateAbbr, false);
-    }
-
-    public static long InsertNoCache(StateAbbr stateAbbr, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO stateabbr (";
-        if (isRandomKeys || useExistingPK) command += "StateAbbrNum,";
-        command += "Description,Abbr,MedicaidIDLength) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(stateAbbr.StateAbbrNum) + ",";
-        command +=
-            "'" + SOut.String(stateAbbr.Description) + "',"
-            + "'" + SOut.String(stateAbbr.Abbr) + "',"
-            + SOut.Int(stateAbbr.MedicaidIDLength) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            stateAbbr.StateAbbrNum = Db.NonQ(command, true, "StateAbbrNum", "stateAbbr");
-        return stateAbbr.StateAbbrNum;
     }
 
     public static void Update(StateAbbr stateAbbr)
@@ -117,54 +69,10 @@ public class StateAbbrCrud
         Db.NonQ(command);
     }
 
-    public static bool Update(StateAbbr stateAbbr, StateAbbr oldStateAbbr)
-    {
-        var command = "";
-        if (stateAbbr.Description != oldStateAbbr.Description)
-        {
-            if (command != "") command += ",";
-            command += "Description = '" + SOut.String(stateAbbr.Description) + "'";
-        }
-
-        if (stateAbbr.Abbr != oldStateAbbr.Abbr)
-        {
-            if (command != "") command += ",";
-            command += "Abbr = '" + SOut.String(stateAbbr.Abbr) + "'";
-        }
-
-        if (stateAbbr.MedicaidIDLength != oldStateAbbr.MedicaidIDLength)
-        {
-            if (command != "") command += ",";
-            command += "MedicaidIDLength = " + SOut.Int(stateAbbr.MedicaidIDLength) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE stateabbr SET " + command
-                                          + " WHERE StateAbbrNum = " + SOut.Long(stateAbbr.StateAbbrNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(StateAbbr stateAbbr, StateAbbr oldStateAbbr)
-    {
-        if (stateAbbr.Description != oldStateAbbr.Description) return true;
-        if (stateAbbr.Abbr != oldStateAbbr.Abbr) return true;
-        if (stateAbbr.MedicaidIDLength != oldStateAbbr.MedicaidIDLength) return true;
-        return false;
-    }
-
     public static void Delete(long stateAbbrNum)
     {
         var command = "DELETE FROM stateabbr "
                       + "WHERE StateAbbrNum = " + SOut.Long(stateAbbrNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listStateAbbrNums)
-    {
-        if (listStateAbbrNums == null || listStateAbbrNums.Count == 0) return;
-        var command = "DELETE FROM stateabbr "
-                      + "WHERE StateAbbrNum IN(" + string.Join(",", listStateAbbrNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }
